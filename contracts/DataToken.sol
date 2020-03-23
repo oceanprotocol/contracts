@@ -3,7 +3,7 @@ pragma solidity ^0.5.3;
 import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
 import "@openzeppelin/upgrades/contracts/Initializable.sol";
 
-contract DataToken is ERC20,Initializable{
+contract DataToken is ERC20, Initializable{
 
 	uint8 constant DECIMALS = 18;
 
