@@ -1,34 +1,48 @@
 pragma solidity ^0.5.3;
 
+import './TokenFactory.sol';
 import '@openzeppelin/contracts/token/ERC20/ERC20.sol';
 import '@openzeppelin/upgrades/contracts/Initializable.sol';
 
 // TODO
-// [] ERC20 standard interface + metadata
+// [x] ERC20 standard interface + metadata
+// [x] autogenerates human readable token names(ex. OceanDataToken1 - OceanDataTokenN)
+// [] Implement dynamic fees for: 
+//                  * 'mint'
+//                  * 'Deploy'
+//                  * 'approve'
+//                  * 'transfer'
 // [] DataToken is an integer(not divisible)
 // [] add Ownable
-// [] autogenerates human readable token names(ex. OceanDataToken1 - OceanDataTokenN)
-// [] Implement dynamic fees for 'mint', 'transfer', 'approve', Deploy proxy contract 
 
-contract DataToken is ERC20, Initializable{
+contract DataToken is ERC20, Initializable {
 
-    string  name;
-    string  symbol;
-	string  metadata;
+    string       public name;
+    string       public symbol;
+	string       public metadata;
+    TokenFactory public factory;
+
+    event Initialized(address indexed thisAddress);
 
 	function initialize(
 		string memory _metadata
-		) public initializer 
+	) 
+    public 
+    initializer 
 	{
+        factory  = TokenFactory(msg.sender);
+	   	metadata = _metadata;
 
-		// name 	 = _name;
-		// symbol 	 = _symbol;
-		metadata = _metadata;
+        symbol   = string(abi.encodePacked('ODT-', factory.getTokenCount()));
+        name     = string(abi.encodePacked('OceanDataToken-', factory.getTokenCount()));
 
-		// Ownable.initialize(msg.sender);
+        emit Initialized(address(this));
 	} 
 
-	function _mint(address to, address payable from)
+	function _mint(
+        address to, 
+        address payable from
+    )
         external
         payable
     {
@@ -50,6 +64,4 @@ contract DataToken is ERC20, Initializable{
 
         _transfer(address(this), to, 1);
     }
-
-
 }

@@ -22,7 +22,8 @@ contract TokenFactory is ProxyFactory {
   	function createToken(
 		string memory _metadata
 	) 
-	public 
+	public
+	payable
 	{
         bytes memory _payload = abi.encodeWithSignature("initialize(string)", _metadata);
 		address token 		  = deployMinimal(template, _payload);
@@ -51,4 +52,13 @@ contract TokenFactory is ProxyFactory {
 	{
 		return tokenToId[tokenAddress];
 	}
+
+	function getTokenCount()
+	public
+	view
+	returns(uint256)
+	{
+		return tokenCount;
+	}
+
 }
