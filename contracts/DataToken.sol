@@ -17,14 +17,12 @@ contract DataToken is ERC20, Initializable{
 	string  metadata;
 
 	function initialize(
-		string memory  _name, 
-		string memory _symbol, 
 		string memory _metadata
 		) public initializer 
 	{
 
-		name 	 = _name;
-		symbol 	 = _symbol;
+		// name 	 = _name;
+		// symbol 	 = _symbol;
 		metadata = _metadata;
 
 		// Ownable.initialize(msg.sender);
