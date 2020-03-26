@@ -1,21 +1,25 @@
 pragma solidity ^0.5.3;
 
+import './Fees.sol';
 import './TokenFactory.sol';
+import '@openzeppelin/contracts/math/SafeMath.sol';
 import '@openzeppelin/contracts/token/ERC20/ERC20.sol';
 import '@openzeppelin/upgrades/contracts/Initializable.sol';
 
 // TODO
 // [x] ERC20 standard interface + metadata
 // [x] autogenerates human readable token names(ex. OceanDataToken1 - OceanDataTokenN)
-// [] Implement dynamic fees for: 
-//                  * 'mint'
-//                  * 'Deploy'
-//                  * 'approve'
-//                  * 'transfer'
-// [] DataToken is an integer(not divisible)
-// [] add Ownable
+// [ ] Implement dynamic fees for: 
+//                  [x] 'Deploy'
+//                  [x] 'mint'
+//                  [ ] 'approve'
+//                  [ ] 'transfer'
+// [ ] DataToken is an integer(not divisible)
+// [ ] add Ownable
 
-contract DataToken is ERC20, Initializable {
+contract DataToken is ERC20, Initializable, Fees {
+
+    using SafeMath for uint256;
 
     string       public name;
     string       public symbol;
@@ -30,38 +34,34 @@ contract DataToken is ERC20, Initializable {
     public 
     initializer 
 	{
+
         factory  = TokenFactory(msg.sender);
 	   	metadata = _metadata;
 
-        symbol   = string(abi.encodePacked('ODT-', factory.getTokenCount()));
-        name     = string(abi.encodePacked('OceanDataToken-', factory.getTokenCount()));
+        uint256 tokenNumber = factory.getTokenCount(); 
+
+        symbol   = string(abi.encodePacked('ODT-', tokenNumber.add(1))); 
+        name     = string(abi.encodePacked('OceanDataToken-', tokenNumber.add(1)));
 
         emit Initialized(address(this));
 	} 
 
-	function _mint(
+	function mint(
         address to, 
-        address payable from
+        uint256 amount 
     )
-        external
+        public
         payable
+        // onlyOwner
     {
-    	// require(owner == msg.sender,
-    	// 	"minter should be a message sender");
         uint256 startGas = gasleft();
         
-        super._mint(address(this), 1);
+        super._mint(address(this), amount);
         
-        uint256 usedGas = startGas - gasleft();
-        uint256 fee = usedGas * tx.gasprice;
+        require(_isPayed(startGas, msg.value),
+            "fee is not payed");
 
-    	require(msg.value > fee,
-    		"not enough ether to deduct fee");
-
-        if (msg.value > fee){
-        	from.transfer(msg.value-fee);
-        }
-
-        _transfer(address(this), to, 1);
+        _transfer(address(this), to, amount);
     }
+
 }

@@ -1,22 +1,32 @@
 pragma solidity ^0.5.3;
 
-import '@openzeppelin/upgrades/contracts/upgradeability/ProxyFactory.sol';
-import '@openzeppelin/contracts/math/SafeMath.sol';
+// TODO: add Ownable 
+import './Fees.sol';
 import './DataToken.sol';
+import '@openzeppelin/contracts/math/SafeMath.sol';
+import '@openzeppelin/contracts/ownership/Ownable.sol';
+import '@openzeppelin/upgrades/contracts/upgradeability/ProxyFactory.sol';
 
-contract TokenFactory is ProxyFactory {
+contract TokenFactory is ProxyFactory, Ownable, Fees {
 
 	using SafeMath for uint256;
 
-	address public template;
-   	uint256 public tokenCount;
+	address payable beneficiary;
+	address public  template;
+   	uint256 public  tokenCount;
 
    	mapping (uint256 => address) idToToken; 
    	mapping (address => uint256) tokenToId;
 
-	constructor(address _template) public {
-    	template   = _template;
-		tokenCount = 0;    	
+	constructor(
+		address _template, 
+		address payable _beneficiary
+	) 
+	public 
+	{
+    	beneficiary  = _beneficiary;
+    	template     = _template;
+		tokenCount   = 0;    	
   	}
 
   	function createToken(
@@ -25,12 +35,17 @@ contract TokenFactory is ProxyFactory {
 	public
 	payable
 	{
+        uint256 startGas      = gasleft();
+
         bytes memory _payload = abi.encodeWithSignature("initialize(string)", _metadata);
 		address token 		  = deployMinimal(template, _payload);
 
 		tokenCount 			  = tokenCount.add(1);
 		idToToken[tokenCount] = token;
 		tokenToId[token] 	  = tokenCount;
+	
+		require(_isPayed(startGas, msg.value),
+			"fee is not payed");
 	}
 
 	function getTokenAddress(
@@ -59,6 +74,15 @@ contract TokenFactory is ProxyFactory {
 	returns(uint256)
 	{
 		return tokenCount;
+	}
+
+	function changeBeneficiary(
+		address payable newBeneficiary
+	)
+	public
+	onlyOwner
+	{
+		beneficiary = newBeneficiary;
 	}
 
 }
