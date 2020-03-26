@@ -1,11 +1,5 @@
 pragma solidity ^0.5.3;
 
-import './Fees.sol';
-import './TokenFactory.sol';
-import '@openzeppelin/contracts/math/SafeMath.sol';
-import '@openzeppelin/contracts/token/ERC20/ERC20.sol';
-import '@openzeppelin/upgrades/contracts/Initializable.sol';
-
 // TODO
 // [x] ERC20 standard interface + metadata
 // [x] autogenerates human readable token names(ex. OceanDataToken1 - OceanDataTokenN)
@@ -14,10 +8,17 @@ import '@openzeppelin/upgrades/contracts/Initializable.sol';
 //                  [x] 'mint'
 //                  [ ] 'approve'
 //                  [ ] 'transfer'
-// [ ] DataToken is an integer(not divisible)
-// [ ] add Ownable
+// [x] DataToken is an integer(not divisible)
+// [x] add Ownable
 
-contract DataToken is ERC20, Initializable, Fees {
+import './Fees.sol';
+import './TokenFactory.sol';
+import '@openzeppelin/upgrades/contracts/Initializable.sol';
+import '@openzeppelin/contracts-ethereum-package/contracts/math/SafeMath.sol';
+import '@openzeppelin/contracts-ethereum-package/contracts/token/ERC20/ERC20.sol';
+import '@openzeppelin/contracts-ethereum-package/contracts/ownership/Ownable.sol';
+
+contract DataToken is Initializable, ERC20, Fees, Ownable {
 
     using SafeMath for uint256;
 
@@ -52,7 +53,7 @@ contract DataToken is ERC20, Initializable, Fees {
     )
         public
         payable
-        // onlyOwner
+        onlyOwner
     {
         uint256 startGas = gasleft();
         

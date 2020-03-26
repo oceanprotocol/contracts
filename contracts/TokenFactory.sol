@@ -1,10 +1,9 @@
 pragma solidity ^0.5.3;
 
-// TODO: add Ownable 
 import './Fees.sol';
 import './DataToken.sol';
-import '@openzeppelin/contracts/math/SafeMath.sol';
-import '@openzeppelin/contracts/ownership/Ownable.sol';
+import '@openzeppelin/contracts-ethereum-package/contracts/math/SafeMath.sol';
+import '@openzeppelin/contracts-ethereum-package/contracts/ownership/Ownable.sol';
 import '@openzeppelin/upgrades/contracts/upgradeability/ProxyFactory.sol';
 
 contract TokenFactory is ProxyFactory, Ownable, Fees {
