@@ -18,10 +18,11 @@ describe('TokenFactory', function () {
 
   });
 
-  // Test case
-  it('dummy case', async function () {
+  it('.. should create a deploy a token proxy', async function () {
 
-  	await console.log("dummy");
+  	await this.contract.createToken('metadata');
+
+    expect((await this.contract.getTokenCount()).toString()).to.equal('1');
 
   });
 });

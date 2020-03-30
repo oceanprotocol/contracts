@@ -51,15 +51,17 @@ contract TokenFactory is ProxyFactory, Ownable, Fees {
 	{
         uint256 startGas      = gasleft();
 
-        bytes memory _payload = abi.encodeWithSignature("initialize(string, address)", _metadata, msg.sender);
+        // bytes memory _payload = abi.encodeWithSignature("initialize(string, address)", _metadata, msg.sender);
+        bytes memory _payload = abi.encodeWithSignature("initialize(string)", _metadata);
+
 		address token 		  = deployMinimal(template, _payload);
 
 		tokenCount 			  = tokenCount.add(1);
 		idToToken[tokenCount] = token;
 		tokenToId[token] 	  = tokenCount;
 	
-		require(_isPayed(startGas, msg.value),
-			"fee is not payed");
+		// require(_isPayed(startGas, msg.value),
+		// 	"fee is not payed");
 		//TODO: add transfer fee to beneficiary 
 	}
 

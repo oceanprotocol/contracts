@@ -26,16 +26,16 @@ contract DataToken is Initializable, ERC20, Fees, Ownable {
     /**
      * @notice initializer
      * @param _metadata Data token metadata
-     * @param _publisher publisher(contract owner) address
+     * _publisher publisher(contract owner) address
      */
 	function initialize(
-		string memory _metadata,
-        address _publisher
+		string memory _metadata
+        // address _publisher
 	) 
     public 
     initializer 
 	{
-        Ownable.initialize(_publisher);
+        // Ownable.initialize(_publisher);
 
         factory  = TokenFactory(msg.sender);
 	   	metadata = _metadata;
