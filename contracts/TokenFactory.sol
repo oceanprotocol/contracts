@@ -1,10 +1,10 @@
-pragma solidity ^0.5.3;
+pragma solidity ^0.5.0;
 
 import './Fees.sol';
 import './DataToken.sol';
+import '@openzeppelin/upgrades/contracts/upgradeability/ProxyFactory.sol';
 import '@openzeppelin/contracts-ethereum-package/contracts/math/SafeMath.sol';
 import '@openzeppelin/contracts-ethereum-package/contracts/ownership/Ownable.sol';
-import '@openzeppelin/upgrades/contracts/upgradeability/ProxyFactory.sol';
 
 /**
 * @title TokenFactory
@@ -51,9 +51,7 @@ contract TokenFactory is ProxyFactory, Ownable, Fees {
 	{
         uint256 startGas      = gasleft();
 
-        // bytes memory _payload = abi.encodeWithSignature("initialize(string, address)", _metadata, msg.sender);
-        bytes memory _payload = abi.encodeWithSignature("initialize(string)", _metadata);
-
+        bytes memory _payload = abi.encodeWithSignature("initialize(string,address)", _metadata, msg.sender);
 		address token 		  = deployMinimal(template, _payload);
 
 		tokenCount 			  = tokenCount.add(1);

@@ -1,4 +1,4 @@
-pragma solidity ^0.5.3;
+pragma solidity ^0.5.0;
 
 import './Fees.sol';
 import './TokenFactory.sol';
@@ -25,17 +25,15 @@ contract DataToken is Initializable, ERC20, Fees, Ownable {
 
     /**
      * @notice initializer
-     * @param _metadata Data token metadata
-     * _publisher publisher(contract owner) address
      */
 	function initialize(
-		string memory _metadata
-        // address _publisher
+        string memory _metadata,
+        address _publisher
 	) 
     public 
     initializer 
 	{
-        // Ownable.initialize(_publisher);
+        Ownable.initialize(_publisher);
 
         factory  = TokenFactory(msg.sender);
 	   	metadata = _metadata;
@@ -70,5 +68,10 @@ contract DataToken is Initializable, ERC20, Fees, Ownable {
         //TODO: add transfer fee to beneficiary
         _transfer(address(this), _to, _amount);
     }
+
+
+// function symbol() public view returns (string)
+
+// function name() public view returns (string)
 
 }

@@ -18,7 +18,7 @@ describe('TokenFactory', function () {
 
   });
 
-  it('.. should create a deploy a token proxy', async function () {
+  it('.. should deploy a token proxy', async function () {
 
   	await this.contract.createToken('metadata');
 
