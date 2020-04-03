@@ -21,6 +21,8 @@ contract DataToken is Initializable, ERC20, Fees, Ownable {
 	string       public metadata;
     TokenFactory public factory;
 
+    bool         public initialized = false;
+
     event Initialized(address indexed thisAddress);
 
     /**
@@ -40,8 +42,9 @@ contract DataToken is Initializable, ERC20, Fees, Ownable {
 
         uint256 tokenNumber = factory.getTokenCount(); 
 
-        symbol   = string(abi.encodePacked('ODT-', tokenNumber.add(1))); 
-        name     = string(abi.encodePacked('OceanDataToken-', tokenNumber.add(1)));
+        symbol      = string(abi.encodePacked('ODT-', tokenNumber.add(1))); 
+        name        = string(abi.encodePacked('OceanDataToken-', tokenNumber.add(1)));
+        initialized = true;
 
         emit Initialized(address(this));
 	} 
@@ -70,8 +73,16 @@ contract DataToken is Initializable, ERC20, Fees, Ownable {
     }
 
 
-// function symbol() public view returns (string)
+    function getSymbol() public view returns (string memory) {
+        return symbol;
+    }
 
-// function name() public view returns (string)
+    function getName() public view returns (string memory) {
+        return name;
+    }
+
+    function isInitialized() public view returns (bool) {
+        return initialized;
+    }
 
 }

@@ -48,6 +48,7 @@ contract TokenFactory is ProxyFactory, Ownable, Fees {
 	) 
 	public
 	payable
+	returns(address)
 	{
         uint256 startGas      = gasleft();
 
@@ -61,6 +62,7 @@ contract TokenFactory is ProxyFactory, Ownable, Fees {
 		// require(_isPayed(startGas, msg.value),
 		// 	"fee is not payed");
 		//TODO: add transfer fee to beneficiary 
+		return token;
 	}
 
 	/**
