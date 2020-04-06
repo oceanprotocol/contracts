@@ -24,19 +24,21 @@ describe('TokenFactory', function () {
     // Deploy a new contract for each test
     let template = await DataToken.new({ from: owner });
     this.contract = await TokenFactory.new(template.address, owner, { from: owner });
-
+    this.value = new BN("10000000000000000");;
   });
 
   it('.. should deploy a token proxy', async function () {
 
-    await this.contract.createToken('metadata');
-    // check that token was added to minimal registry
+    // await this.contract.createToken('metadata', { value: this.value });
+    await this.contract.createToken('metadata', {value:this.value});
+
+    // check that the token was added to minimal registry
     expect((await this.contract.getTokenCount()).toString()).to.equal('1');
 
     let tokenAddress = await this.contract.getTokenAddress(1);
     let token = await DataToken.at(tokenAddress);
 
-    // check that token was initialized on creation
+    // check that the token was initialized on creation
     expect((await token.isInitialized()).toString()).to.equal('true');
 
   });

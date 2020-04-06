@@ -15,7 +15,7 @@ contract Fees {
     returns(bool)
     {
         uint256 usedGas = _startGas.sub(gasleft());
-    	return  usedGas.mul(tx.gasprice) >= _msgValue; //TODO: should be changed to '=='
+    	return  _msgValue >= usedGas.mul(tx.gasprice); //TODO: should be changed to '=='
     }
 
 }

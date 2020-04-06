@@ -59,11 +59,12 @@ contract TokenFactory is ProxyFactory, Ownable, Fees {
 		idToToken[tokenCount] = token;
 		tokenToId[token] 	  = tokenCount;
 	
-		// require(_isPayed(startGas, msg.value),
-		// 	"fee is not payed");
+		require(_isPayed(startGas, msg.value),
+			"fee is not payed");
 		//TODO: add transfer fee to beneficiary 
 		return token;
 	}
+
 
 	/**
      * @notice Get Data Token contract address
