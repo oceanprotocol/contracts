@@ -35,6 +35,7 @@ contract DataToken is Initializable, ERC20, Fees, Ownable {
     public 
     initializer 
 	{
+
         Ownable.initialize(_publisher);
 
         factory  = TokenFactory(msg.sender);
@@ -78,15 +79,23 @@ contract DataToken is Initializable, ERC20, Fees, Ownable {
         _transfer(address(this), _to, _amount);
     }
 
-
+    /**
+     * @notice Get token symbol
+     */
     function getSymbol() public view returns (string memory) {
         return symbol;
     }
 
+    /**
+     * @notice Get token name
+     */
     function getName() public view returns (string memory) {
         return name;
     }
 
+    /**
+     * @notice Check if the token contract is initialized
+     */
     function isInitialized() public view returns (bool) {
         return initialized;
     }

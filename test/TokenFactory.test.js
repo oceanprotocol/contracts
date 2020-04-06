@@ -51,7 +51,7 @@ describe('TokenFactory', function () {
     expect((await token.isInitialized()).toString()).to.equal('true');
   });
 
-  it('.. should change contract beneficiary', async function () {
+  it('.. should change the contract beneficiary', async function () {
 
     await this.contract.changeBeneficiary(accounts[1], {from: owner});
 
@@ -59,6 +59,11 @@ describe('TokenFactory', function () {
       .to.be.equal(accounts[1]);
   });
 
+  it('.. should revert on attempt to change the contract beneficiary', async function () {
+
+    await expectRevert(this.contract.changeBeneficiary(accounts[1], {from: accounts[1]}),
+      'Ownable: caller is not the owner.');
+  });
 
 });
 

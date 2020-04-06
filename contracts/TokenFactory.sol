@@ -113,6 +113,9 @@ contract TokenFactory is ProxyFactory, Ownable, Fees {
 		return tokenCount;
 	}
 
+	/**
+     * @notice Get address of a current beneficiary
+     */
 	function getBeneficiary(
 		) 
 	public 
