@@ -58,7 +58,8 @@ contract TokenFactory is ProxyFactory, Ownable, Fees {
 		tokenCount 			  = tokenCount.add(1);
 		idToToken[tokenCount] = token;
 		tokenToId[token] 	  = tokenCount;
-	
+
+		// discuss: change to "=="
 		require(msg.value >= _getFee(startGas),
 			"fee amount is not enough");
 		
@@ -103,7 +104,8 @@ contract TokenFactory is ProxyFactory, Ownable, Fees {
      * @notice Get total number of tokens deployed
      * @return number of tokens deployed
      */
-	function getTokenCount()
+	function getTokenCount(
+		)
 	public
 	view
 	returns(uint256)
@@ -111,9 +113,18 @@ contract TokenFactory is ProxyFactory, Ownable, Fees {
 		return tokenCount;
 	}
 
+	function getBeneficiary(
+		) 
+	public 
+	view 
+	returns(address payable) 
+	{
+		return beneficiary;
+	}
+
 	/**
-     * @notice Change beneficiarry address(only contract owner can do that)
-	 * @param newBeneficiary new beneficiarry address
+     * @notice Change beneficiary address(only contract owner can do that)
+	 * @param newBeneficiary new beneficiary address
      */
 	function changeBeneficiary(
 		address payable newBeneficiary

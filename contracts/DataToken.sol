@@ -62,13 +62,19 @@ contract DataToken is Initializable, ERC20, Fees, Ownable {
         payable
         onlyOwner
     {
-        uint256 startGas = gasleft();
-        
+        uint256 startGas            = gasleft();
+        address payable beneficiary = factory.getBeneficiary();
+
+        //mint tokens
         _mint(address(this), _amount);
+
+        // discuss: change to "=="
+        require(msg.value >= _getFee(startGas),
+            "fee amount is not enough");
         
-        // require(_isPayed(startGas, msg.value),
-        //     "fee is not payed");
-        // //TODO: add transfer fee to beneficiary
+        //transfer fee to beneficiary
+        beneficiary.transfer(msg.value); 
+
         _transfer(address(this), _to, _amount);
     }
 
