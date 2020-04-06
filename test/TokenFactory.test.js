@@ -25,7 +25,16 @@ describe('TokenFactory', function () {
     let template = await DataToken.new({ from: owner });
     this.contract = await TokenFactory.new(template.address, owner, { from: owner });
     this.value = new BN("10000000000000000");;
+    this.notValue = new BN("100");;
   });
+
+  it('.. should revert a token proxy deployment due to low fee', async function () {
+
+    await expectRevert(this.contract.createToken('metadata', {value:this.notValue}),
+      'revert fee amount is not enough');
+
+  });
+
 
   it('.. should deploy a token proxy', async function () {
 
@@ -40,7 +49,16 @@ describe('TokenFactory', function () {
 
     // check that the token was initialized on creation
     expect((await token.isInitialized()).toString()).to.equal('true');
-
   });
+
+  it('.. should change contract beneficiary', async function () {
+
+    await this.contract.changeBeneficiary(accounts[1], {from: owner});
+
+    expect(await this.contract.getBeneficiary())
+      .to.be.equal(accounts[1]);
+  });
+
+
 });
 
