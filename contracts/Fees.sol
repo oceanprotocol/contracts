@@ -6,16 +6,15 @@ contract Fees {
 
 	using SafeMath for uint256;
 
-    function _isPayed(
-        uint256 _startGas,
-        uint256 _msgValue
+    function _getFee(
+        uint256 _startGas
     )
     public
     view 
-    returns(bool)
+    returns(uint256)
     {
         uint256 usedGas = _startGas.sub(gasleft());
-    	return  _msgValue >= usedGas.mul(tx.gasprice); //TODO: should be changed to '=='
+    	return  usedGas.mul(tx.gasprice); 
     }
 
 }

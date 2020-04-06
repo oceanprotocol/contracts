@@ -66,9 +66,9 @@ contract DataToken is Initializable, ERC20, Fees, Ownable {
         
         _mint(address(this), _amount);
         
-        require(_isPayed(startGas, msg.value),
-            "fee is not payed");
-        //TODO: add transfer fee to beneficiary
+        // require(_isPayed(startGas, msg.value),
+        //     "fee is not payed");
+        // //TODO: add transfer fee to beneficiary
         _transfer(address(this), _to, _amount);
     }
 
