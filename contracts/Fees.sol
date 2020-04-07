@@ -22,7 +22,7 @@ contract Fees {
         uint256 _payed
     )
     public
-    view 
+    pure 
     returns(uint256)
     {
         return _payed.sub(_fee);
