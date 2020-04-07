@@ -17,4 +17,14 @@ contract Fees {
     	return  usedGas.mul(tx.gasprice); 
     }
 
+    function _getCashback(
+        uint256 _fee,
+        uint256 _payed
+    )
+    public
+    view 
+    returns(uint256)
+    {
+        return _payed.sub(_fee);
+    }
 }

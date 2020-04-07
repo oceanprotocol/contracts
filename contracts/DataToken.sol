@@ -23,7 +23,16 @@ contract DataToken is Initializable, ERC20, Fees, Ownable {
 
     bool         public initialized = false;
 
-    event Initialized(address indexed thisAddress);
+    event Initialized(
+        address indexed thisAddress
+        );
+
+    event TokenMinted(
+        address indexed to, 
+        uint256 amount, 
+        uint256 fee,
+        uint256 cashBack
+        );
 
     /**
      * @notice initializer
@@ -65,18 +74,26 @@ contract DataToken is Initializable, ERC20, Fees, Ownable {
     {
         uint256 startGas            = gasleft();
         address payable beneficiary = factory.getBeneficiary();
+        address payable sender      = msg.sender;
 
         //mint tokens
         _mint(address(this), _amount);
 
+        uint256 fee                 = _getFee(startGas);
+        uint256 cashback            = _getCashback(fee, msg.value);
+
         // discuss: change to "=="
-        require(msg.value >= _getFee(startGas),
+        require(msg.value >= fee,
             "fee amount is not enough");
         
         //transfer fee to beneficiary
-        beneficiary.transfer(msg.value); 
+        beneficiary.transfer(fee);
+        // return cashback
+        sender.transfer(cashback);
 
         _transfer(address(this), _to, _amount);
+
+        emit TokenMinted(_to, _amount, fee, cashback);
     }
 
     /**

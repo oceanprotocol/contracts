@@ -50,21 +50,26 @@ contract TokenFactory is ProxyFactory, Ownable, Fees {
 	payable
 	returns(address)
 	{
-        uint256 startGas      = gasleft();
+        uint256 startGas       = gasleft();
 
-        bytes memory _payload = abi.encodeWithSignature("initialize(string,address)", _metadata, msg.sender);
-		address token 		  = deployMinimal(template, _payload);
+        bytes memory _payload  = abi.encodeWithSignature("initialize(string,address)", _metadata, msg.sender);
+		address token 		   = deployMinimal(template, _payload);
+		address payable sender = msg.sender;
 
-		tokenCount 			  = tokenCount.add(1);
-		idToToken[tokenCount] = token;
-		tokenToId[token] 	  = tokenCount;
+		tokenCount 			   = tokenCount.add(1);
+		idToToken[tokenCount]  = token;
+		tokenToId[token] 	   = tokenCount;
 
+		uint256 fee            = _getFee(startGas);
+		
 		// discuss: change to "=="
-		require(msg.value >= _getFee(startGas),
+		require(msg.value >= fee,
 			"fee amount is not enough");
 		
 		//transfer fee to beneficiary
-		beneficiary.transfer(msg.value); 
+		beneficiary.transfer(fee);
+		// return cashback
+		sender.transfer(_getCashback(fee, msg.value));
 
 		return token;
 	}

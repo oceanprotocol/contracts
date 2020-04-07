@@ -24,8 +24,8 @@ describe('TokenFactory', function () {
     // Deploy a new contract for each test
     let template = await DataToken.new({ from: owner });
     this.contract = await TokenFactory.new(template.address, owner, { from: owner });
-    this.value = new BN("10000000000000000");;
-    this.notValue = new BN("100");;
+    this.value = new BN("10000000000000000");
+    this.notValue = new BN("100");
   });
 
   it('.. should revert a token proxy deployment due to low fee', async function () {
