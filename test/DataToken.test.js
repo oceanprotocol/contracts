@@ -39,7 +39,7 @@ describe('DataToken', function () {
                  ));
   });
 
-  it('.. should mint one token', async function () {
+  it('.. should mint one token and transfer it to another address', async function () {
     let beneficiaryStartBalance = await balance.current(this.beneficiary);
 
     let receipt = await this.token.mint(owner, 1, {value:this.value, from: owner});
@@ -63,6 +63,9 @@ describe('DataToken', function () {
     // check that beneficiary have recieved the fee
     expect (await beneficiaryStartBalance.lt(beneficiaryEndBalance));
 
+    await this.token.transfer(accounts[1], 1, {from: owner});
+
+    expect((await this.token.balanceOf(accounts[1])).toString()).to.equal('1');
   });
 
 
