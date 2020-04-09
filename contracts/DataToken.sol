@@ -72,6 +72,10 @@ contract DataToken is Initializable, ERC20, Fees, Ownable {
         payable
         onlyOwner
     {
+        //additional check so it does not revert with SafeMath: subtraction overflow
+        require(msg.value > 0,
+            "fee amount is not enough");
+        
         uint256 startGas            = gasleft();
         address payable beneficiary = factory.getBeneficiary();
         address payable sender      = msg.sender;

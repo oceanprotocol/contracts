@@ -39,6 +39,13 @@ describe('DataToken', function () {
                  ));
   });
 
+  it('.. should revert on minting due to lack of the fee', async function () {
+    let beneficiaryStartBalance = await balance.current(this.beneficiary);
+
+    await expectRevert(this.token.mint(owner, 10, {from: owner}),
+            'revert fee amount is not enough');
+  });
+
   it('.. should mint one token and transfer it to another address', async function () {
     let beneficiaryStartBalance = await balance.current(this.beneficiary);
 
