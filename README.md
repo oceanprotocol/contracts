@@ -36,17 +36,24 @@ Clone the project and install all dependencies:
 git clone git@github.com:oceanprotocol/contracts.git
 cd contracts/
 
-# install dependencies
-npm i
+# install openzeppelin cli and contracts-ethereum package
+npm install @openzeppelin/cli
 
-# install RPC client globally
-npm install -g ganache-cli
+npm install @openzeppelin/contracts-ethereum-package
+
+# install openzeppelin test environment
+npm install --save-dev mocha chai
+
+npm install --save-dev @openzeppelin/test-helpers
+
+npm install --save-dev @openzeppelin/test-environment
+
 ```
 
 Compile the solidity contracts:
 
 ```bash
-npm run compile
+oz compile
 ```
 
 In a new terminal, launch an Ethereum RPC client, e.g. [ganache-cli](https://github.com/trufflesuite/ganache-cli):
