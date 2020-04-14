@@ -50,6 +50,12 @@ npm install --save-dev @openzeppelin/test-environment
 
 ```
 
+Initialize openzeppelin project:
+
+```bash
+oz innit
+```
+
 Compile the solidity contracts:
 
 ```bash
@@ -65,12 +71,7 @@ ganache-cli
 Switch back to your other terminal and deploy the contracts:
 
 ```bash
-npm run deploy:development
-
-# for redeployment run this instead
-npm run clean
-npm run compile
-npm run deploy:development
+oz publish
 ```
 
 
