@@ -42,7 +42,7 @@ describe('TokenFactory', function () {
     await this.contract.createToken('metadata', {value:this.value});
 
     // check that the token was added to minimal registry
-    expect((await this.contract.getTokenCount()).toString()).to.equal('1');
+    expect((await this.contract.tokenCount()).toString()).to.equal('1');
 
     let tokenAddress = await this.contract.getTokenAddress(1);
     let token = await DataToken.at(tokenAddress);

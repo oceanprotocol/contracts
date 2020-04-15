@@ -50,7 +50,7 @@ contract DataToken is Initializable, ERC20, Fees, Ownable {
         factory  = TokenFactory(msg.sender);
 	   	metadata = _metadata;
 
-        uint256 tokenNumber = factory.getTokenCount(); 
+        uint256 tokenNumber = factory.tokenCount(); 
 
         symbol      = string(abi.encodePacked('ODT-', tokenNumber.add(1))); 
         name        = string(abi.encodePacked('OceanDataToken-', tokenNumber.add(1)));

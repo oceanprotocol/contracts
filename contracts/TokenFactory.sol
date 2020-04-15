@@ -106,19 +106,6 @@ contract TokenFactory is ProxyFactory, Ownable, Fees {
 	}
 
 	/**
-     * @notice Get total number of tokens deployed
-     * @return number of tokens deployed
-     */
-	function getTokenCount(
-		)
-	public
-	view
-	returns(uint256)
-	{
-		return tokenCount;
-	}
-
-	/**
      * @notice Change beneficiary address(only contract owner can do that)
 	 * @param newBeneficiary new beneficiary address
      */

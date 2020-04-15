@@ -35,7 +35,7 @@ describe('DataToken', function () {
 
     this.token = await DataToken.at(
                  await this.factory.getTokenAddress(
-                 await this.factory.getTokenCount()
+                 await this.factory.tokenCount()
                  ));
   });
 
