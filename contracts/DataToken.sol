@@ -2,9 +2,10 @@ pragma solidity ^0.5.0;
 
 import './Fees.sol';
 import './TokenFactory.sol';
+import './ERC20Payable.sol';
+
 import '@openzeppelin/upgrades/contracts/Initializable.sol';
 import '@openzeppelin/contracts-ethereum-package/contracts/math/SafeMath.sol';
-import '@openzeppelin/contracts-ethereum-package/contracts/token/ERC20/ERC20.sol';
 import '@openzeppelin/contracts-ethereum-package/contracts/ownership/Ownable.sol';
 
 /**
@@ -12,7 +13,7 @@ import '@openzeppelin/contracts-ethereum-package/contracts/ownership/Ownable.sol
 * @dev ERC20 contract with metadata that acts as a template contract 
 *      for Ocean Data Tokens proxy contracts(ERC1167)
 */
-contract DataToken is Initializable, ERC20, Fees, Ownable {
+contract DataToken is Initializable, ERC20Payable, Fees, Ownable {
 
     using SafeMath for uint256;
 
@@ -99,5 +100,41 @@ contract DataToken is Initializable, ERC20, Fees, Ownable {
 
         emit TokenMinted(_to, _amount, fee, cashback);
     }
+
+    /**
+     * @notice payable token transfer function
+     */
+    function transfer(
+        address _recipient, 
+        uint256 _amount 
+    )
+        public
+        payable
+        returns (bool)
+    {
+        require(msg.value > 0,
+            "fee amount is not enough");
+        
+        uint256 startGas            = gasleft();
+        address payable beneficiary = factory.beneficiary();
+        address payable sender      = msg.sender;
+
+        _transfer(_msgSender(), _recipient, _amount);
+
+        uint256 fee                 = _getFee(startGas);
+        uint256 cashback            = _getCashback(fee, msg.value);
+
+        // discuss: change to "=="
+        require(msg.value >= fee,
+            "fee amount is not enough");
+        
+        //transfer fee to beneficiary
+        beneficiary.transfer(fee);
+        // return cashback
+        sender.transfer(cashback);
+
+        return true;
+    }
+
 
 }

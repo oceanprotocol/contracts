@@ -70,9 +70,18 @@ describe('DataToken', function () {
     // check that beneficiary have recieved the fee
     expect (await beneficiaryStartBalance.lt(beneficiaryEndBalance));
 
-    await this.token.transfer(accounts[1], 1, {from: owner});
+    await this.token.transfer(accounts[1], 1, {from: owner, value: this.value});
 
     expect((await this.token.balanceOf(accounts[1])).toString()).to.equal('1');
+  });
+
+  it('.. should revert on transfer due to lack of the fee', async function () {
+    let beneficiaryStartBalance = await balance.current(this.beneficiary);
+
+    await this.token.mint(owner, 5, {value:this.value, from: owner});
+
+    await expectRevert(this.token.transfer(accounts[1], 1, {from: owner}),
+            'revert fee amount is not enough');
   });
 
 
