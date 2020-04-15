@@ -48,14 +48,14 @@ describe('TokenFactory', function () {
     let token = await DataToken.at(tokenAddress);
 
     // check that the token was initialized on creation
-    expect((await token.isInitialized()).toString()).to.equal('true');
+    expect((await token.initialized()).toString()).to.equal('true');
   });
 
   it('.. should change the contract beneficiary', async function () {
 
     await this.contract.changeBeneficiary(accounts[1], {from: owner});
 
-    expect(await this.contract.getBeneficiary())
+    expect(await this.contract.beneficiary())
       .to.be.equal(accounts[1]);
   });
 

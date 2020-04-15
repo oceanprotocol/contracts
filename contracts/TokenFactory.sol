@@ -14,9 +14,9 @@ contract TokenFactory is ProxyFactory, Ownable, Fees {
 
 	using SafeMath for uint256;
 
-	address payable beneficiary;
-	address public  template;
-   	uint256 public  tokenCount;
+	address payable public beneficiary;
+	address 		public template;
+   	uint256 		public tokenCount;
 
    	mapping (uint256 => address) idToToken; 
    	mapping (address => uint256) tokenToId;
@@ -116,18 +116,6 @@ contract TokenFactory is ProxyFactory, Ownable, Fees {
 	returns(uint256)
 	{
 		return tokenCount;
-	}
-
-	/**
-     * @notice Get address of a current beneficiary
-     */
-	function getBeneficiary(
-		) 
-	public 
-	view 
-	returns(address payable) 
-	{
-		return beneficiary;
 	}
 
 	/**

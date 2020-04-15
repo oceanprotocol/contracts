@@ -31,7 +31,7 @@ describe('DataToken', function () {
 
     this.factory.createToken('metadata', {value:this.value, from: owner});    
     
-    this.beneficiary = await this.factory.getBeneficiary();
+    this.beneficiary = await this.factory.beneficiary();
 
     this.token = await DataToken.at(
                  await this.factory.getTokenAddress(

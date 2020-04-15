@@ -77,7 +77,7 @@ contract DataToken is Initializable, ERC20, Fees, Ownable {
             "fee amount is not enough");
         
         uint256 startGas            = gasleft();
-        address payable beneficiary = factory.getBeneficiary();
+        address payable beneficiary = factory.beneficiary();
         address payable sender      = msg.sender;
 
         //mint tokens
@@ -98,27 +98,6 @@ contract DataToken is Initializable, ERC20, Fees, Ownable {
         _transfer(address(this), _to, _amount);
 
         emit TokenMinted(_to, _amount, fee, cashback);
-    }
-
-    /**
-     * @notice Get token symbol
-     */
-    function getSymbol() public view returns (string memory) {
-        return symbol;
-    }
-
-    /**
-     * @notice Get token name
-     */
-    function getName() public view returns (string memory) {
-        return name;
-    }
-
-    /**
-     * @notice Check if the token contract is initialized
-     */
-    function isInitialized() public view returns (bool) {
-        return initialized;
     }
 
 }
