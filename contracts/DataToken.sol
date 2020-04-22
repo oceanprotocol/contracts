@@ -1,4 +1,4 @@
-pragma solidity ^0.5.3;
+pragma solidity ^0.5.0;
 
 import './Fees.sol';
 import './TokenFactory.sol';
@@ -21,29 +21,40 @@ contract DataToken is Initializable, ERC20, Fees, Ownable {
 	string       public metadata;
     TokenFactory public factory;
 
-    event Initialized(address indexed thisAddress);
+    bool         public initialized = false;
+
+    event Initialized(
+        address indexed thisAddress
+        );
+
+    event TokenMinted(
+        address indexed to, 
+        uint256 amount, 
+        uint256 fee,
+        uint256 cashBack
+        );
 
     /**
      * @notice initializer
-     * @param _metadata Data token metadata
-     * @param _publisher publisher(contract owner) address
      */
 	function initialize(
-		string memory _metadata,
+        string memory _metadata,
         address _publisher
 	) 
     public 
     initializer 
 	{
+
         Ownable.initialize(_publisher);
 
         factory  = TokenFactory(msg.sender);
 	   	metadata = _metadata;
 
-        uint256 tokenNumber = factory.getTokenCount(); 
+        uint256 tokenNumber = factory.tokenCount(); 
 
-        symbol   = string(abi.encodePacked('ODT-', tokenNumber.add(1))); 
-        name     = string(abi.encodePacked('OceanDataToken-', tokenNumber.add(1)));
+        symbol      = string(abi.encodePacked('ODT-', tokenNumber.add(1))); 
+        name        = string(abi.encodePacked('OceanDataToken-', tokenNumber.add(1)));
+        initialized = true;
 
         emit Initialized(address(this));
 	} 
@@ -61,14 +72,32 @@ contract DataToken is Initializable, ERC20, Fees, Ownable {
         payable
         onlyOwner
     {
-        uint256 startGas = gasleft();
+        //additional check so it does not revert with SafeMath: subtraction overflow
+        require(msg.value > 0,
+            "fee amount is not enough");
         
+        uint256 startGas            = gasleft();
+        address payable beneficiary = factory.beneficiary();
+        address payable sender      = msg.sender;
+
+        //mint tokens
         _mint(address(this), _amount);
+
+        uint256 fee                 = _getFee(startGas);
+        uint256 cashback            = _getCashback(fee, msg.value);
+
+        // discuss: change to "=="
+        require(msg.value >= fee,
+            "fee amount is not enough");
         
-        require(_isPayed(startGas, msg.value),
-            "fee is not payed");
-        //TODO: add transfer fee to beneficiary
+        //transfer fee to beneficiary
+        beneficiary.transfer(fee);
+        // return cashback
+        sender.transfer(cashback);
+
         _transfer(address(this), _to, _amount);
+
+        emit TokenMinted(_to, _amount, fee, cashback);
     }
 
 }

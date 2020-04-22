@@ -36,42 +36,22 @@ Clone the project and install all dependencies:
 git clone git@github.com:oceanprotocol/contracts.git
 cd contracts/
 
-# install openzeppelin cli and contracts-ethereum package
-npm install @openzeppelin/cli
+# TODO
 
-npm install @openzeppelin/contracts-ethereum-package
-
-# install openzeppelin test environment
-npm install --save-dev mocha chai
-
-npm install --save-dev @openzeppelin/test-helpers
-
-npm install --save-dev @openzeppelin/test-environment
+TODO
 
 ```
 
-Initialize openzeppelin project:
+TODO:
 
 ```bash
-oz innit
+TODO
 ```
 
-Compile the solidity contracts:
+TODO:
 
 ```bash
-oz compile
-```
-
-In a new terminal, launch an Ethereum RPC client, e.g. [ganache-cli](https://github.com/trufflesuite/ganache-cli):
-
-```bash
-ganache-cli
-```
-
-Switch back to your other terminal and deploy the contracts:
-
-```bash
-oz publish
+TODO
 ```
 
 
