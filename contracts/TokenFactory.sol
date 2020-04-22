@@ -1,6 +1,6 @@
-pragma solidity 0.5.7;
+pragma solidity ^0.5.7;
 
-import './Deployer.sol';
+import './utils/Deployer.sol';
 
 contract TokenFactory is Deployer {
     

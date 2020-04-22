@@ -1,7 +1,7 @@
 pragma solidity ^0.5.7;
 
-import "openzeppelin-solidity/contracts/token/ERC20/ERC20.sol";
-import "./ServiceFeeManager.sol";
+import 'openzeppelin-solidity/contracts/token/ERC20/ERC20.sol';
+import './utils/ServiceFeeManager.sol';
 
 contract DataTokenTemplate is ERC20, ServiceFeeManager {
     using SafeMath for uint256;
