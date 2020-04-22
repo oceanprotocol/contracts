@@ -1,10 +1,10 @@
-pragma solidity ^0.5.3;
+pragma solidity ^0.5.0;
 
 import './Fees.sol';
 import './DataToken.sol';
+import '@openzeppelin/upgrades/contracts/upgradeability/ProxyFactory.sol';
 import '@openzeppelin/contracts-ethereum-package/contracts/math/SafeMath.sol';
 import '@openzeppelin/contracts-ethereum-package/contracts/ownership/Ownable.sol';
-import '@openzeppelin/upgrades/contracts/upgradeability/ProxyFactory.sol';
 
 /**
 * @title TokenFactory
@@ -14,9 +14,9 @@ contract TokenFactory is ProxyFactory, Ownable, Fees {
 
 	using SafeMath for uint256;
 
-	address payable beneficiary;
-	address public  template;
-   	uint256 public  tokenCount;
+	address payable public beneficiary;
+	address 		public template;
+   	uint256 		public tokenCount;
 
    	mapping (uint256 => address) idToToken; 
    	mapping (address => uint256) tokenToId;
@@ -48,20 +48,32 @@ contract TokenFactory is ProxyFactory, Ownable, Fees {
 	) 
 	public
 	payable
+	returns(address)
 	{
-        uint256 startGas      = gasleft();
+        uint256 startGas       = gasleft();
 
-        bytes memory _payload = abi.encodeWithSignature("initialize(string, address)", _metadata, msg.sender);
-		address token 		  = deployMinimal(template, _payload);
+        bytes memory _payload  = abi.encodeWithSignature("initialize(string,address)", _metadata, msg.sender);
+		address token 		   = deployMinimal(template, _payload);
+		address payable sender = msg.sender;
 
-		tokenCount 			  = tokenCount.add(1);
-		idToToken[tokenCount] = token;
-		tokenToId[token] 	  = tokenCount;
-	
-		require(_isPayed(startGas, msg.value),
-			"fee is not payed");
-		//TODO: add transfer fee to beneficiary 
+		tokenCount 			   = tokenCount.add(1);
+		idToToken[tokenCount]  = token;
+		tokenToId[token] 	   = tokenCount;
+
+		uint256 fee            = _getFee(startGas);
+		
+		// discuss: change to "=="
+		require(msg.value >= fee,
+			"fee amount is not enough");
+		
+		//transfer fee to beneficiary
+		beneficiary.transfer(fee);
+		// return cashback
+		sender.transfer(_getCashback(fee, msg.value));
+
+		return token;
 	}
+
 
 	/**
      * @notice Get Data Token contract address
@@ -94,20 +106,8 @@ contract TokenFactory is ProxyFactory, Ownable, Fees {
 	}
 
 	/**
-     * @notice Get total number of tokens deployed
-     * @return number of tokens deployed
-     */
-	function getTokenCount()
-	public
-	view
-	returns(uint256)
-	{
-		return tokenCount;
-	}
-
-	/**
-     * @notice Change beneficiarry address(only contract owner can do that)
-	 * @param newBeneficiary new beneficiarry address
+     * @notice Change beneficiary address(only contract owner can do that)
+	 * @param newBeneficiary new beneficiary address
      */
 	function changeBeneficiary(
 		address payable newBeneficiary
