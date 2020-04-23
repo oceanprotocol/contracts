@@ -3,12 +3,16 @@ pragma solidity ^0.5.7;
 import 'openzeppelin-solidity/contracts/token/ERC20/ERC20.sol';
 import './utils/ServiceFeeManager.sol';
 
+/**
+* @title DataTokenTemplate
+* @dev Template DataToken contract, used for as the reference for DataToken Proxy contracts deployment
+*/
 contract DataTokenTemplate is ERC20, ServiceFeeManager {
     using SafeMath for uint256;
     
-    bool private initialized = false;
-    string private _name;
-    string private _symbol;
+    bool    private initialized = false;
+    string  private _name;
+    string  private _symbol;
     address private _minter;
     uint256 private _cap;
     uint256 private _decimals;
@@ -29,7 +33,9 @@ contract DataTokenTemplate is ERC20, ServiceFeeManager {
         _;
     }
     
-    // only used prior contract deployment
+    /**
+     * @notice only used prior contract deployment
+     */
     constructor(
         string memory name,
         string memory symbol,
@@ -44,8 +50,11 @@ contract DataTokenTemplate is ERC20, ServiceFeeManager {
         );
     }
     
-    // only used prior token instance setup (all state variables will be initialized)
-    // "initialize(string,string,address)","datatoken-1","dt-1",0xBa3e0EC852Dc24cA7F454ea545D40B1462501711
+    
+    /**
+     * @notice only used prior token instance setup (all state variables will be initialized)
+        "initialize(string,string,address)","datatoken-1","dt-1",0xBa3e0EC852Dc24cA7F454ea545D40B1462501711
+     */
     function initialize(
         string memory name,
         string memory symbol,
@@ -80,6 +89,11 @@ contract DataTokenTemplate is ERC20, ServiceFeeManager {
         initialized = true;
     }
     
+    /**
+     * @notice mint Data Token
+     * @param account mint to address
+     * @param value amount of data tokens being minted
+     */
     function mint(address account, uint256 value) public payable onlyMinter {
         require(totalSupply().add(value) <= _cap, "ERC20Capped: cap exceeded");
         

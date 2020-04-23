@@ -1,6 +1,6 @@
 pragma solidity ^0.5.7;
 
-import "openzeppelin-solidity/contracts/math/SafeMath.sol";
+import 'openzeppelin-solidity/contracts/math/SafeMath.sol';
 
 contract ServiceFeeManager {
     using SafeMath for uint256;

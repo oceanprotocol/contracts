@@ -2,6 +2,10 @@ pragma solidity ^0.5.7;
 
 import './utils/Deployer.sol';
 
+/**
+* @title TokenFactory
+* @dev Contract for creation of Ocean Data Tokens
+*/
 contract TokenFactory is Deployer {
     
     address public tokenTemplate;
@@ -19,6 +23,10 @@ contract TokenFactory is Deployer {
         address indexed removedBy
     );
     
+    /**
+     * @notice constructor
+     * @param _template data token template address
+     */
     constructor (
         address _template
         // address _registry
@@ -34,6 +42,13 @@ contract TokenFactory is Deployer {
         // create tokenRegistry instance 
     }
     
+    /**
+     * @notice Create Data token contract proxy
+     * @param _logic Data token logic(metadata)
+     * @param _name Data token name
+     * @param _symbol Data token symbol
+     * @param _minter minter address
+     */
     function createToken(
         string memory _logic,
         string memory _name, 
