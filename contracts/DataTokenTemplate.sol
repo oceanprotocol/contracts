@@ -107,16 +107,10 @@ contract DataTokenTemplate is ERC20, ServiceFeeManager {
         require(totalSupply().add(value) <= _cap, "ERC20Capped: cap exceeded");
         
         uint256 startGas = gasleft();
-        address payable sender = msg.sender;
         super._mint(address(this), value);
 
-        uint256 fee = getFee(startGas, value); 
-        uint256 cashback = getCashback(fee, msg.value);
-
-        require(msg.value >= fee,
+        require(msg.value == getFee(startGas, value),
             "fee amount is not enough");
-
-        sender.transfer(cashback);
 
         _transfer(address(this), account, value);
 

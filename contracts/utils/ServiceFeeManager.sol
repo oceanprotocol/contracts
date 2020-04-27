@@ -21,16 +21,6 @@ contract ServiceFeeManager {
         return  ((_tokenAmount.mul(txPrice)).mul(DIVIDENT)).div(DIVIDER); 
     }
 
-    function getCashback(
-        uint256 _fee,
-        uint256 _payed
-    )
-    public
-    pure 
-    returns(uint256)
-    {
-        return _payed.sub(_fee);
-    }
  
     function _getTxPrice(
         uint256 _startGas
