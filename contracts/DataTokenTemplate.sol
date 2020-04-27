@@ -5,12 +5,13 @@ import './utils/ServiceFeeManager.sol';
 
 /**
 * @title DataTokenTemplate
-* @dev Template DataToken contract, used for as the reference for DataToken Proxy contracts deployment
+* @dev Template DataToken contrac, ServiceFeeManager t, used for as the reference for DataToken Proxy contracts deployment
 */
 contract DataTokenTemplate is ERC20, ServiceFeeManager {
     using SafeMath for uint256;
     
     bool    private initialized = false;
+    bool    private disabled    = false;
     string  private _name;
     string  private _symbol;
     address private _minter;
@@ -28,7 +29,15 @@ contract DataTokenTemplate is ERC20, ServiceFeeManager {
     modifier onlyMinter() {
         require(
             msg.sender == _minter,
-            'Invalid minter'
+            'Invalid minter' 
+        );
+        _;
+    }
+
+    modifier enabled() {
+        require(
+            disabled == false,
+            'This token is disabled' 
         );
         _;
     }
@@ -94,7 +103,7 @@ contract DataTokenTemplate is ERC20, ServiceFeeManager {
      * @param account mint to address
      * @param value amount of data tokens being minted
      */
-    function mint(address account, uint256 value) public payable onlyMinter {
+    function mint(address account, uint256 value) public payable enabled onlyMinter {
         require(totalSupply().add(value) <= _cap, "ERC20Capped: cap exceeded");
         
         uint256 startGas = gasleft();
@@ -113,9 +122,13 @@ contract DataTokenTemplate is ERC20, ServiceFeeManager {
 
     }
     
-    function setMinter(address minter) public onlyMinter {
+    function setMinter(address minter) public enabled onlyMinter {
         _minter = minter;
     }
+
+    function disable() public enabled /*onlyMinter*/ {
+        disabled = true;
+    } 
     
     function name() public view returns(string memory) {
         return _name;
@@ -139,5 +152,9 @@ contract DataTokenTemplate is ERC20, ServiceFeeManager {
     
     function isInitialized() public view returns(bool) {
         return initialized;
+    }
+
+    function isDisabled() public view returns(bool) {
+        return disabled;
     }
 }

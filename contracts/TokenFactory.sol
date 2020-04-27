@@ -1,6 +1,7 @@
 pragma solidity ^0.5.7;
 
 import './utils/Deployer.sol';
+import './DataTokenTemplate.sol';
 
 /**
 * @title TokenFactory
@@ -86,16 +87,17 @@ contract TokenFactory is Deployer {
     }
     
     
-    // function removeToken(
-    //     address _token
-    // ) 
-    //     public 
-    //     //onlyTokenOwner(_token)
-    // {
-    //     emit TokenRemoved(
-    //         _token,
-    //         tokenTemplate,
-    //         msg
-    //     );
-    // }
+    function removeToken(
+        address _token
+    ) 
+        public 
+        //onlyTokenOwner(_token)
+    {
+        DataTokenTemplate(currentTokenAddress).disable();
+        emit TokenRemoved(
+            _token,
+            tokenTemplate,
+            msg.sender
+        );
+    }
 }
