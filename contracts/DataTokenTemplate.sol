@@ -5,18 +5,20 @@ import './utils/ServiceFeeManager.sol';
 
 /**
 * @title DataTokenTemplate
-* @dev Template DataToken contrac, ServiceFeeManager t, used for as the reference for DataToken Proxy contracts deployment
+* @dev Template DataToken contract, used for as the reference for DataToken Proxy contracts deployment
 */
-contract DataTokenTemplate is ERC20, ServiceFeeManager {
+contract DataTokenTemplate is ERC20 {
     using SafeMath for uint256;
     
     bool    private initialized = false;
-    bool    private disabled    = false;
+    bool    private paused      = false;
     string  private _name;
     string  private _symbol;
-    address private _minter;
     uint256 private _cap;
     uint256 private _decimals;
+    address private _minter;
+
+    ServiceFeeManager serviceFeeManager;
     
     modifier onlyNotInitialized() {
         require(
@@ -34,10 +36,10 @@ contract DataTokenTemplate is ERC20, ServiceFeeManager {
         _;
     }
 
-    modifier enabled() {
+    modifier notPaused() {
         require(
-            disabled == false,
-            'This token is disabled' 
+            paused == false,
+            'This token contract is paused' 
         );
         _;
     }
@@ -48,17 +50,18 @@ contract DataTokenTemplate is ERC20, ServiceFeeManager {
     constructor(
         string memory name,
         string memory symbol,
-        address minter
+        address minter,
+        address feeManager
     )
         public
     {
          _initialize(
             name,
             symbol,
-            minter
+            minter,
+            feeManager
         );
     }
-    
     
     /**
      * @notice only used prior token instance setup (all state variables will be initialized)
@@ -67,7 +70,8 @@ contract DataTokenTemplate is ERC20, ServiceFeeManager {
     function initialize(
         string memory name,
         string memory symbol,
-        address minter
+        address minter,
+        address feeManager
     ) 
         public
         onlyNotInitialized 
@@ -75,14 +79,16 @@ contract DataTokenTemplate is ERC20, ServiceFeeManager {
         _initialize(
             name,
             symbol,
-            minter
+            minter,
+            feeManager
         );
     }
     
     function _initialize(
         string memory name,
         string memory symbol,
-        address minter    
+        address minter,
+        address feeManager    
     ) private {
         require(minter != address(0), 'Invalid minter:  address(0)');
         require(_minter == address(0), 'Invalid minter: access denied');
@@ -94,7 +100,9 @@ contract DataTokenTemplate is ERC20, ServiceFeeManager {
         _name = name;
         _symbol = symbol;
         _minter = minter;
-        
+
+        serviceFeeManager = ServiceFeeManager(feeManager);
+
         initialized = true;
     }
     
@@ -103,26 +111,26 @@ contract DataTokenTemplate is ERC20, ServiceFeeManager {
      * @param account mint to address
      * @param value amount of data tokens being minted
      */
-    function mint(address account, uint256 value) public payable enabled onlyMinter {
+    function mint(address account, uint256 value) public payable notPaused onlyMinter {
         require(totalSupply().add(value) <= _cap, "ERC20Capped: cap exceeded");
         
         uint256 startGas = gasleft();
         super._mint(address(this), value);
 
-        require(msg.value == getFee(startGas, value),
+        require(msg.value == serviceFeeManager.getFee(startGas, value),
             "fee amount is not enough");
 
         _transfer(address(this), account, value);
 
     }
     
-    function setMinter(address minter) public enabled onlyMinter {
+    function pauseToken() public notPaused onlyMinter {
+        paused = true;
+    } 
+
+    function setMinter(address minter) public notPaused onlyMinter {
         _minter = minter;
     }
-
-    function disable() public enabled /*onlyMinter*/ {
-        disabled = true;
-    } 
     
     function name() public view returns(string memory) {
         return _name;
@@ -148,7 +156,7 @@ contract DataTokenTemplate is ERC20, ServiceFeeManager {
         return initialized;
     }
 
-    function isDisabled() public view returns(bool) {
-        return disabled;
+    function isPaused() public view returns(bool) {
+        return paused;
     }
 }

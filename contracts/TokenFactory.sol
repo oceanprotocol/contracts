@@ -86,18 +86,4 @@ contract TokenFactory is Deployer {
         );
     }
     
-    
-    function removeToken(
-        address _token
-    ) 
-        public 
-        //onlyTokenOwner(_token)
-    {
-        DataTokenTemplate(currentTokenAddress).disable();
-        emit TokenRemoved(
-            _token,
-            tokenTemplate,
-            msg.sender
-        );
-    }
 }
