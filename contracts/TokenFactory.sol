@@ -1,121 +1,89 @@
-pragma solidity ^0.5.0;
+pragma solidity ^0.5.7;
 
-import './Fees.sol';
-import './DataToken.sol';
-import '@openzeppelin/upgrades/contracts/upgradeability/ProxyFactory.sol';
-import '@openzeppelin/contracts-ethereum-package/contracts/math/SafeMath.sol';
-import '@openzeppelin/contracts-ethereum-package/contracts/ownership/Ownable.sol';
+import './utils/Deployer.sol';
+import './DataTokenTemplate.sol';
 
 /**
 * @title TokenFactory
 * @dev Contract for creation of Ocean Data Tokens
 */
-contract TokenFactory is ProxyFactory, Ownable, Fees {
-
-	using SafeMath for uint256;
-
-	address payable public beneficiary;
-	address 		public template;
-   	uint256 		public tokenCount;
-
-   	mapping (uint256 => address) idToToken; 
-   	mapping (address => uint256) tokenToId;
-
-	/**
+contract TokenFactory is Deployer {
+    
+    address public tokenTemplate;
+    address public currentTokenAddress;
+    
+    event TokenCreated(
+        address indexed newTokenAddress, 
+        address indexed templateAddress,
+        string indexed name
+    );
+    
+    event TokenRemoved(
+        address indexed tokenAddress,
+        address indexed templateAddress,
+        address indexed removedBy
+    );
+    
+    /**
      * @notice constructor
      * @param _template data token template address
-     * @param _beneficiary address that collects fees
      */
-	constructor(
-		address _template, 
-		address payable _beneficiary
-	) 
-	public 
-	{
-		Ownable.initialize(msg.sender);
-
-    	beneficiary  = _beneficiary;
-    	template     = _template;
-		tokenCount   = 0;    	
-  	}
-
-	/**
+    constructor (
+        address _template
+        // address _registry
+    ) 
+        public 
+    {
+        require(
+            _template != address(0) , //&&
+           // _registry != address(0),
+            'Invalid TokenFactory initialization'
+        );
+        tokenTemplate = _template;
+        // create tokenRegistry instance 
+    }
+    
+    /**
      * @notice Create Data token contract proxy
-     * @param _metadata Data token metadata
+     * @param _logic Data token logic(metadata)
+     * @param _name Data token name
+     * @param _symbol Data token symbol
+     * @param _minter minter address
      */
-  	function createToken(
-		string memory _metadata
-	) 
-	public
-	payable
-	returns(address)
-	{
-        uint256 startGas       = gasleft();
-
-        bytes memory _payload  = abi.encodeWithSignature("initialize(string,address)", _metadata, msg.sender);
-		address token 		   = deployMinimal(template, _payload);
-		address payable sender = msg.sender;
-
-		tokenCount 			   = tokenCount.add(1);
-		idToToken[tokenCount]  = token;
-		tokenToId[token] 	   = tokenCount;
-
-		uint256 fee            = _getFee(startGas);
-		
-		// discuss: change to "=="
-		require(msg.value >= fee,
-			"fee amount is not enough");
-		
-		//transfer fee to beneficiary
-		beneficiary.transfer(fee);
-		// return cashback
-		sender.transfer(_getCashback(fee, msg.value));
-
-		return token;
-	}
-
-
-	/**
-     * @notice Get Data Token contract address
-     * @param tokenId token id
-     * @return token address
-     */
-	function getTokenAddress(
-		uint256 tokenId
-	)
-	public
-	view
-	returns(address)
-	{
-		return idToToken[tokenId];
-	}
-
-	/**
-     * @notice Get Data Token id
-     * @param tokenAddress Data Token contract address
-     * @return token id
-     */
-	function getTokenId(
-		address tokenAddress
-	)
-	public
-	view
-	returns(uint256)
-	{
-		return tokenToId[tokenAddress];
-	}
-
-	/**
-     * @notice Change beneficiary address(only contract owner can do that)
-	 * @param newBeneficiary new beneficiary address
-     */
-	function changeBeneficiary(
-		address payable newBeneficiary
-	)
-	public
-	onlyOwner
-	{
-		beneficiary = newBeneficiary;
-	}
-
+    function createToken(
+        string memory _logic,
+        string memory _name, 
+        string memory _symbol,
+        address _minter
+    ) 
+        public
+        returns (address token)
+    {
+        token = deploy(tokenTemplate);
+        
+        require(
+          token != address(0),
+          'Failed to perform minimal deploy of a new token'
+        );
+        
+        // init Token
+        bytes memory _initPayload  = abi.encodeWithSignature(
+                _logic, 
+                _name, 
+                _symbol,
+                _minter
+        );
+        
+        token.call(_initPayload);
+        //TODO: store Token in Token Registry
+        currentTokenAddress = token;
+        //TODO: fix ownership and access control
+        // set Token Owner to msg.sender
+        emit TokenCreated(
+            token, 
+            tokenTemplate,
+            _name
+        );
+    }
+    
 }
