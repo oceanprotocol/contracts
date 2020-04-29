@@ -18,6 +18,8 @@ contract DataTokenTemplate is ERC20 {
     uint256 private _decimals;
     address private _minter;
 
+    address payable private beneficiary;
+
     ServiceFeeManager serviceFeeManager;
     
     modifier onlyNotInitialized() {
@@ -51,7 +53,8 @@ contract DataTokenTemplate is ERC20 {
         string memory name,
         string memory symbol,
         address minter,
-        address feeManager
+        address payable feeManager
+
     )
         public
     {
@@ -71,7 +74,7 @@ contract DataTokenTemplate is ERC20 {
         string memory name,
         string memory symbol,
         address minter,
-        address feeManager
+        address payable feeManager
     ) 
         public
         onlyNotInitialized 
@@ -88,7 +91,7 @@ contract DataTokenTemplate is ERC20 {
         string memory name,
         string memory symbol,
         address minter,
-        address feeManager    
+        address payable feeManager
     ) private {
         require(minter != address(0), 'Invalid minter:  address(0)');
         require(_minter == address(0), 'Invalid minter: access denied');
@@ -96,12 +99,14 @@ contract DataTokenTemplate is ERC20 {
         _decimals = 18;
         uint256 baseCap = 1400000000;
         _cap = baseCap.mul(uint256(10) ** _decimals);
-        
-        _name = name;
+       
+         _name = name;
         _symbol = symbol;
         _minter = minter;
 
         serviceFeeManager = ServiceFeeManager(feeManager);
+
+        beneficiary = feeManager;
 
         initialized = true;
     }
@@ -111,17 +116,15 @@ contract DataTokenTemplate is ERC20 {
      * @param account mint to address
      * @param value amount of data tokens being minted
      */
-    function mint(address account, uint256 value) public payable notPaused onlyMinter {
+    function mint(address account, uint256 value) public payable onlyMinter {
+        uint256 startGas = gasleft();
         require(totalSupply().add(value) <= _cap, "ERC20Capped: cap exceeded");
         
-        uint256 startGas = gasleft();
-        super._mint(address(this), value);
-
-        require(msg.value == serviceFeeManager.getFee(startGas, value),
+        _mint(account, value);
+        require(msg.value >= serviceFeeManager.getFee(startGas, value),
             "fee amount is not enough");
-
-        _transfer(address(this), account, value);
-
+        
+        beneficiary.transfer(msg.value);
     }
     
     function pauseToken() public notPaused onlyMinter {
