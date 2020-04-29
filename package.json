@@ -14,5 +14,8 @@
   "license": "ISC",
   "devDependencies": {
     "openzeppelin-solidity": "^2.5.0"
+  },
+  "dependencies": {
+    "web3": "^1.2.7"
   }
 }
