@@ -119,7 +119,7 @@ contract DataTokenTemplate is ERC20 {
     
     function mint(address account, uint256 value) public payable onlyNotPaused onlyMinter {
         uint256 startGas = gasleft();
-        require(totalSupply().add(value) <= _cap, "ERC20Capped: cap exceeded");
+        require(totalSupply().add(value) <= _cap, "DataToken: cap exceeded");
         
         _mint(account, value);
         require(msg.value >= serviceFeeManager.getFee(startGas, value),
