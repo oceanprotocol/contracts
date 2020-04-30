@@ -1,4 +1,4 @@
-const TokenFactory = artifacts.require("TokenFactory");
+const Factory = artifacts.require("Factory");
 
 const truffleAssert = require('truffle-assertions');
 
@@ -7,7 +7,7 @@ contract("TokenFactory test", async accounts => {
 
   beforeEach('innit contracts for each test', async function () {
 
-  	factory = await TokenFactory.deployed();
+  	factory = await Factory.deployed();
 
   })
 

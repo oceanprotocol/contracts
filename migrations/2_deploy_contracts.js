@@ -1,18 +1,18 @@
 const Web3 = require('web3');
 const web3 = new Web3(new Web3.providers.HttpProvider('http://localhost:9545'));
 
-var TokenFactory = artifacts.require("TokenFactory");
-var ServiceFeeManager = artifacts.require("ServiceFeeManager");
-var DataTokenTemplate = artifacts.require("DataTokenTemplate");
+var Factory = artifacts.require("Factory");
+var FeeManager = artifacts.require("FeeManager");
+var ERC20Template = artifacts.require("ERC20Template");
 
 module.exports = function(deployer) {
 
     deployer.then(async () => {
     	let accounts = await web3.eth.getAccounts();
 
-        await deployer.deploy(ServiceFeeManager);
-    	await deployer.deploy(DataTokenTemplate, "DataToken", "DT", accounts[0], ServiceFeeManager.address);
-        await deployer.deploy(TokenFactory, DataTokenTemplate.address);
+        await deployer.deploy(FeeManager);
+    	await deployer.deploy(ERC20Template, "DataToken", "DT", accounts[0], FeeManager.address);
+        await deployer.deploy(Factory, ERC20Template.address);
 
     });
 
