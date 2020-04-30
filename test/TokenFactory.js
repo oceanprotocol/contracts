@@ -1,9 +1,19 @@
 const TokenFactory = artifacts.require("TokenFactory");
 
+const truffleAssert = require('truffle-assertions');
+
 contract("TokenFactory test", async accounts => {
-  it("should pass", async () => {
+  let factory;
+
+  beforeEach('innit contracts for each test', async function () {
+
+  	factory = await TokenFactory.deployed();
+
+  })
+
+  it("should create a token", async () => {
     
-    let instance = await TokenFactory.deployed();
+    truffleAssert.passes(factory.createToken("logic", "TestDataToken", "TDT", accounts[0]));
 
   });
 
