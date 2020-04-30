@@ -25,7 +25,7 @@ contract DataTokenTemplate is ERC20 {
     modifier onlyNotInitialized() {
         require(
           !initialized,
-          'Token Instance already initialized'
+          'DataToken: token instance already initialized'
         );
         _;
     }
@@ -33,7 +33,7 @@ contract DataTokenTemplate is ERC20 {
     modifier onlyMinter() {
         require(
             msg.sender == _minter,
-            'Invalid minter' 
+            'DataToken: invalid minter' 
         );
         _;
     }
@@ -41,7 +41,7 @@ contract DataTokenTemplate is ERC20 {
     modifier onlyNotPaused() {
         require(
             !paused,
-            'This token contract is paused' 
+            'DataToken: this token contract is paused' 
         );
         _;
     }
@@ -49,7 +49,7 @@ contract DataTokenTemplate is ERC20 {
     modifier onlyPaused() {
         require(
             paused,
-            'This token contract is not paused' 
+            'DataToken: this token contract is not paused' 
         );
         _;
     }
@@ -113,26 +113,39 @@ contract DataTokenTemplate is ERC20 {
         _minter = minter;
 
         serviceFeeManager = ServiceFeeManager(feeManager);
-
         beneficiary = feeManager;
-
         initialized = true;
     }
     
-    /**
-     * @notice mint Data Token
-     * @param account mint to address
-     * @param value amount of data tokens being minted
-     */
-    function mint(address account, uint256 value) public payable onlyMinter {
+    function mint(address account, uint256 value) public payable onlyNotPaused onlyMinter {
         uint256 startGas = gasleft();
         require(totalSupply().add(value) <= _cap, "ERC20Capped: cap exceeded");
         
         _mint(account, value);
         require(msg.value >= serviceFeeManager.getFee(startGas, value),
-            "fee amount is not enough");
+            "DataToken: fee amount is not enough");
         
         beneficiary.transfer(msg.value);
+    }
+
+    function transfer(address to, uint256 value) public onlyNotPaused returns (bool) {
+        return super.transfer(to, value);
+    }
+
+    function transferFrom(address from, address to, uint256 value) public onlyNotPaused returns (bool) {
+        return super.transferFrom(from, to, value);
+    }
+
+    function approve(address spender, uint256 value) public onlyNotPaused returns (bool) {
+        return super.approve(spender, value);
+    }
+
+    function increaseAllowance(address spender, uint256 addedValue) public onlyNotPaused returns (bool) {
+        return super.increaseAllowance(spender, addedValue);
+    }
+
+    function decreaseAllowance(address spender, uint256 subtractedValue) public onlyNotPaused returns (bool) {
+        return super.decreaseAllowance(spender, subtractedValue);
     }
     
     function pause() public onlyNotPaused onlyMinter {
