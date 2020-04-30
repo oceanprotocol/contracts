@@ -1,6 +1,6 @@
 pragma solidity ^0.5.7;
 
-import './fee/Manager.sol';
+import '../fee/Manager.sol';
 import './token/ERC20Pausable.sol';
 
 /**
