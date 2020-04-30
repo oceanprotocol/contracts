@@ -1,13 +1,12 @@
 pragma solidity ^0.5.7;
 
 import './utils/Deployer.sol';
-import './DataTokenTemplate.sol';
 
 /**
-* @title TokenFactory
+* @title Factory contract
 * @dev Contract for creation of Ocean Data Tokens
 */
-contract TokenFactory is Deployer {
+contract Factory is Deployer {
     
     address public tokenTemplate;
     address public currentTokenAddress;

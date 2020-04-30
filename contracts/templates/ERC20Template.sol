@@ -1,17 +1,17 @@
 pragma solidity ^0.5.7;
 
-import 'openzeppelin-solidity/contracts/token/ERC20/ERC20.sol';
-import './utils/ServiceFeeManager.sol';
+import '../fee/Manager.sol';
+import './token/ERC20Pausable.sol';
 
 /**
-* @title DataTokenTemplate
-* @dev Template DataToken contract, used for as the reference for DataToken Proxy contracts deployment
+* @title ERC20Template 
+* @dev ERC20Template is a Data Token ERC20 compliant template 
+*      used by the factory contract
 */
-contract DataTokenTemplate is ERC20 {
+contract ERC20Template is ERC20Pausable {
     using SafeMath for uint256;
     
     bool    private initialized = false;
-    bool    private paused      = false;
     string  private _name;
     string  private _symbol;
     uint256 private _cap;
@@ -20,12 +20,12 @@ contract DataTokenTemplate is ERC20 {
 
     address payable private beneficiary;
 
-    ServiceFeeManager serviceFeeManager;
+    FeeManager serviceFeeManager;
     
     modifier onlyNotInitialized() {
         require(
           !initialized,
-          'Token Instance already initialized'
+          'DataToken: token instance already initialized'
         );
         _;
     }
@@ -33,15 +33,7 @@ contract DataTokenTemplate is ERC20 {
     modifier onlyMinter() {
         require(
             msg.sender == _minter,
-            'Invalid minter' 
-        );
-        _;
-    }
-
-    modifier notPaused() {
-        require(
-            paused == false,
-            'This token contract is paused' 
+            'DataToken: invalid minter' 
         );
         _;
     }
@@ -104,34 +96,31 @@ contract DataTokenTemplate is ERC20 {
         _symbol = symbol;
         _minter = minter;
 
-        serviceFeeManager = ServiceFeeManager(feeManager);
-
+        serviceFeeManager = FeeManager(feeManager);
         beneficiary = feeManager;
-
         initialized = true;
     }
     
-    /**
-     * @notice mint Data Token
-     * @param account mint to address
-     * @param value amount of data tokens being minted
-     */
-    function mint(address account, uint256 value) public payable onlyMinter {
+    function mint(address account, uint256 value) public payable onlyNotPaused onlyMinter {
         uint256 startGas = gasleft();
-        require(totalSupply().add(value) <= _cap, "ERC20Capped: cap exceeded");
+        require(totalSupply().add(value) <= _cap, "DataToken: cap exceeded");
         
         _mint(account, value);
         require(msg.value >= serviceFeeManager.getFee(startGas, value),
-            "fee amount is not enough");
+            "DataToken: fee amount is not enough");
         
         beneficiary.transfer(msg.value);
     }
-    
-    function pauseToken() public notPaused onlyMinter {
-        paused = true;
-    } 
 
-    function setMinter(address minter) public notPaused onlyMinter {
+    function pause() public onlyNotPaused onlyMinter {
+        paused = true;
+    }
+
+    function unpause() public onlyPaused onlyMinter {
+        paused = false;
+    }
+
+    function setMinter(address minter) public onlyNotPaused onlyMinter {
         _minter = minter;
     }
     
