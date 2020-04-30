@@ -38,10 +38,18 @@ contract DataTokenTemplate is ERC20 {
         _;
     }
 
-    modifier notPaused() {
+    modifier onlyNotPaused() {
         require(
-            paused == false,
+            !paused,
             'This token contract is paused' 
+        );
+        _;
+    }
+
+    modifier onlyPaused() {
+        require(
+            paused,
+            'This token contract is not paused' 
         );
         _;
     }
@@ -127,11 +135,15 @@ contract DataTokenTemplate is ERC20 {
         beneficiary.transfer(msg.value);
     }
     
-    function pauseToken() public notPaused onlyMinter {
+    function pause() public onlyNotPaused onlyMinter {
         paused = true;
-    } 
+    }
 
-    function setMinter(address minter) public notPaused onlyMinter {
+    function unpause() public onlyPaused onlyMinter {
+        paused = false;
+    }
+
+    function setMinter(address minter) public onlyNotPaused onlyMinter {
         _minter = minter;
     }
     
