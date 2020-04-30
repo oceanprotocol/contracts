@@ -1,8 +1,9 @@
 pragma solidity ^0.5.7;
 
+import './FeeCalculator.sol';
 import 'openzeppelin-solidity/contracts/math/SafeMath.sol';
 
-contract ServiceFeeManager {
+contract FeeManager {
     using SafeMath for uint256;
 
     uint256 public constant  DIVIDENT = 90;
