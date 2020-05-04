@@ -13,7 +13,7 @@ cache:
 
 before_install:
     - npm install -g npm
-    - npm install -g ganache-cli@~6.4.1
+    - npm install -g ganache-cli@~6.4.1 
     - npm i
 #    - docker pull oceanprotocol/echidna:sloc-5.7
 
