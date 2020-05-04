@@ -1,3 +1,6 @@
+/* eslint-env mocha */
+/* global artifacts, contract, describe, it, beforeEach */
+
 const Factory = artifacts.require("Factory");
 
 const truffleAssert = require('truffle-assertions');
