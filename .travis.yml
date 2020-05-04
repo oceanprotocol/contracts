@@ -1,0 +1,27 @@
+language: node_js
+
+node_js:
+    - "10"
+
+dist: xenial
+
+sudo: required
+
+cache:
+    directories:
+        - node_modules
+
+before_install:
+    - npm install -g npm
+    - npm install -g ganache-cli@~6.4.1 
+    - npm i
+#    - docker pull oceanprotocol/echidna:sloc-5.7
+
+before_script:
+    - ganache-cli > ganache-cli.log &
+
+script:
+    - npm run compile
+#    - npm run lint
+    - npm run test:cover
+ #   - npm run test:echidna
