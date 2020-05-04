@@ -2,7 +2,7 @@ const Factory = artifacts.require("Factory");
 
 const truffleAssert = require('truffle-assertions');
 
-contract("actory test", async accounts => {
+contract("Factory test", async accounts => {
   let factory;
 
   beforeEach('innit contracts for each test', async function () {

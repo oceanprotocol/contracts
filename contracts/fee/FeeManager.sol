@@ -1,7 +1,7 @@
 pragma solidity ^0.5.7;
 
-import './Calculator.sol';
-import './Collector.sol';
+import './FeeCalculator.sol';
+import './FeeCollector.sol';
 import 'openzeppelin-solidity/contracts/math/SafeMath.sol';
 
 contract FeeManager {
