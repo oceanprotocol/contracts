@@ -11,7 +11,10 @@
     "test": "truffle test",
     "compile": "truffle compile",
     "test:cover": "export NETWORK='coverage' && solidity-coverage",
-    "clean": "rm -rf build/"
+    "clean": "rm -rf build/",
+    "lint:ethlint": "solium -d ./contracts/",
+    "lint:eslint": "eslint --ignore-pattern '/coverage/' .",
+    "lint": "npm run lint:eslint && npm run lint:ethlint"
   },
   "author": "",
   "license": "ISC",
