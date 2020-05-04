@@ -2,8 +2,6 @@ const Factory = artifacts.require("Factory");
 
 const truffleAssert = require('truffle-assertions');
 
-contract("Factory test", async accounts => {
-
 contract("factory test", async accounts => {
   let factory;
 
