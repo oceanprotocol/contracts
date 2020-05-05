@@ -50,11 +50,13 @@ contract ERC20Template is ERC20Pausable {
     )
         public
     {
+        serviceFeeManager = FeeManager(feeManager);
+        beneficiary = feeManager;
+        
          _initialize(
             name,
             symbol,
-            minter,
-            feeManager
+            minter
         );
     }
     
@@ -65,8 +67,7 @@ contract ERC20Template is ERC20Pausable {
     function initialize(
         string memory name,
         string memory symbol,
-        address minter,
-        address payable feeManager
+        address minter
     ) 
         public
         onlyNotInitialized 
@@ -74,16 +75,14 @@ contract ERC20Template is ERC20Pausable {
         _initialize(
             name,
             symbol,
-            minter,
-            feeManager
+            minter
         );
     }
     
     function _initialize(
         string memory name,
         string memory symbol,
-        address minter,
-        address payable feeManager
+        address minter
     ) private {
         require(minter != address(0), 'Invalid minter:  address(0)');
         require(_minter == address(0), 'Invalid minter: access denied');
@@ -96,8 +95,6 @@ contract ERC20Template is ERC20Pausable {
         _symbol = symbol;
         _minter = minter;
 
-        serviceFeeManager = FeeManager(feeManager);
-        beneficiary = feeManager;
         initialized = true;
     }
     

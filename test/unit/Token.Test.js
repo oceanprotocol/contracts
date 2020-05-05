@@ -24,7 +24,8 @@ contract("Factory test", async accounts => {
 
   it("should check that the token is initialized", async () => {
     const isInitialized = await token.isInitialized();
-    // assert(isInitialized == true);
+    // await console.log(isInitialized);
+    assert(isInitialized == true);
   });
 
 });
