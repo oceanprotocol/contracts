@@ -1,5 +1,7 @@
 [![banner](https://raw.githubusercontent.com/oceanprotocol/art/master/github/repo-banner%402x.png)](https://oceanprotocol.com)
 
+[![codecov](https://codecov.io/gh/oceanprotocol/contracts/branch/develop/graph/badge.svg?token=31SZX1V4ZJ)](https://codecov.io/gh/oceanprotocol/contracts)
+
 # Ocean Protocol Contracts
 
 This is in alpha state and you can expect running into problems. If you run into them, please open up a [new issue](/issues).
