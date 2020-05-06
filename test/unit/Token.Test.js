@@ -66,6 +66,16 @@ contract("Factory test", async accounts => {
                         "DataToken: no value assigned to the message.");
   });
 
+  it("should not mint the tokens due to the cap limit", async () => {
+    ethValue = new BigNumber("100000000000000000");
+    let cap = new BigNumber("1500000000000000000000000000000000000");
+
+
+    truffleAssert.fails(token.mint(accounts[1], cap, {value:ethValue}),
+                        truffleAssert.ErrorType.REVERT, 
+                        "DataToken: cap exceeded.");
+  });
+
   it("should mint the tokens", async () => {
 
     ethValue = new BigNumber("100000000000000000");

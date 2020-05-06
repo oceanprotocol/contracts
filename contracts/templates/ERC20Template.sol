@@ -88,7 +88,7 @@ contract ERC20Template is ERC20Pausable {
         require(_minter == address(0), 'Invalid minter: access denied');
         
         _decimals = 18;
-        uint256 baseCap = 1400000000;
+        uint256 baseCap = 14;
         _cap = baseCap.mul(uint256(10) ** _decimals);
        
         _name = name;
@@ -103,7 +103,7 @@ contract ERC20Template is ERC20Pausable {
             "DataToken: no value assigned to the message");
 
         // uint256 startGas = gasleft();
-        // require(totalSupply().add(value) <= _cap, "DataToken: cap exceeded");
+        require(totalSupply().add(value) <= _cap, "DataToken: cap exceeded");
         
         _mint(account, value);
         // require(msg.value >= serviceFeeManager.getFee(startGas, value),
