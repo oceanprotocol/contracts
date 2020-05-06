@@ -1,5 +1,7 @@
 [![banner](https://raw.githubusercontent.com/oceanprotocol/art/master/github/repo-banner%402x.png)](https://oceanprotocol.com)
 
+[![Build Status](https://travis-ci.com/oceanprotocol/contracts.svg?token=soMi2nNfCZq19zS1Rx4i&branch=develop)](https://travis-ci.com/oceanprotocol/contracts)
+
 # Ocean Protocol Contracts
 
 This is in alpha state and you can expect running into problems. If you run into them, please open up a [new issue](/issues).
