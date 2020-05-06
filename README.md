@@ -54,9 +54,6 @@ Run tests with
 # for unit tests
 npm run test:unit
 
-# for integration test
-npm run test:cover
-
 # for test coverage
 npm run test:cover
 ```
