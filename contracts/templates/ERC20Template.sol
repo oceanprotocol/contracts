@@ -52,7 +52,7 @@ contract ERC20Template is ERC20Pausable {
     {
         serviceFeeManager = FeeManager(feeManager);
         beneficiary = feeManager;
-        
+
          _initialize(
             name,
             symbol,
@@ -91,7 +91,7 @@ contract ERC20Template is ERC20Pausable {
         uint256 baseCap = 1400000000;
         _cap = baseCap.mul(uint256(10) ** _decimals);
        
-         _name = name;
+        _name = name;
         _symbol = symbol;
         _minter = minter;
 
@@ -99,12 +99,15 @@ contract ERC20Template is ERC20Pausable {
     }
     
     function mint(address account, uint256 value) public payable onlyNotPaused onlyMinter {
-        uint256 startGas = gasleft();
+        require(msg.value > 0,
+            "DataToken: no value assigned to the message");
+
+        // uint256 startGas = gasleft();
         require(totalSupply().add(value) <= _cap, "DataToken: cap exceeded");
         
         _mint(account, value);
-        require(msg.value >= serviceFeeManager.getFee(startGas, value),
-            "DataToken: fee amount is not enough");
+        // require(msg.value >= serviceFeeManager.getFee(startGas, value),
+        //     "DataToken: fee amount is not enough");
         
         beneficiary.transfer(msg.value);
     }
@@ -147,5 +150,9 @@ contract ERC20Template is ERC20Pausable {
 
     function isPaused() public view returns(bool) {
         return paused;
+    }
+
+    function getBeneficiary() public view returns(address) {
+        return beneficiary;
     }
 }

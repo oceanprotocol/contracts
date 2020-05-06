@@ -21,7 +21,7 @@ contract("Factory test", async accounts => {
   it("should create a token and check that it's not a zero address", async () => {
     
     truffleAssert.passes(
-    	result = await factory.createToken("initialize", "TestDataToken", "TDT", accounts[0])
+    	result = await factory.createToken("logic", "TestDataToken", "TDT", accounts[0])
     );
 
 	truffleAssert.eventEmitted(result, 'TokenCreated', (ev) => {
