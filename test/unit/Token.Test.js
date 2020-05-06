@@ -70,7 +70,25 @@ contract("Factory test", async accounts => {
 
     ethValue = new BigNumber("100000000000000000");
     truffleAssert.passes(await token.mint(accounts[1], 10, {value:ethValue}));
-
   });
 
+  it("should get the token name", async () => {
+    const name = await token.name();
+    assert(name == "TestDataToken");
+  });
+
+  it("should get the token symbol", async () => {
+    const symbol = await token.symbol();
+    assert(symbol == "TDT");
+  });
+
+  it("should get the token decimals", async () => {
+    const decimals = await token.decimals();
+    assert(decimals == 18);
+  });
+
+  it("should get the token cap", async () => {
+    const cap = await token.cap();
+    assert(cap > 0);
+  });
 });

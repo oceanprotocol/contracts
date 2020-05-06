@@ -152,7 +152,4 @@ contract ERC20Template is ERC20Pausable {
         return paused;
     }
 
-    function getBeneficiary() public view returns(address) {
-        return beneficiary;
-    }
 }
