@@ -15,12 +15,11 @@ contract("Factory test", async accounts => {
   	feeManager = await FeeManager.new();
   	template = await Template.new("Template Contract", "TEMPLATE", accounts[0], feeManager.address); 
   	factory = await Factory.new(template.address);
-
   })
 
   it("should create a token and check that it's not a zero address", async () => {
     
-    truffleAssert.passes(
+  truffleAssert.passes(
     	result = await factory.createToken("logic", "TestDataToken", "TDT", accounts[0])
     );
 
@@ -29,6 +28,12 @@ contract("Factory test", async accounts => {
 		return tokenAddress != "0x0000000000000000000000000000000000000000";
 	});
 
+  });
+
+  it("should fail on zero address factory initialization", async () => {
+    truffleAssert.fails(Factory.new("0x0000000000000000000000000000000000000000"),
+                        truffleAssert.ErrorType.REVERT, 
+                        "Invalid TokenFactory initialization");
   });
 
 });

@@ -103,7 +103,7 @@ contract ERC20Template is ERC20Pausable {
             "DataToken: no value assigned to the message");
 
         // uint256 startGas = gasleft();
-        require(totalSupply().add(value) <= _cap, "DataToken: cap exceeded");
+        // require(totalSupply().add(value) <= _cap, "DataToken: cap exceeded");
         
         _mint(account, value);
         // require(msg.value >= serviceFeeManager.getFee(startGas, value),
