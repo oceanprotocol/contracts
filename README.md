@@ -39,38 +39,33 @@ Clone the project and install all dependencies:
 git clone git@github.com:oceanprotocol/contracts.git
 cd contracts/
 
-# TODO
+# install packages
+npm i
 
-TODO
-
+# to compile contracts
+npm run compile
 ```
-
-TODO:
-
-```bash
-TODO
-```
-
-TODO:
-
-```bash
-TODO
-```
-
 
 # Testing
 
 Run tests with 
 
 ```bash
+# for unit tests
 npm run test:unit
-npm run test:integration
+
+# for test coverage
+npm run test:cover
 ```
 
 ### Code Linting
 
 Linting is setup for `JavaScript` with [ESLint](https://eslint.org) & Solidity with [Ethlint](https://github.com/duaraghav8/Ethlint).
 
+```bash
+# to check lint issues
+npm run lint
+```
 Code style is enforced through the CI test process, builds will fail if there're any linting errors.
 
 # Networks
@@ -86,8 +81,8 @@ TBD
 
 ## Documentation
 
-* [Contracts Documentation](doc/contracts/README.md)
 * [Release process](doc/RELEASE_PROCESS.md)
+* [Core Documentation](doc/contracts/README.md)
 * [Packaging of libraries](doc/PACKAGING.md)
 
 ## Contributing
@@ -99,8 +94,7 @@ See the page titled "[Ways to Contribute](https://docs.oceanprotocol.com/concept
 ## Prior Art
 
 This project builds on top of the work done in open source projects:
-- [zeppelinos/zos](https://github.com/zeppelinos/zos)
-- [OpenZeppelin/openzeppelin-eth](https://github.com/OpenZeppelin/openzeppelin-eth)
+- [OpenZeppelin/openzeppelin-contracts](https://github.com/OpenZeppelin/openzeppelin-contracts)
 
 ## License
 

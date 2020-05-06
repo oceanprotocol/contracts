@@ -8,7 +8,8 @@
     "test": "test"
   },
   "scripts": {
-    "test": "truffle test",
+    "test": "npm run test:unit",
+    "test:unit": "truffle test",
     "compile": "truffle compile",
     "test:cover": "export NETWORK='coverage' && solidity-coverage",
     "clean": "rm -rf build/"
