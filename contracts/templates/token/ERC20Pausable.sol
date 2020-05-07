@@ -22,23 +22,59 @@ contract ERC20Pausable is ERC20 {
         _;
     }
 
-    function transfer(address to, uint256 value) public onlyNotPaused returns (bool) {
+    function transfer(
+        address to, 
+        uint256 value
+    ) 
+        public 
+        onlyNotPaused 
+        returns (bool) 
+    {
         return super.transfer(to, value);
     }
 
-    function transferFrom(address from, address to, uint256 value) public onlyNotPaused returns (bool) {
+    function transferFrom(
+        address from, 
+        address to, 
+        uint256 value
+    ) 
+        public 
+        onlyNotPaused 
+        returns (bool) 
+    {
         return super.transferFrom(from, to, value);
     }
 
-    function approve(address spender, uint256 value) public onlyNotPaused returns (bool) {
+    function approve(
+        address spender, 
+        uint256 value
+    ) 
+        public 
+        onlyNotPaused 
+        returns (bool) 
+    {
         return super.approve(spender, value);
     }
 
-    function increaseAllowance(address spender, uint256 addedValue) public onlyNotPaused returns (bool) {
+    function increaseAllowance(
+        address spender, 
+        uint256 addedValue
+    ) 
+        public 
+        onlyNotPaused 
+        returns (bool) 
+    {
         return super.increaseAllowance(spender, addedValue);
     }
 
-    function decreaseAllowance(address spender, uint256 subtractedValue) public onlyNotPaused returns (bool) {
+    function decreaseAllowance(
+        address spender, 
+        uint256 subtractedValue
+    ) 
+        public 
+        onlyNotPaused 
+        returns (bool) 
+    {
         return super.decreaseAllowance(spender, subtractedValue);
     }
 }
