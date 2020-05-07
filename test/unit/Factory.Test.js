@@ -1,20 +1,18 @@
-const Factory = artifacts.require("Factory");
+/* eslint-env mocha */
+/* global artifacts, contract, it, beforeEach */
 
-const truffleAssert = require('truffle-assertions');
+const Factory = artifacts.require('Factory')
 
-contract("factory test", async accounts => {
-  let factory;
+const truffleAssert = require('truffle-assertions')
 
-  beforeEach('init contracts for each test', async function () {
+contract('factory test', async accounts => {
+    let factory
 
-  	factory = await Factory.new(accounts[0]);
+    beforeEach('init contracts for each test', async function() {
+        factory = await Factory.new(accounts[0])
+    })
 
-  })
-
-  it("should create a token", async () => {
-    
-    truffleAssert.passes(factory.createToken("logic", "TestDataToken", "TDT", accounts[0]));
-
-  });
-
-});
+    it('should create a token', async () => {
+        truffleAssert.passes(factory.createToken('logic', 'TestDataToken', 'TDT', accounts[0]))
+    })
+})

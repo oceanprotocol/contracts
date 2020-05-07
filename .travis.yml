@@ -22,6 +22,6 @@ before_script:
 
 script:
     - npm run compile
-#    - npm run lint
+    - npm run lint
     - npm run test:cover
  #   - npm run test:echidna

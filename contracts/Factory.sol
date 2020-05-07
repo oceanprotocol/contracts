@@ -34,7 +34,7 @@ contract Factory is Deployer {
         public 
     {
         require(
-            _template != address(0) , //&&
+            _template != address(0), //&&
            // _registry != address(0),
             'Invalid TokenFactory initialization'
         );
@@ -61,18 +61,18 @@ contract Factory is Deployer {
         token = deploy(tokenTemplate);
         
         require(
-          token != address(0),
-          'Failed to perform minimal deploy of a new token'
+            token != address(0),
+            'Failed to perform minimal deploy of a new token'
         );
         
         // init Token
-        bytes memory _initPayload  = abi.encodeWithSignature(
-                _logic, 
-                _name, 
-                _symbol,
-                _minter
+        bytes memory _initPayload = abi.encodeWithSignature(
+            _logic, 
+            _name,
+            _symbol,
+            _minter
         );
-        
+        /* solium-disable-next-line security/no-low-level-calls */
         token.call(_initPayload);
         //TODO: store Token in Token Registry
         currentTokenAddress = token;
