@@ -88,7 +88,7 @@ contract ERC20Template is ERC20Pausable {
         require(_minter == address(0), 'Invalid minter: access denied');
         
         _decimals = 18;
-        uint256 baseCap = 14;
+        uint256 baseCap = 1400000000;
         _cap = baseCap.mul(uint256(10) ** _decimals);
        
         _name = name;
