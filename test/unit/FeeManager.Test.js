@@ -1,23 +1,20 @@
-const FeeManager = artifacts.require("FeeManager");
+const FeeManager = artifacts.require('FeeManager')
+const BigNumber = require('bn.js')
 
-const truffleAssert = require('truffle-assertions');
-const BigNumber = require('bn.js');
+/* eslint-env mocha */
+/* global artifacts, contract, it, beforeEach, assert */
 
-contract("FeeManager test", async accounts => {
+contract('FeeManager test', async accounts => {
+    let feeManager
 
-  beforeEach('init contracts for each test', async function () {
-  	feeManager = await FeeManager.new();
-  })
+    beforeEach('init contracts for each test', async function() {
+        feeManager = await FeeManager.new()
+    })
 
-it("calculate fee", async () => {
-  	
-  	let gas = new BigNumber("100000000000000");
-  	let tokens = 1;
-
-  	let fee = await feeManager.getFee(gas, tokens);
-
-  	assert(fee.toNumber() > 0);
-  });
-
-
-});
+    it('calculate fee', async () => {
+        const gas = new BigNumber('100000000000000')
+        const tokens = 1
+        const fee = await feeManager.getFee(gas, tokens)
+        assert(fee.toNumber() > 0)
+    })
+})

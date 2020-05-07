@@ -56,7 +56,7 @@ contract ERC20Template is ERC20Pausable {
         serviceFeeManager = FeeManager(feeManager);
         beneficiary = feeManager;
 
-         _initialize(
+        _initialize(
             name,
             symbol,
             minter
@@ -101,12 +101,19 @@ contract ERC20Template is ERC20Pausable {
         initialized = true;
     }
     
-    function mint(address account, uint256 value) public payable onlyNotPaused onlyMinter {
-        require(msg.value > 0,
-            "DataToken: no value assigned to the message");
+    function mint(
+        address account,
+        uint256 value
+    ) 
+    public 
+    payable 
+    onlyNotPaused 
+    onlyMinter 
+    {
+        require(msg.value > 0, 'DataToken: no value assigned to the message');
 
         // uint256 startGas = gasleft();
-        require(totalSupply().add(value) <= _cap, "DataToken: cap exceeded");
+        require(totalSupply().add(value) <= _cap, 'DataToken: cap exceeded');
         
         _mint(account, value);
         // require(msg.value >= serviceFeeManager.getFee(startGas, value),

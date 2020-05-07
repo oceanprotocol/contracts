@@ -68,11 +68,13 @@ contract Factory is Deployer {
             'Failed to perform minimal deploy of a new token'
         );
         
-        // // init Token
-        bytes memory _initPayload  = abi.encodeWithSignature("initialize(string,string,address)", 
-                                                            _name, 
-                                                            _symbol, 
-                                                            _minter);
+        //init Token
+        bytes memory _initPayload = abi.encodeWithSignature(
+                                                            'initialize(string,string,address)',
+                                                            _name,
+                                                            _symbol,
+                                                            _minter
+        );
         
         token.call(_initPayload);
 
