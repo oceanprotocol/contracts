@@ -3,7 +3,7 @@ const FeeManager = artifacts.require("FeeManager");
 const truffleAssert = require('truffle-assertions');
 const BigNumber = require('bn.js');
 
-contract("Factory test", async accounts => {
+contract("FeeManager test", async accounts => {
 
   beforeEach('init contracts for each test', async function () {
   	feeManager = await FeeManager.new();

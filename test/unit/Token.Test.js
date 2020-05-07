@@ -6,7 +6,7 @@ const Token = artifacts.require("ERC20Template");
 const truffleAssert = require('truffle-assertions');
 const BigNumber = require('bn.js');
 
-contract("Factory test", async accounts => {
+contract("Token test", async accounts => {
   let factory;
   let result;
   let token;

@@ -36,4 +36,10 @@ contract("Factory test", async accounts => {
                         "Invalid TokenFactory initialization");
   });
 
+  it("should fail on zero minter address initialization", async () => {
+    truffleAssert.fails(Template.new("Zero address minter contract", "ZERO", "0x0000000000000000000000000000000000000000", feeManager.address),
+                        truffleAssert.ErrorType.REVERT, 
+                        "Invalid minter:  address(0)");
+  });
+
 });
