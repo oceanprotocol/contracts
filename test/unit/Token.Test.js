@@ -21,6 +21,7 @@ contract("Token test", async accounts => {
   	result = await factory.createToken("logic", "TestDataToken", "TDT", accounts[0]);
   	tokenAddress = await factory.currentTokenAddress();
   	token = await Token.at(tokenAddress);     
+    ethValue = new BigNumber("100000000000000000");
 
   })
 
@@ -45,6 +46,11 @@ contract("Token test", async accounts => {
     const isPaused = await token.isPaused();
     assert(isPaused == true);
   });
+
+  it("should fail to unpause the contract", async () => {
+    truffleAssert.fails(token.unpause());
+  });
+
 
   it("should unpause the contract", async () => {
     await token.pause();
@@ -75,8 +81,14 @@ contract("Token test", async accounts => {
                         "DataToken: cap exceeded.");
   });
 
+  it("should not mint the tokens because of the paused contract", async () => {
+    await token.pause();
+    truffleAssert.fails(token.mint(accounts[1], 10, {value:ethValue}),
+                        truffleAssert.ErrorType.REVERT, 
+                        "DataToken: this token contract is paused.");
+  });
+
   it("should mint the tokens", async () => {
-    ethValue = new BigNumber("100000000000000000");
     truffleAssert.passes(await token.mint(accounts[1], 10, {value:ethValue}));
   });
 
@@ -99,4 +111,32 @@ contract("Token test", async accounts => {
     const cap = await token.cap();
     assert(cap > 0);
   });
+
+  it("should approve token spending", async () => {
+    truffleAssert.passes(await token.approve(accounts[1], 10));
+  });
+
+  it("should increase token allowance", async () => {
+    truffleAssert.passes(await token.approve(accounts[1], 10));
+    truffleAssert.passes(await token.increaseAllowance(accounts[1], 1));
+  });
+
+  it("should decrease token allowance", async () => {
+    truffleAssert.passes(await token.approve(accounts[1], 10));
+    truffleAssert.passes(await token.decreaseAllowance(accounts[1], 1));
+  });
+
+  it("should transfer token tokens to another address", async () => {
+    truffleAssert.passes(await token.mint(accounts[0], 10, {value:ethValue}));
+    truffleAssert.passes(await token.transfer(accounts[1], 1));
+  });
+
+  it("should transfer token tokens to another address", async () => {
+    truffleAssert.passes(await token.mint(accounts[0], 10, {value:ethValue}));
+    truffleAssert.passes(await token.approve(accounts[1], 10));
+    truffleAssert.passes(await token.transferFrom(accounts[0],accounts[2], 1, {from:accounts[1]}));
+  });
+
+
+
 });
