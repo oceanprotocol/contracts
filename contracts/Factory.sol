@@ -72,7 +72,7 @@ contract Factory is Deployer {
             _symbol,
             _minter
         );
-        
+        /* solium-disable-next-line security/no-low-level-calls */
         token.call(_initPayload);
         //TODO: store Token in Token Registry
         currentTokenAddress = token;
