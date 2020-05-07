@@ -1,4 +1,7 @@
 pragma solidity ^0.5.7;
+// Copyright BigchainDB GmbH and Ocean Protocol contributors
+// SPDX-License-Identifier: (Apache-2.0 AND CC-BY-4.0)
+// Code is Apache-2.0 and docs are CC-BY-4.0
 
 import './utils/Deployer.sol';
 
@@ -34,7 +37,7 @@ contract Factory is Deployer {
         public 
     {
         require(
-            _template != address(0) , //&&
+            _template != address(0), //&&
            // _registry != address(0),
             'Invalid TokenFactory initialization'
         );
@@ -61,8 +64,8 @@ contract Factory is Deployer {
         token = deploy(tokenTemplate);
         
         require(
-          token != address(0),
-          'Failed to perform minimal deploy of a new token'
+            token != address(0),
+            'Failed to perform minimal deploy of a new token'
         );
         
         // // init Token

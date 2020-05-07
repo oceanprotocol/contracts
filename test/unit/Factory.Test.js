@@ -1,8 +1,10 @@
 const Factory = artifacts.require("Factory");
 const Template = artifacts.require("ERC20Template");
 const FeeManager = artifacts.require("FeeManager");
+/* eslint-env mocha */
+/* global artifacts, contract, it, beforeEach */
 
-const truffleAssert = require('truffle-assertions');
+const Factory = artifacts.require('Factory')
 
 contract("Factory test", async accounts => {
   let feeManager;
@@ -43,3 +45,4 @@ contract("Factory test", async accounts => {
   });
 
 });
+
