@@ -104,7 +104,7 @@ contract('Token test', async accounts => {
 
     it('should get the token decimals', async () => {
         const decimals = await token.decimals()
-        assert(decimals === 18)
+        assert(decimals.toNumber() === 18)
     })
 
     it('should get the token cap', async () => {

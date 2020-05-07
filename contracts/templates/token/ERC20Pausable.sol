@@ -7,7 +7,7 @@ import 'openzeppelin-solidity/contracts/token/ERC20/ERC20.sol';
 
 contract ERC20Pausable is ERC20 {
 
-    bool internal paused    = false;
+    bool internal paused = false;
     
     modifier onlyNotPaused() {
         require(
