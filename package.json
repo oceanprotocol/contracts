@@ -30,7 +30,7 @@
     "url": "git+https://github.com/oceanprotocol/contracts.git"
   },
   "author": "Ocean Protocol",
-  "license": "ISC",
+  "license": "Apache-2.0",
   "devDependencies": {
     "openzeppelin-solidity": "^2.5.0",
     "solidity-coverage": "0.6.1",
