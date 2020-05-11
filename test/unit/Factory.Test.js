@@ -24,7 +24,7 @@ contract('Factory test', async accounts => {
         zeroAddress = '0x0000000000000000000000000000000000000000'
         feeManager = await FeeManager.new()
         template = await Template.new('Template Contract', 'TEMPLATE', minter, feeManager.address)
-        factory = await Factory.new(template.address)
+        factory = await Factory.new(template.address, feeManager.address)
     })
 
     it('should create a token and check that it is not a zero address', async () => {
@@ -38,7 +38,7 @@ contract('Factory test', async accounts => {
     })
 
     it('should fail on zero address factory initialization', async () => {
-        truffleAssert.fails(Factory.new(zeroAddress),
+        truffleAssert.fails(Factory.new(zeroAddress, feeManager.address),
             truffleAssert.ErrorType.REVERT,
             'Invalid TokenFactory initialization')
     })
@@ -47,5 +47,11 @@ contract('Factory test', async accounts => {
         truffleAssert.fails(Template.new('Zero address minter contract', 'ZERO', zeroAddress, feeManager.address),
             truffleAssert.ErrorType.REVERT,
             'Invalid minter:  address(0)')
+    })
+
+    it('should fail on zero feeManager address initialization', async () => {
+        truffleAssert.fails(Template.new('Zero address minter contract', 'ZERO', minter, zeroAddress),
+            truffleAssert.ErrorType.REVERT,
+            'Invalid feeManager:  address(0)')
     })
 })

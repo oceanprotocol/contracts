@@ -7,7 +7,7 @@ const truffleAssert = require('truffle-assertions')
 const BigNumber = require('bn.js')
 
 /* eslint-env mocha */
-/* global artifacts, contract, it, beforeEach, assert */
+/* global artifacts, contract, it, beforeEach, assert, web3 */
 
 contract('Token test', async accounts => {
     let cap
@@ -33,7 +33,7 @@ contract('Token test', async accounts => {
         newMinter = accounts[2]
         feeManager = await FeeManager.new()
         template = await Template.new('Template', 'TEMPLATE', minter, feeManager.address)
-        factory = await Factory.new(template.address)
+        factory = await Factory.new(template.address, feeManager.address)
         await factory.createToken(name, symbol, minter)
         tokenAddress = await factory.currentTokenAddress()
         token = await Token.at(tokenAddress)
@@ -47,7 +47,7 @@ contract('Token test', async accounts => {
     })
 
     it('should fail to re-initialize the contracts', async () => {
-        truffleAssert.fails(token.initialize('NewName', 'NN', reciever),
+        truffleAssert.fails(token.initialize('NewName', 'NN', reciever, feeManager.address),
             truffleAssert.ErrorType.REVERT,
             'DataToken: token instance already initialized.')
     })
@@ -105,6 +105,8 @@ contract('Token test', async accounts => {
 
     it('should mint the tokens', async () => {
         truffleAssert.passes(await token.mint(reciever, 10, { value: ethValue, from: minter }))
+        const feeBalance = await web3.eth.getBalance(feeManager.address)
+        assert(feeBalance.toString() === ethValue.toString())
     })
 
     it('should get the token name', async () => {

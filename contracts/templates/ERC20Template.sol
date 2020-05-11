@@ -53,13 +53,11 @@ contract ERC20Template is ERC20Pausable {
     )
         public
     {
-        serviceFeeManager = FeeManager(feeManager);
-        beneficiary = feeManager;
-
         _initialize(
             name,
             symbol,
-            minter
+            minter,
+            feeManager
         );
     }
     
@@ -70,7 +68,8 @@ contract ERC20Template is ERC20Pausable {
     function initialize(
         string memory name,
         string memory symbol,
-        address minter
+        address minter,
+        address payable feeManager
     ) 
         public
         onlyNotInitialized 
@@ -78,15 +77,18 @@ contract ERC20Template is ERC20Pausable {
         _initialize(
             name,
             symbol,
-            minter
+            minter,
+            feeManager
         );
     }
     
     function _initialize(
         string memory name,
         string memory symbol,
-        address minter
+        address minter,
+        address payable feeManager
     ) private {
+        require(feeManager != address(0), 'Invalid feeManager:  address(0)');
         require(minter != address(0), 'Invalid minter:  address(0)');
         require(_minter == address(0), 'Invalid minter: access denied');
         
@@ -97,6 +99,8 @@ contract ERC20Template is ERC20Pausable {
         _name = name;
         _symbol = symbol;
         _minter = minter;
+
+        serviceFeeManager = FeeManager(feeManager);
 
         initialized = true;
     }
@@ -118,8 +122,8 @@ contract ERC20Template is ERC20Pausable {
         _mint(account, value);
         // require(msg.value >= serviceFeeManager.getFee(startGas, value),
         //     "DataToken: fee amount is not enough");
-        
-        beneficiary.transfer(msg.value);
+
+        address(serviceFeeManager).transfer(msg.value);
     }
 
     function pause() public onlyNotPaused onlyMinter {

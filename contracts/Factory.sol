@@ -10,7 +10,8 @@ import './utils/Deployer.sol';
 * @dev Contract for creation of Ocean Data Tokens
 */
 contract Factory is Deployer {
-    
+
+    address public feeManager;
     address public tokenTemplate;
     address public currentTokenAddress;
     
@@ -31,17 +32,19 @@ contract Factory is Deployer {
      * @param _template data token template address
      */
     constructor (
-        address _template
+        address _template,
+        address _feeManager
         // address _registry
     ) 
         public 
     {
         require(
-            _template != address(0), //&&
-           // _registry != address(0),
+            _template != address(0) && _feeManager != address(0),
+            // _registry != address(0),
             'Invalid TokenFactory initialization'
         );
         tokenTemplate = _template;
+        feeManager = _feeManager;
         // create tokenRegistry instance 
     }
     
@@ -68,10 +71,11 @@ contract Factory is Deployer {
         
         //init Token
         bytes memory _initPayload = abi.encodeWithSignature(
-                                                            'initialize(string,string,address)',
+                                                            'initialize(string,string,address,address)',
                                                             _name,
                                                             _symbol,
-                                                            _minter
+                                                            _minter,
+                                                            feeManager
         );
         
         token.call(_initPayload);
