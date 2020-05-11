@@ -10,21 +10,35 @@ const BigNumber = require('bn.js')
 /* global artifacts, contract, it, beforeEach, assert */
 
 contract('Token test', async accounts => {
+    let cap
+    let name
+    let symbol
+    let decimals
     let factory
     let template
     let token
     let feeManager
     let ethValue
     let tokenAddress
+    let minter
+    let newMinter
+    let reciever
 
     beforeEach('init contracts for each test', async function() {
+        symbol = 'TDT'
+        name = 'TestDataToken'
+        decimals = 18
+        minter = accounts[0]
+        reciever = accounts[1]
+        newMinter = accounts[2]
         feeManager = await FeeManager.new()
-        template = await Template.new('TestToken', 'TEST', accounts[0], feeManager.address)
+        template = await Template.new('Template', 'TEMPLATE', minter, feeManager.address)
         factory = await Factory.new(template.address)
-        await factory.createToken('logic', 'TestDataToken', 'TDT', accounts[0])
+        await factory.createToken(name, symbol, minter)
         tokenAddress = await factory.currentTokenAddress()
         token = await Token.at(tokenAddress)
         ethValue = new BigNumber('100000000000000000')
+        cap = new BigNumber('1400000000000000000000000000')
     })
 
     it('should check that the token contract is initialized', async () => {
@@ -33,7 +47,7 @@ contract('Token test', async accounts => {
     })
 
     it('should fail to re-initialize the contracts', async () => {
-        truffleAssert.fails(token.initialize('NewName', 'NN', accounts[1]),
+        truffleAssert.fails(token.initialize('NewName', 'NN', reciever),
             truffleAssert.ErrorType.REVERT,
             'DataToken: token instance already initialized.')
     })
@@ -44,96 +58,97 @@ contract('Token test', async accounts => {
     })
 
     it('should pause the contract', async () => {
-        await token.pause()
+        await token.pause({ from: minter })
         const isPaused = await token.isPaused()
         assert(isPaused === true)
     })
 
     it('should fail to unpause the contract', async () => {
-        truffleAssert.fails(token.unpause())
+        truffleAssert.fails(token.unpause({ from: minter }))
     })
 
     it('should unpause the contract', async () => {
-        await token.pause()
-        await token.unpause()
+        await token.pause({ from: minter })
+        await token.unpause({ from: minter })
         const isPaused = await token.isPaused()
         assert(isPaused === false)
     })
 
     it('should set a new minter', async () => {
-        await token.setMinter(accounts[1])
-        const isMinter = await token.isMinter(accounts[1])
+        await token.setMinter(newMinter)
+        const isMinter = await token.isMinter(newMinter)
         assert(isMinter === true)
     })
 
     it('should not mint the tokens due to zero message value', async () => {
-        truffleAssert.fails(token.mint(accounts[1], 10),
+        truffleAssert.fails(token.mint(reciever, 10, { from: minter }),
             truffleAssert.ErrorType.REVERT,
             'DataToken: no value assigned to the message.')
     })
 
     it('should not mint the tokens due to the cap limit', async () => {
         ethValue = new BigNumber('100000000000000000')
-        const cap = new BigNumber('1500000000000000000000000000000000000')
+        const one = new BigNumber('1')
+        const tokenCap = cap.add(one)
 
-        truffleAssert.fails(token.mint(accounts[1], cap, { value: ethValue }),
+        truffleAssert.fails(token.mint(reciever, tokenCap, { value: ethValue, from: minter }),
             truffleAssert.ErrorType.REVERT,
             'DataToken: cap exceeded.')
     })
 
     it('should not mint the tokens because of the paused contract', async () => {
         await token.pause()
-        truffleAssert.fails(token.mint(accounts[1], 10, { value: ethValue }),
+        truffleAssert.fails(token.mint(reciever, 10, { value: ethValue, from: minter }),
             truffleAssert.ErrorType.REVERT,
             'DataToken: this token contract is paused.')
     })
 
     it('should mint the tokens', async () => {
-        truffleAssert.passes(await token.mint(accounts[1], 10, { value: ethValue }))
+        truffleAssert.passes(await token.mint(reciever, 10, { value: ethValue, from: minter }))
     })
 
     it('should get the token name', async () => {
-        const name = await token.name()
-        assert(name === 'TestDataToken')
+        const tokenName = await token.name()
+        assert(tokenName === name)
     })
 
     it('should get the token symbol', async () => {
-        const symbol = await token.symbol()
-        assert(symbol === 'TDT')
+        const tokenSymbol = await token.symbol()
+        assert(tokenSymbol === symbol)
     })
 
     it('should get the token decimals', async () => {
-        const decimals = await token.decimals()
-        assert(decimals.toNumber() === 18)
+        const tokenDecimals = await token.decimals()
+        assert(tokenDecimals.toNumber() === decimals)
     })
 
     it('should get the token cap', async () => {
-        const cap = await token.cap()
-        assert(cap > 0)
+        const tokenCap = await token.cap()
+        assert(tokenCap.toString() === cap.toString())
     })
 
     it('should approve token spending', async () => {
-        truffleAssert.passes(await token.approve(accounts[1], 10))
+        truffleAssert.passes(await token.approve(reciever, 10, { from: minter }))
     })
 
     it('should increase token allowance', async () => {
-        truffleAssert.passes(await token.approve(accounts[1], 10))
-        truffleAssert.passes(await token.increaseAllowance(accounts[1], 1))
+        truffleAssert.passes(await token.approve(reciever, 10, { from: minter }))
+        truffleAssert.passes(await token.increaseAllowance(reciever, 1, { from: minter }))
     })
 
     it('should decrease token allowance', async () => {
-        truffleAssert.passes(await token.approve(accounts[1], 10))
-        truffleAssert.passes(await token.decreaseAllowance(accounts[1], 1))
+        truffleAssert.passes(await token.approve(reciever, 10, { from: minter }))
+        truffleAssert.passes(await token.decreaseAllowance(reciever, 1, { from: minter }))
     })
 
     it('should transfer token tokens to another address', async () => {
-        truffleAssert.passes(await token.mint(accounts[0], 10, { value: ethValue }))
-        truffleAssert.passes(await token.transfer(accounts[1], 1))
+        truffleAssert.passes(await token.mint(minter, 10, { value: ethValue, from: minter }))
+        truffleAssert.passes(await token.transfer(reciever, 1, { from: minter }))
     })
 
     it('should transfer token tokens to another address', async () => {
-        truffleAssert.passes(await token.mint(accounts[0], 10, { value: ethValue }))
-        truffleAssert.passes(await token.approve(accounts[1], 10))
-        truffleAssert.passes(await token.transferFrom(accounts[0], accounts[2], 1, { from: accounts[1] }))
+        truffleAssert.passes(await token.mint(minter, 10, { value: ethValue, from: minter }))
+        truffleAssert.passes(await token.approve(reciever, 10, { from: minter }))
+        truffleAssert.passes(await token.transferFrom(minter, reciever, 1, { from: reciever }))
     })
 })

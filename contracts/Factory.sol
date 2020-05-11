@@ -47,13 +47,11 @@ contract Factory is Deployer {
     
     /**
      * @notice Create Data token contract proxy
-     * @param _logic Data token logic(metadata)
      * @param _name Data token name
      * @param _symbol Data token symbol
      * @param _minter minter address
      */
     function createToken(
-        string memory _logic,
         string memory _name, 
         string memory _symbol,
         address _minter

@@ -7,37 +7,44 @@ const truffleAssert = require('truffle-assertions')
 /* global artifacts, contract, it, beforeEach */
 
 contract('Factory test', async accounts => {
+    let name
+    let symbol
+    let zeroAddress
+    let tokenAddress
     let feeManager
     let template
     let factory
     let result
-    let tokenAddress
+    let minter
 
     beforeEach('init contracts for each test', async function() {
+        symbol = 'TDT'
+        name = 'TestDataToken'
+        minter = accounts[0]
+        zeroAddress = '0x0000000000000000000000000000000000000000'
         feeManager = await FeeManager.new()
-        template = await Template.new('Template Contract', 'TEMPLATE', accounts[0], feeManager.address)
+        template = await Template.new('Template Contract', 'TEMPLATE', minter, feeManager.address)
         factory = await Factory.new(template.address)
     })
 
     it('should create a token and check that it is not a zero address', async () => {
         truffleAssert.passes(
-            result = await factory.createToken('logic', 'TestDataToken', 'TDT', accounts[0])
+            result = await factory.createToken(name, symbol, minter)
         )
-
         truffleAssert.eventEmitted(result, 'TokenCreated', (ev) => {
             tokenAddress = ev.param1
-            return tokenAddress !== '0x0000000000000000000000000000000000000000'
+            return tokenAddress !== zeroAddress
         })
     })
 
     it('should fail on zero address factory initialization', async () => {
-        truffleAssert.fails(Factory.new('0x0000000000000000000000000000000000000000'),
+        truffleAssert.fails(Factory.new(zeroAddress),
             truffleAssert.ErrorType.REVERT,
             'Invalid TokenFactory initialization')
     })
 
     it('should fail on zero minter address initialization', async () => {
-        truffleAssert.fails(Template.new('Zero address minter contract', 'ZERO', '0x0000000000000000000000000000000000000000', feeManager.address),
+        truffleAssert.fails(Template.new('Zero address minter contract', 'ZERO', zeroAddress, feeManager.address),
             truffleAssert.ErrorType.REVERT,
             'Invalid minter:  address(0)')
     })
