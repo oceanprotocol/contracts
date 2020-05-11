@@ -1,8 +1,12 @@
 {
-  "name": "contracts",
-  "version": "1.0.0",
-  "description": "## Architecture",
-  "main": "truffle-config.js",
+  "name": "@oceanprotocol/contracts",
+  "version": "0.0.1",
+  "description": "Ocean Protocol L1 - DataTokens",
+  "bugs": {
+    "url": "https://github.com/oceanprotocol/contracts/issues"
+  },
+  "homepage": "https://github.com/oceanprotocol/contracts#readme",
+  "main": "README.md",
   "directories": {
     "doc": "docs",
     "test": "test"
@@ -17,8 +21,16 @@
     "lint:eslint": "eslint --ignore-pattern '/coverage/' .",
     "lint": "npm run lint:eslint && npm run lint:ethlint"
   },
-  "author": "",
-  "license": "ISC",
+  "files": [
+    "doc/**/*",
+    "README.md"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/oceanprotocol/contracts.git"
+  },
+  "author": "Ocean Protocol",
+  "license": "Apache-2.0",
   "devDependencies": {
     "openzeppelin-solidity": "^2.5.0",
     "solidity-coverage": "0.6.1",
