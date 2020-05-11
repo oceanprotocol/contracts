@@ -53,11 +53,13 @@ contract ERC20Template is ERC20Pausable {
     )
         public
     {
+        serviceFeeManager = FeeManager(feeManager);
+        beneficiary = feeManager;
+
         _initialize(
             name,
             symbol,
-            minter,
-            feeManager
+            minter
         );
     }
     
@@ -68,8 +70,7 @@ contract ERC20Template is ERC20Pausable {
     function initialize(
         string memory name,
         string memory symbol,
-        address minter,
-        address payable feeManager
+        address minter
     ) 
         public
         onlyNotInitialized 
@@ -77,16 +78,14 @@ contract ERC20Template is ERC20Pausable {
         _initialize(
             name,
             symbol,
-            minter,
-            feeManager
+            minter
         );
     }
     
     function _initialize(
         string memory name,
         string memory symbol,
-        address minter,
-        address payable feeManager
+        address minter
     ) private {
         require(minter != address(0), 'Invalid minter:  address(0)');
         require(_minter == address(0), 'Invalid minter: access denied');
@@ -99,31 +98,26 @@ contract ERC20Template is ERC20Pausable {
         _symbol = symbol;
         _minter = minter;
 
-        serviceFeeManager = FeeManager(feeManager);
-        beneficiary = feeManager;
         initialized = true;
     }
     
     function mint(
-        address account, 
+        address account,
         uint256 value
     ) 
-        public 
-        payable 
-        onlyNotPaused 
-        onlyMinter 
+    public 
+    payable 
+    onlyNotPaused 
+    onlyMinter 
     {
-        uint256 startGas = gasleft();
-        require(
-            totalSupply().add(value) <= _cap,
-            'DataToken: cap exceeded'
-        );
+        require(msg.value > 0, 'DataToken: no value assigned to the message');
+
+        // uint256 startGas = gasleft();
+        require(totalSupply().add(value) <= _cap, 'DataToken: cap exceeded');
         
         _mint(account, value);
-        require(
-            msg.value >= serviceFeeManager.getFee(startGas, value),
-            'DataToken: fee amount is not enough'
-        );
+        // require(msg.value >= serviceFeeManager.getFee(startGas, value),
+        //     "DataToken: fee amount is not enough");
         
         beneficiary.transfer(msg.value);
     }
@@ -167,4 +161,5 @@ contract ERC20Template is ERC20Pausable {
     function isPaused() public view returns(bool) {
         return paused;
     }
+
 }

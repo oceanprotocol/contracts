@@ -47,13 +47,11 @@ contract Factory is Deployer {
     
     /**
      * @notice Create Data token contract proxy
-     * @param _logic Data token logic(metadata)
      * @param _name Data token name
      * @param _symbol Data token symbol
      * @param _minter minter address
      */
     function createToken(
-        string memory _logic,
         string memory _name, 
         string memory _symbol,
         address _minter
@@ -68,15 +66,16 @@ contract Factory is Deployer {
             'Failed to perform minimal deploy of a new token'
         );
         
-        // init Token
+        //init Token
         bytes memory _initPayload = abi.encodeWithSignature(
-            _logic, 
-            _name,
-            _symbol,
-            _minter
+                                                            'initialize(string,string,address)',
+                                                            _name,
+                                                            _symbol,
+                                                            _minter
         );
-        /* solium-disable-next-line security/no-low-level-calls */
+        
         token.call(_initPayload);
+
         //TODO: store Token in Token Registry
         currentTokenAddress = token;
         //TODO: fix ownership and access control
