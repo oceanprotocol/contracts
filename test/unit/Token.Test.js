@@ -27,7 +27,7 @@ contract('Token test', async accounts => {
     beforeEach('init contracts for each test', async function() {
         symbol = 'TDT'
         name = 'TestDataToken'
-        decimals = 18
+        decimals = 0
         minter = accounts[0]
         reciever = accounts[1]
         newMinter = accounts[2]
@@ -38,7 +38,7 @@ contract('Token test', async accounts => {
         tokenAddress = await factory.currentTokenAddress()
         token = await Token.at(tokenAddress)
         ethValue = new BigNumber('100000000000000000')
-        cap = new BigNumber('1400000000000000000000000000')
+        cap = new BigNumber('1400000000')
     })
 
     it('should check that the token contract is initialized', async () => {
