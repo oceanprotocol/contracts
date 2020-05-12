@@ -88,6 +88,7 @@ contract ERC20Template is ERC20Pausable {
         address minter,
         address payable feeManager
     ) private {
+        require(feeManager != address(0), 'Invalid feeManager:  address(0)');
         require(minter != address(0), 'Invalid minter:  address(0)');
         require(_minter == address(0), 'Invalid minter: access denied');
         
@@ -100,32 +101,29 @@ contract ERC20Template is ERC20Pausable {
         _minter = minter;
 
         serviceFeeManager = FeeManager(feeManager);
-        beneficiary = feeManager;
+
         initialized = true;
     }
     
     function mint(
-        address account, 
+        address account,
         uint256 value
     ) 
-        public 
-        payable 
-        onlyNotPaused 
-        onlyMinter 
+    public 
+    payable 
+    onlyNotPaused 
+    onlyMinter 
     {
-        uint256 startGas = gasleft();
-        require(
-            totalSupply().add(value) <= _cap,
-            'DataToken: cap exceeded'
-        );
+        require(msg.value > 0, 'DataToken: no value assigned to the message');
+
+        // uint256 startGas = gasleft();
+        require(totalSupply().add(value) <= _cap, 'DataToken: cap exceeded');
         
         _mint(account, value);
-        require(
-            msg.value >= serviceFeeManager.getFee(startGas, value),
-            'DataToken: fee amount is not enough'
-        );
-        
-        beneficiary.transfer(msg.value);
+        // require(msg.value >= serviceFeeManager.getFee(startGas, value),
+        //     "DataToken: fee amount is not enough");
+
+        address(serviceFeeManager).transfer(msg.value);
     }
 
     function pause() public onlyNotPaused onlyMinter {
@@ -167,4 +165,5 @@ contract ERC20Template is ERC20Pausable {
     function isPaused() public view returns(bool) {
         return paused;
     }
+
 }

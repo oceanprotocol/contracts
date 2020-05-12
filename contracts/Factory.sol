@@ -10,7 +10,8 @@ import './utils/Deployer.sol';
 * @dev Contract for creation of Ocean Data Tokens
 */
 contract Factory is Deployer {
-    
+
+    address public feeManager;
     address public tokenTemplate;
     address public currentTokenAddress;
     
@@ -31,29 +32,29 @@ contract Factory is Deployer {
      * @param _template data token template address
      */
     constructor (
-        address _template
+        address _template,
+        address _feeManager
         // address _registry
     ) 
         public 
     {
         require(
-            _template != address(0), //&&
-           // _registry != address(0),
+            _template != address(0) && _feeManager != address(0),
+            // _registry != address(0),
             'Invalid TokenFactory initialization'
         );
         tokenTemplate = _template;
+        feeManager = _feeManager;
         // create tokenRegistry instance 
     }
     
     /**
      * @notice Create Data token contract proxy
-     * @param _logic Data token logic(metadata)
      * @param _name Data token name
      * @param _symbol Data token symbol
      * @param _minter minter address
      */
     function createToken(
-        string memory _logic,
         string memory _name, 
         string memory _symbol,
         address _minter
@@ -68,15 +69,17 @@ contract Factory is Deployer {
             'Failed to perform minimal deploy of a new token'
         );
         
-        // init Token
+        //init Token
         bytes memory _initPayload = abi.encodeWithSignature(
-            _logic, 
-            _name,
-            _symbol,
-            _minter
+                                                            'initialize(string,string,address,address)',
+                                                            _name,
+                                                            _symbol,
+                                                            _minter,
+                                                            feeManager
         );
-        /* solium-disable-next-line security/no-low-level-calls */
+        
         token.call(_initPayload);
+
         //TODO: store Token in Token Registry
         currentTokenAddress = token;
         //TODO: fix ownership and access control

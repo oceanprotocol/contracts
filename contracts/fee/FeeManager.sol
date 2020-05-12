@@ -37,4 +37,8 @@ contract FeeManager {
         uint256 usedGas = _startGas.sub(gasleft());
         return  usedGas.mul(tx.gasprice); 
     } 
+
+    function() external payable{    
+    
+    }
 }
