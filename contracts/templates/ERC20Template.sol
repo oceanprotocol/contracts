@@ -21,8 +21,6 @@ contract ERC20Template is ERC20Pausable {
     uint256 private _decimals;
     address private _minter;
 
-    address payable private beneficiary;
-
     FeeManager serviceFeeManager;
     
     modifier onlyNotInitialized() {
@@ -92,9 +90,8 @@ contract ERC20Template is ERC20Pausable {
         require(minter != address(0), 'Invalid minter:  address(0)');
         require(_minter == address(0), 'Invalid minter: access denied');
         
-        _decimals = 18;
-        uint256 baseCap = 1400000000;
-        _cap = baseCap.mul(uint256(10) ** _decimals);
+        _decimals = 0;
+        _cap = 1400000000;
        
         _name = name;
         _symbol = symbol;
