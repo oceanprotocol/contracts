@@ -35,7 +35,7 @@ contract Factory is Deployer {
     
     /**
      * @dev constructor
-     *      Called on contract creation. Could not be called with zero address parameters.
+     *      Called on contract deployment. Could not be called with zero address parameters.
      * @param _template refers to the address of a deployed DataToken contract.
      * @param _feeManager refers to the address of a fee manager .
      */
