@@ -83,7 +83,7 @@ contract('Token test', async accounts => {
     it('should not mint the tokens due to zero message value', async () => {
         truffleAssert.fails(token.mint(reciever, 10, { from: minter }),
             truffleAssert.ErrorType.REVERT,
-            'DataToken: no value assigned to the message.')
+            'DataToken: invalid data token minting fee')
     })
 
     it('should not mint the tokens due to the cap limit', async () => {

@@ -30,21 +30,21 @@ contract FeeCalculator {
     
     function calculateFee(
         uint256 tokens,
-        uint256 totalSupply
+        uint256 cap
     )
         public
         pure
         returns(uint256)
     {
         require(
-            totalSupply >= tokens,
-            'Invalid totalSupply'
+            cap >= tokens,
+            'FeeCalculator: Invalid cap'
         );
         
         uint256 tokensRange = calculateRange(tokens);
         uint256 tokensRangeToll = tokensRange.mul(BASE_TX_COST);
         return tokensRangeToll.div(
-                calculateRange(totalSupply)
+                calculateRange(cap)
             ).div(BASE);
     }
 }

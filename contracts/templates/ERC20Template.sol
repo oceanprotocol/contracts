@@ -111,15 +111,15 @@ contract ERC20Template is ERC20Pausable {
     onlyNotPaused 
     onlyMinter 
     {
-        require(msg.value > 0, 'DataToken: no value assigned to the message');
-
-        // uint256 startGas = gasleft();
-        require(totalSupply().add(value) <= _cap, 'DataToken: cap exceeded');
-        
+        require(
+            totalSupply().add(value) <= _cap, 
+            'DataToken: cap exceeded'
+        );
+        require(
+            msg.value >= serviceFeeManager.calculateFee(value, _cap), 
+            'DataToken: invalid data token minting fee'
+        );
         _mint(account, value);
-        // require(msg.value >= serviceFeeManager.getFee(startGas, value),
-        //     "DataToken: fee amount is not enough");
-
         address(serviceFeeManager).transfer(msg.value);
     }
 

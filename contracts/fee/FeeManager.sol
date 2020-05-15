@@ -7,6 +7,8 @@ import './FeeCalculator.sol';
 import './FeeCollector.sol';
 import 'openzeppelin-solidity/contracts/math/SafeMath.sol';
 
-contract FeeManager {
+contract FeeManager is FeeCalculator, FeeCollector {
     using SafeMath for uint256;
+
+    
 }
