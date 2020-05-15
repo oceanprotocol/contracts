@@ -37,7 +37,7 @@ contract ERC20Pausable is ERC20 {
      *      Can be called only if the contract is not paused.
      * @param to refers to an address that tokens are tranfered to.
      * @param value refers to amount of tokens being tranfered.
-     * @returns true if transfer is success, false otherwise.
+     * @return true if transfer is success, false otherwise.
      */
     function transfer(
         address to, 
@@ -57,7 +57,7 @@ contract ERC20Pausable is ERC20 {
      * @param from refers to an address that tokens are tranfered from.
      * @param to refers to an address that tokens are tranfered to.
      * @param value refers to amount of tokens being tranfered.
-     * @returns true if transfer is success, false otherwise.
+     * @return true if transfer is success, false otherwise.
      */
     function transferFrom(
         address from, 
@@ -77,7 +77,7 @@ contract ERC20Pausable is ERC20 {
      *      Can be called only if the contract is not paused.
      * @param spender refers to an address that is allowed to spend tokens.
      * @param value refers to amount of tokens that could be spent.
-     * @returns true if approval is success, false otherwise.
+     * @return true if approval is success, false otherwise.
      */
     function approve(
         address spender, 
@@ -96,7 +96,7 @@ contract ERC20Pausable is ERC20 {
      *      Can be called only if the contract is not paused.
      * @param spender refers to an address that is allowed to spend tokens.
      * @param addedValue refers to an added amount of tokens that could be spent.
-     * @returns true if allowance is increased successfully, false otherwise.
+     * @return true if allowance is increased successfully, false otherwise.
      */
     function increaseAllowance(
         address spender, 
@@ -114,8 +114,8 @@ contract ERC20Pausable is ERC20 {
      *      Standard ERC20 decreaseAllowance function with onlyNotPaused modifier.
      *      Can be called only if the contract is not paused.
      * @param spender refers to an address that is allowed to spend tokens.
-     * @param addedValue refers to an subtracted amount of tokens that could be spent.
-     * @returns true if allowance is decreased successfully, false otherwise.
+     * @param subtractedValue refers to an subtracted amount of tokens that could be spent.
+     * @return true if allowance is decreased successfully, false otherwise.
      */
     function decreaseAllowance(
         address spender, 

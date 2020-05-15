@@ -9,8 +9,8 @@ import './token/ERC20Pausable.sol';
 /**
 * @title ERC20Template
 *  
-* @dev ERC20Template is a DataToken ERC20 compliant template 
-*      used by the factory contract
+* @dev ERC20Template is a DataToken ERC20 compliant template
+*      Used by the factory contract as a bytecode reference to deploy new DataTokens.
 */
 contract ERC20Template is ERC20Pausable {
     using SafeMath for uint256;
@@ -186,7 +186,7 @@ contract ERC20Template is ERC20Pausable {
     /**
      * @dev name
      *      Function that reads private variable name.
-     * @returns DataToken name.
+     * @return DataToken name.
      */
     function name() public view returns(string memory) {
         return _name;
@@ -195,7 +195,7 @@ contract ERC20Template is ERC20Pausable {
     /**
      * @dev symbol
      *      Function that reads private variable symbol.
-     * @returns DataToken symbol.
+     * @return DataToken symbol.
      */
     function symbol() public view returns(string memory) {
         return _symbol;
@@ -204,7 +204,7 @@ contract ERC20Template is ERC20Pausable {
     /**
      * @dev decimals
      *      Function that reads private variable decimals.
-     * @returns DataToken decimals.
+     * @return DataToken decimals.
      */
     function decimals() public view returns(uint256) {
         return _decimals;
@@ -213,7 +213,7 @@ contract ERC20Template is ERC20Pausable {
     /**
      * @dev cap
      *      Function that reads private variable cap.
-     * @returns DataToken cap.
+     * @return DataToken cap.
      */
     function cap() public view returns (uint256) {
         return _cap;
@@ -223,7 +223,7 @@ contract ERC20Template is ERC20Pausable {
      * @dev isMinter
      *      Function takes the address and checks if it is a minter address.
      * @param account refers to the address that will be checked if it is a minter address.
-     * @returns DataToken cap.
+     * @return DataToken cap.
      */
     function isMinter(address account) public view returns(bool) {
         return (_minter == account);
@@ -232,7 +232,7 @@ contract ERC20Template is ERC20Pausable {
     /**
      * @dev isInitialized
      *      Function checks if the contract is initialized.
-     * @returns true if the contract is initialized, false if it is not.
+     * @return true if the contract is initialized, false if it is not.
      */ 
     function isInitialized() public view returns(bool) {
         return initialized;
@@ -241,7 +241,7 @@ contract ERC20Template is ERC20Pausable {
     /**
      * @dev isPaused
      *      Function checks if the contract is paused.
-     * @returns true if the contract is paused, false if it is not.
+     * @return true if the contract is paused, false if it is not.
      */ 
     function isPaused() public view returns(bool) {
         return paused;
