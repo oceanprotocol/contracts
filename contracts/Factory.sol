@@ -7,7 +7,13 @@ import './utils/Deployer.sol';
 
 /**
 * @title Factory contract
-* @dev Contract for creation of Ocean Data Tokens
+* @author Ocean Protocol Team
+*
+* @dev Implementation of Ocean DataTokens Factory
+*
+*      Factory deploys DataToken proxy contracts.
+*      New DataToken proxy contracts are links to the template contract's bytecode. 
+*      Proxy contract functionality is based on Ocean Protocol custom implementation of ERC1167 standard.
 */
 contract Factory is Deployer {
 
@@ -28,8 +34,10 @@ contract Factory is Deployer {
     );
     
     /**
-     * @notice constructor
-     * @param _template data token template address
+     * @dev constructor
+     *      Called on contract creation. Could not be called with zero address parameters.
+     * @param _template refers to the address of a deployed DataToken contract.
+     * @param _feeManager refers to the address of a fee manager .
      */
     constructor (
         address _template,
@@ -47,12 +55,14 @@ contract Factory is Deployer {
         feeManager = _feeManager;
         // create tokenRegistry instance 
     }
-    
+
     /**
-     * @notice Create Data token contract proxy
-     * @param _name Data token name
-     * @param _symbol Data token symbol
-     * @param _minter minter address
+     * @dev Deploys new DataToken proxy contract.
+     *      Template contract address could not be a zero address. 
+     * @param _name refers to a new DataToken name.
+     * @param _symbol refers to a new DataToken symbol.
+     * @param _minter refers to an address that has minter rights.
+     * @return address of a new proxy DataToken contract
      */
     function createToken(
         string memory _name, 
@@ -69,7 +79,7 @@ contract Factory is Deployer {
             'Failed to perform minimal deploy of a new token'
         );
         
-        //init Token
+        //initialize DataToken with new parameters
         bytes memory _initPayload = abi.encodeWithSignature(
                                                             'initialize(string,string,address,address)',
                                                             _name,
@@ -77,7 +87,7 @@ contract Factory is Deployer {
                                                             _minter,
                                                             feeManager
         );
-        
+
         token.call(_initPayload);
 
         //TODO: store Token in Token Registry
@@ -90,5 +100,4 @@ contract Factory is Deployer {
             _name
         );
     }
-    
 }
