@@ -2,7 +2,7 @@ const Template = artifacts.require('ERC20Template')
 const FeeManager = artifacts.require('FeeManager')
 const Factory = artifacts.require('Factory')
 const Token = artifacts.require('ERC20Template')
-
+const testUtils = require('../helpers/utils')
 const truffleAssert = require('truffle-assertions')
 const BigNumber = require('bn.js')
 
@@ -36,8 +36,9 @@ contract('Token test', async accounts => {
         template = await Template.new('Template', 'TEMPLATE', minter, feeManager.address)
         factory = await Factory.new(template.address, feeManager.address)
         metadataRef = 'https://example.com/dataset-1'
-        await factory.createToken(name, symbol, metadataRef, minter)
-        tokenAddress = await factory.currentTokenAddress()
+        const trxReceipt = await factory.createToken(name, symbol, metadataRef, minter)
+        const TokenCreatedEventArgs = testUtils.getEventArgsFromTx(trxReceipt, 'TokenCreated')
+        tokenAddress = TokenCreatedEventArgs.newTokenAddress
         token = await Token.at(tokenAddress)
         ethValue = new BigNumber('100000000000000000')
         cap = new BigNumber('1400000000')
