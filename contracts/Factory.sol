@@ -27,7 +27,7 @@ contract Factory is Deployer {
         string indexed tokenSymbol,
         uint256 tokenCap,
         address RegisteredBy,
-        address RegisteredAt,
+        uint256 RegisteredAt,
         string metadataReference
     );
 
@@ -41,7 +41,7 @@ contract Factory is Deployer {
      * @notice constructor
      * @param _template data token template address
      */
-    constructor (
+    constructor(
         address _template,
         address _feeManager
         // address _registry
