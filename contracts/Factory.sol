@@ -30,12 +30,6 @@ contract Factory is Deployer {
         uint256 RegisteredAt,
         string metadataReference
     );
-
-    event TokenRemoved(
-        address indexed tokenAddress,
-        address indexed templateAddress,
-        address indexed removedBy
-    );
     
     /**
      * @notice constructor
