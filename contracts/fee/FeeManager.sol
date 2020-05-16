@@ -12,4 +12,14 @@ contract FeeManager is FeeCalculator, FeeCollector {
     // TODO: Ownable
     // TODO: allow owner to withdraw eth
     
+    function withdraw() 
+        public
+        //onlyOwner
+    {
+        require(
+            address(this).balance > 0,
+            'FeeManager: Empty balance'
+        );
+        msg.sender.transfer(address(this).balance);
+    }
 }
