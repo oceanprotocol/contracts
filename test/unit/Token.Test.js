@@ -23,6 +23,7 @@ contract('Token test', async accounts => {
     let minter
     let newMinter
     let reciever
+    let metadataRef
 
     beforeEach('init contracts for each test', async function() {
         symbol = 'TDT'
@@ -34,7 +35,8 @@ contract('Token test', async accounts => {
         feeManager = await FeeManager.new()
         template = await Template.new('Template', 'TEMPLATE', minter, feeManager.address)
         factory = await Factory.new(template.address, feeManager.address)
-        await factory.createToken(name, symbol, minter)
+        metadataRef = 'https://example.com/dataset-1'
+        await factory.createToken(name, symbol, metadataRef, minter)
         tokenAddress = await factory.currentTokenAddress()
         token = await Token.at(tokenAddress)
         ethValue = new BigNumber('100000000000000000')

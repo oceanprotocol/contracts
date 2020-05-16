@@ -18,9 +18,19 @@ contract Factory is Deployer {
     event TokenCreated(
         address indexed newTokenAddress, 
         address indexed templateAddress,
-        string indexed name
+        string indexed tokenName
     );
     
+    event TokenRegistered(
+        address indexed tokenAddress,
+        string indexed tokenName,
+        string indexed tokenSymbol,
+        uint256 tokenCap,
+        address RegisteredBy,
+        uint256 RegisteredAt,
+        string metadataReference
+    );
+
     event TokenRemoved(
         address indexed tokenAddress,
         address indexed templateAddress,
@@ -31,7 +41,7 @@ contract Factory is Deployer {
      * @notice constructor
      * @param _template data token template address
      */
-    constructor (
+    constructor(
         address _template,
         address _feeManager
         // address _registry
@@ -57,6 +67,7 @@ contract Factory is Deployer {
     function createToken(
         string memory _name, 
         string memory _symbol,
+        string memory _metadataReference,
         address _minter
     ) 
         public
@@ -71,11 +82,11 @@ contract Factory is Deployer {
         
         //init Token
         bytes memory _initPayload = abi.encodeWithSignature(
-                                                            'initialize(string,string,address,address)',
-                                                            _name,
-                                                            _symbol,
-                                                            _minter,
-                                                            feeManager
+            'initialize(string,string,address,address)',
+            _name,
+            _symbol,
+            _minter,
+            feeManager
         );
         
         token.call(_initPayload);
@@ -83,11 +94,20 @@ contract Factory is Deployer {
         //TODO: store Token in Token Registry
         currentTokenAddress = token;
         //TODO: fix ownership and access control
-        // set Token Owner to msg.sender
         emit TokenCreated(
             token, 
             tokenTemplate,
             _name
+        );
+
+        emit TokenRegistered(
+            token,
+            _name,
+            _symbol,
+            1400000000,
+            msg.sender,
+            block.number,
+            _metadataReference
         );
     }
     

@@ -9,6 +9,7 @@ import 'openzeppelin-solidity/contracts/math/SafeMath.sol';
 
 contract FeeManager is FeeCalculator, FeeCollector {
     using SafeMath for uint256;
-
+    // TODO: Ownable
+    // TODO: allow owner to withdraw eth
     
 }
