@@ -11,9 +11,8 @@ import './utils/Deployer.sol';
 */
 contract Factory is Deployer {
 
-    address public feeManager;
-    address public tokenTemplate;
-    address public currentTokenAddress;
+    address private feeManager;
+    address private tokenTemplate;
     
     event TokenCreated(
         address indexed newTokenAddress, 
@@ -38,18 +37,15 @@ contract Factory is Deployer {
     constructor(
         address _template,
         address _feeManager
-        // address _registry
     ) 
         public 
     {
         require(
             _template != address(0) && _feeManager != address(0),
-            // _registry != address(0),
-            'Invalid TokenFactory initialization'
+            'Factory: Invalid TokenFactory initialization'
         );
         tokenTemplate = _template;
         feeManager = _feeManager;
-        // create tokenRegistry instance 
     }
     
     /**
@@ -71,7 +67,7 @@ contract Factory is Deployer {
         
         require(
             token != address(0),
-            'Failed to perform minimal deploy of a new token'
+            'Factory: Failed to perform minimal deploy of a new token'
         );
         
         //init Token
@@ -85,9 +81,6 @@ contract Factory is Deployer {
         
         token.call(_initPayload);
 
-        //TODO: store Token in Token Registry
-        currentTokenAddress = token;
-        //TODO: fix ownership and access control
         emit TokenCreated(
             token, 
             tokenTemplate,
@@ -104,5 +97,4 @@ contract Factory is Deployer {
             _metadataReference
         );
     }
-    
 }
