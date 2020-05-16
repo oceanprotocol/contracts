@@ -5,16 +5,19 @@ pragma solidity ^0.5.7;
 
 import './FeeCalculator.sol';
 import './FeeCollector.sol';
-import 'openzeppelin-solidity/contracts/math/SafeMath.sol';
+import 'openzeppelin-solidity/contracts/ownership/Ownable.sol';
 
-contract FeeManager is FeeCalculator, FeeCollector {
-    using SafeMath for uint256;
-    // TODO: Ownable
-    // TODO: allow owner to withdraw eth
+contract FeeManager is FeeCalculator, FeeCollector, Ownable {
     
+    constructor()
+        public
+        Ownable()
+    {
+    }
+
     function withdraw() 
         public
-        //onlyOwner
+        onlyOwner
     {
         require(
             address(this).balance > 0,
