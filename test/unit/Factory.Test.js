@@ -26,7 +26,7 @@ contract('Factory test', async accounts => {
         feeManager = await FeeManager.new()
         template = await Template.new('Template Contract', 'TEMPLATE', minter, feeManager.address)
         factory = await Factory.new(template.address, feeManager.address)
-        metadataRef = "https://example.com/dataset-1"
+        metadataRef = 'https://example.com/dataset-1'
     })
 
     it('should create a token and check that it is not a zero address', async () => {

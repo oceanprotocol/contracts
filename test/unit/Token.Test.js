@@ -35,7 +35,7 @@ contract('Token test', async accounts => {
         feeManager = await FeeManager.new()
         template = await Template.new('Template', 'TEMPLATE', minter, feeManager.address)
         factory = await Factory.new(template.address, feeManager.address)
-        metadataRef = "https://example.com/dataset-1"
+        metadataRef = 'https://example.com/dataset-1'
         await factory.createToken(name, symbol, metadataRef, minter)
         tokenAddress = await factory.currentTokenAddress()
         token = await Token.at(tokenAddress)
