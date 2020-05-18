@@ -67,6 +67,7 @@ contract ERC20Template is ERC20Pausable {
         string memory name,
         string memory symbol,
         address minter,
+        uint256 cap,
         address payable feeManager
     ) 
         public
@@ -84,21 +85,33 @@ contract ERC20Template is ERC20Pausable {
         string memory name,
         string memory symbol,
         address minter,
+        uint256 cap,
         address payable feeManager
     ) private {
-        require(feeManager != address(0), 'Invalid feeManager:  address(0)');
-        require(minter != address(0), 'Invalid minter:  address(0)');
-        require(_minter == address(0), 'Invalid minter: access denied');
+        require(
+            feeManager != address(0), 
+            'ERC20Template: Invalid feeManager, address(0)'
+        );
+        require(
+            minter != address(0), 
+            'ERC20Template: Invalid minter,  address(0)'
+        );
+        require(
+            _minter == address(0), 
+            'ERC20Template: Invalid minter, access denied'
+        );
+
+        require(
+            cap > 0,
+            'ERC20Template: Invalid cap value'
+        );
         
         _decimals = 0;
-        _cap = 1400000000;
-       
+        _cap = cap;
         _name = name;
         _symbol = symbol;
         _minter = minter;
-
         serviceFeeManager = FeeManager(feeManager);
-
         initialized = true;
     }
     
@@ -113,11 +126,11 @@ contract ERC20Template is ERC20Pausable {
     {
         require(
             totalSupply().add(value) <= _cap, 
-            'DataToken: cap exceeded'
+            'ERC20Template: cap exceeded'
         );
         require(
             msg.value >= serviceFeeManager.calculateFee(value, _cap), 
-            'DataToken: invalid data token minting fee'
+            'ERC20Template: invalid data token minting fee'
         );
         _mint(account, value);
         address(serviceFeeManager).transfer(msg.value);
