@@ -17,20 +17,23 @@ import './utils/Deployer.sol';
 */
 contract Factory is Deployer {
 
-    address public feeManager;
-    address public tokenTemplate;
-    address public currentTokenAddress;
+    address private feeManager;
+    address private tokenTemplate;
     
     event TokenCreated(
         address indexed newTokenAddress, 
         address indexed templateAddress,
-        string indexed name
+        string indexed tokenName
     );
     
-    event TokenRemoved(
+    event TokenRegistered(
         address indexed tokenAddress,
-        address indexed templateAddress,
-        address indexed removedBy
+        string indexed tokenName,
+        string indexed tokenSymbol,
+        uint256 tokenCap,
+        address RegisteredBy,
+        uint256 RegisteredAt,
+        string metadataReference
     );
     
     /**
@@ -39,21 +42,18 @@ contract Factory is Deployer {
      * @param _template refers to the address of a deployed DataToken contract.
      * @param _feeManager refers to the address of a fee manager .
      */
-    constructor (
+    constructor(
         address _template,
         address _feeManager
-        // address _registry
     ) 
         public 
     {
         require(
             _template != address(0) && _feeManager != address(0),
-            // _registry != address(0),
-            'Invalid TokenFactory initialization'
+            'Factory: Invalid TokenFactory initialization'
         );
         tokenTemplate = _template;
         feeManager = _feeManager;
-        // create tokenRegistry instance 
     }
 
     /**
@@ -67,37 +67,59 @@ contract Factory is Deployer {
     function createToken(
         string memory _name, 
         string memory _symbol,
+        uint256 _cap,
+        string memory _metadataReference,
         address _minter
     ) 
         public
         returns (address token)
     {
+        require(
+            _minter != address(0),
+            'Factory: Invalid minter address'
+        );
+
+        require(
+            _cap > 0,
+            'Factory: Invalid cap value'
+        );
+
         token = deploy(tokenTemplate);
         
         require(
             token != address(0),
-            'Failed to perform minimal deploy of a new token'
+            'Factory: Failed to perform minimal deploy of a new token'
         );
         
         //initialize DataToken with new parameters
         bytes memory _initPayload = abi.encodeWithSignature(
-                                                            'initialize(string,string,address,address)',
-                                                            _name,
-                                                            _symbol,
-                                                            _minter,
-                                                            feeManager
+            'initialize(string,string,address,address)',
+            _name,
+            _symbol,
+            _minter,
+            _cap,
+            feeManager
         );
 
         token.call(_initPayload);
 
-        //TODO: store Token in Token Registry
-        currentTokenAddress = token;
-        //TODO: fix ownership and access control
-        // set Token Owner to msg.sender
         emit TokenCreated(
             token, 
             tokenTemplate,
             _name
         );
+
+        emit TokenRegistered(
+            token,
+            _name,
+            _symbol,
+            _cap,
+            msg.sender,
+            block.number,
+            _metadataReference
+        );
     }
+    // TODO: manage template list
+    // TODO: Fee manager
+    // TODO: Factory token double spend (hash based check)
 }

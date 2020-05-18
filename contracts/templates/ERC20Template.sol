@@ -27,7 +27,7 @@ contract ERC20Template is ERC20Pausable {
     modifier onlyNotInitialized() {
         require(
             !initialized,
-            'DataToken: token instance already initialized'
+            'ERC20Template: token instance already initialized'
         );
         _;
     }
@@ -35,7 +35,7 @@ contract ERC20Template is ERC20Pausable {
     modifier onlyMinter() {
         require(
             msg.sender == _minter,
-            'DataToken: invalid minter' 
+            'ERC20Template: invalid minter' 
         );
         _;
     }
@@ -52,6 +52,7 @@ contract ERC20Template is ERC20Pausable {
         string memory name,
         string memory symbol,
         address minter,
+        uint256 cap,
         address payable feeManager
 
     )
@@ -61,6 +62,7 @@ contract ERC20Template is ERC20Pausable {
             name,
             symbol,
             minter,
+            cap,
             feeManager
         );
     }
@@ -78,6 +80,7 @@ contract ERC20Template is ERC20Pausable {
         string memory name,
         string memory symbol,
         address minter,
+        uint256 cap,
         address payable feeManager
     ) 
         public
@@ -87,6 +90,7 @@ contract ERC20Template is ERC20Pausable {
             name,
             symbol,
             minter,
+            cap,
             feeManager
         );
     }
@@ -104,21 +108,33 @@ contract ERC20Template is ERC20Pausable {
         string memory name,
         string memory symbol,
         address minter,
+        uint256 cap,
         address payable feeManager
     ) private {
-        require(feeManager != address(0), 'Invalid feeManager:  address(0)');
-        require(minter != address(0), 'Invalid minter:  address(0)');
-        require(_minter == address(0), 'Invalid minter: access denied');
+        require(
+            feeManager != address(0), 
+            'ERC20Template: Invalid feeManager, address(0)'
+        );
+        require(
+            minter != address(0), 
+            'ERC20Template: Invalid minter,  address(0)'
+        );
+        require(
+            _minter == address(0), 
+            'ERC20Template: Invalid minter, access denied'
+        );
+
+        require(
+            cap > 0,
+            'ERC20Template: Invalid cap value'
+        );
         
         _decimals = 0;
-        _cap = 1400000000;
-       
+        _cap = cap;
         _name = name;
         _symbol = symbol;
         _minter = minter;
-
         serviceFeeManager = FeeManager(feeManager);
-
         initialized = true;
     }
 
@@ -140,15 +156,15 @@ contract ERC20Template is ERC20Pausable {
     onlyNotPaused 
     onlyMinter 
     {
-        require(msg.value > 0, 'DataToken: no value assigned to the message');
-
-        // uint256 startGas = gasleft();
-        require(totalSupply().add(value) <= _cap, 'DataToken: cap exceeded');
-        
+        require(
+            totalSupply().add(value) <= _cap, 
+            'ERC20Template: cap exceeded'
+        );
+        require(
+            msg.value >= serviceFeeManager.calculateFee(value, _cap), 
+            'ERC20Template: invalid data token minting fee'
+        );
         _mint(account, value);
-        // require(msg.value >= serviceFeeManager.getFee(startGas, value),
-        //     "DataToken: fee amount is not enough");
-
         address(serviceFeeManager).transfer(msg.value);
     }
 

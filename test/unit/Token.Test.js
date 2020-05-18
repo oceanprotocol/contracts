@@ -2,7 +2,7 @@ const Template = artifacts.require('ERC20Template')
 const FeeManager = artifacts.require('FeeManager')
 const Factory = artifacts.require('Factory')
 const Token = artifacts.require('ERC20Template')
-
+const testUtils = require('../helpers/utils')
 const truffleAssert = require('truffle-assertions')
 const BigNumber = require('bn.js')
 
@@ -23,6 +23,7 @@ contract('Token test', async accounts => {
     let minter
     let newMinter
     let reciever
+    let metadataRef
 
     beforeEach('init contracts for each test', async function() {
         symbol = 'TDT'
@@ -34,8 +35,10 @@ contract('Token test', async accounts => {
         feeManager = await FeeManager.new()
         template = await Template.new('Template', 'TEMPLATE', minter, feeManager.address)
         factory = await Factory.new(template.address, feeManager.address)
-        await factory.createToken(name, symbol, minter)
-        tokenAddress = await factory.currentTokenAddress()
+        metadataRef = 'https://example.com/dataset-1'
+        const trxReceipt = await factory.createToken(name, symbol, metadataRef, minter)
+        const TokenCreatedEventArgs = testUtils.getEventArgsFromTx(trxReceipt, 'TokenCreated')
+        tokenAddress = TokenCreatedEventArgs.newTokenAddress
         token = await Token.at(tokenAddress)
         ethValue = new BigNumber('100000000000000000')
         cap = new BigNumber('1400000000')
@@ -83,7 +86,7 @@ contract('Token test', async accounts => {
     it('should not mint the tokens due to zero message value', async () => {
         truffleAssert.fails(token.mint(reciever, 10, { from: minter }),
             truffleAssert.ErrorType.REVERT,
-            'DataToken: no value assigned to the message.')
+            'DataToken: invalid data token minting fee')
     })
 
     it('should not mint the tokens due to the cap limit', async () => {

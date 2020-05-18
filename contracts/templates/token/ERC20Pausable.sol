@@ -18,7 +18,7 @@ contract ERC20Pausable is ERC20 {
     modifier onlyNotPaused() {
         require(
             !paused,
-            'DataToken: this token contract is paused' 
+            'ERC20Pausable: this token contract is paused' 
         );
         _;
     }
@@ -26,7 +26,7 @@ contract ERC20Pausable is ERC20 {
     modifier onlyPaused() {
         require(
             paused,
-            'DataToken: this token contract is not paused' 
+            'ERC20Pausable: this token contract is not paused' 
         );
         _;
     }
