@@ -26,7 +26,7 @@ contract ERC20Template is ERC20Pausable {
     modifier onlyNotInitialized() {
         require(
             !initialized,
-            'DataToken: token instance already initialized'
+            'ERC20Template: token instance already initialized'
         );
         _;
     }
@@ -34,7 +34,7 @@ contract ERC20Template is ERC20Pausable {
     modifier onlyMinter() {
         require(
             msg.sender == _minter,
-            'DataToken: invalid minter' 
+            'ERC20Template: invalid minter' 
         );
         _;
     }
@@ -46,6 +46,7 @@ contract ERC20Template is ERC20Pausable {
         string memory name,
         string memory symbol,
         address minter,
+        uint256 cap,
         address payable feeManager
 
     )
@@ -55,6 +56,7 @@ contract ERC20Template is ERC20Pausable {
             name,
             symbol,
             minter,
+            cap,
             feeManager
         );
     }
@@ -77,6 +79,7 @@ contract ERC20Template is ERC20Pausable {
             name,
             symbol,
             minter,
+            cap,
             feeManager
         );
     }
@@ -175,5 +178,4 @@ contract ERC20Template is ERC20Pausable {
     function isPaused() public view returns(bool) {
         return paused;
     }
-
 }
