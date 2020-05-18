@@ -57,12 +57,23 @@ contract Factory is Deployer {
     function createToken(
         string memory _name, 
         string memory _symbol,
+        uint256 _cap,
         string memory _metadataReference,
         address _minter
     ) 
         public
         returns (address token)
     {
+        require(
+            _minter != address(0),
+            'Factory: Invalid minter address'
+        );
+
+        require(
+            _cap > 0,
+            'Factory: Invalid cap value'
+        );
+
         token = deploy(tokenTemplate);
         
         require(
@@ -76,6 +87,7 @@ contract Factory is Deployer {
             _name,
             _symbol,
             _minter,
+            _cap,
             feeManager
         );
         
@@ -91,10 +103,12 @@ contract Factory is Deployer {
             token,
             _name,
             _symbol,
-            1400000000,
+            _cap,
             msg.sender,
             block.number,
             _metadataReference
         );
     }
+    // TODO: manage template list
+    // TODO: Fee manager
 }

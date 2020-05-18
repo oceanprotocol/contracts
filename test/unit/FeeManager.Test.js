@@ -1,12 +1,13 @@
-// const FeeManager = artifacts.require('FeeManager')
-// const BigNumber = require('bn.js')
-
-// /* eslint-env mocha */
+/* eslint-env mocha */
 /* global contract, it, beforeEach */
 
+const FeeManager = artifacts.require('FeeManager')
+const BigNumber = require('bn.js')
+
+const cap = 
 contract('FeeManager test', async accounts => {
-    // let feeManager
-    // let serviceFee
+    let feeManager
+    let serviceFee
 
     beforeEach('init contracts for each test', async function() {
         // feeManager = await FeeManager.new()
