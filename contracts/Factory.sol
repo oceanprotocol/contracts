@@ -4,12 +4,12 @@ pragma solidity ^0.5.7;
 // Code is Apache-2.0 and docs are CC-BY-4.0
 
 import './utils/Deployer.sol';
-import './interfaces/IEREC20Template.sol';
+import './interfaces/IERC20Template.sol';
 /**
 * @title Factory contract
 * @dev Contract for creation of Ocean Data Tokens
 */
-contract Factory is IEREC20Template, Deployer {
+contract Factory is IERC20Template, Deployer {
 
     address private feeManager;
     address private tokenTemplate;

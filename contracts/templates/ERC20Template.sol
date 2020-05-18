@@ -5,13 +5,13 @@ pragma solidity ^0.5.7;
 
 import '../fee/FeeManager.sol';
 import './token/ERC20Pausable.sol';
-
+import '../interfaces/IERC20Template.sol';
 /**
 * @title ERC20Template 
 * @dev ERC20Template is a Data Token ERC20 compliant template 
 *      used by the factory contract
 */
-contract ERC20Template is ERC20Pausable {
+contract ERC20Template is IERC20Template, ERC20Pausable {
     using SafeMath for uint256;
     
     bool    private initialized = false;

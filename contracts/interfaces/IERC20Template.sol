@@ -1,6 +1,6 @@
 pragma solidity >=0.5.0;
 
-interface IEREC20Template {
+interface IERC20Template {
     function initialize(
         string calldata name,
         string calldata symbol,
