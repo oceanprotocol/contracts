@@ -6,10 +6,8 @@ const testUtils = require('../helpers/utils')
 const truffleAssert = require('truffle-assertions')
 const BigNumber = require('bn.js')
 
-/* eslint-env mocha */
-/* global artifacts, contract, it, beforeEach, assert, web3 */
 
-contract('Token test', async accounts => {
+contract('ERC20Template', async (accounts) => {
     let cap
     let name
     let symbol
@@ -25,31 +23,32 @@ contract('Token test', async accounts => {
     let reciever
     let metadataRef
 
-    beforeEach('init contracts for each test', async function() {
-        // symbol = 'TDT'
-        // name = 'TestDataToken'
-        // decimals = 0
-        // minter = accounts[0]
-        // reciever = accounts[1]
-        // newMinter = accounts[2]
-        // feeManager = await FeeManager.new()
-        // cap = new BigNumber('1400000000')
-        // template = await Template.new('Template', 'TEMPLATE', minter, cap, feeManager.address)
-        // factory = await Factory.new(template.address, feeManager.address)
-        // metadataRef = 'https://example.com/dataset-1'
-        // const trxReceipt = await factory.createToken(name, symbol, cap, metadataRef, minter)
-        // const TokenCreatedEventArgs = testUtils.getEventArgsFromTx(trxReceipt, 'TokenCreated')
-        // console.log(TokenCreatedEventArgs)
-        // tokenAddress = TokenCreatedEventArgs.newTokenAddress
-        // token = await Token.at(tokenAddress)
-        // console.log(token.address)
-        // ethValue = new BigNumber('100000000000000000')
+    beforeEach('init contracts for each test', async () => {
+        symbol = 'EDT1'
+        name = 'ERC20DataToken'
+        decimals = 0
+        minter = accounts[0]
+        reciever = accounts[1]
+        newMinter = accounts[2]
+        feeManager = await FeeManager.new()
+        cap = new BigNumber('1400000000')
+        template = await Template.new('Template', 'TEMPLATE', minter, cap, feeManager.address)
+        factory = await Factory.new(template.address, feeManager.address)
+        metadataRef = 'https://example.com/dataset-1'
+        const trxReceipt = await factory.createToken(name, symbol, cap, metadataRef, minter)
+        const TokenCreatedEventArgs = testUtils.getEventArgsFromTx(trxReceipt, 'TokenCreated')
+        tokenAddress = TokenCreatedEventArgs.newTokenAddress
+        token = await Token.at(tokenAddress)
+        ethValue = new BigNumber('100000000000000000')
     })
-    
-    // it('should check that the token contract is initialized', async () => {
-    //     // const isInitialized = await token.isInitialized()
-    //     // assert(isInitialized === true)
-    // })
+
+    it('should check that the token contract is initialized', async () => {
+        const isInitialized = await token.isInitialized()
+        assert.strictEqual(
+            isInitialized === true,
+            'Contract was not initialized correctly!'
+        )
+    })
 
     // it('should fail to re-initialize the contracts', async () => {
     //     truffleAssert.fails(token.initialize('NewName', 'NN', reciever, cap, feeManager.address),
@@ -59,7 +58,8 @@ contract('Token test', async accounts => {
 
     // it('should check that the token is not paused', async () => {
     //     const isPaused = await token.isPaused()
-    //     assert(isPaused === false)
+    //     console.log('isPaused: ', isPaused)
+    //     // assert(isPaused === false)
     // })
 
     // it('should pause the contract', async () => {

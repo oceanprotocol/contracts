@@ -92,13 +92,15 @@ contract ERC20Template is ERC20Pausable {
         address payable feeManager
     ) private {
         require(
-            feeManager != address(0), 
-            'ERC20Template: Invalid feeManager, address(0)'
-        );
-        require(
             minter != address(0), 
-            'ERC20Template: Invalid minter,  address(0)'
+            'ERC20Template: Invalid minter,  zero address'
         );
+        
+        require(
+            feeManager != address(0), 
+            'ERC20Template: Invalid feeManager, zero address'
+        );
+
         require(
             _minter == address(0), 
             'ERC20Template: Invalid minter, access denied'
