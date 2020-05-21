@@ -51,14 +51,14 @@ contract('Factory test', async accounts => {
     it('should fail on zero minter address initialization', async () => {
         truffleAssert.fails(Template.new('Zero address minter contract', 'ZERO', zeroAddress, cap, feeManager.address),
             truffleAssert.ErrorType.REVERT,
-            'ERC20Template: Invalid minter,  address(0)'
+            'ERC20Template: Invalid minter,  zero address'
         )
     })
 
     it('should fail on zero feeManager address initialization', async () => {
         truffleAssert.fails(Template.new('Zero address minter contract', 'ZERO', minter, cap, zeroAddress),
             truffleAssert.ErrorType.REVERT,
-            'ERC20Template: Invalid minter,  address(0)'
+            'ERC20Template: Invalid minter,  zero address'
         )
     })
 })

@@ -5,14 +5,14 @@ pragma solidity ^0.5.7;
 
 import '../fee/FeeManager.sol';
 import './token/ERC20Pausable.sol';
-
+import '../interfaces/IERC20Template.sol';
 /**
 * @title ERC20Template
 *  
 * @dev ERC20Template is a DataToken ERC20 compliant template
 *      Used by the factory contract as a bytecode reference to deploy new DataTokens.
 */
-contract ERC20Template is ERC20Pausable {
+contract ERC20Template is IERC20Template, ERC20Pausable {
     using SafeMath for uint256;
     
     bool    private initialized = false;
@@ -85,8 +85,9 @@ contract ERC20Template is ERC20Pausable {
     ) 
         public
         onlyNotInitialized
+        returns(bool)
     {
-        _initialize(
+        return _initialize(
             name,
             symbol,
             minter,
@@ -110,15 +111,20 @@ contract ERC20Template is ERC20Pausable {
         address minter,
         uint256 cap,
         address payable feeManager
-    ) private {
-        require(
-            feeManager != address(0), 
-            'ERC20Template: Invalid feeManager, address(0)'
-        );
+    )
+        private
+        returns(bool)
+    {
         require(
             minter != address(0), 
-            'ERC20Template: Invalid minter,  address(0)'
+            'ERC20Template: Invalid minter,  zero address'
         );
+        
+        require(
+            feeManager != address(0), 
+            'ERC20Template: Invalid feeManager, zero address'
+        );
+
         require(
             _minter == address(0), 
             'ERC20Template: Invalid minter, access denied'
@@ -136,6 +142,7 @@ contract ERC20Template is ERC20Pausable {
         _minter = minter;
         serviceFeeManager = FeeManager(feeManager);
         initialized = true;
+        return initialized;
     }
 
     /**

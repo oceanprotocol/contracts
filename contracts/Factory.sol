@@ -4,7 +4,7 @@ pragma solidity ^0.5.7;
 // Code is Apache-2.0 and docs are CC-BY-4.0
 
 import './utils/Deployer.sol';
-
+import './interfaces/IERC20Template.sol';
 /**
 * @title Factory contract
 * @author Ocean Protocol Team
@@ -17,13 +17,13 @@ import './utils/Deployer.sol';
 */
 contract Factory is Deployer {
 
-    address private feeManager;
+    address payable private feeManager;
     address private tokenTemplate;
     
     event TokenCreated(
-        address indexed newTokenAddress, 
-        address indexed templateAddress,
-        string indexed tokenName
+        address newTokenAddress, 
+        address templateAddress,
+        string tokenName
     );
     
     event TokenRegistered(
@@ -44,7 +44,7 @@ contract Factory is Deployer {
      */
     constructor(
         address _template,
-        address _feeManager
+        address payable _feeManager
     ) 
         public 
     {
@@ -90,10 +90,9 @@ contract Factory is Deployer {
             token != address(0),
             'Factory: Failed to perform minimal deploy of a new token'
         );
-        
-        //initialize DataToken with new parameters
-        bytes memory _initPayload = abi.encodeWithSignature(
-            'initialize(string,string,address,address)',
+
+        IERC20Template tokenInstance = IERC20Template(token);
+        tokenInstance.initialize(
             _name,
             _symbol,
             _minter,
@@ -101,7 +100,10 @@ contract Factory is Deployer {
             feeManager
         );
 
-        token.call(_initPayload);
+        require(
+            tokenInstance.isInitialized(),
+            'Factory: Unable to initialize token instance'
+        );
 
         emit TokenCreated(
             token, 
