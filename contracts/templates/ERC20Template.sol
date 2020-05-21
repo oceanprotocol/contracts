@@ -73,9 +73,10 @@ contract ERC20Template is IERC20Template, ERC20Pausable {
         address payable feeManager
     ) 
         public
-        onlyNotInitialized 
+        onlyNotInitialized
+        returns(bool)
     {
-        _initialize(
+        return _initialize(
             name,
             symbol,
             minter,
@@ -90,7 +91,10 @@ contract ERC20Template is IERC20Template, ERC20Pausable {
         address minter,
         uint256 cap,
         address payable feeManager
-    ) private {
+    )
+        private
+        returns(bool)
+    {
         require(
             minter != address(0), 
             'ERC20Template: Invalid minter,  zero address'
@@ -118,6 +122,7 @@ contract ERC20Template is IERC20Template, ERC20Pausable {
         _minter = minter;
         serviceFeeManager = FeeManager(feeManager);
         initialized = true;
+        return initialized;
     }
     
     function mint(

@@ -7,7 +7,7 @@ interface IERC20Template {
         address minter,
         uint256 cap,
         address payable feeManager
-    ) external;    
+    ) external returns(bool);    
     function mint(address account, uint256 value) 
     external payable;
     function pause() external;

@@ -15,9 +15,9 @@ contract Factory is Deployer {
     address private tokenTemplate;
     
     event TokenCreated(
-        address indexed newTokenAddress, 
-        address indexed templateAddress,
-        string indexed tokenName
+        address newTokenAddress, 
+        address templateAddress,
+        string tokenName
     );
     
     event TokenRegistered(
@@ -82,8 +82,6 @@ contract Factory is Deployer {
         );
 
         IERC20Template tokenInstance = IERC20Template(token);
-        
-
         tokenInstance.initialize(
             _name,
             _symbol,
@@ -91,17 +89,11 @@ contract Factory is Deployer {
             _cap,
             feeManager
         );
-        //init Token
-        // bytes memory _initPayload = abi.encodeWithSignature(
-        //     'initialize(string,string,address,address)',
-        //     _name,
-        //     _symbol,
-        //     _minter,
-        //     _cap,
-        //     feeManager
-        // );
-        
-        // token.call(_initPayload);
+
+        require(
+            tokenInstance.isInitialized(),
+            'Factory: Unable to initialize token instance'
+        );
 
         emit TokenCreated(
             token, 
