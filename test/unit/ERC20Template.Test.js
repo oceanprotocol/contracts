@@ -1,3 +1,5 @@
+/* eslint-env mocha */
+/* global artifacts, contract, it, beforeEach, web3, assert */
 const Template = artifacts.require('ERC20Template')
 const FeeManager = artifacts.require('FeeManager')
 const Factory = artifacts.require('Factory')
@@ -6,22 +8,21 @@ const testUtils = require('../helpers/utils')
 const truffleAssert = require('truffle-assertions')
 const BigNumber = require('bn.js')
 
-
 contract('ERC20Template', async (accounts) => {
     let cap,
-    name,
-    symbol,
-    decimals,
-    factory,
-    template,
-    token,
-    tokenAddress,
-    feeManager,
-    ethValue,
-    minter,
-    newMinter,
-    reciever,
-    metadataRef
+        name,
+        symbol,
+        decimals,
+        factory,
+        template,
+        token,
+        tokenAddress,
+        feeManager,
+        ethValue,
+        minter,
+        newMinter,
+        reciever,
+        metadataRef
 
     beforeEach('init contracts for each test', async () => {
         symbol = 'EDT1'
