@@ -9,9 +9,9 @@ import './interfaces/IERC20Template.sol';
 * @title Factory contract
 * @dev Contract for creation of Ocean Data Tokens
 */
-contract Factory is IERC20Template, Deployer {
+contract Factory is Deployer {
 
-    address private feeManager;
+    address payable private feeManager;
     address private tokenTemplate;
     
     event TokenCreated(
@@ -36,7 +36,7 @@ contract Factory is IERC20Template, Deployer {
      */
     constructor(
         address _template,
-        address _feeManager
+        address payable _feeManager
     ) 
         public 
     {
@@ -80,18 +80,28 @@ contract Factory is IERC20Template, Deployer {
             token != address(0),
             'Factory: Failed to perform minimal deploy of a new token'
         );
+
+        IERC20Template tokenInstance = IERC20Template(token);
         
-        //init Token
-        bytes memory _initPayload = abi.encodeWithSignature(
-            'initialize(string,string,address,address)',
+
+        tokenInstance.initialize(
             _name,
             _symbol,
             _minter,
             _cap,
             feeManager
         );
+        //init Token
+        // bytes memory _initPayload = abi.encodeWithSignature(
+        //     'initialize(string,string,address,address)',
+        //     _name,
+        //     _symbol,
+        //     _minter,
+        //     _cap,
+        //     feeManager
+        // );
         
-        token.call(_initPayload);
+        // token.call(_initPayload);
 
         emit TokenCreated(
             token, 
