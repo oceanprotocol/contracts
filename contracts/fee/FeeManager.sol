@@ -5,40 +5,24 @@ pragma solidity ^0.5.7;
 
 import './FeeCalculator.sol';
 import './FeeCollector.sol';
-import 'openzeppelin-solidity/contracts/math/SafeMath.sol';
+import 'openzeppelin-solidity/contracts/ownership/Ownable.sol';
 
-contract FeeManager {
-    using SafeMath for uint256;
-
-    uint256 public constant  DIVIDENT = 90;
-    uint256 public constant  DIVIDER  = 100;
-
-    function getFee(
-        uint256 _startGas,
-        uint256 _tokenAmount
-    )
-    public
-    view 
-    returns(uint256)
+contract FeeManager is FeeCalculator, FeeCollector, Ownable {
+    
+    constructor()
+        public
+        Ownable()
     {
-
-        uint256 txPrice = _getTxPrice(_startGas);
-        return  ((_tokenAmount.mul(txPrice)).mul(DIVIDENT)).div(DIVIDER); 
     }
 
- 
-    function _getTxPrice(
-        uint256 _startGas
-    )
-    private
-    view
-    returns(uint256)
+    function withdraw() 
+        public
+        onlyOwner
     {
-        uint256 usedGas = _startGas.sub(gasleft());
-        return  usedGas.mul(tx.gasprice); 
-    } 
-
-    function() external payable{    
-    
+        require(
+            address(this).balance > 0,
+            'FeeManager: Empty balance'
+        );
+        msg.sender.transfer(address(this).balance);
     }
 }
