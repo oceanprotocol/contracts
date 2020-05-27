@@ -1,6 +1,11 @@
 /* eslint-env mocha */
 /* global contract, it, beforeEach, assert, artifacts */
 
+const chai = require('chai')
+const { assert } = chai
+const chaiAsPromised = require('chai-as-promised')
+chai.use(chaiAsPromised)
+
 const FeeManager = artifacts.require('FeeManager')
 const utils = require('../helpers/utils')
 const BigNumber = require('bn.js')
@@ -10,11 +15,14 @@ contract('FeeManager', async (accounts) => {
         sender,
         owner,
         web3,
-        value
+        value,
+        zeroBalance
+
     beforeEach('init contracts for each test', async () => {
         owner = accounts[0]
         sender = accounts[1]
-        value = new BigNumber('5000000000000000000')
+        value = 1000000000000000000
+        zeroBalance = 0
         feeManager = await FeeManager.new({from: owner})
         web3 = await utils.getWeb3()
     })
@@ -28,18 +36,11 @@ contract('FeeManager', async (accounts) => {
         )
         await web3.eth.getBalance(feeManager.address)
             .then((balance) => {
-                assert(new BigNumber(balance), value)
+                assert(balance, value)
             })
     })
 
     it('should owner withdraw Eth from fee manager contract', async() => {
-        let ownerBalanceAfter, 
-        ownerBalanceBefore
-        await web3.eth.getBalance(owner)
-        .then((ownerBalance) => {
-            ownerBalanceBefore = ownerBalance
-        })
-        
         await feeManager.send(
             value,
             {
@@ -51,13 +52,11 @@ contract('FeeManager', async (accounts) => {
                 from: owner
             }
         )
-        await web3.eth.getBalance(owner)
-        .then((ownerBalance) => {
-            ownerBalanceAfter = ownerBalance
-        })
         
-        assert(
-            new BigNumber(ownerBalanceBefore) < new BigNumber(ownerBalanceAfter)
+        assert.equal(
+            await web3.eth.getBalance(feeManager.address), 
+            zeroBalance
         )
+        
     })
 })
