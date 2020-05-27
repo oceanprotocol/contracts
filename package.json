@@ -19,7 +19,8 @@
     "clean": "rm -rf build/",
     "lint:ethlint": "solium -d ./contracts/",
     "lint:eslint": "eslint --ignore-pattern '/coverage/' .",
-    "lint": "npm run lint:eslint && npm run lint:ethlint"
+    "lint": "npm run lint:eslint && npm run lint:ethlint",
+    "doc:generate": "npx solidity-docgen --solc-module solc"
   },
   "files": [
     "doc/**/*",
