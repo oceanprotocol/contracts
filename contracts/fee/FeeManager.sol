@@ -21,7 +21,7 @@ contract FeeManager is FeeCalculator, FeeCollector, Ownable {
     {
         require(
             address(this).balance > 0,
-            'FeeManager: Empty balance'
+            'FeeManager: Zero balance'
         );
         msg.sender.transfer(address(this).balance);
     }

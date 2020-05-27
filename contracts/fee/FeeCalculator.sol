@@ -14,7 +14,7 @@ contract FeeCalculator {
     function calculateRange(
         uint256 number
     ) 
-        internal
+        public
         pure
         returns(uint256)
     {
