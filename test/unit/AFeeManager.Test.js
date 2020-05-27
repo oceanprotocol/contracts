@@ -1,14 +1,12 @@
 /* eslint-env mocha */
-/* global contract, it, beforeEach, assert, artifacts */
+/* global contract, it, beforeEach, artifacts */
 
 const chai = require('chai')
 const { assert } = chai
 const chaiAsPromised = require('chai-as-promised')
 chai.use(chaiAsPromised)
-
 const FeeManager = artifacts.require('FeeManager')
 const utils = require('../helpers/utils')
-const BigNumber = require('bn.js')
 
 contract('FeeManager', async (accounts) => {
     let feeManager,
@@ -23,7 +21,7 @@ contract('FeeManager', async (accounts) => {
         sender = accounts[1]
         value = 1000000000000000000
         zeroBalance = 0
-        feeManager = await FeeManager.new({from: owner})
+        feeManager = await FeeManager.new({ from: owner })
         web3 = await utils.getWeb3()
     })
 
@@ -40,7 +38,7 @@ contract('FeeManager', async (accounts) => {
             })
     })
 
-    it('should owner withdraw Eth from fee manager contract', async() => {
+    it('should owner withdraw Eth from fee manager contract', async () => {
         await feeManager.send(
             value,
             {
@@ -52,11 +50,10 @@ contract('FeeManager', async (accounts) => {
                 from: owner
             }
         )
-        
+
         assert.equal(
-            await web3.eth.getBalance(feeManager.address), 
+            await web3.eth.getBalance(feeManager.address),
             zeroBalance
         )
-        
     })
 })
