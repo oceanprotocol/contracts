@@ -16,7 +16,7 @@ contract('Factory test', async accounts => {
     let factory
     let result
     let minter
-    let metadataRef
+    let blob
     let cap
 
     beforeEach('init contracts for each test', async function() {
@@ -28,12 +28,12 @@ contract('Factory test', async accounts => {
         feeManager = await FeeManager.new()
         template = await Template.new('Template Contract', 'TEMPLATE', minter, cap, feeManager.address)
         factory = await Factory.new(template.address, feeManager.address)
-        metadataRef = 'https://example.com/dataset-1'
+        blob = 'https://example.com/dataset-1'
     })
 
     it('should create a token and check that it is not a zero address', async () => {
         truffleAssert.passes(
-            result = await factory.createToken(name, symbol, cap, metadataRef, minter)
+            result = await factory.createToken(name, symbol, cap, blob, minter)
         )
         truffleAssert.eventEmitted(result, 'TokenCreated', (ev) => {
             tokenAddress = ev.param1
