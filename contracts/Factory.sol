@@ -33,7 +33,7 @@ contract Factory is Deployer {
         uint256 tokenCap,
         address RegisteredBy,
         uint256 RegisteredAt,
-        string metadataReference
+        string blob
     );
     
     /**
@@ -68,7 +68,7 @@ contract Factory is Deployer {
         string memory _name, 
         string memory _symbol,
         uint256 _cap,
-        string memory _metadataReference,
+        string memory _blob,
         address _minter
     ) 
         public
@@ -118,7 +118,7 @@ contract Factory is Deployer {
             _cap,
             msg.sender,
             block.number,
-            _metadataReference
+            _blob
         );
     }
     // TODO: manage template list
