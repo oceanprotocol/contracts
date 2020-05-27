@@ -83,7 +83,7 @@ TBD
 
 To use generate documentation via `solidity-docgen` please run:
 ```bash
-npx solidity-docgen --solc-module solc
+npm run doc:generate
 ```
 
 
