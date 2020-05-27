@@ -81,6 +81,12 @@ TBD
 
 ## Documentation
 
+To use generate documentation via `solidity-docgen` please run:
+```bash
+npm run doc:generate
+```
+
+
 * [Release process](doc/RELEASE_PROCESS.md)
 * [Core Documentation](doc/contracts/README.md)
 * [Packaging of libraries](doc/PACKAGING.md)

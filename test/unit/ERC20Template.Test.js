@@ -1,55 +1,60 @@
+/* eslint-env mocha */
+/* global artifacts, contract, it, beforeEach, web3, assert */
 const Template = artifacts.require('ERC20Template')
 const FeeManager = artifacts.require('FeeManager')
 const Factory = artifacts.require('Factory')
 const Token = artifacts.require('ERC20Template')
-
+const testUtils = require('../helpers/utils')
 const truffleAssert = require('truffle-assertions')
 const BigNumber = require('bn.js')
 
-/* eslint-env mocha */
-/* global artifacts, contract, it, beforeEach, assert, web3 */
+contract('ERC20Template', async (accounts) => {
+    let cap,
+        name,
+        symbol,
+        decimals,
+        factory,
+        template,
+        token,
+        tokenAddress,
+        feeManager,
+        ethValue,
+        minter,
+        newMinter,
+        reciever,
+        blob
 
-contract('Token test', async accounts => {
-    let cap
-    let name
-    let symbol
-    let decimals
-    let factory
-    let template
-    let token
-    let feeManager
-    let ethValue
-    let tokenAddress
-    let minter
-    let newMinter
-    let reciever
-
-    beforeEach('init contracts for each test', async function() {
-        symbol = 'TDT'
-        name = 'TestDataToken'
+    beforeEach('init contracts for each test', async () => {
+        symbol = 'EDT1'
+        name = 'ERC20DataToken'
         decimals = 0
         minter = accounts[0]
         reciever = accounts[1]
         newMinter = accounts[2]
         feeManager = await FeeManager.new()
-        template = await Template.new('Template', 'TEMPLATE', minter, feeManager.address)
+        cap = new BigNumber('1400000000')
+        template = await Template.new('Template', 'TEMPLATE', minter, cap, feeManager.address)
         factory = await Factory.new(template.address, feeManager.address)
-        await factory.createToken(name, symbol, minter)
-        tokenAddress = await factory.currentTokenAddress()
+        blob = 'https://example.com/dataset-1'
+        const trxReceipt = await factory.createToken(name, symbol, cap, blob, minter)
+        const TokenCreatedEventArgs = testUtils.getEventArgsFromTx(trxReceipt, 'TokenCreated')
+        tokenAddress = TokenCreatedEventArgs.newTokenAddress
         token = await Token.at(tokenAddress)
         ethValue = new BigNumber('100000000000000000')
-        cap = new BigNumber('1400000000')
     })
 
     it('should check that the token contract is initialized', async () => {
         const isInitialized = await token.isInitialized()
-        assert(isInitialized === true)
+        assert(
+            isInitialized === true,
+            'Contract was not initialized correctly!'
+        )
     })
 
     it('should fail to re-initialize the contracts', async () => {
-        truffleAssert.fails(token.initialize('NewName', 'NN', reciever, feeManager.address),
+        truffleAssert.fails(token.initialize('NewName', 'NN', reciever, cap, feeManager.address),
             truffleAssert.ErrorType.REVERT,
-            'DataToken: token instance already initialized.')
+            'ERC20Template: token instance already initialized')
     })
 
     it('should check that the token is not paused', async () => {
@@ -83,7 +88,7 @@ contract('Token test', async accounts => {
     it('should not mint the tokens due to zero message value', async () => {
         truffleAssert.fails(token.mint(reciever, 10, { from: minter }),
             truffleAssert.ErrorType.REVERT,
-            'DataToken: no value assigned to the message.')
+            'ERC20Template: invalid data token minting fee')
     })
 
     it('should not mint the tokens due to the cap limit', async () => {
@@ -93,14 +98,14 @@ contract('Token test', async accounts => {
 
         truffleAssert.fails(token.mint(reciever, tokenCap, { value: ethValue, from: minter }),
             truffleAssert.ErrorType.REVERT,
-            'DataToken: cap exceeded.')
+            'ERC20Template: cap exceeded')
     })
 
     it('should not mint the tokens because of the paused contract', async () => {
         await token.pause()
         truffleAssert.fails(token.mint(reciever, 10, { value: ethValue, from: minter }),
             truffleAssert.ErrorType.REVERT,
-            'DataToken: this token contract is paused.')
+            'ERC20Pausable: this token contract is paused')
     })
 
     it('should mint the tokens', async () => {

@@ -1,0 +1,14 @@
+## `FeeCollector`
+
+
+
+
+
+
+### `fallback()` (external)
+
+
+
+
+
+

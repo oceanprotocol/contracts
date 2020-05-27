@@ -5,13 +5,14 @@ pragma solidity ^0.5.7;
 
 import '../fee/FeeManager.sol';
 import './token/ERC20Pausable.sol';
-
+import '../interfaces/IERC20Template.sol';
 /**
-* @title ERC20Template 
-* @dev ERC20Template is a Data Token ERC20 compliant template 
-*      used by the factory contract
+* @title ERC20Template
+*  
+* @dev ERC20Template is a DataToken ERC20 compliant template
+*      Used by the factory contract as a bytecode reference to deploy new DataTokens.
 */
-contract ERC20Template is ERC20Pausable {
+contract ERC20Template is IERC20Template, ERC20Pausable {
     using SafeMath for uint256;
     
     bool    private initialized = false;
@@ -26,7 +27,7 @@ contract ERC20Template is ERC20Pausable {
     modifier onlyNotInitialized() {
         require(
             !initialized,
-            'DataToken: token instance already initialized'
+            'ERC20Template: token instance already initialized'
         );
         _;
     }
@@ -34,18 +35,24 @@ contract ERC20Template is ERC20Pausable {
     modifier onlyMinter() {
         require(
             msg.sender == _minter,
-            'DataToken: invalid minter' 
+            'ERC20Template: invalid minter' 
         );
         _;
     }
-    
+
     /**
-     * @notice only used prior contract deployment
+     * @dev constructor
+     *      Called on contract deployment.  Could not be called with zero address parameters.
+     * @param name refers to a template DataToken name.
+     * @param symbol refers to a template DataToken symbol.
+     * @param minter refers to an address that has minter rights.
+     * @param feeManager refers to an address of a FeeManager contract.
      */
     constructor(
         string memory name,
         string memory symbol,
         address minter,
+        uint256 cap,
         address payable feeManager
 
     )
@@ -55,53 +62,98 @@ contract ERC20Template is ERC20Pausable {
             name,
             symbol,
             minter,
+            cap,
             feeManager
         );
     }
     
     /**
-     * @notice only used prior token instance setup (all state variables will be initialized)
-        "initialize(string,string,address)","datatoken-1","dt-1",0xBa3e0EC852Dc24cA7F454ea545D40B1462501711
+     * @dev initialize
+     *      Called on contract initialization. Used on new DataToken instance setup.
+            Calls private _initialize function. Only if contract is not initialized.
+     * @param name refers to a new DataToken name.
+     * @param symbol refers to a nea DataToken symbol.
+     * @param minter refers to an address that has minter rights.
+     * @param feeManager refers to an address of a FeeManager contract.
      */
     function initialize(
         string memory name,
         string memory symbol,
         address minter,
+        uint256 cap,
         address payable feeManager
     ) 
         public
-        onlyNotInitialized 
+        onlyNotInitialized
+        returns(bool)
     {
-        _initialize(
+        return _initialize(
             name,
             symbol,
             minter,
+            cap,
             feeManager
         );
     }
-    
+
+    /**
+     * @dev _initialize
+     *      Private function called on contract initialization.
+            No of the parameters can be a zero address. 
+     * @param name refers to a new DataToken name.
+     * @param symbol refers to a nea DataToken symbol.
+     * @param minter refers to an address that has minter rights.
+     * @param feeManager refers to an address of a FeeManager contract.
+     */
     function _initialize(
         string memory name,
         string memory symbol,
         address minter,
+        uint256 cap,
         address payable feeManager
-    ) private {
-        require(feeManager != address(0), 'Invalid feeManager:  address(0)');
-        require(minter != address(0), 'Invalid minter:  address(0)');
-        require(_minter == address(0), 'Invalid minter: access denied');
+    )
+        private
+        returns(bool)
+    {
+        require(
+            minter != address(0), 
+            'ERC20Template: Invalid minter,  zero address'
+        );
+        
+        require(
+            feeManager != address(0), 
+            'ERC20Template: Invalid feeManager, zero address'
+        );
+
+        require(
+            _minter == address(0), 
+            'ERC20Template: Invalid minter, access denied'
+        );
+
+        require(
+            cap > 0,
+            'ERC20Template: Invalid cap value'
+        );
         
         _decimals = 0;
-        _cap = 1400000000;
-       
+        _cap = cap;
         _name = name;
         _symbol = symbol;
         _minter = minter;
-
         serviceFeeManager = FeeManager(feeManager);
-
         initialized = true;
+        return initialized;
     }
-    
+
+    /**
+     * @dev mint
+     *      Function that takes the fee as msg.value and mints new DataTokens.
+            Can be called only if the contract is not paused.
+            Can be called only by the minter address.
+            Msg.value should be higher than zero. 
+     * @param account refers to a an address that token is going to be minted to.
+     * @param value refers to amount of tokens that is going to be minted.
+     */
     function mint(
         address account,
         uint256 value
@@ -111,56 +163,110 @@ contract ERC20Template is ERC20Pausable {
     onlyNotPaused 
     onlyMinter 
     {
-        require(msg.value > 0, 'DataToken: no value assigned to the message');
-
-        // uint256 startGas = gasleft();
-        require(totalSupply().add(value) <= _cap, 'DataToken: cap exceeded');
-        
+        require(
+            totalSupply().add(value) <= _cap, 
+            'ERC20Template: cap exceeded'
+        );
+        require(
+            msg.value >= serviceFeeManager.calculateFee(value, _cap), 
+            'ERC20Template: invalid data token minting fee'
+        );
         _mint(account, value);
-        // require(msg.value >= serviceFeeManager.getFee(startGas, value),
-        //     "DataToken: fee amount is not enough");
-
         address(serviceFeeManager).transfer(msg.value);
     }
 
+    /**
+     * @dev pause
+     *      Function that pauses the contract.
+            Can be called only if the contract is not already paused.
+            Can be called only by the minter address.
+     */
     function pause() public onlyNotPaused onlyMinter {
         paused = true;
     }
 
+    /**
+     * @dev unpause
+     *      Function that unpauses the contract.
+            Can be called only if the contract is paused.
+            Can be called only by the minter address.
+     */
     function unpause() public onlyPaused onlyMinter {
         paused = false;
     }
 
+    /**
+     * @dev setMinter
+     *      Function that sents a new minter address.
+            Can be called only if the contract is not paused.
+            Can be called only by the minter address.
+     * @param minter refers to a new minter address.
+     */
     function setMinter(address minter) public onlyNotPaused onlyMinter {
         _minter = minter;
     }
-    
+
+    /**
+     * @dev name
+     *      Function that reads private variable name.
+     * @return DataToken name.
+     */
     function name() public view returns(string memory) {
         return _name;
     }
-    
+
+    /**
+     * @dev symbol
+     *      Function that reads private variable symbol.
+     * @return DataToken symbol.
+     */
     function symbol() public view returns(string memory) {
         return _symbol;
     }
-    
+
+    /**
+     * @dev decimals
+     *      Function that reads private variable decimals.
+     * @return DataToken decimals.
+     */
     function decimals() public view returns(uint256) {
         return _decimals;
     }
-    
+
+    /**
+     * @dev cap
+     *      Function that reads private variable cap.
+     * @return DataToken cap.
+     */
     function cap() public view returns (uint256) {
         return _cap;
     }
-    
+
+    /**
+     * @dev isMinter
+     *      Function takes the address and checks if it is a minter address.
+     * @param account refers to the address that will be checked if it is a minter address.
+     * @return DataToken cap.
+     */
     function isMinter(address account) public view returns(bool) {
         return (_minter == account);
     } 
-    
+
+    /**
+     * @dev isInitialized
+     *      Function checks if the contract is initialized.
+     * @return true if the contract is initialized, false if it is not.
+     */ 
     function isInitialized() public view returns(bool) {
         return initialized;
     }
 
+    /**
+     * @dev isPaused
+     *      Function checks if the contract is paused.
+     * @return true if the contract is paused, false if it is not.
+     */ 
     function isPaused() public view returns(bool) {
         return paused;
     }
-
 }

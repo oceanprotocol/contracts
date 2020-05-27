@@ -4,91 +4,124 @@ pragma solidity ^0.5.7;
 // Code is Apache-2.0 and docs are CC-BY-4.0
 
 import './utils/Deployer.sol';
-
+import './interfaces/IERC20Template.sol';
 /**
 * @title Factory contract
-* @dev Contract for creation of Ocean Data Tokens
+* @author Ocean Protocol Team
+*
+* @dev Implementation of Ocean DataTokens Factory
+*
+*      Factory deploys DataToken proxy contracts.
+*      New DataToken proxy contracts are links to the template contract's bytecode. 
+*      Proxy contract functionality is based on Ocean Protocol custom implementation of ERC1167 standard.
 */
 contract Factory is Deployer {
 
-    address public feeManager;
-    address public tokenTemplate;
-    address public currentTokenAddress;
+    address payable private feeManager;
+    address private tokenTemplate;
     
     event TokenCreated(
-        address indexed newTokenAddress, 
-        address indexed templateAddress,
-        string indexed name
+        address newTokenAddress, 
+        address templateAddress,
+        string tokenName
     );
     
-    event TokenRemoved(
+    event TokenRegistered(
         address indexed tokenAddress,
-        address indexed templateAddress,
-        address indexed removedBy
+        string indexed tokenName,
+        string indexed tokenSymbol,
+        uint256 tokenCap,
+        address RegisteredBy,
+        uint256 RegisteredAt,
+        string blob
     );
     
     /**
-     * @notice constructor
-     * @param _template data token template address
+     * @dev constructor
+     *      Called on contract deployment. Could not be called with zero address parameters.
+     * @param _template refers to the address of a deployed DataToken contract.
+     * @param _feeManager refers to the address of a fee manager .
      */
-    constructor (
+    constructor(
         address _template,
-        address _feeManager
-        // address _registry
+        address payable _feeManager
     ) 
         public 
     {
         require(
             _template != address(0) && _feeManager != address(0),
-            // _registry != address(0),
-            'Invalid TokenFactory initialization'
+            'Factory: Invalid TokenFactory initialization'
         );
         tokenTemplate = _template;
         feeManager = _feeManager;
-        // create tokenRegistry instance 
     }
-    
+
     /**
-     * @notice Create Data token contract proxy
-     * @param _name Data token name
-     * @param _symbol Data token symbol
-     * @param _minter minter address
+     * @dev Deploys new DataToken proxy contract.
+     *      Template contract address could not be a zero address. 
+     * @param _name refers to a new DataToken name.
+     * @param _symbol refers to a new DataToken symbol.
+     * @param _minter refers to an address that has minter rights.
+     * @return address of a new proxy DataToken contract
      */
     function createToken(
         string memory _name, 
         string memory _symbol,
+        uint256 _cap,
+        string memory _blob,
         address _minter
     ) 
         public
         returns (address token)
     {
+        require(
+            _minter != address(0),
+            'Factory: Invalid minter address'
+        );
+
+        require(
+            _cap > 0,
+            'Factory: Invalid cap value'
+        );
+
         token = deploy(tokenTemplate);
         
         require(
             token != address(0),
-            'Failed to perform minimal deploy of a new token'
+            'Factory: Failed to perform minimal deploy of a new token'
         );
-        
-        //init Token
-        bytes memory _initPayload = abi.encodeWithSignature(
-                                                            'initialize(string,string,address,address)',
-                                                            _name,
-                                                            _symbol,
-                                                            _minter,
-                                                            feeManager
-        );
-        
-        token.call(_initPayload);
 
-        //TODO: store Token in Token Registry
-        currentTokenAddress = token;
-        //TODO: fix ownership and access control
-        // set Token Owner to msg.sender
+        IERC20Template tokenInstance = IERC20Template(token);
+        tokenInstance.initialize(
+            _name,
+            _symbol,
+            _minter,
+            _cap,
+            feeManager
+        );
+
+        require(
+            tokenInstance.isInitialized(),
+            'Factory: Unable to initialize token instance'
+        );
+
         emit TokenCreated(
             token, 
             tokenTemplate,
             _name
         );
+
+        emit TokenRegistered(
+            token,
+            _name,
+            _symbol,
+            _cap,
+            msg.sender,
+            block.number,
+            _blob
+        );
     }
-    
+    // TODO: manage template list
+    // TODO: Fee manager
+    // TODO: Factory token double spend (hash based check)
 }
