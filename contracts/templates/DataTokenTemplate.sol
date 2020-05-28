@@ -5,14 +5,14 @@ pragma solidity ^0.5.7;
 
 import '../fee/FeeManager.sol';
 import './token/ERC20Pausable.sol';
-import '../interfaces/IERC20Template.sol';
+import '../interfaces/IDataTokenTemplate.sol';
 /**
 * @title DataTokenTemplate
 *  
 * @dev DataTokenTemplate is a DataToken ERC20 compliant template
 *      Used by the factory contract as a bytecode reference to deploy new DataTokens.
 */
-contract DataTokenTemplate is IERC20Template, ERC20Pausable {
+contract DataTokenTemplate is IDataTokenTemplate, ERC20Pausable {
     using SafeMath for uint256;
     
     bool    private initialized = false;

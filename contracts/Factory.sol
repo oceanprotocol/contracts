@@ -4,7 +4,7 @@ pragma solidity ^0.5.7;
 // Code is Apache-2.0 and docs are CC-BY-4.0
 
 import './utils/Deployer.sol';
-import './interfaces/IERC20Template.sol';
+import './interfaces/IDataTokenTemplate.sol';
 /**
 * @title Factory contract
 * @author Ocean Protocol Team
@@ -91,7 +91,7 @@ contract Factory is Deployer {
             'Factory: Failed to perform minimal deploy of a new token'
         );
 
-        IERC20Template tokenInstance = IERC20Template(token);
+        IDataTokenTemplate tokenInstance = IDataTokenTemplate(token);
         tokenInstance.initialize(
             _name,
             _symbol,
