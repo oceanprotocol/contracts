@@ -22,13 +22,13 @@ contract('Factory test', async accounts => {
     beforeEach('init contracts for each test', async function() {
         symbol = 'TDT'
         name = 'TestDataToken'
+        blob = 'https://example.com/dataset-1'
         minter = accounts[0]
         zeroAddress = '0x0000000000000000000000000000000000000000'
         cap = 1400000000
         feeManager = await FeeManager.new()
-        template = await Template.new('Template Contract', 'TEMPLATE', minter, cap, feeManager.address)
+        template = await Template.new('Template Contract', 'TEMPLATE', minter, cap, blob, feeManager.address)
         factory = await Factory.new(template.address, feeManager.address)
-        blob = 'https://example.com/dataset-1'
     })
 
     it('should create a token and check that it is not a zero address', async () => {
@@ -49,14 +49,14 @@ contract('Factory test', async accounts => {
     })
 
     it('should fail on zero minter address initialization', async () => {
-        truffleAssert.fails(Template.new('Zero address minter contract', 'ZERO', zeroAddress, cap, feeManager.address),
+        truffleAssert.fails(Template.new('Zero address minter contract', 'ZERO', zeroAddress, cap, blob, feeManager.address),
             truffleAssert.ErrorType.REVERT,
             'ERC20Template: Invalid minter,  zero address'
         )
     })
 
     it('should fail on zero feeManager address initialization', async () => {
-        truffleAssert.fails(Template.new('Zero address minter contract', 'ZERO', minter, cap, zeroAddress),
+        truffleAssert.fails(Template.new('Zero address minter contract', 'ZERO', minter, cap, blob, zeroAddress),
             truffleAssert.ErrorType.REVERT,
             'ERC20Template: Invalid minter,  zero address'
         )

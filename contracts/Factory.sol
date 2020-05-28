@@ -97,6 +97,7 @@ contract Factory is Deployer {
             _symbol,
             _minter,
             _cap,
+            _blob,
             feeManager
         );
 

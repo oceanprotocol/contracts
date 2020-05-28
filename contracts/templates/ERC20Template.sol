@@ -18,6 +18,7 @@ contract ERC20Template is IERC20Template, ERC20Pausable {
     bool    private initialized = false;
     string  private _name;
     string  private _symbol;
+    string  private _blob;
     uint256 private _cap;
     uint256 private _decimals;
     address private _minter;
@@ -53,6 +54,7 @@ contract ERC20Template is IERC20Template, ERC20Pausable {
         string memory symbol,
         address minter,
         uint256 cap,
+        string memory blob,
         address payable feeManager
 
     )
@@ -63,6 +65,7 @@ contract ERC20Template is IERC20Template, ERC20Pausable {
             symbol,
             minter,
             cap,
+            blob,
             feeManager
         );
     }
@@ -81,6 +84,7 @@ contract ERC20Template is IERC20Template, ERC20Pausable {
         string memory symbol,
         address minter,
         uint256 cap,
+        string memory blob,
         address payable feeManager
     ) 
         public
@@ -92,6 +96,7 @@ contract ERC20Template is IERC20Template, ERC20Pausable {
             symbol,
             minter,
             cap,
+            blob,
             feeManager
         );
     }
@@ -110,6 +115,7 @@ contract ERC20Template is IERC20Template, ERC20Pausable {
         string memory symbol,
         address minter,
         uint256 cap,
+        string memory blob,
         address payable feeManager
     )
         private
@@ -138,6 +144,7 @@ contract ERC20Template is IERC20Template, ERC20Pausable {
         _decimals = 0;
         _cap = cap;
         _name = name;
+        _blob = blob;
         _symbol = symbol;
         _minter = minter;
         serviceFeeManager = FeeManager(feeManager);
@@ -222,6 +229,15 @@ contract ERC20Template is IERC20Template, ERC20Pausable {
      */
     function symbol() public view returns(string memory) {
         return _symbol;
+    }
+
+    /**
+     * @dev blob
+     *      Function that reads private variable blob.
+     * @return DataToken blob.
+     */
+    function blob() public view returns(string memory) {
+        return _blob;
     }
 
     /**
