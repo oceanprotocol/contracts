@@ -19,7 +19,10 @@ contract Factory is Deployer {
 
     address payable private feeManager;
     address private tokenTemplate;
-    
+    // cap has max uint256 (2^256 -1)
+    uint256 constant private cap = 
+    115792089237316195423570985008687907853269984665640564039457584007913129639935;
+
     event TokenCreated(
         address newTokenAddress, 
         address templateAddress,
@@ -67,7 +70,6 @@ contract Factory is Deployer {
     function createToken(
         string memory _name, 
         string memory _symbol,
-        uint256 _cap,
         string memory _blob,
         address _minter
     ) 
@@ -77,11 +79,6 @@ contract Factory is Deployer {
         require(
             _minter != address(0),
             'Factory: Invalid minter address'
-        );
-
-        require(
-            _cap > 0,
-            'Factory: Invalid cap value'
         );
 
         token = deploy(tokenTemplate);
@@ -96,7 +93,7 @@ contract Factory is Deployer {
             _name,
             _symbol,
             _minter,
-            _cap,
+            cap,
             feeManager
         );
 
@@ -115,7 +112,7 @@ contract Factory is Deployer {
             token,
             _name,
             _symbol,
-            _cap,
+            cap,
             msg.sender,
             block.number,
             _blob
