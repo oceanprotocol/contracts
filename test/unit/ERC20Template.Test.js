@@ -27,13 +27,14 @@ contract('ERC20Template', async (accounts) => {
     beforeEach('init contracts for each test', async () => {
         symbol = 'EDT1'
         name = 'ERC20DataToken'
+        blob = 'https://example.com/dataset-1'
         decimals = 0
         minter = accounts[0]
         reciever = accounts[1]
         newMinter = accounts[2]
         feeManager = await FeeManager.new()
         cap = new BigNumber('1400000000')
-        template = await Template.new('Template', 'TEMPLATE', minter, cap, feeManager.address)
+        template = await Template.new('Template', 'TEMPLATE', minter, cap, blob, feeManager.address)
         factory = await Factory.new(template.address, feeManager.address)
         blob = 'https://example.com/dataset-1'
         const trxReceipt = await factory.createToken(name, symbol, blob, minter)
@@ -52,7 +53,7 @@ contract('ERC20Template', async (accounts) => {
     })
 
     it('should fail to re-initialize the contracts', async () => {
-        truffleAssert.fails(token.initialize('NewName', 'NN', reciever, cap, feeManager.address),
+        truffleAssert.fails(token.initialize('NewName', 'NN', reciever, cap, blob, feeManager.address),
             truffleAssert.ErrorType.REVERT,
             'ERC20Template: token instance already initialized')
     })
