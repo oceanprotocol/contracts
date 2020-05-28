@@ -36,7 +36,7 @@ contract('ERC20Template', async (accounts) => {
         template = await Template.new('Template', 'TEMPLATE', minter, cap, feeManager.address)
         factory = await Factory.new(template.address, feeManager.address)
         blob = 'https://example.com/dataset-1'
-        const trxReceipt = await factory.createToken(name, symbol, cap, blob, minter)
+        const trxReceipt = await factory.createToken(name, symbol, blob, minter)
         const TokenCreatedEventArgs = testUtils.getEventArgsFromTx(trxReceipt, 'TokenCreated')
         tokenAddress = TokenCreatedEventArgs.newTokenAddress
         token = await Token.at(tokenAddress)
@@ -91,16 +91,6 @@ contract('ERC20Template', async (accounts) => {
             'ERC20Template: invalid data token minting fee')
     })
 
-    it('should not mint the tokens due to the cap limit', async () => {
-        ethValue = new BigNumber('100000000000000000')
-        const one = new BigNumber('1')
-        const tokenCap = cap.add(one)
-
-        truffleAssert.fails(token.mint(reciever, tokenCap, { value: ethValue, from: minter }),
-            truffleAssert.ErrorType.REVERT,
-            'ERC20Template: cap exceeded')
-    })
-
     it('should not mint the tokens because of the paused contract', async () => {
         await token.pause()
         truffleAssert.fails(token.mint(reciever, 10, { value: ethValue, from: minter }),
@@ -127,11 +117,6 @@ contract('ERC20Template', async (accounts) => {
     it('should get the token decimals', async () => {
         const tokenDecimals = await token.decimals()
         assert(tokenDecimals.toNumber() === decimals)
-    })
-
-    it('should get the token cap', async () => {
-        const tokenCap = await token.cap()
-        assert(tokenCap.toString() === cap.toString())
     })
 
     it('should approve token spending', async () => {

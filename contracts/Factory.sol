@@ -119,6 +119,4 @@ contract Factory is Deployer {
         );
     }
     // TODO: manage template list
-    // TODO: Fee manager
-    // TODO: Factory token double spend (hash based check)
 }

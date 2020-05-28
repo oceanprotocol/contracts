@@ -33,7 +33,7 @@ contract('Factory test', async accounts => {
 
     it('should create a token and check that it is not a zero address', async () => {
         truffleAssert.passes(
-            result = await factory.createToken(name, symbol, cap, blob, minter)
+            result = await factory.createToken(name, symbol, blob, minter)
         )
         truffleAssert.eventEmitted(result, 'TokenCreated', (ev) => {
             tokenAddress = ev.param1
