@@ -238,10 +238,11 @@ contract DataTokenTemplate is IDataTokenTemplate, ERC20Pausable {
         uint256 value
     )
         public
+        onlyNotPaused 
         returns (bool)
     {
         tokensLocked[msg.sender] = tokensLocked[msg.sender].add(value);
-        return approve(spender, value);
+        return super.approve(spender, value);
     }
 
     function unlockAndTransfer( 
@@ -251,10 +252,11 @@ contract DataTokenTemplate is IDataTokenTemplate, ERC20Pausable {
         uint256 lockedTotal
     )
         public
+        onlyNotPaused 
         returns (bool)
     {
         tokensLocked[from] = tokensLocked[from].sub(lockedTotal.sub(amount));
-        return transferFrom(from, to, amount);
+        return super.transferFrom(from, to, amount);
     }
 
     /**
