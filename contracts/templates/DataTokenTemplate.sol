@@ -191,9 +191,21 @@ contract DataTokenTemplate is IDataTokenTemplate, ERC20Pausable {
         public
         returns (bool)
     {
-        // TODO: requires to have tokens
         tokensLocked[msg.sender] = tokensLocked[msg.sender].add(value);
-        return super.approve(spender, value);
+        return approve(spender, value);
+    }
+
+    function unlockAndTransfer( 
+        address from,
+        address to,
+        uint256 amount, 
+        uint256 locked_total
+    )
+        public
+        returns (bool)
+    {
+        tokensLocked[from] = tokensLocked[from].sub(locked_total.sub(amount));
+        return transferFrom(from, to, amount);
     }
 
     /**
