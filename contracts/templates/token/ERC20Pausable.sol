@@ -32,46 +32,6 @@ contract ERC20Pausable is ERC20 {
     }
 
     /**
-     * @dev transfer
-     *      Standard ERC20 transfer function with onlyNotPaused modifier.
-     *      Can be called only if the contract is not paused.
-     * @param to refers to an address that tokens are tranfered to.
-     * @param value refers to amount of tokens being tranfered.
-     * @return true if transfer is success, false otherwise.
-     */
-    function transfer(
-        address to, 
-        uint256 value
-    ) 
-        public 
-        onlyNotPaused 
-        returns (bool) 
-    {
-        return super.transfer(to, value);
-    }
-
-    /**
-     * @dev transfer
-     *      Standard ERC20 transferFrom function with onlyNotPaused modifier.
-     *      Can be called only if the contract is not paused.
-     * @param from refers to an address that tokens are tranfered from.
-     * @param to refers to an address that tokens are tranfered to.
-     * @param value refers to amount of tokens being tranfered.
-     * @return true if transfer is success, false otherwise.
-     */
-    function transferFrom(
-        address from, 
-        address to, 
-        uint256 value
-    ) 
-        public 
-        onlyNotPaused 
-        returns (bool) 
-    {
-        return super.transferFrom(from, to, value);
-    }
-
-    /**
      * @dev approve
      *      Standard ERC20 approve function with onlyNotPaused modifier.
      *      Can be called only if the contract is not paused.
