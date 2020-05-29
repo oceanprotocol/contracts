@@ -23,6 +23,8 @@ contract DataTokenTemplate is IDataTokenTemplate, ERC20Pausable {
     uint256 private _decimals;
     address private _minter;
 
+    mapping(address => uint) tokensLocked;
+
     FeeManager serviceFeeManager;
     
     modifier onlyNotInitialized() {
@@ -180,6 +182,18 @@ contract DataTokenTemplate is IDataTokenTemplate, ERC20Pausable {
         );
         _mint(account, value);
         address(serviceFeeManager).transfer(msg.value);
+    }
+
+    function approveAndLock(
+        address spender,
+        uint256 value
+    )
+        public
+        returns (bool)
+    {
+        // TODO: requires to have tokens
+        tokensLocked[msg.sender] = tokensLocked[msg.sender].add(value);
+        return super.approve(spender, value);
     }
 
     /**
