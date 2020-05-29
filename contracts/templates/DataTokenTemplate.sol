@@ -199,12 +199,12 @@ contract DataTokenTemplate is IDataTokenTemplate, ERC20Pausable {
         address from,
         address to,
         uint256 amount, 
-        uint256 locked_total
+        uint256 lockedTotal
     )
         public
         returns (bool)
     {
-        tokensLocked[from] = tokensLocked[from].sub(locked_total.sub(amount));
+        tokensLocked[from] = tokensLocked[from].sub(lockedTotal.sub(amount));
         return transferFrom(from, to, amount);
     }
 
