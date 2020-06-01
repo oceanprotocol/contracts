@@ -1,5 +1,10 @@
 /* eslint-env mocha */
-/* global artifacts, contract, it, beforeEach, web3, assert */
+/* global artifacts, contract, it, beforeEach, web3 */
+const chai = require('chai')
+const { assert } = chai
+const chaiAsPromised = require('chai-as-promised')
+chai.use(chaiAsPromised)
+
 const Template = artifacts.require('DataTokenTemplate')
 const FeeManager = artifacts.require('FeeManager')
 const Factory = artifacts.require('Factory')
@@ -25,8 +30,6 @@ contract('DataTokenTemplate', async (accounts) => {
         blob
 
     beforeEach('init contracts for each test', async () => {
-        symbol = 'EDT1'
-        name = 'ERC20DataToken'
         blob = 'https://example.com/dataset-1'
         decimals = 0
         minter = accounts[0]
@@ -36,10 +39,14 @@ contract('DataTokenTemplate', async (accounts) => {
         cap = new BigNumber('1400000000')
         template = await Template.new('Template', 'TEMPLATE', minter, cap, blob, feeManager.address)
         factory = await Factory.new(template.address, feeManager.address)
-        const trxReceipt = await factory.createToken(name, symbol, cap, blob, minter)
+        blob = 'https://example.com/dataset-1'
+        const trxReceipt = await factory.createToken(blob)
         const TokenCreatedEventArgs = testUtils.getEventArgsFromTx(trxReceipt, 'TokenCreated')
         tokenAddress = TokenCreatedEventArgs.newTokenAddress
         token = await Token.at(tokenAddress)
+        symbol = await token.symbol()
+        name = await token.name()
+        cap = await token.cap()
         ethValue = new BigNumber('100000000000000000')
     })
 
@@ -91,16 +98,6 @@ contract('DataTokenTemplate', async (accounts) => {
             'DataTokenTemplate: invalid data token minting fee')
     })
 
-    it('should not mint the tokens due to the cap limit', async () => {
-        ethValue = new BigNumber('100000000000000000')
-        const one = new BigNumber('1')
-        const tokenCap = cap.add(one)
-
-        truffleAssert.fails(token.mint(reciever, tokenCap, { value: ethValue, from: minter }),
-            truffleAssert.ErrorType.REVERT,
-            'DataTokenTemplate: cap exceeded')
-    })
-
     it('should not mint the tokens because of the paused contract', async () => {
         await token.pause()
         truffleAssert.fails(token.mint(reciever, 10, { value: ethValue, from: minter }),
@@ -129,11 +126,6 @@ contract('DataTokenTemplate', async (accounts) => {
         assert(tokenDecimals.toNumber() === decimals)
     })
 
-    it('should get the token cap', async () => {
-        const tokenCap = await token.cap()
-        assert(tokenCap.toString() === cap.toString())
-    })
-
     it('should approve token spending', async () => {
         truffleAssert.passes(await token.approve(reciever, 10, { from: minter }))
     })
@@ -157,5 +149,17 @@ contract('DataTokenTemplate', async (accounts) => {
         truffleAssert.passes(await token.mint(minter, 10, { value: ethValue, from: minter }))
         truffleAssert.passes(await token.approve(reciever, 10, { from: minter }))
         truffleAssert.passes(await token.transferFrom(minter, reciever, 1, { from: reciever }))
+    })
+
+    it('should get the total cap', async () => {
+        await token.cap()
+    })
+
+    it('should get blob', async () => {
+        const _blob = await token.blob()
+        assert.equal(
+            _blob,
+            blob
+        )
     })
 })
