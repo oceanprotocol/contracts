@@ -33,7 +33,7 @@ contract('Factory test', async accounts => {
                 blob,
                 {
                     from: minter
-                } 
+                }
             )
         )
         truffleAssert.eventEmitted(result, 'TokenCreated', (ev) => {
