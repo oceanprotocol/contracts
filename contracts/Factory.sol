@@ -4,6 +4,7 @@ pragma solidity ^0.5.7;
 // Code is Apache-2.0 and docs are CC-BY-4.0
 
 import './utils/Deployer.sol';
+import './utils/Converter.sol';
 import './interfaces/IERC20Template.sol';
 /**
 * @title Factory contract
@@ -15,11 +16,15 @@ import './interfaces/IERC20Template.sol';
 *      New DataToken proxy contracts are links to the template contract's bytecode. 
 *      Proxy contract functionality is based on Ocean Protocol custom implementation of ERC1167 standard.
 */
-contract Factory is Deployer {
+contract Factory is Deployer, Converter {
 
     address payable private feeManager;
     address private tokenTemplate;
-    
+    uint256 private tokenCount = 0;
+    // cap has max uint256 (2^256 -1)
+    uint256 constant private cap = 
+    115792089237316195423570985008687907853269984665640564039457584007913129639935;
+
     event TokenCreated(
         address newTokenAddress, 
         address templateAddress,
@@ -59,30 +64,14 @@ contract Factory is Deployer {
     /**
      * @dev Deploys new DataToken proxy contract.
      *      Template contract address could not be a zero address. 
-     * @param _name refers to a new DataToken name.
-     * @param _symbol refers to a new DataToken symbol.
-     * @param _minter refers to an address that has minter rights.
      * @return address of a new proxy DataToken contract
      */
     function createToken(
-        string memory _name, 
-        string memory _symbol,
-        uint256 _cap,
-        string memory _blob,
-        address _minter
+        string memory blob
     ) 
         public
         returns (address token)
     {
-        require(
-            _minter != address(0),
-            'Factory: Invalid minter address'
-        );
-
-        require(
-            _cap > 0,
-            'Factory: Invalid cap value'
-        );
 
         token = deploy(tokenTemplate);
         
@@ -90,14 +79,17 @@ contract Factory is Deployer {
             token != address(0),
             'Factory: Failed to perform minimal deploy of a new token'
         );
+        
+        string memory name = uintToString(tokenCount);
+        string memory symbol = uintToString(tokenCount); 
 
         IERC20Template tokenInstance = IERC20Template(token);
         tokenInstance.initialize(
-            _name,
-            _symbol,
-            _minter,
-            _cap,
-            _blob,
+            name,
+            symbol,
+            msg.sender,
+            cap,
+            blob,
             feeManager
         );
 
@@ -109,20 +101,19 @@ contract Factory is Deployer {
         emit TokenCreated(
             token, 
             tokenTemplate,
-            _name
+            name
         );
 
         emit TokenRegistered(
             token,
-            _name,
-            _symbol,
-            _cap,
+            name,
+            symbol,
+            cap,
             msg.sender,
             block.number,
-            _blob
+            blob
         );
+
+        tokenCount += 1;
     }
-    // TODO: manage template list
-    // TODO: Fee manager
-    // TODO: Factory token double spend (hash based check)
 }

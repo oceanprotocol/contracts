@@ -7,8 +7,6 @@ const FeeManager = artifacts.require('FeeManager')
 const truffleAssert = require('truffle-assertions')
 
 contract('Factory test', async accounts => {
-    let name
-    let symbol
     let zeroAddress
     let tokenAddress
     let feeManager
@@ -20,8 +18,6 @@ contract('Factory test', async accounts => {
     let cap
 
     beforeEach('init contracts for each test', async function() {
-        symbol = 'TDT'
-        name = 'TestDataToken'
         blob = 'https://example.com/dataset-1'
         minter = accounts[0]
         zeroAddress = '0x0000000000000000000000000000000000000000'
@@ -33,7 +29,12 @@ contract('Factory test', async accounts => {
 
     it('should create a token and check that it is not a zero address', async () => {
         truffleAssert.passes(
-            result = await factory.createToken(name, symbol, cap, blob, minter)
+            result = await factory.createToken(
+                blob,
+                {
+                    from: minter
+                }
+            )
         )
         truffleAssert.eventEmitted(result, 'TokenCreated', (ev) => {
             tokenAddress = ev.param1
