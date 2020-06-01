@@ -2,7 +2,7 @@
 /* global artifacts, contract, it, beforeEach */
 
 const Factory = artifacts.require('Factory')
-const Template = artifacts.require('ERC20Template')
+const Template = artifacts.require('DataTokenTemplate')
 const FeeManager = artifacts.require('FeeManager')
 const truffleAssert = require('truffle-assertions')
 
@@ -52,14 +52,14 @@ contract('Factory test', async accounts => {
     it('should fail on zero minter address initialization', async () => {
         truffleAssert.fails(Template.new('Zero address minter contract', 'ZERO', zeroAddress, cap, blob, feeManager.address),
             truffleAssert.ErrorType.REVERT,
-            'ERC20Template: Invalid minter,  zero address'
+            'DataTokenTemplate: Invalid minter,  zero address'
         )
     })
 
     it('should fail on zero feeManager address initialization', async () => {
         truffleAssert.fails(Template.new('Zero address minter contract', 'ZERO', minter, cap, blob, zeroAddress),
             truffleAssert.ErrorType.REVERT,
-            'ERC20Template: Invalid minter,  zero address'
+            'DataTokenTemplate: Invalid minter,  zero address'
         )
     })
 })

@@ -8,12 +8,12 @@ chai.use(chaiAsPromised)
 const Template = artifacts.require('ERC20Template')
 const FeeManager = artifacts.require('FeeManager')
 const Factory = artifacts.require('Factory')
-const Token = artifacts.require('ERC20Template')
+const Token = artifacts.require('DataTokenTemplate')
 const testUtils = require('../helpers/utils')
 const truffleAssert = require('truffle-assertions')
 const BigNumber = require('bn.js')
 
-contract('ERC20Template', async (accounts) => {
+contract('DataTokenTemplate', async (accounts) => {
     let cap,
         name,
         symbol,
@@ -61,7 +61,7 @@ contract('ERC20Template', async (accounts) => {
     it('should fail to re-initialize the contracts', async () => {
         truffleAssert.fails(token.initialize('NewName', 'NN', reciever, cap, blob, feeManager.address),
             truffleAssert.ErrorType.REVERT,
-            'ERC20Template: token instance already initialized')
+            'DataTokenTemplate: token instance already initialized')
     })
 
     it('should check that the token is not paused', async () => {
@@ -95,7 +95,7 @@ contract('ERC20Template', async (accounts) => {
     it('should not mint the tokens due to zero message value', async () => {
         truffleAssert.fails(token.mint(reciever, 10, { from: minter }),
             truffleAssert.ErrorType.REVERT,
-            'ERC20Template: invalid data token minting fee')
+            'DataTokenTemplate: invalid data token minting fee')
     })
 
     it('should not mint the tokens because of the paused contract', async () => {

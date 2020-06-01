@@ -7,12 +7,12 @@ import '../fee/FeeManager.sol';
 import './token/ERC20Pausable.sol';
 import '../interfaces/IERC20Template.sol';
 /**
-* @title ERC20Template
+* @title DataTokenTemplate
 *  
-* @dev ERC20Template is a DataToken ERC20 compliant template
+* @dev DataTokenTemplate is a DataToken ERC20 compliant template
 *      Used by the factory contract as a bytecode reference to deploy new DataTokens.
 */
-contract ERC20Template is IERC20Template, ERC20Pausable {
+contract DataTokenTemplate is IERC20Template, ERC20Pausable {
     using SafeMath for uint256;
     
     bool    private initialized = false;
@@ -28,7 +28,7 @@ contract ERC20Template is IERC20Template, ERC20Pausable {
     modifier onlyNotInitialized() {
         require(
             !initialized,
-            'ERC20Template: token instance already initialized'
+            'DataTokenTemplate: token instance already initialized'
         );
         _;
     }
@@ -36,7 +36,7 @@ contract ERC20Template is IERC20Template, ERC20Pausable {
     modifier onlyMinter() {
         require(
             msg.sender == _minter,
-            'ERC20Template: invalid minter' 
+            'DataTokenTemplate: invalid minter' 
         );
         _;
     }
@@ -123,22 +123,22 @@ contract ERC20Template is IERC20Template, ERC20Pausable {
     {
         require(
             minter != address(0), 
-            'ERC20Template: Invalid minter,  zero address'
+            'DataTokenTemplate: Invalid minter,  zero address'
         );
         
         require(
             feeManager != address(0), 
-            'ERC20Template: Invalid feeManager, zero address'
+            'DataTokenTemplate: Invalid feeManager, zero address'
         );
 
         require(
             _minter == address(0), 
-            'ERC20Template: Invalid minter, access denied'
+            'DataTokenTemplate: Invalid minter, access denied'
         );
 
         require(
             cap > 0,
-            'ERC20Template: Invalid cap value'
+            'DataTokenTemplate: Invalid cap value'
         );
         
         _decimals = 0;
@@ -172,11 +172,11 @@ contract ERC20Template is IERC20Template, ERC20Pausable {
     {
         require(
             totalSupply().add(value) <= _cap, 
-            'ERC20Template: cap exceeded'
+            'DataTokenTemplate: cap exceeded'
         );
         require(
             msg.value >= serviceFeeManager.calculateFee(value, _cap), 
-            'ERC20Template: invalid data token minting fee'
+            'DataTokenTemplate: invalid data token minting fee'
         );
         _mint(account, value);
         address(serviceFeeManager).transfer(msg.value);
