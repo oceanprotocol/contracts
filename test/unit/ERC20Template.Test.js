@@ -1,5 +1,10 @@
 /* eslint-env mocha */
-/* global artifacts, contract, it, beforeEach, web3, assert */
+/* global artifacts, contract, it, beforeEach, web3 */
+const chai = require('chai')
+const { assert } = chai
+const chaiAsPromised = require('chai-as-promised')
+chai.use(chaiAsPromised)
+
 const Template = artifacts.require('ERC20Template')
 const FeeManager = artifacts.require('FeeManager')
 const Factory = artifacts.require('Factory')
@@ -41,6 +46,7 @@ contract('ERC20Template', async (accounts) => {
         token = await Token.at(tokenAddress)
         symbol = await token.symbol()
         name = await token.name()
+        cap = await token.cap()
         ethValue = new BigNumber('100000000000000000')
     })
 
@@ -143,5 +149,17 @@ contract('ERC20Template', async (accounts) => {
         truffleAssert.passes(await token.mint(minter, 10, { value: ethValue, from: minter }))
         truffleAssert.passes(await token.approve(reciever, 10, { from: minter }))
         truffleAssert.passes(await token.transferFrom(minter, reciever, 1, { from: reciever }))
+    })
+
+    it('should get the total cap', async () => {
+        await token.cap()
+    })
+
+    it('should get blob', async () => {
+        const _blob = await token.blob()
+        assert.equal(
+            _blob,
+            blob
+        )
     })
 })
