@@ -5,7 +5,7 @@ const { assert } = chai
 const chaiAsPromised = require('chai-as-promised')
 chai.use(chaiAsPromised)
 
-const Template = artifacts.require('ERC20Template')
+const Template = artifacts.require('DataTokenTemplate')
 const FeeManager = artifacts.require('FeeManager')
 const Factory = artifacts.require('Factory')
 const Token = artifacts.require('DataTokenTemplate')
