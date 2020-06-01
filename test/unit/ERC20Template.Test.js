@@ -25,8 +25,6 @@ contract('ERC20Template', async (accounts) => {
         blob
 
     beforeEach('init contracts for each test', async () => {
-        symbol = 'EDT1'
-        name = 'ERC20DataToken'
         blob = 'https://example.com/dataset-1'
         decimals = 0
         minter = accounts[0]
@@ -37,10 +35,12 @@ contract('ERC20Template', async (accounts) => {
         template = await Template.new('Template', 'TEMPLATE', minter, cap, blob, feeManager.address)
         factory = await Factory.new(template.address, feeManager.address)
         blob = 'https://example.com/dataset-1'
-        const trxReceipt = await factory.createToken(name, symbol, blob, minter)
+        const trxReceipt = await factory.createToken(blob)
         const TokenCreatedEventArgs = testUtils.getEventArgsFromTx(trxReceipt, 'TokenCreated')
         tokenAddress = TokenCreatedEventArgs.newTokenAddress
         token = await Token.at(tokenAddress)
+        symbol = await token.symbol()
+        name = await token.name()
         ethValue = new BigNumber('100000000000000000')
     })
 
