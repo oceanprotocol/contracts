@@ -2,29 +2,32 @@ pragma solidity ^0.5.7;
 
 
 contract Converter {
-    function uint245ToString(
-        uint256 uintValue
+
+    function uintToString
+    (
+        uint256 value
     )
-        internal
+        public
         pure
-        returns(string memory stringValue)
+        returns (string memory) 
     {
-
-        if (uintValue == 0) return '0';
-        uint256 _uintValue = uintValue;
+        if ( value == 0) {
+            return '0';
+        }
+        uint tempUint = value;
         uint len;
-
-        while( len != 0){
+        while (tempUint != 0) {
             len++;
-            _uintValue /= 10;
+            tempUint /= 10;
         }
-        bytes memory str = new bytes(len);
-
-        uint strLen = len - 1;
-        while (_uintValue != 0) {
-            str[strLen--] = byte(uint8(48 + _uintValue % 10));
-            _uintValue /= 10;
+        
+        bytes memory bstr = new bytes(len);
+        uint k = len - 1;
+        tempUint = value; 
+        while (tempUint != 0) {
+            bstr[k--] = byte(uint8(48 + tempUint % 10));
+            tempUint /= 10;
         }
-        return string(str);
+        return string(bstr);
     }
 }
