@@ -3,7 +3,7 @@ pragma solidity ^0.5.7;
 // SPDX-License-Identifier: (Apache-2.0 AND CC-BY-4.0)
 // Code is Apache-2.0 and docs are CC-BY-4.0
 
-import '../fee/FeeManager.sol';
+import "./SafeMath.sol";
 import './token/ERC20Pausable.sol';
 import '../interfaces/IERC20Template.sol';
 /**
@@ -23,7 +23,7 @@ contract DataTokenTemplate is IERC20Template, ERC20Pausable {
     uint256 private _decimals;
     address private _minter;
 
-    FeeManager serviceFeeManager;
+    address payable private _feeAddress;
     
     modifier onlyNotInitialized() {
         require(
@@ -47,7 +47,7 @@ contract DataTokenTemplate is IERC20Template, ERC20Pausable {
      * @param name refers to a template DataToken name.
      * @param symbol refers to a template DataToken symbol.
      * @param minter refers to an address that has minter rights.
-     * @param feeManager refers to an address of a FeeManager contract.
+     * @param feeAddress refers to the address that receives minting fees.
      */
     constructor(
         string memory name,
@@ -55,7 +55,7 @@ contract DataTokenTemplate is IERC20Template, ERC20Pausable {
         address minter,
         uint256 cap,
         string memory blob,
-        address payable feeManager
+        address payable feeAddress
 
     )
         public
@@ -66,7 +66,7 @@ contract DataTokenTemplate is IERC20Template, ERC20Pausable {
             minter,
             cap,
             blob,
-            feeManager
+            feeAddress
         );
     }
     
@@ -77,7 +77,7 @@ contract DataTokenTemplate is IERC20Template, ERC20Pausable {
      * @param name refers to a new DataToken name.
      * @param symbol refers to a nea DataToken symbol.
      * @param minter refers to an address that has minter rights.
-     * @param feeManager refers to an address of a FeeManager contract.
+     * @param feeAddress refers to the address that receives minting fees.
      */
     function initialize(
         string memory name,
@@ -85,7 +85,7 @@ contract DataTokenTemplate is IERC20Template, ERC20Pausable {
         address minter,
         uint256 cap,
         string memory blob,
-        address payable feeManager
+        address payable feeAddress
     ) 
         public
         onlyNotInitialized
@@ -97,7 +97,7 @@ contract DataTokenTemplate is IERC20Template, ERC20Pausable {
             minter,
             cap,
             blob,
-            feeManager
+            feeAddress
         );
     }
 
@@ -108,7 +108,7 @@ contract DataTokenTemplate is IERC20Template, ERC20Pausable {
      * @param name refers to a new DataToken name.
      * @param symbol refers to a nea DataToken symbol.
      * @param minter refers to an address that has minter rights.
-     * @param feeManager refers to an address of a FeeManager contract.
+     * @param feeAddress refers to the address that receives minting fees.
      */
     function _initialize(
         string memory name,
@@ -116,7 +116,7 @@ contract DataTokenTemplate is IERC20Template, ERC20Pausable {
         address minter,
         uint256 cap,
         string memory blob,
-        address payable feeManager
+        address payable feeAddress
     )
         private
         returns(bool)
@@ -127,8 +127,8 @@ contract DataTokenTemplate is IERC20Template, ERC20Pausable {
         );
         
         require(
-            feeManager != address(0), 
-            'DataTokenTemplate: Invalid feeManager, zero address'
+            feeAddress != address(0), 
+            'DataTokenTemplate: Invalid feeAddress, zero address'
         );
 
         require(
@@ -147,7 +147,7 @@ contract DataTokenTemplate is IERC20Template, ERC20Pausable {
         _blob = blob;
         _symbol = symbol;
         _minter = minter;
-        serviceFeeManager = FeeManager(feeManager);
+        _feeAddress = feeAddress;
         initialized = true;
         return initialized;
     }
@@ -174,12 +174,32 @@ contract DataTokenTemplate is IERC20Template, ERC20Pausable {
             totalSupply().add(value) <= _cap, 
             'DataTokenTemplate: cap exceeded'
         );
+	
+	//_mint() takes approx 40000 gas, which we hardcode reduce gas costs.
+	uint256 max_fee = 40000 * tx.gasprice;
+	uint256 fee = _calculateFee(value, max_fee);
+	
         require(
-            msg.value >= serviceFeeManager.calculateFee(value, _cap), 
+            msg.value >= fee, 
             'DataTokenTemplate: invalid data token minting fee'
         );
+	
+        _feeAddress.transfer(fee);
         _mint(account, value);
-        address(serviceFeeManager).transfer(msg.value);
+    }
+
+
+    /**
+     * @dev _calculateFee
+     *      Toll for Ocean community. Request 1/20x of regular mint() costs 
+     *      if <10 tokens minted, 1/5x if <100 minted, and 1x otherwise
+     */
+    function _calculateFee(uint256 num_tokens_minted, uint256 max_fee)
+        public view returns (uint256)
+    {
+      if (num_tokens_minted < 10)       { return max_fee.div(20); }
+      else if (num_tokens_minted < 100) { return max_fee.div(5);  }
+      else                              { return max_fee; }
     }
 
     /**
