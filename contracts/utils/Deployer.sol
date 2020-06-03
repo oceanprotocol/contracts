@@ -3,9 +3,27 @@ pragma solidity ^0.5.7;
 // SPDX-License-Identifier: (Apache-2.0 AND CC-BY-4.0)
 // Code is Apache-2.0 and docs are CC-BY-4.0
 
+/**
+ * @title Deployer Contract
+ * @author Ocean Protocol Team
+ *
+ * @dev Contract Deployer
+ *      This contract allowes factory contract 
+ *      to deploy new contract instances using
+ *      the same library pattern in solidity.
+ *      the logic it self is deployed only once, but
+ *      executed in the context of the new storage 
+ *      contract (new contract instance)
+ */
 contract Deployer {
     event InstanceDeployed(address instance);
     
+    /**
+     * @dev deploy
+     *      deploy new contract instance 
+     * @param _logic the logic contract address
+     * @return address of the new instance
+     */
     function deploy(
         address _logic
     ) 

@@ -20,7 +20,7 @@ contract Factory is Deployer, Converter {
 
     address payable private feeManager;
     address private tokenTemplate;
-    uint256 private tokenCount = 0;
+    uint256 private currentTokenCount = 1;
     // cap has max uint256 (2^256 -1)
     uint256 constant private cap = 
     115792089237316195423570985008687907853269984665640564039457584007913129639935;
@@ -80,8 +80,8 @@ contract Factory is Deployer, Converter {
             'Factory: Failed to perform minimal deploy of a new token'
         );
         
-        string memory name = uintToString(tokenCount);
-        string memory symbol = uintToString(tokenCount); 
+        string memory name = uintToString(currentTokenCount);
+        string memory symbol = uintToString(currentTokenCount); 
 
         IERC20Template tokenInstance = IERC20Template(token);
         tokenInstance.initialize(
@@ -114,6 +114,6 @@ contract Factory is Deployer, Converter {
             blob
         );
 
-        tokenCount += 1;
+        currentTokenCount += 1;
     }
 }

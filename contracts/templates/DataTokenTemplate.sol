@@ -9,8 +9,9 @@ import '../interfaces/IERC20Template.sol';
 /**
 * @title DataTokenTemplate
 *  
-* @dev DataTokenTemplate is a DataToken ERC20 compliant template
-*      Used by the factory contract as a bytecode reference to deploy new DataTokens.
+* @dev DataTokenTemplate is an ERC20 compliant token template
+*      Used by the factory contract as a bytecode reference to 
+*      deploy new DataTokens.
 */
 contract DataTokenTemplate is IERC20Template, ERC20Pausable {
     using SafeMath for uint256;
@@ -43,11 +44,11 @@ contract DataTokenTemplate is IERC20Template, ERC20Pausable {
 
     /**
      * @dev constructor
-     *      Called on contract deployment.  Could not be called with zero address parameters.
-     * @param name refers to a template DataToken name.
-     * @param symbol refers to a template DataToken symbol.
-     * @param minter refers to an address that has minter rights.
-     * @param feeManager refers to an address of a FeeManager contract.
+     *      Called prior contract deployment
+     * @param name refers to a template DataToken name
+     * @param symbol refers to a template DataToken symbol
+     * @param minter refers to an address that has minter role
+     * @param feeManager refers to an address of a FeeManager contract address
      */
     constructor(
         string memory name,
@@ -72,12 +73,12 @@ contract DataTokenTemplate is IERC20Template, ERC20Pausable {
     
     /**
      * @dev initialize
-     *      Called on contract initialization. Used on new DataToken instance setup.
-            Calls private _initialize function. Only if contract is not initialized.
-     * @param name refers to a new DataToken name.
-     * @param symbol refers to a nea DataToken symbol.
-     * @param minter refers to an address that has minter rights.
-     * @param feeManager refers to an address of a FeeManager contract.
+     *      Called prior contract initialization (e.g creating new DataToken instance)
+     *      Calls private _initialize function. Only if contract is not initialized.
+     * @param name refers to a new DataToken name
+     * @param symbol refers to a nea DataToken symbol
+     * @param minter refers to an address that has minter rights
+     * @param feeManager refers to an address of a FeeManager contract address
      */
     function initialize(
         string memory name,
@@ -104,11 +105,10 @@ contract DataTokenTemplate is IERC20Template, ERC20Pausable {
     /**
      * @dev _initialize
      *      Private function called on contract initialization.
-            No of the parameters can be a zero address. 
-     * @param name refers to a new DataToken name.
-     * @param symbol refers to a nea DataToken symbol.
-     * @param minter refers to an address that has minter rights.
-     * @param feeManager refers to an address of a FeeManager contract.
+     * @param name refers to a new DataToken name
+     * @param symbol refers to a nea DataToken symbol
+     * @param minter refers to an address that has minter rights
+     * @param feeManager refers to an address of a FeeManager contract address
      */
     function _initialize(
         string memory name,
@@ -133,7 +133,7 @@ contract DataTokenTemplate is IERC20Template, ERC20Pausable {
 
         require(
             _minter == address(0), 
-            'DataTokenTemplate: Invalid minter, access denied'
+            'DataTokenTemplate: Invalid minter, zero address'
         );
 
         require(
@@ -154,11 +154,12 @@ contract DataTokenTemplate is IERC20Template, ERC20Pausable {
 
     /**
      * @dev mint
-     *      Function that takes the fee as msg.value and mints new DataTokens.
-            Can be called only if the contract is not paused.
-            Can be called only by the minter address.
-            Msg.value should be higher than zero. 
-     * @param account refers to a an address that token is going to be minted to.
+     *      It takes the fee as msg.value and mints new DataTokens
+     *      the minting fee is calculated using ServiceFeeManager 
+     *      it could be called only if the contract is not paused.
+     *      Only the minter address can call it.
+     *      msg.value should be higher than zero and gt or eq minting fee
+     * @param account refers to an address that token is going to be minted to.
      * @param value refers to amount of tokens that is going to be minted.
      */
     function mint(
@@ -184,9 +185,9 @@ contract DataTokenTemplate is IERC20Template, ERC20Pausable {
 
     /**
      * @dev pause
-     *      Function that pauses the contract.
-            Can be called only if the contract is not already paused.
-            Can be called only by the minter address.
+     *      It pauses the contract functionalities (transfer, mint, etc)
+     *      Only could be called if the contract is not already paused.
+     *      Only called by the minter address.
      */
     function pause() public onlyNotPaused onlyMinter {
         paused = true;
@@ -194,9 +195,9 @@ contract DataTokenTemplate is IERC20Template, ERC20Pausable {
 
     /**
      * @dev unpause
-     *      Function that unpauses the contract.
-            Can be called only if the contract is paused.
-            Can be called only by the minter address.
+     *      It unpauses the contract.
+     *      Only called if the contract is paused.
+     *      Only minter can call it.
      */
     function unpause() public onlyPaused onlyMinter {
         paused = false;
@@ -204,10 +205,10 @@ contract DataTokenTemplate is IERC20Template, ERC20Pausable {
 
     /**
      * @dev setMinter
-     *      Function that sents a new minter address.
-            Can be called only if the contract is not paused.
-            Can be called only by the minter address.
-     * @param minter refers to a new minter address.
+     *      It sets a new token minter address.
+     *      Only called be called if the contract is not paused.
+     *      Only the current minter can call it.
+     * @param minter refers to a new token minter address.
      */
     function setMinter(address minter) public onlyNotPaused onlyMinter {
         _minter = minter;
@@ -215,7 +216,7 @@ contract DataTokenTemplate is IERC20Template, ERC20Pausable {
 
     /**
      * @dev name
-     *      Function that reads private variable name.
+     *      It returns the token name.
      * @return DataToken name.
      */
     function name() public view returns(string memory) {
@@ -224,7 +225,7 @@ contract DataTokenTemplate is IERC20Template, ERC20Pausable {
 
     /**
      * @dev symbol
-     *      Function that reads private variable symbol.
+     *      It returns the token symbol.
      * @return DataToken symbol.
      */
     function symbol() public view returns(string memory) {
@@ -233,7 +234,7 @@ contract DataTokenTemplate is IERC20Template, ERC20Pausable {
 
     /**
      * @dev blob
-     *      Function that reads private variable blob.
+     *      It returns the blob (e.g https://123.com).
      * @return DataToken blob.
      */
     function blob() public view returns(string memory) {
@@ -242,7 +243,8 @@ contract DataTokenTemplate is IERC20Template, ERC20Pausable {
 
     /**
      * @dev decimals
-     *      Function that reads private variable decimals.
+     *      It returns the token decimals.
+     *      how many supported decimal points
      * @return DataToken decimals.
      */
     function decimals() public view returns(uint256) {
@@ -251,7 +253,7 @@ contract DataTokenTemplate is IERC20Template, ERC20Pausable {
 
     /**
      * @dev cap
-     *      Function that reads private variable cap.
+     *      it returns the capital.
      * @return DataToken cap.
      */
     function cap() public view returns (uint256) {
@@ -260,9 +262,9 @@ contract DataTokenTemplate is IERC20Template, ERC20Pausable {
 
     /**
      * @dev isMinter
-     *      Function takes the address and checks if it is a minter address.
-     * @param account refers to the address that will be checked if it is a minter address.
-     * @return DataToken cap.
+     *      It takes the address and checks whether it has a minter role.
+     * @param account refers to the address.
+     * @return true if account has a minter role.
      */
     function isMinter(address account) public view returns(bool) {
         return (_minter == account);
@@ -270,8 +272,8 @@ contract DataTokenTemplate is IERC20Template, ERC20Pausable {
 
     /**
      * @dev isInitialized
-     *      Function checks if the contract is initialized.
-     * @return true if the contract is initialized, false if it is not.
+     *      It checks whether the contract is initialized.
+     * @return true if the contract is initialized.
      */ 
     function isInitialized() public view returns(bool) {
         return initialized;
@@ -280,7 +282,7 @@ contract DataTokenTemplate is IERC20Template, ERC20Pausable {
     /**
      * @dev isPaused
      *      Function checks if the contract is paused.
-     * @return true if the contract is paused, false if it is not.
+     * @return true if the contract is paused.
      */ 
     function isPaused() public view returns(bool) {
         return paused;

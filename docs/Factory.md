@@ -17,7 +17,7 @@ constructor
 Called on contract deployment. Could not be called with zero address parameters.
 
 
-### `createToken(string _name, string _symbol, uint256 _cap, string _metadataReference, address _minter) → address token` (public)
+### `createToken(string blob) → address token` (public)
 
 
 
@@ -32,7 +32,7 @@ Template contract address could not be a zero address.
 
 
 
-### `TokenRegistered(address tokenAddress, string tokenName, string tokenSymbol, uint256 tokenCap, address RegisteredBy, uint256 RegisteredAt, string metadataReference)`
+### `TokenRegistered(address tokenAddress, string tokenName, string tokenSymbol, uint256 tokenCap, address RegisteredBy, uint256 RegisteredAt, string blob)`
 
 
 
