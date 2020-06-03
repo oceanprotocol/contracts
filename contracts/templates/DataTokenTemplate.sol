@@ -74,7 +74,7 @@ contract DataTokenTemplate is IERC20Template, ERC20Pausable {
     /**
      * @dev initialize
      *      Called prior contract initialization (e.g creating new DataToken instance)
-            Calls private _initialize function. Only if contract is not initialized.
+     *      Calls private _initialize function. Only if contract is not initialized.
      * @param name refers to a new DataToken name
      * @param symbol refers to a nea DataToken symbol
      * @param minter refers to an address that has minter rights
