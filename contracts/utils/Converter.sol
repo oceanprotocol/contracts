@@ -11,7 +11,6 @@ pragma solidity ^0.5.7;
  *      This contract provides sompe helper functions
  *      such as converting integers to strings
  */
-
 contract Converter {
 
     /**
