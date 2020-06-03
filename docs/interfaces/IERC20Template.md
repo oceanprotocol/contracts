@@ -5,7 +5,7 @@
 
 
 
-### `initialize(string name, string symbol, address minter, uint256 cap, address payable feeManager) → bool` (external)
+### `initialize(string name, string symbol, address minter, uint256 cap, string blob, address payable feeManager) → bool` (external)
 
 
 
