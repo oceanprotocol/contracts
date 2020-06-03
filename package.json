@@ -39,7 +39,7 @@
     "solidity-coverage": "0.6.1",
     "solium": "^1.2.5",
     "solium-plugin-security": "^0.1.1",
-    "truffle": "5.1.26",
+    "truffle": "5.1.28",
     "truffle-contract": "~4.0.31",
     "truffle-hdwallet-provider": "~1.0.17",
     "truffle-assertions": "^0.9.2",
