@@ -7,6 +7,16 @@ import './FeeCalculator.sol';
 import './FeeCollector.sol';
 import 'openzeppelin-solidity/contracts/ownership/Ownable.sol';
 
+/**
+* @title Fee Manager Contract
+* @author Ocean Protocol Team
+*
+* @dev Implementation of Fee Manager
+*      manages the life cycle of the ocean service fee
+*      It inherits the fee collector and fee calcualtor
+*      in which allows charging fee, accumlating fee, and
+*      withdraw accumalted fee (only by contract owner)
+*/
 contract FeeManager is FeeCalculator, FeeCollector, Ownable {
     
     constructor()
@@ -15,6 +25,10 @@ contract FeeManager is FeeCalculator, FeeCollector, Ownable {
     {
     }
 
+    /**
+     * @dev withdraw
+     *      allows contract owner to withdraw accumlated service fee.
+     */
     function withdraw() 
         public
         onlyOwner
