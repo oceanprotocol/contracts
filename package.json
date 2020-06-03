@@ -46,7 +46,7 @@
     "solc": "^0.6.8",
     "solidity-docgen": "^0.5.3",
     "web3": "^1.2.8",
-    "web3-provider-engine": "~15.0.3",
+    "web3-provider-engine": "~15.0.12",
     "chai": "^4.2.0",
     "chai-as-promised": "^7.1.1"
   }
