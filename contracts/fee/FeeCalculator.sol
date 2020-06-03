@@ -5,12 +5,25 @@ pragma solidity ^0.5.7;
 
 import 'openzeppelin-solidity/contracts/math/SafeMath.sol';
 
+/**
+* @title Fee Calculator Contract
+* @author Ocean Protocol Team
+*
+* @dev Implementation of Fee Calculator
+*      Fee calculator provides some helper functions
+*/
 contract FeeCalculator {
 
     using SafeMath for uint256;
     uint256 constant private BASE_TX_COST = 44000;
     uint256 constant private BASE = 10;
     
+    /**
+     * @dev calculateRange
+     *      For a given number, calculates number of zeros.
+     * @param number input number value.
+     * @return number of zeros.
+     */
     function calculateRange(
         uint256 number
     ) 
@@ -27,7 +40,14 @@ contract FeeCalculator {
         return zeros;
     }
     
-    
+    /**
+     * @dev calculateFee
+     *      calculates the fee based on the number of minted tokens compared to
+     *      the capital
+     * @param tokens the amount of minted tokens.
+     * @param cap the capital
+     * @return fee.
+     */
     function calculateFee(
         uint256 tokens,
         uint256 cap
