@@ -18,11 +18,27 @@
  *
  */
 
-// const HDWalletProvider = require('@truffle/hdwallet-provider');
-// const infuraKey = "fj4jll3k.....";
-//
-// const fs = require('fs');
-// const mnemonic = fs.readFileSync(".secret").toString().trim();
+const HDWalletProvider = require('truffle-hdwallet-provider')
+const NonceTrackerSubprovider = require('web3-provider-engine/subproviders/nonce-tracker')
+const utils = require('web3-utils')
+
+const MNEMONIC = process.env.MNEMONIC || process.env.NMEMORIC
+
+let hdWalletProvider
+
+const setupWallet = (
+    url
+) => {
+    if (!hdWalletProvider) {
+        hdWalletProvider = new HDWalletProvider(
+            MNEMONIC,
+            url,
+            hdWalletStartIndex,
+            hdWalletAccounts)
+        hdWalletProvider.engine.addProvider(new NonceTrackerSubprovider())
+    }
+    return hdWalletProvider
+}
 
 module.exports = {
     /**
@@ -54,35 +70,31 @@ module.exports = {
             port: 8555,
             gas: 0xfffffffffff,
             gasPrice: 0x01
+        },
+        // nile the ocean beta network
+        nile: {
+            provider: () => setupWallet('https://nile.dev-ocean.com'),
+            network_id: 0x2323, // 8995
+            gas: 6000000,
+            gasPrice: 10000,
+            from: '0x90eE7A30339D05E07d9c6e65747132933ff6e624'
+        },
+        // mainnet the ethereum mainnet
+        mainnet: {
+            provider: () => setupWallet(`https://mainnet.infura.io/v3/${process.env.INFURA_TOKEN}`),
+            network_id: 0x1, // 1
+            from: '0x3f3c526f3A8623b11aAD5c30d6De88E45e385FaD',
+            gas: 7 * 1000000,
+            gasPrice: utils.toWei('8', 'gwei')
+        },
+        // pacific the ethereum mainnet
+        pacific: {
+            provider: () => setupWallet('https://pacific.oceanprotocol.com'),
+            network_id: 0xCEA11, // 846353
+            from: '0xba3e0ec852dc24ca7f454ea545d40b1462501711',
+            gas: 6 * 1000000,
+            gasPrice: utils.toWei('10', 'mwei')
         }
-
-        // Another network with more advanced options...
-        // advanced: {
-        // port: 8777,             // Custom port
-        // network_id: 1342,       // Custom network
-        // gas: 8500000,           // Gas sent with each transaction (default: ~6700000)
-        // gasPrice: 20000000000,  // 20 gwei (in wei) (default: 100 gwei)
-        // from: <address>,        // Account to send txs from (default: accounts[0])
-        // websockets: true        // Enable EventEmitter interface for web3 (default: false)
-        // },
-
-        // Useful for deploying to a public network.
-        // NB: It's important to wrap the provider as a function.
-        // ropsten: {
-        // provider: () => new HDWalletProvider(mnemonic, `https://ropsten.infura.io/v3/YOUR-PROJECT-ID`),
-        // network_id: 3,       // Ropsten's id
-        // gas: 5500000,        // Ropsten has a lower block limit than mainnet
-        // confirmations: 2,    // # of confs to wait between deployments. (default: 0)
-        // timeoutBlocks: 200,  // # of blocks before a deployment times out  (minimum/default: 50)
-        // skipDryRun: true     // Skip dry run before migrations? (default: false for public nets )
-        // },
-
-    // Useful for private networks
-    // private: {
-        // provider: () => new HDWalletProvider(mnemonic, `https://network.io`),
-        // network_id: 2111,   // This network is yours, in the cloud.
-        // production: true    // Treats this network as if it was a public net. (default: false)
-    // }
     },
 
     // Set default mocha options here, use special reporters etc.
