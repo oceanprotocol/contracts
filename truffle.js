@@ -23,7 +23,8 @@ const NonceTrackerSubprovider = require('web3-provider-engine/subproviders/nonce
 const utils = require('web3-utils')
 
 const MNEMONIC = process.env.MNEMONIC || process.env.NMEMORIC
-
+const hdWalletStartIndex = 0
+const hdWalletAccounts = 5
 let hdWalletProvider
 
 const setupWallet = (
