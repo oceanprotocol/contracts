@@ -72,7 +72,7 @@ Code style is enforced through the CI test process, builds will fail if there're
 
 ### Testnets
 
-For local development, you need to run local testnet using `ganache-cli`, then run:
+For local development, start a local testnet using `ganache-cli`, then run:
 
 ```
 npm run deploy
