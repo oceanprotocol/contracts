@@ -24,6 +24,7 @@ contract Factory is Deployer, Converter {
     // cap has max uint256 (2^256 -1)
     uint256 constant private cap = 
     115792089237316195423570985008687907853269984665640564039457584007913129639935;
+    string constant private TOKEN_NAME_PREFIX = 'DT';
 
     event TokenCreated(
         address newTokenAddress, 
@@ -80,8 +81,11 @@ contract Factory is Deployer, Converter {
             'Factory: Failed to perform minimal deploy of a new token'
         );
         
-        string memory name = uintToString(currentTokenCount);
-        string memory symbol = uintToString(currentTokenCount); 
+        string memory name = concatenateStrings(
+            TOKEN_NAME_PREFIX, 
+            uintToString(currentTokenCount)
+        );
+        string memory symbol = name; 
 
         IERC20Template tokenInstance = IERC20Template(token);
         tokenInstance.initialize(

@@ -12,7 +12,6 @@ pragma solidity ^0.5.7;
  *      such as converting integers to strings
  */
 contract Converter {
-
     /**
      * @dev uintToString
      *      converts an integer value to a string value
@@ -45,5 +44,23 @@ contract Converter {
             tempUint /= 10;
         }
         return string(bstr);
+    }
+
+    /**
+     * @dev concatenateStrings
+     *      concatenates two strings
+     * @param str1 refers to first string
+     * @param str2 refers to second string
+     * @return catenated string value
+     */
+    function concatenateStrings(
+        string memory str1, 
+        string memory str2
+    )
+        public
+        pure
+        returns(string memory)
+    {
+        return string(abi.encodePacked(str1, str2));
     }
 }
