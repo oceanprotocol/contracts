@@ -24,5 +24,6 @@ script:
     - npm run compile
     - npm run lint
     - npm run test:cover
- #   - npm run deploy
+    - npm run report:coverage
+    - npm run deploy
  #   - npm run test:echidna
