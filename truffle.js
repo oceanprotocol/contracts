@@ -97,7 +97,7 @@ module.exports = {
             gasPrice: utils.toWei('10', 'mwei')
         }
     },
-    plugins: ["solidity-coverage"],
+    plugins: ['solidity-coverage'],
     // Set default mocha options here, use special reporters etc.
     mocha: {
     // timeout: 100000

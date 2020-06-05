@@ -5,9 +5,9 @@ var DataTokenTemplate = artifacts.require('./DataTokenTemplate.sol')
 var Factory = artifacts.require('./Factory.sol')
 
 module.exports = function(deployer, network, accounts) {
-    //deployer.deploy(FeeManager)
+    // deployer.deploy(FeeManager)
     deployer.then(async () => {
-        await deployer.deploy(FeeManager);
+        await deployer.deploy(FeeManager)
         await deployer.deploy(
             DataTokenTemplate,
             'DataTokenTemplate',
@@ -22,6 +22,5 @@ module.exports = function(deployer, network, accounts) {
             DataTokenTemplate.address,
             FeeManager.address
         )
-    });
+    })
 }
-
