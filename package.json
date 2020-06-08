@@ -23,6 +23,8 @@
     "lint": "npm run lint:eslint && npm run lint:ethlint",
     "doc:generate": "npx solidity-docgen --solc-module solc",
     "deploy": "npm run deploy:development",
+    "release": "release-it --non-interactive",
+    "changelog": "auto-changelog -p",
     "deploy:development": "npm run clean && npm run compile && export NETWORK='development' && truffle migrate",
     "deploy:nile": "npm run clean && npm run compile && export NETWORK='nile' && truffle migrate --network nile",
     "deploy:pacific": "npm run clean && npm run compile && export NETWORK='pacific' && truffle migrate --network pacific",
@@ -39,13 +41,37 @@
   },
   "author": "Ocean Protocol",
   "license": "Apache-2.0",
+  "release-it": {
+    "hooks": {
+      "after:bump": "npm run changelog"
+    },
+    "plugins": {
+      "@release-it/bumper": {
+        "out": [
+          "package.json",
+          "package-lock.json"
+        ]
+      }
+    },
+    "git": {
+      "tagName": "v${version}"
+    },
+    "github": {
+      "release": true
+    },
+    "npm": {
+      "publish": false
+    }
+  },
   "devDependencies": {
+    "auto-changelog": "^2.0.0",
     "chai": "^4.2.0",
     "chai-as-promised": "^7.1.1",
     "coveralls": "^3.1.0",
     "eslint": "^7.2.0",
     "eslint-config-oceanprotocol": "^1.5.0",
     "openzeppelin-solidity": "^2.5.0",
+    "release-it": "^13.6.2",
     "solc": "^0.6.9",
     "solidity-coverage": "0.7.5",
     "solidity-docgen": "^0.5.3",
