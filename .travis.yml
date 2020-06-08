@@ -22,6 +22,14 @@ before_script:
 
 script:
     - npm run compile
-#    - npm run lint
+    - npm run lint
     - npm run test:cover
- #   - npm run test:echidna
+    - npm run deploy
+
+deploy:
+  - provider: npm
+    email: 'devops@oceanprotocol.com'
+    api_key: ${NPM_TOKEN}
+    skip_cleanup: true
+    on:
+      tags: true

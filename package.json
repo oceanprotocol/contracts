@@ -1,8 +1,12 @@
 {
-  "name": "contracts",
-  "version": "1.0.0",
-  "description": "## Architecture",
-  "main": "truffle-config.js",
+  "name": "@oceanprotocol/ocean-contracts",
+  "version": "0.1.0",
+  "description": "Ocean Protocol L1 - DataTokens",
+  "bugs": {
+    "url": "https://github.com/oceanprotocol/contracts/issues"
+  },
+  "homepage": "https://github.com/oceanprotocol/contracts#readme",
+  "main": "README.md",
   "directories": {
     "doc": "docs",
     "test": "test"
@@ -11,16 +15,74 @@
     "test": "npm run test:unit",
     "test:unit": "truffle test",
     "compile": "truffle compile",
-    "test:cover": "export NETWORK='coverage' && solidity-coverage",
-    "clean": "rm -rf build/"
+    "test:cover": "npx truffle run coverage --network coverage",
+    "report:coverage": "cat coverage/lcov.info | coveralls",
+    "clean": "rm -rf build/",
+    "lint:ethlint": "solium -d ./contracts/",
+    "lint:eslint": "eslint --ignore-pattern '/coverage/' .",
+    "lint": "npm run lint:eslint && npm run lint:ethlint",
+    "doc:generate": "npx solidity-docgen --solc-module solc",
+    "deploy": "npm run deploy:development",
+    "release": "release-it --non-interactive",
+    "changelog": "auto-changelog -p",
+    "deploy:development": "npm run clean && npm run compile && export NETWORK='development' && truffle migrate",
+    "deploy:nile": "npm run clean && npm run compile && export NETWORK='nile' && truffle migrate --network nile",
+    "deploy:pacific": "npm run clean && npm run compile && export NETWORK='pacific' && truffle migrate --network pacific",
+    "deploy:mainnet": "npm run clean && npm run compile && export NETWORK='mainnet' && truffle migrate --network mainnet"
   },
-  "author": "",
-  "license": "ISC",
+  "files": [
+    "artifacts/**/*",
+    "doc/**/*",
+    "README.md"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/oceanprotocol/contracts.git"
+  },
+  "author": "Ocean Protocol",
+  "license": "Apache-2.0",
+  "release-it": {
+    "hooks": {
+      "after:bump": "npm run changelog"
+    },
+    "plugins": {
+      "@release-it/bumper": {
+        "out": [
+          "package.json",
+          "package-lock.json"
+        ]
+      }
+    },
+    "git": {
+      "tagName": "v${version}"
+    },
+    "github": {
+      "release": true
+    },
+    "npm": {
+      "publish": false
+    }
+  },
   "devDependencies": {
+    "@release-it/bumper": "^1.1.1",
+    "auto-changelog": "^2.0.0",
+    "chai": "^4.2.0",
+    "chai-as-promised": "^7.1.1",
+    "coveralls": "^3.1.0",
+    "eslint": "^7.2.0",
+    "eslint-config-oceanprotocol": "^1.5.0",
     "openzeppelin-solidity": "^2.5.0",
-    "solidity-coverage": "0.6.1",
+    "release-it": "^13.6.2",
+    "solc": "^0.6.9",
+    "solidity-coverage": "0.7.5",
+    "solidity-docgen": "^0.5.3",
+    "solium": "^1.2.5",
+    "solium-plugin-security": "^0.1.1",
+    "truffle": "^5.1.29",
     "truffle-assertions": "^0.9.2",
-    "web3": "^1.2.7",
-    "truffle": "5.1.24"
+    "truffle-contract": "~4.0.31",
+    "truffle-hdwallet-provider": "~1.0.17",
+    "web3": "^1.2.8",
+    "web3-provider-engine": "~15.0.12"
   }
 }

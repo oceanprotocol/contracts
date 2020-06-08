@@ -1,37 +1,42 @@
 pragma solidity ^0.5.7;
+// Copyright BigchainDB GmbH and Ocean Protocol contributors
+// SPDX-License-Identifier: (Apache-2.0 AND CC-BY-4.0)
+// Code is Apache-2.0 and docs are CC-BY-4.0
 
 import './FeeCalculator.sol';
 import './FeeCollector.sol';
-import 'openzeppelin-solidity/contracts/math/SafeMath.sol';
+import 'openzeppelin-solidity/contracts/ownership/Ownable.sol';
 
-contract FeeManager {
-    using SafeMath for uint256;
-
-    uint256 public constant  DIVIDENT = 90;
-    uint256 public constant  DIVIDER  = 100;
-
-    function getFee(
-        uint256 _startGas,
-        uint256 _tokenAmount
-    )
-    public
-    view 
-    returns(uint256)
+/**
+* @title Fee Manager Contract
+* @author Ocean Protocol Team
+*
+* @dev Implementation of Fee Manager
+*      manages the life cycle of the ocean service fee
+*      It inherits the fee collector and fee calcualtor
+*      in which allows charging fee, accumlating fee, and
+*      withdraw accumalted fee (only by contract owner)
+*/
+contract FeeManager is FeeCalculator, FeeCollector, Ownable {
+    
+    constructor()
+        public
+        Ownable()
     {
-
-        uint256 txPrice = _getTxPrice(_startGas);
-        return  ((_tokenAmount.mul(txPrice)).mul(DIVIDENT)).div(DIVIDER); 
     }
 
- 
-    function _getTxPrice(
-        uint256 _startGas
-    )
-    private
-    view
-    returns(uint256)
+    /**
+     * @dev withdraw
+     *      allows contract owner to withdraw accumlated service fee.
+     */
+    function withdraw() 
+        public
+        onlyOwner
     {
-        uint256 usedGas = _startGas.sub(gasleft());
-        return  usedGas.mul(tx.gasprice); 
-    } 
+        require(
+            address(this).balance > 0,
+            'FeeManager: Zero balance'
+        );
+        msg.sender.transfer(address(this).balance);
+    }
 }

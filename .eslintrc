@@ -1,0 +1,12 @@
+{
+    "extends": "oceanprotocol",
+    "rules": {
+        "prefer-destructuring": ["error", {
+          "array": false,
+          "object": true
+    }, {
+        "enforceForRenamedProperties": false
+     }],
+        "security/detect-non-literal-fs-filename": "off"
+    }
+}

@@ -1,7 +1,7 @@
 [![banner](https://raw.githubusercontent.com/oceanprotocol/art/master/github/repo-banner%402x.png)](https://oceanprotocol.com)
 
-[![Build Status](https://travis-ci.com/oceanprotocol/contracts.svg?token=soMi2nNfCZq19zS1Rx4i&branch=develop)](https://travis-ci.com/oceanprotocol/contracts)
- [![codecov](https://codecov.io/gh/oceanprotocol/contracts/branch/develop/graph/badge.svg?token=31SZX1V4ZJ)](https://codecov.io/gh/oceanprotocol/contracts)
+[![Build Status](https://travis-ci.com/oceanprotocol/ocean-contracts.svg?token=soMi2nNfCZq19zS1Rx4i&branch=develop)](https://travis-ci.com/oceanprotocol/ocean-contracts)
+ [![codecov](https://codecov.io/gh/oceanprotocol/ocean-contracts/branch/develop/graph/badge.svg?token=31SZX1V4ZJ)](https://codecov.io/gh/oceanprotocol/ocean-contracts)
 
 # Ocean Protocol Contracts
 
@@ -72,7 +72,11 @@ Code style is enforced through the CI test process, builds will fail if there're
 
 ### Testnets
 
-TBD
+For local development, start a local testnet using `ganache-cli`, then run:
+
+```
+npm run deploy
+```
 
 ### Mainnet
 
@@ -80,6 +84,12 @@ TBD
 
 
 ## Documentation
+
+To use generate documentation via `solidity-docgen` please run:
+```bash
+npm run doc:generate
+```
+
 
 * [Release process](doc/RELEASE_PROCESS.md)
 * [Core Documentation](doc/contracts/README.md)
