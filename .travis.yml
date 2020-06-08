@@ -25,4 +25,13 @@ script:
     - npm run lint
     - npm run test:cover
     - npm run deploy
- #   - npm run test:echidna
+ 
+ deploy:
+  - provider: npm
+    email: "devops@oceanprotocol.com"
+    api_key: ${NPM_TOKEN}
+    skip_cleanup: true
+    on:
+      tags: true
+      all_branches: true
+      condition: $DEPLOY_PACKAGE = true
