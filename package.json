@@ -29,6 +29,7 @@
     "deploy:mainnet": "npm run clean && npm run compile && export NETWORK='mainnet' && truffle migrate --network mainnet"
   },
   "files": [
+    "artifacts/**/*",
     "doc/**/*",
     "README.md"
   ],
