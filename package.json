@@ -50,7 +50,7 @@
     "solidity-docgen": "^0.5.3",
     "solium": "^1.2.5",
     "solium-plugin-security": "^0.1.1",
-    "truffle": "^5.1.28",
+    "truffle": "^5.1.29",
     "truffle-assertions": "^0.9.2",
     "truffle-contract": "~4.0.31",
     "truffle-hdwallet-provider": "~1.0.17",
