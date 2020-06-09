@@ -29,7 +29,7 @@
     "deploy:nile": "npm run clean && npm run compile && export NETWORK='nile' && truffle migrate --network nile",
     "deploy:pacific": "npm run clean && npm run compile && export NETWORK='pacific' && truffle migrate --network pacific",
     "deploy:mainnet": "npm run clean && npm run compile && export NETWORK='mainnet' && truffle migrate --network mainnet",
-    "deploy:rinkeby": ""
+    "deploy:rinkeby": "npm run clean && npm run compile && export NETWORK='rinkeby' && truffle migrate --network rinkeby"
   },
   "files": [
     "artifacts/**/*",
