@@ -1,0 +1,179 @@
+{
+  "contractName": "FeeCollector",
+  "abi": [
+    {
+      "payable": true,
+      "stateMutability": "payable",
+      "type": "fallback"
+    }
+  ],
+  "metadata": "{\"compiler\":{\"version\":\"0.5.7+commit.6da8b019\"},\"language\":\"Solidity\",\"output\":{\"abi\":[{\"payable\":true,\"stateMutability\":\"payable\",\"type\":\"fallback\"}],\"devdoc\":{\"author\":\"Ocean Protocol Team\",\"details\":\"Implementation of Fee Collector     Receives only Ether \",\"methods\":{},\"title\":\"Fee Collector Contract\"},\"userdoc\":{\"methods\":{}}},\"settings\":{\"compilationTarget\":{\"/Users/ahmedali/Desktop/work/Ocean/ocean-contracts/contracts/fee/FeeCollector.sol\":\"FeeCollector\"},\"evmVersion\":\"byzantium\",\"libraries\":{},\"optimizer\":{\"enabled\":false,\"runs\":200},\"remappings\":[]},\"sources\":{\"/Users/ahmedali/Desktop/work/Ocean/ocean-contracts/contracts/fee/FeeCollector.sol\":{\"keccak256\":\"0x507c6b5f7c251d373605c45974ff7c99600347945f4ae0a7acc7bbe5af81e7de\",\"urls\":[\"bzzr://331c63accd3456b18719a2651f6c7e773896bdb5313a933ea7d9c5ca6f45698a\"]}},\"version\":1}",
+  "bytecode": "0x6080604052348015600f57600080fd5b50603280601d6000396000f3fe608060405200fea165627a7a72305820c94865ef342035153da5241a12e3dc4b626ec35ee793d12f2262e7ed30a253a60029",
+  "deployedBytecode": "0x608060405200fea165627a7a72305820c94865ef342035153da5241a12e3dc4b626ec35ee793d12f2262e7ed30a253a60029",
+  "sourceMap": "324:156:3:-;;;;8:9:-1;5:2;;;30:1;27;20:12;5:2;324:156:3;;;;;;;",
+  "deployedSourceMap": "324:156:3:-;;;",
+  "source": "pragma solidity ^0.5.7;\n// Copyright BigchainDB GmbH and Ocean Protocol contributors\n// SPDX-License-Identifier: (Apache-2.0 AND CC-BY-4.0)\n// Code is Apache-2.0 and docs are CC-BY-4.0\n\n/**\n* @title Fee Collector Contract\n* @author Ocean Protocol Team\n*\n* @dev Implementation of Fee Collector\n*      Receives only Ether \n*/\ncontract FeeCollector {\n\n    /**\n     * @dev \n     *      payable function which receives only Etehreum\n     */\n    function() external payable{    \n    }\n}",
+  "sourcePath": "/Users/ahmedali/Desktop/work/Ocean/ocean-contracts/contracts/fee/FeeCollector.sol",
+  "ast": {
+    "absolutePath": "/Users/ahmedali/Desktop/work/Ocean/ocean-contracts/contracts/fee/FeeCollector.sol",
+    "exportedSymbols": {
+      "FeeCollector": [
+        298
+      ]
+    },
+    "id": 299,
+    "nodeType": "SourceUnit",
+    "nodes": [
+      {
+        "id": 293,
+        "literals": [
+          "solidity",
+          "^",
+          "0.5",
+          ".7"
+        ],
+        "nodeType": "PragmaDirective",
+        "src": "0:23:3"
+      },
+      {
+        "baseContracts": [],
+        "contractDependencies": [],
+        "contractKind": "contract",
+        "documentation": "@title Fee Collector Contract\n@author Ocean Protocol Team\n* @dev Implementation of Fee Collector\n     Receives only Ether ",
+        "fullyImplemented": true,
+        "id": 298,
+        "linearizedBaseContracts": [
+          298
+        ],
+        "name": "FeeCollector",
+        "nodeType": "ContractDefinition",
+        "nodes": [
+          {
+            "body": {
+              "id": 296,
+              "nodeType": "Block",
+              "src": "467:11:3",
+              "statements": []
+            },
+            "documentation": "@dev \n     payable function which receives only Etehreum",
+            "id": 297,
+            "implemented": true,
+            "kind": "fallback",
+            "modifiers": [],
+            "name": "",
+            "nodeType": "FunctionDefinition",
+            "parameters": {
+              "id": 294,
+              "nodeType": "ParameterList",
+              "parameters": [],
+              "src": "448:2:3"
+            },
+            "returnParameters": {
+              "id": 295,
+              "nodeType": "ParameterList",
+              "parameters": [],
+              "src": "467:0:3"
+            },
+            "scope": 298,
+            "src": "440:38:3",
+            "stateMutability": "payable",
+            "superFunction": null,
+            "visibility": "external"
+          }
+        ],
+        "scope": 299,
+        "src": "324:156:3"
+      }
+    ],
+    "src": "0:480:3"
+  },
+  "legacyAST": {
+    "absolutePath": "/Users/ahmedali/Desktop/work/Ocean/ocean-contracts/contracts/fee/FeeCollector.sol",
+    "exportedSymbols": {
+      "FeeCollector": [
+        298
+      ]
+    },
+    "id": 299,
+    "nodeType": "SourceUnit",
+    "nodes": [
+      {
+        "id": 293,
+        "literals": [
+          "solidity",
+          "^",
+          "0.5",
+          ".7"
+        ],
+        "nodeType": "PragmaDirective",
+        "src": "0:23:3"
+      },
+      {
+        "baseContracts": [],
+        "contractDependencies": [],
+        "contractKind": "contract",
+        "documentation": "@title Fee Collector Contract\n@author Ocean Protocol Team\n* @dev Implementation of Fee Collector\n     Receives only Ether ",
+        "fullyImplemented": true,
+        "id": 298,
+        "linearizedBaseContracts": [
+          298
+        ],
+        "name": "FeeCollector",
+        "nodeType": "ContractDefinition",
+        "nodes": [
+          {
+            "body": {
+              "id": 296,
+              "nodeType": "Block",
+              "src": "467:11:3",
+              "statements": []
+            },
+            "documentation": "@dev \n     payable function which receives only Etehreum",
+            "id": 297,
+            "implemented": true,
+            "kind": "fallback",
+            "modifiers": [],
+            "name": "",
+            "nodeType": "FunctionDefinition",
+            "parameters": {
+              "id": 294,
+              "nodeType": "ParameterList",
+              "parameters": [],
+              "src": "448:2:3"
+            },
+            "returnParameters": {
+              "id": 295,
+              "nodeType": "ParameterList",
+              "parameters": [],
+              "src": "467:0:3"
+            },
+            "scope": 298,
+            "src": "440:38:3",
+            "stateMutability": "payable",
+            "superFunction": null,
+            "visibility": "external"
+          }
+        ],
+        "scope": 299,
+        "src": "324:156:3"
+      }
+    ],
+    "src": "0:480:3"
+  },
+  "compiler": {
+    "name": "solc",
+    "version": "0.5.7+commit.6da8b019.Emscripten.clang"
+  },
+  "networks": {},
+  "schemaVersion": "3.2.0",
+  "updatedAt": "2020-06-09T08:49:37.022Z",
+  "devdoc": {
+    "author": "Ocean Protocol Team",
+    "details": "Implementation of Fee Collector     Receives only Ether ",
+    "methods": {},
+    "title": "Fee Collector Contract"
+  },
+  "userdoc": {
+    "methods": {}
+  }
+}

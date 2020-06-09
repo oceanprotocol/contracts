@@ -88,6 +88,14 @@ module.exports = {
             gas: 7 * 1000000,
             gasPrice: utils.toWei('8', 'gwei')
         },
+        // mainnet the ethereum mainnet
+        rinkeby: {
+            provider: () => setupWallet(`https://rinkeby.infura.io/v3/${process.env.INFURA_TOKEN}`),
+            network_id: 0x4,
+            from: '0xBa3e0EC852Dc24cA7F454ea545D40B1462501711',
+            gas: 7 * 1000000,
+            gasPrice: utils.toWei('8', 'gwei')
+        },
         // pacific the ethereum mainnet
         pacific: {
             provider: () => setupWallet('https://pacific.oceanprotocol.com'),

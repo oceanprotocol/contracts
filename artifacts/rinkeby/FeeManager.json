@@ -1,0 +1,1321 @@
+{
+  "contractName": "FeeManager",
+  "abi": [
+    {
+      "constant": true,
+      "inputs": [
+        {
+          "name": "tokens",
+          "type": "uint256"
+        },
+        {
+          "name": "cap",
+          "type": "uint256"
+        }
+      ],
+      "name": "calculateFee",
+      "outputs": [
+        {
+          "name": "",
+          "type": "uint256"
+        }
+      ],
+      "payable": false,
+      "stateMutability": "pure",
+      "type": "function"
+    },
+    {
+      "constant": false,
+      "inputs": [],
+      "name": "renounceOwnership",
+      "outputs": [],
+      "payable": false,
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "constant": true,
+      "inputs": [],
+      "name": "owner",
+      "outputs": [
+        {
+          "name": "",
+          "type": "address"
+        }
+      ],
+      "payable": false,
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "constant": true,
+      "inputs": [],
+      "name": "isOwner",
+      "outputs": [
+        {
+          "name": "",
+          "type": "bool"
+        }
+      ],
+      "payable": false,
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "constant": true,
+      "inputs": [
+        {
+          "name": "number",
+          "type": "uint256"
+        }
+      ],
+      "name": "calculateRange",
+      "outputs": [
+        {
+          "name": "",
+          "type": "uint256"
+        }
+      ],
+      "payable": false,
+      "stateMutability": "pure",
+      "type": "function"
+    },
+    {
+      "constant": false,
+      "inputs": [
+        {
+          "name": "newOwner",
+          "type": "address"
+        }
+      ],
+      "name": "transferOwnership",
+      "outputs": [],
+      "payable": false,
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "inputs": [],
+      "payable": false,
+      "stateMutability": "nonpayable",
+      "type": "constructor"
+    },
+    {
+      "payable": true,
+      "stateMutability": "payable",
+      "type": "fallback"
+    },
+    {
+      "anonymous": false,
+      "inputs": [
+        {
+          "indexed": true,
+          "name": "previousOwner",
+          "type": "address"
+        },
+        {
+          "indexed": true,
+          "name": "newOwner",
+          "type": "address"
+        }
+      ],
+      "name": "OwnershipTransferred",
+      "type": "event"
+    },
+    {
+      "constant": false,
+      "inputs": [],
+      "name": "withdraw",
+      "outputs": [],
+      "payable": false,
+      "stateMutability": "nonpayable",
+      "type": "function"
+    }
+  ],
+  "metadata": "{\"compiler\":{\"version\":\"0.5.7+commit.6da8b019\"},\"language\":\"Solidity\",\"output\":{\"abi\":[{\"constant\":true,\"inputs\":[{\"name\":\"tokens\",\"type\":\"uint256\"},{\"name\":\"cap\",\"type\":\"uint256\"}],\"name\":\"calculateFee\",\"outputs\":[{\"name\":\"\",\"type\":\"uint256\"}],\"payable\":false,\"stateMutability\":\"pure\",\"type\":\"function\"},{\"constant\":false,\"inputs\":[],\"name\":\"withdraw\",\"outputs\":[],\"payable\":false,\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"constant\":false,\"inputs\":[],\"name\":\"renounceOwnership\",\"outputs\":[],\"payable\":false,\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"constant\":true,\"inputs\":[],\"name\":\"owner\",\"outputs\":[{\"name\":\"\",\"type\":\"address\"}],\"payable\":false,\"stateMutability\":\"view\",\"type\":\"function\"},{\"constant\":true,\"inputs\":[],\"name\":\"isOwner\",\"outputs\":[{\"name\":\"\",\"type\":\"bool\"}],\"payable\":false,\"stateMutability\":\"view\",\"type\":\"function\"},{\"constant\":true,\"inputs\":[{\"name\":\"number\",\"type\":\"uint256\"}],\"name\":\"calculateRange\",\"outputs\":[{\"name\":\"\",\"type\":\"uint256\"}],\"payable\":false,\"stateMutability\":\"pure\",\"type\":\"function\"},{\"constant\":false,\"inputs\":[{\"name\":\"newOwner\",\"type\":\"address\"}],\"name\":\"transferOwnership\",\"outputs\":[],\"payable\":false,\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[],\"payable\":false,\"stateMutability\":\"nonpayable\",\"type\":\"constructor\"},{\"payable\":true,\"stateMutability\":\"payable\",\"type\":\"fallback\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":true,\"name\":\"previousOwner\",\"type\":\"address\"},{\"indexed\":true,\"name\":\"newOwner\",\"type\":\"address\"}],\"name\":\"OwnershipTransferred\",\"type\":\"event\"}],\"devdoc\":{\"author\":\"Ocean Protocol Team\",\"details\":\"Implementation of Fee Manager     manages the life cycle of the ocean service fee     It inherits the fee collector and fee calcualtor     in which allows charging fee, accumlating fee, and     withdraw accumalted fee (only by contract owner)\",\"methods\":{\"calculateFee(uint256,uint256)\":{\"details\":\"calculateFee     calculates the fee based on the number of minted tokens compared to     the capital\",\"params\":{\"cap\":\"the capital\",\"tokens\":\"the amount of minted tokens.\"},\"return\":\"fee.\"},\"calculateRange(uint256)\":{\"details\":\"calculateRange     For a given number, calculates number of zeros.\",\"params\":{\"number\":\"input number value.\"},\"return\":\"number of zeros.\"},\"isOwner()\":{\"details\":\"Returns true if the caller is the current owner.\"},\"owner()\":{\"details\":\"Returns the address of the current owner.\"},\"renounceOwnership()\":{\"details\":\"Leaves the contract without owner. It will not be possible to call `onlyOwner` functions anymore. Can only be called by the current owner.     * NOTE: Renouncing ownership will leave the contract without an owner, thereby removing any functionality that is only available to the owner.\"},\"transferOwnership(address)\":{\"details\":\"Transfers ownership of the contract to a new account (`newOwner`). Can only be called by the current owner.\"},\"withdraw()\":{\"details\":\"withdraw     allows contract owner to withdraw accumlated service fee.\"}},\"title\":\"Fee Manager Contract\"},\"userdoc\":{\"methods\":{}}},\"settings\":{\"compilationTarget\":{\"/Users/ahmedali/Desktop/work/Ocean/ocean-contracts/contracts/fee/FeeManager.sol\":\"FeeManager\"},\"evmVersion\":\"byzantium\",\"libraries\":{},\"optimizer\":{\"enabled\":false,\"runs\":200},\"remappings\":[]},\"sources\":{\"/Users/ahmedali/Desktop/work/Ocean/ocean-contracts/contracts/fee/FeeCalculator.sol\":{\"keccak256\":\"0x69c03c663e52f11509f1b8638057f75072fe9376ee22ba08951ed108d3220b0d\",\"urls\":[\"bzzr://6aec6cb45a0c1a3bc31aeed7ea78f25391f20a7d565a63251ab1dea5554cb4d1\"]},\"/Users/ahmedali/Desktop/work/Ocean/ocean-contracts/contracts/fee/FeeCollector.sol\":{\"keccak256\":\"0x507c6b5f7c251d373605c45974ff7c99600347945f4ae0a7acc7bbe5af81e7de\",\"urls\":[\"bzzr://331c63accd3456b18719a2651f6c7e773896bdb5313a933ea7d9c5ca6f45698a\"]},\"/Users/ahmedali/Desktop/work/Ocean/ocean-contracts/contracts/fee/FeeManager.sol\":{\"keccak256\":\"0x819f404de7352270a639099f8e6bd8f64189d979e9f39ecfce78522ab69646ac\",\"urls\":[\"bzzr://680b21b5c64bdd76206f6c1ff163d8018b27808521e5e2db7d42e62248d1bd17\"]},\"openzeppelin-solidity/contracts/GSN/Context.sol\":{\"keccak256\":\"0x90a3995645af7562d84b9d69363ffa5ae7217714ab61e951bf7bc450f40e4061\",\"urls\":[\"bzzr://51482c01bddf23793bddee43b60ab9578a62948a4f2082def24ea792a553b055\"]},\"openzeppelin-solidity/contracts/math/SafeMath.sol\":{\"keccak256\":\"0x640b6dee7a4b830bdfd52b5031a07fc2b12209f5b2e29e5d364a7d37f69d8076\",\"urls\":[\"bzzr://292843005e754e752644f767477ec5ad7a1ffc91ddb18c38b8079c62f3993cad\"]},\"openzeppelin-solidity/contracts/ownership/Ownable.sol\":{\"keccak256\":\"0x6fb9d7889769d7cc161225f9ef7a90e468ba9788b253816f8d8b6894d3472c24\",\"urls\":[\"bzzr://ab46c9368bc3abdded5eb85858304518c8a0291060ab42087075d759dbf3925f\"]}},\"version\":1}",
+  "bytecode": "0x608060405234801561001057600080fd5b50600061002a6100cd640100000000026401000000009004565b9050806000806101000a81548173ffffffffffffffffffffffffffffffffffffffff021916908373ffffffffffffffffffffffffffffffffffffffff1602179055508073ffffffffffffffffffffffffffffffffffffffff16600073ffffffffffffffffffffffffffffffffffffffff167f8be0079c531659141344cd1fd0a4f28419497f9722a3daafe3b4186f6b6457e060405160405180910390a3506100d5565b600033905090565b610a61806100e46000396000f3fe60806040526004361061008d576000357c0100000000000000000000000000000000000000000000000000000000900480638da5cb5b1161006b5780638da5cb5b146101165780638f32d59b1461016d57806390d3d8621461019c578063f2fde38b146101eb5761008d565b806334e731221461008f5780633ccfd60b146100e8578063715018a6146100ff575b005b34801561009b57600080fd5b506100d2600480360360408110156100b257600080fd5b81019080803590602001909291908035906020019092919050505061023c565b6040518082815260200191505060405180910390f35b3480156100f457600080fd5b506100fd610312565b005b34801561010b57600080fd5b50610114610479565b005b34801561012257600080fd5b5061012b6105b2565b604051808273ffffffffffffffffffffffffffffffffffffffff1673ffffffffffffffffffffffffffffffffffffffff16815260200191505060405180910390f35b34801561017957600080fd5b506101826105db565b604051808215151515815260200191505060405180910390f35b3480156101a857600080fd5b506101d5600480360360208110156101bf57600080fd5b8101908080359060200190929190505050610639565b6040518082815260200191505060405180910390f35b3480156101f757600080fd5b5061023a6004803603602081101561020e57600080fd5b81019080803573ffffffffffffffffffffffffffffffffffffffff169060200190929190505050610686565b005b6000828210156102b4576040517f08c379a000000000000000000000000000000000000000000000000000000000815260040180806020018281038252601a8152602001807f46656543616c63756c61746f723a20496e76616c69642063617000000000000081525060200191505060405180910390fd5b60006102bf84610639565b905060006102d861abe08361070c90919063ffffffff16565b9050610308600a6102fa6102eb87610639565b8461079290919063ffffffff16565b61079290919063ffffffff16565b9250505092915050565b61031a6105db565b61038c576040517f08c379a00000000000000000000000000000000000000000000000000000000081526004018080602001828103825260208152602001807f4f776e61626c653a2063616c6c6572206973206e6f7420746865206f776e657281525060200191505060405180910390fd5b60003073ffffffffffffffffffffffffffffffffffffffff163111610419576040517f08c379a00000000000000000000000000000000000000000000000000000000081526004018080602001828103825260188152602001807f4665654d616e616765723a205a65726f2062616c616e6365000000000000000081525060200191505060405180910390fd5b3373ffffffffffffffffffffffffffffffffffffffff166108fc3073ffffffffffffffffffffffffffffffffffffffff16319081150290604051600060405180830381858888f19350505050158015610476573d6000803e3d6000fd5b50565b6104816105db565b6104f3576040517f08c379a00000000000000000000000000000000000000000000000000000000081526004018080602001828103825260208152602001807f4f776e61626c653a2063616c6c6572206973206e6f7420746865206f776e657281525060200191505060405180910390fd5b600073ffffffffffffffffffffffffffffffffffffffff166000809054906101000a900473ffffffffffffffffffffffffffffffffffffffff1673ffffffffffffffffffffffffffffffffffffffff167f8be0079c531659141344cd1fd0a4f28419497f9722a3daafe3b4186f6b6457e060405160405180910390a360008060006101000a81548173ffffffffffffffffffffffffffffffffffffffff021916908373ffffffffffffffffffffffffffffffffffffffff160217905550565b60008060009054906101000a900473ffffffffffffffffffffffffffffffffffffffff16905090565b60008060009054906101000a900473ffffffffffffffffffffffffffffffffffffffff1673ffffffffffffffffffffffffffffffffffffffff1661061d6107dc565b73ffffffffffffffffffffffffffffffffffffffff1614905090565b600080829050600080905060008090505b600a831061067b57610666600a8461079290919063ffffffff16565b9250600182019150808060010191505061064a565b508092505050919050565b61068e6105db565b610700576040517f08c379a00000000000000000000000000000000000000000000000000000000081526004018080602001828103825260208152602001807f4f776e61626c653a2063616c6c6572206973206e6f7420746865206f776e657281525060200191505060405180910390fd5b610709816107e4565b50565b60008083141561071f576000905061078c565b600082840290508284828161073057fe5b0414610787576040517f08c379a0000000000000000000000000000000000000000000000000000000008152600401808060200182810382526021815260200180610a156021913960400191505060405180910390fd5b809150505b92915050565b60006107d483836040518060400160405280601a81526020017f536166654d6174683a206469766973696f6e206279207a65726f000000000000815250610928565b905092915050565b600033905090565b600073ffffffffffffffffffffffffffffffffffffffff168173ffffffffffffffffffffffffffffffffffffffff16141561086a576040517f08c379a00000000000000000000000000000000000000000000000000000000081526004018080602001828103825260268152602001806109ef6026913960400191505060405180910390fd5b8073ffffffffffffffffffffffffffffffffffffffff166000809054906101000a900473ffffffffffffffffffffffffffffffffffffffff1673ffffffffffffffffffffffffffffffffffffffff167f8be0079c531659141344cd1fd0a4f28419497f9722a3daafe3b4186f6b6457e060405160405180910390a3806000806101000a81548173ffffffffffffffffffffffffffffffffffffffff021916908373ffffffffffffffffffffffffffffffffffffffff16021790555050565b600080831182906109d4576040517f08c379a00000000000000000000000000000000000000000000000000000000081526004018080602001828103825283818151815260200191508051906020019080838360005b8381101561099957808201518184015260208101905061097e565b50505050905090810190601f1680156109c65780820380516001836020036101000a031916815260200191505b509250505060405180910390fd5b5060008385816109e057fe5b04905080915050939250505056fe4f776e61626c653a206e6577206f776e657220697320746865207a65726f2061646472657373536166654d6174683a206d756c7469706c69636174696f6e206f766572666c6f77a165627a7a723058204956c9db4cd7435fe29585c0d0dcb263a659d5fba45e5805d117fae0a64ec3ec0029",
+  "deployedBytecode": "0x60806040526004361061008d576000357c0100000000000000000000000000000000000000000000000000000000900480638da5cb5b1161006b5780638da5cb5b146101165780638f32d59b1461016d57806390d3d8621461019c578063f2fde38b146101eb5761008d565b806334e731221461008f5780633ccfd60b146100e8578063715018a6146100ff575b005b34801561009b57600080fd5b506100d2600480360360408110156100b257600080fd5b81019080803590602001909291908035906020019092919050505061023c565b6040518082815260200191505060405180910390f35b3480156100f457600080fd5b506100fd610312565b005b34801561010b57600080fd5b50610114610479565b005b34801561012257600080fd5b5061012b6105b2565b604051808273ffffffffffffffffffffffffffffffffffffffff1673ffffffffffffffffffffffffffffffffffffffff16815260200191505060405180910390f35b34801561017957600080fd5b506101826105db565b604051808215151515815260200191505060405180910390f35b3480156101a857600080fd5b506101d5600480360360208110156101bf57600080fd5b8101908080359060200190929190505050610639565b6040518082815260200191505060405180910390f35b3480156101f757600080fd5b5061023a6004803603602081101561020e57600080fd5b81019080803573ffffffffffffffffffffffffffffffffffffffff169060200190929190505050610686565b005b6000828210156102b4576040517f08c379a000000000000000000000000000000000000000000000000000000000815260040180806020018281038252601a8152602001807f46656543616c63756c61746f723a20496e76616c69642063617000000000000081525060200191505060405180910390fd5b60006102bf84610639565b905060006102d861abe08361070c90919063ffffffff16565b9050610308600a6102fa6102eb87610639565b8461079290919063ffffffff16565b61079290919063ffffffff16565b9250505092915050565b61031a6105db565b61038c576040517f08c379a00000000000000000000000000000000000000000000000000000000081526004018080602001828103825260208152602001807f4f776e61626c653a2063616c6c6572206973206e6f7420746865206f776e657281525060200191505060405180910390fd5b60003073ffffffffffffffffffffffffffffffffffffffff163111610419576040517f08c379a00000000000000000000000000000000000000000000000000000000081526004018080602001828103825260188152602001807f4665654d616e616765723a205a65726f2062616c616e6365000000000000000081525060200191505060405180910390fd5b3373ffffffffffffffffffffffffffffffffffffffff166108fc3073ffffffffffffffffffffffffffffffffffffffff16319081150290604051600060405180830381858888f19350505050158015610476573d6000803e3d6000fd5b50565b6104816105db565b6104f3576040517f08c379a00000000000000000000000000000000000000000000000000000000081526004018080602001828103825260208152602001807f4f776e61626c653a2063616c6c6572206973206e6f7420746865206f776e657281525060200191505060405180910390fd5b600073ffffffffffffffffffffffffffffffffffffffff166000809054906101000a900473ffffffffffffffffffffffffffffffffffffffff1673ffffffffffffffffffffffffffffffffffffffff167f8be0079c531659141344cd1fd0a4f28419497f9722a3daafe3b4186f6b6457e060405160405180910390a360008060006101000a81548173ffffffffffffffffffffffffffffffffffffffff021916908373ffffffffffffffffffffffffffffffffffffffff160217905550565b60008060009054906101000a900473ffffffffffffffffffffffffffffffffffffffff16905090565b60008060009054906101000a900473ffffffffffffffffffffffffffffffffffffffff1673ffffffffffffffffffffffffffffffffffffffff1661061d6107dc565b73ffffffffffffffffffffffffffffffffffffffff1614905090565b600080829050600080905060008090505b600a831061067b57610666600a8461079290919063ffffffff16565b9250600182019150808060010191505061064a565b508092505050919050565b61068e6105db565b610700576040517f08c379a00000000000000000000000000000000000000000000000000000000081526004018080602001828103825260208152602001807f4f776e61626c653a2063616c6c6572206973206e6f7420746865206f776e657281525060200191505060405180910390fd5b610709816107e4565b50565b60008083141561071f576000905061078c565b600082840290508284828161073057fe5b0414610787576040517f08c379a0000000000000000000000000000000000000000000000000000000008152600401808060200182810382526021815260200180610a156021913960400191505060405180910390fd5b809150505b92915050565b60006107d483836040518060400160405280601a81526020017f536166654d6174683a206469766973696f6e206279207a65726f000000000000815250610928565b905092915050565b600033905090565b600073ffffffffffffffffffffffffffffffffffffffff168173ffffffffffffffffffffffffffffffffffffffff16141561086a576040517f08c379a00000000000000000000000000000000000000000000000000000000081526004018080602001828103825260268152602001806109ef6026913960400191505060405180910390fd5b8073ffffffffffffffffffffffffffffffffffffffff166000809054906101000a900473ffffffffffffffffffffffffffffffffffffffff1673ffffffffffffffffffffffffffffffffffffffff167f8be0079c531659141344cd1fd0a4f28419497f9722a3daafe3b4186f6b6457e060405160405180910390a3806000806101000a81548173ffffffffffffffffffffffffffffffffffffffff021916908373ffffffffffffffffffffffffffffffffffffffff16021790555050565b600080831182906109d4576040517f08c379a00000000000000000000000000000000000000000000000000000000081526004018080602001828103825283818151815260200191508051906020019080838360005b8381101561099957808201518184015260208101905061097e565b50505050905090810190601f1680156109c65780820380516001836020036101000a031916815260200191505b509250505060405180910390fd5b5060008385816109e057fe5b04905080915050939250505056fe4f776e61626c653a206e6577206f776e657220697320746865207a65726f2061646472657373536166654d6174683a206d756c7469706c69636174696f6e206f766572666c6f77a165627a7a723058204956c9db4cd7435fe29585c0d0dcb263a659d5fba45e5805d117fae0a64ec3ec0029",
+  "sourceMap": "641:467:4:-;;;712:58;8:9:-1;5:2;;;30:1;27;20:12;5:2;712:58:4;698:17:12;718:12;:10;;;:12;;;:::i;:::-;698:32;;749:9;740:6;;:18;;;;;;;;;;;;;;;;;;806:9;773:43;;802:1;773:43;;;;;;;;;;;;664:159;641:467:4;;788:96:10;833:15;867:10;860:17;;788:96;:::o;641:467:4:-;;;;;;;",
+  "deployedSourceMap": "641:467:4:-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;1337:458:2;;8:9:-1;5:2;;;30:1;27;20:12;5:2;1337:458:2;;;;;;13:2:-1;8:3;5:11;2:2;;;29:1;26;19:12;2:2;1337:458:2;;;;;;;;;;;;;;;;;;;;;;;;;;:::i;:::-;;;;;;;;;;;;;;;;;;;883:223:4;;8:9:-1;5:2;;;30:1;27;20:12;5:2;883:223:4;;;:::i;:::-;;1684:137:12;;8:9:-1;5:2;;;30:1;27;20:12;5:2;1684:137:12;;;:::i;:::-;;899:77;;8:9:-1;5:2;;;30:1;27;20:12;5:2;899:77:12;;;:::i;:::-;;;;;;;;;;;;;;;;;;;;;;;1250:92;;8:9:-1;5:2;;;30:1;27;20:12;5:2;1250:92:12;;;:::i;:::-;;;;;;;;;;;;;;;;;;;;;;;746:336:2;;8:9:-1;5:2;;;30:1;27;20:12;5:2;746:336:2;;;;;;13:2:-1;8:3;5:11;2:2;;;29:1;26;19:12;2:2;746:336:2;;;;;;;;;;;;;;;;;:::i;:::-;;;;;;;;;;;;;;;;;;;1970:107:12;;8:9:-1;5:2;;;30:1;27;20:12;5:2;1970:107:12;;;;;;13:2:-1;8:3;5:11;2:2;;;29:1;26;19:12;2:2;1970:107:12;;;;;;;;;;;;;;;;;;;:::i;:::-;;1337:458:2;1454:7;1505:6;1498:3;:13;;1477:86;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;1582:19;1604:22;1619:6;1604:14;:22::i;:::-;1582:44;;1636:23;1662:29;514:5;1662:11;:15;;:29;;;;:::i;:::-;1636:55;;1708:80;557:2;1708:70;1745:19;1760:3;1745:14;:19::i;:::-;1708:15;:19;;:70;;;;:::i;:::-;:74;;:80;;;;:::i;:::-;1701:87;;;;1337:458;;;;:::o;883:223:4:-;1103:9:12;:7;:9::i;:::-;1095:54;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;996:1:4;980:4;972:21;;;:25;951:96;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;1057:10;:19;;:42;1085:4;1077:21;;;1057:42;;;;;;;;;;;;;;;;;;;;;;;;8:9:-1;5:2;;;45:16;42:1;39;24:38;77:16;74:1;67:27;5:2;1057:42:4;883:223::o;1684:137:12:-;1103:9;:7;:9::i;:::-;1095:54;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;1782:1;1745:40;;1766:6;;;;;;;;;;;1745:40;;;;;;;;;;;;1812:1;1795:6;;:19;;;;;;;;;;;;;;;;;;1684:137::o;899:77::-;937:7;963:6;;;;;;;;;;;956:13;;899:77;:::o;1250:92::-;1290:4;1329:6;;;;;;;;;;;1313:22;;:12;:10;:12::i;:::-;:22;;;1306:29;;1250:92;:::o;746:336:2:-;845:7;868:17;888:6;868:26;;904:13;920:1;904:17;;935:9;947:1;935:13;;931:123;557:2;951:9;:17;931:123;;1000:19;557:2;1000:9;:13;;:19;;;;:::i;:::-;988:31;;1042:1;1033:10;;;;970:3;;;;;;;931:123;;;;1070:5;1063:12;;;;746:336;;;:::o;1970:107:12:-;1103:9;:7;:9::i;:::-;1095:54;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;2042:28;2061:8;2042:18;:28::i;:::-;1970:107;:::o;2159:459:11:-;2217:7;2463:1;2458;:6;2454:45;;;2487:1;2480:8;;;;2454:45;2509:9;2525:1;2521;:5;2509:17;;2553:1;2548;2544;:5;;;;;;:10;2536:56;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;2610:1;2603:8;;;2159:459;;;;;:::o;3073:130::-;3131:7;3157:39;3161:1;3164;3157:39;;;;;;;;;;;;;;;;;:3;:39::i;:::-;3150:46;;3073:130;;;;:::o;788:96:10:-;833:15;867:10;860:17;;788:96;:::o;2178:225:12:-;2271:1;2251:22;;:8;:22;;;;2243:73;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;2360:8;2331:38;;2352:6;;;;;;;;;;;2331:38;;;;;;;;;;;;2388:8;2379:6;;:17;;;;;;;;;;;;;;;;;;2178:225;:::o;3718:338:11:-;3804:7;3901:1;3897;:5;3904:12;3889:28;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;23:1:-1;8:100;33:3;30:1;27:10;8:100;;;99:1;94:3;90:11;84:18;80:1;75:3;71:11;64:39;52:2;49:1;45:10;40:15;;8:100;;;12:14;3889:28:11;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;3927:9;3943:1;3939;:5;;;;;;3927:17;;4048:1;4041:8;;;3718:338;;;;;:::o",
+  "source": "pragma solidity ^0.5.7;\n// Copyright BigchainDB GmbH and Ocean Protocol contributors\n// SPDX-License-Identifier: (Apache-2.0 AND CC-BY-4.0)\n// Code is Apache-2.0 and docs are CC-BY-4.0\n\nimport './FeeCalculator.sol';\nimport './FeeCollector.sol';\nimport 'openzeppelin-solidity/contracts/ownership/Ownable.sol';\n\n/**\n* @title Fee Manager Contract\n* @author Ocean Protocol Team\n*\n* @dev Implementation of Fee Manager\n*      manages the life cycle of the ocean service fee\n*      It inherits the fee collector and fee calcualtor\n*      in which allows charging fee, accumlating fee, and\n*      withdraw accumalted fee (only by contract owner)\n*/\ncontract FeeManager is FeeCalculator, FeeCollector, Ownable {\n    \n    constructor()\n        public\n        Ownable()\n    {\n    }\n\n    /**\n     * @dev withdraw\n     *      allows contract owner to withdraw accumlated service fee.\n     */\n    function withdraw() \n        public\n        onlyOwner\n    {\n        require(\n            address(this).balance > 0,\n            'FeeManager: Zero balance'\n        );\n        msg.sender.transfer(address(this).balance);\n    }\n}",
+  "sourcePath": "/Users/ahmedali/Desktop/work/Ocean/ocean-contracts/contracts/fee/FeeManager.sol",
+  "ast": {
+    "absolutePath": "/Users/ahmedali/Desktop/work/Ocean/ocean-contracts/contracts/fee/FeeManager.sol",
+    "exportedSymbols": {
+      "FeeManager": [
+        343
+      ]
+    },
+    "id": 344,
+    "nodeType": "SourceUnit",
+    "nodes": [
+      {
+        "id": 300,
+        "literals": [
+          "solidity",
+          "^",
+          "0.5",
+          ".7"
+        ],
+        "nodeType": "PragmaDirective",
+        "src": "0:23:4"
+      },
+      {
+        "absolutePath": "/Users/ahmedali/Desktop/work/Ocean/ocean-contracts/contracts/fee/FeeCalculator.sol",
+        "file": "./FeeCalculator.sol",
+        "id": 301,
+        "nodeType": "ImportDirective",
+        "scope": 344,
+        "sourceUnit": 292,
+        "src": "186:29:4",
+        "symbolAliases": [],
+        "unitAlias": ""
+      },
+      {
+        "absolutePath": "/Users/ahmedali/Desktop/work/Ocean/ocean-contracts/contracts/fee/FeeCollector.sol",
+        "file": "./FeeCollector.sol",
+        "id": 302,
+        "nodeType": "ImportDirective",
+        "scope": 344,
+        "sourceUnit": 299,
+        "src": "216:28:4",
+        "symbolAliases": [],
+        "unitAlias": ""
+      },
+      {
+        "absolutePath": "openzeppelin-solidity/contracts/ownership/Ownable.sol",
+        "file": "openzeppelin-solidity/contracts/ownership/Ownable.sol",
+        "id": 303,
+        "nodeType": "ImportDirective",
+        "scope": 344,
+        "sourceUnit": 1349,
+        "src": "245:63:4",
+        "symbolAliases": [],
+        "unitAlias": ""
+      },
+      {
+        "baseContracts": [
+          {
+            "arguments": null,
+            "baseName": {
+              "contractScope": null,
+              "id": 304,
+              "name": "FeeCalculator",
+              "nodeType": "UserDefinedTypeName",
+              "referencedDeclaration": 291,
+              "src": "664:13:4",
+              "typeDescriptions": {
+                "typeIdentifier": "t_contract$_FeeCalculator_$291",
+                "typeString": "contract FeeCalculator"
+              }
+            },
+            "id": 305,
+            "nodeType": "InheritanceSpecifier",
+            "src": "664:13:4"
+          },
+          {
+            "arguments": null,
+            "baseName": {
+              "contractScope": null,
+              "id": 306,
+              "name": "FeeCollector",
+              "nodeType": "UserDefinedTypeName",
+              "referencedDeclaration": 298,
+              "src": "679:12:4",
+              "typeDescriptions": {
+                "typeIdentifier": "t_contract$_FeeCollector_$298",
+                "typeString": "contract FeeCollector"
+              }
+            },
+            "id": 307,
+            "nodeType": "InheritanceSpecifier",
+            "src": "679:12:4"
+          },
+          {
+            "arguments": null,
+            "baseName": {
+              "contractScope": null,
+              "id": 308,
+              "name": "Ownable",
+              "nodeType": "UserDefinedTypeName",
+              "referencedDeclaration": 1348,
+              "src": "693:7:4",
+              "typeDescriptions": {
+                "typeIdentifier": "t_contract$_Ownable_$1348",
+                "typeString": "contract Ownable"
+              }
+            },
+            "id": 309,
+            "nodeType": "InheritanceSpecifier",
+            "src": "693:7:4"
+          }
+        ],
+        "contractDependencies": [
+          291,
+          298,
+          1043,
+          1348
+        ],
+        "contractKind": "contract",
+        "documentation": "@title Fee Manager Contract\n@author Ocean Protocol Team\n* @dev Implementation of Fee Manager\n     manages the life cycle of the ocean service fee\n     It inherits the fee collector and fee calcualtor\n     in which allows charging fee, accumlating fee, and\n     withdraw accumalted fee (only by contract owner)",
+        "fullyImplemented": true,
+        "id": 343,
+        "linearizedBaseContracts": [
+          343,
+          1348,
+          1043,
+          298,
+          291
+        ],
+        "name": "FeeManager",
+        "nodeType": "ContractDefinition",
+        "nodes": [
+          {
+            "body": {
+              "id": 314,
+              "nodeType": "Block",
+              "src": "763:7:4",
+              "statements": []
+            },
+            "documentation": null,
+            "id": 315,
+            "implemented": true,
+            "kind": "constructor",
+            "modifiers": [
+              {
+                "arguments": [],
+                "id": 312,
+                "modifierName": {
+                  "argumentTypes": null,
+                  "id": 311,
+                  "name": "Ownable",
+                  "nodeType": "Identifier",
+                  "overloadedDeclarations": [],
+                  "referencedDeclaration": 1348,
+                  "src": "749:7:4",
+                  "typeDescriptions": {
+                    "typeIdentifier": "t_type$_t_contract$_Ownable_$1348_$",
+                    "typeString": "type(contract Ownable)"
+                  }
+                },
+                "nodeType": "ModifierInvocation",
+                "src": "749:9:4"
+              }
+            ],
+            "name": "",
+            "nodeType": "FunctionDefinition",
+            "parameters": {
+              "id": 310,
+              "nodeType": "ParameterList",
+              "parameters": [],
+              "src": "723:2:4"
+            },
+            "returnParameters": {
+              "id": 313,
+              "nodeType": "ParameterList",
+              "parameters": [],
+              "src": "763:0:4"
+            },
+            "scope": 343,
+            "src": "712:58:4",
+            "stateMutability": "nonpayable",
+            "superFunction": null,
+            "visibility": "public"
+          },
+          {
+            "body": {
+              "id": 341,
+              "nodeType": "Block",
+              "src": "941:165:4",
+              "statements": [
+                {
+                  "expression": {
+                    "argumentTypes": null,
+                    "arguments": [
+                      {
+                        "argumentTypes": null,
+                        "commonType": {
+                          "typeIdentifier": "t_uint256",
+                          "typeString": "uint256"
+                        },
+                        "id": 326,
+                        "isConstant": false,
+                        "isLValue": false,
+                        "isPure": false,
+                        "lValueRequested": false,
+                        "leftExpression": {
+                          "argumentTypes": null,
+                          "expression": {
+                            "argumentTypes": null,
+                            "arguments": [
+                              {
+                                "argumentTypes": null,
+                                "id": 322,
+                                "name": "this",
+                                "nodeType": "Identifier",
+                                "overloadedDeclarations": [],
+                                "referencedDeclaration": 1871,
+                                "src": "980:4:4",
+                                "typeDescriptions": {
+                                  "typeIdentifier": "t_contract$_FeeManager_$343",
+                                  "typeString": "contract FeeManager"
+                                }
+                              }
+                            ],
+                            "expression": {
+                              "argumentTypes": [
+                                {
+                                  "typeIdentifier": "t_contract$_FeeManager_$343",
+                                  "typeString": "contract FeeManager"
+                                }
+                              ],
+                              "id": 321,
+                              "isConstant": false,
+                              "isLValue": false,
+                              "isPure": true,
+                              "lValueRequested": false,
+                              "nodeType": "ElementaryTypeNameExpression",
+                              "src": "972:7:4",
+                              "typeDescriptions": {
+                                "typeIdentifier": "t_type$_t_address_$",
+                                "typeString": "type(address)"
+                              },
+                              "typeName": "address"
+                            },
+                            "id": 323,
+                            "isConstant": false,
+                            "isLValue": false,
+                            "isPure": false,
+                            "kind": "typeConversion",
+                            "lValueRequested": false,
+                            "names": [],
+                            "nodeType": "FunctionCall",
+                            "src": "972:13:4",
+                            "typeDescriptions": {
+                              "typeIdentifier": "t_address_payable",
+                              "typeString": "address payable"
+                            }
+                          },
+                          "id": 324,
+                          "isConstant": false,
+                          "isLValue": false,
+                          "isPure": false,
+                          "lValueRequested": false,
+                          "memberName": "balance",
+                          "nodeType": "MemberAccess",
+                          "referencedDeclaration": null,
+                          "src": "972:21:4",
+                          "typeDescriptions": {
+                            "typeIdentifier": "t_uint256",
+                            "typeString": "uint256"
+                          }
+                        },
+                        "nodeType": "BinaryOperation",
+                        "operator": ">",
+                        "rightExpression": {
+                          "argumentTypes": null,
+                          "hexValue": "30",
+                          "id": 325,
+                          "isConstant": false,
+                          "isLValue": false,
+                          "isPure": true,
+                          "kind": "number",
+                          "lValueRequested": false,
+                          "nodeType": "Literal",
+                          "src": "996:1:4",
+                          "subdenomination": null,
+                          "typeDescriptions": {
+                            "typeIdentifier": "t_rational_0_by_1",
+                            "typeString": "int_const 0"
+                          },
+                          "value": "0"
+                        },
+                        "src": "972:25:4",
+                        "typeDescriptions": {
+                          "typeIdentifier": "t_bool",
+                          "typeString": "bool"
+                        }
+                      },
+                      {
+                        "argumentTypes": null,
+                        "hexValue": "4665654d616e616765723a205a65726f2062616c616e6365",
+                        "id": 327,
+                        "isConstant": false,
+                        "isLValue": false,
+                        "isPure": true,
+                        "kind": "string",
+                        "lValueRequested": false,
+                        "nodeType": "Literal",
+                        "src": "1011:26:4",
+                        "subdenomination": null,
+                        "typeDescriptions": {
+                          "typeIdentifier": "t_stringliteral_b001ddf1d9fe014e796da6cc27a9066d3c1850e6f49b31ee70df091f2590659c",
+                          "typeString": "literal_string \"FeeManager: Zero balance\""
+                        },
+                        "value": "FeeManager: Zero balance"
+                      }
+                    ],
+                    "expression": {
+                      "argumentTypes": [
+                        {
+                          "typeIdentifier": "t_bool",
+                          "typeString": "bool"
+                        },
+                        {
+                          "typeIdentifier": "t_stringliteral_b001ddf1d9fe014e796da6cc27a9066d3c1850e6f49b31ee70df091f2590659c",
+                          "typeString": "literal_string \"FeeManager: Zero balance\""
+                        }
+                      ],
+                      "id": 320,
+                      "name": "require",
+                      "nodeType": "Identifier",
+                      "overloadedDeclarations": [
+                        1840,
+                        1841
+                      ],
+                      "referencedDeclaration": 1841,
+                      "src": "951:7:4",
+                      "typeDescriptions": {
+                        "typeIdentifier": "t_function_require_pure$_t_bool_$_t_string_memory_ptr_$returns$__$",
+                        "typeString": "function (bool,string memory) pure"
+                      }
+                    },
+                    "id": 328,
+                    "isConstant": false,
+                    "isLValue": false,
+                    "isPure": false,
+                    "kind": "functionCall",
+                    "lValueRequested": false,
+                    "names": [],
+                    "nodeType": "FunctionCall",
+                    "src": "951:96:4",
+                    "typeDescriptions": {
+                      "typeIdentifier": "t_tuple$__$",
+                      "typeString": "tuple()"
+                    }
+                  },
+                  "id": 329,
+                  "nodeType": "ExpressionStatement",
+                  "src": "951:96:4"
+                },
+                {
+                  "expression": {
+                    "argumentTypes": null,
+                    "arguments": [
+                      {
+                        "argumentTypes": null,
+                        "expression": {
+                          "argumentTypes": null,
+                          "arguments": [
+                            {
+                              "argumentTypes": null,
+                              "id": 336,
+                              "name": "this",
+                              "nodeType": "Identifier",
+                              "overloadedDeclarations": [],
+                              "referencedDeclaration": 1871,
+                              "src": "1085:4:4",
+                              "typeDescriptions": {
+                                "typeIdentifier": "t_contract$_FeeManager_$343",
+                                "typeString": "contract FeeManager"
+                              }
+                            }
+                          ],
+                          "expression": {
+                            "argumentTypes": [
+                              {
+                                "typeIdentifier": "t_contract$_FeeManager_$343",
+                                "typeString": "contract FeeManager"
+                              }
+                            ],
+                            "id": 335,
+                            "isConstant": false,
+                            "isLValue": false,
+                            "isPure": true,
+                            "lValueRequested": false,
+                            "nodeType": "ElementaryTypeNameExpression",
+                            "src": "1077:7:4",
+                            "typeDescriptions": {
+                              "typeIdentifier": "t_type$_t_address_$",
+                              "typeString": "type(address)"
+                            },
+                            "typeName": "address"
+                          },
+                          "id": 337,
+                          "isConstant": false,
+                          "isLValue": false,
+                          "isPure": false,
+                          "kind": "typeConversion",
+                          "lValueRequested": false,
+                          "names": [],
+                          "nodeType": "FunctionCall",
+                          "src": "1077:13:4",
+                          "typeDescriptions": {
+                            "typeIdentifier": "t_address_payable",
+                            "typeString": "address payable"
+                          }
+                        },
+                        "id": 338,
+                        "isConstant": false,
+                        "isLValue": false,
+                        "isPure": false,
+                        "lValueRequested": false,
+                        "memberName": "balance",
+                        "nodeType": "MemberAccess",
+                        "referencedDeclaration": null,
+                        "src": "1077:21:4",
+                        "typeDescriptions": {
+                          "typeIdentifier": "t_uint256",
+                          "typeString": "uint256"
+                        }
+                      }
+                    ],
+                    "expression": {
+                      "argumentTypes": [
+                        {
+                          "typeIdentifier": "t_uint256",
+                          "typeString": "uint256"
+                        }
+                      ],
+                      "expression": {
+                        "argumentTypes": null,
+                        "expression": {
+                          "argumentTypes": null,
+                          "id": 330,
+                          "name": "msg",
+                          "nodeType": "Identifier",
+                          "overloadedDeclarations": [],
+                          "referencedDeclaration": 1837,
+                          "src": "1057:3:4",
+                          "typeDescriptions": {
+                            "typeIdentifier": "t_magic_message",
+                            "typeString": "msg"
+                          }
+                        },
+                        "id": 333,
+                        "isConstant": false,
+                        "isLValue": false,
+                        "isPure": false,
+                        "lValueRequested": false,
+                        "memberName": "sender",
+                        "nodeType": "MemberAccess",
+                        "referencedDeclaration": null,
+                        "src": "1057:10:4",
+                        "typeDescriptions": {
+                          "typeIdentifier": "t_address_payable",
+                          "typeString": "address payable"
+                        }
+                      },
+                      "id": 334,
+                      "isConstant": false,
+                      "isLValue": false,
+                      "isPure": false,
+                      "lValueRequested": false,
+                      "memberName": "transfer",
+                      "nodeType": "MemberAccess",
+                      "referencedDeclaration": null,
+                      "src": "1057:19:4",
+                      "typeDescriptions": {
+                        "typeIdentifier": "t_function_transfer_nonpayable$_t_uint256_$returns$__$",
+                        "typeString": "function (uint256)"
+                      }
+                    },
+                    "id": 339,
+                    "isConstant": false,
+                    "isLValue": false,
+                    "isPure": false,
+                    "kind": "functionCall",
+                    "lValueRequested": false,
+                    "names": [],
+                    "nodeType": "FunctionCall",
+                    "src": "1057:42:4",
+                    "typeDescriptions": {
+                      "typeIdentifier": "t_tuple$__$",
+                      "typeString": "tuple()"
+                    }
+                  },
+                  "id": 340,
+                  "nodeType": "ExpressionStatement",
+                  "src": "1057:42:4"
+                }
+              ]
+            },
+            "documentation": "@dev withdraw\n     allows contract owner to withdraw accumlated service fee.",
+            "id": 342,
+            "implemented": true,
+            "kind": "function",
+            "modifiers": [
+              {
+                "arguments": null,
+                "id": 318,
+                "modifierName": {
+                  "argumentTypes": null,
+                  "id": 317,
+                  "name": "onlyOwner",
+                  "nodeType": "Identifier",
+                  "overloadedDeclarations": [],
+                  "referencedDeclaration": 1281,
+                  "src": "927:9:4",
+                  "typeDescriptions": {
+                    "typeIdentifier": "t_modifier$__$",
+                    "typeString": "modifier ()"
+                  }
+                },
+                "nodeType": "ModifierInvocation",
+                "src": "927:9:4"
+              }
+            ],
+            "name": "withdraw",
+            "nodeType": "FunctionDefinition",
+            "parameters": {
+              "id": 316,
+              "nodeType": "ParameterList",
+              "parameters": [],
+              "src": "900:2:4"
+            },
+            "returnParameters": {
+              "id": 319,
+              "nodeType": "ParameterList",
+              "parameters": [],
+              "src": "941:0:4"
+            },
+            "scope": 343,
+            "src": "883:223:4",
+            "stateMutability": "nonpayable",
+            "superFunction": null,
+            "visibility": "public"
+          }
+        ],
+        "scope": 344,
+        "src": "641:467:4"
+      }
+    ],
+    "src": "0:1108:4"
+  },
+  "legacyAST": {
+    "absolutePath": "/Users/ahmedali/Desktop/work/Ocean/ocean-contracts/contracts/fee/FeeManager.sol",
+    "exportedSymbols": {
+      "FeeManager": [
+        343
+      ]
+    },
+    "id": 344,
+    "nodeType": "SourceUnit",
+    "nodes": [
+      {
+        "id": 300,
+        "literals": [
+          "solidity",
+          "^",
+          "0.5",
+          ".7"
+        ],
+        "nodeType": "PragmaDirective",
+        "src": "0:23:4"
+      },
+      {
+        "absolutePath": "/Users/ahmedali/Desktop/work/Ocean/ocean-contracts/contracts/fee/FeeCalculator.sol",
+        "file": "./FeeCalculator.sol",
+        "id": 301,
+        "nodeType": "ImportDirective",
+        "scope": 344,
+        "sourceUnit": 292,
+        "src": "186:29:4",
+        "symbolAliases": [],
+        "unitAlias": ""
+      },
+      {
+        "absolutePath": "/Users/ahmedali/Desktop/work/Ocean/ocean-contracts/contracts/fee/FeeCollector.sol",
+        "file": "./FeeCollector.sol",
+        "id": 302,
+        "nodeType": "ImportDirective",
+        "scope": 344,
+        "sourceUnit": 299,
+        "src": "216:28:4",
+        "symbolAliases": [],
+        "unitAlias": ""
+      },
+      {
+        "absolutePath": "openzeppelin-solidity/contracts/ownership/Ownable.sol",
+        "file": "openzeppelin-solidity/contracts/ownership/Ownable.sol",
+        "id": 303,
+        "nodeType": "ImportDirective",
+        "scope": 344,
+        "sourceUnit": 1349,
+        "src": "245:63:4",
+        "symbolAliases": [],
+        "unitAlias": ""
+      },
+      {
+        "baseContracts": [
+          {
+            "arguments": null,
+            "baseName": {
+              "contractScope": null,
+              "id": 304,
+              "name": "FeeCalculator",
+              "nodeType": "UserDefinedTypeName",
+              "referencedDeclaration": 291,
+              "src": "664:13:4",
+              "typeDescriptions": {
+                "typeIdentifier": "t_contract$_FeeCalculator_$291",
+                "typeString": "contract FeeCalculator"
+              }
+            },
+            "id": 305,
+            "nodeType": "InheritanceSpecifier",
+            "src": "664:13:4"
+          },
+          {
+            "arguments": null,
+            "baseName": {
+              "contractScope": null,
+              "id": 306,
+              "name": "FeeCollector",
+              "nodeType": "UserDefinedTypeName",
+              "referencedDeclaration": 298,
+              "src": "679:12:4",
+              "typeDescriptions": {
+                "typeIdentifier": "t_contract$_FeeCollector_$298",
+                "typeString": "contract FeeCollector"
+              }
+            },
+            "id": 307,
+            "nodeType": "InheritanceSpecifier",
+            "src": "679:12:4"
+          },
+          {
+            "arguments": null,
+            "baseName": {
+              "contractScope": null,
+              "id": 308,
+              "name": "Ownable",
+              "nodeType": "UserDefinedTypeName",
+              "referencedDeclaration": 1348,
+              "src": "693:7:4",
+              "typeDescriptions": {
+                "typeIdentifier": "t_contract$_Ownable_$1348",
+                "typeString": "contract Ownable"
+              }
+            },
+            "id": 309,
+            "nodeType": "InheritanceSpecifier",
+            "src": "693:7:4"
+          }
+        ],
+        "contractDependencies": [
+          291,
+          298,
+          1043,
+          1348
+        ],
+        "contractKind": "contract",
+        "documentation": "@title Fee Manager Contract\n@author Ocean Protocol Team\n* @dev Implementation of Fee Manager\n     manages the life cycle of the ocean service fee\n     It inherits the fee collector and fee calcualtor\n     in which allows charging fee, accumlating fee, and\n     withdraw accumalted fee (only by contract owner)",
+        "fullyImplemented": true,
+        "id": 343,
+        "linearizedBaseContracts": [
+          343,
+          1348,
+          1043,
+          298,
+          291
+        ],
+        "name": "FeeManager",
+        "nodeType": "ContractDefinition",
+        "nodes": [
+          {
+            "body": {
+              "id": 314,
+              "nodeType": "Block",
+              "src": "763:7:4",
+              "statements": []
+            },
+            "documentation": null,
+            "id": 315,
+            "implemented": true,
+            "kind": "constructor",
+            "modifiers": [
+              {
+                "arguments": [],
+                "id": 312,
+                "modifierName": {
+                  "argumentTypes": null,
+                  "id": 311,
+                  "name": "Ownable",
+                  "nodeType": "Identifier",
+                  "overloadedDeclarations": [],
+                  "referencedDeclaration": 1348,
+                  "src": "749:7:4",
+                  "typeDescriptions": {
+                    "typeIdentifier": "t_type$_t_contract$_Ownable_$1348_$",
+                    "typeString": "type(contract Ownable)"
+                  }
+                },
+                "nodeType": "ModifierInvocation",
+                "src": "749:9:4"
+              }
+            ],
+            "name": "",
+            "nodeType": "FunctionDefinition",
+            "parameters": {
+              "id": 310,
+              "nodeType": "ParameterList",
+              "parameters": [],
+              "src": "723:2:4"
+            },
+            "returnParameters": {
+              "id": 313,
+              "nodeType": "ParameterList",
+              "parameters": [],
+              "src": "763:0:4"
+            },
+            "scope": 343,
+            "src": "712:58:4",
+            "stateMutability": "nonpayable",
+            "superFunction": null,
+            "visibility": "public"
+          },
+          {
+            "body": {
+              "id": 341,
+              "nodeType": "Block",
+              "src": "941:165:4",
+              "statements": [
+                {
+                  "expression": {
+                    "argumentTypes": null,
+                    "arguments": [
+                      {
+                        "argumentTypes": null,
+                        "commonType": {
+                          "typeIdentifier": "t_uint256",
+                          "typeString": "uint256"
+                        },
+                        "id": 326,
+                        "isConstant": false,
+                        "isLValue": false,
+                        "isPure": false,
+                        "lValueRequested": false,
+                        "leftExpression": {
+                          "argumentTypes": null,
+                          "expression": {
+                            "argumentTypes": null,
+                            "arguments": [
+                              {
+                                "argumentTypes": null,
+                                "id": 322,
+                                "name": "this",
+                                "nodeType": "Identifier",
+                                "overloadedDeclarations": [],
+                                "referencedDeclaration": 1871,
+                                "src": "980:4:4",
+                                "typeDescriptions": {
+                                  "typeIdentifier": "t_contract$_FeeManager_$343",
+                                  "typeString": "contract FeeManager"
+                                }
+                              }
+                            ],
+                            "expression": {
+                              "argumentTypes": [
+                                {
+                                  "typeIdentifier": "t_contract$_FeeManager_$343",
+                                  "typeString": "contract FeeManager"
+                                }
+                              ],
+                              "id": 321,
+                              "isConstant": false,
+                              "isLValue": false,
+                              "isPure": true,
+                              "lValueRequested": false,
+                              "nodeType": "ElementaryTypeNameExpression",
+                              "src": "972:7:4",
+                              "typeDescriptions": {
+                                "typeIdentifier": "t_type$_t_address_$",
+                                "typeString": "type(address)"
+                              },
+                              "typeName": "address"
+                            },
+                            "id": 323,
+                            "isConstant": false,
+                            "isLValue": false,
+                            "isPure": false,
+                            "kind": "typeConversion",
+                            "lValueRequested": false,
+                            "names": [],
+                            "nodeType": "FunctionCall",
+                            "src": "972:13:4",
+                            "typeDescriptions": {
+                              "typeIdentifier": "t_address_payable",
+                              "typeString": "address payable"
+                            }
+                          },
+                          "id": 324,
+                          "isConstant": false,
+                          "isLValue": false,
+                          "isPure": false,
+                          "lValueRequested": false,
+                          "memberName": "balance",
+                          "nodeType": "MemberAccess",
+                          "referencedDeclaration": null,
+                          "src": "972:21:4",
+                          "typeDescriptions": {
+                            "typeIdentifier": "t_uint256",
+                            "typeString": "uint256"
+                          }
+                        },
+                        "nodeType": "BinaryOperation",
+                        "operator": ">",
+                        "rightExpression": {
+                          "argumentTypes": null,
+                          "hexValue": "30",
+                          "id": 325,
+                          "isConstant": false,
+                          "isLValue": false,
+                          "isPure": true,
+                          "kind": "number",
+                          "lValueRequested": false,
+                          "nodeType": "Literal",
+                          "src": "996:1:4",
+                          "subdenomination": null,
+                          "typeDescriptions": {
+                            "typeIdentifier": "t_rational_0_by_1",
+                            "typeString": "int_const 0"
+                          },
+                          "value": "0"
+                        },
+                        "src": "972:25:4",
+                        "typeDescriptions": {
+                          "typeIdentifier": "t_bool",
+                          "typeString": "bool"
+                        }
+                      },
+                      {
+                        "argumentTypes": null,
+                        "hexValue": "4665654d616e616765723a205a65726f2062616c616e6365",
+                        "id": 327,
+                        "isConstant": false,
+                        "isLValue": false,
+                        "isPure": true,
+                        "kind": "string",
+                        "lValueRequested": false,
+                        "nodeType": "Literal",
+                        "src": "1011:26:4",
+                        "subdenomination": null,
+                        "typeDescriptions": {
+                          "typeIdentifier": "t_stringliteral_b001ddf1d9fe014e796da6cc27a9066d3c1850e6f49b31ee70df091f2590659c",
+                          "typeString": "literal_string \"FeeManager: Zero balance\""
+                        },
+                        "value": "FeeManager: Zero balance"
+                      }
+                    ],
+                    "expression": {
+                      "argumentTypes": [
+                        {
+                          "typeIdentifier": "t_bool",
+                          "typeString": "bool"
+                        },
+                        {
+                          "typeIdentifier": "t_stringliteral_b001ddf1d9fe014e796da6cc27a9066d3c1850e6f49b31ee70df091f2590659c",
+                          "typeString": "literal_string \"FeeManager: Zero balance\""
+                        }
+                      ],
+                      "id": 320,
+                      "name": "require",
+                      "nodeType": "Identifier",
+                      "overloadedDeclarations": [
+                        1840,
+                        1841
+                      ],
+                      "referencedDeclaration": 1841,
+                      "src": "951:7:4",
+                      "typeDescriptions": {
+                        "typeIdentifier": "t_function_require_pure$_t_bool_$_t_string_memory_ptr_$returns$__$",
+                        "typeString": "function (bool,string memory) pure"
+                      }
+                    },
+                    "id": 328,
+                    "isConstant": false,
+                    "isLValue": false,
+                    "isPure": false,
+                    "kind": "functionCall",
+                    "lValueRequested": false,
+                    "names": [],
+                    "nodeType": "FunctionCall",
+                    "src": "951:96:4",
+                    "typeDescriptions": {
+                      "typeIdentifier": "t_tuple$__$",
+                      "typeString": "tuple()"
+                    }
+                  },
+                  "id": 329,
+                  "nodeType": "ExpressionStatement",
+                  "src": "951:96:4"
+                },
+                {
+                  "expression": {
+                    "argumentTypes": null,
+                    "arguments": [
+                      {
+                        "argumentTypes": null,
+                        "expression": {
+                          "argumentTypes": null,
+                          "arguments": [
+                            {
+                              "argumentTypes": null,
+                              "id": 336,
+                              "name": "this",
+                              "nodeType": "Identifier",
+                              "overloadedDeclarations": [],
+                              "referencedDeclaration": 1871,
+                              "src": "1085:4:4",
+                              "typeDescriptions": {
+                                "typeIdentifier": "t_contract$_FeeManager_$343",
+                                "typeString": "contract FeeManager"
+                              }
+                            }
+                          ],
+                          "expression": {
+                            "argumentTypes": [
+                              {
+                                "typeIdentifier": "t_contract$_FeeManager_$343",
+                                "typeString": "contract FeeManager"
+                              }
+                            ],
+                            "id": 335,
+                            "isConstant": false,
+                            "isLValue": false,
+                            "isPure": true,
+                            "lValueRequested": false,
+                            "nodeType": "ElementaryTypeNameExpression",
+                            "src": "1077:7:4",
+                            "typeDescriptions": {
+                              "typeIdentifier": "t_type$_t_address_$",
+                              "typeString": "type(address)"
+                            },
+                            "typeName": "address"
+                          },
+                          "id": 337,
+                          "isConstant": false,
+                          "isLValue": false,
+                          "isPure": false,
+                          "kind": "typeConversion",
+                          "lValueRequested": false,
+                          "names": [],
+                          "nodeType": "FunctionCall",
+                          "src": "1077:13:4",
+                          "typeDescriptions": {
+                            "typeIdentifier": "t_address_payable",
+                            "typeString": "address payable"
+                          }
+                        },
+                        "id": 338,
+                        "isConstant": false,
+                        "isLValue": false,
+                        "isPure": false,
+                        "lValueRequested": false,
+                        "memberName": "balance",
+                        "nodeType": "MemberAccess",
+                        "referencedDeclaration": null,
+                        "src": "1077:21:4",
+                        "typeDescriptions": {
+                          "typeIdentifier": "t_uint256",
+                          "typeString": "uint256"
+                        }
+                      }
+                    ],
+                    "expression": {
+                      "argumentTypes": [
+                        {
+                          "typeIdentifier": "t_uint256",
+                          "typeString": "uint256"
+                        }
+                      ],
+                      "expression": {
+                        "argumentTypes": null,
+                        "expression": {
+                          "argumentTypes": null,
+                          "id": 330,
+                          "name": "msg",
+                          "nodeType": "Identifier",
+                          "overloadedDeclarations": [],
+                          "referencedDeclaration": 1837,
+                          "src": "1057:3:4",
+                          "typeDescriptions": {
+                            "typeIdentifier": "t_magic_message",
+                            "typeString": "msg"
+                          }
+                        },
+                        "id": 333,
+                        "isConstant": false,
+                        "isLValue": false,
+                        "isPure": false,
+                        "lValueRequested": false,
+                        "memberName": "sender",
+                        "nodeType": "MemberAccess",
+                        "referencedDeclaration": null,
+                        "src": "1057:10:4",
+                        "typeDescriptions": {
+                          "typeIdentifier": "t_address_payable",
+                          "typeString": "address payable"
+                        }
+                      },
+                      "id": 334,
+                      "isConstant": false,
+                      "isLValue": false,
+                      "isPure": false,
+                      "lValueRequested": false,
+                      "memberName": "transfer",
+                      "nodeType": "MemberAccess",
+                      "referencedDeclaration": null,
+                      "src": "1057:19:4",
+                      "typeDescriptions": {
+                        "typeIdentifier": "t_function_transfer_nonpayable$_t_uint256_$returns$__$",
+                        "typeString": "function (uint256)"
+                      }
+                    },
+                    "id": 339,
+                    "isConstant": false,
+                    "isLValue": false,
+                    "isPure": false,
+                    "kind": "functionCall",
+                    "lValueRequested": false,
+                    "names": [],
+                    "nodeType": "FunctionCall",
+                    "src": "1057:42:4",
+                    "typeDescriptions": {
+                      "typeIdentifier": "t_tuple$__$",
+                      "typeString": "tuple()"
+                    }
+                  },
+                  "id": 340,
+                  "nodeType": "ExpressionStatement",
+                  "src": "1057:42:4"
+                }
+              ]
+            },
+            "documentation": "@dev withdraw\n     allows contract owner to withdraw accumlated service fee.",
+            "id": 342,
+            "implemented": true,
+            "kind": "function",
+            "modifiers": [
+              {
+                "arguments": null,
+                "id": 318,
+                "modifierName": {
+                  "argumentTypes": null,
+                  "id": 317,
+                  "name": "onlyOwner",
+                  "nodeType": "Identifier",
+                  "overloadedDeclarations": [],
+                  "referencedDeclaration": 1281,
+                  "src": "927:9:4",
+                  "typeDescriptions": {
+                    "typeIdentifier": "t_modifier$__$",
+                    "typeString": "modifier ()"
+                  }
+                },
+                "nodeType": "ModifierInvocation",
+                "src": "927:9:4"
+              }
+            ],
+            "name": "withdraw",
+            "nodeType": "FunctionDefinition",
+            "parameters": {
+              "id": 316,
+              "nodeType": "ParameterList",
+              "parameters": [],
+              "src": "900:2:4"
+            },
+            "returnParameters": {
+              "id": 319,
+              "nodeType": "ParameterList",
+              "parameters": [],
+              "src": "941:0:4"
+            },
+            "scope": 343,
+            "src": "883:223:4",
+            "stateMutability": "nonpayable",
+            "superFunction": null,
+            "visibility": "public"
+          }
+        ],
+        "scope": 344,
+        "src": "641:467:4"
+      }
+    ],
+    "src": "0:1108:4"
+  },
+  "compiler": {
+    "name": "solc",
+    "version": "0.5.7+commit.6da8b019.Emscripten.clang"
+  },
+  "networks": {
+    "4": {
+      "events": {
+        "0x8be0079c531659141344cd1fd0a4f28419497f9722a3daafe3b4186f6b6457e0": {
+          "anonymous": false,
+          "inputs": [
+            {
+              "indexed": true,
+              "name": "previousOwner",
+              "type": "address"
+            },
+            {
+              "indexed": true,
+              "name": "newOwner",
+              "type": "address"
+            }
+          ],
+          "name": "OwnershipTransferred",
+          "type": "event"
+        }
+      },
+      "links": {},
+      "address": "0xEDE8A541D66490EC5b1241279d91467a71153cd7",
+      "transactionHash": "0x882d1226bb8fa8162fa6814b6bffca03ea504e644822a3593a22f5b99db59afc"
+    }
+  },
+  "schemaVersion": "3.2.0",
+  "updatedAt": "2020-06-09T08:58:29.397Z",
+  "networkType": "ethereum",
+  "devdoc": {
+    "author": "Ocean Protocol Team",
+    "details": "Implementation of Fee Manager     manages the life cycle of the ocean service fee     It inherits the fee collector and fee calcualtor     in which allows charging fee, accumlating fee, and     withdraw accumalted fee (only by contract owner)",
+    "methods": {
+      "calculateFee(uint256,uint256)": {
+        "details": "calculateFee     calculates the fee based on the number of minted tokens compared to     the capital",
+        "params": {
+          "cap": "the capital",
+          "tokens": "the amount of minted tokens."
+        },
+        "return": "fee."
+      },
+      "calculateRange(uint256)": {
+        "details": "calculateRange     For a given number, calculates number of zeros.",
+        "params": {
+          "number": "input number value."
+        },
+        "return": "number of zeros."
+      },
+      "isOwner()": {
+        "details": "Returns true if the caller is the current owner."
+      },
+      "owner()": {
+        "details": "Returns the address of the current owner."
+      },
+      "renounceOwnership()": {
+        "details": "Leaves the contract without owner. It will not be possible to call `onlyOwner` functions anymore. Can only be called by the current owner.     * NOTE: Renouncing ownership will leave the contract without an owner, thereby removing any functionality that is only available to the owner."
+      },
+      "transferOwnership(address)": {
+        "details": "Transfers ownership of the contract to a new account (`newOwner`). Can only be called by the current owner."
+      },
+      "withdraw()": {
+        "details": "withdraw     allows contract owner to withdraw accumlated service fee."
+      }
+    },
+    "title": "Fee Manager Contract"
+  },
+  "userdoc": {
+    "methods": {}
+  }
+}
