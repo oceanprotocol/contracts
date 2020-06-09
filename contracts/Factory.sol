@@ -18,7 +18,6 @@ import './interfaces/IERC20Template.sol';
 */
 contract Factory is Deployer, Converter {
 
-    address payable private feeManager;
     address private tokenTemplate;
     uint256 private currentTokenCount = 1;
     // cap has max uint256 (2^256 -1)
@@ -46,20 +45,17 @@ contract Factory is Deployer, Converter {
      * @dev constructor
      *      Called on contract deployment. Could not be called with zero address parameters.
      * @param _template refers to the address of a deployed DataToken contract.
-     * @param _feeManager refers to the address of a fee manager .
      */
     constructor(
-        address _template,
-        address payable _feeManager
+        address _template
     ) 
         public 
     {
         require(
-            _template != address(0) && _feeManager != address(0),
+            _template != address(0),
             'Factory: Invalid TokenFactory initialization'
         );
         tokenTemplate = _template;
-        feeManager = _feeManager;
     }
 
     /**
@@ -93,8 +89,7 @@ contract Factory is Deployer, Converter {
             symbol,
             msg.sender,
             cap,
-            blob,
-            feeManager
+            blob
         );
 
         require(
