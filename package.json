@@ -74,7 +74,7 @@
     "eslint-config-oceanprotocol": "^1.5.0",
     "openzeppelin-solidity": "^2.5.0",
     "release-it": "^13.6.2",
-    "solc": "^0.6.9",
+    "solc": "^0.5.7",
     "solidity-coverage": "0.7.5",
     "solidity-docgen": "^0.5.3",
     "solium": "^1.2.5",

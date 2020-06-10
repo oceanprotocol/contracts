@@ -19,7 +19,7 @@ deploy new DataTokens.
 
 
 
-### `constructor(string name, string symbol, address minter, uint256 cap, string blob, address payable feeManager)` (public)
+### `constructor(string name, string symbol, address minter, uint256 cap, string blob)` (public)
 
 
 
@@ -27,7 +27,7 @@ constructor
 Called prior contract deployment
 
 
-### `initialize(string name, string symbol, address minter, uint256 cap, string blob, address payable feeManager) → bool` (public)
+### `initialize(string name, string symbol, address minter, uint256 cap, string blob) → bool` (public)
 
 
 
@@ -41,9 +41,6 @@ Calls private _initialize function. Only if contract is not initialized.
 
 
 mint
-It takes the fee as msg.value and mints new DataTokens
-the minting fee is calculated using ServiceFeeManager 
-it could be called only if the contract is not paused.
 Only the minter address can call it.
 msg.value should be higher than zero and gt or eq minting fee
 

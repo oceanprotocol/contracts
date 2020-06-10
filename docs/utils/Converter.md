@@ -15,4 +15,12 @@ uintToString
 converts an integer value to a string value
 
 
+### `concatenateStrings(string str1, string str2) → string` (public)
+
+
+
+concatenateStrings
+concatenates two strings
+
+
 
