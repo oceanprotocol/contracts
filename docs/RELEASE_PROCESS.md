@@ -13,7 +13,7 @@ From a clean `master` branch you can run any release task bumping the version ac
 Every task does the following:
 
 - bumps the project version in `package.json`, `package-lock.json`
-- auto-generates and updates the CHANGELOG.md file from commit messages
+- auto-generates and updates the [CHANGELOG.md](../CHANGELOG.md) file from commit messages
 - creates a Git tag
 - commits and pushes everything
 - creates a GitHub release with commit messages as description
