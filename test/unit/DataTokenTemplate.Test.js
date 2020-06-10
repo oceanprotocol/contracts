@@ -1,5 +1,5 @@
 /* eslint-env mocha */
-/* global artifacts, contract, it, beforeEach, web3 */
+/* global artifacts, contract, it, beforeEach */
 const chai = require('chai')
 const { assert } = chai
 const chaiAsPromised = require('chai-as-promised')
@@ -100,7 +100,7 @@ contract('DataTokenTemplate', async (accounts) => {
         const mintedTokens = 10
         truffleAssert.passes(await token.mint(reciever, mintedTokens, { from: minter }))
         const recieverBalance = await token.balanceOf(reciever)
-        assert(mintedTokens == recieverBalance.toNumber())
+        assert(mintedTokens === recieverBalance.toNumber())
     })
 
     it('should get the token name', async () => {
