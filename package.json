@@ -32,8 +32,8 @@
     "deploy:rinkeby": "npm run clean && npm run compile && export NETWORK='rinkeby' && truffle migrate --network rinkeby"
   },
   "files": [
+    "docs/**/*",
     "artifacts/**/*",
-    "doc/**/*",
     "README.md"
   ],
   "repository": {
