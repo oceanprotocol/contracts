@@ -125,8 +125,8 @@ npm run doc:generate
 ```
 
 
-* [Release Process](doc/RELEASE_PROCESS.md)
-* [Core Documentation](doc/contracts)
+* [Release Process](docs/RELEASE_PROCESS.md)
+* [Core Documentation](docs/contracts)
 
 ## Contributing
 

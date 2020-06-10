@@ -21,7 +21,7 @@
     "lint:ethlint": "solium -d ./contracts/",
     "lint:eslint": "eslint --ignore-pattern '/coverage/' .",
     "lint": "npm run lint:eslint && npm run lint:ethlint",
-    "doc:generate": "npx solidity-docgen --solc-module solc",
+    "doc:generate": "npx solidity-docgen --solc-module solc -o docs/contracts",
     "release": "release-it --non-interactive",
     "changelog": "auto-changelog -p",
     "deploy": "npm run deploy:development",
