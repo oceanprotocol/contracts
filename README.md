@@ -10,9 +10,10 @@ This is in alpha state and you can expect running into problems. If you run into
 ## Table of Contents
 
   - [Get Started](#get-started)
-     - [Local development](#local-development)
+      - [Installation](#installation)
+      - [Local development](#local-development)
   - [Testing](#testing)
-     - [Code Linting](#code-linting)
+      - [Code Linting](#code-linting)
   - [Networks](#networks)
   - [Packages](#packages)
   - [Documentation](#documentation)
@@ -21,6 +22,14 @@ This is in alpha state and you can expect running into problems. If you run into
   - [License](#license)
 
 # Get Started
+
+### installation
+
+For quick installation of the contracts `artifacts`:
+
+```bash
+npm i @oceanprotocol/contracts
+```
 
 For local development of the `contracts` setup the development environment on your machine as follows:
 
@@ -77,11 +86,7 @@ For local development, start a local testnet using `ganache-cli`, then run:
 ```
 npm run deploy
 ```
-
-### Mainnet
-
-TBD
-
+Checkout the supported deployment(s) on test [networks](docs/deployments.md).
 
 ## Documentation
 
@@ -91,9 +96,8 @@ npm run doc:generate
 ```
 
 
-* [Release process](doc/RELEASE_PROCESS.md)
-* [Core Documentation](doc/contracts/README.md)
-* [Packaging of libraries](doc/PACKAGING.md)
+* [Release Process](doc/RELEASE_PROCESS.md)
+* [Core Documentation](doc/contracts)
 
 ## Contributing
 
