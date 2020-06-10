@@ -6,7 +6,6 @@ const chaiAsPromised = require('chai-as-promised')
 chai.use(chaiAsPromised)
 
 const Template = artifacts.require('DataTokenTemplate')
-const FeeManager = artifacts.require('FeeManager')
 const Factory = artifacts.require('Factory')
 const Token = artifacts.require('DataTokenTemplate')
 const testUtils = require('../helpers/utils')
@@ -22,7 +21,6 @@ contract('DataTokenTemplate', async (accounts) => {
         template,
         token,
         tokenAddress,
-        feeManager,
         ethValue,
         minter,
         newMinter,
@@ -35,10 +33,9 @@ contract('DataTokenTemplate', async (accounts) => {
         minter = accounts[0]
         reciever = accounts[1]
         newMinter = accounts[2]
-        feeManager = await FeeManager.new()
         cap = new BigNumber('1400000000')
-        template = await Template.new('Template', 'TEMPLATE', minter, cap, blob, feeManager.address)
-        factory = await Factory.new(template.address, feeManager.address)
+        template = await Template.new('Template', 'TEMPLATE', minter, cap, blob)
+        factory = await Factory.new(template.address)
         blob = 'https://example.com/dataset-1'
         const trxReceipt = await factory.createToken(blob)
         const TokenCreatedEventArgs = testUtils.getEventArgsFromTx(trxReceipt, 'TokenCreated')
@@ -59,7 +56,7 @@ contract('DataTokenTemplate', async (accounts) => {
     })
 
     it('should fail to re-initialize the contracts', async () => {
-        truffleAssert.fails(token.initialize('NewName', 'NN', reciever, cap, blob, feeManager.address),
+        truffleAssert.fails(token.initialize('NewName', 'NN', reciever, cap, blob),
             truffleAssert.ErrorType.REVERT,
             'DataTokenTemplate: token instance already initialized')
     })
@@ -92,12 +89,6 @@ contract('DataTokenTemplate', async (accounts) => {
         assert(isMinter === true)
     })
 
-    it('should not mint the tokens due to zero message value', async () => {
-        truffleAssert.fails(token.mint(reciever, 10, { from: minter }),
-            truffleAssert.ErrorType.REVERT,
-            'DataTokenTemplate: invalid data token minting fee')
-    })
-
     it('should not mint the tokens because of the paused contract', async () => {
         await token.pause()
         truffleAssert.fails(token.mint(reciever, 10, { value: ethValue, from: minter }),
@@ -106,9 +97,10 @@ contract('DataTokenTemplate', async (accounts) => {
     })
 
     it('should mint the tokens', async () => {
-        truffleAssert.passes(await token.mint(reciever, 10, { value: ethValue, from: minter }))
-        const feeBalance = await web3.eth.getBalance(feeManager.address)
-        assert(feeBalance.toString() === ethValue.toString())
+        const mintedTokens = 10
+        truffleAssert.passes(await token.mint(reciever, mintedTokens, { from: minter }))
+        const recieverBalance = await token.balanceOf(reciever)
+        assert(mintedTokens == recieverBalance.toNumber())
     })
 
     it('should get the token name', async () => {
