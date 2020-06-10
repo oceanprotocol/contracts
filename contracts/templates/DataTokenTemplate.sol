@@ -3,7 +3,6 @@ pragma solidity ^0.5.7;
 // SPDX-License-Identifier: (Apache-2.0 AND CC-BY-4.0)
 // Code is Apache-2.0 and docs are CC-BY-4.0
 
-import '../fee/FeeManager.sol';
 import './token/ERC20Pausable.sol';
 import '../interfaces/IERC20Template.sol';
 /**
@@ -23,8 +22,6 @@ contract DataTokenTemplate is IERC20Template, ERC20Pausable {
     uint256 private _cap;
     uint256 private _decimals;
     address private _minter;
-
-    FeeManager serviceFeeManager;
     
     modifier onlyNotInitialized() {
         require(
@@ -48,16 +45,13 @@ contract DataTokenTemplate is IERC20Template, ERC20Pausable {
      * @param name refers to a template DataToken name
      * @param symbol refers to a template DataToken symbol
      * @param minter refers to an address that has minter role
-     * @param feeManager refers to an address of a FeeManager contract address
      */
     constructor(
         string memory name,
         string memory symbol,
         address minter,
         uint256 cap,
-        string memory blob,
-        address payable feeManager
-
+        string memory blob
     )
         public
     {
@@ -66,8 +60,7 @@ contract DataTokenTemplate is IERC20Template, ERC20Pausable {
             symbol,
             minter,
             cap,
-            blob,
-            feeManager
+            blob
         );
     }
     
@@ -78,15 +71,13 @@ contract DataTokenTemplate is IERC20Template, ERC20Pausable {
      * @param name refers to a new DataToken name
      * @param symbol refers to a nea DataToken symbol
      * @param minter refers to an address that has minter rights
-     * @param feeManager refers to an address of a FeeManager contract address
      */
     function initialize(
         string memory name,
         string memory symbol,
         address minter,
         uint256 cap,
-        string memory blob,
-        address payable feeManager
+        string memory blob
     ) 
         public
         onlyNotInitialized
@@ -97,8 +88,7 @@ contract DataTokenTemplate is IERC20Template, ERC20Pausable {
             symbol,
             minter,
             cap,
-            blob,
-            feeManager
+            blob
         );
     }
 
@@ -108,15 +98,13 @@ contract DataTokenTemplate is IERC20Template, ERC20Pausable {
      * @param name refers to a new DataToken name
      * @param symbol refers to a nea DataToken symbol
      * @param minter refers to an address that has minter rights
-     * @param feeManager refers to an address of a FeeManager contract address
      */
     function _initialize(
         string memory name,
         string memory symbol,
         address minter,
         uint256 cap,
-        string memory blob,
-        address payable feeManager
+        string memory blob
     )
         private
         returns(bool)
@@ -124,11 +112,6 @@ contract DataTokenTemplate is IERC20Template, ERC20Pausable {
         require(
             minter != address(0), 
             'DataTokenTemplate: Invalid minter,  zero address'
-        );
-        
-        require(
-            feeManager != address(0), 
-            'DataTokenTemplate: Invalid feeManager, zero address'
         );
 
         require(
@@ -147,16 +130,12 @@ contract DataTokenTemplate is IERC20Template, ERC20Pausable {
         _blob = blob;
         _symbol = symbol;
         _minter = minter;
-        serviceFeeManager = FeeManager(feeManager);
         initialized = true;
         return initialized;
     }
 
     /**
      * @dev mint
-     *      It takes the fee as msg.value and mints new DataTokens
-     *      the minting fee is calculated using ServiceFeeManager 
-     *      it could be called only if the contract is not paused.
      *      Only the minter address can call it.
      *      msg.value should be higher than zero and gt or eq minting fee
      * @param account refers to an address that token is going to be minted to.
@@ -175,12 +154,7 @@ contract DataTokenTemplate is IERC20Template, ERC20Pausable {
             totalSupply().add(value) <= _cap, 
             'DataTokenTemplate: cap exceeded'
         );
-        require(
-            msg.value >= serviceFeeManager.calculateFee(value, _cap), 
-            'DataTokenTemplate: invalid data token minting fee'
-        );
         _mint(account, value);
-        address(serviceFeeManager).transfer(msg.value);
     }
 
     /**
