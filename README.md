@@ -10,9 +10,11 @@ This is in alpha state and you can expect running into problems. If you run into
 ## Table of Contents
 
   - [Get Started](#get-started)
-     - [Local development](#local-development)
+      - [Installation](#installation)
+      - [Usage](#usage)
+      - [Local development](#local-development)
   - [Testing](#testing)
-     - [Code Linting](#code-linting)
+      - [Code Linting](#code-linting)
   - [Networks](#networks)
   - [Packages](#packages)
   - [Documentation](#documentation)
@@ -22,9 +24,45 @@ This is in alpha state and you can expect running into problems. If you run into
 
 # Get Started
 
-For local development of the `contracts` setup the development environment on your machine as follows:
+### Installation
+
+For quick installation of the contracts `ABIs`:
+
+```bash
+npm i @oceanprotocol/contracts
+```
+### Usage
+
+To import a contract ABI:
+
+```javascript
+const factoryABI = require('@oceanprotocol/contracts/artifacts/development/Factory.json')
+
+const factoryAddress = '0x123456789.....'
+
+const factory = new web3.eth.Contract(
+                  factoryABI, 
+                  factoryAddress,
+                  {
+                     from: accounts[0]
+                  }
+               )
+
+// create new datatoken
+const tx = await factory.methods
+               .createToken('https://123example.com')
+               .send()
+let tokenAddress = null
+try {
+   tokenAddress = tx.events.TokenCreated.returnValue[0]
+} catch (e) {
+   console.error(e)
+}
+```
 
 ### Local development
+
+For local development of the `contracts` setup the development environment on your machine as follows:
 
 As a pre-requisite, you need:
 
@@ -77,11 +115,7 @@ For local development, start a local testnet using `ganache-cli`, then run:
 ```
 npm run deploy
 ```
-
-### Mainnet
-
-TBD
-
+Checkout the supported deployment(s) on test [networks](docs/deployments.md).
 
 ## Documentation
 
@@ -91,9 +125,8 @@ npm run doc:generate
 ```
 
 
-* [Release process](doc/RELEASE_PROCESS.md)
-* [Core Documentation](doc/contracts/README.md)
-* [Packaging of libraries](doc/PACKAGING.md)
+* [Release Process](docs/RELEASE_PROCESS.md)
+* [Core Documentation](docs/contracts)
 
 ## Contributing
 
