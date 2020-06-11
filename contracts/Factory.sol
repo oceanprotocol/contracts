@@ -26,19 +26,19 @@ contract Factory is Deployer, Converter {
     string constant private TOKEN_NAME_PREFIX = 'DT';
 
     event TokenCreated(
-        address newTokenAddress, 
-        address templateAddress,
-        string tokenName
+        address indexed newTokenAddress, 
+        address indexed templateAddress,
+        string indexed tokenName
     );
     
     event TokenRegistered(
-        address indexed tokenAddress,
-        string indexed tokenName,
-        string indexed tokenSymbol,
+        address tokenAddress,
+        string tokenName,
+        string tokenSymbol,
         uint256 tokenCap,
-        address RegisteredBy,
-        uint256 RegisteredAt,
-        string blob
+        address indexed RegisteredBy,
+        uint256 indexed RegisteredAt,
+        string indexed blob
     );
     
     /**
@@ -116,11 +116,27 @@ contract Factory is Deployer, Converter {
         currentTokenCount += 1;
     }
 
+    /**
+     * @dev get the current token index. 
+     * @return the current token count
+     */
     function getCurrentTokenIndex()
         external
         view
         returns (uint256)
     {
         return currentTokenCount;
+    }
+
+    /**
+     * @dev get the token template address
+     * @return the template address
+     */
+    function getTokenTemplate()
+        external
+        view
+        returns (address)
+    {
+        return tokenTemplate;
     }
 }
