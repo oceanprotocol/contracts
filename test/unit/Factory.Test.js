@@ -1,5 +1,5 @@
 /* eslint-env mocha */
-/* global artifacts, contract, it, beforeEach */
+/* global artifacts, contract, it, beforeEach, assert */
 
 const Factory = artifacts.require('Factory')
 const Template = artifacts.require('DataTokenTemplate')
