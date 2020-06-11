@@ -52,4 +52,14 @@ contract('Factory test', async accounts => {
             'DataTokenTemplate: Invalid minter,  zero address'
         )
     })
+
+    it('should get the token count', async () => {
+        const currentTokenIndex = await factory.getCurrentTokenIndex()
+        assert.equal(currentTokenIndex.toNumber(), 1)
+    })
+
+    it('should get the token template', async () => {
+        const tokenTemplate = await factory.getTokenTemplate()
+        assert.equal(template.address, tokenTemplate)
+    })
 })
