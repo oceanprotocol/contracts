@@ -36,8 +36,8 @@ contract Factory is Deployer, Converter {
         string tokenName,
         string tokenSymbol,
         uint256 tokenCap,
-        address indexed RegisteredBy,
-        uint256 indexed RegisteredAt,
+        address indexed registeredBy,
+        uint256 indexed registeredAt,
         string indexed blob
     );
     
