@@ -115,4 +115,12 @@ contract Factory is Deployer, Converter {
 
         currentTokenCount += 1;
     }
+
+    function getCurrentTokenIndex()
+        external
+        view
+        returns (uint256)
+    {
+        return currentTokenCount;
+    }
 }
