@@ -1,5 +1,5 @@
 /* eslint-env mocha */
-/* global artifacts, contract, it, beforeEach */
+/* global artifacts, contract, it, beforeEach, assert */
 
 const Factory = artifacts.require('Factory')
 const Template = artifacts.require('DataTokenTemplate')
@@ -51,5 +51,15 @@ contract('Factory test', async accounts => {
             truffleAssert.ErrorType.REVERT,
             'DataTokenTemplate: Invalid minter,  zero address'
         )
+    })
+
+    it('should get the token count', async () => {
+        const currentTokenIndex = await factory.getCurrentTokenIndex()
+        assert.equal(currentTokenIndex.toNumber(), 1)
+    })
+
+    it('should get the token template', async () => {
+        const tokenTemplate = await factory.getTokenTemplate()
+        assert.equal(template.address, tokenTemplate)
     })
 })
