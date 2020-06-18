@@ -29,7 +29,7 @@ contract('DataTokenTemplate', async (accounts) => {
 
     beforeEach('init contracts for each test', async () => {
         blob = 'https://example.com/dataset-1'
-        decimals = 0
+        decimals = 18
         minter = accounts[0]
         reciever = accounts[1]
         newMinter = accounts[2]

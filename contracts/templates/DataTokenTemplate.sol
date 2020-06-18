@@ -124,7 +124,7 @@ contract DataTokenTemplate is IERC20Template, ERC20Pausable {
             'DataTokenTemplate: Invalid cap value'
         );
         
-        _decimals = 0;
+        _decimals = 18;
         _cap = cap;
         _name = name;
         _blob = blob;
