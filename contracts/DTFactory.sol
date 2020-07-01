@@ -53,7 +53,7 @@ contract DTFactory is Deployer, Converter {
     {
         require(
             _template != address(0),
-            'Factory: Invalid TokenFactory initialization'
+            'DTFactory: Invalid initialization'
         );
         tokenTemplate = _template;
     }
@@ -74,7 +74,7 @@ contract DTFactory is Deployer, Converter {
         
         require(
             token != address(0),
-            'Factory: Failed to perform minimal deploy of a new token'
+            'DTFactory: Failed to perform minimal deploy of a new token'
         );
         
         string memory name = concatenateStrings(
@@ -94,7 +94,7 @@ contract DTFactory is Deployer, Converter {
 
         require(
             tokenInstance.isInitialized(),
-            'Factory: Unable to initialize token instance'
+            'DTFactory: Unable to initialize token instance'
         );
 
         emit TokenCreated(
