@@ -6,7 +6,7 @@ const chaiAsPromised = require('chai-as-promised')
 chai.use(chaiAsPromised)
 
 const Template = artifacts.require('DataTokenTemplate')
-const Factory = artifacts.require('Factory')
+const DTFactory = artifacts.require('DTFactory')
 const Token = artifacts.require('DataTokenTemplate')
 const testUtils = require('../helpers/utils')
 const truffleAssert = require('truffle-assertions')
@@ -35,7 +35,7 @@ contract('DataTokenTemplate', async (accounts) => {
         newMinter = accounts[2]
         cap = new BigNumber('1400000000')
         template = await Template.new('Template', 'TEMPLATE', minter, cap, blob)
-        factory = await Factory.new(template.address)
+        factory = await DTFactory.new(template.address)
         blob = 'https://example.com/dataset-1'
         const trxReceipt = await factory.createToken(blob)
         const TokenCreatedEventArgs = testUtils.getEventArgsFromTx(trxReceipt, 'TokenCreated')

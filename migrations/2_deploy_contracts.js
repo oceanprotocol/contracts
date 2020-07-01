@@ -1,7 +1,7 @@
 /* eslint-env mocha */
 /* global artifacts */
 var DataTokenTemplate = artifacts.require('./DataTokenTemplate.sol')
-var Factory = artifacts.require('./Factory.sol')
+var DTFactory = artifacts.require('./DTFactory.sol')
 
 module.exports = function(deployer, network, accounts) {
     deployer.then(async () => {
@@ -14,7 +14,7 @@ module.exports = function(deployer, network, accounts) {
             'http://oceanprotocol.com'
         )
         await deployer.deploy(
-            Factory,
+            DTFactory,
             DataTokenTemplate.address
         )
     })

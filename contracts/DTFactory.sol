@@ -7,16 +7,16 @@ import './utils/Deployer.sol';
 import './utils/Converter.sol';
 import './interfaces/IERC20Template.sol';
 /**
-* @title Factory contract
+* @title DTFactory contract
 * @author Ocean Protocol Team
 *
 * @dev Implementation of Ocean DataTokens Factory
 *
-*      Factory deploys DataToken proxy contracts.
+*      DTFactory deploys DataToken proxy contracts.
 *      New DataToken proxy contracts are links to the template contract's bytecode. 
 *      Proxy contract functionality is based on Ocean Protocol custom implementation of ERC1167 standard.
 */
-contract Factory is Deployer, Converter {
+contract DTFactory is Deployer, Converter {
 
     address private tokenTemplate;
     uint256 private currentTokenCount = 1;
