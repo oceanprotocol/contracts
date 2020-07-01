@@ -11,9 +11,9 @@
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-pragma solidity 0.5.12;
+pragma solidity 0.5.7;
 
-import "./BNum.sol";
+import './BNum.sol';
 
 contract BMath is BBronze, BConst, BNum {
     /**********************************************************************************************
@@ -206,7 +206,10 @@ contract BMath is BBronze, BConst, BNum {
         uint normalizedWeight = bdiv(tokenWeightOut, totalWeight);
         // charge exit fee on the pool token side
         // pAiAfterExitFee = pAi*(1-exitFee)
-        uint poolAmountInAfterExitFee = bmul(poolAmountIn, bsub(BONE, EXIT_FEE));
+        uint poolAmountInAfterExitFee = bmul(
+            poolAmountIn, 
+            bsub(BONE, EXIT_FEE)
+        );
         uint newPoolSupply = bsub(poolSupply, poolAmountInAfterExitFee);
         uint poolRatio = bdiv(newPoolSupply, poolSupply);
      
@@ -214,7 +217,10 @@ contract BMath is BBronze, BConst, BNum {
         uint tokenOutRatio = bpow(poolRatio, bdiv(BONE, normalizedWeight));
         uint newTokenBalanceOut = bmul(tokenOutRatio, tokenBalanceOut);
 
-        uint tokenAmountOutBeforeSwapFee = bsub(tokenBalanceOut, newTokenBalanceOut);
+        uint tokenAmountOutBeforeSwapFee = bsub(
+            tokenBalanceOut, 
+            newTokenBalanceOut
+        );
 
         // charge swap fee on the output token side 
         //uint tAo = tAoBeforeSwapFee * (1 - (1-weightTo) * swapFee)
@@ -251,9 +257,15 @@ contract BMath is BBronze, BConst, BNum {
         //uint tAoBeforeSwapFee = tAo / (1 - (1-weightTo) * swapFee) ;
         uint zoo = bsub(BONE, normalizedWeight);
         uint zar = bmul(zoo, swapFee); 
-        uint tokenAmountOutBeforeSwapFee = bdiv(tokenAmountOut, bsub(BONE, zar));
+        uint tokenAmountOutBeforeSwapFee = bdiv(
+            tokenAmountOut, 
+            bsub(BONE, zar)
+        );
 
-        uint newTokenBalanceOut = bsub(tokenBalanceOut, tokenAmountOutBeforeSwapFee);
+        uint newTokenBalanceOut = bsub(
+            tokenBalanceOut, 
+            tokenAmountOutBeforeSwapFee
+        );
         uint tokenOutRatio = bdiv(newTokenBalanceOut, tokenBalanceOut);
 
         //uint newPoolSupply = (ratioTo ^ weightTo) * poolSupply;

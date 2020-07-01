@@ -11,7 +11,7 @@
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-pragma solidity 0.5.12;
+pragma solidity 0.5.7;
 
 contract BColor {
     function getColor()
@@ -21,8 +21,8 @@ contract BColor {
 
 contract BBronze is BColor {
     function getColor()
-        external view
-        returns (bytes32) {
-            return bytes32("BRONZE");
-        }
+    external view
+    returns (bytes32) {
+        return bytes32('BRONZE');
+    }
 }

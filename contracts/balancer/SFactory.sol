@@ -3,8 +3,8 @@ pragma solidity ^0.5.7;
 // SPDX-License-Identifier: (Apache-2.0 AND CC-BY-4.0)
 // Code is Apache-2.0 and docs are CC-BY-4.0
 
-import './Deployer.sol';
-import './Converter.sol';
+import '../utils/Deployer.sol';
+import '../utils/Converter.sol';
 import './SPool.sol';
 import './BConst.sol';
 
@@ -55,12 +55,17 @@ contract SFactory is BConst, Deployer, Converter {
         
         SPool spoolInstance = SPool(spool);
 	
-	address factory = address(this);
-	uint swapFee = MIN_FEE;
-	bool publicSwap = false;
-	bool finalized = false;
-        spoolInstance.initialize(controller, factory, swapFee, publicSwap,
-				 finalized);
+        address factory = address(this);
+        uint swapFee = MIN_FEE;
+        bool publicSwap = false;
+        bool finalized = false;
+        spoolInstance.initialize(
+            controller, 
+            factory, 
+            swapFee, 
+            publicSwap,
+            finalized
+        );
 	
         require(spoolInstance.isInitialized(), 'ERR_INITIALIZE_SPOOL');
         emit SPoolCreated(spool, _spoolTemplate);
