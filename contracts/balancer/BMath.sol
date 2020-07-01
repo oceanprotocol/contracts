@@ -207,7 +207,7 @@ contract BMath is BBronze, BConst, BNum {
         // charge exit fee on the pool token side
         // pAiAfterExitFee = pAi*(1-exitFee)
         uint poolAmountInAfterExitFee = bmul(
-            oolAmountIn, 
+            poolAmountIn, 
             bsub(BONE, EXIT_FEE)
         );
         uint newPoolSupply = bsub(poolSupply, poolAmountInAfterExitFee);
