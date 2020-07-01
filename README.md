@@ -36,20 +36,20 @@ npm i @oceanprotocol/contracts
 To import a contract ABI:
 
 ```javascript
-const factoryABI = require('@oceanprotocol/contracts/artifacts/development/Factory.json')
+const dtFactoryABI = require('@oceanprotocol/contracts/artifacts/development/DTFactory.json')
 
-const factoryAddress = '0x123456789.....'
+const dtFactoryAddress = '0x123456789.....'
 
-const factory = new web3.eth.Contract(
-                  factoryABI, 
-                  factoryAddress,
+const dtFactory = new web3.eth.Contract(
+                  dtFactoryABI, 
+                  dtFactoryAddress,
                   {
                      from: accounts[0]
                   }
                )
 
 // create new datatoken
-const tx = await factory.methods
+const tx = await dtFactory.methods
                .createToken('https://123example.com')
                .send()
 let tokenAddress = null
