@@ -55,12 +55,17 @@ contract SFactory is BConst, Deployer, Converter {
         
         SPool spoolInstance = SPool(spool);
 	
-	address factory = address(this);
-	uint swapFee = MIN_FEE;
-	bool publicSwap = false;
-	bool finalized = false;
-        spoolInstance.initialize(controller, factory, swapFee, publicSwap,
-				 finalized);
+        address factory = address(this);
+        uint swapFee = MIN_FEE;
+        bool publicSwap = false;
+        bool finalized = false;
+        spoolInstance.initialize(
+            controller, 
+            factory, 
+            swapFee, 
+            publicSwap,
+            finalized
+        );
 	
         require(spoolInstance.isInitialized(), 'ERR_INITIALIZE_SPOOL');
         emit SPoolCreated(spool, _spoolTemplate);

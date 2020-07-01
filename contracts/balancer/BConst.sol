@@ -13,7 +13,7 @@
 
 pragma solidity 0.5.7;
 
-import "./BColor.sol";
+import './BColor.sol';
 
 contract BConst is BBronze {
     uint public constant BONE              = 10**18;

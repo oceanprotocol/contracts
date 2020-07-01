@@ -13,7 +13,7 @@
 
 pragma solidity 0.5.7;
 
-import "./BNum.sol";
+import './BNum.sol';
 
 // Highly opinionated token implementation
 
@@ -48,14 +48,17 @@ contract BTokenBase is BNum {
     }
 
     function _burn(uint amt) internal {
-        require(_balance[address(this)] >= amt, "ERR_INSUFFICIENT_BAL");
+        require(
+            _balance[address(this)] >= amt, 
+            'ERR_INSUFFICIENT_BAL'
+        );
         _balance[address(this)] = bsub(_balance[address(this)], amt);
         _totalSupply = bsub(_totalSupply, amt);
         emit Transfer(address(this), address(0), amt);
     }
 
     function _move(address src, address dst, uint amt) internal {
-        require(_balance[src] >= amt, "ERR_INSUFFICIENT_BAL");
+        require(_balance[src] >= amt, 'ERR_INSUFFICIENT_BAL');
         _balance[src] = bsub(_balance[src], amt);
         _balance[dst] = badd(_balance[dst], amt);
         emit Transfer(src, dst, amt);
@@ -72,8 +75,8 @@ contract BTokenBase is BNum {
 
 contract BToken is BTokenBase, IERC20 {
 
-    string  private _name     = "Balancer Pool Token";
-    string  private _symbol   = "BPT";
+    string  private _name     = 'Balancer Pool Token';
+    string  private _symbol   = 'BPT';
     uint8   private _decimals = 18;
 
     function name() public view returns (string memory) {
@@ -128,8 +131,18 @@ contract BToken is BTokenBase, IERC20 {
         return true;
     }
 
-    function transferFrom(address src, address dst, uint amt) external returns (bool) {
-        require(msg.sender == src || amt <= _allowance[src][msg.sender], "ERR_BTOKEN_BAD_CALLER");
+    function transferFrom(
+        address src, 
+        address dst, 
+        uint amt
+    ) 
+    external 
+    returns (bool) 
+    {
+        require(
+            msg.sender == src || amt <= _allowance[src][msg.sender], 
+            'ERR_BTOKEN_BAD_CALLER'
+        );
         _move(src, dst, amt);
         if (msg.sender != src && _allowance[src][msg.sender] != uint256(-1)) {
             _allowance[src][msg.sender] = bsub(_allowance[src][msg.sender], amt);

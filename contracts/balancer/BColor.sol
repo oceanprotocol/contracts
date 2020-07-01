@@ -21,8 +21,8 @@ contract BColor {
 
 contract BBronze is BColor {
     function getColor()
-        external view
-        returns (bytes32) {
-            return bytes32("BRONZE");
-        }
+    external view
+    returns (bytes32) {
+        return bytes32('BRONZE');
+    }
 }
