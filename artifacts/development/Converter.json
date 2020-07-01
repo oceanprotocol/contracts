@@ -2705,7 +2705,7 @@
   },
   "networks": {},
   "schemaVersion": "3.2.0",
-  "updatedAt": "2020-07-01T14:40:44.879Z",
+  "updatedAt": "2020-07-01T18:39:45.241Z",
   "devdoc": {
     "author": "Ocean Protocol Team",
     "details": "Simple types converter     This contract provides sompe helper functions     such as converting integers to strings",

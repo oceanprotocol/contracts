@@ -53,7 +53,7 @@ contract DTFactory is Deployer, Converter {
     {
         require(
             _template != address(0),
-            'DTFactory: Invalid initialization'
+            'DTFactory: Invalid token factory initialization'
         );
         tokenTemplate = _template;
     }
