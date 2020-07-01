@@ -1,7 +1,7 @@
 /* eslint-env mocha */
 /* global artifacts, contract, it, beforeEach, assert */
 
-const Factory = artifacts.require('Factory')
+const DTFactory = artifacts.require('DTFactory')
 const Template = artifacts.require('DataTokenTemplate')
 const truffleAssert = require('truffle-assertions')
 
@@ -21,7 +21,7 @@ contract('Factory test', async accounts => {
         zeroAddress = '0x0000000000000000000000000000000000000000'
         cap = 1400000000
         template = await Template.new('Template Contract', 'TEMPLATE', minter, cap, blob)
-        factory = await Factory.new(template.address)
+        factory = await DTFactory.new(template.address)
     })
 
     it('should create a token and check that it is not a zero address', async () => {
@@ -40,7 +40,7 @@ contract('Factory test', async accounts => {
     })
 
     it('should fail on zero address factory initialization', async () => {
-        truffleAssert.fails(Factory.new(zeroAddress),
+        truffleAssert.fails(DTFactory.new(zeroAddress),
             truffleAssert.ErrorType.REVERT,
             'Factory: Invalid TokenFactory initialization'
         )
