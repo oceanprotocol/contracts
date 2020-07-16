@@ -3,10 +3,10 @@ pragma solidity ^0.5.7;
 // SPDX-License-Identifier: (Apache-2.0 AND CC-BY-4.0)
 // Code is Apache-2.0 and docs are CC-BY-4.0
 
-import '../utils/Deployer.sol';
-import '../utils/Converter.sol';
-import './SPool.sol';
-import './BConst.sol';
+import './utils/Deployer.sol';
+import './utils/Converter.sol';
+import './balancer/SPool.sol';
+import './balancer/BConst.sol';
 
 /*
 * @title SFactory contract
@@ -53,6 +53,7 @@ contract SFactory is BConst, Deployer, Converter {
         spool = deploy(_spoolTemplate);
         require(spool != address(0), 'ERR_ADDRESS_0');
         
+        // replace SPool with interface
         SPool spoolInstance = SPool(spool);
 	
         address factory = address(this);
