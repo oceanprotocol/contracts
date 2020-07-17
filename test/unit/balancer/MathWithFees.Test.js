@@ -18,7 +18,7 @@ const swapFee = 10 ** -3 // 0.001;
 const exitFee = 0
 const verbose = process.env.VERBOSE
 
-contract('BPool', async (accounts) => {
+contract('SPool', async (accounts) => {
     const { toWei } = web3.utils
     const { fromWei } = web3.utils
     const admin = accounts[0]
