@@ -1,7 +1,7 @@
 /* eslint-env mocha */
 /* global artifacts, contract, it, assert */
 const BPool = artifacts.require('SPool')
-const BFactory = artifacts.require('SFactory')
+const SFactory = artifacts.require('SFactory')
 const testUtils = require('../../helpers/utils')
 
 contract('SFactory', async (accounts) => {
@@ -11,7 +11,7 @@ contract('SFactory', async (accounts) => {
         const admin = accounts[0]
         before(async () => {
             poolTemplate = await BPool.new()
-            factory = await BFactory.new(poolTemplate.address)
+            factory = await SFactory.new(poolTemplate.address)
         })
 
         it('should create new SPool', async () => {

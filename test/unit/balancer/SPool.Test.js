@@ -9,6 +9,7 @@ const {
     calcInGivenOut,
     calcRelativeDiff
 } = require('./helpers/calComparisons.js')
+const { assert } = require('chai')
 
 const BPool = artifacts.require('SPool')
 const BFactory = artifacts.require('SFactory')
@@ -119,6 +120,19 @@ contract('SPool', async (accounts) => {
         await pool.setSwapFee(toWei(String(swapFee)))
     })
 
+    describe('BToken tests', () => {
+        it('should get name', async () => {
+            const poolName = await pool.name()
+        })
+        
+        it('should get symbole', async () => {
+            const poolSymbol = await pool.symbol()
+        })
+
+        it('should get decimals', async () => {
+            const poolDecimals = await pool.decimals()
+        })
+    })
     describe('With fees', () => {
         it('swapExactAmountIn', async () => {
             const tokenIn = WETH
@@ -497,6 +511,34 @@ contract('SPool', async (accounts) => {
             }
 
             assert.isAtMost(relDif.toNumber(), errorDelta)
+        })
+
+        it('isPublicSwap returns true', async () => {
+            assert.equal(
+                await pool.isPublicSwap(),
+                true
+            )
+        })
+
+        it('isFinalized returns true', async () => {
+            assert.equal(
+                await pool.isFinalized(),
+                true
+            )
+        })
+
+        it('should return number of tokens', async () => {
+            assert.equal(
+                (await pool.getNumTokens()).toNumber(),
+                2
+            )
+        })
+
+        it('should does ', async () => {
+            assert.equal(
+                await pool.isBound(weth.address),
+                true
+            )
         })
     })
 })
