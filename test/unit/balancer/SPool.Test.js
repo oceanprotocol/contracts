@@ -1,5 +1,5 @@
 /* eslint-env mocha */
-/* global artifacts, contract, it, web3, assert */
+/* global artifacts, contract, it, web3 */
 // This original test is from balancer-core repo
 // https://github.com/balancer-labs/balancer-core/blob/e232d03eea1c66529f22d3157c7f560bf0782370/test/math_with_fees.js
 const Decimal = require('decimal.js')
@@ -122,15 +122,15 @@ contract('SPool', async (accounts) => {
 
     describe('BToken tests', () => {
         it('should get name', async () => {
-            const poolName = await pool.name()
+            await pool.name()
         })
-        
+
         it('should get symbole', async () => {
-            const poolSymbol = await pool.symbol()
+            await pool.symbol()
         })
 
         it('should get decimals', async () => {
-            const poolDecimals = await pool.decimals()
+            await pool.decimals()
         })
     })
     describe('With fees', () => {
