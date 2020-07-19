@@ -46,7 +46,7 @@ contract SFactory is BConst, Deployer, Converter {
     /* @dev Deploys new SPool proxy contract.
        Template contract address could not be a zero address. 
        @return address of a new proxy SPool contract */
-    function newSPool(address controller) 
+    function newSPool() 
         public
         returns (address spool)
     {
@@ -55,17 +55,13 @@ contract SFactory is BConst, Deployer, Converter {
         
         // replace SPool with interface
         SPool spoolInstance = SPool(spool);
-	
-        address factory = address(this);
-        uint swapFee = MIN_FEE;
-        bool publicSwap = false;
-        bool finalized = false;
+
         spoolInstance.initialize(
-            controller, 
-            factory, 
-            swapFee, 
-            publicSwap,
-            finalized
+            msg.sender,
+            address(this), 
+            MIN_FEE, 
+            false,
+            false
         );
 	
         require(spoolInstance.isInitialized(), 'ERR_INITIALIZE_SPOOL');
