@@ -1,10 +1,10 @@
-## `Factory`
+## `DTFactory`
 
 
 
 Implementation of Ocean DataTokens Factory
 
-Factory deploys DataToken proxy contracts.
+DTFactory deploys DataToken proxy contracts.
 New DataToken proxy contracts are links to the template contract's bytecode. 
 Proxy contract functionality is based on Ocean Protocol custom implementation of ERC1167 standard.
 
