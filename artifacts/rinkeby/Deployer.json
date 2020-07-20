@@ -14,25 +14,25 @@
       "type": "event"
     }
   ],
-  "metadata": "{\"compiler\":{\"version\":\"0.5.7+commit.6da8b019\"},\"language\":\"Solidity\",\"output\":{\"abi\":[{\"anonymous\":false,\"inputs\":[{\"indexed\":false,\"name\":\"instance\",\"type\":\"address\"}],\"name\":\"InstanceDeployed\",\"type\":\"event\"}],\"devdoc\":{\"author\":\"Ocean Protocol Team\",\"details\":\"Contract Deployer     This contract allowes factory contract      to deploy new contract instances using     the same library pattern in solidity.     the logic it self is deployed only once, but     executed in the context of the new storage      contract (new contract instance)\",\"methods\":{},\"title\":\"Deployer Contract\"},\"userdoc\":{\"methods\":{}}},\"settings\":{\"compilationTarget\":{\"/Users/ahmedali/Desktop/work/Ocean/ocean-contracts/contracts/utils/Deployer.sol\":\"Deployer\"},\"evmVersion\":\"byzantium\",\"libraries\":{},\"optimizer\":{\"enabled\":false,\"runs\":200},\"remappings\":[]},\"sources\":{\"/Users/ahmedali/Desktop/work/Ocean/ocean-contracts/contracts/utils/Deployer.sol\":{\"keccak256\":\"0x274fa96796fb2b5978a6dbd7fe4314ac0462327ac9fd9e93e41c681d2bc72cc8\",\"urls\":[\"bzzr://808e0586af5a54e6fe1664b684640dab8e4e5be7886fbcb30a59198c5f583a51\"]}},\"version\":1}",
-  "bytecode": "0x6080604052348015600f57600080fd5b50603580601d6000396000f3fe6080604052600080fdfea165627a7a72305820a89e9df39d53cf960e8a80c0544257d482dacd91d93cbdba3cd20713a66babc50029",
-  "deployedBytecode": "0x6080604052600080fdfea165627a7a72305820a89e9df39d53cf960e8a80c0544257d482dacd91d93cbdba3cd20713a66babc50029",
-  "sourceMap": "569:869:6:-;;;;8:9:-1;5:2;;;30:1;27;20:12;5:2;569:869:6;;;;;;;",
-  "deployedSourceMap": "569:869:6:-;;;;;",
+  "metadata": "{\"compiler\":{\"version\":\"0.5.7+commit.6da8b019\"},\"language\":\"Solidity\",\"output\":{\"abi\":[{\"anonymous\":false,\"inputs\":[{\"indexed\":false,\"name\":\"instance\",\"type\":\"address\"}],\"name\":\"InstanceDeployed\",\"type\":\"event\"}],\"devdoc\":{\"author\":\"Ocean Protocol Team\",\"details\":\"Contract Deployer     This contract allowes factory contract      to deploy new contract instances using     the same library pattern in solidity.     the logic it self is deployed only once, but     executed in the context of the new storage      contract (new contract instance)\",\"methods\":{},\"title\":\"Deployer Contract\"},\"userdoc\":{\"methods\":{}}},\"settings\":{\"compilationTarget\":{\"/Users/ahmedali/Desktop/work/Ocean/ocean-contracts/contracts/utils/Deployer.sol\":\"Deployer\"},\"evmVersion\":\"byzantium\",\"libraries\":{},\"optimizer\":{\"enabled\":true,\"runs\":200},\"remappings\":[]},\"sources\":{\"/Users/ahmedali/Desktop/work/Ocean/ocean-contracts/contracts/utils/Deployer.sol\":{\"keccak256\":\"0x274fa96796fb2b5978a6dbd7fe4314ac0462327ac9fd9e93e41c681d2bc72cc8\",\"urls\":[\"bzzr://808e0586af5a54e6fe1664b684640dab8e4e5be7886fbcb30a59198c5f583a51\"]}},\"version\":1}",
+  "bytecode": "0x6080604052348015600f57600080fd5b50603580601d6000396000f3fe6080604052600080fdfea165627a7a723058206700cf63bf88dad99364324d3fc9e7ad7516244c0ea95659d37049f55ee941b50029",
+  "deployedBytecode": "0x6080604052600080fdfea165627a7a723058206700cf63bf88dad99364324d3fc9e7ad7516244c0ea95659d37049f55ee941b50029",
+  "sourceMap": "569:869:12:-;;;;8:9:-1;5:2;;;30:1;27;20:12;5:2;569:869:12;;;;;;;",
+  "deployedSourceMap": "569:869:12:-;;;;;",
   "source": "pragma solidity ^0.5.7;\n// Copyright BigchainDB GmbH and Ocean Protocol contributors\n// SPDX-License-Identifier: (Apache-2.0 AND CC-BY-4.0)\n// Code is Apache-2.0 and docs are CC-BY-4.0\n\n/**\n * @title Deployer Contract\n * @author Ocean Protocol Team\n *\n * @dev Contract Deployer\n *      This contract allowes factory contract \n *      to deploy new contract instances using\n *      the same library pattern in solidity.\n *      the logic it self is deployed only once, but\n *      executed in the context of the new storage \n *      contract (new contract instance)\n */\ncontract Deployer {\n    event InstanceDeployed(address instance);\n    \n    /**\n     * @dev deploy\n     *      deploy new contract instance \n     * @param _logic the logic contract address\n     * @return address of the new instance\n     */\n    function deploy(\n        address _logic\n    ) \n      internal \n      returns (address instance) \n    {\n        bytes20 targetBytes = bytes20(_logic);\n        /* solium-disable-next-line security/no-inline-assembly */\n        assembly {\n          let clone := mload(0x40)\n          mstore(clone, 0x3d602d80600a3d3981f3363d3d373d3d3d363d73000000000000000000000000)\n          mstore(add(clone, 0x14), targetBytes)\n          mstore(add(clone, 0x28), 0x5af43d82803e903d91602b57fd5bf30000000000000000000000000000000000)\n          instance := create(0, clone, 0x37)\n        }\n        emit InstanceDeployed(address(instance));\n    }\n}",
   "sourcePath": "/Users/ahmedali/Desktop/work/Ocean/ocean-contracts/contracts/utils/Deployer.sol",
   "ast": {
     "absolutePath": "/Users/ahmedali/Desktop/work/Ocean/ocean-contracts/contracts/utils/Deployer.sol",
     "exportedSymbols": {
       "Deployer": [
-        807
+        4887
       ]
     },
-    "id": 808,
+    "id": 4888,
     "nodeType": "SourceUnit",
     "nodes": [
       {
-        "id": 781,
+        "id": 4861,
         "literals": [
           "solidity",
           "^",
@@ -40,7 +40,7 @@
           ".7"
         ],
         "nodeType": "PragmaDirective",
-        "src": "0:23:6"
+        "src": "0:23:12"
       },
       {
         "baseContracts": [],
@@ -48,9 +48,9 @@
         "contractKind": "contract",
         "documentation": "@title Deployer Contract\n@author Ocean Protocol Team\n * @dev Contract Deployer\n     This contract allowes factory contract \n     to deploy new contract instances using\n     the same library pattern in solidity.\n     the logic it self is deployed only once, but\n     executed in the context of the new storage \n     contract (new contract instance)",
         "fullyImplemented": true,
-        "id": 807,
+        "id": 4887,
         "linearizedBaseContracts": [
-          807
+          4887
         ],
         "name": "Deployer",
         "nodeType": "ContractDefinition",
@@ -58,21 +58,21 @@
           {
             "anonymous": false,
             "documentation": null,
-            "id": 785,
+            "id": 4865,
             "name": "InstanceDeployed",
             "nodeType": "EventDefinition",
             "parameters": {
-              "id": 784,
+              "id": 4864,
               "nodeType": "ParameterList",
               "parameters": [
                 {
                   "constant": false,
-                  "id": 783,
+                  "id": 4863,
                   "indexed": false,
                   "name": "instance",
                   "nodeType": "VariableDeclaration",
-                  "scope": 785,
-                  "src": "616:16:6",
+                  "scope": 4865,
+                  "src": "616:16:12",
                   "stateVariable": false,
                   "storageLocation": "default",
                   "typeDescriptions": {
@@ -80,10 +80,10 @@
                     "typeString": "address"
                   },
                   "typeName": {
-                    "id": 782,
+                    "id": 4862,
                     "name": "address",
                     "nodeType": "ElementaryTypeName",
-                    "src": "616:7:6",
+                    "src": "616:7:12",
                     "stateMutability": "nonpayable",
                     "typeDescriptions": {
                       "typeIdentifier": "t_address",
@@ -94,28 +94,28 @@
                   "visibility": "internal"
                 }
               ],
-              "src": "615:18:6"
+              "src": "615:18:12"
             },
-            "src": "593:41:6"
+            "src": "593:41:12"
           },
           {
             "body": {
-              "id": 805,
+              "id": 4885,
               "nodeType": "Block",
-              "src": "913:523:6",
+              "src": "913:523:12",
               "statements": [
                 {
                   "assignments": [
-                    793
+                    4873
                   ],
                   "declarations": [
                     {
                       "constant": false,
-                      "id": 793,
+                      "id": 4873,
                       "name": "targetBytes",
                       "nodeType": "VariableDeclaration",
-                      "scope": 805,
-                      "src": "923:19:6",
+                      "scope": 4885,
+                      "src": "923:19:12",
                       "stateVariable": false,
                       "storageLocation": "default",
                       "typeDescriptions": {
@@ -123,10 +123,10 @@
                         "typeString": "bytes20"
                       },
                       "typeName": {
-                        "id": 792,
+                        "id": 4872,
                         "name": "bytes20",
                         "nodeType": "ElementaryTypeName",
-                        "src": "923:7:6",
+                        "src": "923:7:12",
                         "typeDescriptions": {
                           "typeIdentifier": "t_bytes20",
                           "typeString": "bytes20"
@@ -136,18 +136,18 @@
                       "visibility": "internal"
                     }
                   ],
-                  "id": 797,
+                  "id": 4877,
                   "initialValue": {
                     "argumentTypes": null,
                     "arguments": [
                       {
                         "argumentTypes": null,
-                        "id": 795,
+                        "id": 4875,
                         "name": "_logic",
                         "nodeType": "Identifier",
                         "overloadedDeclarations": [],
-                        "referencedDeclaration": 787,
-                        "src": "953:6:6",
+                        "referencedDeclaration": 4867,
+                        "src": "953:6:12",
                         "typeDescriptions": {
                           "typeIdentifier": "t_address",
                           "typeString": "address"
@@ -161,20 +161,20 @@
                           "typeString": "address"
                         }
                       ],
-                      "id": 794,
+                      "id": 4874,
                       "isConstant": false,
                       "isLValue": false,
                       "isPure": true,
                       "lValueRequested": false,
                       "nodeType": "ElementaryTypeNameExpression",
-                      "src": "945:7:6",
+                      "src": "945:7:12",
                       "typeDescriptions": {
                         "typeIdentifier": "t_type$_t_bytes20_$",
                         "typeString": "type(bytes20)"
                       },
                       "typeName": "bytes20"
                     },
-                    "id": 796,
+                    "id": 4876,
                     "isConstant": false,
                     "isLValue": false,
                     "isPure": false,
@@ -182,40 +182,40 @@
                     "lValueRequested": false,
                     "names": [],
                     "nodeType": "FunctionCall",
-                    "src": "945:15:6",
+                    "src": "945:15:12",
                     "typeDescriptions": {
                       "typeIdentifier": "t_bytes20",
                       "typeString": "bytes20"
                     }
                   },
                   "nodeType": "VariableDeclarationStatement",
-                  "src": "923:37:6"
+                  "src": "923:37:12"
                 },
                 {
                   "externalReferences": [
                     {
                       "instance": {
-                        "declaration": 790,
+                        "declaration": 4870,
                         "isOffset": false,
                         "isSlot": false,
-                        "src": "1336:8:6",
+                        "src": "1336:8:12",
                         "valueSize": 1
                       }
                     },
                     {
                       "targetBytes": {
-                        "declaration": 793,
+                        "declaration": 4873,
                         "isOffset": false,
                         "isSlot": false,
-                        "src": "1210:11:6",
+                        "src": "1210:11:12",
                         "valueSize": 1
                       }
                     }
                   ],
-                  "id": 798,
+                  "id": 4878,
                   "nodeType": "InlineAssembly",
                   "operations": "{\n    let clone := mload(0x40)\n    mstore(clone, 0x3d602d80600a3d3981f3363d3d373d3d3d363d73000000000000000000000000)\n    mstore(add(clone, 0x14), targetBytes)\n    mstore(add(clone, 0x28), 0x5af43d82803e903d91602b57fd5bf30000000000000000000000000000000000)\n    instance := create(0, clone, 0x37)\n}",
-                  "src": "1037:356:6"
+                  "src": "1037:356:12"
                 },
                 {
                   "eventCall": {
@@ -226,12 +226,12 @@
                         "arguments": [
                           {
                             "argumentTypes": null,
-                            "id": 801,
+                            "id": 4881,
                             "name": "instance",
                             "nodeType": "Identifier",
                             "overloadedDeclarations": [],
-                            "referencedDeclaration": 790,
-                            "src": "1419:8:6",
+                            "referencedDeclaration": 4870,
+                            "src": "1419:8:12",
                             "typeDescriptions": {
                               "typeIdentifier": "t_address",
                               "typeString": "address"
@@ -245,20 +245,20 @@
                               "typeString": "address"
                             }
                           ],
-                          "id": 800,
+                          "id": 4880,
                           "isConstant": false,
                           "isLValue": false,
                           "isPure": true,
                           "lValueRequested": false,
                           "nodeType": "ElementaryTypeNameExpression",
-                          "src": "1411:7:6",
+                          "src": "1411:7:12",
                           "typeDescriptions": {
                             "typeIdentifier": "t_type$_t_address_$",
                             "typeString": "type(address)"
                           },
                           "typeName": "address"
                         },
-                        "id": 802,
+                        "id": 4882,
                         "isConstant": false,
                         "isLValue": false,
                         "isPure": false,
@@ -266,7 +266,7 @@
                         "lValueRequested": false,
                         "names": [],
                         "nodeType": "FunctionCall",
-                        "src": "1411:17:6",
+                        "src": "1411:17:12",
                         "typeDescriptions": {
                           "typeIdentifier": "t_address",
                           "typeString": "address"
@@ -280,18 +280,18 @@
                           "typeString": "address"
                         }
                       ],
-                      "id": 799,
+                      "id": 4879,
                       "name": "InstanceDeployed",
                       "nodeType": "Identifier",
                       "overloadedDeclarations": [],
-                      "referencedDeclaration": 785,
-                      "src": "1394:16:6",
+                      "referencedDeclaration": 4865,
+                      "src": "1394:16:12",
                       "typeDescriptions": {
                         "typeIdentifier": "t_function_event_nonpayable$_t_address_$returns$__$",
                         "typeString": "function (address)"
                       }
                     },
-                    "id": 803,
+                    "id": 4883,
                     "isConstant": false,
                     "isLValue": false,
                     "isPure": false,
@@ -299,36 +299,36 @@
                     "lValueRequested": false,
                     "names": [],
                     "nodeType": "FunctionCall",
-                    "src": "1394:35:6",
+                    "src": "1394:35:12",
                     "typeDescriptions": {
                       "typeIdentifier": "t_tuple$__$",
                       "typeString": "tuple()"
                     }
                   },
-                  "id": 804,
+                  "id": 4884,
                   "nodeType": "EmitStatement",
-                  "src": "1389:40:6"
+                  "src": "1389:40:12"
                 }
               ]
             },
             "documentation": "@dev deploy\n     deploy new contract instance \n@param _logic the logic contract address\n@return address of the new instance",
-            "id": 806,
+            "id": 4886,
             "implemented": true,
             "kind": "function",
             "modifiers": [],
             "name": "deploy",
             "nodeType": "FunctionDefinition",
             "parameters": {
-              "id": 788,
+              "id": 4868,
               "nodeType": "ParameterList",
               "parameters": [
                 {
                   "constant": false,
-                  "id": 787,
+                  "id": 4867,
                   "name": "_logic",
                   "nodeType": "VariableDeclaration",
-                  "scope": 806,
-                  "src": "837:14:6",
+                  "scope": 4886,
+                  "src": "837:14:12",
                   "stateVariable": false,
                   "storageLocation": "default",
                   "typeDescriptions": {
@@ -336,10 +336,10 @@
                     "typeString": "address"
                   },
                   "typeName": {
-                    "id": 786,
+                    "id": 4866,
                     "name": "address",
                     "nodeType": "ElementaryTypeName",
-                    "src": "837:7:6",
+                    "src": "837:7:12",
                     "stateMutability": "nonpayable",
                     "typeDescriptions": {
                       "typeIdentifier": "t_address",
@@ -350,19 +350,19 @@
                   "visibility": "internal"
                 }
               ],
-              "src": "827:30:6"
+              "src": "827:30:12"
             },
             "returnParameters": {
-              "id": 791,
+              "id": 4871,
               "nodeType": "ParameterList",
               "parameters": [
                 {
                   "constant": false,
-                  "id": 790,
+                  "id": 4870,
                   "name": "instance",
                   "nodeType": "VariableDeclaration",
-                  "scope": 806,
-                  "src": "890:16:6",
+                  "scope": 4886,
+                  "src": "890:16:12",
                   "stateVariable": false,
                   "storageLocation": "default",
                   "typeDescriptions": {
@@ -370,10 +370,10 @@
                     "typeString": "address"
                   },
                   "typeName": {
-                    "id": 789,
+                    "id": 4869,
                     "name": "address",
                     "nodeType": "ElementaryTypeName",
-                    "src": "890:7:6",
+                    "src": "890:7:12",
                     "stateMutability": "nonpayable",
                     "typeDescriptions": {
                       "typeIdentifier": "t_address",
@@ -384,33 +384,33 @@
                   "visibility": "internal"
                 }
               ],
-              "src": "889:18:6"
+              "src": "889:18:12"
             },
-            "scope": 807,
-            "src": "812:624:6",
+            "scope": 4887,
+            "src": "812:624:12",
             "stateMutability": "nonpayable",
             "superFunction": null,
             "visibility": "internal"
           }
         ],
-        "scope": 808,
-        "src": "569:869:6"
+        "scope": 4888,
+        "src": "569:869:12"
       }
     ],
-    "src": "0:1438:6"
+    "src": "0:1438:12"
   },
   "legacyAST": {
     "absolutePath": "/Users/ahmedali/Desktop/work/Ocean/ocean-contracts/contracts/utils/Deployer.sol",
     "exportedSymbols": {
       "Deployer": [
-        807
+        4887
       ]
     },
-    "id": 808,
+    "id": 4888,
     "nodeType": "SourceUnit",
     "nodes": [
       {
-        "id": 781,
+        "id": 4861,
         "literals": [
           "solidity",
           "^",
@@ -418,7 +418,7 @@
           ".7"
         ],
         "nodeType": "PragmaDirective",
-        "src": "0:23:6"
+        "src": "0:23:12"
       },
       {
         "baseContracts": [],
@@ -426,9 +426,9 @@
         "contractKind": "contract",
         "documentation": "@title Deployer Contract\n@author Ocean Protocol Team\n * @dev Contract Deployer\n     This contract allowes factory contract \n     to deploy new contract instances using\n     the same library pattern in solidity.\n     the logic it self is deployed only once, but\n     executed in the context of the new storage \n     contract (new contract instance)",
         "fullyImplemented": true,
-        "id": 807,
+        "id": 4887,
         "linearizedBaseContracts": [
-          807
+          4887
         ],
         "name": "Deployer",
         "nodeType": "ContractDefinition",
@@ -436,21 +436,21 @@
           {
             "anonymous": false,
             "documentation": null,
-            "id": 785,
+            "id": 4865,
             "name": "InstanceDeployed",
             "nodeType": "EventDefinition",
             "parameters": {
-              "id": 784,
+              "id": 4864,
               "nodeType": "ParameterList",
               "parameters": [
                 {
                   "constant": false,
-                  "id": 783,
+                  "id": 4863,
                   "indexed": false,
                   "name": "instance",
                   "nodeType": "VariableDeclaration",
-                  "scope": 785,
-                  "src": "616:16:6",
+                  "scope": 4865,
+                  "src": "616:16:12",
                   "stateVariable": false,
                   "storageLocation": "default",
                   "typeDescriptions": {
@@ -458,10 +458,10 @@
                     "typeString": "address"
                   },
                   "typeName": {
-                    "id": 782,
+                    "id": 4862,
                     "name": "address",
                     "nodeType": "ElementaryTypeName",
-                    "src": "616:7:6",
+                    "src": "616:7:12",
                     "stateMutability": "nonpayable",
                     "typeDescriptions": {
                       "typeIdentifier": "t_address",
@@ -472,28 +472,28 @@
                   "visibility": "internal"
                 }
               ],
-              "src": "615:18:6"
+              "src": "615:18:12"
             },
-            "src": "593:41:6"
+            "src": "593:41:12"
           },
           {
             "body": {
-              "id": 805,
+              "id": 4885,
               "nodeType": "Block",
-              "src": "913:523:6",
+              "src": "913:523:12",
               "statements": [
                 {
                   "assignments": [
-                    793
+                    4873
                   ],
                   "declarations": [
                     {
                       "constant": false,
-                      "id": 793,
+                      "id": 4873,
                       "name": "targetBytes",
                       "nodeType": "VariableDeclaration",
-                      "scope": 805,
-                      "src": "923:19:6",
+                      "scope": 4885,
+                      "src": "923:19:12",
                       "stateVariable": false,
                       "storageLocation": "default",
                       "typeDescriptions": {
@@ -501,10 +501,10 @@
                         "typeString": "bytes20"
                       },
                       "typeName": {
-                        "id": 792,
+                        "id": 4872,
                         "name": "bytes20",
                         "nodeType": "ElementaryTypeName",
-                        "src": "923:7:6",
+                        "src": "923:7:12",
                         "typeDescriptions": {
                           "typeIdentifier": "t_bytes20",
                           "typeString": "bytes20"
@@ -514,18 +514,18 @@
                       "visibility": "internal"
                     }
                   ],
-                  "id": 797,
+                  "id": 4877,
                   "initialValue": {
                     "argumentTypes": null,
                     "arguments": [
                       {
                         "argumentTypes": null,
-                        "id": 795,
+                        "id": 4875,
                         "name": "_logic",
                         "nodeType": "Identifier",
                         "overloadedDeclarations": [],
-                        "referencedDeclaration": 787,
-                        "src": "953:6:6",
+                        "referencedDeclaration": 4867,
+                        "src": "953:6:12",
                         "typeDescriptions": {
                           "typeIdentifier": "t_address",
                           "typeString": "address"
@@ -539,20 +539,20 @@
                           "typeString": "address"
                         }
                       ],
-                      "id": 794,
+                      "id": 4874,
                       "isConstant": false,
                       "isLValue": false,
                       "isPure": true,
                       "lValueRequested": false,
                       "nodeType": "ElementaryTypeNameExpression",
-                      "src": "945:7:6",
+                      "src": "945:7:12",
                       "typeDescriptions": {
                         "typeIdentifier": "t_type$_t_bytes20_$",
                         "typeString": "type(bytes20)"
                       },
                       "typeName": "bytes20"
                     },
-                    "id": 796,
+                    "id": 4876,
                     "isConstant": false,
                     "isLValue": false,
                     "isPure": false,
@@ -560,40 +560,40 @@
                     "lValueRequested": false,
                     "names": [],
                     "nodeType": "FunctionCall",
-                    "src": "945:15:6",
+                    "src": "945:15:12",
                     "typeDescriptions": {
                       "typeIdentifier": "t_bytes20",
                       "typeString": "bytes20"
                     }
                   },
                   "nodeType": "VariableDeclarationStatement",
-                  "src": "923:37:6"
+                  "src": "923:37:12"
                 },
                 {
                   "externalReferences": [
                     {
                       "instance": {
-                        "declaration": 790,
+                        "declaration": 4870,
                         "isOffset": false,
                         "isSlot": false,
-                        "src": "1336:8:6",
+                        "src": "1336:8:12",
                         "valueSize": 1
                       }
                     },
                     {
                       "targetBytes": {
-                        "declaration": 793,
+                        "declaration": 4873,
                         "isOffset": false,
                         "isSlot": false,
-                        "src": "1210:11:6",
+                        "src": "1210:11:12",
                         "valueSize": 1
                       }
                     }
                   ],
-                  "id": 798,
+                  "id": 4878,
                   "nodeType": "InlineAssembly",
                   "operations": "{\n    let clone := mload(0x40)\n    mstore(clone, 0x3d602d80600a3d3981f3363d3d373d3d3d363d73000000000000000000000000)\n    mstore(add(clone, 0x14), targetBytes)\n    mstore(add(clone, 0x28), 0x5af43d82803e903d91602b57fd5bf30000000000000000000000000000000000)\n    instance := create(0, clone, 0x37)\n}",
-                  "src": "1037:356:6"
+                  "src": "1037:356:12"
                 },
                 {
                   "eventCall": {
@@ -604,12 +604,12 @@
                         "arguments": [
                           {
                             "argumentTypes": null,
-                            "id": 801,
+                            "id": 4881,
                             "name": "instance",
                             "nodeType": "Identifier",
                             "overloadedDeclarations": [],
-                            "referencedDeclaration": 790,
-                            "src": "1419:8:6",
+                            "referencedDeclaration": 4870,
+                            "src": "1419:8:12",
                             "typeDescriptions": {
                               "typeIdentifier": "t_address",
                               "typeString": "address"
@@ -623,20 +623,20 @@
                               "typeString": "address"
                             }
                           ],
-                          "id": 800,
+                          "id": 4880,
                           "isConstant": false,
                           "isLValue": false,
                           "isPure": true,
                           "lValueRequested": false,
                           "nodeType": "ElementaryTypeNameExpression",
-                          "src": "1411:7:6",
+                          "src": "1411:7:12",
                           "typeDescriptions": {
                             "typeIdentifier": "t_type$_t_address_$",
                             "typeString": "type(address)"
                           },
                           "typeName": "address"
                         },
-                        "id": 802,
+                        "id": 4882,
                         "isConstant": false,
                         "isLValue": false,
                         "isPure": false,
@@ -644,7 +644,7 @@
                         "lValueRequested": false,
                         "names": [],
                         "nodeType": "FunctionCall",
-                        "src": "1411:17:6",
+                        "src": "1411:17:12",
                         "typeDescriptions": {
                           "typeIdentifier": "t_address",
                           "typeString": "address"
@@ -658,18 +658,18 @@
                           "typeString": "address"
                         }
                       ],
-                      "id": 799,
+                      "id": 4879,
                       "name": "InstanceDeployed",
                       "nodeType": "Identifier",
                       "overloadedDeclarations": [],
-                      "referencedDeclaration": 785,
-                      "src": "1394:16:6",
+                      "referencedDeclaration": 4865,
+                      "src": "1394:16:12",
                       "typeDescriptions": {
                         "typeIdentifier": "t_function_event_nonpayable$_t_address_$returns$__$",
                         "typeString": "function (address)"
                       }
                     },
-                    "id": 803,
+                    "id": 4883,
                     "isConstant": false,
                     "isLValue": false,
                     "isPure": false,
@@ -677,36 +677,36 @@
                     "lValueRequested": false,
                     "names": [],
                     "nodeType": "FunctionCall",
-                    "src": "1394:35:6",
+                    "src": "1394:35:12",
                     "typeDescriptions": {
                       "typeIdentifier": "t_tuple$__$",
                       "typeString": "tuple()"
                     }
                   },
-                  "id": 804,
+                  "id": 4884,
                   "nodeType": "EmitStatement",
-                  "src": "1389:40:6"
+                  "src": "1389:40:12"
                 }
               ]
             },
             "documentation": "@dev deploy\n     deploy new contract instance \n@param _logic the logic contract address\n@return address of the new instance",
-            "id": 806,
+            "id": 4886,
             "implemented": true,
             "kind": "function",
             "modifiers": [],
             "name": "deploy",
             "nodeType": "FunctionDefinition",
             "parameters": {
-              "id": 788,
+              "id": 4868,
               "nodeType": "ParameterList",
               "parameters": [
                 {
                   "constant": false,
-                  "id": 787,
+                  "id": 4867,
                   "name": "_logic",
                   "nodeType": "VariableDeclaration",
-                  "scope": 806,
-                  "src": "837:14:6",
+                  "scope": 4886,
+                  "src": "837:14:12",
                   "stateVariable": false,
                   "storageLocation": "default",
                   "typeDescriptions": {
@@ -714,10 +714,10 @@
                     "typeString": "address"
                   },
                   "typeName": {
-                    "id": 786,
+                    "id": 4866,
                     "name": "address",
                     "nodeType": "ElementaryTypeName",
-                    "src": "837:7:6",
+                    "src": "837:7:12",
                     "stateMutability": "nonpayable",
                     "typeDescriptions": {
                       "typeIdentifier": "t_address",
@@ -728,19 +728,19 @@
                   "visibility": "internal"
                 }
               ],
-              "src": "827:30:6"
+              "src": "827:30:12"
             },
             "returnParameters": {
-              "id": 791,
+              "id": 4871,
               "nodeType": "ParameterList",
               "parameters": [
                 {
                   "constant": false,
-                  "id": 790,
+                  "id": 4870,
                   "name": "instance",
                   "nodeType": "VariableDeclaration",
-                  "scope": 806,
-                  "src": "890:16:6",
+                  "scope": 4886,
+                  "src": "890:16:12",
                   "stateVariable": false,
                   "storageLocation": "default",
                   "typeDescriptions": {
@@ -748,10 +748,10 @@
                     "typeString": "address"
                   },
                   "typeName": {
-                    "id": 789,
+                    "id": 4869,
                     "name": "address",
                     "nodeType": "ElementaryTypeName",
-                    "src": "890:7:6",
+                    "src": "890:7:12",
                     "stateMutability": "nonpayable",
                     "typeDescriptions": {
                       "typeIdentifier": "t_address",
@@ -762,20 +762,20 @@
                   "visibility": "internal"
                 }
               ],
-              "src": "889:18:6"
+              "src": "889:18:12"
             },
-            "scope": 807,
-            "src": "812:624:6",
+            "scope": 4887,
+            "src": "812:624:12",
             "stateMutability": "nonpayable",
             "superFunction": null,
             "visibility": "internal"
           }
         ],
-        "scope": 808,
-        "src": "569:869:6"
+        "scope": 4888,
+        "src": "569:869:12"
       }
     ],
-    "src": "0:1438:6"
+    "src": "0:1438:12"
   },
   "compiler": {
     "name": "solc",
@@ -783,7 +783,7 @@
   },
   "networks": {},
   "schemaVersion": "3.2.0",
-  "updatedAt": "2020-06-10T09:10:21.600Z",
+  "updatedAt": "2020-07-20T09:48:45.043Z",
   "devdoc": {
     "author": "Ocean Protocol Team",
     "details": "Contract Deployer     This contract allowes factory contract      to deploy new contract instances using     the same library pattern in solidity.     the logic it self is deployed only once, but     executed in the context of the new storage      contract (new contract instance)",
