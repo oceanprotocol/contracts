@@ -212,7 +212,7 @@
         "id": 2,
         "nodeType": "ImportDirective",
         "scope": 162,
-        "sourceUnit": 4905,
+        "sourceUnit": 4888,
         "src": "186:30:0",
         "symbolAliases": [],
         "unitAlias": ""
@@ -223,7 +223,7 @@
         "id": 3,
         "nodeType": "ImportDirective",
         "scope": 162,
-        "sourceUnit": 4877,
+        "sourceUnit": 4860,
         "src": "217:31:0",
         "symbolAliases": [],
         "unitAlias": ""
@@ -234,7 +234,7 @@
         "id": 4,
         "nodeType": "ImportDirective",
         "scope": 162,
-        "sourceUnit": 4353,
+        "sourceUnit": 4336,
         "src": "249:41:0",
         "symbolAliases": [],
         "unitAlias": ""
@@ -248,10 +248,10 @@
               "id": 5,
               "name": "Deployer",
               "nodeType": "UserDefinedTypeName",
-              "referencedDeclaration": 4904,
+              "referencedDeclaration": 4887,
               "src": "675:8:0",
               "typeDescriptions": {
-                "typeIdentifier": "t_contract$_Deployer_$4904",
+                "typeIdentifier": "t_contract$_Deployer_$4887",
                 "typeString": "contract Deployer"
               }
             },
@@ -266,10 +266,10 @@
               "id": 7,
               "name": "Converter",
               "nodeType": "UserDefinedTypeName",
-              "referencedDeclaration": 4876,
+              "referencedDeclaration": 4859,
               "src": "685:9:0",
               "typeDescriptions": {
-                "typeIdentifier": "t_contract$_Converter_$4876",
+                "typeIdentifier": "t_contract$_Converter_$4859",
                 "typeString": "contract Converter"
               }
             },
@@ -279,8 +279,8 @@
           }
         ],
         "contractDependencies": [
-          4876,
-          4904
+          4859,
+          4887
         ],
         "contractKind": "contract",
         "documentation": "@title DTFactory contract\n@author Ocean Protocol Team\n* @dev Implementation of Ocean DataTokens Factory\n*      DTFactory deploys DataToken proxy contracts.\n     New DataToken proxy contracts are links to the template contract's bytecode. \n     Proxy contract functionality is based on Ocean Protocol custom implementation of ERC1167 standard.",
@@ -288,8 +288,8 @@
         "id": 161,
         "linearizedBaseContracts": [
           161,
-          4876,
-          4904
+          4859,
+          4887
         ],
         "name": "DTFactory",
         "nodeType": "ContractDefinition",
@@ -886,10 +886,10 @@
                       "name": "require",
                       "nodeType": "Identifier",
                       "overloadedDeclarations": [
-                        5610,
-                        5611
+                        5593,
+                        5594
                       ],
-                      "referencedDeclaration": 5611,
+                      "referencedDeclaration": 5594,
                       "src": "1687:7:0",
                       "typeDescriptions": {
                         "typeIdentifier": "t_function_require_pure$_t_bool_$_t_string_memory_ptr_$returns$__$",
@@ -1072,7 +1072,7 @@
                         "name": "deploy",
                         "nodeType": "Identifier",
                         "overloadedDeclarations": [],
-                        "referencedDeclaration": 4903,
+                        "referencedDeclaration": 4886,
                         "src": "2169:6:0",
                         "typeDescriptions": {
                           "typeIdentifier": "t_function_internal_nonpayable$_t_address_$returns$_t_address_$",
@@ -1229,10 +1229,10 @@
                       "name": "require",
                       "nodeType": "Identifier",
                       "overloadedDeclarations": [
-                        5610,
-                        5611
+                        5593,
+                        5594
                       ],
-                      "referencedDeclaration": 5611,
+                      "referencedDeclaration": 5594,
                       "src": "2209:7:0",
                       "typeDescriptions": {
                         "typeIdentifier": "t_function_require_pure$_t_bool_$_t_string_memory_ptr_$returns$__$",
@@ -1334,7 +1334,7 @@
                           "name": "uintToString",
                           "nodeType": "Identifier",
                           "overloadedDeclarations": [],
-                          "referencedDeclaration": 4857,
+                          "referencedDeclaration": 4840,
                           "src": "2437:12:0",
                           "typeDescriptions": {
                             "typeIdentifier": "t_function_internal_pure$_t_uint256_$returns$_t_string_memory_ptr_$",
@@ -1371,7 +1371,7 @@
                       "name": "concatenateStrings",
                       "nodeType": "Identifier",
                       "overloadedDeclarations": [],
-                      "referencedDeclaration": 4875,
+                      "referencedDeclaration": 4858,
                       "src": "2373:18:0",
                       "typeDescriptions": {
                         "typeIdentifier": "t_function_internal_pure$_t_string_memory_ptr_$_t_string_memory_ptr_$returns$_t_string_memory_ptr_$",
@@ -1459,7 +1459,7 @@
                       "stateVariable": false,
                       "storageLocation": "default",
                       "typeDescriptions": {
-                        "typeIdentifier": "t_contract$_IERC20Template_$4352",
+                        "typeIdentifier": "t_contract$_IERC20Template_$4335",
                         "typeString": "contract IERC20Template"
                       },
                       "typeName": {
@@ -1467,10 +1467,10 @@
                         "id": 97,
                         "name": "IERC20Template",
                         "nodeType": "UserDefinedTypeName",
-                        "referencedDeclaration": 4352,
+                        "referencedDeclaration": 4335,
                         "src": "2527:14:0",
                         "typeDescriptions": {
-                          "typeIdentifier": "t_contract$_IERC20Template_$4352",
+                          "typeIdentifier": "t_contract$_IERC20Template_$4335",
                           "typeString": "contract IERC20Template"
                         }
                       },
@@ -1507,10 +1507,10 @@
                       "name": "IERC20Template",
                       "nodeType": "Identifier",
                       "overloadedDeclarations": [],
-                      "referencedDeclaration": 4352,
+                      "referencedDeclaration": 4335,
                       "src": "2558:14:0",
                       "typeDescriptions": {
-                        "typeIdentifier": "t_type$_t_contract$_IERC20Template_$4352_$",
+                        "typeIdentifier": "t_type$_t_contract$_IERC20Template_$4335_$",
                         "typeString": "type(contract IERC20Template)"
                       }
                     },
@@ -1524,7 +1524,7 @@
                     "nodeType": "FunctionCall",
                     "src": "2558:21:0",
                     "typeDescriptions": {
-                      "typeIdentifier": "t_contract$_IERC20Template_$4352",
+                      "typeIdentifier": "t_contract$_IERC20Template_$4335",
                       "typeString": "contract IERC20Template"
                     }
                   },
@@ -1569,7 +1569,7 @@
                           "name": "msg",
                           "nodeType": "Identifier",
                           "overloadedDeclarations": [],
-                          "referencedDeclaration": 5607,
+                          "referencedDeclaration": 5590,
                           "src": "2665:3:0",
                           "typeDescriptions": {
                             "typeIdentifier": "t_magic_message",
@@ -1649,7 +1649,7 @@
                         "referencedDeclaration": 98,
                         "src": "2589:13:0",
                         "typeDescriptions": {
-                          "typeIdentifier": "t_contract$_IERC20Template_$4352",
+                          "typeIdentifier": "t_contract$_IERC20Template_$4335",
                           "typeString": "contract IERC20Template"
                         }
                       },
@@ -1660,7 +1660,7 @@
                       "lValueRequested": false,
                       "memberName": "initialize",
                       "nodeType": "MemberAccess",
-                      "referencedDeclaration": 4296,
+                      "referencedDeclaration": 4279,
                       "src": "2589:24:0",
                       "typeDescriptions": {
                         "typeIdentifier": "t_function_external_nonpayable$_t_string_memory_ptr_$_t_string_memory_ptr_$_t_address_$_t_uint256_$_t_string_memory_ptr_$returns$_t_bool_$",
@@ -1703,7 +1703,7 @@
                             "referencedDeclaration": 98,
                             "src": "2752:13:0",
                             "typeDescriptions": {
-                              "typeIdentifier": "t_contract$_IERC20Template_$4352",
+                              "typeIdentifier": "t_contract$_IERC20Template_$4335",
                               "typeString": "contract IERC20Template"
                             }
                           },
@@ -1714,7 +1714,7 @@
                           "lValueRequested": false,
                           "memberName": "isInitialized",
                           "nodeType": "MemberAccess",
-                          "referencedDeclaration": 4346,
+                          "referencedDeclaration": 4329,
                           "src": "2752:27:0",
                           "typeDescriptions": {
                             "typeIdentifier": "t_function_external_view$__$returns$_t_bool_$",
@@ -1769,10 +1769,10 @@
                       "name": "require",
                       "nodeType": "Identifier",
                       "overloadedDeclarations": [
-                        5610,
-                        5611
+                        5593,
+                        5594
                       ],
-                      "referencedDeclaration": 5611,
+                      "referencedDeclaration": 5594,
                       "src": "2731:7:0",
                       "typeDescriptions": {
                         "typeIdentifier": "t_function_require_pure$_t_bool_$_t_string_memory_ptr_$returns$__$",
@@ -1949,7 +1949,7 @@
                           "name": "msg",
                           "nodeType": "Identifier",
                           "overloadedDeclarations": [],
-                          "referencedDeclaration": 5607,
+                          "referencedDeclaration": 5590,
                           "src": "3075:3:0",
                           "typeDescriptions": {
                             "typeIdentifier": "t_magic_message",
@@ -1978,7 +1978,7 @@
                           "name": "block",
                           "nodeType": "Identifier",
                           "overloadedDeclarations": [],
-                          "referencedDeclaration": 5597,
+                          "referencedDeclaration": 5580,
                           "src": "3099:5:0",
                           "typeDescriptions": {
                             "typeIdentifier": "t_magic_block",
@@ -2399,7 +2399,7 @@
         "id": 2,
         "nodeType": "ImportDirective",
         "scope": 162,
-        "sourceUnit": 4905,
+        "sourceUnit": 4888,
         "src": "186:30:0",
         "symbolAliases": [],
         "unitAlias": ""
@@ -2410,7 +2410,7 @@
         "id": 3,
         "nodeType": "ImportDirective",
         "scope": 162,
-        "sourceUnit": 4877,
+        "sourceUnit": 4860,
         "src": "217:31:0",
         "symbolAliases": [],
         "unitAlias": ""
@@ -2421,7 +2421,7 @@
         "id": 4,
         "nodeType": "ImportDirective",
         "scope": 162,
-        "sourceUnit": 4353,
+        "sourceUnit": 4336,
         "src": "249:41:0",
         "symbolAliases": [],
         "unitAlias": ""
@@ -2435,10 +2435,10 @@
               "id": 5,
               "name": "Deployer",
               "nodeType": "UserDefinedTypeName",
-              "referencedDeclaration": 4904,
+              "referencedDeclaration": 4887,
               "src": "675:8:0",
               "typeDescriptions": {
-                "typeIdentifier": "t_contract$_Deployer_$4904",
+                "typeIdentifier": "t_contract$_Deployer_$4887",
                 "typeString": "contract Deployer"
               }
             },
@@ -2453,10 +2453,10 @@
               "id": 7,
               "name": "Converter",
               "nodeType": "UserDefinedTypeName",
-              "referencedDeclaration": 4876,
+              "referencedDeclaration": 4859,
               "src": "685:9:0",
               "typeDescriptions": {
-                "typeIdentifier": "t_contract$_Converter_$4876",
+                "typeIdentifier": "t_contract$_Converter_$4859",
                 "typeString": "contract Converter"
               }
             },
@@ -2466,8 +2466,8 @@
           }
         ],
         "contractDependencies": [
-          4876,
-          4904
+          4859,
+          4887
         ],
         "contractKind": "contract",
         "documentation": "@title DTFactory contract\n@author Ocean Protocol Team\n* @dev Implementation of Ocean DataTokens Factory\n*      DTFactory deploys DataToken proxy contracts.\n     New DataToken proxy contracts are links to the template contract's bytecode. \n     Proxy contract functionality is based on Ocean Protocol custom implementation of ERC1167 standard.",
@@ -2475,8 +2475,8 @@
         "id": 161,
         "linearizedBaseContracts": [
           161,
-          4876,
-          4904
+          4859,
+          4887
         ],
         "name": "DTFactory",
         "nodeType": "ContractDefinition",
@@ -3073,10 +3073,10 @@
                       "name": "require",
                       "nodeType": "Identifier",
                       "overloadedDeclarations": [
-                        5610,
-                        5611
+                        5593,
+                        5594
                       ],
-                      "referencedDeclaration": 5611,
+                      "referencedDeclaration": 5594,
                       "src": "1687:7:0",
                       "typeDescriptions": {
                         "typeIdentifier": "t_function_require_pure$_t_bool_$_t_string_memory_ptr_$returns$__$",
@@ -3259,7 +3259,7 @@
                         "name": "deploy",
                         "nodeType": "Identifier",
                         "overloadedDeclarations": [],
-                        "referencedDeclaration": 4903,
+                        "referencedDeclaration": 4886,
                         "src": "2169:6:0",
                         "typeDescriptions": {
                           "typeIdentifier": "t_function_internal_nonpayable$_t_address_$returns$_t_address_$",
@@ -3416,10 +3416,10 @@
                       "name": "require",
                       "nodeType": "Identifier",
                       "overloadedDeclarations": [
-                        5610,
-                        5611
+                        5593,
+                        5594
                       ],
-                      "referencedDeclaration": 5611,
+                      "referencedDeclaration": 5594,
                       "src": "2209:7:0",
                       "typeDescriptions": {
                         "typeIdentifier": "t_function_require_pure$_t_bool_$_t_string_memory_ptr_$returns$__$",
@@ -3521,7 +3521,7 @@
                           "name": "uintToString",
                           "nodeType": "Identifier",
                           "overloadedDeclarations": [],
-                          "referencedDeclaration": 4857,
+                          "referencedDeclaration": 4840,
                           "src": "2437:12:0",
                           "typeDescriptions": {
                             "typeIdentifier": "t_function_internal_pure$_t_uint256_$returns$_t_string_memory_ptr_$",
@@ -3558,7 +3558,7 @@
                       "name": "concatenateStrings",
                       "nodeType": "Identifier",
                       "overloadedDeclarations": [],
-                      "referencedDeclaration": 4875,
+                      "referencedDeclaration": 4858,
                       "src": "2373:18:0",
                       "typeDescriptions": {
                         "typeIdentifier": "t_function_internal_pure$_t_string_memory_ptr_$_t_string_memory_ptr_$returns$_t_string_memory_ptr_$",
@@ -3646,7 +3646,7 @@
                       "stateVariable": false,
                       "storageLocation": "default",
                       "typeDescriptions": {
-                        "typeIdentifier": "t_contract$_IERC20Template_$4352",
+                        "typeIdentifier": "t_contract$_IERC20Template_$4335",
                         "typeString": "contract IERC20Template"
                       },
                       "typeName": {
@@ -3654,10 +3654,10 @@
                         "id": 97,
                         "name": "IERC20Template",
                         "nodeType": "UserDefinedTypeName",
-                        "referencedDeclaration": 4352,
+                        "referencedDeclaration": 4335,
                         "src": "2527:14:0",
                         "typeDescriptions": {
-                          "typeIdentifier": "t_contract$_IERC20Template_$4352",
+                          "typeIdentifier": "t_contract$_IERC20Template_$4335",
                           "typeString": "contract IERC20Template"
                         }
                       },
@@ -3694,10 +3694,10 @@
                       "name": "IERC20Template",
                       "nodeType": "Identifier",
                       "overloadedDeclarations": [],
-                      "referencedDeclaration": 4352,
+                      "referencedDeclaration": 4335,
                       "src": "2558:14:0",
                       "typeDescriptions": {
-                        "typeIdentifier": "t_type$_t_contract$_IERC20Template_$4352_$",
+                        "typeIdentifier": "t_type$_t_contract$_IERC20Template_$4335_$",
                         "typeString": "type(contract IERC20Template)"
                       }
                     },
@@ -3711,7 +3711,7 @@
                     "nodeType": "FunctionCall",
                     "src": "2558:21:0",
                     "typeDescriptions": {
-                      "typeIdentifier": "t_contract$_IERC20Template_$4352",
+                      "typeIdentifier": "t_contract$_IERC20Template_$4335",
                       "typeString": "contract IERC20Template"
                     }
                   },
@@ -3756,7 +3756,7 @@
                           "name": "msg",
                           "nodeType": "Identifier",
                           "overloadedDeclarations": [],
-                          "referencedDeclaration": 5607,
+                          "referencedDeclaration": 5590,
                           "src": "2665:3:0",
                           "typeDescriptions": {
                             "typeIdentifier": "t_magic_message",
@@ -3836,7 +3836,7 @@
                         "referencedDeclaration": 98,
                         "src": "2589:13:0",
                         "typeDescriptions": {
-                          "typeIdentifier": "t_contract$_IERC20Template_$4352",
+                          "typeIdentifier": "t_contract$_IERC20Template_$4335",
                           "typeString": "contract IERC20Template"
                         }
                       },
@@ -3847,7 +3847,7 @@
                       "lValueRequested": false,
                       "memberName": "initialize",
                       "nodeType": "MemberAccess",
-                      "referencedDeclaration": 4296,
+                      "referencedDeclaration": 4279,
                       "src": "2589:24:0",
                       "typeDescriptions": {
                         "typeIdentifier": "t_function_external_nonpayable$_t_string_memory_ptr_$_t_string_memory_ptr_$_t_address_$_t_uint256_$_t_string_memory_ptr_$returns$_t_bool_$",
@@ -3890,7 +3890,7 @@
                             "referencedDeclaration": 98,
                             "src": "2752:13:0",
                             "typeDescriptions": {
-                              "typeIdentifier": "t_contract$_IERC20Template_$4352",
+                              "typeIdentifier": "t_contract$_IERC20Template_$4335",
                               "typeString": "contract IERC20Template"
                             }
                           },
@@ -3901,7 +3901,7 @@
                           "lValueRequested": false,
                           "memberName": "isInitialized",
                           "nodeType": "MemberAccess",
-                          "referencedDeclaration": 4346,
+                          "referencedDeclaration": 4329,
                           "src": "2752:27:0",
                           "typeDescriptions": {
                             "typeIdentifier": "t_function_external_view$__$returns$_t_bool_$",
@@ -3956,10 +3956,10 @@
                       "name": "require",
                       "nodeType": "Identifier",
                       "overloadedDeclarations": [
-                        5610,
-                        5611
+                        5593,
+                        5594
                       ],
-                      "referencedDeclaration": 5611,
+                      "referencedDeclaration": 5594,
                       "src": "2731:7:0",
                       "typeDescriptions": {
                         "typeIdentifier": "t_function_require_pure$_t_bool_$_t_string_memory_ptr_$returns$__$",
@@ -4136,7 +4136,7 @@
                           "name": "msg",
                           "nodeType": "Identifier",
                           "overloadedDeclarations": [],
-                          "referencedDeclaration": 5607,
+                          "referencedDeclaration": 5590,
                           "src": "3075:3:0",
                           "typeDescriptions": {
                             "typeIdentifier": "t_magic_message",
@@ -4165,7 +4165,7 @@
                           "name": "block",
                           "nodeType": "Identifier",
                           "overloadedDeclarations": [],
-                          "referencedDeclaration": 5597,
+                          "referencedDeclaration": 5580,
                           "src": "3099:5:0",
                           "typeDescriptions": {
                             "typeIdentifier": "t_magic_block",
@@ -4565,7 +4565,7 @@
   },
   "networks": {},
   "schemaVersion": "3.2.0",
-  "updatedAt": "2020-07-17T08:17:03.178Z",
+  "updatedAt": "2020-07-20T07:42:20.237Z",
   "devdoc": {
     "author": "Ocean Protocol Team",
     "details": "Implementation of Ocean DataTokens Factory *      DTFactory deploys DataToken proxy contracts.     New DataToken proxy contracts are links to the template contract's bytecode.      Proxy contract functionality is based on Ocean Protocol custom implementation of ERC1167 standard.",
