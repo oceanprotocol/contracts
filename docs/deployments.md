@@ -2,7 +2,7 @@
 
 ## Rinkeby 
 
-The latest contracts address for the latest deployment:
+The contracts addresses for the latest deployment:
 
 ```bash
    Deploying 'DataTokenTemplate'
