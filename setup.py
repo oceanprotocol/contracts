@@ -17,7 +17,7 @@ setup_requirements = []
 
 
 test_requirements = []
-artifact_folder = 'artifacts'
+artifact_folder = './artifacts/*'
 print("Adding all files in /{}".format(artifact_folder))
 data_files = [(artifact_folder, [f for f in glob(os.path.join(artifact_folder, '*'))])]
 
@@ -50,6 +50,6 @@ setup(
     test_suite='tests',
     tests_require=test_requirements,
     url='https://github.com/oceanprotocol/ocean-contracts',
-    version='0.3.0',
+    version='0.3.3',
     zip_safe=False,
 )
