@@ -17,7 +17,7 @@ setup_requirements = []
 
 
 test_requirements = []
-artifact_folder = 'artifacts'
+artifact_folder = './artifacts/*'
 print("Adding all files in /{}".format(artifact_folder))
 data_files = [(artifact_folder, [f for f in glob(os.path.join(artifact_folder, '*'))])]
 
