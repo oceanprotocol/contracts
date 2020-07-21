@@ -32,12 +32,12 @@ contract DTFactory is Deployer, Converter {
     );
     
     event TokenRegistered(
-        address tokenAddress,
+        address indexed tokenAddress,
         string tokenName,
         string tokenSymbol,
         uint256 tokenCap,
         address indexed registeredBy,
-        uint256 indexed registeredAt,
+        uint256 registeredAt,
         string indexed blob
     );
     
