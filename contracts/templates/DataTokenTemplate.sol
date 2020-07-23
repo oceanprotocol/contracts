@@ -175,6 +175,14 @@ contract DataTokenTemplate is IERC20Template, ERC20Pausable {
         _mint(account, value);
     }
 
+    /**
+     * @dev startOrder
+     *      called by consumer prior ordering a service consume on a marketplace
+     * @param receiver refers to an address that provide a service.
+     * @param amount refers to amount of tokens that is going to be transfered.
+     * @param did refers to DID or decentralized identifier for an asset
+     * @param serviceId service index in the DID
+     */
     function startOrder(
         address receiver, 
         uint256 amount,
@@ -197,6 +205,17 @@ contract DataTokenTemplate is IERC20Template, ERC20Pausable {
         );
     }
 
+    /**
+     * @dev finishOrder
+     *      called by provider prior completing service delivery only
+     *      if there is a partial or full refund.
+     * @param orderTxId refers to the transaction Id  of startOrder acts 
+     *                  as a payment reference.
+     * @param consumer refers to an address that has consumed that service.
+     * @param amount refers to amount of tokens that is going to be transfered.
+     * @param did refers to DID or decentralized identifier for an asset.
+     * @param serviceId service index in the DID.
+     */
     function finishOrder(
         bytes32 orderTxId, 
         address consumer, 
