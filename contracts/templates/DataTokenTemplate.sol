@@ -23,6 +23,24 @@ contract DataTokenTemplate is IERC20Template, ERC20Pausable {
     uint256 private _decimals;
     address private _minter;
     
+
+    event StartOrder(
+            uint256 amount, 
+            bytes32 did, 
+            uint256 serviceId, 
+            address receiver, 
+            uint256 startedAt
+    );
+
+    event FinishOrder(
+            bytes32 orderTxId, 
+            address consumer, 
+            uint256 amount, 
+            bytes32 did, 
+            uint256 serviceId, 
+            address provider
+    );
+
     modifier onlyNotInitialized() {
         require(
             !initialized,
@@ -145,16 +163,63 @@ contract DataTokenTemplate is IERC20Template, ERC20Pausable {
         address account,
         uint256 value
     ) 
-    public 
-    payable 
-    onlyNotPaused 
-    onlyMinter 
+        public 
+        payable 
+        onlyNotPaused 
+        onlyMinter 
     {
         require(
             totalSupply().add(value) <= _cap, 
             'DataTokenTemplate: cap exceeded'
         );
         _mint(account, value);
+    }
+
+    function startOrder(
+        address receiver, 
+        uint256 amount,
+        bytes32 did, 
+        uint256 serviceId
+    )
+        public
+    {
+        require(
+            transfer(receiver, amount),
+            'DataTokenTemplate: failed to start order'
+        );
+
+        emit StartOrder(
+            amount, 
+            did, 
+            serviceId, 
+            receiver, 
+            block.number
+        );
+    }
+
+    function finishOrder(
+        bytes32 orderTxId, 
+        address consumer, 
+        uint256 amount,
+        bytes32 did, 
+        uint256 serviceId
+    )
+        public
+    {
+        if ( amount > 0 )  
+            require(
+                transfer(consumer, amount),
+                'DataTokenTemplate: failed to finish order'
+            );
+
+        emit FinishOrder(
+            orderTxId, 
+            consumer, 
+            amount, 
+            did, 
+            serviceId, 
+            msg.sender
+        );
     }
 
     /**
