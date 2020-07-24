@@ -23,6 +23,11 @@ contract FPLPTemplate {
         _;
     }
 
+    modifier onlyInitialized() {
+        require(initialized, 'FPLPTemplate: contract is not initialized');
+        _;
+    }
+
     /**
      * @dev constructor
      *      Called on contract deployment.  Could not be called with zero address parameters or zero ratio
@@ -94,7 +99,7 @@ contract FPLPTemplate {
      * @param dtAmount amount of DataTokens to be bought
      * @return true
      */
-    function buyDataTokens(uint256 dtAmount) public returns (bool) {
+    function buyDataTokens(uint256 dtAmount) public onlyInitialized returns (bool) {
         //TO DO - This assumes that ratio is going to be always expressed in wei
         uint256 baseAmount = dtAmount * (_ratio / (10**18));
         //TO DO  - should we check the reserve first or just let it fail if there is not enough DT ?
@@ -118,7 +123,7 @@ contract FPLPTemplate {
      *      Gets Ratio
      * @return uint ratio
      */
-    function getRatio() public view returns (uint256) {
+    function getRatio() public view onlyInitialized returns (uint256) {
         return (_ratio);
     }
 
@@ -127,7 +132,7 @@ contract FPLPTemplate {
      *      Gets tokens addresses
      * @return address[] tokens
      */
-    function getTokens() public view returns (address[] memory) {
+    function getTokens() public view onlyInitialized returns (address[] memory) {
         address[] memory tokens = new address[](2);
         tokens[0] = _basetoken;
         tokens[1] = _datatoken;
@@ -139,7 +144,7 @@ contract FPLPTemplate {
      *      Gets amount of DT available to trade
      * @return uint amount of DT
      */
-    function getDTReserve() public view returns (uint256) {
+    function getDTReserve() public view onlyInitialized returns (uint256) {
         //get both balance & allowence and return the smaller one
         uint256 balance = IERC20Template(_datatoken).balanceOf(_lpAddress);
         uint256 allowance = IERC20Template(_datatoken).allowance(
