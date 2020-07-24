@@ -8,6 +8,15 @@ const testUtils = require('../helpers/utils')
 const truffleAssert = require('truffle-assertions')
 const BigNumber = require('bn.js')
 
+/* FLow:
+   1. Alice creates datatoken
+   2. Bob creates basetoken
+   3. Alice creates FPLP between datatoken and basetoken, ratio = 1
+   4. Alice mints tokens
+   5. Alice approves FPLP to spend datatokens from her wallet
+   6. Bob mints basetokens
+   7. Bob buys datatokens using it's own basetokens (through the FPLP contract)
+   */
 contract('FPLPTemplate', async (accounts) => {
     let cap,
         factory,
@@ -42,6 +51,7 @@ contract('FPLPTemplate', async (accounts) => {
         tokenAddress = TokenCreatedEventArgs.newTokenAddress
         console.log(tokenAddress)
         basetoken = await Token.at(tokenAddress)
+
         trxReceipt = await factory.createToken(blob, {
             from: alice
         })
