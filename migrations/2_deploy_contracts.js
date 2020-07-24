@@ -1,6 +1,7 @@
 /* eslint-env mocha */
 /* global artifacts */
 var DataTokenTemplate = artifacts.require('./DataTokenTemplate.sol')
+var FPLPTemplate = artifacts.require('./FPLPTemplate.sol')
 var DTFactory = artifacts.require('./DTFactory.sol')
 var SPool = artifacts.require('./SPool.sol')
 var SFactory = artifacts.require('./SFactory.sol')
@@ -16,8 +17,16 @@ module.exports = function(deployer, network, accounts) {
             'http://oceanprotocol.com'
         )
         await deployer.deploy(
+            FPLPTemplate,
+            accounts[0],
+            accounts[1],
+            accounts[2],
+            1
+        )
+        await deployer.deploy(
             DTFactory,
-            DataTokenTemplate.address
+            DataTokenTemplate.address,
+            FPLPTemplate.address
         )
         await deployer.deploy(
             SPool
