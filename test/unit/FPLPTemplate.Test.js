@@ -38,10 +38,8 @@ contract('FPLPTemplate', async (accounts) => {
         bob = accounts[1]
         cap = new BigNumber(web3.utils.toWei('1400000000'))
         template = await Template.new('Template', 'TEMPLATE', alice, cap, blob)
-        basetoken = '0x985dd3d42de1e256d09e1c10f112bccb8015ad41'
-        datatoken = '0x6b175474e89094c44da98b954eedeac495271d0f'
         ratio = web3.utils.toWei('1')
-        fplpTemplate = await FPLPTemplate.new(alice, basetoken, datatoken, ratio)
+        fplpTemplate = await FPLPTemplate.new(alice, '0x985dd3d42de1e256d09e1c10f112bccb8015ad41', '0x6b175474e89094c44da98b954eedeac495271d0f', ratio)
         factory = await DTFactory.new(template.address, fplpTemplate.address)
         // Bob creates basetokens
         let trxReceipt = await factory.createToken(blob, {
