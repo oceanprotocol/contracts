@@ -4,6 +4,7 @@ var DataTokenTemplate = artifacts.require('./DataTokenTemplate.sol')
 var DTFactory = artifacts.require('./DTFactory.sol')
 var SPool = artifacts.require('./SPool.sol')
 var SFactory = artifacts.require('./SFactory.sol')
+var DDO = artifacts.require('./DDO.sol')
 
 module.exports = function(deployer, network, accounts) {
     deployer.then(async () => {
@@ -26,6 +27,10 @@ module.exports = function(deployer, network, accounts) {
         await deployer.deploy(
             SFactory,
             SPool.address
+        )
+
+        await deployer.deploy(
+            DDO
         )
     })
 }
