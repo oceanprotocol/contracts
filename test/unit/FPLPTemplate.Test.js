@@ -16,6 +16,8 @@ const BigNumber = require('bn.js')
    5. Alice approves FPLP to spend datatokens from her wallet
    6. Bob mints basetokens
    7. Bob buys datatokens using it's own basetokens (through the FPLP contract)
+   8. Alice changes the exchange rate to 2
+   9. Bob buys datatokens with the new ex rate using it's own basetokens (through the FPLP contract)
    */
 contract('FPLPTemplate', async (accounts) => {
     let cap,
@@ -104,10 +106,25 @@ contract('FPLPTemplate', async (accounts) => {
 
     it('Bob should have 1 DT in his wallet', async () => {
         const balance = await datatoken.balanceOf(bob)
-        truffleAssert.passes(balance > 0)
+        truffleAssert.passes(balance === 1)
     })
     it('Alice should have 1 basetoken in her wallet', async () => {
         const balance = await basetoken.balanceOf(alice)
-        truffleAssert.passes(balance > 0)
+        truffleAssert.passes(balance === 1)
+    })
+    it('Alice should change the ratio using the FPLP contract', async () => {
+        truffleAssert.passes(await fplp.setRatio(web3.utils.toWei('2'), { from: alice }))
+    })
+    it('Bob should buy DataTokens using the FPLP contract', async () => {
+        truffleAssert.passes(await fplp.buyDataTokens(web3.utils.toWei('1'), { from: bob }))
+    })
+
+    it('Bob should have 2 more DT in his wallet', async () => {
+        const balance = await datatoken.balanceOf(bob)
+        truffleAssert.passes(balance === 2)
+    })
+    it('Alice should have 2 more basetoken in her wallet', async () => {
+        const balance = await basetoken.balanceOf(alice)
+        truffleAssert.passes(balance === 3)
     })
 })

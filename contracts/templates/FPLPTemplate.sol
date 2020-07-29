@@ -27,6 +27,18 @@ contract FPLPTemplate {
         require(initialized, 'FPLPTemplate: contract is not initialized');
         _;
     }
+    modifier onlyOwner() {
+        require(
+            msg.sender == _lpAddress,
+            'FPLPTemplate: invalid owner' 
+        );
+        _;
+    }
+
+    event RatioChanged(
+        uint256 oldRatio,
+        uint256 newRatio
+    );
 
     /**
      * @dev constructor
@@ -99,7 +111,8 @@ contract FPLPTemplate {
      * @param dtAmount amount of DataTokens to be bought
      * @return true
      */
-    function buyDataTokens(uint256 dtAmount) public onlyInitialized returns (bool) {
+    function buyDataTokens(uint256 dtAmount) public 
+    onlyInitialized returns (bool) {
         //TO DO - This assumes that ratio is going to be always expressed in wei
         uint256 baseAmount = dtAmount * (_ratio / (10**18));
         //TO DO  - should we check the reserve first or just let it fail if there is not enough DT ?
@@ -128,11 +141,27 @@ contract FPLPTemplate {
     }
 
     /**
+     * @dev SetRatio
+     *      Sets a new Ratio
+     * @return uint ratio
+     */
+    function setRatio(uint ratio) public 
+    onlyOwner onlyInitialized returns (bool) {
+        require(ratio>0,'Ratio must be >0');
+        uint oldratio = _ratio;
+        _ratio = ratio;
+        emit RatioChanged(oldratio,ratio);
+        return true;
+
+    }
+
+    /**
      * @dev getTokens
      *      Gets tokens addresses
      * @return address[] tokens
      */
-    function getTokens() public view onlyInitialized returns (address[] memory) {
+    function getTokens() public view 
+    onlyInitialized returns (address[] memory) {
         address[] memory tokens = new address[](2);
         tokens[0] = _basetoken;
         tokens[1] = _datatoken;
