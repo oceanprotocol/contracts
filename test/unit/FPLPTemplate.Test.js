@@ -101,6 +101,7 @@ contract('FPLPTemplate', async (accounts) => {
     })
 
     it('Bob should buy DataTokens using the FPLP contract', async () => {
+        truffleAssert.passes(await basetoken.approve(fplpAddress, 1, { from: bob }))
         truffleAssert.passes(await fplp.buyDataTokens(web3.utils.toWei('1'), { from: bob }))
     })
 
@@ -116,6 +117,7 @@ contract('FPLPTemplate', async (accounts) => {
         truffleAssert.passes(await fplp.setRatio(web3.utils.toWei('2'), { from: alice }))
     })
     it('Bob should buy DataTokens using the FPLP contract', async () => {
+        truffleAssert.passes(await basetoken.approve(fplpAddress, 1, { from: bob }))
         truffleAssert.passes(await fplp.buyDataTokens(web3.utils.toWei('1'), { from: bob }))
     })
 

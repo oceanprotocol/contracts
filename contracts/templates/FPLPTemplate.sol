@@ -117,8 +117,12 @@ contract FPLPTemplate {
         uint256 baseAmount = dtAmount * (_ratio / (10**18));
         //TO DO  - should we check the reserve first or just let it fail if there is not enough DT ?
         require(
-            IERC20Template(_basetoken).transfer(_lpAddress, baseAmount),
-            'ERROR: transfer failed'
+            IERC20Template(_basetoken).transferFrom(
+                msg.sender,
+                _lpAddress,
+                baseAmount
+            ),
+            'ERROR: transferFrom failed'
         );
         require(
             IERC20Template(_datatoken).transferFrom(
