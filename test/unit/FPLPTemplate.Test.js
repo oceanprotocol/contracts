@@ -49,7 +49,6 @@ contract('FPLPTemplate', async (accounts) => {
         })
         let TokenCreatedEventArgs = testUtils.getEventArgsFromTx(trxReceipt, 'TokenCreated')
         tokenAddress = TokenCreatedEventArgs.newTokenAddress
-        console.log(tokenAddress)
         basetoken = await Token.at(tokenAddress)
         // ALice creates datatokens
         trxReceipt = await factory.createToken(blob, {
@@ -57,13 +56,11 @@ contract('FPLPTemplate', async (accounts) => {
         })
         TokenCreatedEventArgs = testUtils.getEventArgsFromTx(trxReceipt, 'TokenCreated')
         tokenAddress = TokenCreatedEventArgs.newTokenAddress
-        console.log(tokenAddress)
         datatoken = await Token.at(tokenAddress)
         // Alice creates FPLP
         trxReceipt = await factory.createFPLP(alice, basetoken, datatoken, ratio, { from: alice })
         TokenCreatedEventArgs = testUtils.getEventArgsFromTx(trxReceipt, 'FPLPCreated')
         fplpAddress = TokenCreatedEventArgs.FPLPAddress
-        console.log(fplpAddress)
         fplp = await FPLPTemplate.at(fplpAddress)
     })
 
