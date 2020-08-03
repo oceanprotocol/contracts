@@ -6,7 +6,6 @@ pragma solidity ^0.5.7;
 import './utils/Deployer.sol';
 import './utils/Converter.sol';
 import './interfaces/IERC20Template.sol';
-import './interfaces/IFPLP.sol';
 
 /**
  * @title DTFactory contract
@@ -20,7 +19,6 @@ import './interfaces/IFPLP.sol';
  */
 contract DTFactory is Deployer, Converter {
     address private tokenTemplate;
-    address private fplpTemplate;
 
     uint256 private currentTokenCount = 1;
     // cap has max uint256 (2^256 -1)
@@ -44,25 +42,17 @@ contract DTFactory is Deployer, Converter {
         string indexed blob
     );
 
-    event FPLPCreated(
-        address indexed FPLPAddress,
-        address indexed basetoken,
-        address indexed datatoken,
-        uint256 ratio
-    );
-
     /**
      * @dev constructor
      *      Called on contract deployment. Could not be called with zero address parameters.
      * @param _template refers to the address of a deployed DataToken contract.
      */
-    constructor(address _template, address _fplp) public {
+    constructor(address _template) public {
         require(
-            _template != address(0) && _fplp != address(0),
+            _template != address(0),
             'DTFactory: Invalid token factory initialization'
         );
         tokenTemplate = _template;
-        fplpTemplate = _fplp;
     }
 
     /**
@@ -121,52 +111,5 @@ contract DTFactory is Deployer, Converter {
      */
     function getTokenTemplate() external view returns (address) {
         return tokenTemplate;
-    }
-
-    /**
-     * @dev Deploys new FPLP proxy contract.
-     * @param _lpAddress address that is providing liquidity (usually datatoken minter)
-     * @param _basetoken base token address
-     * @param _datatoken data token address
-     * @param _ratio exchange rate (IE: How many basetokens are required to get a DataToken)
-     * @return address of a new proxy DataToken contract
-     */
-    function createFPLP(
-        address _lpAddress,
-        address _basetoken,
-        address _datatoken,
-        uint256 _ratio
-    ) public returns (address FPLPAddress) {
-        require(_lpAddress != address(0), 'Factory: Invalid LP,  zero address');
-        require(
-            _basetoken != address(0),
-            'Factory: Invalid basetoken,  zero address'
-        );
-        require(
-            _datatoken != address(0),
-            'Factory: Invalid datatoken,  zero address'
-        );
-        require(
-            _basetoken != _datatoken,
-            'Factory: Invalid datatoken,  equals basetoken'
-        );
-        require(_ratio > 0, 'Factory: Invalid ratio value');
-
-        FPLPAddress = deploy(fplpTemplate);
-
-        require(
-            FPLPAddress != address(0),
-            'Factory: Failed to perform minimal deploy of a new FPLP'
-        );
-
-        IFPLP fplpInstance = IFPLP(FPLPAddress);
-        fplpInstance.initialize(_lpAddress, _basetoken, _datatoken, _ratio);
-
-        require(
-            fplpInstance.isInitialized(),
-            'Factory: Unable to initialize fplp instance'
-        );
-
-        emit FPLPCreated(FPLPAddress, _basetoken, _datatoken, _ratio);
     }
 }
