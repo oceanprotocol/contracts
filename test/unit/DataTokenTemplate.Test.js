@@ -6,7 +6,6 @@ const chaiAsPromised = require('chai-as-promised')
 chai.use(chaiAsPromised)
 
 const Template = artifacts.require('DataTokenTemplate')
-const FPLPTemplate = artifacts.require('FPLPTemplate')
 const DTFactory = artifacts.require('DTFactory')
 const Token = artifacts.require('DataTokenTemplate')
 const testUtils = require('../helpers/utils')
@@ -26,11 +25,7 @@ contract('DataTokenTemplate', async (accounts) => {
         minter,
         newMinter,
         reciever,
-        blob,
-        fplp,
-        basetoken,
-        datatoken,
-        ratio
+        blob
 
     beforeEach('init contracts for each test', async () => {
         blob = 'https://example.com/dataset-1'
@@ -40,11 +35,7 @@ contract('DataTokenTemplate', async (accounts) => {
         newMinter = accounts[2]
         cap = new BigNumber('1400000000')
         template = await Template.new('Template', 'TEMPLATE', minter, cap, blob)
-        basetoken = '0x985dd3d42de1e256d09e1c10f112bccb8015ad41'
-        datatoken = '0x6b175474e89094c44da98b954eedeac495271d0f'
-        ratio = 1
-        fplp = await FPLPTemplate.new(minter, basetoken, datatoken, ratio)
-        factory = await DTFactory.new(template.address, fplp.address)
+        factory = await DTFactory.new(template.address)
         blob = 'https://example.com/dataset-1'
         const trxReceipt = await factory.createToken(blob)
         const TokenCreatedEventArgs = testUtils.getEventArgsFromTx(trxReceipt, 'TokenCreated')
