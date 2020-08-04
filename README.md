@@ -7,7 +7,8 @@
 
 This is in alpha state and you can expect running into problems. If you run into them, please open up a [new issue](/issues).
 
-![image](https://user-images.githubusercontent.com/5428661/89300994-58ec1b00-d669-11ea-9044-09dfd4ef0c47.png)
+![image](https://user-images.githubusercontent.com/5428661/89301434-f7787c00-d669-11ea-90f3-1b9b907f4d1c.png)
+
 
 ## Table of Contents
 
