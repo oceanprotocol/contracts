@@ -14,67 +14,82 @@ contract FixedRateExchange is Ownable {
 
     struct FixedRatePool {
         address poolOwner;
+        address dataToken;
         address baseToken;
         uint256 fixedRate;
     }
 
-    // map a dataToken to a fixedRatePool
-    mapping(address => FixedRatePool) fixedRatePools;
+    // map a poolId to a fixedRatePool
+    mapping(bytes32 => FixedRatePool) fixedRatePools;
 
-    // /**
-    //  * @dev constructor
-    //  *      Called on contract deployment.  Could not be called with zero address parameters or zero ratio
-    //  * @param lpAddress address that is providing liquidity (usually datatoken minter)
-    //  * @param basetoken base token (IE: Ocean)
-    //  * @param datatoken DataToken address
-    //  * @param ratio exchange rate (IE: How many basetokens are required to get a DataToken)
-    //  */
-    // constructor(
-    //     address lpAddress,
-    //     address basetoken,
-    //     address datatoken,
-    //     uint256 ratio
-    // ) public {
-    //     _initialize(lpAddress, basetoken, datatoken, ratio);
-    // }
+    modifier onlyNotExistPool(
+        address dataTokenAddress,
+        address baseTokenAddress
+    )
+    {
+        bytes32 _id = keccak256(
+            abi.encodePacked(
+                dataTokenAddress,
+                baseTokenAddress
+            )
+        );
+        require(
+            fixedRatePools[_id].fixedRate == 0,
+            'FixedRateExchange: Pool already exists!'
+        );
+        _;
+    }
 
-    // function initialize(
-    //     address lpAddress,
-    //     address basetoken,
-    //     address datatoken,
-    //     uint256 ratio
-    // ) public onlyNotInitialized returns (bool) {
-    //     return _initialize(lpAddress, basetoken, datatoken, ratio);
-    // }
 
-    // function _initialize(
-    //     address lpAddress,
-    //     address basetoken,
-    //     address datatoken,
-    //     uint256 ratio
-    // ) private onlyNotInitialized returns (bool) {
-    //     require(
-    //         lpAddress != address(0),
-    //         'FPLPTemplate: Invalid LP,  zero address'
-    //     );
-    //     require(
-    //         basetoken != address(0),
-    //         'FPLPTemplate: Invalid basetoken,  zero address'
-    //     );
-    //     require(
-    //         datatoken != address(0),
-    //         'FPLPTemplate: Invalid datatoken,  zero address'
-    //     );
-    //     require(
-    //         basetoken != datatoken,
-    //         'PLPTemplate: Invalid datatoken,  equals basetoken'
-    //     );
-    //     require(ratio > 0, 'FPLPTemplate: Invalid ratio value');
-    //     _lpAddress = lpAddress;
-    //     _basetoken = basetoken;
-    //     _datatoken = datatoken;
-    //     _ratio = ratio;
-    // }
+    constructor() 
+        public
+        Ownable()
+    {
+    }
+
+
+    function createPool(
+        address dataTokenAddress,
+        address baseTokenAddress,
+        uint256 fixedRate
+    )
+        public
+        onlyNotExistPool(
+            dataTokenAddress,
+            baseTokenAddress
+        )
+    {
+        require(
+            baseTokenAddress != address(0),
+            'FixedRateExchange: Invalid basetoken,  zero address'
+        );
+        require(
+            dataTokenAddress != address(0),
+            'FixedRateExchange: Invalid datatoken,  zero address'
+        );
+        require(
+            baseTokenAddress != dataTokenAddress,
+            'FixedRateExchange: Invalid datatoken,  equals basetoken'
+        );
+        require(
+            fixedRate > 0, 
+            'FixedRateExchange: Invalid exchange rate value'
+        );
+
+        bytes32 _id = keccak256(
+            abi.encodePacked(
+                dataTokenAddress,
+                baseTokenAddress
+            )
+        );
+
+        fixedRatePools[_id] = FixedRatePool({
+            poolOwner: msg.sender,
+            dataToken: dataTokenAddress,
+            baseToken: baseTokenAddress,
+            fixedRate: fixedRate
+        });
+    }
 
     // /**
     //  * @dev isInitialized
