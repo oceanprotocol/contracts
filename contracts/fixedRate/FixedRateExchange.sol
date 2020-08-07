@@ -149,6 +149,7 @@ contract FixedRateExchange {
         address dataToken
     )
         public
+        pure
         returns (bytes32)
     {
         return keccak256(
