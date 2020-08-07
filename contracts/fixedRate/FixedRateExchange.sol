@@ -78,11 +78,11 @@ contract FixedRateExchange {
         uint256 timestamp
     );
 
-    event Swaped(
+    event Swapped(
         bytes32 indexed poolId,
         address indexed by,
-        uint256 baseTokenSwapedAmount,
-        uint256 dataTokenSwapedamount
+        uint256 baseTokenSwappedAmount,
+        uint256 dataTokenSwappedamount
     );
 
 
@@ -192,7 +192,7 @@ contract FixedRateExchange {
             'FixedRateExchange: transferFrom failed in the dataToken contract'
         );
 
-        emit Swaped(
+        emit Swapped(
             id,
             msg.sender,
             baseTokenAmount,
