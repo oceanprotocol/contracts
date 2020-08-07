@@ -4,12 +4,14 @@ pragma solidity ^0.5.7;
 // Code is Apache-2.0 and docs are CC-BY-4.0
 
 import '../interfaces/IERC20Template.sol';
+import 'openzeppelin-solidity/contracts/math/SafeMath.sol';
 
 /**
  * @title FixedRateExchange
  * @dev FixedRateExchange is a fixed rate exchange Contract
  */
 contract FixedRateExchange {
+    using SafeMath for uint256;
 
     struct FixedRatePool {
         address poolOwner;
@@ -54,7 +56,7 @@ contract FixedRateExchange {
         address indexed poolOwner,
         address indexed baseToken,
         address indexed dataToken,
-        uint fixedRate
+        uint256 fixedRate
     );
 
     event RateChanged(
@@ -149,7 +151,7 @@ contract FixedRateExchange {
     function swap(
         address baseToken,
         address dataToken,
-        uint dataTokenAmount
+        uint256 dataTokenAmount
     )
         external
         onlyExistPool(
@@ -161,10 +163,8 @@ contract FixedRateExchange {
             baseToken,
             dataToken
         );
-        // TODO: use safeMath for the multiplication
-        // avoid integer overflow.
         uint256 baseTokenAmount = 
-            dataTokenAmount * fixedRatePools[id].fixedRate ;
+            dataTokenAmount.mul(fixedRatePools[id].fixedRate) ;
         require(
             IERC20Template(baseToken).transfer(
                 fixedRatePools[id].poolOwner, 
@@ -276,4 +276,6 @@ contract FixedRateExchange {
         fixedRate = fixedRatePools[poolId].fixedRate;
         enabled = fixedRatePools[poolId].enabled;
     }
+
+
 }
