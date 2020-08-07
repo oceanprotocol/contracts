@@ -175,7 +175,7 @@ contract FixedRateExchange {
             dataToken
         );
         uint256 baseTokenAmount = 
-            dataTokenAmount.mul(fixedRatePools[id].fixedRate) ;
+            dataTokenAmount.mul(fixedRatePools[id].fixedRate).div(10 ** 18);
         require(
             IERC20Template(baseToken).transfer(
                 fixedRatePools[id].poolOwner, 
