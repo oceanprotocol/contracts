@@ -16,6 +16,7 @@ contract FixedRateExchange {
         address dataToken;
         address baseToken;
         uint256 fixedRate;
+        bool enabled;
     }
 
     // map a poolId to a fixedRatePool
@@ -27,13 +28,24 @@ contract FixedRateExchange {
         address dataToken
     )
     {
-        bytes32 id = getPoolId(
+        bytes32 id = generatePoolId(
             baseToken,
             dataToken
         );
         require(
             fixedRatePools[id].fixedRate != 0,
             'FixedRateExchange: Pool does not exist!'
+        );
+        _;
+    }
+
+    modifier onlyPoolOwner(
+        bytes32 poolId
+    )
+    {
+        require(
+            fixedRatePools[poolId].poolOwner == msg.sender,
+            'FixedRateExchange: invalid pool owner'
         );
         _;
     }
@@ -45,6 +57,11 @@ contract FixedRateExchange {
         uint fixedRate
     );
 
+    event RateChanged(
+        bytes32 indexed poolId,
+        address indexed poolOwner,
+        uint256 newRate
+    );
 
     event Swaped(
         bytes32 indexed poolId,
@@ -71,7 +88,7 @@ contract FixedRateExchange {
     )
         external
     {
-        bytes32 id = getPoolId(
+        bytes32 id = generatePoolId(
             baseToken,
             dataToken
         );
@@ -101,7 +118,8 @@ contract FixedRateExchange {
             poolOwner: msg.sender,
             dataToken: dataToken,
             baseToken: baseToken,
-            fixedRate: fixedRate
+            fixedRate: fixedRate,
+            enabled: true
         });
         poolIds.push(id);
 
@@ -113,7 +131,7 @@ contract FixedRateExchange {
         );
     }
 
-    function getPoolId(
+    function generatePoolId(
         address baseToken,
         address dataToken
     )
@@ -139,10 +157,12 @@ contract FixedRateExchange {
             dataToken
         )
     {
-        bytes32 id = getPoolId(
+        bytes32 id = generatePoolId(
             baseToken,
             dataToken
         );
+        // TODO: use safeMath for the multiplication
+        // avoid integer overflow.
         uint256 baseTokenAmount = 
             dataTokenAmount * fixedRatePools[id].fixedRate ;
         require(
@@ -177,7 +197,63 @@ contract FixedRateExchange {
         return poolIds.length;
     }
 
-    // TODO: 
-    // set rate
-    // get rate
+    function setRate(
+        bytes32 poolId,
+        uint256 newRate
+    )
+        external
+        onlyPoolOwner(poolId)
+    {
+        require(
+            newRate >0,
+            'FixedRateExchange: Ratio must be >0'
+        );
+
+        fixedRatePools[poolId].fixedRate = newRate;
+        emit RateChanged(
+            poolId,
+            msg.sender,
+            newRate
+        );
+    }
+
+    function disablePool(
+        bytes32 poolId
+    )
+        external
+        onlyPoolOwner(poolId)
+    {
+        fixedRatePools[poolId].enabled = false;
+    }
+
+    
+    function getRate(
+        bytes32 poolId
+    )
+        external
+        view
+        returns(uint256)
+    {
+        return fixedRatePools[poolId].fixedRate;
+    }
+
+    function getPool(
+        bytes32 poolId
+    )
+        external
+        view
+        returns (
+            address poolOwner,
+            address dataToken,
+            address baseToken,
+            uint256 fixedRate,
+            bool enabled
+        )
+    {
+        poolOwner = fixedRatePools[poolId].poolOwner;
+        dataToken = fixedRatePools[poolId].dataToken;
+        baseToken = fixedRatePools[poolId].baseToken;
+        fixedRate = fixedRatePools[poolId].fixedRate;
+        enabled = fixedRatePools[poolId].enabled;
+    }
 }
