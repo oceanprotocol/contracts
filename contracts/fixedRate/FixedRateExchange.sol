@@ -197,7 +197,7 @@ contract FixedRateExchange {
         return poolIds.length;
     }
 
-    function setRate(
+    function setPoolRate(
         bytes32 poolId,
         uint256 newRate
     )
@@ -217,17 +217,37 @@ contract FixedRateExchange {
         );
     }
 
+
+    function enablePool(
+        bytes32 poolId
+    )
+        external
+        onlyPoolOwner(poolId)
+    {
+        require(
+            fixedRatePools[poolId].enabled == false,
+            'FixedRateExchange: pool is already enabled'
+        );
+
+        fixedRatePools[poolId].enabled = true;
+    }
+
     function disablePool(
         bytes32 poolId
     )
         external
         onlyPoolOwner(poolId)
     {
+        require(
+            fixedRatePools[poolId].enabled == true,
+            'FixedRateExchange: pool is already disabled'
+        );
+
         fixedRatePools[poolId].enabled = false;
     }
 
     
-    function getRate(
+    function getPoolRate(
         bytes32 poolId
     )
         external
