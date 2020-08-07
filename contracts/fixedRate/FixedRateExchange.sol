@@ -18,14 +18,14 @@ contract FixedRateExchange {
         address dataToken;
         address baseToken;
         uint256 fixedRate;
-        bool enabled;
+        bool active;
     }
 
     // map a poolId to a fixedRatePool
     mapping(bytes32 => FixedRatePool) fixedRatePools;
     bytes32[] poolIds;
 
-    modifier onlyExistPool(
+    modifier onlyActivePool(
         address baseToken,
         address dataToken
     )
@@ -35,7 +35,8 @@ contract FixedRateExchange {
             dataToken
         );
         require(
-            fixedRatePools[id].fixedRate != 0,
+            fixedRatePools[id].fixedRate != 0 &&
+            fixedRatePools[id].active == true,
             'FixedRateExchange: Pool does not exist!'
         );
         _;
@@ -59,10 +60,22 @@ contract FixedRateExchange {
         uint256 fixedRate
     );
 
-    event RateChanged(
+    event PoolRateChanged(
         bytes32 indexed poolId,
         address indexed poolOwner,
         uint256 newRate
+    );
+
+    event PoolActivated(
+        bytes32 indexed poolId,
+        address indexed poolOwner,
+        uint256 timestamp
+    );
+
+    event PoolDeactivated(
+        bytes32 indexed poolId,
+        address indexed poolOwner,
+        uint256 timestamp
     );
 
     event Swaped(
@@ -74,14 +87,6 @@ contract FixedRateExchange {
 
 
     constructor () public {}
-
-    function getPools()
-        external 
-        view 
-        returns (bytes32[] memory)
-    {
-        return poolIds;
-    }
 
     function createPool(
         address baseToken,
@@ -121,7 +126,7 @@ contract FixedRateExchange {
             dataToken: dataToken,
             baseToken: baseToken,
             fixedRate: fixedRate,
-            enabled: true
+            active: true
         });
         poolIds.push(id);
 
@@ -130,6 +135,12 @@ contract FixedRateExchange {
             baseToken,
             dataToken,
             fixedRate
+        );
+
+        emit PoolActivated(
+            id,
+            msg.sender,
+            block.number
         );
     }
 
@@ -154,7 +165,7 @@ contract FixedRateExchange {
         uint256 dataTokenAmount
     )
         external
-        onlyExistPool(
+        onlyActivePool(
             baseToken,
             dataToken
         )
@@ -210,7 +221,7 @@ contract FixedRateExchange {
         );
 
         fixedRatePools[poolId].fixedRate = newRate;
-        emit RateChanged(
+        emit PoolRateChanged(
             poolId,
             msg.sender,
             newRate
@@ -218,32 +229,44 @@ contract FixedRateExchange {
     }
 
 
-    function enablePool(
+    function activatePool(
         bytes32 poolId
     )
         external
         onlyPoolOwner(poolId)
     {
         require(
-            fixedRatePools[poolId].enabled == false,
-            'FixedRateExchange: pool is already enabled'
+            fixedRatePools[poolId].active == false,
+            'FixedRateExchange: pool is already activated'
         );
 
-        fixedRatePools[poolId].enabled = true;
+        fixedRatePools[poolId].active = true;
+
+        emit PoolActivated(
+            poolId,
+            msg.sender,
+            block.number
+        );
     }
 
-    function disablePool(
+    function deactivatePool(
         bytes32 poolId
     )
         external
         onlyPoolOwner(poolId)
     {
         require(
-            fixedRatePools[poolId].enabled == true,
-            'FixedRateExchange: pool is already disabled'
+            fixedRatePools[poolId].active == true,
+            'FixedRateExchange: pool is already deactivated'
         );
 
-        fixedRatePools[poolId].enabled = false;
+        fixedRatePools[poolId].active = false;
+
+        emit PoolDeactivated(
+            poolId,
+            msg.sender,
+            block.number
+        );
     }
 
     
@@ -267,15 +290,21 @@ contract FixedRateExchange {
             address dataToken,
             address baseToken,
             uint256 fixedRate,
-            bool enabled
+            bool active
         )
     {
         poolOwner = fixedRatePools[poolId].poolOwner;
         dataToken = fixedRatePools[poolId].dataToken;
         baseToken = fixedRatePools[poolId].baseToken;
         fixedRate = fixedRatePools[poolId].fixedRate;
-        enabled = fixedRatePools[poolId].enabled;
+        active = fixedRatePools[poolId].active;
     }
 
-
+    function getPools()
+        external 
+        view 
+        returns (bytes32[] memory)
+    {
+        return poolIds;
+    }
 }
