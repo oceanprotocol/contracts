@@ -13,73 +13,73 @@ import 'openzeppelin-solidity/contracts/math/SafeMath.sol';
 contract FixedRateExchange {
     using SafeMath for uint256;
 
-    struct FixedRatePool {
-        address poolOwner;
+    struct Exchange {
+        address exchangeOwner;
         address dataToken;
         address baseToken;
         uint256 fixedRate;
         bool active;
     }
 
-    // map a poolId to a fixedRatePool
-    mapping(bytes32 => FixedRatePool) fixedRatePools;
-    bytes32[] poolIds;
+    // map a exchangeId to a exchanges
+    mapping(bytes32 => Exchange) exchanges;
+    bytes32[] exchangeIds;
 
-    modifier onlyActivePool(
+    modifier onlyActiveExchange(
         address baseToken,
         address dataToken
     )
     {
-        bytes32 id = generatePoolId(
+        bytes32 id = generateExchangeId(
             baseToken,
             dataToken
         );
         require(
-            fixedRatePools[id].fixedRate != 0 &&
-            fixedRatePools[id].active == true,
-            'FixedRateExchange: Pool does not exist!'
+            exchanges[id].fixedRate != 0 &&
+            exchanges[id].active == true,
+            'FixedRateExchange: Exchange does not exist!'
         );
         _;
     }
 
-    modifier onlyPoolOwner(
-        bytes32 poolId
+    modifier onlyExchangeOwner(
+        bytes32 exchangeId
     )
     {
         require(
-            fixedRatePools[poolId].poolOwner == msg.sender,
-            'FixedRateExchange: invalid pool owner'
+            exchanges[exchangeId].exchangeOwner == msg.sender,
+            'FixedRateExchange: invalid exchange owner'
         );
         _;
     }
 
-    event PoolCreated(
-        address indexed poolOwner,
+    event ExchangeCreated(
+        address indexed exchangeOwner,
         address indexed baseToken,
         address indexed dataToken,
         uint256 fixedRate
     );
 
-    event PoolRateChanged(
-        bytes32 indexed poolId,
-        address indexed poolOwner,
+    event ExchangeRateChanged(
+        bytes32 indexed exchangeId,
+        address indexed exchangeOwner,
         uint256 newRate
     );
 
-    event PoolActivated(
-        bytes32 indexed poolId,
-        address indexed poolOwner,
+    event ExchangeActivated(
+        bytes32 indexed exchangeId,
+        address indexed exchangeOwner,
         uint256 timestamp
     );
 
-    event PoolDeactivated(
-        bytes32 indexed poolId,
-        address indexed poolOwner,
+    event ExchangeDeactivated(
+        bytes32 indexed exchangeId,
+        address indexed exchangeOwner,
         uint256 timestamp
     );
 
     event Swapped(
-        bytes32 indexed poolId,
+        bytes32 indexed exchangeId,
         address indexed by,
         uint256 baseTokenSwappedAmount,
         uint256 dataTokenSwappedamount
@@ -88,20 +88,20 @@ contract FixedRateExchange {
 
     constructor () public {}
 
-    function createPool(
+    function createExchange(
         address baseToken,
         address dataToken,
         uint256 fixedRate
     )
         external
     {
-        bytes32 id = generatePoolId(
+        bytes32 id = generateExchangeId(
             baseToken,
             dataToken
         );
         require(
-            fixedRatePools[id].fixedRate == 0,
-            'FixedRateExchange: Pool already exists!'
+            exchanges[id].fixedRate == 0,
+            'FixedRateExchange: Exchange already exists!'
         );
 
         require(
@@ -121,30 +121,30 @@ contract FixedRateExchange {
             'FixedRateExchange: Invalid exchange rate value'
         );
 
-        fixedRatePools[id] = FixedRatePool({
-            poolOwner: msg.sender,
+        exchanges[id] = Exchange({
+            exchangeOwner: msg.sender,
             dataToken: dataToken,
             baseToken: baseToken,
             fixedRate: fixedRate,
             active: true
         });
-        poolIds.push(id);
+        exchangeIds.push(id);
 
-        emit PoolCreated(
+        emit ExchangeCreated(
             msg.sender,
             baseToken,
             dataToken,
             fixedRate
         );
 
-        emit PoolActivated(
+        emit ExchangeActivated(
             id,
             msg.sender,
             block.number
         );
     }
 
-    function generatePoolId(
+    function generateExchangeId(
         address baseToken,
         address dataToken
     )
@@ -166,27 +166,27 @@ contract FixedRateExchange {
         uint256 dataTokenAmount
     )
         external
-        onlyActivePool(
+        onlyActiveExchange(
             baseToken,
             dataToken
         )
     {
-        bytes32 id = generatePoolId(
+        bytes32 id = generateExchangeId(
             baseToken,
             dataToken
         );
         uint256 baseTokenAmount = 
-            dataTokenAmount.mul(fixedRatePools[id].fixedRate).div(10 ** 18);
+            dataTokenAmount.mul(exchanges[id].fixedRate).div(10 ** 18);
         require(
             IERC20Template(baseToken).transfer(
-                fixedRatePools[id].poolOwner, 
+                exchanges[id].exchangeOwner, 
                 baseTokenAmount
             ),
             'FixedRateExchange: transfer failed in the baseToken contract'
         );
         require(
             IERC20Template(dataToken).transferFrom(
-                fixedRatePools[id].poolOwner,
+                exchanges[id].exchangeOwner,
                 msg.sender,
                 dataTokenAmount
             ),
@@ -201,111 +201,111 @@ contract FixedRateExchange {
         );
     }
 
-    function getNumberOfPools()
+    function getNumberOfExchanges()
         external
         view
         returns (uint256)
     {
-        return poolIds.length;
+        return exchangeIds.length;
     }
 
-    function setPoolRate(
-        bytes32 poolId,
+    function setExchangeRate(
+        bytes32 exchangeId,
         uint256 newRate
     )
         external
-        onlyPoolOwner(poolId)
+        onlyExchangeOwner(exchangeId)
     {
         require(
             newRate >0,
             'FixedRateExchange: Ratio must be >0'
         );
 
-        fixedRatePools[poolId].fixedRate = newRate;
-        emit PoolRateChanged(
-            poolId,
+        exchanges[exchangeId].fixedRate = newRate;
+        emit ExchangeRateChanged(
+            exchangeId,
             msg.sender,
             newRate
         );
     }
 
 
-    function activatePool(
-        bytes32 poolId
+    function activateExchange(
+        bytes32 exchangeId
     )
         external
-        onlyPoolOwner(poolId)
+        onlyExchangeOwner(exchangeId)
     {
         require(
-            fixedRatePools[poolId].active == false,
-            'FixedRateExchange: pool is already activated'
+            exchanges[exchangeId].active == false,
+            'FixedRateExchange: Exchange is already activated'
         );
 
-        fixedRatePools[poolId].active = true;
+        exchanges[exchangeId].active = true;
 
-        emit PoolActivated(
-            poolId,
+        emit ExchangeActivated(
+            exchangeId,
             msg.sender,
             block.number
         );
     }
 
-    function deactivatePool(
-        bytes32 poolId
+    function deactivateExchange(
+        bytes32 exchangeId
     )
         external
-        onlyPoolOwner(poolId)
+        onlyExchangeOwner(exchangeId)
     {
         require(
-            fixedRatePools[poolId].active == true,
-            'FixedRateExchange: pool is already deactivated'
+            exchanges[exchangeId].active == true,
+            'FixedRateExchange: Exchange is already deactivated'
         );
 
-        fixedRatePools[poolId].active = false;
+        exchanges[exchangeId].active = false;
 
-        emit PoolDeactivated(
-            poolId,
+        emit ExchangeDeactivated(
+            exchangeId,
             msg.sender,
             block.number
         );
     }
 
     
-    function getPoolRate(
-        bytes32 poolId
+    function getExchangeRate(
+        bytes32 exchangeId
     )
         external
         view
         returns(uint256)
     {
-        return fixedRatePools[poolId].fixedRate;
+        return exchanges[exchangeId].fixedRate;
     }
 
-    function getPool(
-        bytes32 poolId
+    function getExchange(
+        bytes32 exchangeId
     )
         external
         view
         returns (
-            address poolOwner,
+            address exchangeOwner,
             address dataToken,
             address baseToken,
             uint256 fixedRate,
             bool active
         )
     {
-        poolOwner = fixedRatePools[poolId].poolOwner;
-        dataToken = fixedRatePools[poolId].dataToken;
-        baseToken = fixedRatePools[poolId].baseToken;
-        fixedRate = fixedRatePools[poolId].fixedRate;
-        active = fixedRatePools[poolId].active;
+        exchangeOwner = exchanges[exchangeId].exchangeOwner;
+        dataToken = exchanges[exchangeId].dataToken;
+        baseToken = exchanges[exchangeId].baseToken;
+        fixedRate = exchanges[exchangeId].fixedRate;
+        active = exchanges[exchangeId].active;
     }
 
-    function getPools()
+    function getExchanges()
         external 
         view 
         returns (bytes32[] memory)
     {
-        return poolIds;
+        return exchangeIds;
     }
 }
