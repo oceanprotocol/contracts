@@ -54,9 +54,10 @@ contract FixedRateExchange {
     }
 
     event ExchangeCreated(
-        address indexed exchangeOwner,
+        bytes32 indexed exchangeId,
         address indexed baseToken,
         address indexed dataToken,
+        address exchangeOwner,
         uint256 fixedRate
     );
 
@@ -131,9 +132,10 @@ contract FixedRateExchange {
         exchangeIds.push(id);
 
         emit ExchangeCreated(
-            msg.sender,
+            id,
             baseToken,
             dataToken,
+            msg.sender,
             fixedRate
         );
 
@@ -307,5 +309,15 @@ contract FixedRateExchange {
         returns (bytes32[] memory)
     {
         return exchangeIds;
+    }
+
+    function isActive(
+        bytes32 exchangeId
+    )
+        external
+        view
+        returns(bool)
+    {
+        return exchanges[exchangeId].active;
     }
 }

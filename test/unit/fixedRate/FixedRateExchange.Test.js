@@ -11,7 +11,7 @@ const { assert } = require('chai')
 /* FLow:
    1. Alice creates datatoken
    2. Bob creates basetoken
-   3. Alice creates FPLP between datatoken and basetoken, ratio = 1
+   3. Alice creates FixedRateExchange between datatoken and basetoken, ratio = 1
    4. Alice mints datatokens
    5. Alice approves FPLP to spend datatokens from her wallet
    6. Bob mints basetokens
@@ -31,7 +31,8 @@ contract('FixedRateExchange', async (accounts) => {
         basetoken,
         datatoken,
         fixedRateExchange,
-        rate
+        rate,
+        ExchangeCreatedEventArgs
 
     beforeEach('init contracts for each test', async () => {
         blob = 'https://example.com/dataset-1'
@@ -59,33 +60,34 @@ contract('FixedRateExchange', async (accounts) => {
         datatoken = await Token.at(tokenAddress)
         // Alice creates fixed rate exchange
         trxReceipt = await fixedRateExchange.create(basetoken.address, datatoken.address, rate, { from: alice })
-        TokenCreatedEventArgs = testUtils.getEventArgsFromTx(trxReceipt, 'ExchangeCreated')
+        ExchangeCreatedEventArgs = testUtils.getEventArgsFromTx(trxReceipt, 'ExchangeCreated')
+
         assert(
-            TokenCreatedEventArgs.exchangeOwner === exchangeOwner,
+            ExchangeCreatedEventArgs.exchangeOwner === exchangeOwner,
             'Invalid exchange owner'
         )
     })
 
     it('should check that the basetoken contract is initialized', async () => {
-        // const isInitialized = await basetoken.isInitialized()
-        // assert(
-        //     isInitialized === true,
-        //     'Contract was not initialized correctly!'
-        // )
+        const isInitialized = await basetoken.isInitialized()
+        assert(
+            isInitialized === true,
+            'Contract was not initialized correctly!'
+        )
     })
     it('should check that the datatoken contract is initialized', async () => {
-        // const isInitialized = await datatoken.isInitialized()
-        // assert(
-        //     isInitialized === true,
-        //     'Contract was not initialized correctly!'
-        // )
+        const isInitialized = await datatoken.isInitialized()
+        assert(
+            isInitialized === true,
+            'Contract was not initialized correctly!'
+        )
     })
-    it('should check that the FPLP contract is initialized', async () => {
-        // const isInitialized = await fplp.isInitialized()
-        // assert(
-        //     isInitialized === true,
-        //     'Contract was not initialized correctly!'
-        // )
+    it('should check that the fixed rate exchange is activated', async () => {
+        const isActive = await fixedRateExchange.isActive(ExchangeCreatedEventArgs.exchangeId)
+        assert(
+            isActive === true,
+            'Exchange was not activated correctly!'
+        )
     })
 
     it('Alice should mint some datatokens', async () => {
