@@ -211,7 +211,7 @@ contract FixedRateExchange {
         return exchangeIds.length;
     }
 
-    function setExchangeRate(
+    function setRate(
         bytes32 exchangeId,
         uint256 newRate
     )
@@ -232,7 +232,7 @@ contract FixedRateExchange {
     }
 
 
-    function activateExchange(
+    function activate(
         bytes32 exchangeId
     )
         external
@@ -252,7 +252,7 @@ contract FixedRateExchange {
         );
     }
 
-    function deactivateExchange(
+    function deactivate(
         bytes32 exchangeId
     )
         external
@@ -273,7 +273,7 @@ contract FixedRateExchange {
     }
 
     
-    function getExchangeRate(
+    function getRate(
         bytes32 exchangeId
     )
         external

@@ -1,10 +1,11 @@
 /* eslint-env mocha */
-/* global artifacts, contract, it, beforeEach, web3 */
+/* global artifacts, contract, it, before, web3 */
 const Template = artifacts.require('DataTokenTemplate')
 const FixedRateExchange = artifacts.require('FixedRateExchange')
 const DTFactory = artifacts.require('DTFactory')
 const Token = artifacts.require('DataTokenTemplate')
 const testUtils = require('../../helpers/utils')
+const truffleAssert = require('truffle-assertions')
 const BigNumber = require('bn.js')
 const { assert } = require('chai')
 
@@ -34,14 +35,14 @@ contract('FixedRateExchange', async (accounts) => {
         rate,
         ExchangeCreatedEventArgs
 
-    beforeEach('init contracts for each test', async () => {
+    before('init contracts for each test', async () => {
         blob = 'https://example.com/dataset-1'
         alice = accounts[0]
         bob = accounts[1]
         cap = new BigNumber(web3.utils.toWei('1400000000'))
         exchangeOwner = alice
         template = await Template.new('Template', 'TEMPLATE', alice, cap, blob)
-        rate = web3.utils.toWei('1')
+        rate = web3.utils.toWei('1.5')
         fixedRateExchange = await FixedRateExchange.new()
         factory = await DTFactory.new(template.address)
         // Bob creates basetokens
@@ -59,7 +60,7 @@ contract('FixedRateExchange', async (accounts) => {
         tokenAddress = TokenCreatedEventArgs.newTokenAddress
         datatoken = await Token.at(tokenAddress)
         // Alice creates fixed rate exchange
-        trxReceipt = await fixedRateExchange.create(basetoken.address, datatoken.address, rate, { from: alice })
+        trxReceipt = await fixedRateExchange.create(basetoken.address, datatoken.address, rate, { from: exchangeOwner })
         ExchangeCreatedEventArgs = testUtils.getEventArgsFromTx(trxReceipt, 'ExchangeCreated')
 
         assert(
@@ -91,18 +92,71 @@ contract('FixedRateExchange', async (accounts) => {
     })
 
     it('Alice should mint some datatokens', async () => {
-        // truffleAssert.passes(await datatoken.mint(alice, 10, { from: alice }))
+        truffleAssert.passes(await datatoken.mint(alice, 10, { from: alice }))
     })
     it('Bob should mint some basetokens', async () => {
-        // truffleAssert.passes(await basetoken.mint(bob, 10, { from: bob }))
+        truffleAssert.passes(await basetoken.mint(bob, 10, { from: bob }))
     })
 
     it('Alice should allow FPLP contract to spend datatokens', async () => {
-        // truffleAssert.passes(await datatoken.approve(fplpAddress, 10, { from: alice }))
+        truffleAssert.passes(await datatoken.approve(fixedRateExchange.address, 10, { from: alice }))
     })
 
-    it('Bob should buy DataTokens using the FPLP contract', async () => {
-        // truffleAssert.passes(await fplp.buyDataTokens(web3.utils.toWei('1'), { from: bob }))
+    it('should able to generate exchange id using both baseToken and dataToken', async () => {
+        assert(
+            ExchangeCreatedEventArgs.exchangeId ===
+            await fixedRateExchange.generateExchangeId(
+                basetoken.address,
+                datatoken.address
+            )
+        )
+    })
+
+    it('should get the exchange rate', async () => {
+        assert(
+            web3.utils.toWei(
+                web3.utils.fromWei(await fixedRateExchange.getRate(ExchangeCreatedEventArgs.exchangeId))
+            ) === rate
+        )
+    })
+
+    it('should exchange owner able to deactivate', async () => {
+        await fixedRateExchange.deactivate(
+            ExchangeCreatedEventArgs.exchangeId,
+            {
+                from: exchangeOwner
+            }
+        ).then(async () => {
+            assert(
+                await fixedRateExchange.isActive(ExchangeCreatedEventArgs.exchangeId) ===
+                false
+            )
+        })
+    })
+
+    it('should exchange owner able to activate', async () => {
+        await fixedRateExchange.activate(
+            ExchangeCreatedEventArgs.exchangeId,
+            {
+                from: exchangeOwner
+            }
+        ).then(async () => {
+            assert(
+                await fixedRateExchange.isActive(ExchangeCreatedEventArgs.exchangeId) ===
+                true
+            )
+        })
+    })
+
+    it('Bob should buy DataTokens using the fixed rate exchange contract', async () => {
+        // truffleAssert.passes(
+        //     await fixedRateExchange.swap(
+        //         web3.utils.toWei('1'),
+        //         {
+        //             from: bob
+        //         }
+        //     )
+        // )
     })
 
     it('Bob should have 1 DT in his wallet', async () => {
