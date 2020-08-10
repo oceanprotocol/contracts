@@ -1,0 +1,129 @@
+/* eslint-env mocha */
+/* global artifacts, contract, it, beforeEach, web3 */
+const Template = artifacts.require('DataTokenTemplate')
+const FixedRateExchange = artifacts.require('FixedRateExchange')
+const DTFactory = artifacts.require('DTFactory')
+const Token = artifacts.require('DataTokenTemplate')
+const testUtils = require('../../helpers/utils')
+const BigNumber = require('bn.js')
+const { assert } = require('chai')
+
+/* FLow:
+   1. Alice creates datatoken
+   2. Bob creates basetoken
+   3. Alice creates FPLP between datatoken and basetoken, ratio = 1
+   4. Alice mints datatokens
+   5. Alice approves FPLP to spend datatokens from her wallet
+   6. Bob mints basetokens
+   7. Bob buys datatokens using it's own basetokens (through the FPLP contract)
+   8. Alice changes the exchange rate to 2
+   9. Bob buys datatokens with the new ex rate using it's own basetokens (through the FPLP contract)
+   */
+contract('FixedRateExchange', async (accounts) => {
+    let cap,
+        factory,
+        template,
+        tokenAddress,
+        alice,
+        exchangeOwner,
+        bob,
+        blob,
+        basetoken,
+        datatoken,
+        fixedRateExchange,
+        rate
+
+    beforeEach('init contracts for each test', async () => {
+        blob = 'https://example.com/dataset-1'
+        alice = accounts[0]
+        bob = accounts[1]
+        cap = new BigNumber(web3.utils.toWei('1400000000'))
+        exchangeOwner = alice
+        template = await Template.new('Template', 'TEMPLATE', alice, cap, blob)
+        rate = web3.utils.toWei('1')
+        fixedRateExchange = await FixedRateExchange.new()
+        factory = await DTFactory.new(template.address)
+        // Bob creates basetokens
+        let trxReceipt = await factory.createToken(blob, {
+            from: bob
+        })
+        let TokenCreatedEventArgs = testUtils.getEventArgsFromTx(trxReceipt, 'TokenCreated')
+        tokenAddress = TokenCreatedEventArgs.newTokenAddress
+        basetoken = await Token.at(tokenAddress)
+        // ALice creates datatokens
+        trxReceipt = await factory.createToken(blob, {
+            from: alice
+        })
+        TokenCreatedEventArgs = testUtils.getEventArgsFromTx(trxReceipt, 'TokenCreated')
+        tokenAddress = TokenCreatedEventArgs.newTokenAddress
+        datatoken = await Token.at(tokenAddress)
+        // Alice creates fixed rate exchange
+        trxReceipt = await fixedRateExchange.create(basetoken.address, datatoken.address, rate, { from: alice })
+        TokenCreatedEventArgs = testUtils.getEventArgsFromTx(trxReceipt, 'ExchangeCreated')
+        assert(
+            TokenCreatedEventArgs.exchangeOwner === exchangeOwner,
+            'Invalid exchange owner'
+        )
+    })
+
+    it('should check that the basetoken contract is initialized', async () => {
+        // const isInitialized = await basetoken.isInitialized()
+        // assert(
+        //     isInitialized === true,
+        //     'Contract was not initialized correctly!'
+        // )
+    })
+    it('should check that the datatoken contract is initialized', async () => {
+        // const isInitialized = await datatoken.isInitialized()
+        // assert(
+        //     isInitialized === true,
+        //     'Contract was not initialized correctly!'
+        // )
+    })
+    it('should check that the FPLP contract is initialized', async () => {
+        // const isInitialized = await fplp.isInitialized()
+        // assert(
+        //     isInitialized === true,
+        //     'Contract was not initialized correctly!'
+        // )
+    })
+
+    it('Alice should mint some datatokens', async () => {
+        // truffleAssert.passes(await datatoken.mint(alice, 10, { from: alice }))
+    })
+    it('Bob should mint some basetokens', async () => {
+        // truffleAssert.passes(await basetoken.mint(bob, 10, { from: bob }))
+    })
+
+    it('Alice should allow FPLP contract to spend datatokens', async () => {
+        // truffleAssert.passes(await datatoken.approve(fplpAddress, 10, { from: alice }))
+    })
+
+    it('Bob should buy DataTokens using the FPLP contract', async () => {
+        // truffleAssert.passes(await fplp.buyDataTokens(web3.utils.toWei('1'), { from: bob }))
+    })
+
+    it('Bob should have 1 DT in his wallet', async () => {
+        // const balance = await datatoken.balanceOf(bob)
+        // truffleAssert.passes(balance === 1)
+    })
+    it('Alice should have 1 basetoken in her wallet', async () => {
+        // const balance = await basetoken.balanceOf(alice)
+        // truffleAssert.passes(balance === 1)
+    })
+    it('Alice should change the ratio using the FPLP contract', async () => {
+        // truffleAssert.passes(await fplp.setRatio(web3.utils.toWei('2'), { from: alice }))
+    })
+    it('Bob should buy DataTokens using the FPLP contract', async () => {
+        // truffleAssert.passes(await fplp.buyDataTokens(web3.utils.toWei('1'), { from: bob }))
+    })
+
+    it('Bob should have 2 more DT in his wallet', async () => {
+        // const balance = await datatoken.balanceOf(bob)
+        // truffleAssert.passes(balance === 2)
+    })
+    it('Alice should have 2 more basetoken in her wallet', async () => {
+        // const balance = await basetoken.balanceOf(alice)
+        // truffleAssert.passes(balance === 3)
+    })
+})

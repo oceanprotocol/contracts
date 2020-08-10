@@ -88,7 +88,7 @@ contract FixedRateExchange {
 
     constructor () public {}
 
-    function createExchange(
+    function create(
         address baseToken,
         address dataToken,
         uint256 fixedRate
