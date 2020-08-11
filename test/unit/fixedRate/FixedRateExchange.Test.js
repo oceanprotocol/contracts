@@ -212,4 +212,35 @@ contract('FixedRateExchange', async (accounts) => {
             assert((await basetoken.balanceOf(exchangeOwner)).toNumber() === approvedBaseTokens + 1)
         })
     })
+    it('should get the number of exchanges', async () => {
+        assert(
+            (await fixedRateExchange.getNumberOfExchanges()).toNumber() === 1,
+            'faild to get number of exchanges'
+        )
+    })
+    it('should get exchange information', async () => {
+        const exchange = await fixedRateExchange.getExchange(
+            ExchangeCreatedEventArgs.exchangeId
+        )
+        assert(
+            exchange.exchangeOwner === exchangeOwner
+        )
+        assert(
+            exchange.dataToken === datatoken.address
+        )
+        assert(
+            exchange.baseToken === basetoken.address
+        )
+        assert(
+            web3.utils.fromWei(exchange.fixedRate) === web3.utils.fromWei(rate)
+        )
+        assert(
+            exchange.active === true
+        )
+    })
+    it('should get all exchange IDs', async () => {
+        assert(
+            (await fixedRateExchange.getExchanges()).length === 1
+        )
+    })
 })
