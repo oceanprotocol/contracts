@@ -33,7 +33,10 @@ contract('FixedRateExchange', async (accounts) => {
         datatoken,
         fixedRateExchange,
         rate,
-        ExchangeCreatedEventArgs
+        ExchangeCreatedEventArgs,
+        approvedDataTokens,
+        approvedBaseTokens
+    const amountOfMintedTokens = 10
 
     before('init contracts for each test', async () => {
         blob = 'https://example.com/dataset-1'
@@ -92,15 +95,17 @@ contract('FixedRateExchange', async (accounts) => {
     })
 
     it('Alice should mint some datatokens', async () => {
-        truffleAssert.passes(await datatoken.mint(alice, 10, { from: alice }))
+        truffleAssert.passes(await datatoken.mint(alice, amountOfMintedTokens, { from: alice }))
     })
     it('Bob should mint some basetokens, bob allows marketplace withdrawal', async () => {
-        truffleAssert.passes(await basetoken.mint(bob, 10, { from: bob }))
-        await basetoken.approve(fixedRateExchange.address, 1, { from: bob })
+        truffleAssert.passes(await basetoken.mint(bob, amountOfMintedTokens, { from: bob }))
+        approvedBaseTokens = 1
+        await basetoken.approve(fixedRateExchange.address, approvedBaseTokens, { from: bob })
     })
 
     it('Alice should allow fixed rate contract to spend datatokens', async () => {
-        truffleAssert.passes(await datatoken.approve(fixedRateExchange.address, 1, { from: alice }))
+        approvedDataTokens = 1
+        truffleAssert.passes(await datatoken.approve(fixedRateExchange.address, approvedDataTokens, { from: alice }))
     })
 
     it('should able to generate exchange id using both baseToken and dataToken', async () => {
@@ -171,8 +176,14 @@ contract('FixedRateExchange', async (accounts) => {
             )
         })
     })
-    it('Alice should change the ratio using the FPLP contract', async () => {
-        // truffleAssert.passes(await fplp.setRatio(web3.utils.toWei('2'), { from: alice }))
+    it('Exchange owner should change the rate using the fixedRateExchange contract', async () => {
+        await fixedRateExchange.setRate(
+            ExchangeCreatedEventArgs.exchangeId,
+            web3.utils.toWei('2'),
+            {
+                from: exchangeOwner
+            }
+        )
     })
     it('Bob should buy DataTokens using the FPLP contract', async () => {
         // truffleAssert.passes(await fplp.buyDataTokens(web3.utils.toWei('1'), { from: bob }))
