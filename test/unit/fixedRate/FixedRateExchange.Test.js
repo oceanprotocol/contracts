@@ -113,7 +113,8 @@ contract('FixedRateExchange', async (accounts) => {
             ExchangeCreatedEventArgs.exchangeId ===
             await fixedRateExchange.generateExchangeId(
                 basetoken.address,
-                datatoken.address
+                datatoken.address,
+                exchangeOwner
             )
         )
     })
@@ -156,8 +157,7 @@ contract('FixedRateExchange', async (accounts) => {
 
     it('Bob should buy DataTokens using the fixed rate exchange contract', async () => {
         await fixedRateExchange.swap(
-            basetoken.address,
-            datatoken.address,
+            ExchangeCreatedEventArgs.exchangeId,
             1,
             {
                 from: bob
@@ -201,8 +201,7 @@ contract('FixedRateExchange', async (accounts) => {
         await datatoken.approve(fixedRateExchange.address, approvedDataTokens, { from: exchangeOwner })
 
         await fixedRateExchange.swap(
-            basetoken.address,
-            datatoken.address,
+            ExchangeCreatedEventArgs.exchangeId,
             1,
             {
                 from: bob
