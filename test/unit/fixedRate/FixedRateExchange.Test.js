@@ -177,12 +177,21 @@ contract('FixedRateExchange', async (accounts) => {
         })
     })
     it('Exchange owner should change the rate using the fixedRateExchange contract', async () => {
+        rate = web3.utils.toWei('2')
         await fixedRateExchange.setRate(
             ExchangeCreatedEventArgs.exchangeId,
-            web3.utils.toWei('2'),
+            rate,
             {
                 from: exchangeOwner
             }
+        )
+    })
+    it('should get the new fixed exchange rate', async () => {
+        const newRate = await fixedRateExchange.getRate(
+            ExchangeCreatedEventArgs.exchangeId
+        )
+        assert(
+            web3.utils.fromWei(newRate) === web3.utils.fromWei(rate)
         )
     })
     it('Bob should buy DataTokens using the FPLP contract', async () => {
