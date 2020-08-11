@@ -83,7 +83,7 @@ contract FixedRateExchange {
         bytes32 indexed exchangeId,
         address indexed by,
         uint256 baseTokenSwappedAmount,
-        uint256 dataTokenSwappedamount
+        uint256 dataTokenSwappedAmount
     );
 
 
@@ -146,6 +146,8 @@ contract FixedRateExchange {
         );
     }
 
+    //TODO: add exchange owner to 
+    // generate unique exchange id
     function generateExchangeId(
         address baseToken,
         address dataToken
@@ -180,19 +182,36 @@ contract FixedRateExchange {
         uint256 baseTokenAmount = 
             dataTokenAmount.mul(exchanges[id].fixedRate).div(10 ** 18);
         require(
-            IERC20Template(baseToken).transfer(
-                exchanges[id].exchangeOwner, 
+            IERC20Template(baseToken).transferFrom(
+                msg.sender,
+                address(this),
                 baseTokenAmount
             ),
-            'FixedRateExchange: transfer failed in the baseToken contract'
+            'FixedRateExchange: transferFrom failed in the baseToken contract'
         );
         require(
             IERC20Template(dataToken).transferFrom(
                 exchanges[id].exchangeOwner,
-                msg.sender,
+                address(this),
                 dataTokenAmount
             ),
             'FixedRateExchange: transferFrom failed in the dataToken contract'
+        );
+
+        require(
+            IERC20Template(baseToken).transfer(
+                exchanges[id].exchangeOwner,
+                baseTokenAmount
+            ),
+            'FixedRateExchange: transfer failed in the baseToken contract'
+        );
+
+        require(
+            IERC20Template(dataToken).transfer(
+                msg.sender,
+                dataTokenAmount
+            ),
+            'FixedRateExchange: transfer failed in the dataToken contract'
         );
 
         emit Swapped(

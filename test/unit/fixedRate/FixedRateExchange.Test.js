@@ -42,7 +42,7 @@ contract('FixedRateExchange', async (accounts) => {
         cap = new BigNumber(web3.utils.toWei('1400000000'))
         exchangeOwner = alice
         template = await Template.new('Template', 'TEMPLATE', alice, cap, blob)
-        rate = web3.utils.toWei('1.5')
+        rate = web3.utils.toWei('1')
         fixedRateExchange = await FixedRateExchange.new()
         factory = await DTFactory.new(template.address)
         // Bob creates basetokens
@@ -94,12 +94,13 @@ contract('FixedRateExchange', async (accounts) => {
     it('Alice should mint some datatokens', async () => {
         truffleAssert.passes(await datatoken.mint(alice, 10, { from: alice }))
     })
-    it('Bob should mint some basetokens', async () => {
+    it('Bob should mint some basetokens, bob allows marketplace withdrawal', async () => {
         truffleAssert.passes(await basetoken.mint(bob, 10, { from: bob }))
+        await basetoken.approve(fixedRateExchange.address, 1, { from: bob })
     })
 
-    it('Alice should allow FPLP contract to spend datatokens', async () => {
-        truffleAssert.passes(await datatoken.approve(fixedRateExchange.address, 10, { from: alice }))
+    it('Alice should allow fixed rate contract to spend datatokens', async () => {
+        truffleAssert.passes(await datatoken.approve(fixedRateExchange.address, 1, { from: alice }))
     })
 
     it('should able to generate exchange id using both baseToken and dataToken', async () => {
@@ -149,23 +150,26 @@ contract('FixedRateExchange', async (accounts) => {
     })
 
     it('Bob should buy DataTokens using the fixed rate exchange contract', async () => {
-        // truffleAssert.passes(
-        //     await fixedRateExchange.swap(
-        //         web3.utils.toWei('1'),
-        //         {
-        //             from: bob
-        //         }
-        //     )
-        // )
-    })
-
-    it('Bob should have 1 DT in his wallet', async () => {
-        // const balance = await datatoken.balanceOf(bob)
-        // truffleAssert.passes(balance === 1)
-    })
-    it('Alice should have 1 basetoken in her wallet', async () => {
-        // const balance = await basetoken.balanceOf(alice)
-        // truffleAssert.passes(balance === 1)
+        await fixedRateExchange.swap(
+            basetoken.address,
+            datatoken.address,
+            1,
+            {
+                from: bob
+            }
+        ).then(async (txReceipt) => {
+            const SwappedEventArgs = testUtils.getEventArgsFromTx(txReceipt, 'Swapped')
+            assert(
+                SwappedEventArgs.dataTokenSwappedAmount.toNumber() ===
+                (await datatoken.balanceOf(bob)).toNumber(),
+                'Faild to swap base tokens to base tokens'
+            )
+            assert(
+                SwappedEventArgs.baseTokenSwappedAmount.toNumber() ===
+                (await basetoken.balanceOf(exchangeOwner)).toNumber(),
+                'Faild to swap data tokens to base tokens'
+            )
+        })
     })
     it('Alice should change the ratio using the FPLP contract', async () => {
         // truffleAssert.passes(await fplp.setRatio(web3.utils.toWei('2'), { from: alice }))
