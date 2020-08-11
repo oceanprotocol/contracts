@@ -194,16 +194,22 @@ contract('FixedRateExchange', async (accounts) => {
             web3.utils.fromWei(newRate) === web3.utils.fromWei(rate)
         )
     })
-    it('Bob should buy DataTokens using the FPLP contract', async () => {
-        // truffleAssert.passes(await fplp.buyDataTokens(web3.utils.toWei('1'), { from: bob }))
-    })
+    it('Bob should buy DataTokens using the fixed rate exchange contract', async () => {
+        approvedBaseTokens = 2
+        await basetoken.approve(fixedRateExchange.address, approvedBaseTokens, { from: bob })
+        approvedDataTokens = 1
+        await datatoken.approve(fixedRateExchange.address, approvedDataTokens, { from: exchangeOwner })
 
-    it('Bob should have 2 more DT in his wallet', async () => {
-        // const balance = await datatoken.balanceOf(bob)
-        // truffleAssert.passes(balance === 2)
-    })
-    it('Alice should have 2 more basetoken in her wallet', async () => {
-        // const balance = await basetoken.balanceOf(alice)
-        // truffleAssert.passes(balance === 3)
+        await fixedRateExchange.swap(
+            basetoken.address,
+            datatoken.address,
+            1,
+            {
+                from: bob
+            }
+        ).then(async () => {
+            assert((await datatoken.balanceOf(bob)).toNumber() === approvedDataTokens + 1)
+            assert((await basetoken.balanceOf(exchangeOwner)).toNumber() === approvedBaseTokens + 1)
+        })
     })
 })
