@@ -7,17 +7,42 @@ interface IERC20Template {
         address minter,
         uint256 cap,
         string calldata blob
-    ) external returns(bool);    
-    function mint(address account, uint256 value) 
-    external payable;
+    ) external returns (bool);
+
+    function mint(address account, uint256 value) external payable;
+
     function pause() external;
+
     function unpause() external;
+
     function setMinter(address minter) external;
-    function name() external view returns(string memory);
-    function symbol() external view returns(string memory);
-    function decimals() external view returns(uint256);
+
+    function name() external view returns (string memory);
+
+    function symbol() external view returns (string memory);
+
+    function decimals() external view returns (uint256);
+
     function cap() external view returns (uint256);
-    function isMinter(address account) external view returns(bool);
-    function isInitialized() external view returns(bool);
-    function isPaused() external view returns(bool);
+
+    function isMinter(address account) external view returns (bool);
+
+    function isInitialized() external view returns (bool);
+
+    function isPaused() external view returns (bool);
+
+    function allowance(address owner, address spender)
+        external
+        view
+        returns (uint256);
+
+    function transferFrom(
+        address from,
+        address to,
+        uint256 value
+    ) external returns (bool);
+
+    function balanceOf(address account) external view returns (uint256);
+
+    function transfer(address to, uint256 value) external returns (bool);
 }

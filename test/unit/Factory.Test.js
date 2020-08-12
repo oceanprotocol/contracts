@@ -39,7 +39,7 @@ contract('Factory test', async accounts => {
         })
     })
 
-    it('should fail on zero address factory initialization', async () => {
+    it('should fail on zero template address factory initialization', async () => {
         truffleAssert.fails(DTFactory.new(zeroAddress),
             truffleAssert.ErrorType.REVERT,
             'DTFactory: Invalid token factory initialization'
