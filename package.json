@@ -33,7 +33,7 @@
   },
   "files": [
     "docs/**/*",
-    "artifacts/**/*",
+    "artifacts/*",
     "README.md"
   ],
   "repository": {

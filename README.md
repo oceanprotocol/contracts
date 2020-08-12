@@ -7,6 +7,11 @@
 
 This is in alpha state and you can expect running into problems. If you run into them, please open up a [new issue](/issues).
 
+A high level overview of OceanProtocol contracts:
+
+![image](https://user-images.githubusercontent.com/5428661/89401154-2b5cab80-d715-11ea-8a6f-413d6a03a283.png)
+
+
 ## Table of Contents
 
   - [Get Started](#get-started)
