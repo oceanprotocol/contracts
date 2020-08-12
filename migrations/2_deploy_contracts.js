@@ -33,7 +33,7 @@ module.exports = function(deployer, network, accounts) {
         await deployer.deploy(
             FixedRateExchange
         )
-      
+
         await deployer.deploy(
             DDO
         )
