@@ -92,7 +92,7 @@ module.exports = {
         rinkeby: {
             provider: () => setupWallet(`https://rinkeby.infura.io/v3/${process.env.INFURA_TOKEN}`),
             network_id: 0x4,
-            from: '0xD6e0F938323A9D9d52b26700716E2e8E027f3795',
+            from: '0x2C63bf697f74C72CFB727Fb5eB8e6266cE341e13',
             gas: 7 * 1000000,
             gasPrice: utils.toWei('8', 'gwei')
         },
