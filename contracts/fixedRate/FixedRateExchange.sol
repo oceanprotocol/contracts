@@ -174,7 +174,7 @@ contract FixedRateExchange {
         require(
             IERC20Template(exchanges[exchangeId].baseToken).transferFrom(
                 msg.sender,
-                address(this),
+                exchanges[exchangeId].exchangeOwner,
                 baseTokenAmount
             ),
             'FixedRateExchange: transferFrom failed in the baseToken contract'
@@ -182,26 +182,10 @@ contract FixedRateExchange {
         require(
             IERC20Template(exchanges[exchangeId].dataToken).transferFrom(
                 exchanges[exchangeId].exchangeOwner,
-                address(this),
-                dataTokenAmount
-            ),
-            'FixedRateExchange: transferFrom failed in the dataToken contract'
-        );
-
-        require(
-            IERC20Template(exchanges[exchangeId].baseToken).transfer(
-                exchanges[exchangeId].exchangeOwner,
-                baseTokenAmount
-            ),
-            'FixedRateExchange: transfer failed in the baseToken contract'
-        );
-
-        require(
-            IERC20Template(exchanges[exchangeId].dataToken).transfer(
                 msg.sender,
                 dataTokenAmount
             ),
-            'FixedRateExchange: transfer failed in the dataToken contract'
+            'FixedRateExchange: transferFrom failed in the dataToken contract'
         );
 
         emit Swapped(
