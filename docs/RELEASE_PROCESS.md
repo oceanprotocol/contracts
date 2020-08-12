@@ -1,38 +1,49 @@
 # Releases
 
-Releases are managed semi-automatically. They are always manually triggered from a developer's machine with release scripts.
+Releases are managed manually. They are always manually triggered from a developer's machine with release scripts for 
+both python and javascript packages:
 
 ## Production
 
-From a clean `master` branch you can run any release task bumping the version accordingly based on semantic versioning:
+- Create a new local feature branch, e.g. `git checkout -b release/v0.2.5`
+- install bumpversion `pip install bumpversion` (if you don't have it installed on your machine)
 
-- To bump a patch version: `npm run release`
-- To bump a minor version: `npm run release -- minor`
-- To bump a major version: `npm run release -- major`
+Use the `bumpversion.sh` script to bump the project version. You can execute the script using {major|minor|patch} as first argument to bump the version accordingly:
 
-Every task does the following:
+- To bump the patch version: ./bumpversion.sh patch
+- To bump the minor version: ./bumpversion.sh minor
+- To bump the major version: ./bumpversion.sh major
 
-- bumps the project version in `package.json`, `package-lock.json`
-- auto-generates and updates the [CHANGELOG.md](../CHANGELOG.md) file from commit messages
-- creates a Git tag
-- commits and pushes everything
-- creates a GitHub release with commit messages as description
-- Git tag push will trigger Travis to do a npm release
+assuming we are on version `v0.2.4` and the desired version is `v0.2.5`. `./bumpversion.sh` patch has to be run.
 
-For the GitHub releases steps a GitHub personal access token, exported as `GITHUB_TOKEN` is required. [Setup](https://github.com/release-it/release-it#github-releases)
+- run `npm i` to update the version in `package-lock.json`
 
-## Pre-Releases
-
-Usually from a feature branch you can release a develop version under the `next` npm tag.
-
-Say the current version is at `v1.1.0`, then to publish a pre-release for a next major version `v2.0.0-beta.0`, do:
 
 ```bash
-npm run release -- major --preRelease=beta --npm.tag=next
-
-# consecutive releases, e.g. to then get `v2.0.0-beta.1`
-npm run release -- --preRelease
-
-# final version, e.g. to then get `v2.0.0`
-npm run release -- major
+export MNEMONIC='YOUR MNEMONIC SHOULD BE HERE'
+# If you are using remote test or main net using Infura
+export INFURA_TOKEN='GET INFURA_TOKEN FROM INFURA PLATFORM' 
+npm run deploy:rinkeby
 ```
+- Update the changelog using [auto-changelog](https://github.com/CookPete/auto-changelog)
+```bash
+auto-changelog -v v0.2.5
+```
+- Commit the missing changes to the feature branch:
+
+```bash
+git add .
+git commit -m 'v0.2.5'
+git push
+```
+- Tag the last commit with the new version number ie. v0.2.5
+```bash
+git tag -a v0.2.5
+```
+- Push the feature branch to GitHub.
+```
+git push --tags
+```
+- Make a pull request from the just-pushed branch to develop branch.
+- Wait for all the tests to pass!
+- Merge the pull request into the develop branch.
