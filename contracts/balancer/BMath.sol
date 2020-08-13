@@ -20,19 +20,21 @@ contract BMath is BConst, BNum {
     function calcFee(
         uint amount,
         uint mpFee) 
-        private pure 
+        public pure 
         returns (uint opcAmount, uint mpAmount)
     {
         //opc fees here
-        uint m = bmul(amount,OPC_FEE);
-        uint d = bdiv(m,10**18);
-        opcAmount = bdiv(d, 100);
+        if(OPC_FEE==0)
+            opcAmount = 0;
+        else
+            opcAmount = bsub(amount,bmul(amount, bsub(BONE, OPC_FEE)));
+        
         //mp fees here
         if(mpFee==0)
             return (opcAmount,0);
-        m = bmul(amount,mpFee);
-        d = bdiv(m,10**18);
-        mpAmount = bdiv(d, 100);
+        mpAmount = bsub(amount,bmul(amount, bsub(BONE, mpFee)));
+        
+        
         return (opcAmount, mpAmount);
     }
 
@@ -90,16 +92,12 @@ contract BMath is BConst, BNum {
     {
         //substracts opc Fees and mpFees from tokenAmountIn
         (opcAmount, mpAmount) = calcFee(tokenAmountIn, mpFee);
-        //uint newtokenAmountIn = bsub(tokenAmountIn, bsub(tokenAmountIn, opcAmount));
-        //newtokenAmountIn = bsub(bsub(tokenAmountIn, opcAmount), mpAmount);
         // original calcOutGivenIn below, that will use the new tokenAmountIn
         uint weightRatio = bdiv(tokenWeightIn, tokenWeightOut);
         uint adjustedIn = bsub(BONE, swapFee);
         adjustedIn = bmul(
-            bsub(
-                bsub(tokenAmountIn, opcAmount),
-                mpAmount),
-            adjustedIn);
+                bsub(tokenAmountIn, badd(opcAmount,mpAmount)),
+                adjustedIn);
         uint y = bdiv(tokenBalanceIn, badd(tokenBalanceIn, adjustedIn));
         uint foo = bpow(y, weightRatio);
         uint bar = bsub(BONE, foo);

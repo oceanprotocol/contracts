@@ -265,6 +265,12 @@ contract SPool is BToken, BMath {
         return (_mpAddress, _mpFee);
     }
 
+    function getOPCSwapFee()external view
+        _viewlock_
+        returns (address,uint)
+    {
+        return (OPC_ADDRESS, OPC_FEE);
+    }
     function getController()
         external view
         _viewlock_
@@ -653,7 +659,7 @@ contract SPool is BToken, BMath {
         //pay the fees
         if(opcAmount>0)
             _pushUnderlying(tokenIn, OPC_ADDRESS, opcAmount);
-        if(mpAmount>0)
+        if(mpAmount>0 && _mpAddress != address(0))
             _pushUnderlying(tokenIn, _mpAddress, mpAmount);
 
         return (tokenAmountOut, spotPriceAfter);
