@@ -42,6 +42,6 @@ contract BConst {
     OPC_ADDRESS = 0x226100f4941573104B33B1DFc079D65d23B24e90;
     uint public constant 
     OPC_FEE = 100000000000000000;  // (0.1  expressed as wei)
-    //MAXIMUM MP FEE ALLOWED
-    uint public constant MAX_MP_FEE           = BONE / 20;
+    //MAXIMUM MP FEE ALLOWED  - 20%
+    uint public constant MAX_MP_FEE           = BONE * 20;
 }
