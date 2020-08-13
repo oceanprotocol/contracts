@@ -89,9 +89,9 @@ contract SPool is BToken, BMath {
 
     // MP FEES SECTION
     //MarketPlace address
-    address private _mpAddress; 
+    address private _mpAddress = address(0);
     //fee (in percent) that goes to MarketPlace address  (expressed in wei)
-    uint _mpFee;  
+    uint _mpFee = 0;
 
     address[] private _tokens;
     mapping(address=>Record) private  _records;
@@ -118,9 +118,7 @@ contract SPool is BToken, BMath {
             msg.sender,
             MIN_FEE,
             false,
-            false,
-            address(0),
-            0
+            false
         );
     }
     
@@ -131,9 +129,7 @@ contract SPool is BToken, BMath {
         address factory, 
         uint swapFee,
         bool publicSwap,
-        bool finalized,
-        address mpAddress,
-        uint mpFee
+        bool finalized
     )
         public
         onlyNotInitialized
@@ -144,9 +140,7 @@ contract SPool is BToken, BMath {
             factory,
             swapFee,
             publicSwap,
-            finalized,
-            mpAddress,
-            mpFee);
+            finalized);
     }
 	
     // Private function called on contract initialization.
@@ -155,9 +149,7 @@ contract SPool is BToken, BMath {
         address factory, 
         uint swapFee,
         bool publicSwap, 
-        bool finalized,
-        address mpAddress,
-        uint mpFee
+        bool finalized
     )
         private
         returns(bool)
@@ -167,13 +159,6 @@ contract SPool is BToken, BMath {
         _swapFee = swapFee;
         _publicSwap = publicSwap;
         _finalized = finalized;
-        _mpAddress = mpAddress;
-        if(_mpAddress == address(0))
-            _mpFee =0;
-        else
-            _mpFee = mpFee;
-        
-	
         initialized = true;
         return initialized;
     }
@@ -272,6 +257,14 @@ contract SPool is BToken, BMath {
         return _swapFee;
     }
 
+    function getMPSwapFee()
+        external view
+        _viewlock_
+        returns (address,uint)
+    {
+        return (_mpAddress, _mpFee);
+    }
+
     function getController()
         external view
         _viewlock_
@@ -290,6 +283,21 @@ contract SPool is BToken, BMath {
         require(swapFee >= MIN_FEE, 'ERR_MIN_FEE');
         require(swapFee <= MAX_FEE, 'ERR_MAX_FEE');
         _swapFee = swapFee;
+    }
+
+    function setMPSwapFee(address mpAddress, uint mpFee)
+        external
+        _logs_
+        _lock_
+    { 
+        require(!_finalized, 'ERR_IS_FINALIZED');
+        require(msg.sender == _controller, 'ERR_NOT_CONTROLLER');
+        require(mpAddress != address(0), 'ERR_INVALID_MP_ADDRESS');
+        require(mpFee <= MAX_MP_FEE, 'ERR_MAX_MP_FEE');
+        require(mpFee > 0, 'ERR_MIN_MP_FEE');
+        _mpAddress = _mpAddress;
+        _mpFee = mpFee;
+        
     }
 
     function setController(address manager)
@@ -530,7 +538,7 @@ contract SPool is BToken, BMath {
         uint tokenAmountIn,
         uint swapFee
     )
-        public
+        public view
         returns (uint tokenAmountOut)
     {
         uint opcAmount;
@@ -542,7 +550,6 @@ contract SPool is BToken, BMath {
             tokenWeightOut,
             tokenAmountIn,
             swapFee,
-            OPC_FEE,
             _mpFee);
         return tokenAmountOut;
     }
@@ -555,7 +562,7 @@ contract SPool is BToken, BMath {
         uint tokenAmountOut,
         uint swapFee
     )
-        public
+        public view
         returns (uint tokenAmountIn)
     {
         uint opcAmount;
@@ -567,7 +574,6 @@ contract SPool is BToken, BMath {
             tokenWeightOut,
             tokenAmountOut,
             swapFee,
-            OPC_FEE,
             _mpFee);
         return tokenAmountOut;
     }
@@ -606,14 +612,13 @@ contract SPool is BToken, BMath {
         require(spotPriceBefore <= maxPrice, 'ERR_BAD_LIMIT_PRICE');
         uint opcAmount;
         uint mpAmount;
-        (tokenAmountOut,opcAmount,mpAmount) = calcOutGivenInWithExtraFees(
+        (tokenAmountOut, opcAmount, mpAmount) = calcOutGivenInWithExtraFees(
             inRecord.balance,
             inRecord.denorm,
             outRecord.balance,
             outRecord.denorm,
             tokenAmountIn,
             _swapFee,
-            OPC_FEE,
             _mpFee
         );
         require(tokenAmountOut >= minAmountOut, 'ERR_LIMIT_OUT');
@@ -648,7 +653,7 @@ contract SPool is BToken, BMath {
         //pay the fees
         if(opcAmount>0)
             _pushUnderlying(tokenIn, OPC_ADDRESS, opcAmount);
-        if(mpAmount >0)
+        if(mpAmount>0)
             _pushUnderlying(tokenIn, _mpAddress, mpAmount);
 
         return (tokenAmountOut, spotPriceAfter);
@@ -689,14 +694,13 @@ contract SPool is BToken, BMath {
         require(spotPriceBefore <= maxPrice, 'ERR_BAD_LIMIT_PRICE');
         uint opcAmount;
         uint mpAmount;
-        (tokenAmountIn , opcAmount, mpAmount) = calcInGivenOutWithExtraFees(
+        (tokenAmountIn, opcAmount, mpAmount) = calcInGivenOutWithExtraFees(
             inRecord.balance,
             inRecord.denorm,
             outRecord.balance,
             outRecord.denorm,
             tokenAmountOut,
             _swapFee,
-            OPC_FEE,
             _mpFee
         );
         require(tokenAmountIn <= maxAmountIn, 'ERR_LIMIT_IN');
@@ -731,7 +735,7 @@ contract SPool is BToken, BMath {
          //pay the fees
         if(opcAmount>0)
             _pushUnderlying(tokenIn, OPC_ADDRESS, opcAmount);
-        if(mpAmount >0)
+        if(mpAmount>0)
             _pushUnderlying(tokenIn, _mpAddress, mpAmount);
         return (tokenAmountIn, spotPriceAfter);
     }
