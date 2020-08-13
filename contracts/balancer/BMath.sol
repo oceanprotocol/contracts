@@ -16,6 +16,23 @@ pragma solidity 0.5.7;
 import './BNum.sol';
 
 contract BMath is BConst, BNum {
+
+    function calcFee(
+        uint amount,
+        uint fee) 
+        private pure 
+        returns (uint feeAmount)
+    {
+        if(fee==0)
+            return 0;
+        uint m = bmul(amount,fee);
+        uint d = bdiv(m,10**18);
+        feeAmount = bdiv(d, 100);
+        return feeAmount;
+    }
+
+
+
     /**********************************************************************************************
     // calcSpotPrice                                                                             //
     // sP = spotPrice                                                                            //
@@ -52,17 +69,28 @@ contract BMath is BConst, BNum {
     // wO = tokenWeightOut                                                                       //
     // sF = swapFee                                                                              //
     **********************************************************************************************/
-    function calcOutGivenIn(
+    
+
+    function calcOutGivenInWithExtraFees(
         uint tokenBalanceIn,
         uint tokenWeightIn,
         uint tokenBalanceOut,
         uint tokenWeightOut,
         uint tokenAmountIn,
-        uint swapFee
+        uint swapFee,
+        uint opcFee,
+        uint mpFee
     )
-        public pure
-        returns (uint tokenAmountOut)
+        public 
+        returns (uint tokenAmountOut,uint opcAmount, uint mpAmount)
     {
+        //substracts opc Fees and mpFees from tokenAmountIn
+        
+        opcAmount = calcFee(tokenAmountIn, opcFee);
+        mpAmount = calcFee(tokenAmountIn, mpFee);
+        tokenAmountIn = bsub(tokenAmountIn, opcAmount);
+        tokenAmountIn = bsub(tokenAmountIn, mpAmount);
+        // original calcOutGivenIn below, that will use the new tokenAmountIn
         uint weightRatio = bdiv(tokenWeightIn, tokenWeightOut);
         uint adjustedIn = bsub(BONE, swapFee);
         adjustedIn = bmul(tokenAmountIn, adjustedIn);
@@ -70,7 +98,7 @@ contract BMath is BConst, BNum {
         uint foo = bpow(y, weightRatio);
         uint bar = bsub(BONE, foo);
         tokenAmountOut = bmul(tokenBalanceOut, bar);
-        return tokenAmountOut;
+        return (tokenAmountOut, opcAmount, mpAmount);
     }
 
     /**********************************************************************************************
@@ -83,16 +111,19 @@ contract BMath is BConst, BNum {
     // wO = tokenWeightOut                          ( 1 - sF )                                   //
     // sF = swapFee                                                                              //
     **********************************************************************************************/
-    function calcInGivenOut(
+    
+    function calcInGivenOutWithExtraFees(
         uint tokenBalanceIn,
         uint tokenWeightIn,
         uint tokenBalanceOut,
         uint tokenWeightOut,
         uint tokenAmountOut,
-        uint swapFee
+        uint swapFee,
+        uint opcFee,
+        uint mpFee
     )
-        public pure
-        returns (uint tokenAmountIn)
+        public 
+        returns (uint tokenAmountIn, uint opcAmount, uint mpAmount)
     {
         uint weightRatio = bdiv(tokenWeightOut, tokenWeightIn);
         uint diff = bsub(tokenBalanceOut, tokenAmountOut);
@@ -101,7 +132,12 @@ contract BMath is BConst, BNum {
         foo = bsub(foo, BONE);
         tokenAmountIn = bsub(BONE, swapFee);
         tokenAmountIn = bdiv(bmul(tokenBalanceIn, foo), tokenAmountIn);
-        return tokenAmountIn;
+        //new fees section.  we are going to add the fees to tokenAmountIn
+        opcAmount = calcFee(tokenAmountIn, opcFee);
+        mpAmount = calcFee(tokenAmountIn, mpFee);
+        tokenAmountIn = badd(tokenAmountIn, opcAmount);
+        tokenAmountIn = badd(tokenAmountIn, mpAmount);
+        return (tokenAmountIn, opcAmount, mpAmount);
     }
 
     /**********************************************************************************************

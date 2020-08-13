@@ -36,4 +36,10 @@ contract BConst {
 
     uint public constant MAX_IN_RATIO      = BONE / 2;
     uint public constant MAX_OUT_RATIO     = (BONE / 3) + 1 wei;
+
+    //DON'T FORGET TO CHANGE THIS !!!
+    address public constant 
+    OPC_ADDRESS = 0x226100f4941573104B33B1DFc079D65d23B24e90;
+    uint public constant 
+    OPC_FEE = 100000000000000000;  // (0.1  expressed as wei)
 }
