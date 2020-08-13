@@ -302,7 +302,7 @@ contract SPool is BToken, BMath {
             require(msg.sender == _mpAddress, 'ERR_NOT_MP_OWNER');
         require(mpFee <= MAX_MP_FEE, 'ERR_MAX_MP_FEE');
         require(mpFee > 0, 'ERR_MIN_MP_FEE');
-        _mpAddress = _mpAddress;
+        _mpAddress = mpAddress;
         _mpFee = mpFee;
         
     }
