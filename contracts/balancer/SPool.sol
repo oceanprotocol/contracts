@@ -297,8 +297,8 @@ contract SPool is BToken, BMath {
         _lock_
     { 
         require(!_finalized, 'ERR_IS_FINALIZED');
-        require(msg.sender == _controller, 'ERR_NOT_CONTROLLER');
         require(mpAddress != address(0), 'ERR_INVALID_MP_ADDRESS');
+        require(msg.sender == _mpAddress, 'ERR_NOT_MP_OWNER');
         require(mpFee <= MAX_MP_FEE, 'ERR_MAX_MP_FEE');
         require(mpFee > 0, 'ERR_MIN_MP_FEE');
         _mpAddress = _mpAddress;
