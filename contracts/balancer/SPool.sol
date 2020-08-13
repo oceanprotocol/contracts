@@ -291,14 +291,15 @@ contract SPool is BToken, BMath {
         _swapFee = swapFee;
     }
 
-    function setMPSwapFee(address mpAddress, uint mpFee)
+    function setMPFee(address mpAddress, uint mpFee)
         external
         _logs_
         _lock_
     { 
         require(!_finalized, 'ERR_IS_FINALIZED');
         require(mpAddress != address(0), 'ERR_INVALID_MP_ADDRESS');
-        require(msg.sender == _mpAddress, 'ERR_NOT_MP_OWNER');
+        if(mpAddress != address(0))
+            require(msg.sender == _mpAddress, 'ERR_NOT_MP_OWNER');
         require(mpFee <= MAX_MP_FEE, 'ERR_MAX_MP_FEE');
         require(mpFee > 0, 'ERR_MIN_MP_FEE');
         _mpAddress = _mpAddress;
