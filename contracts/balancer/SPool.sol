@@ -311,6 +311,8 @@ contract SPool is BToken, BMath {
         require(mpAddress != address(0), 'ERR_INVALID_MP_ADDRESS');
         if(mpAddress != address(0))
             require(msg.sender == _mpAddress, 'ERR_NOT_MP_OWNER');
+        else
+            require(msg.sender == _controller, 'ERR_NOT_CONTROLLER');
         _mpAddress = mpAddress;
     }
 
