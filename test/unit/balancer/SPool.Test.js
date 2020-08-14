@@ -113,17 +113,11 @@ contract('SPool', async (accounts) => {
         await weth.approve(pool.address, MAX, { from: admin })
         await dai.approve(pool.address, MAX, { from: admin })
 
-        // await pool.bind(WETH, toWei(wethBalance), toWei(wethDenorm))
-        // await pool.bind(DAI, toWei(daiBalance), toWei(daiDenorm))
-
-        // await pool.setPublicSwap(true)
-        // await pool.setSwapFee(toWei(String(swapFee)))
-
         await pool.setup(
-            WETH, 
+            WETH,
             toWei(wethBalance),
             toWei(wethDenorm),
-            DAI, 
+            DAI,
             toWei(daiBalance),
             toWei(daiDenorm),
             toWei(String(swapFee))
@@ -264,8 +258,6 @@ contract('SPool', async (accounts) => {
 
         it('joinPool', async () => {
             currentPoolBalance = '100'
-            // await pool.finalize()
-
             // Call function
             const pAo = '1'
             await pool.joinPool(toWei(pAo), [MAX, MAX])
