@@ -170,7 +170,6 @@ contract SPool is BToken, BMath {
             baseTokenAmount,
             baseTokenWeight
         );
-        setPublicSwap(true);
         setSwapFee(swapFee);
         // finalize
         finalize();

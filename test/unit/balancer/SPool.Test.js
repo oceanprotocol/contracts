@@ -122,6 +122,11 @@ contract('SPool', async (accounts) => {
             toWei(daiDenorm),
             toWei(String(swapFee))
         )
+
+        assert.equal(
+            await pool.isFinalized(),
+            true
+        )
     })
 
     describe('BToken tests', () => {
@@ -518,13 +523,6 @@ contract('SPool', async (accounts) => {
         it('isPublicSwap returns true', async () => {
             assert.equal(
                 await pool.isPublicSwap(),
-                true
-            )
-        })
-
-        it('isFinalized returns true', async () => {
-            assert.equal(
-                await pool.isFinalized(),
                 true
             )
         })
