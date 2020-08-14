@@ -6,6 +6,16 @@ both python and javascript packages:
 ## Production
 
 - Create a new local feature branch, e.g. `git checkout -b release/v0.2.5`
+- Generate artifacts:
+```bash
+npm run build
+cp ./build/contracts/* ./artifacts/
+```
+- Update contracts documentation
+```bash
+npm run doc:gen
+```
+
 - install bumpversion `pip install bumpversion` (if you don't have it installed on your machine)
 
 Use the `bumpversion.sh` script to bump the project version. You can execute the script using {major|minor|patch} as first argument to bump the version accordingly:
