@@ -113,11 +113,21 @@ contract('SPool', async (accounts) => {
         await weth.approve(pool.address, MAX, { from: admin })
         await dai.approve(pool.address, MAX, { from: admin })
 
-        await pool.bind(WETH, toWei(wethBalance), toWei(wethDenorm))
-        await pool.bind(DAI, toWei(daiBalance), toWei(daiDenorm))
+        // await pool.bind(WETH, toWei(wethBalance), toWei(wethDenorm))
+        // await pool.bind(DAI, toWei(daiBalance), toWei(daiDenorm))
 
-        await pool.setPublicSwap(true)
-        await pool.setSwapFee(toWei(String(swapFee)))
+        // await pool.setPublicSwap(true)
+        // await pool.setSwapFee(toWei(String(swapFee)))
+
+        await pool.setup(
+            WETH, 
+            toWei(wethBalance),
+            toWei(wethDenorm),
+            DAI, 
+            toWei(daiBalance),
+            toWei(daiDenorm),
+            toWei(String(swapFee))
+        )
     })
 
     describe('BToken tests', () => {
@@ -254,7 +264,7 @@ contract('SPool', async (accounts) => {
 
         it('joinPool', async () => {
             currentPoolBalance = '100'
-            await pool.finalize()
+            // await pool.finalize()
 
             // Call function
             const pAo = '1'
