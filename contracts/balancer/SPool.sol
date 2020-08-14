@@ -158,8 +158,6 @@ contract SPool is BToken, BMath {
     )
         external
     {
-        setPublicSwap(true);
-        setSwapFee(swapFee);
         // bind data token
         bind(
             dataTokenAaddress,
@@ -172,6 +170,8 @@ contract SPool is BToken, BMath {
             baseTokenAmount,
             baseTokenWeight
         );
+        setPublicSwap(true);
+        setSwapFee(swapFee);
         // finalize
         finalize();
     }
