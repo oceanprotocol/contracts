@@ -257,7 +257,7 @@ contract SPool is BToken, BMath {
         return _swapFee;
     }
 
-    function getMPSwapFee()
+    function getMPFee()
         external view
         _viewlock_
         returns (address,uint)
@@ -265,7 +265,7 @@ contract SPool is BToken, BMath {
         return (_mpAddress, _mpFee);
     }
 
-    function getOPCSwapFee()external view
+    function getOPCFee()external view
         _viewlock_
         returns (address,uint)
     {
@@ -299,21 +299,27 @@ contract SPool is BToken, BMath {
         require(_mpAddress != address(0), 'ERR_INVALID_MP_ADDRESS');
         require(msg.sender == _mpAddress, 'ERR_NOT_MP_OWNER');
         require(mpFee <= MAX_MP_FEE, 'ERR_MAX_MP_FEE');
-        require(mpFee > 0, 'ERR_MIN_MP_FEE');
         _mpFee = mpFee;
     }
-
-    function setMPAddress(address mpAddress)
+    /* setMPAddressAndFee
+    *  This can be set:
+    *  By Pool Controller if mpAddrees = 0
+    *                OR
+    *  By mpAddress if it's not 0
+    */
+    function setMPAddressAndFee(address mpAddress, uint mpFee)
         external
         _logs_
         _lock_
     { 
         require(mpAddress != address(0), 'ERR_INVALID_MP_ADDRESS');
-        if(mpAddress != address(0))
+        if(_mpAddress != address(0))
             require(msg.sender == _mpAddress, 'ERR_NOT_MP_OWNER');
         else
             require(msg.sender == _controller, 'ERR_NOT_CONTROLLER');
         _mpAddress = mpAddress;
+        require(mpFee <= MAX_MP_FEE, 'ERR_MAX_MP_FEE');
+        _mpFee = mpFee;
     }
 
     function setController(address manager)
@@ -603,7 +609,7 @@ contract SPool is BToken, BMath {
         external
         _logs_
         _lock_
-        returns (uint tokenAmountOut, uint spotPriceAfter)
+        returns (uint tokenAmountOut, uint spotPriceAfter,uint opcAmount, uint mpAmount)
     {
 
         require(_records[tokenIn].bound, 'ERR_NOT_BOUND');
@@ -626,8 +632,6 @@ contract SPool is BToken, BMath {
             _swapFee
         );
         require(spotPriceBefore <= maxPrice, 'ERR_BAD_LIMIT_PRICE');
-        uint opcAmount;
-        uint mpAmount;
         (tokenAmountOut, opcAmount, mpAmount) = calcOutGivenInWithExtraFees(
             inRecord.balance,
             inRecord.denorm,
@@ -672,7 +676,7 @@ contract SPool is BToken, BMath {
         if(mpAmount>0 && _mpAddress != address(0))
             _pushUnderlying(tokenIn, _mpAddress, mpAmount);
 
-        return (tokenAmountOut, spotPriceAfter);
+        return (tokenAmountOut, spotPriceAfter, opcAmount, mpAmount);
     }
 
     function swapExactAmountOut(
@@ -685,7 +689,7 @@ contract SPool is BToken, BMath {
         external
         _logs_
         _lock_ 
-        returns (uint tokenAmountIn, uint spotPriceAfter)
+        returns (uint tokenAmountIn, uint spotPriceAfter, uint opcAmount, uint mpAmount)
     {
         require(_records[tokenIn].bound, 'ERR_NOT_BOUND');
         require(_records[tokenOut].bound, 'ERR_NOT_BOUND');
@@ -708,8 +712,6 @@ contract SPool is BToken, BMath {
         );
         
         require(spotPriceBefore <= maxPrice, 'ERR_BAD_LIMIT_PRICE');
-        uint opcAmount;
-        uint mpAmount;
         (tokenAmountIn, opcAmount, mpAmount) = calcInGivenOutWithExtraFees(
             inRecord.balance,
             inRecord.denorm,
@@ -753,7 +755,7 @@ contract SPool is BToken, BMath {
             _pushUnderlying(tokenIn, OPC_ADDRESS, opcAmount);
         if(mpAmount>0)
             _pushUnderlying(tokenIn, _mpAddress, mpAmount);
-        return (tokenAmountIn, spotPriceAfter);
+        return (tokenAmountIn, spotPriceAfter, opcAmount, mpAmount);
     }
 
 

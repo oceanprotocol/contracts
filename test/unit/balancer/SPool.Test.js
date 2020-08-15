@@ -16,6 +16,8 @@ const BFactory = artifacts.require('SFactory')
 const TToken = artifacts.require('DataTokenTemplate')
 const errorDelta = 10 ** -8
 const swapFee = 10 ** -3 // 0.001;
+const MP_FEE_ADDRESS='0x37f518Ed0b8E4F77B68caCAc356912593f5BD0e1'
+const MP_FEE = 5 * 10 ** -3 // 0.005  = 0.5%
 const exitFee = 0
 const verbose = process.env.VERBOSE
 
@@ -133,14 +135,23 @@ contract('SPool', async (accounts) => {
             await pool.decimals()
         })
     })
-    describe('With fees', () => {
-        it('swapExactAmountIn', async () => {
+    describe('With OPC fees', () => {
+        it('swapExactAmountIn without mpFee', async () => {
             const tokenIn = WETH
             const tokenAmountIn = '2'
             const tokenOut = DAI
             const minAmountOut = '0'
             const maxPrice = MAX
-
+            const opcFee = await pool.getOPCFee()
+            const rawexpected = await pool.calcOutGivenIn(
+                await pool.getBalance(WETH),
+                await pool.getDenormalizedWeight(WETH),
+                await pool.getBalance(DAI),
+                await pool.getDenormalizedWeight(DAI),
+                toWei(tokenAmountIn),
+                await pool.getSwapFee()
+            )
+            let expected = Decimal(fromWei(rawexpected))
             const output = await pool.swapExactAmountIn.call(
                 tokenIn,
                 toWei(tokenAmountIn),
@@ -150,26 +161,29 @@ contract('SPool', async (accounts) => {
             )
 
             // Checking outputs
-            let expected = calcOutGivenIn(
-                currentWethBalance,
-                wethNorm,
-                currentDaiBalance,
-                daiNorm,
-                tokenAmountIn,
-                swapFee
-            )
-
             let actual = Decimal(fromWei(output[0]))
+            const actualOpcAmount = Decimal(fromWei(output[2]))
+            const actualMpAmount = Decimal(fromWei(output[3]))
             let relDif = calcRelativeDiff(expected, actual)
 
             if (verbose) {
                 console.log('output[0]')
+                console.log(`inputAmount: ${tokenAmountIn})`)
+                console.log('opcFee: '+ fromWei(opcFee[1]))
+                console.log(`opcAmount: ${actualOpcAmount})`)
+                console.log(`mpAmount: ${actualMpAmount})`)
                 console.log(`expected: ${expected})`)
                 console.log(`actual  : ${actual})`)
                 console.log(`relDif  : ${relDif})`)
             }
-
+            // tokenAmountIn check
             assert.isAtMost(relDif.toNumber(), errorDelta)
+            // mpAmount should be zero
+            assert.equal(actualMpAmount.toNumber(), 0)
+            // opcAmount check
+
+            const expectedOpcAmount = Decimal(tokenAmountIn).mul(fromWei(opcFee[1]))
+            assert.equal(expectedOpcAmount.toNumber(), actualOpcAmount.toNumber())
 
             expected = calcSpotPrice(
                 currentWethBalance.plus(Decimal(2)),
@@ -193,13 +207,22 @@ contract('SPool', async (accounts) => {
             assert.isAtMost(relDif.toNumber(), errorDelta)
         })
 
-        it('swapExactAmountOut', async () => {
+        it('swapExactAmountOut without mpFee', async () => {
             const tokenIn = DAI
             const maxAmountIn = MAX
             const tokenOut = WETH
             const tokenAmountOut = '1'
             const maxPrice = MAX
-
+            const opcFee = await pool.getOPCFee()
+            const rawexpected = await pool.calcInGivenOut(
+                await pool.getBalance(DAI),
+                await pool.getDenormalizedWeight(DAI),
+                await pool.getBalance(WETH),
+                await pool.getDenormalizedWeight(WETH),
+                toWei(tokenAmountOut),
+                await pool.getSwapFee()
+            )
+            let expected = Decimal(fromWei(rawexpected))
             const output = await pool.swapExactAmountOut.call(
                 tokenIn,
                 maxAmountIn,
@@ -207,29 +230,29 @@ contract('SPool', async (accounts) => {
                 toWei(tokenAmountOut),
                 maxPrice
             )
-
-            // Checking outputs
-            // let expected = (48 / (4 - 1) - 12) / (1 - swapFee);
-            let expected = calcInGivenOut(
-                currentDaiBalance,
-                daiNorm,
-                currentWethBalance,
-                wethNorm,
-                tokenAmountOut,
-                swapFee
-            )
-
-            let actual = fromWei(output[0])
+            let actual = Decimal(fromWei(output[0]))
+            const actualOpcAmount = Decimal(fromWei(output[2]))
+            const actualMpAmount = Decimal(fromWei(output[3]))
             let relDif = calcRelativeDiff(expected, actual)
 
             if (verbose) {
                 console.log('output[0]')
+                console.log(`outputAmount: ${tokenAmountOut})`)
+                console.log('opcFee: '+ fromWei(opcFee[1]))
+                console.log(`opcAmount: ${actualOpcAmount})`)
+                console.log(`mpAmount: ${actualMpAmount})`)
                 console.log(`expected: ${expected})`)
                 console.log(`actual  : ${actual})`)
                 console.log(`relDif  : ${relDif})`)
             }
-
+            // tokenAmount check
             assert.isAtMost(relDif.toNumber(), errorDelta)
+            // mpAmount should be zero
+            assert.equal(actualMpAmount.toNumber(), 0)
+            // opcAmount check
+            const feeBase = actual.minus(actualOpcAmount).minus(actualMpAmount)
+            const expectedOpcAmount = feeBase.mul(fromWei(opcFee[1]))
+            assert.equal(expectedOpcAmount.toNumber(), actualOpcAmount.toNumber())
 
             expected = calcSpotPrice(
                 currentDaiBalance.plus(actual),
@@ -251,7 +274,160 @@ contract('SPool', async (accounts) => {
 
             assert.isAtMost(relDif.toNumber(), errorDelta)
         })
+        // with marketplace fees
+        it('swapExactAmountIn with mpFees', async () => {
+            const tokenIn = WETH
+            const tokenAmountIn = '2'
+            const tokenOut = DAI
+            const minAmountOut = '0'
+            const maxPrice = MAX
+            // set mpFee
+            await pool.setMPAddressAndFee(MP_FEE_ADDRESS, toWei(String(MP_FEE)))
+            const actualMpFee = await pool.getMPFee()
+            assert.equal(actualMpFee[0], MP_FEE_ADDRESS)
+            assert.equal(Decimal(fromWei(actualMpFee[1])).toNumber(), MP_FEE)
+            const opcFee = await pool.getOPCFee()
+            const rawexpected = await pool.calcOutGivenIn(
+                await pool.getBalance(WETH),
+                await pool.getDenormalizedWeight(WETH),
+                await pool.getBalance(DAI),
+                await pool.getDenormalizedWeight(DAI),
+                toWei(tokenAmountIn),
+                await pool.getSwapFee()
+            )
+            let expected = Decimal(fromWei(rawexpected))
+            const output = await pool.swapExactAmountIn.call(
+                tokenIn,
+                toWei(tokenAmountIn),
+                tokenOut,
+                toWei(minAmountOut),
+                maxPrice
+            )
 
+            // Checking outputs
+            let actual = Decimal(fromWei(output[0]))
+            const actualOpcAmount = Decimal(fromWei(output[2]))
+            const actualMpAmount = Decimal(fromWei(output[3]))
+            let relDif = calcRelativeDiff(expected, actual)
+
+            if (verbose) {
+                console.log('output[0]')
+                console.log(`inputAmount: ${tokenAmountIn})`)
+                console.log('opcFee: '+ fromWei(opcFee[1]))
+                console.log(`opcAmount: ${actualOpcAmount})`)
+                console.log(`mpAmount: ${actualMpAmount})`)
+                console.log(`expected: ${expected})`)
+                console.log(`actual  : ${actual})`)
+                console.log(`relDif  : ${relDif})`)
+            }
+            // tokenAmountIn check
+            assert.isAtMost(relDif.toNumber(), errorDelta)
+            // mpAmount check
+            const expectedMpAmount = Decimal(tokenAmountIn).mul(fromWei(actualMpFee[1]))
+            assert.equal(expectedMpAmount.toNumber(), actualMpAmount.toNumber())
+            // opcAmount check
+
+            const expectedOpcAmount = Decimal(tokenAmountIn).mul(fromWei(opcFee[1]))
+            assert.equal(expectedOpcAmount.toNumber(), actualOpcAmount.toNumber())
+
+            expected = calcSpotPrice(
+                currentWethBalance.plus(Decimal(2)),
+                wethNorm,
+                currentDaiBalance.sub(actual),
+                daiNorm,
+                swapFee
+            )
+            // expected = 1 / ((1 - swapFee) * (4 + 2)) / (48 / (4 + 2 * (1 - swapFee)));
+            // expected = ((1 / (1 - swapFee)) * (4 + 2)) / (48 / (4 + 2 * (1 - swapFee)));
+            actual = fromWei(output[1])
+            relDif = calcRelativeDiff(expected, actual)
+
+            if (verbose) {
+                console.log('output[1]')
+                console.log(`expected: ${expected})`)
+                console.log(`actual  : ${actual})`)
+                console.log(`relDif  : ${relDif})`)
+            }
+
+            assert.isAtMost(relDif.toNumber(), errorDelta)
+        })
+
+        it('swapExactAmountOut with mpFees', async () => {
+            const tokenIn = DAI
+            const maxAmountIn = MAX
+            const tokenOut = WETH
+            const tokenAmountOut = '1'
+            const maxPrice = MAX
+            // set mpFee
+            //await pool.setMPAddressAndFee(MP_FEE_ADDRESS, toWei(String(MP_FEE)))
+            const actualMpFee = await pool.getMPFee()
+            assert.equal(actualMpFee[0], MP_FEE_ADDRESS)
+            assert.equal(Decimal(fromWei(actualMpFee[1])).toNumber(), MP_FEE)
+            const opcFee = await pool.getOPCFee()
+            const rawexpected = await pool.calcInGivenOut(
+                await pool.getBalance(DAI),
+                await pool.getDenormalizedWeight(DAI),
+                await pool.getBalance(WETH),
+                await pool.getDenormalizedWeight(WETH),
+                toWei(tokenAmountOut),
+                await pool.getSwapFee()
+            )
+            let expected = Decimal(fromWei(rawexpected))
+            const output = await pool.swapExactAmountOut.call(
+                tokenIn,
+                maxAmountIn,
+                tokenOut,
+                toWei(tokenAmountOut),
+                maxPrice
+            )
+            let actual = Decimal(fromWei(output[0]))
+            const actualOpcAmount = Decimal(fromWei(output[2]))
+            const actualMpAmount = Decimal(fromWei(output[3]))
+            let relDif = calcRelativeDiff(expected, actual)
+
+            if (verbose) {
+                console.log('output[0]')
+                console.log(`outputAmount: ${tokenAmountOut})`)
+                console.log('opcFee: '+ fromWei(opcFee[1]))
+                console.log(`opcAmount: ${actualOpcAmount})`)
+                console.log(`mpAmount: ${actualMpAmount})`)
+                console.log(`expected: ${expected})`)
+                console.log(`actual  : ${actual})`)
+                console.log(`relDif  : ${relDif})`)
+            }
+            // tokenAmount check
+            assert.isAtMost(relDif.toNumber(), errorDelta)
+
+            const feeBase = actual.minus(actualOpcAmount).minus(actualMpAmount)
+            
+            // mpAmount check
+            const expectedMpAmount = feeBase.mul(fromWei(actualMpFee[1]))
+            assert.equal(expectedMpAmount.toNumber(), actualMpAmount.toNumber())
+            // opcAmount check
+            
+            const expectedOpcAmount = feeBase.mul(fromWei(opcFee[1]))
+            assert.equal(expectedOpcAmount.toNumber(), actualOpcAmount.toNumber())
+
+            expected = calcSpotPrice(
+                currentDaiBalance.plus(actual),
+                daiNorm,
+                currentWethBalance.sub(Decimal(1)),
+                wethNorm,
+                swapFee
+            )
+
+            actual = fromWei(output[1])
+            relDif = calcRelativeDiff(expected, actual)
+
+            if (verbose) {
+                console.log('output[1]')
+                console.log(`expected: ${expected})`)
+                console.log(`actual  : ${actual})`)
+                console.log(`relDif  : ${relDif})`)
+            }
+
+            assert.isAtMost(relDif.toNumber(), errorDelta)
+        })
         it('joinPool', async () => {
             currentPoolBalance = '100'
             await pool.finalize()
@@ -540,5 +716,7 @@ contract('SPool', async (accounts) => {
                 true
             )
         })
+
+       
     })
 })
