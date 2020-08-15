@@ -5,8 +5,8 @@
 const Decimal = require('decimal.js')
 const {
     calcSpotPrice,
-    calcOutGivenIn,
-    calcInGivenOut,
+    // calcOutGivenIn,
+    // calcInGivenOut,
     calcRelativeDiff
 } = require('./helpers/calComparisons.js')
 const { assert } = require('chai')
@@ -16,7 +16,7 @@ const BFactory = artifacts.require('SFactory')
 const TToken = artifacts.require('DataTokenTemplate')
 const errorDelta = 10 ** -8
 const swapFee = 10 ** -3 // 0.001;
-const MP_FEE_ADDRESS='0x37f518Ed0b8E4F77B68caCAc356912593f5BD0e1'
+const MP_FEE_ADDRESS = '0x37f518Ed0b8E4F77B68caCAc356912593f5BD0e1'
 const MP_FEE = 5 * 10 ** -3 // 0.005  = 0.5%
 const exitFee = 0
 const verbose = process.env.VERBOSE
@@ -169,7 +169,7 @@ contract('SPool', async (accounts) => {
             if (verbose) {
                 console.log('output[0]')
                 console.log(`inputAmount: ${tokenAmountIn})`)
-                console.log('opcFee: '+ fromWei(opcFee[1]))
+                console.log('opcFee: ' + fromWei(opcFee[1]))
                 console.log(`opcAmount: ${actualOpcAmount})`)
                 console.log(`mpAmount: ${actualMpAmount})`)
                 console.log(`expected: ${expected})`)
@@ -238,7 +238,7 @@ contract('SPool', async (accounts) => {
             if (verbose) {
                 console.log('output[0]')
                 console.log(`outputAmount: ${tokenAmountOut})`)
-                console.log('opcFee: '+ fromWei(opcFee[1]))
+                console.log('opcFee: ' + fromWei(opcFee[1]))
                 console.log(`opcAmount: ${actualOpcAmount})`)
                 console.log(`mpAmount: ${actualMpAmount})`)
                 console.log(`expected: ${expected})`)
@@ -313,7 +313,7 @@ contract('SPool', async (accounts) => {
             if (verbose) {
                 console.log('output[0]')
                 console.log(`inputAmount: ${tokenAmountIn})`)
-                console.log('opcFee: '+ fromWei(opcFee[1]))
+                console.log('opcFee: ' + fromWei(opcFee[1]))
                 console.log(`opcAmount: ${actualOpcAmount})`)
                 console.log(`mpAmount: ${actualMpAmount})`)
                 console.log(`expected: ${expected})`)
@@ -359,7 +359,7 @@ contract('SPool', async (accounts) => {
             const tokenAmountOut = '1'
             const maxPrice = MAX
             // set mpFee
-            //await pool.setMPAddressAndFee(MP_FEE_ADDRESS, toWei(String(MP_FEE)))
+            // await pool.setMPAddressAndFee(MP_FEE_ADDRESS, toWei(String(MP_FEE)))
             const actualMpFee = await pool.getMPFee()
             assert.equal(actualMpFee[0], MP_FEE_ADDRESS)
             assert.equal(Decimal(fromWei(actualMpFee[1])).toNumber(), MP_FEE)
@@ -388,7 +388,7 @@ contract('SPool', async (accounts) => {
             if (verbose) {
                 console.log('output[0]')
                 console.log(`outputAmount: ${tokenAmountOut})`)
-                console.log('opcFee: '+ fromWei(opcFee[1]))
+                console.log('opcFee: ' + fromWei(opcFee[1]))
                 console.log(`opcAmount: ${actualOpcAmount})`)
                 console.log(`mpAmount: ${actualMpAmount})`)
                 console.log(`expected: ${expected})`)
@@ -399,12 +399,12 @@ contract('SPool', async (accounts) => {
             assert.isAtMost(relDif.toNumber(), errorDelta)
 
             const feeBase = actual.minus(actualOpcAmount).minus(actualMpAmount)
-            
+
             // mpAmount check
             const expectedMpAmount = feeBase.mul(fromWei(actualMpFee[1]))
             assert.equal(expectedMpAmount.toNumber(), actualMpAmount.toNumber())
             // opcAmount check
-            
+
             const expectedOpcAmount = feeBase.mul(fromWei(opcFee[1]))
             assert.equal(expectedOpcAmount.toNumber(), actualOpcAmount.toNumber())
 
@@ -716,7 +716,5 @@ contract('SPool', async (accounts) => {
                 true
             )
         })
-
-       
     })
 })

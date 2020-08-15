@@ -96,8 +96,8 @@ contract BMath is BConst, BNum {
         uint weightRatio = bdiv(tokenWeightIn, tokenWeightOut);
         uint adjustedIn = bsub(BONE, swapFee);
         adjustedIn = bmul(
-                bsub(tokenAmountIn, badd(opcAmount,mpAmount)),
-                adjustedIn);
+            bsub(tokenAmountIn, badd(opcAmount,mpAmount)),
+            adjustedIn);
         uint y = bdiv(tokenBalanceIn, badd(tokenBalanceIn, adjustedIn));
         uint foo = bpow(y, weightRatio);
         uint bar = bsub(BONE, foo);
