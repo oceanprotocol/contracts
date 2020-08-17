@@ -1,16 +1,16 @@
 /* eslint-env mocha */
-/* global artifacts, contract, it, beforeEach, web3 */
+/* global artifacts, contract, it, before, assert, web3 */
 
 const DDO = artifacts.require('DDO')
-const truffleAssert = require('truffle-assertions')
 const constants = require('../../helpers/constants.js')
 const testUtils = require('../../helpers/utils')
 
 contract('DDO test', async accounts => {
     let ddo
-    let didOwner = accounts[0]
+    let didOwner
     before('init contracts for each test', async function() {
         ddo = await DDO.new()
+        didOwner = accounts[0]
     })
 
     it('should publish a DDO', async () => {
@@ -49,7 +49,6 @@ contract('DDO test', async accounts => {
                 from: didOwner
             }
         )
-        
         const DDOUpdatedEvent = testUtils.getEventArgsFromTx(tx, 'DDOUpdated')
         assert(DDOUpdatedEvent.did === did)
     })
