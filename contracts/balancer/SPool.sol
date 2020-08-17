@@ -146,6 +146,34 @@ contract SPool is BToken, BMath {
         initialized = true;
         return initialized;
     }
+
+    function setup(
+        address dataTokenAaddress, 
+        uint256 dataTokenAmount,
+        uint256 dataTokenWeight,
+        address baseTokenAddress, 
+        uint256 baseTokenAmount,
+        uint256 baseTokenWeight,
+        uint256 swapFee
+    )
+        external
+    {
+        // bind data token
+        bind(
+            dataTokenAaddress,
+            dataTokenAmount,
+            dataTokenWeight
+        );
+        // bind base token
+        bind(
+            baseTokenAddress,
+            baseTokenAmount,
+            baseTokenWeight
+        );
+        setSwapFee(swapFee);
+        // finalize
+        finalize();
+    }
     
     //Proxy contract functionality: end
     //-----------------------------------------------------------------------
@@ -250,7 +278,7 @@ contract SPool is BToken, BMath {
     }
 
     function setSwapFee(uint swapFee)
-        external
+        public
         _logs_
         _lock_
     { 
@@ -271,7 +299,7 @@ contract SPool is BToken, BMath {
     }
 	
     function setPublicSwap(bool public_)
-        external
+        public
         _logs_
         _lock_
     {
@@ -281,7 +309,7 @@ contract SPool is BToken, BMath {
     }
 
     function finalize()
-        external
+        public
         _logs_
         _lock_
     {
@@ -298,7 +326,7 @@ contract SPool is BToken, BMath {
 
 
     function bind(address token, uint balance, uint denorm)
-        external
+        public
         _logs_
         // _lock_  Bind does not lock because it jumps to `rebind`, which does
     {
