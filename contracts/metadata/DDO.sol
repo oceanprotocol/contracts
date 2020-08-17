@@ -11,25 +11,27 @@ contract DDO {
     event DDOCreated(
         bytes32 indexed did,
         bytes flags,
-        bytes data
+        bytes data,
+        address owner
     );
     event DDOUpdated(
         bytes32 indexed did,
         bytes flags,
-        bytes data
+        bytes data,
+         address owner
     );
 
     modifier onlyDIDOwner(bytes32 did)
     {
         require(
             didOwners[did] == msg.sender,
-            'DDO: Invalid DID Owner'
+            'DDO: Invalid DID Owner or DID does not exist'
         );
         _;
     }
     constructor() public {}
 
-    function newDDO(
+    function create(
         bytes32 did,
         bytes calldata flags,
         bytes calldata data
@@ -44,11 +46,12 @@ contract DDO {
         emit DDOCreated(
             did,
             flags,
-            data
+            data,
+            didOwners[did]
         );
     }
 
-    function updateDDO(
+    function update(
         bytes32 did,
         bytes calldata flags,
         bytes calldata data
@@ -59,7 +62,8 @@ contract DDO {
         emit DDOUpdated(
             did,
             flags,
-            data
+            data,
+            msg.sender
         );
     }
 }
