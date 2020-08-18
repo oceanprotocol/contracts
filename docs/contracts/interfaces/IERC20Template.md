@@ -77,4 +77,28 @@
 
 
 
+### `allowance(address owner, address spender) → uint256` (external)
+
+
+
+
+
+### `transferFrom(address from, address to, uint256 value) → bool` (external)
+
+
+
+
+
+### `balanceOf(address account) → uint256` (external)
+
+
+
+
+
+### `transfer(address to, uint256 value) → bool` (external)
+
+
+
+
+
 

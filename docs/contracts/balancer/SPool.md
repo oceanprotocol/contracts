@@ -51,6 +51,12 @@ the best we can do for now is clearly demarcate the proxy section.
 
 
 
+### `setup(address dataTokenAaddress, uint256 dataTokenAmount, uint256 dataTokenWeight, address baseTokenAddress, uint256 baseTokenAmount, uint256 baseTokenWeight, uint256 swapFee)` (external)
+
+
+
+
+
 ### `isPublicSwap() → bool` (external)
 
 
@@ -123,7 +129,7 @@ the best we can do for now is clearly demarcate the proxy section.
 
 
 
-### `setSwapFee(uint256 swapFee)` (external)
+### `setSwapFee(uint256 swapFee)` (public)
 
 
 
@@ -135,19 +141,19 @@ the best we can do for now is clearly demarcate the proxy section.
 
 
 
-### `setPublicSwap(bool public_)` (external)
+### `setPublicSwap(bool public_)` (public)
 
 
 
 
 
-### `finalize()` (external)
+### `finalize()` (public)
 
 
 
 
 
-### `bind(address token, uint256 balance, uint256 denorm)` (external)
+### `bind(address token, uint256 balance, uint256 denorm)` (public)
 
 
 

@@ -8,12 +8,13 @@ both python and javascript packages:
 - Create a new local feature branch, e.g. `git checkout -b release/v0.2.5`
 - Generate artifacts:
 ```bash
-npm run build
+npm run compile
+rm ./artifacts/*
 cp ./build/contracts/* ./artifacts/
 ```
 - Update contracts documentation
 ```bash
-npm run doc:gen
+npm run doc:generate
 ```
 
 - install bumpversion `pip install bumpversion` (if you don't have it installed on your machine)
