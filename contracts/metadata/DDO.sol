@@ -12,13 +12,15 @@ contract DDO {
         bytes32 indexed did,
         bytes flags,
         bytes data,
-        address owner
+        uint256 createdAt,
+        address createdBy
     );
     event DDOUpdated(
         bytes32 indexed did,
         bytes flags,
         bytes data,
-         address owner
+        uint256 updatedAt,
+        address updatedBy
     );
 
     modifier onlyDIDOwner(bytes32 did)
@@ -47,6 +49,7 @@ contract DDO {
             did,
             flags,
             data,
+            block.number,
             didOwners[did]
         );
     }
@@ -63,6 +66,7 @@ contract DDO {
             did,
             flags,
             data,
+            block.number,
             msg.sender
         );
     }
