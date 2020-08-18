@@ -5,7 +5,7 @@
 Implementation of Ocean DataTokens Factory
 
 DTFactory deploys DataToken proxy contracts.
-New DataToken proxy contracts are links to the template contract's bytecode. 
+New DataToken proxy contracts are links to the template contract's bytecode.
 Proxy contract functionality is based on Ocean Protocol custom implementation of ERC1167 standard.
 
 
@@ -22,14 +22,14 @@ Called on contract deployment. Could not be called with zero address parameters.
 
 
 Deploys new DataToken proxy contract.
-Template contract address could not be a zero address. 
+Template contract address could not be a zero address.
 
 
 ### `getCurrentTokenIndex() → uint256` (external)
 
 
 
-get the current token index. 
+get the current token index.
 
 
 ### `getTokenTemplate() → address` (external)
