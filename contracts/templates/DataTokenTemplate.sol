@@ -24,7 +24,7 @@ contract DataTokenTemplate is IERC20Template, ERC20Pausable {
     address private _minter;
     
 
-    event StartOrder(
+    event OrderStarted(
             uint256 amount, 
             bytes32 did, 
             uint256 serviceId, 
@@ -32,7 +32,7 @@ contract DataTokenTemplate is IERC20Template, ERC20Pausable {
             uint256 startedAt
     );
 
-    event FinishOrder(
+    event OrderFinished(
             bytes32 orderTxId, 
             address consumer, 
             uint256 amount, 
@@ -196,7 +196,7 @@ contract DataTokenTemplate is IERC20Template, ERC20Pausable {
             'DataTokenTemplate: failed to start order'
         );
 
-        emit StartOrder(
+        emit OrderStarted(
             amount, 
             did, 
             serviceId, 
@@ -231,7 +231,7 @@ contract DataTokenTemplate is IERC20Template, ERC20Pausable {
                 'DataTokenTemplate: failed to finish order'
             );
 
-        emit FinishOrder(
+        emit OrderFinished(
             orderTxId, 
             consumer, 
             amount, 
