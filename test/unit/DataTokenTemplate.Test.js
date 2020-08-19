@@ -11,7 +11,6 @@ const Token = artifacts.require('DataTokenTemplate')
 const testUtils = require('../helpers/utils')
 const truffleAssert = require('truffle-assertions')
 const BigNumber = require('bn.js')
-const constants = require('../helpers/constants')
 
 contract('DataTokenTemplate', async (accounts) => {
     let cap,
