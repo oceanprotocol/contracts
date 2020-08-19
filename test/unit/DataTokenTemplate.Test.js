@@ -25,8 +25,9 @@ contract('DataTokenTemplate', async (accounts) => {
         minter,
         newMinter,
         reciever,
-        blob
-
+        blob,
+        orderTxId
+    const did = '0x0000000000000000000000000000000000000000000000000000000001111111'
     beforeEach('init contracts for each test', async () => {
         blob = 'https://example.com/dataset-1'
         decimals = 18
@@ -152,6 +153,48 @@ contract('DataTokenTemplate', async (accounts) => {
         assert.equal(
             _blob,
             blob
+        )
+    })
+
+    it('should start order', async () => {
+        const consumer = accounts[9]
+        const provider = accounts[8]
+        const orderDTTokensAmount = 10
+        const serviceId = 1
+        truffleAssert.passes(await token.mint(consumer, orderDTTokensAmount, { value: ethValue, from: minter }))
+        orderTxId = await token.startOrder(
+            provider,
+            orderDTTokensAmount,
+            did,
+            serviceId,
+            {
+                from: consumer
+            }
+        )
+        const OrderStartedEventArgs = testUtils.getEventArgsFromTx(orderTxId, 'OrderStarted')
+        assert(
+            (await token.balanceOf(provider)).toNumber() === (OrderStartedEventArgs.amount).toNumber()
+        )
+    })
+    it('should finish order', async () => {
+        const consumer = accounts[9]
+        const provider = accounts[8]
+        const restOfDTTokensAmount = 2
+        const serviceId = 1
+        truffleAssert.passes(await token.mint(provider, restOfDTTokensAmount, { value: ethValue, from: minter }))
+        const trxReceipt = await token.finishOrder(
+            orderTxId.receipt.transactionHash,
+            consumer,
+            restOfDTTokensAmount,
+            did,
+            serviceId,
+            {
+                from: provider
+            }
+        )
+        const OrderFinishedEventArgs = testUtils.getEventArgsFromTx(trxReceipt, 'OrderFinished')
+        assert(
+            (await token.balanceOf(consumer)).toNumber() === (OrderFinishedEventArgs.amount).toNumber()
         )
     })
 })

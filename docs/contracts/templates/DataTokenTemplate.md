@@ -45,6 +45,23 @@ Only the minter address can call it.
 msg.value should be higher than zero and gt or eq minting fee
 
 
+### `startOrder(address receiver, uint256 amount, bytes32 did, uint256 serviceId)` (public)
+
+
+
+startOrder
+called by consumer prior ordering a service consume on a marketplace
+
+
+### `finishOrder(bytes32 orderTxId, address consumer, uint256 amount, bytes32 did, uint256 serviceId)` (public)
+
+
+
+finishOrder
+called by provider prior completing service delivery only
+if there is a partial or full refund.
+
+
 ### `pause()` (public)
 
 
@@ -136,6 +153,18 @@ It checks whether the contract is initialized.
 
 isPaused
 Function checks if the contract is paused.
+
+
+
+### `StartOrder(uint256 amount, bytes32 did, uint256 serviceId, address receiver, uint256 startedAt)`
+
+
+
+
+
+### `FinishOrder(bytes32 orderTxId, address consumer, uint256 amount, bytes32 did, uint256 serviceId, address provider)`
+
+
 
 
 
