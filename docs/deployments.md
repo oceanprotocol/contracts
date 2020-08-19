@@ -2,6 +2,39 @@
 
 ## Rinkeby 
 
+### V0.3.5
+
+The contracts addresses for the latest deployment:
+
+Find [here](https://github.com/oceanprotocol/atlantic/blob/df8d40dfeaceaed357605f03a40fa6aa1b2cdf13/logs/Rinkeby-datatokens-deployment-18082020.txt) more deployment details
+
+```bash
+   Deploying 'DataTokenTemplate'
+   -----------------------------
+   > contract address:    0x37f2C0450f11D618c095266B2f9d4f4110cea848
+
+   Deploying 'DTFactory'
+   ---------------------
+   > contract address:    0x1B17d75a1998B2872421a3dbA2c3faD6bAa1B48f
+
+   Deploying 'SPool'
+   -----------------
+   > contract address:    0x7244761d88F6d98c2C75079B82A30f4696E7fD40
+
+   Deploying 'SFactory'
+   --------------------
+   > contract address:    0x6d6dd42bFa9b60A0b8F7E5C9937359bd98c172cb
+
+   Deploying 'FixedRateExchange'
+   --------------------
+   > contract address:    0x7219AfFc1C2b474830D9d9b0423ecf47073C5488
+   
+   Deploying 'DDO'
+   --------------------
+   > contract address:    0x7C876Da8719d206a9639f7D034E94A342b42BFd2
+
+```
+
 ### V0.3.4
 
 The contracts addresses for the latest deployment:
