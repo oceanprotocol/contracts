@@ -81,7 +81,7 @@ contract FixedRateExchange {
         uint256 dataTokenSwappedAmount
     );
 
-
+    /* solium-disable-next-line */
     constructor () public {}
 
     function create(
@@ -169,8 +169,10 @@ contract FixedRateExchange {
             exchangeId
         )
     {
-        uint256 baseTokenAmount = 
-            dataTokenAmount.mul(exchanges[exchangeId].fixedRate).div(10 ** 18);
+        uint256 baseTokenAmount = dataTokenAmount
+        .mul(exchanges[exchangeId].fixedRate)
+        .div(10 ** 18);
+
         require(
             IERC20Template(exchanges[exchangeId].baseToken).transferFrom(
                 msg.sender,
@@ -212,7 +214,7 @@ contract FixedRateExchange {
         onlyExchangeOwner(exchangeId)
     {
         require(
-            newRate >0,
+            newRate > 0,
             'FixedRateExchange: Ratio must be >0'
         );
 
