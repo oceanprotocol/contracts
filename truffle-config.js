@@ -18,6 +18,7 @@
  *
  */
 
+
 const HDWalletProvider = require('truffle-hdwallet-provider')
 const NonceTrackerSubprovider = require('web3-provider-engine/subproviders/nonce-tracker')
 const utils = require('web3-utils')
@@ -103,6 +104,14 @@ module.exports = {
             from: '0xba3e0ec852dc24ca7f454ea545d40b1462501711',
             gas: 6 * 1000000,
             gasPrice: utils.toWei('10', 'mwei')
+        },
+        // mumbai the matic network testnet
+        mumbai: {
+            provider: () => setupWallet('https://rpc-mumbai.matic.today'),
+            network_id: 80001, // 846353
+            from: '0x784af89Db31632583eF2b12994341449E8c28860',
+            gas: 8 * 1000000,
+            gasPrice: utils.toWei('1', 'gwei')
         }
     },
     plugins: ['solidity-coverage'],
