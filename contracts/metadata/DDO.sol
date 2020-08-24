@@ -3,7 +3,14 @@ pragma solidity ^0.5.7;
 // SPDX-License-Identifier: (Apache-2.0 AND CC-BY-4.0)
 // Code is Apache-2.0 and docs are CC-BY-4.0
 
-
+/**
+* @title DDO
+*  
+* @dev DDO stands for Decentralized Document. It allows publishers
+*      to publish their dataset metadata in decentralized way.
+*      It follows the Ocean DID Document standard: 
+*      https://github.com/oceanprotocol/OEPs/blob/master/7/v0.2/README.md
+*/
 contract DDO {
 
     mapping(bytes32 => address) public didOwners;
@@ -37,6 +44,13 @@ contract DDO {
     }
     constructor() public {}
 
+    /**
+     * @dev create
+     *      creates/publishes new DDO document on-chain. 
+     * @param did refers to decentralized identifier
+     * @param flags special flags associated with DID
+     * @param data referes to the actual metadata
+     */
     function create(
         bytes32 did,
         bytes calldata flags,
@@ -58,6 +72,13 @@ contract DDO {
         );
     }
 
+    /**
+     * @dev update
+     *      allows only did owners to update the DDO/metadata content
+     * @param did refers to decentralized identifier
+     * @param flags special flags associated with DID
+     * @param data referes to the actual metadata
+     */
     function update(
         bytes32 did,
         bytes calldata flags,
@@ -75,6 +96,12 @@ contract DDO {
         );
     }
 
+    /**
+     * @dev transferOwnership
+     *      allows only did owners to transfer did ownership
+     * @param did refers to decentralized identifier
+     * @param owner the new owner address
+     */
     function transferOwnership(
         bytes32 did,
         address owner
