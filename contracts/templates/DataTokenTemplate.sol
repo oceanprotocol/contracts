@@ -29,7 +29,8 @@ contract DataTokenTemplate is IERC20Template, ERC20Pausable {
             bytes32 did, 
             uint256 serviceId, 
             address receiver, 
-            uint256 startedAt
+            uint256 startedAt,
+            uint256 mrktFee
     );
 
     event OrderFinished(
@@ -182,15 +183,26 @@ contract DataTokenTemplate is IERC20Template, ERC20Pausable {
      * @param amount refers to amount of tokens that is going to be transfered.
      * @param did refers to DID or decentralized identifier for an asset
      * @param serviceId service index in the DID
+     * @param mrktFee is the marketplace fee in wei.
      */
     function startOrder(
         address receiver, 
         uint256 amount,
         bytes32 did, 
-        uint256 serviceId
+        uint256 serviceId,
+        uint256 mrktFee
     )
         public
     {
+        require(
+            receiver != address(0),
+            'DataTokenTemplate: invalid receiver address'
+        );
+        require(
+            amount > mrktFee,
+            'DataTokenTemplate: invalid market fee'
+        );
+        //TODO: deduct mrktFee, communityFee
         require(
             transfer(receiver, amount),
             'DataTokenTemplate: failed to start order'
@@ -201,7 +213,8 @@ contract DataTokenTemplate is IERC20Template, ERC20Pausable {
             did, 
             serviceId, 
             receiver, 
-            block.number
+            block.number,
+            mrktFee
         );
     }
 

@@ -160,6 +160,7 @@ contract('DataTokenTemplate', async (accounts) => {
         const consumer = accounts[9]
         const provider = accounts[8]
         const orderDTTokensAmount = 10
+        const marketFee = 2
         const serviceId = 1
         truffleAssert.passes(await token.mint(consumer, orderDTTokensAmount, { value: ethValue, from: minter }))
         orderTxId = await token.startOrder(
@@ -167,6 +168,7 @@ contract('DataTokenTemplate', async (accounts) => {
             orderDTTokensAmount,
             did,
             serviceId,
+            marketFee,
             {
                 from: consumer
             }
