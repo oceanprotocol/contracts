@@ -156,13 +156,13 @@ Function checks if the contract is paused.
 
 
 
-### `StartOrder(uint256 amount, bytes32 did, uint256 serviceId, address receiver, uint256 startedAt)`
+### `OrderStarted(uint256 amount, bytes32 did, uint256 serviceId, address receiver, uint256 startedAt)`
 
 
 
 
 
-### `FinishOrder(bytes32 orderTxId, address consumer, uint256 amount, bytes32 did, uint256 serviceId, address provider)`
+### `OrderFinished(bytes32 orderTxId, address consumer, uint256 amount, bytes32 did, uint256 serviceId, address provider)`
 
 
 
