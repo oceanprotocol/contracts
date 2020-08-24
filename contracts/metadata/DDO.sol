@@ -22,6 +22,10 @@ contract DDO {
         uint256 updatedAt,
         address updatedBy
     );
+    event  DIDOwnershipTransferred(
+        bytes32 did,
+        address owner
+    );
 
     modifier onlyDIDOwner(bytes32 did)
     {
@@ -68,6 +72,24 @@ contract DDO {
             data,
             block.number,
             msg.sender
+        );
+    }
+
+    function transferOwnership(
+        bytes32 did,
+        address owner
+    )
+        external
+        onlyDIDOwner(did)
+    {
+        require(
+            owner != msg.sender &&
+            owner != address(0)
+        );
+        didOwners[did] = owner;
+        emit DIDOwnershipTransferred(
+            did,
+            owner
         );
     }
 }
