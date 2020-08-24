@@ -9,6 +9,9 @@ import 'openzeppelin-solidity/contracts/math/SafeMath.sol';
 /**
  * @title FixedRateExchange
  * @dev FixedRateExchange is a fixed rate exchange Contract
+ *      Marketplaces uses this contract to allow consumers 
+ *      exchanging datatokens with ocean token using a fixed 
+ *      exchange rate.
  */
 contract FixedRateExchange {
     using SafeMath for uint256;
@@ -84,6 +87,14 @@ contract FixedRateExchange {
 
     constructor () public {}
 
+    /**
+     * @dev create
+     *      creates new exchange pairs between base token
+     *      (ocean token) and data tokens.
+     * @param baseToken refers to a ocean token contract address
+     * @param dataToken refers to a data token contract address
+     * @param fixedRate refers to the exact fixed exchange rate in wei
+     */
     function create(
         address baseToken,
         address dataToken,
@@ -142,6 +153,13 @@ contract FixedRateExchange {
         );
     }
 
+    /**
+     * @dev generateExchangeId
+     *      creates unique exchange identifier for two token pairs.
+     * @param baseToken refers to a ocean token contract address
+     * @param dataToken refers to a data token contract address
+     * @param exchangeOwner exchange owner address
+     */
     function generateExchangeId(
         address baseToken,
         address dataToken,
@@ -160,6 +178,12 @@ contract FixedRateExchange {
         );
     }
 
+    /**
+     * @dev swap
+     *      atomic swap between two registered fixed rate exchange.
+     * @param exchangeId a unique exchange idnetifier 
+     * @param dataTokenAmount the amount of data tokens to be exchanged
+     */
     function swap(
         bytes32 exchangeId,
         uint256 dataTokenAmount
@@ -196,6 +220,11 @@ contract FixedRateExchange {
         );
     }
 
+    /**
+     * @dev getNumberOfExchanges
+     *      gets the total number of registered exchanges
+     * @return total number of registered exchange IDs
+     */
     function getNumberOfExchanges()
         external
         view
@@ -204,6 +233,12 @@ contract FixedRateExchange {
         return exchangeIds.length;
     }
 
+    /**
+     * @dev setRate
+     *      changes the fixed rate for an exchange with a new rate
+     * @param exchangeId a unique exchange idnetifier
+     * @param newRate new fixed rate value
+     */
     function setRate(
         bytes32 exchangeId,
         uint256 newRate
@@ -224,7 +259,11 @@ contract FixedRateExchange {
         );
     }
 
-
+     /**
+     * @dev activate
+     *      sets exchange status to active to true (only called by exchagne owner)
+     * @param exchangeId a unique exchange idnetifier
+     */
     function activate(
         bytes32 exchangeId
     )
@@ -245,6 +284,11 @@ contract FixedRateExchange {
         );
     }
 
+    /**
+     * @dev deactivate
+     *      sets exchange status to active to false (only called by exchagne owner)
+     * @param exchangeId a unique exchange idnetifier
+     */
     function deactivate(
         bytes32 exchangeId
     )
@@ -265,7 +309,12 @@ contract FixedRateExchange {
         );
     }
 
-    
+    /**
+     * @dev getRate
+     *      gets the current fixed rate for an exchange
+     * @param exchangeId a unique exchange idnetifier
+     * @return fixed rate value
+     */
     function getRate(
         bytes32 exchangeId
     )
@@ -276,6 +325,12 @@ contract FixedRateExchange {
         return exchanges[exchangeId].fixedRate;
     }
 
+     /**
+     * @dev getExchange
+     *      gets all the exchange details
+     * @param exchangeId a unique exchange idnetifier
+     * @return all the exchange details
+     */
     function getExchange(
         bytes32 exchangeId
     )
@@ -296,6 +351,11 @@ contract FixedRateExchange {
         active = exchanges[exchangeId].active;
     }
 
+    /**
+     * @dev getExchanges
+     *      gets all the exchange list
+     * @return a list of all registered exchange Ids
+     */
     function getExchanges()
         external 
         view 
@@ -304,6 +364,12 @@ contract FixedRateExchange {
         return exchangeIds;
     }
 
+    /**
+     * @dev isActive
+     *      checks whether exchange is active
+     * @param exchangeId a unique exchange idnetifier
+     * @return true if exchange is true, otherwise returns false
+     */
     function isActive(
         bytes32 exchangeId
     )
