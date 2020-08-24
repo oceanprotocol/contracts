@@ -70,7 +70,7 @@ contract('DDO test', async accounts => {
     })
     it('should get did owner', async () => {
         const did = constants.did[0]
-        assert (
+        assert(
             await ddo.didOwners(did) === newDIDOwner
         )
     })
