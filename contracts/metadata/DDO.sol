@@ -6,7 +6,7 @@ pragma solidity ^0.5.7;
 
 contract DDO {
 
-    mapping(bytes32 => address) didOwners;
+    mapping(bytes32 => address) public didOwners;
 
     event DDOCreated(
         bytes32 indexed did,
@@ -22,7 +22,7 @@ contract DDO {
         uint256 updatedAt,
         address updatedBy
     );
-    event  DIDOwnershipTransferred(
+    event  DDOOwnershipTransferred(
         bytes32 did,
         address owner
     );
@@ -87,7 +87,7 @@ contract DDO {
             owner != address(0)
         );
         didOwners[did] = owner;
-        emit DIDOwnershipTransferred(
+        emit DDOOwnershipTransferred(
             did,
             owner
         );
