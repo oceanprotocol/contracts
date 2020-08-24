@@ -9,6 +9,7 @@ const { assert } = require('chai')
 contract('DDO test', async accounts => {
     let ddo
     let didOwner
+    let newDIDOwner
     before('init contracts for each test', async function() {
         ddo = await DDO.new()
         didOwner = accounts[0]
@@ -55,9 +56,10 @@ contract('DDO test', async accounts => {
     })
     it('should change owner', async () => {
         const did = constants.did[0]
+        newDIDOwner = accounts[4]
         const tx = await ddo.transferOwnership(
             did,
-            accounts[4],
+            newDIDOwner,
             {
                 from: didOwner
             }
@@ -65,5 +67,11 @@ contract('DDO test', async accounts => {
         const DDOOwnershipTransferredEvent = testUtils.getEventArgsFromTx(tx, 'DDOOwnershipTransferred')
         assert(DDOOwnershipTransferredEvent.did === did)
         assert(DDOOwnershipTransferredEvent.owner === accounts[4])
+    })
+    it('should get did owner', async () => {
+        const did = constants.did[0]
+        assert (
+            await ddo.didOwners(did) === newDIDOwner
+        )
     })
 })
