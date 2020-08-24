@@ -19,7 +19,7 @@ import './interfaces/IERC20Template.sol';
  */
 contract DTFactory is Deployer, Converter {
     address private tokenTemplate;
-
+    address private communityFeeCollector;
     uint256 private currentTokenCount = 1;
     // cap has max uint256 (2^256 -1)
     uint256
@@ -47,12 +47,17 @@ contract DTFactory is Deployer, Converter {
      *      Called on contract deployment. Could not be called with zero address parameters.
      * @param _template refers to the address of a deployed DataToken contract.
      */
-    constructor(address _template) public {
+    constructor(
+        address _template,
+        address _collector
+    ) public {
         require(
-            _template != address(0),
+            _template != address(0) &&
+            _collector != address(0),
             'DTFactory: Invalid token factory initialization'
         );
         tokenTemplate = _template;
+        communityFeeCollector = _collector;
     }
 
     /**
@@ -75,7 +80,14 @@ contract DTFactory is Deployer, Converter {
         string memory symbol = name;
 
         IERC20Template tokenInstance = IERC20Template(token);
-        tokenInstance.initialize(name, symbol, msg.sender, cap, blob);
+        tokenInstance.initialize(
+            name,
+            symbol,
+            msg.sender,
+            cap,
+            blob,
+            communityFeeCollector
+        );
 
         require(
             tokenInstance.isInitialized(),

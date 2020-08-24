@@ -6,7 +6,6 @@ const { assert } = chai
 const chaiAsPromised = require('chai-as-promised')
 chai.use(chaiAsPromised)
 const Converter = artifacts.require('Converter')
-// const utils = require('../helpers/utils')
 
 contract('Converter test', async accounts => {
     let converter

@@ -4,6 +4,7 @@ pragma solidity ^0.5.7;
 // Code is Apache-2.0 and docs are CC-BY-4.0
 
 import './token/ERC20Pausable.sol';
+import '../utils/FeeUtils.sol';
 import '../interfaces/IERC20Template.sol';
 /**
 * @title DataTokenTemplate
@@ -12,7 +13,7 @@ import '../interfaces/IERC20Template.sol';
 *      Used by the factory contract as a bytecode reference to 
 *      deploy new DataTokens.
 */
-contract DataTokenTemplate is IERC20Template, ERC20Pausable {
+contract DataTokenTemplate is IERC20Template, ERC20Pausable, FeeUtils {
     using SafeMath for uint256;
     
     bool    private initialized = false;
@@ -30,7 +31,8 @@ contract DataTokenTemplate is IERC20Template, ERC20Pausable {
             uint256 serviceId, 
             address receiver, 
             uint256 startedAt,
-            uint256 mrktFee
+            uint256 mrktFee,
+            uint256 communityFee
     );
 
     event OrderFinished(
@@ -70,9 +72,11 @@ contract DataTokenTemplate is IERC20Template, ERC20Pausable {
         string memory symbol,
         address minter,
         uint256 cap,
-        string memory blob
+        string memory blob,
+        address communityFeeCollector
     )
         public
+        FeeUtils(communityFeeCollector)
     {
         _initialize(
             name,
@@ -96,7 +100,8 @@ contract DataTokenTemplate is IERC20Template, ERC20Pausable {
         string memory symbol,
         address minter,
         uint256 cap,
-        string memory blob
+        string memory blob,
+        address collector
     ) 
         public
         onlyNotInitialized
@@ -109,6 +114,7 @@ contract DataTokenTemplate is IERC20Template, ERC20Pausable {
             cap,
             blob
         );
+        setCommunityFeeCollector(collector);
     }
 
     /**
@@ -184,13 +190,15 @@ contract DataTokenTemplate is IERC20Template, ERC20Pausable {
      * @param did refers to DID or decentralized identifier for an asset
      * @param serviceId service index in the DID
      * @param mrktFee is the marketplace fee in wei.
+     * @param mrktAddress maketplace address
      */
     function startOrder(
         address receiver, 
         uint256 amount,
-        bytes32 did, 
+        bytes32 did,
         uint256 serviceId,
-        uint256 mrktFee
+        uint256 mrktFee,
+        address mrktAddress
     )
         public
     {
@@ -202,10 +210,20 @@ contract DataTokenTemplate is IERC20Template, ERC20Pausable {
             amount > mrktFee,
             'DataTokenTemplate: invalid market fee'
         );
-        //TODO: deduct mrktFee, communityFee
+        uint256 fee = mrktFee.add(
+            calcCommunityFee(amount)
+        );
         require(
-            transfer(receiver, amount),
+            transfer(receiver, amount.sub(fee)),
             'DataTokenTemplate: failed to start order'
+        );
+        require(
+            transfer(mrktAddress, mrktFee),
+            'DataTokenTemplate: failed to transfer marketplace fee'
+        );
+        require(
+            transfer(communityFeeCollectorAddress, calcCommunityFee(amount)),
+            'DataTokenTemplate: failed to transfer community fee'
         );
 
         emit OrderStarted(
@@ -214,7 +232,8 @@ contract DataTokenTemplate is IERC20Template, ERC20Pausable {
             serviceId, 
             receiver, 
             block.number,
-            mrktFee
+            mrktFee,
+            calcCommunityFee(amount)
         );
     }
 
