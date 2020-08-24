@@ -1,9 +1,10 @@
 /* eslint-env mocha */
-/* global artifacts, contract, it, before, assert, web3 */
+/* global artifacts, contract, it, before, web3 */
 
 const DDO = artifacts.require('DDO')
 const constants = require('../../helpers/constants.js')
 const testUtils = require('../../helpers/utils')
+const { assert } = require('chai')
 
 contract('DDO test', async accounts => {
     let ddo
@@ -51,5 +52,18 @@ contract('DDO test', async accounts => {
         )
         const DDOUpdatedEvent = testUtils.getEventArgsFromTx(tx, 'DDOUpdated')
         assert(DDOUpdatedEvent.did === did)
+    })
+    it('should change owner', async () => {
+        const did = constants.did[0]
+        const tx = await ddo.transferOwnership(
+            did,
+            accounts[4],
+            {
+                from: didOwner
+            }
+        )
+        const DDOOwnershipTransferredEvent = testUtils.getEventArgsFromTx(tx, 'DDOOwnershipTransferred')
+        assert(DDOOwnershipTransferredEvent.did === did)
+        assert(DDOOwnershipTransferredEvent.owner === accounts[4])
     })
 })
