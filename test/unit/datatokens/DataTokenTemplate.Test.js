@@ -8,7 +8,7 @@ chai.use(chaiAsPromised)
 const Template = artifacts.require('DataTokenTemplate')
 const DTFactory = artifacts.require('DTFactory')
 const Token = artifacts.require('DataTokenTemplate')
-const testUtils = require('../helpers/utils')
+const testUtils = require('../../helpers/utils')
 const truffleAssert = require('truffle-assertions')
 const BigNumber = require('bn.js')
 
