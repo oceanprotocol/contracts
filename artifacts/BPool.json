@@ -30444,7 +30444,7 @@
                             "src": "23327:9:7",
                             "typeDescriptions": {
                               "typeIdentifier": "t_struct$_Record_$2035_storage_ptr",
-                              "typeString": "struct SPool.Record storage pointer"
+                              "typeString": "struct BPool.Record storage pointer"
                             }
                           },
                           "id": 4125,
@@ -30823,7 +30823,7 @@
                         "src": "23588:9:7",
                         "typeDescriptions": {
                           "typeIdentifier": "t_struct$_Record_$2035_storage_ptr",
-                          "typeString": "struct SPool.Record storage pointer"
+                          "typeString": "struct BPool.Record storage pointer"
                         }
                       },
                       "id": 4149,
@@ -30857,7 +30857,7 @@
                             "src": "23613:9:7",
                             "typeDescriptions": {
                               "typeIdentifier": "t_struct$_Record_$2035_storage_ptr",
-                              "typeString": "struct SPool.Record storage pointer"
+                              "typeString": "struct BPool.Record storage pointer"
                             }
                           },
                           "id": 4152,
@@ -31768,16 +31768,16 @@
                             "referencedDeclaration": 6313,
                             "src": "24335:4:7",
                             "typeDescriptions": {
-                              "typeIdentifier": "t_contract$_SPool_$4299",
-                              "typeString": "contract SPool"
+                              "typeIdentifier": "t_contract$_BPool_$4299",
+                              "typeString": "contract BPool"
                             }
                           }
                         ],
                         "expression": {
                           "argumentTypes": [
                             {
-                              "typeIdentifier": "t_contract$_SPool_$4299",
-                              "typeString": "contract SPool"
+                              "typeIdentifier": "t_contract$_BPool_$4299",
+                              "typeString": "contract BPool"
                             }
                           ],
                           "id": 4215,
@@ -33002,9 +33002,9 @@
     "src": "0:25011:7"
   },
   "legacyAST": {
-    "absolutePath": "/Users/ahmedali/Desktop/work/ocean-contracts/contracts/balancer/SPool.sol",
+    "absolutePath": "/Users/ahmedali/Desktop/work/ocean-contracts/contracts/balancer/BPool.sol",
     "exportedSymbols": {
-      "SPool": [
+      "BPool": [
         4299
       ]
     },
@@ -33092,7 +33092,7 @@
           1902
         ],
         "contractKind": "contract",
-        "documentation": "@title SPool\n \n@dev Used by the (Ocean version) BFactory contract as a bytecode reference to \n     deploy new SPools.\n* This contract is is nearly identical to the BPool.sol contract at [1]\n The only difference is the \"Proxy contract functionality\" section \n given below. We'd inherit from BPool if we could, for simplicity.\n But we can't, because the proxy section needs to access private\n variables declared in BPool, and Solidity disallows this. Therefore\n the best we can do for now is clearly demarcate the proxy section. \n*  [1] https://github.com/balancer-labs/balancer-core/contracts/.",
+        "documentation": "@title BPool\n \n@dev Used by the (Ocean version) BFactory contract as a bytecode reference to \n     deploy new BPools.\n* This contract is is nearly identical to the BPool.sol contract at [1]\n The only difference is the \"Proxy contract functionality\" section \n given below. We'd inherit from BPool if we could, for simplicity.\n But we can't, because the proxy section needs to access private\n variables declared in BPool, and Solidity disallows this. Therefore\n the best we can do for now is clearly demarcate the proxy section. \n*  [1] https://github.com/balancer-labs/balancer-core/contracts/.",
         "fullyImplemented": true,
         "id": 4299,
         "linearizedBaseContracts": [
@@ -33104,11 +33104,11 @@
           1329,
           283
         ],
-        "name": "SPool",
+        "name": "BPool",
         "nodeType": "ContractDefinition",
         "nodes": [
           {
-            "canonicalName": "SPool.Record",
+            "canonicalName": "BPool.Record",
             "id": 2035,
             "members": [
               {
@@ -34380,7 +34380,7 @@
             "storageLocation": "default",
             "typeDescriptions": {
               "typeIdentifier": "t_mapping$_t_address_$_t_struct$_Record_$2035_storage_$",
-              "typeString": "mapping(address => struct SPool.Record)"
+              "typeString": "mapping(address => struct BPool.Record)"
             },
             "typeName": {
               "id": 2130,
@@ -34398,7 +34398,7 @@
               "src": "2447:24:7",
               "typeDescriptions": {
                 "typeIdentifier": "t_mapping$_t_address_$_t_struct$_Record_$2035_storage_$",
-                "typeString": "mapping(address => struct SPool.Record)"
+                "typeString": "mapping(address => struct BPool.Record)"
               },
               "valueType": {
                 "contractScope": null,
@@ -34409,7 +34409,7 @@
                 "src": "2464:6:7",
                 "typeDescriptions": {
                   "typeIdentifier": "t_struct$_Record_$2035_storage_ptr",
-                  "typeString": "struct SPool.Record"
+                  "typeString": "struct BPool.Record"
                 }
               }
             },
@@ -36373,7 +36373,7 @@
                         "src": "5109:8:7",
                         "typeDescriptions": {
                           "typeIdentifier": "t_mapping$_t_address_$_t_struct$_Record_$2035_storage_$",
-                          "typeString": "mapping(address => struct SPool.Record storage ref)"
+                          "typeString": "mapping(address => struct BPool.Record storage ref)"
                         }
                       },
                       "id": 2298,
@@ -36398,7 +36398,7 @@
                       "src": "5109:11:7",
                       "typeDescriptions": {
                         "typeIdentifier": "t_struct$_Record_$2035_storage",
-                        "typeString": "struct SPool.Record storage ref"
+                        "typeString": "struct BPool.Record storage ref"
                       }
                     },
                     "id": 2299,
@@ -36920,7 +36920,7 @@
                             "src": "5734:8:7",
                             "typeDescriptions": {
                               "typeIdentifier": "t_mapping$_t_address_$_t_struct$_Record_$2035_storage_$",
-                              "typeString": "mapping(address => struct SPool.Record storage ref)"
+                              "typeString": "mapping(address => struct BPool.Record storage ref)"
                             }
                           },
                           "id": 2350,
@@ -36945,7 +36945,7 @@
                           "src": "5734:15:7",
                           "typeDescriptions": {
                             "typeIdentifier": "t_struct$_Record_$2035_storage",
-                            "typeString": "struct SPool.Record storage ref"
+                            "typeString": "struct BPool.Record storage ref"
                           }
                         },
                         "id": 2351,
@@ -37039,7 +37039,7 @@
                         "src": "5790:8:7",
                         "typeDescriptions": {
                           "typeIdentifier": "t_mapping$_t_address_$_t_struct$_Record_$2035_storage_$",
-                          "typeString": "mapping(address => struct SPool.Record storage ref)"
+                          "typeString": "mapping(address => struct BPool.Record storage ref)"
                         }
                       },
                       "id": 2357,
@@ -37064,7 +37064,7 @@
                       "src": "5790:15:7",
                       "typeDescriptions": {
                         "typeIdentifier": "t_struct$_Record_$2035_storage",
-                        "typeString": "struct SPool.Record storage ref"
+                        "typeString": "struct BPool.Record storage ref"
                       }
                     },
                     "id": 2358,
@@ -37311,7 +37311,7 @@
                             "src": "6104:8:7",
                             "typeDescriptions": {
                               "typeIdentifier": "t_mapping$_t_address_$_t_struct$_Record_$2035_storage_$",
-                              "typeString": "mapping(address => struct SPool.Record storage ref)"
+                              "typeString": "mapping(address => struct BPool.Record storage ref)"
                             }
                           },
                           "id": 2383,
@@ -37336,7 +37336,7 @@
                           "src": "6104:15:7",
                           "typeDescriptions": {
                             "typeIdentifier": "t_struct$_Record_$2035_storage",
-                            "typeString": "struct SPool.Record storage ref"
+                            "typeString": "struct BPool.Record storage ref"
                           }
                         },
                         "id": 2384,
@@ -37462,7 +37462,7 @@
                         "src": "6167:8:7",
                         "typeDescriptions": {
                           "typeIdentifier": "t_mapping$_t_address_$_t_struct$_Record_$2035_storage_$",
-                          "typeString": "mapping(address => struct SPool.Record storage ref)"
+                          "typeString": "mapping(address => struct BPool.Record storage ref)"
                         }
                       },
                       "id": 2392,
@@ -37487,7 +37487,7 @@
                       "src": "6167:15:7",
                       "typeDescriptions": {
                         "typeIdentifier": "t_struct$_Record_$2035_storage",
-                        "typeString": "struct SPool.Record storage ref"
+                        "typeString": "struct BPool.Record storage ref"
                       }
                     },
                     "id": 2393,
@@ -37705,7 +37705,7 @@
                             "src": "6367:8:7",
                             "typeDescriptions": {
                               "typeIdentifier": "t_mapping$_t_address_$_t_struct$_Record_$2035_storage_$",
-                              "typeString": "mapping(address => struct SPool.Record storage ref)"
+                              "typeString": "mapping(address => struct BPool.Record storage ref)"
                             }
                           },
                           "id": 2413,
@@ -37730,7 +37730,7 @@
                           "src": "6367:15:7",
                           "typeDescriptions": {
                             "typeIdentifier": "t_struct$_Record_$2035_storage",
-                            "typeString": "struct SPool.Record storage ref"
+                            "typeString": "struct BPool.Record storage ref"
                           }
                         },
                         "id": 2414,
@@ -37824,7 +37824,7 @@
                         "src": "6423:8:7",
                         "typeDescriptions": {
                           "typeIdentifier": "t_mapping$_t_address_$_t_struct$_Record_$2035_storage_$",
-                          "typeString": "mapping(address => struct SPool.Record storage ref)"
+                          "typeString": "mapping(address => struct BPool.Record storage ref)"
                         }
                       },
                       "id": 2420,
@@ -37849,7 +37849,7 @@
                       "src": "6423:15:7",
                       "typeDescriptions": {
                         "typeIdentifier": "t_struct$_Record_$2035_storage",
-                        "typeString": "struct SPool.Record storage ref"
+                        "typeString": "struct BPool.Record storage ref"
                       }
                     },
                     "id": 2421,
@@ -40227,7 +40227,7 @@
                               "src": "8194:8:7",
                               "typeDescriptions": {
                                 "typeIdentifier": "t_mapping$_t_address_$_t_struct$_Record_$2035_storage_$",
-                                "typeString": "mapping(address => struct SPool.Record storage ref)"
+                                "typeString": "mapping(address => struct BPool.Record storage ref)"
                               }
                             },
                             "id": 2606,
@@ -40252,7 +40252,7 @@
                             "src": "8194:15:7",
                             "typeDescriptions": {
                               "typeIdentifier": "t_struct$_Record_$2035_storage",
-                              "typeString": "struct SPool.Record storage ref"
+                              "typeString": "struct BPool.Record storage ref"
                             }
                           },
                           "id": 2607,
@@ -40578,7 +40578,7 @@
                         "src": "8364:8:7",
                         "typeDescriptions": {
                           "typeIdentifier": "t_mapping$_t_address_$_t_struct$_Record_$2035_storage_$",
-                          "typeString": "mapping(address => struct SPool.Record storage ref)"
+                          "typeString": "mapping(address => struct BPool.Record storage ref)"
                         }
                       },
                       "id": 2628,
@@ -40603,7 +40603,7 @@
                       "src": "8364:15:7",
                       "typeDescriptions": {
                         "typeIdentifier": "t_struct$_Record_$2035_storage",
-                        "typeString": "struct SPool.Record storage ref"
+                        "typeString": "struct BPool.Record storage ref"
                       }
                     },
                     "nodeType": "Assignment",
@@ -40722,7 +40722,7 @@
                         "src": "8382:6:7",
                         "typeDescriptions": {
                           "typeIdentifier": "t_type$_t_struct$_Record_$2035_storage_ptr_$",
-                          "typeString": "type(struct SPool.Record storage pointer)"
+                          "typeString": "type(struct BPool.Record storage pointer)"
                         }
                       },
                       "id": 2635,
@@ -40741,13 +40741,13 @@
                       "src": "8382:202:7",
                       "typeDescriptions": {
                         "typeIdentifier": "t_struct$_Record_$2035_memory",
-                        "typeString": "struct SPool.Record memory"
+                        "typeString": "struct BPool.Record memory"
                       }
                     },
                     "src": "8364:220:7",
                     "typeDescriptions": {
                       "typeIdentifier": "t_struct$_Record_$2035_storage",
-                      "typeString": "struct SPool.Record storage ref"
+                      "typeString": "struct BPool.Record storage ref"
                     }
                   },
                   "id": 2637,
@@ -41190,7 +41190,7 @@
                             "src": "8858:8:7",
                             "typeDescriptions": {
                               "typeIdentifier": "t_mapping$_t_address_$_t_struct$_Record_$2035_storage_$",
-                              "typeString": "mapping(address => struct SPool.Record storage ref)"
+                              "typeString": "mapping(address => struct BPool.Record storage ref)"
                             }
                           },
                           "id": 2675,
@@ -41215,7 +41215,7 @@
                           "src": "8858:15:7",
                           "typeDescriptions": {
                             "typeIdentifier": "t_struct$_Record_$2035_storage",
-                            "typeString": "struct SPool.Record storage ref"
+                            "typeString": "struct BPool.Record storage ref"
                           }
                         },
                         "id": 2676,
@@ -41769,7 +41769,7 @@
                         "src": "9195:8:7",
                         "typeDescriptions": {
                           "typeIdentifier": "t_mapping$_t_address_$_t_struct$_Record_$2035_storage_$",
-                          "typeString": "mapping(address => struct SPool.Record storage ref)"
+                          "typeString": "mapping(address => struct BPool.Record storage ref)"
                         }
                       },
                       "id": 2711,
@@ -41794,7 +41794,7 @@
                       "src": "9195:15:7",
                       "typeDescriptions": {
                         "typeIdentifier": "t_struct$_Record_$2035_storage",
-                        "typeString": "struct SPool.Record storage ref"
+                        "typeString": "struct BPool.Record storage ref"
                       }
                     },
                     "id": 2712,
@@ -42366,7 +42366,7 @@
                           "src": "9543:8:7",
                           "typeDescriptions": {
                             "typeIdentifier": "t_mapping$_t_address_$_t_struct$_Record_$2035_storage_$",
-                            "typeString": "mapping(address => struct SPool.Record storage ref)"
+                            "typeString": "mapping(address => struct BPool.Record storage ref)"
                           }
                         },
                         "id": 2753,
@@ -42391,7 +42391,7 @@
                         "src": "9543:15:7",
                         "typeDescriptions": {
                           "typeIdentifier": "t_struct$_Record_$2035_storage",
-                          "typeString": "struct SPool.Record storage ref"
+                          "typeString": "struct BPool.Record storage ref"
                         }
                       },
                       "id": 2754,
@@ -42480,7 +42480,7 @@
                         "src": "9665:8:7",
                         "typeDescriptions": {
                           "typeIdentifier": "t_mapping$_t_address_$_t_struct$_Record_$2035_storage_$",
-                          "typeString": "mapping(address => struct SPool.Record storage ref)"
+                          "typeString": "mapping(address => struct BPool.Record storage ref)"
                         }
                       },
                       "id": 2762,
@@ -42505,7 +42505,7 @@
                       "src": "9665:15:7",
                       "typeDescriptions": {
                         "typeIdentifier": "t_struct$_Record_$2035_storage",
-                        "typeString": "struct SPool.Record storage ref"
+                        "typeString": "struct BPool.Record storage ref"
                       }
                     },
                     "id": 2763,
@@ -42547,7 +42547,7 @@
                           "src": "9698:8:7",
                           "typeDescriptions": {
                             "typeIdentifier": "t_mapping$_t_address_$_t_struct$_Record_$2035_storage_$",
-                            "typeString": "mapping(address => struct SPool.Record storage ref)"
+                            "typeString": "mapping(address => struct BPool.Record storage ref)"
                           }
                         },
                         "id": 2767,
@@ -42572,7 +42572,7 @@
                         "src": "9698:15:7",
                         "typeDescriptions": {
                           "typeIdentifier": "t_struct$_Record_$2035_storage",
-                          "typeString": "struct SPool.Record storage ref"
+                          "typeString": "struct BPool.Record storage ref"
                         }
                       },
                       "id": 2768,
@@ -43632,7 +43632,7 @@
                             "src": "10442:8:7",
                             "typeDescriptions": {
                               "typeIdentifier": "t_mapping$_t_address_$_t_struct$_Record_$2035_storage_$",
-                              "typeString": "mapping(address => struct SPool.Record storage ref)"
+                              "typeString": "mapping(address => struct BPool.Record storage ref)"
                             }
                           },
                           "id": 2843,
@@ -43657,7 +43657,7 @@
                           "src": "10442:15:7",
                           "typeDescriptions": {
                             "typeIdentifier": "t_struct$_Record_$2035_storage",
-                            "typeString": "struct SPool.Record storage ref"
+                            "typeString": "struct BPool.Record storage ref"
                           }
                         },
                         "id": 2844,
@@ -43878,7 +43878,7 @@
                         "src": "10562:8:7",
                         "typeDescriptions": {
                           "typeIdentifier": "t_mapping$_t_address_$_t_struct$_Record_$2035_storage_$",
-                          "typeString": "mapping(address => struct SPool.Record storage ref)"
+                          "typeString": "mapping(address => struct BPool.Record storage ref)"
                         }
                       },
                       "id": 2858,
@@ -43903,7 +43903,7 @@
                       "src": "10562:15:7",
                       "typeDescriptions": {
                         "typeIdentifier": "t_struct$_Record_$2035_storage",
-                        "typeString": "struct SPool.Record storage ref"
+                        "typeString": "struct BPool.Record storage ref"
                       }
                     },
                     "id": 2859,
@@ -44078,7 +44078,7 @@
                               "src": "10688:8:7",
                               "typeDescriptions": {
                                 "typeIdentifier": "t_mapping$_t_address_$_t_struct$_Record_$2035_storage_$",
-                                "typeString": "mapping(address => struct SPool.Record storage ref)"
+                                "typeString": "mapping(address => struct BPool.Record storage ref)"
                               }
                             },
                             "id": 2873,
@@ -44103,7 +44103,7 @@
                             "src": "10688:15:7",
                             "typeDescriptions": {
                               "typeIdentifier": "t_struct$_Record_$2035_storage",
-                              "typeString": "struct SPool.Record storage ref"
+                              "typeString": "struct BPool.Record storage ref"
                             }
                           },
                           "id": 2874,
@@ -44214,7 +44214,7 @@
                         "src": "10830:8:7",
                         "typeDescriptions": {
                           "typeIdentifier": "t_mapping$_t_address_$_t_struct$_Record_$2035_storage_$",
-                          "typeString": "mapping(address => struct SPool.Record storage ref)"
+                          "typeString": "mapping(address => struct BPool.Record storage ref)"
                         }
                       },
                       "id": 2882,
@@ -44239,7 +44239,7 @@
                       "src": "10830:15:7",
                       "typeDescriptions": {
                         "typeIdentifier": "t_struct$_Record_$2035_storage",
-                        "typeString": "struct SPool.Record storage ref"
+                        "typeString": "struct BPool.Record storage ref"
                       }
                     },
                     "id": 2883,
@@ -44483,7 +44483,7 @@
                           "src": "10941:8:7",
                           "typeDescriptions": {
                             "typeIdentifier": "t_mapping$_t_address_$_t_struct$_Record_$2035_storage_$",
-                            "typeString": "mapping(address => struct SPool.Record storage ref)"
+                            "typeString": "mapping(address => struct BPool.Record storage ref)"
                           }
                         },
                         "id": 2904,
@@ -44535,7 +44535,7 @@
                         "src": "10941:24:7",
                         "typeDescriptions": {
                           "typeIdentifier": "t_struct$_Record_$2035_storage",
-                          "typeString": "struct SPool.Record storage ref"
+                          "typeString": "struct BPool.Record storage ref"
                         }
                       },
                       "id": 2905,
@@ -44648,7 +44648,7 @@
                         "src": "11012:8:7",
                         "typeDescriptions": {
                           "typeIdentifier": "t_mapping$_t_address_$_t_struct$_Record_$2035_storage_$",
-                          "typeString": "mapping(address => struct SPool.Record storage ref)"
+                          "typeString": "mapping(address => struct BPool.Record storage ref)"
                         }
                       },
                       "id": 2916,
@@ -44673,7 +44673,7 @@
                       "src": "11012:15:7",
                       "typeDescriptions": {
                         "typeIdentifier": "t_struct$_Record_$2035_storage",
-                        "typeString": "struct SPool.Record storage ref"
+                        "typeString": "struct BPool.Record storage ref"
                       }
                     },
                     "nodeType": "Assignment",
@@ -44781,7 +44781,7 @@
                         "src": "11030:6:7",
                         "typeDescriptions": {
                           "typeIdentifier": "t_type$_t_struct$_Record_$2035_storage_ptr_$",
-                          "typeString": "type(struct SPool.Record storage pointer)"
+                          "typeString": "type(struct BPool.Record storage pointer)"
                         }
                       },
                       "id": 2922,
@@ -44800,13 +44800,13 @@
                       "src": "11030:113:7",
                       "typeDescriptions": {
                         "typeIdentifier": "t_struct$_Record_$2035_memory",
-                        "typeString": "struct SPool.Record memory"
+                        "typeString": "struct BPool.Record memory"
                       }
                     },
                     "src": "11012:131:7",
                     "typeDescriptions": {
                       "typeIdentifier": "t_struct$_Record_$2035_storage",
-                      "typeString": "struct SPool.Record storage ref"
+                      "typeString": "struct BPool.Record storage ref"
                     }
                   },
                   "id": 2924,
@@ -45176,7 +45176,7 @@
                             "src": "11465:8:7",
                             "typeDescriptions": {
                               "typeIdentifier": "t_mapping$_t_address_$_t_struct$_Record_$2035_storage_$",
-                              "typeString": "mapping(address => struct SPool.Record storage ref)"
+                              "typeString": "mapping(address => struct BPool.Record storage ref)"
                             }
                           },
                           "id": 2954,
@@ -45201,7 +45201,7 @@
                           "src": "11465:15:7",
                           "typeDescriptions": {
                             "typeIdentifier": "t_struct$_Record_$2035_storage",
-                            "typeString": "struct SPool.Record storage ref"
+                            "typeString": "struct BPool.Record storage ref"
                           }
                         },
                         "id": 2955,
@@ -45302,7 +45302,7 @@
                           "src": "11514:8:7",
                           "typeDescriptions": {
                             "typeIdentifier": "t_mapping$_t_address_$_t_struct$_Record_$2035_storage_$",
-                            "typeString": "mapping(address => struct SPool.Record storage ref)"
+                            "typeString": "mapping(address => struct BPool.Record storage ref)"
                           }
                         },
                         "id": 2961,
@@ -45327,7 +45327,7 @@
                         "src": "11514:15:7",
                         "typeDescriptions": {
                           "typeIdentifier": "t_struct$_Record_$2035_storage",
-                          "typeString": "struct SPool.Record storage ref"
+                          "typeString": "struct BPool.Record storage ref"
                         }
                       },
                       "id": 2962,
@@ -45361,16 +45361,16 @@
                               "referencedDeclaration": 6313,
                               "src": "11572:4:7",
                               "typeDescriptions": {
-                                "typeIdentifier": "t_contract$_SPool_$4299",
-                                "typeString": "contract SPool"
+                                "typeIdentifier": "t_contract$_BPool_$4299",
+                                "typeString": "contract BPool"
                               }
                             }
                           ],
                           "expression": {
                             "argumentTypes": [
                               {
-                                "typeIdentifier": "t_contract$_SPool_$4299",
-                                "typeString": "contract SPool"
+                                "typeIdentifier": "t_contract$_BPool_$4299",
+                                "typeString": "contract BPool"
                               }
                             ],
                             "id": 2967,
@@ -45613,7 +45613,7 @@
                             "src": "11744:8:7",
                             "typeDescriptions": {
                               "typeIdentifier": "t_mapping$_t_address_$_t_struct$_Record_$2035_storage_$",
-                              "typeString": "mapping(address => struct SPool.Record storage ref)"
+                              "typeString": "mapping(address => struct BPool.Record storage ref)"
                             }
                           },
                           "id": 2988,
@@ -45638,7 +45638,7 @@
                           "src": "11744:17:7",
                           "typeDescriptions": {
                             "typeIdentifier": "t_struct$_Record_$2035_storage",
-                            "typeString": "struct SPool.Record storage ref"
+                            "typeString": "struct BPool.Record storage ref"
                           }
                         },
                         "id": 2989,
@@ -45735,7 +45735,7 @@
                             "src": "11803:8:7",
                             "typeDescriptions": {
                               "typeIdentifier": "t_mapping$_t_address_$_t_struct$_Record_$2035_storage_$",
-                              "typeString": "mapping(address => struct SPool.Record storage ref)"
+                              "typeString": "mapping(address => struct BPool.Record storage ref)"
                             }
                           },
                           "id": 2996,
@@ -45760,7 +45760,7 @@
                           "src": "11803:18:7",
                           "typeDescriptions": {
                             "typeIdentifier": "t_struct$_Record_$2035_storage",
-                            "typeString": "struct SPool.Record storage ref"
+                            "typeString": "struct BPool.Record storage ref"
                           }
                         },
                         "id": 2997,
@@ -45855,7 +45855,7 @@
                       "storageLocation": "storage",
                       "typeDescriptions": {
                         "typeIdentifier": "t_struct$_Record_$2035_storage_ptr",
-                        "typeString": "struct SPool.Record"
+                        "typeString": "struct BPool.Record"
                       },
                       "typeName": {
                         "contractScope": null,
@@ -45866,7 +45866,7 @@
                         "src": "11855:6:7",
                         "typeDescriptions": {
                           "typeIdentifier": "t_struct$_Record_$2035_storage_ptr",
-                          "typeString": "struct SPool.Record"
+                          "typeString": "struct BPool.Record"
                         }
                       },
                       "value": null,
@@ -45886,7 +45886,7 @@
                       "src": "11881:8:7",
                       "typeDescriptions": {
                         "typeIdentifier": "t_mapping$_t_address_$_t_struct$_Record_$2035_storage_$",
-                        "typeString": "mapping(address => struct SPool.Record storage ref)"
+                        "typeString": "mapping(address => struct BPool.Record storage ref)"
                       }
                     },
                     "id": 3005,
@@ -45911,7 +45911,7 @@
                     "src": "11881:17:7",
                     "typeDescriptions": {
                       "typeIdentifier": "t_struct$_Record_$2035_storage",
-                      "typeString": "struct SPool.Record storage ref"
+                      "typeString": "struct BPool.Record storage ref"
                     }
                   },
                   "nodeType": "VariableDeclarationStatement",
@@ -45933,7 +45933,7 @@
                       "storageLocation": "storage",
                       "typeDescriptions": {
                         "typeIdentifier": "t_struct$_Record_$2035_storage_ptr",
-                        "typeString": "struct SPool.Record"
+                        "typeString": "struct BPool.Record"
                       },
                       "typeName": {
                         "contractScope": null,
@@ -45944,7 +45944,7 @@
                         "src": "11908:6:7",
                         "typeDescriptions": {
                           "typeIdentifier": "t_struct$_Record_$2035_storage_ptr",
-                          "typeString": "struct SPool.Record"
+                          "typeString": "struct BPool.Record"
                         }
                       },
                       "value": null,
@@ -45964,7 +45964,7 @@
                       "src": "11935:8:7",
                       "typeDescriptions": {
                         "typeIdentifier": "t_mapping$_t_address_$_t_struct$_Record_$2035_storage_$",
-                        "typeString": "mapping(address => struct SPool.Record storage ref)"
+                        "typeString": "mapping(address => struct BPool.Record storage ref)"
                       }
                     },
                     "id": 3011,
@@ -45989,7 +45989,7 @@
                     "src": "11935:18:7",
                     "typeDescriptions": {
                       "typeIdentifier": "t_struct$_Record_$2035_storage",
-                      "typeString": "struct SPool.Record storage ref"
+                      "typeString": "struct BPool.Record storage ref"
                     }
                   },
                   "nodeType": "VariableDeclarationStatement",
@@ -46011,7 +46011,7 @@
                           "src": "11997:8:7",
                           "typeDescriptions": {
                             "typeIdentifier": "t_struct$_Record_$2035_storage_ptr",
-                            "typeString": "struct SPool.Record storage pointer"
+                            "typeString": "struct BPool.Record storage pointer"
                           }
                         },
                         "id": 3015,
@@ -46040,7 +46040,7 @@
                           "src": "12028:8:7",
                           "typeDescriptions": {
                             "typeIdentifier": "t_struct$_Record_$2035_storage_ptr",
-                            "typeString": "struct SPool.Record storage pointer"
+                            "typeString": "struct BPool.Record storage pointer"
                           }
                         },
                         "id": 3017,
@@ -46069,7 +46069,7 @@
                           "src": "12058:9:7",
                           "typeDescriptions": {
                             "typeIdentifier": "t_struct$_Record_$2035_storage_ptr",
-                            "typeString": "struct SPool.Record storage pointer"
+                            "typeString": "struct BPool.Record storage pointer"
                           }
                         },
                         "id": 3019,
@@ -46098,7 +46098,7 @@
                           "src": "12090:9:7",
                           "typeDescriptions": {
                             "typeIdentifier": "t_struct$_Record_$2035_storage_ptr",
-                            "typeString": "struct SPool.Record storage pointer"
+                            "typeString": "struct BPool.Record storage pointer"
                           }
                         },
                         "id": 3021,
@@ -46335,7 +46335,7 @@
                             "src": "12312:8:7",
                             "typeDescriptions": {
                               "typeIdentifier": "t_mapping$_t_address_$_t_struct$_Record_$2035_storage_$",
-                              "typeString": "mapping(address => struct SPool.Record storage ref)"
+                              "typeString": "mapping(address => struct BPool.Record storage ref)"
                             }
                           },
                           "id": 3040,
@@ -46360,7 +46360,7 @@
                           "src": "12312:17:7",
                           "typeDescriptions": {
                             "typeIdentifier": "t_struct$_Record_$2035_storage",
-                            "typeString": "struct SPool.Record storage ref"
+                            "typeString": "struct BPool.Record storage ref"
                           }
                         },
                         "id": 3041,
@@ -46457,7 +46457,7 @@
                             "src": "12371:8:7",
                             "typeDescriptions": {
                               "typeIdentifier": "t_mapping$_t_address_$_t_struct$_Record_$2035_storage_$",
-                              "typeString": "mapping(address => struct SPool.Record storage ref)"
+                              "typeString": "mapping(address => struct BPool.Record storage ref)"
                             }
                           },
                           "id": 3048,
@@ -46482,7 +46482,7 @@
                           "src": "12371:18:7",
                           "typeDescriptions": {
                             "typeIdentifier": "t_struct$_Record_$2035_storage",
-                            "typeString": "struct SPool.Record storage ref"
+                            "typeString": "struct BPool.Record storage ref"
                           }
                         },
                         "id": 3049,
@@ -46577,7 +46577,7 @@
                       "storageLocation": "storage",
                       "typeDescriptions": {
                         "typeIdentifier": "t_struct$_Record_$2035_storage_ptr",
-                        "typeString": "struct SPool.Record"
+                        "typeString": "struct BPool.Record"
                       },
                       "typeName": {
                         "contractScope": null,
@@ -46588,7 +46588,7 @@
                         "src": "12423:6:7",
                         "typeDescriptions": {
                           "typeIdentifier": "t_struct$_Record_$2035_storage_ptr",
-                          "typeString": "struct SPool.Record"
+                          "typeString": "struct BPool.Record"
                         }
                       },
                       "value": null,
@@ -46608,7 +46608,7 @@
                       "src": "12449:8:7",
                       "typeDescriptions": {
                         "typeIdentifier": "t_mapping$_t_address_$_t_struct$_Record_$2035_storage_$",
-                        "typeString": "mapping(address => struct SPool.Record storage ref)"
+                        "typeString": "mapping(address => struct BPool.Record storage ref)"
                       }
                     },
                     "id": 3057,
@@ -46633,7 +46633,7 @@
                     "src": "12449:17:7",
                     "typeDescriptions": {
                       "typeIdentifier": "t_struct$_Record_$2035_storage",
-                      "typeString": "struct SPool.Record storage ref"
+                      "typeString": "struct BPool.Record storage ref"
                     }
                   },
                   "nodeType": "VariableDeclarationStatement",
@@ -46655,7 +46655,7 @@
                       "storageLocation": "storage",
                       "typeDescriptions": {
                         "typeIdentifier": "t_struct$_Record_$2035_storage_ptr",
-                        "typeString": "struct SPool.Record"
+                        "typeString": "struct BPool.Record"
                       },
                       "typeName": {
                         "contractScope": null,
@@ -46666,7 +46666,7 @@
                         "src": "12476:6:7",
                         "typeDescriptions": {
                           "typeIdentifier": "t_struct$_Record_$2035_storage_ptr",
-                          "typeString": "struct SPool.Record"
+                          "typeString": "struct BPool.Record"
                         }
                       },
                       "value": null,
@@ -46686,7 +46686,7 @@
                       "src": "12503:8:7",
                       "typeDescriptions": {
                         "typeIdentifier": "t_mapping$_t_address_$_t_struct$_Record_$2035_storage_$",
-                        "typeString": "mapping(address => struct SPool.Record storage ref)"
+                        "typeString": "mapping(address => struct BPool.Record storage ref)"
                       }
                     },
                     "id": 3063,
@@ -46711,7 +46711,7 @@
                     "src": "12503:18:7",
                     "typeDescriptions": {
                       "typeIdentifier": "t_struct$_Record_$2035_storage",
-                      "typeString": "struct SPool.Record storage ref"
+                      "typeString": "struct BPool.Record storage ref"
                     }
                   },
                   "nodeType": "VariableDeclarationStatement",
@@ -46733,7 +46733,7 @@
                           "src": "12565:8:7",
                           "typeDescriptions": {
                             "typeIdentifier": "t_struct$_Record_$2035_storage_ptr",
-                            "typeString": "struct SPool.Record storage pointer"
+                            "typeString": "struct BPool.Record storage pointer"
                           }
                         },
                         "id": 3067,
@@ -46762,7 +46762,7 @@
                           "src": "12596:8:7",
                           "typeDescriptions": {
                             "typeIdentifier": "t_struct$_Record_$2035_storage_ptr",
-                            "typeString": "struct SPool.Record storage pointer"
+                            "typeString": "struct BPool.Record storage pointer"
                           }
                         },
                         "id": 3069,
@@ -46791,7 +46791,7 @@
                           "src": "12626:9:7",
                           "typeDescriptions": {
                             "typeIdentifier": "t_struct$_Record_$2035_storage_ptr",
-                            "typeString": "struct SPool.Record storage pointer"
+                            "typeString": "struct BPool.Record storage pointer"
                           }
                         },
                         "id": 3071,
@@ -46820,7 +46820,7 @@
                           "src": "12658:9:7",
                           "typeDescriptions": {
                             "typeIdentifier": "t_struct$_Record_$2035_storage_ptr",
-                            "typeString": "struct SPool.Record storage pointer"
+                            "typeString": "struct BPool.Record storage pointer"
                           }
                         },
                         "id": 3073,
@@ -47537,7 +47537,7 @@
                               "src": "13138:8:7",
                               "typeDescriptions": {
                                 "typeIdentifier": "t_mapping$_t_address_$_t_struct$_Record_$2035_storage_$",
-                                "typeString": "mapping(address => struct SPool.Record storage ref)"
+                                "typeString": "mapping(address => struct BPool.Record storage ref)"
                               }
                             },
                             "id": 3135,
@@ -47562,7 +47562,7 @@
                             "src": "13138:11:7",
                             "typeDescriptions": {
                               "typeIdentifier": "t_struct$_Record_$2035_storage",
-                              "typeString": "struct SPool.Record storage ref"
+                              "typeString": "struct BPool.Record storage ref"
                             }
                           },
                           "id": 3136,
@@ -47960,7 +47960,7 @@
                                 "src": "13353:8:7",
                                 "typeDescriptions": {
                                   "typeIdentifier": "t_mapping$_t_address_$_t_struct$_Record_$2035_storage_$",
-                                  "typeString": "mapping(address => struct SPool.Record storage ref)"
+                                  "typeString": "mapping(address => struct BPool.Record storage ref)"
                                 }
                               },
                               "id": 3163,
@@ -47985,7 +47985,7 @@
                               "src": "13353:11:7",
                               "typeDescriptions": {
                                 "typeIdentifier": "t_struct$_Record_$2035_storage",
-                                "typeString": "struct SPool.Record storage ref"
+                                "typeString": "struct BPool.Record storage ref"
                               }
                             },
                             "id": 3164,
@@ -48021,7 +48021,7 @@
                                     "src": "13380:8:7",
                                     "typeDescriptions": {
                                       "typeIdentifier": "t_mapping$_t_address_$_t_struct$_Record_$2035_storage_$",
-                                      "typeString": "mapping(address => struct SPool.Record storage ref)"
+                                      "typeString": "mapping(address => struct BPool.Record storage ref)"
                                     }
                                   },
                                   "id": 3168,
@@ -48046,7 +48046,7 @@
                                   "src": "13380:11:7",
                                   "typeDescriptions": {
                                     "typeIdentifier": "t_struct$_Record_$2035_storage",
-                                    "typeString": "struct SPool.Record storage ref"
+                                    "typeString": "struct BPool.Record storage ref"
                                   }
                                 },
                                 "id": 3169,
@@ -49671,7 +49671,7 @@
                               "src": "14319:8:7",
                               "typeDescriptions": {
                                 "typeIdentifier": "t_mapping$_t_address_$_t_struct$_Record_$2035_storage_$",
-                                "typeString": "mapping(address => struct SPool.Record storage ref)"
+                                "typeString": "mapping(address => struct BPool.Record storage ref)"
                               }
                             },
                             "id": 3287,
@@ -49696,7 +49696,7 @@
                             "src": "14319:11:7",
                             "typeDescriptions": {
                               "typeIdentifier": "t_struct$_Record_$2035_storage",
-                              "typeString": "struct SPool.Record storage ref"
+                              "typeString": "struct BPool.Record storage ref"
                             }
                           },
                           "id": 3288,
@@ -50094,7 +50094,7 @@
                                 "src": "14539:8:7",
                                 "typeDescriptions": {
                                   "typeIdentifier": "t_mapping$_t_address_$_t_struct$_Record_$2035_storage_$",
-                                  "typeString": "mapping(address => struct SPool.Record storage ref)"
+                                  "typeString": "mapping(address => struct BPool.Record storage ref)"
                                 }
                               },
                               "id": 3315,
@@ -50119,7 +50119,7 @@
                               "src": "14539:11:7",
                               "typeDescriptions": {
                                 "typeIdentifier": "t_struct$_Record_$2035_storage",
-                                "typeString": "struct SPool.Record storage ref"
+                                "typeString": "struct BPool.Record storage ref"
                               }
                             },
                             "id": 3316,
@@ -50155,7 +50155,7 @@
                                     "src": "14566:8:7",
                                     "typeDescriptions": {
                                       "typeIdentifier": "t_mapping$_t_address_$_t_struct$_Record_$2035_storage_$",
-                                      "typeString": "mapping(address => struct SPool.Record storage ref)"
+                                      "typeString": "mapping(address => struct BPool.Record storage ref)"
                                     }
                                   },
                                   "id": 3320,
@@ -50180,7 +50180,7 @@
                                   "src": "14566:11:7",
                                   "typeDescriptions": {
                                     "typeIdentifier": "t_struct$_Record_$2035_storage",
-                                    "typeString": "struct SPool.Record storage ref"
+                                    "typeString": "struct BPool.Record storage ref"
                                   }
                                 },
                                 "id": 3321,
@@ -50773,7 +50773,7 @@
                             "src": "15036:8:7",
                             "typeDescriptions": {
                               "typeIdentifier": "t_mapping$_t_address_$_t_struct$_Record_$2035_storage_$",
-                              "typeString": "mapping(address => struct SPool.Record storage ref)"
+                              "typeString": "mapping(address => struct BPool.Record storage ref)"
                             }
                           },
                           "id": 3367,
@@ -50798,7 +50798,7 @@
                           "src": "15036:17:7",
                           "typeDescriptions": {
                             "typeIdentifier": "t_struct$_Record_$2035_storage",
-                            "typeString": "struct SPool.Record storage ref"
+                            "typeString": "struct BPool.Record storage ref"
                           }
                         },
                         "id": 3368,
@@ -50895,7 +50895,7 @@
                             "src": "15095:8:7",
                             "typeDescriptions": {
                               "typeIdentifier": "t_mapping$_t_address_$_t_struct$_Record_$2035_storage_$",
-                              "typeString": "mapping(address => struct SPool.Record storage ref)"
+                              "typeString": "mapping(address => struct BPool.Record storage ref)"
                             }
                           },
                           "id": 3375,
@@ -50920,7 +50920,7 @@
                           "src": "15095:18:7",
                           "typeDescriptions": {
                             "typeIdentifier": "t_struct$_Record_$2035_storage",
-                            "typeString": "struct SPool.Record storage ref"
+                            "typeString": "struct BPool.Record storage ref"
                           }
                         },
                         "id": 3376,
@@ -51094,7 +51094,7 @@
                       "storageLocation": "storage",
                       "typeDescriptions": {
                         "typeIdentifier": "t_struct$_Record_$2035_storage_ptr",
-                        "typeString": "struct SPool.Record"
+                        "typeString": "struct BPool.Record"
                       },
                       "typeName": {
                         "contractScope": null,
@@ -51105,7 +51105,7 @@
                         "src": "15201:6:7",
                         "typeDescriptions": {
                           "typeIdentifier": "t_struct$_Record_$2035_storage_ptr",
-                          "typeString": "struct SPool.Record"
+                          "typeString": "struct BPool.Record"
                         }
                       },
                       "value": null,
@@ -51125,7 +51125,7 @@
                       "src": "15227:8:7",
                       "typeDescriptions": {
                         "typeIdentifier": "t_mapping$_t_address_$_t_struct$_Record_$2035_storage_$",
-                        "typeString": "mapping(address => struct SPool.Record storage ref)"
+                        "typeString": "mapping(address => struct BPool.Record storage ref)"
                       }
                     },
                     "id": 3391,
@@ -51188,7 +51188,7 @@
                     "src": "15227:26:7",
                     "typeDescriptions": {
                       "typeIdentifier": "t_struct$_Record_$2035_storage",
-                      "typeString": "struct SPool.Record storage ref"
+                      "typeString": "struct BPool.Record storage ref"
                     }
                   },
                   "nodeType": "VariableDeclarationStatement",
@@ -51210,7 +51210,7 @@
                       "storageLocation": "storage",
                       "typeDescriptions": {
                         "typeIdentifier": "t_struct$_Record_$2035_storage_ptr",
-                        "typeString": "struct SPool.Record"
+                        "typeString": "struct BPool.Record"
                       },
                       "typeName": {
                         "contractScope": null,
@@ -51221,7 +51221,7 @@
                         "src": "15263:6:7",
                         "typeDescriptions": {
                           "typeIdentifier": "t_struct$_Record_$2035_storage_ptr",
-                          "typeString": "struct SPool.Record"
+                          "typeString": "struct BPool.Record"
                         }
                       },
                       "value": null,
@@ -51241,7 +51241,7 @@
                       "src": "15290:8:7",
                       "typeDescriptions": {
                         "typeIdentifier": "t_mapping$_t_address_$_t_struct$_Record_$2035_storage_$",
-                        "typeString": "mapping(address => struct SPool.Record storage ref)"
+                        "typeString": "mapping(address => struct BPool.Record storage ref)"
                       }
                     },
                     "id": 3399,
@@ -51304,7 +51304,7 @@
                     "src": "15290:27:7",
                     "typeDescriptions": {
                       "typeIdentifier": "t_struct$_Record_$2035_storage",
-                      "typeString": "struct SPool.Record storage ref"
+                      "typeString": "struct BPool.Record storage ref"
                     }
                   },
                   "nodeType": "VariableDeclarationStatement",
@@ -51355,7 +51355,7 @@
                                 "src": "15371:8:7",
                                 "typeDescriptions": {
                                   "typeIdentifier": "t_struct$_Record_$2035_storage_ptr",
-                                  "typeString": "struct SPool.Record storage pointer"
+                                  "typeString": "struct BPool.Record storage pointer"
                                 }
                               },
                               "id": 3405,
@@ -51538,7 +51538,7 @@
                           "src": "15506:8:7",
                           "typeDescriptions": {
                             "typeIdentifier": "t_struct$_Record_$2035_storage_ptr",
-                            "typeString": "struct SPool.Record storage pointer"
+                            "typeString": "struct BPool.Record storage pointer"
                           }
                         },
                         "id": 3416,
@@ -51567,7 +51567,7 @@
                           "src": "15536:8:7",
                           "typeDescriptions": {
                             "typeIdentifier": "t_struct$_Record_$2035_storage_ptr",
-                            "typeString": "struct SPool.Record storage pointer"
+                            "typeString": "struct BPool.Record storage pointer"
                           }
                         },
                         "id": 3418,
@@ -51596,7 +51596,7 @@
                           "src": "15565:9:7",
                           "typeDescriptions": {
                             "typeIdentifier": "t_struct$_Record_$2035_storage_ptr",
-                            "typeString": "struct SPool.Record storage pointer"
+                            "typeString": "struct BPool.Record storage pointer"
                           }
                         },
                         "id": 3420,
@@ -51625,7 +51625,7 @@
                           "src": "15596:9:7",
                           "typeDescriptions": {
                             "typeIdentifier": "t_struct$_Record_$2035_storage_ptr",
-                            "typeString": "struct SPool.Record storage pointer"
+                            "typeString": "struct BPool.Record storage pointer"
                           }
                         },
                         "id": 3422,
@@ -51856,7 +51856,7 @@
                             "src": "15769:8:7",
                             "typeDescriptions": {
                               "typeIdentifier": "t_struct$_Record_$2035_storage_ptr",
-                              "typeString": "struct SPool.Record storage pointer"
+                              "typeString": "struct BPool.Record storage pointer"
                             }
                           },
                           "id": 3436,
@@ -51885,7 +51885,7 @@
                             "src": "15799:8:7",
                             "typeDescriptions": {
                               "typeIdentifier": "t_struct$_Record_$2035_storage_ptr",
-                              "typeString": "struct SPool.Record storage pointer"
+                              "typeString": "struct BPool.Record storage pointer"
                             }
                           },
                           "id": 3438,
@@ -51914,7 +51914,7 @@
                             "src": "15828:9:7",
                             "typeDescriptions": {
                               "typeIdentifier": "t_struct$_Record_$2035_storage_ptr",
-                              "typeString": "struct SPool.Record storage pointer"
+                              "typeString": "struct BPool.Record storage pointer"
                             }
                           },
                           "id": 3440,
@@ -51943,7 +51943,7 @@
                             "src": "15859:9:7",
                             "typeDescriptions": {
                               "typeIdentifier": "t_struct$_Record_$2035_storage_ptr",
-                              "typeString": "struct SPool.Record storage pointer"
+                              "typeString": "struct BPool.Record storage pointer"
                             }
                           },
                           "id": 3442,
@@ -52180,7 +52180,7 @@
                         "src": "16011:8:7",
                         "typeDescriptions": {
                           "typeIdentifier": "t_struct$_Record_$2035_storage_ptr",
-                          "typeString": "struct SPool.Record storage pointer"
+                          "typeString": "struct BPool.Record storage pointer"
                         }
                       },
                       "id": 3457,
@@ -52214,7 +52214,7 @@
                             "src": "16035:8:7",
                             "typeDescriptions": {
                               "typeIdentifier": "t_struct$_Record_$2035_storage_ptr",
-                              "typeString": "struct SPool.Record storage pointer"
+                              "typeString": "struct BPool.Record storage pointer"
                             }
                           },
                           "id": 3460,
@@ -52311,7 +52311,7 @@
                         "src": "16077:9:7",
                         "typeDescriptions": {
                           "typeIdentifier": "t_struct$_Record_$2035_storage_ptr",
-                          "typeString": "struct SPool.Record storage pointer"
+                          "typeString": "struct BPool.Record storage pointer"
                         }
                       },
                       "id": 3467,
@@ -52345,7 +52345,7 @@
                             "src": "16102:9:7",
                             "typeDescriptions": {
                               "typeIdentifier": "t_struct$_Record_$2035_storage_ptr",
-                              "typeString": "struct SPool.Record storage pointer"
+                              "typeString": "struct BPool.Record storage pointer"
                             }
                           },
                           "id": 3470,
@@ -52460,7 +52460,7 @@
                             "src": "16191:8:7",
                             "typeDescriptions": {
                               "typeIdentifier": "t_struct$_Record_$2035_storage_ptr",
-                              "typeString": "struct SPool.Record storage pointer"
+                              "typeString": "struct BPool.Record storage pointer"
                             }
                           },
                           "id": 3478,
@@ -52489,7 +52489,7 @@
                             "src": "16221:8:7",
                             "typeDescriptions": {
                               "typeIdentifier": "t_struct$_Record_$2035_storage_ptr",
-                              "typeString": "struct SPool.Record storage pointer"
+                              "typeString": "struct BPool.Record storage pointer"
                             }
                           },
                           "id": 3480,
@@ -52518,7 +52518,7 @@
                             "src": "16250:9:7",
                             "typeDescriptions": {
                               "typeIdentifier": "t_struct$_Record_$2035_storage_ptr",
-                              "typeString": "struct SPool.Record storage pointer"
+                              "typeString": "struct BPool.Record storage pointer"
                             }
                           },
                           "id": 3482,
@@ -52547,7 +52547,7 @@
                             "src": "16281:9:7",
                             "typeDescriptions": {
                               "typeIdentifier": "t_struct$_Record_$2035_storage_ptr",
-                              "typeString": "struct SPool.Record storage pointer"
+                              "typeString": "struct BPool.Record storage pointer"
                             }
                           },
                           "id": 3484,
@@ -53693,7 +53693,7 @@
                             "src": "17235:8:7",
                             "typeDescriptions": {
                               "typeIdentifier": "t_mapping$_t_address_$_t_struct$_Record_$2035_storage_$",
-                              "typeString": "mapping(address => struct SPool.Record storage ref)"
+                              "typeString": "mapping(address => struct BPool.Record storage ref)"
                             }
                           },
                           "id": 3565,
@@ -53718,7 +53718,7 @@
                           "src": "17235:17:7",
                           "typeDescriptions": {
                             "typeIdentifier": "t_struct$_Record_$2035_storage",
-                            "typeString": "struct SPool.Record storage ref"
+                            "typeString": "struct BPool.Record storage ref"
                           }
                         },
                         "id": 3566,
@@ -53815,7 +53815,7 @@
                             "src": "17294:8:7",
                             "typeDescriptions": {
                               "typeIdentifier": "t_mapping$_t_address_$_t_struct$_Record_$2035_storage_$",
-                              "typeString": "mapping(address => struct SPool.Record storage ref)"
+                              "typeString": "mapping(address => struct BPool.Record storage ref)"
                             }
                           },
                           "id": 3573,
@@ -53840,7 +53840,7 @@
                           "src": "17294:18:7",
                           "typeDescriptions": {
                             "typeIdentifier": "t_struct$_Record_$2035_storage",
-                            "typeString": "struct SPool.Record storage ref"
+                            "typeString": "struct BPool.Record storage ref"
                           }
                         },
                         "id": 3574,
@@ -54014,7 +54014,7 @@
                       "storageLocation": "storage",
                       "typeDescriptions": {
                         "typeIdentifier": "t_struct$_Record_$2035_storage_ptr",
-                        "typeString": "struct SPool.Record"
+                        "typeString": "struct BPool.Record"
                       },
                       "typeName": {
                         "contractScope": null,
@@ -54025,7 +54025,7 @@
                         "src": "17400:6:7",
                         "typeDescriptions": {
                           "typeIdentifier": "t_struct$_Record_$2035_storage_ptr",
-                          "typeString": "struct SPool.Record"
+                          "typeString": "struct BPool.Record"
                         }
                       },
                       "value": null,
@@ -54045,7 +54045,7 @@
                       "src": "17426:8:7",
                       "typeDescriptions": {
                         "typeIdentifier": "t_mapping$_t_address_$_t_struct$_Record_$2035_storage_$",
-                        "typeString": "mapping(address => struct SPool.Record storage ref)"
+                        "typeString": "mapping(address => struct BPool.Record storage ref)"
                       }
                     },
                     "id": 3589,
@@ -54108,7 +54108,7 @@
                     "src": "17426:26:7",
                     "typeDescriptions": {
                       "typeIdentifier": "t_struct$_Record_$2035_storage",
-                      "typeString": "struct SPool.Record storage ref"
+                      "typeString": "struct BPool.Record storage ref"
                     }
                   },
                   "nodeType": "VariableDeclarationStatement",
@@ -54130,7 +54130,7 @@
                       "storageLocation": "storage",
                       "typeDescriptions": {
                         "typeIdentifier": "t_struct$_Record_$2035_storage_ptr",
-                        "typeString": "struct SPool.Record"
+                        "typeString": "struct BPool.Record"
                       },
                       "typeName": {
                         "contractScope": null,
@@ -54141,7 +54141,7 @@
                         "src": "17462:6:7",
                         "typeDescriptions": {
                           "typeIdentifier": "t_struct$_Record_$2035_storage_ptr",
-                          "typeString": "struct SPool.Record"
+                          "typeString": "struct BPool.Record"
                         }
                       },
                       "value": null,
@@ -54161,7 +54161,7 @@
                       "src": "17489:8:7",
                       "typeDescriptions": {
                         "typeIdentifier": "t_mapping$_t_address_$_t_struct$_Record_$2035_storage_$",
-                        "typeString": "mapping(address => struct SPool.Record storage ref)"
+                        "typeString": "mapping(address => struct BPool.Record storage ref)"
                       }
                     },
                     "id": 3597,
@@ -54224,7 +54224,7 @@
                     "src": "17489:27:7",
                     "typeDescriptions": {
                       "typeIdentifier": "t_struct$_Record_$2035_storage",
-                      "typeString": "struct SPool.Record storage ref"
+                      "typeString": "struct BPool.Record storage ref"
                     }
                   },
                   "nodeType": "VariableDeclarationStatement",
@@ -54275,7 +54275,7 @@
                                 "src": "17571:9:7",
                                 "typeDescriptions": {
                                   "typeIdentifier": "t_struct$_Record_$2035_storage_ptr",
-                                  "typeString": "struct SPool.Record storage pointer"
+                                  "typeString": "struct BPool.Record storage pointer"
                                 }
                               },
                               "id": 3603,
@@ -54458,7 +54458,7 @@
                           "src": "17709:8:7",
                           "typeDescriptions": {
                             "typeIdentifier": "t_struct$_Record_$2035_storage_ptr",
-                            "typeString": "struct SPool.Record storage pointer"
+                            "typeString": "struct BPool.Record storage pointer"
                           }
                         },
                         "id": 3614,
@@ -54487,7 +54487,7 @@
                           "src": "17739:8:7",
                           "typeDescriptions": {
                             "typeIdentifier": "t_struct$_Record_$2035_storage_ptr",
-                            "typeString": "struct SPool.Record storage pointer"
+                            "typeString": "struct BPool.Record storage pointer"
                           }
                         },
                         "id": 3616,
@@ -54516,7 +54516,7 @@
                           "src": "17768:9:7",
                           "typeDescriptions": {
                             "typeIdentifier": "t_struct$_Record_$2035_storage_ptr",
-                            "typeString": "struct SPool.Record storage pointer"
+                            "typeString": "struct BPool.Record storage pointer"
                           }
                         },
                         "id": 3618,
@@ -54545,7 +54545,7 @@
                           "src": "17799:9:7",
                           "typeDescriptions": {
                             "typeIdentifier": "t_struct$_Record_$2035_storage_ptr",
-                            "typeString": "struct SPool.Record storage pointer"
+                            "typeString": "struct BPool.Record storage pointer"
                           }
                         },
                         "id": 3620,
@@ -54776,7 +54776,7 @@
                             "src": "17980:8:7",
                             "typeDescriptions": {
                               "typeIdentifier": "t_struct$_Record_$2035_storage_ptr",
-                              "typeString": "struct SPool.Record storage pointer"
+                              "typeString": "struct BPool.Record storage pointer"
                             }
                           },
                           "id": 3634,
@@ -54805,7 +54805,7 @@
                             "src": "18010:8:7",
                             "typeDescriptions": {
                               "typeIdentifier": "t_struct$_Record_$2035_storage_ptr",
-                              "typeString": "struct SPool.Record storage pointer"
+                              "typeString": "struct BPool.Record storage pointer"
                             }
                           },
                           "id": 3636,
@@ -54834,7 +54834,7 @@
                             "src": "18039:9:7",
                             "typeDescriptions": {
                               "typeIdentifier": "t_struct$_Record_$2035_storage_ptr",
-                              "typeString": "struct SPool.Record storage pointer"
+                              "typeString": "struct BPool.Record storage pointer"
                             }
                           },
                           "id": 3638,
@@ -54863,7 +54863,7 @@
                             "src": "18070:9:7",
                             "typeDescriptions": {
                               "typeIdentifier": "t_struct$_Record_$2035_storage_ptr",
-                              "typeString": "struct SPool.Record storage pointer"
+                              "typeString": "struct BPool.Record storage pointer"
                             }
                           },
                           "id": 3640,
@@ -55100,7 +55100,7 @@
                         "src": "18220:8:7",
                         "typeDescriptions": {
                           "typeIdentifier": "t_struct$_Record_$2035_storage_ptr",
-                          "typeString": "struct SPool.Record storage pointer"
+                          "typeString": "struct BPool.Record storage pointer"
                         }
                       },
                       "id": 3655,
@@ -55134,7 +55134,7 @@
                             "src": "18244:8:7",
                             "typeDescriptions": {
                               "typeIdentifier": "t_struct$_Record_$2035_storage_ptr",
-                              "typeString": "struct SPool.Record storage pointer"
+                              "typeString": "struct BPool.Record storage pointer"
                             }
                           },
                           "id": 3658,
@@ -55231,7 +55231,7 @@
                         "src": "18286:9:7",
                         "typeDescriptions": {
                           "typeIdentifier": "t_struct$_Record_$2035_storage_ptr",
-                          "typeString": "struct SPool.Record storage pointer"
+                          "typeString": "struct BPool.Record storage pointer"
                         }
                       },
                       "id": 3665,
@@ -55265,7 +55265,7 @@
                             "src": "18311:9:7",
                             "typeDescriptions": {
                               "typeIdentifier": "t_struct$_Record_$2035_storage_ptr",
-                              "typeString": "struct SPool.Record storage pointer"
+                              "typeString": "struct BPool.Record storage pointer"
                             }
                           },
                           "id": 3668,
@@ -55380,7 +55380,7 @@
                             "src": "18400:8:7",
                             "typeDescriptions": {
                               "typeIdentifier": "t_struct$_Record_$2035_storage_ptr",
-                              "typeString": "struct SPool.Record storage pointer"
+                              "typeString": "struct BPool.Record storage pointer"
                             }
                           },
                           "id": 3676,
@@ -55409,7 +55409,7 @@
                             "src": "18430:8:7",
                             "typeDescriptions": {
                               "typeIdentifier": "t_struct$_Record_$2035_storage_ptr",
-                              "typeString": "struct SPool.Record storage pointer"
+                              "typeString": "struct BPool.Record storage pointer"
                             }
                           },
                           "id": 3678,
@@ -55438,7 +55438,7 @@
                             "src": "18459:9:7",
                             "typeDescriptions": {
                               "typeIdentifier": "t_struct$_Record_$2035_storage_ptr",
-                              "typeString": "struct SPool.Record storage pointer"
+                              "typeString": "struct BPool.Record storage pointer"
                             }
                           },
                           "id": 3680,
@@ -55467,7 +55467,7 @@
                             "src": "18490:9:7",
                             "typeDescriptions": {
                               "typeIdentifier": "t_struct$_Record_$2035_storage_ptr",
-                              "typeString": "struct SPool.Record storage pointer"
+                              "typeString": "struct BPool.Record storage pointer"
                             }
                           },
                           "id": 3682,
@@ -56692,7 +56692,7 @@
                             "src": "19437:8:7",
                             "typeDescriptions": {
                               "typeIdentifier": "t_mapping$_t_address_$_t_struct$_Record_$2035_storage_$",
-                              "typeString": "mapping(address => struct SPool.Record storage ref)"
+                              "typeString": "mapping(address => struct BPool.Record storage ref)"
                             }
                           },
                           "id": 3762,
@@ -56717,7 +56717,7 @@
                           "src": "19437:17:7",
                           "typeDescriptions": {
                             "typeIdentifier": "t_struct$_Record_$2035_storage",
-                            "typeString": "struct SPool.Record storage ref"
+                            "typeString": "struct BPool.Record storage ref"
                           }
                         },
                         "id": 3763,
@@ -56843,7 +56843,7 @@
                                   "src": "19531:8:7",
                                   "typeDescriptions": {
                                     "typeIdentifier": "t_mapping$_t_address_$_t_struct$_Record_$2035_storage_$",
-                                    "typeString": "mapping(address => struct SPool.Record storage ref)"
+                                    "typeString": "mapping(address => struct BPool.Record storage ref)"
                                   }
                                 },
                                 "id": 3772,
@@ -56868,7 +56868,7 @@
                                 "src": "19531:17:7",
                                 "typeDescriptions": {
                                   "typeIdentifier": "t_struct$_Record_$2035_storage",
-                                  "typeString": "struct SPool.Record storage ref"
+                                  "typeString": "struct BPool.Record storage ref"
                                 }
                               },
                               "id": 3773,
@@ -57019,7 +57019,7 @@
                       "storageLocation": "storage",
                       "typeDescriptions": {
                         "typeIdentifier": "t_struct$_Record_$2035_storage_ptr",
-                        "typeString": "struct SPool.Record"
+                        "typeString": "struct BPool.Record"
                       },
                       "typeName": {
                         "contractScope": null,
@@ -57030,7 +57030,7 @@
                         "src": "19625:6:7",
                         "typeDescriptions": {
                           "typeIdentifier": "t_struct$_Record_$2035_storage_ptr",
-                          "typeString": "struct SPool.Record"
+                          "typeString": "struct BPool.Record"
                         }
                       },
                       "value": null,
@@ -57050,7 +57050,7 @@
                       "src": "19651:8:7",
                       "typeDescriptions": {
                         "typeIdentifier": "t_mapping$_t_address_$_t_struct$_Record_$2035_storage_$",
-                        "typeString": "mapping(address => struct SPool.Record storage ref)"
+                        "typeString": "mapping(address => struct BPool.Record storage ref)"
                       }
                     },
                     "id": 3784,
@@ -57075,7 +57075,7 @@
                     "src": "19651:17:7",
                     "typeDescriptions": {
                       "typeIdentifier": "t_struct$_Record_$2035_storage",
-                      "typeString": "struct SPool.Record storage ref"
+                      "typeString": "struct BPool.Record storage ref"
                     }
                   },
                   "nodeType": "VariableDeclarationStatement",
@@ -57119,7 +57119,7 @@
                             "src": "19733:8:7",
                             "typeDescriptions": {
                               "typeIdentifier": "t_struct$_Record_$2035_storage_ptr",
-                              "typeString": "struct SPool.Record storage pointer"
+                              "typeString": "struct BPool.Record storage pointer"
                             }
                           },
                           "id": 3789,
@@ -57148,7 +57148,7 @@
                             "src": "19763:8:7",
                             "typeDescriptions": {
                               "typeIdentifier": "t_struct$_Record_$2035_storage_ptr",
-                              "typeString": "struct SPool.Record storage pointer"
+                              "typeString": "struct BPool.Record storage pointer"
                             }
                           },
                           "id": 3791,
@@ -57411,7 +57411,7 @@
                         "src": "19970:8:7",
                         "typeDescriptions": {
                           "typeIdentifier": "t_struct$_Record_$2035_storage_ptr",
-                          "typeString": "struct SPool.Record storage pointer"
+                          "typeString": "struct BPool.Record storage pointer"
                         }
                       },
                       "id": 3808,
@@ -57445,7 +57445,7 @@
                             "src": "19994:8:7",
                             "typeDescriptions": {
                               "typeIdentifier": "t_struct$_Record_$2035_storage_ptr",
-                              "typeString": "struct SPool.Record storage pointer"
+                              "typeString": "struct BPool.Record storage pointer"
                             }
                           },
                           "id": 3811,
@@ -58166,7 +58166,7 @@
                             "src": "20556:8:7",
                             "typeDescriptions": {
                               "typeIdentifier": "t_mapping$_t_address_$_t_struct$_Record_$2035_storage_$",
-                              "typeString": "mapping(address => struct SPool.Record storage ref)"
+                              "typeString": "mapping(address => struct BPool.Record storage ref)"
                             }
                           },
                           "id": 3866,
@@ -58191,7 +58191,7 @@
                           "src": "20556:17:7",
                           "typeDescriptions": {
                             "typeIdentifier": "t_struct$_Record_$2035_storage",
-                            "typeString": "struct SPool.Record storage ref"
+                            "typeString": "struct BPool.Record storage ref"
                           }
                         },
                         "id": 3867,
@@ -58286,7 +58286,7 @@
                       "storageLocation": "storage",
                       "typeDescriptions": {
                         "typeIdentifier": "t_struct$_Record_$2035_storage_ptr",
-                        "typeString": "struct SPool.Record"
+                        "typeString": "struct BPool.Record"
                       },
                       "typeName": {
                         "contractScope": null,
@@ -58297,7 +58297,7 @@
                         "src": "20608:6:7",
                         "typeDescriptions": {
                           "typeIdentifier": "t_struct$_Record_$2035_storage_ptr",
-                          "typeString": "struct SPool.Record"
+                          "typeString": "struct BPool.Record"
                         }
                       },
                       "value": null,
@@ -58317,7 +58317,7 @@
                       "src": "20634:8:7",
                       "typeDescriptions": {
                         "typeIdentifier": "t_mapping$_t_address_$_t_struct$_Record_$2035_storage_$",
-                        "typeString": "mapping(address => struct SPool.Record storage ref)"
+                        "typeString": "mapping(address => struct BPool.Record storage ref)"
                       }
                     },
                     "id": 3875,
@@ -58342,7 +58342,7 @@
                     "src": "20634:17:7",
                     "typeDescriptions": {
                       "typeIdentifier": "t_struct$_Record_$2035_storage",
-                      "typeString": "struct SPool.Record storage ref"
+                      "typeString": "struct BPool.Record storage ref"
                     }
                   },
                   "nodeType": "VariableDeclarationStatement",
@@ -58386,7 +58386,7 @@
                             "src": "20716:8:7",
                             "typeDescriptions": {
                               "typeIdentifier": "t_struct$_Record_$2035_storage_ptr",
-                              "typeString": "struct SPool.Record storage pointer"
+                              "typeString": "struct BPool.Record storage pointer"
                             }
                           },
                           "id": 3880,
@@ -58415,7 +58415,7 @@
                             "src": "20746:8:7",
                             "typeDescriptions": {
                               "typeIdentifier": "t_struct$_Record_$2035_storage_ptr",
-                              "typeString": "struct SPool.Record storage pointer"
+                              "typeString": "struct BPool.Record storage pointer"
                             }
                           },
                           "id": 3882,
@@ -58821,7 +58821,7 @@
                                   "src": "21054:8:7",
                                   "typeDescriptions": {
                                     "typeIdentifier": "t_mapping$_t_address_$_t_struct$_Record_$2035_storage_$",
-                                    "typeString": "mapping(address => struct SPool.Record storage ref)"
+                                    "typeString": "mapping(address => struct BPool.Record storage ref)"
                                   }
                                 },
                                 "id": 3909,
@@ -58846,7 +58846,7 @@
                                 "src": "21054:17:7",
                                 "typeDescriptions": {
                                   "typeIdentifier": "t_struct$_Record_$2035_storage",
-                                  "typeString": "struct SPool.Record storage ref"
+                                  "typeString": "struct BPool.Record storage ref"
                                 }
                               },
                               "id": 3910,
@@ -59001,7 +59001,7 @@
                         "src": "21148:8:7",
                         "typeDescriptions": {
                           "typeIdentifier": "t_struct$_Record_$2035_storage_ptr",
-                          "typeString": "struct SPool.Record storage pointer"
+                          "typeString": "struct BPool.Record storage pointer"
                         }
                       },
                       "id": 3919,
@@ -59035,7 +59035,7 @@
                             "src": "21172:8:7",
                             "typeDescriptions": {
                               "typeIdentifier": "t_struct$_Record_$2035_storage_ptr",
-                              "typeString": "struct SPool.Record storage pointer"
+                              "typeString": "struct BPool.Record storage pointer"
                             }
                           },
                           "id": 3922,
@@ -59756,7 +59756,7 @@
                             "src": "21735:8:7",
                             "typeDescriptions": {
                               "typeIdentifier": "t_mapping$_t_address_$_t_struct$_Record_$2035_storage_$",
-                              "typeString": "mapping(address => struct SPool.Record storage ref)"
+                              "typeString": "mapping(address => struct BPool.Record storage ref)"
                             }
                           },
                           "id": 3977,
@@ -59781,7 +59781,7 @@
                           "src": "21735:18:7",
                           "typeDescriptions": {
                             "typeIdentifier": "t_struct$_Record_$2035_storage",
-                            "typeString": "struct SPool.Record storage ref"
+                            "typeString": "struct BPool.Record storage ref"
                           }
                         },
                         "id": 3978,
@@ -59876,7 +59876,7 @@
                       "storageLocation": "storage",
                       "typeDescriptions": {
                         "typeIdentifier": "t_struct$_Record_$2035_storage_ptr",
-                        "typeString": "struct SPool.Record"
+                        "typeString": "struct BPool.Record"
                       },
                       "typeName": {
                         "contractScope": null,
@@ -59887,7 +59887,7 @@
                         "src": "21788:6:7",
                         "typeDescriptions": {
                           "typeIdentifier": "t_struct$_Record_$2035_storage_ptr",
-                          "typeString": "struct SPool.Record"
+                          "typeString": "struct BPool.Record"
                         }
                       },
                       "value": null,
@@ -59907,7 +59907,7 @@
                       "src": "21815:8:7",
                       "typeDescriptions": {
                         "typeIdentifier": "t_mapping$_t_address_$_t_struct$_Record_$2035_storage_$",
-                        "typeString": "mapping(address => struct SPool.Record storage ref)"
+                        "typeString": "mapping(address => struct BPool.Record storage ref)"
                       }
                     },
                     "id": 3986,
@@ -59932,7 +59932,7 @@
                     "src": "21815:18:7",
                     "typeDescriptions": {
                       "typeIdentifier": "t_struct$_Record_$2035_storage",
-                      "typeString": "struct SPool.Record storage ref"
+                      "typeString": "struct BPool.Record storage ref"
                     }
                   },
                   "nodeType": "VariableDeclarationStatement",
@@ -59976,7 +59976,7 @@
                             "src": "21899:9:7",
                             "typeDescriptions": {
                               "typeIdentifier": "t_struct$_Record_$2035_storage_ptr",
-                              "typeString": "struct SPool.Record storage pointer"
+                              "typeString": "struct BPool.Record storage pointer"
                             }
                           },
                           "id": 3991,
@@ -60005,7 +60005,7 @@
                             "src": "21930:9:7",
                             "typeDescriptions": {
                               "typeIdentifier": "t_struct$_Record_$2035_storage_ptr",
-                              "typeString": "struct SPool.Record storage pointer"
+                              "typeString": "struct BPool.Record storage pointer"
                             }
                           },
                           "id": 3993,
@@ -60295,7 +60295,7 @@
                                   "src": "22186:8:7",
                                   "typeDescriptions": {
                                     "typeIdentifier": "t_mapping$_t_address_$_t_struct$_Record_$2035_storage_$",
-                                    "typeString": "mapping(address => struct SPool.Record storage ref)"
+                                    "typeString": "mapping(address => struct BPool.Record storage ref)"
                                   }
                                 },
                                 "id": 4013,
@@ -60320,7 +60320,7 @@
                                 "src": "22186:18:7",
                                 "typeDescriptions": {
                                   "typeIdentifier": "t_struct$_Record_$2035_storage",
-                                  "typeString": "struct SPool.Record storage ref"
+                                  "typeString": "struct BPool.Record storage ref"
                                 }
                               },
                               "id": 4014,
@@ -60475,7 +60475,7 @@
                         "src": "22283:9:7",
                         "typeDescriptions": {
                           "typeIdentifier": "t_struct$_Record_$2035_storage_ptr",
-                          "typeString": "struct SPool.Record storage pointer"
+                          "typeString": "struct BPool.Record storage pointer"
                         }
                       },
                       "id": 4023,
@@ -60509,7 +60509,7 @@
                             "src": "22308:9:7",
                             "typeDescriptions": {
                               "typeIdentifier": "t_struct$_Record_$2035_storage_ptr",
-                              "typeString": "struct SPool.Record storage pointer"
+                              "typeString": "struct BPool.Record storage pointer"
                             }
                           },
                           "id": 4026,
@@ -61456,7 +61456,7 @@
                             "src": "22994:8:7",
                             "typeDescriptions": {
                               "typeIdentifier": "t_mapping$_t_address_$_t_struct$_Record_$2035_storage_$",
-                              "typeString": "mapping(address => struct SPool.Record storage ref)"
+                              "typeString": "mapping(address => struct BPool.Record storage ref)"
                             }
                           },
                           "id": 4096,
@@ -61481,7 +61481,7 @@
                           "src": "22994:18:7",
                           "typeDescriptions": {
                             "typeIdentifier": "t_struct$_Record_$2035_storage",
-                            "typeString": "struct SPool.Record storage ref"
+                            "typeString": "struct BPool.Record storage ref"
                           }
                         },
                         "id": 4097,
@@ -61607,7 +61607,7 @@
                                   "src": "23090:8:7",
                                   "typeDescriptions": {
                                     "typeIdentifier": "t_mapping$_t_address_$_t_struct$_Record_$2035_storage_$",
-                                    "typeString": "mapping(address => struct SPool.Record storage ref)"
+                                    "typeString": "mapping(address => struct BPool.Record storage ref)"
                                   }
                                 },
                                 "id": 4106,
@@ -61632,7 +61632,7 @@
                                 "src": "23090:18:7",
                                 "typeDescriptions": {
                                   "typeIdentifier": "t_struct$_Record_$2035_storage",
-                                  "typeString": "struct SPool.Record storage ref"
+                                  "typeString": "struct BPool.Record storage ref"
                                 }
                               },
                               "id": 4107,
@@ -61783,7 +61783,7 @@
                       "storageLocation": "storage",
                       "typeDescriptions": {
                         "typeIdentifier": "t_struct$_Record_$2035_storage_ptr",
-                        "typeString": "struct SPool.Record"
+                        "typeString": "struct BPool.Record"
                       },
                       "typeName": {
                         "contractScope": null,
@@ -61794,7 +61794,7 @@
                         "src": "23187:6:7",
                         "typeDescriptions": {
                           "typeIdentifier": "t_struct$_Record_$2035_storage_ptr",
-                          "typeString": "struct SPool.Record"
+                          "typeString": "struct BPool.Record"
                         }
                       },
                       "value": null,
@@ -61814,7 +61814,7 @@
                       "src": "23214:8:7",
                       "typeDescriptions": {
                         "typeIdentifier": "t_mapping$_t_address_$_t_struct$_Record_$2035_storage_$",
-                        "typeString": "mapping(address => struct SPool.Record storage ref)"
+                        "typeString": "mapping(address => struct BPool.Record storage ref)"
                       }
                     },
                     "id": 4118,
@@ -61839,7 +61839,7 @@
                     "src": "23214:18:7",
                     "typeDescriptions": {
                       "typeIdentifier": "t_struct$_Record_$2035_storage",
-                      "typeString": "struct SPool.Record storage ref"
+                      "typeString": "struct BPool.Record storage ref"
                     }
                   },
                   "nodeType": "VariableDeclarationStatement",
@@ -61883,7 +61883,7 @@
                             "src": "23296:9:7",
                             "typeDescriptions": {
                               "typeIdentifier": "t_struct$_Record_$2035_storage_ptr",
-                              "typeString": "struct SPool.Record storage pointer"
+                              "typeString": "struct BPool.Record storage pointer"
                             }
                           },
                           "id": 4123,
@@ -61912,7 +61912,7 @@
                             "src": "23327:9:7",
                             "typeDescriptions": {
                               "typeIdentifier": "t_struct$_Record_$2035_storage_ptr",
-                              "typeString": "struct SPool.Record storage pointer"
+                              "typeString": "struct BPool.Record storage pointer"
                             }
                           },
                           "id": 4125,
@@ -62291,7 +62291,7 @@
                         "src": "23588:9:7",
                         "typeDescriptions": {
                           "typeIdentifier": "t_struct$_Record_$2035_storage_ptr",
-                          "typeString": "struct SPool.Record storage pointer"
+                          "typeString": "struct BPool.Record storage pointer"
                         }
                       },
                       "id": 4149,
@@ -62325,7 +62325,7 @@
                             "src": "23613:9:7",
                             "typeDescriptions": {
                               "typeIdentifier": "t_struct$_Record_$2035_storage_ptr",
-                              "typeString": "struct SPool.Record storage pointer"
+                              "typeString": "struct BPool.Record storage pointer"
                             }
                           },
                           "id": 4152,
@@ -63236,16 +63236,16 @@
                             "referencedDeclaration": 6313,
                             "src": "24335:4:7",
                             "typeDescriptions": {
-                              "typeIdentifier": "t_contract$_SPool_$4299",
-                              "typeString": "contract SPool"
+                              "typeIdentifier": "t_contract$_BPool_$4299",
+                              "typeString": "contract BPool"
                             }
                           }
                         ],
                         "expression": {
                           "argumentTypes": [
                             {
-                              "typeIdentifier": "t_contract$_SPool_$4299",
-                              "typeString": "contract SPool"
+                              "typeIdentifier": "t_contract$_BPool_$4299",
+                              "typeString": "contract BPool"
                             }
                           ],
                           "id": 4215,
@@ -64477,9 +64477,9 @@
   "schemaVersion": "3.2.0",
   "updatedAt": "2020-08-18T09:47:27.781Z",
   "devdoc": {
-    "details": "Used by the (Ocean version) BFactory contract as a bytecode reference to      deploy new SPools. * This contract is is nearly identical to the BPool.sol contract at [1] The only difference is the \"Proxy contract functionality\" section  given below. We'd inherit from BPool if we could, for simplicity. But we can't, because the proxy section needs to access private variables declared in BPool, and Solidity disallows this. Therefore the best we can do for now is clearly demarcate the proxy section.  *  [1] https://github.com/balancer-labs/balancer-core/contracts/.",
+    "details": "Used by the (Ocean version) BFactory contract as a bytecode reference to      deploy new BPools. * This contract is is nearly identical to the BPool.sol contract at [1] The only difference is the \"Proxy contract functionality\" section  given below. We'd inherit from BPool if we could, for simplicity. But we can't, because the proxy section needs to access private variables declared in BPool, and Solidity disallows this. Therefore the best we can do for now is clearly demarcate the proxy section.  *  [1] https://github.com/balancer-labs/balancer-core/contracts/.",
     "methods": {},
-    "title": "SPool "
+    "title": "BPool "
   },
   "userdoc": {
     "methods": {
