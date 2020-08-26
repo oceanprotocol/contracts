@@ -10,7 +10,7 @@ contract ERC20FeeCollectable is Ownable {
     using SafeMath for uint256;
     address[] public collectors;
     uint256 public constant BASE = 10**18;
-    uint256 public constant COMMUNITY_FEE_BASE = BASE / 100;
+    uint256 public constant BASE_COMMUNITY_FEE = BASE / 100;
     mapping(address => uint256) public fees;
 
     constructor(
@@ -39,7 +39,7 @@ contract ERC20FeeCollectable is Ownable {
     {
         transferOwnership(contractOwner);
         collectors.push(communityFeeCollector);
-        fees[communityFeeCollector] = COMMUNITY_FEE_BASE;
+        fees[communityFeeCollector] = BASE_COMMUNITY_FEE;
     }
 
     function getFee(
@@ -66,7 +66,7 @@ contract ERC20FeeCollectable is Ownable {
         );
         require(
             collectors[0] != collector,
-            'ERC20FeeCollectable: community collector fee can not be updated'
+            'ERC20FeeCollectable: community collector fee can not be changed'
         );
         fees[collector] = baseFee;
         collectors.push(collector);
