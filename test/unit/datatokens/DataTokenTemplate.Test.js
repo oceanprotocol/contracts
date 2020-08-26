@@ -36,7 +36,7 @@ contract('DataTokenTemplate', async (accounts) => {
         reciever = accounts[1]
         newMinter = accounts[2]
         cap = new BigNumber('1400000000')
-        template = await Template.new('Template', 'TEMPLATE', minter, cap, blob)
+        template = await Template.new('Template', 'TEMPLATE', minter, cap, blob, communityFeeCollector)
         factory = await DTFactory.new(
             template.address,
             communityFeeCollector
@@ -61,7 +61,7 @@ contract('DataTokenTemplate', async (accounts) => {
     })
 
     it('should fail to re-initialize the contracts', async () => {
-        truffleAssert.fails(token.initialize('NewName', 'NN', reciever, cap, blob),
+        truffleAssert.fails(token.initialize('NewName', 'NN', reciever, cap, blob, communityFeeCollector),
             truffleAssert.ErrorType.REVERT,
             'DataTokenTemplate: token instance already initialized')
     })

@@ -101,8 +101,9 @@ contract('SPool', async (accounts) => {
         pool = await BPool.at(POOL)
 
         const blob = 'https://example.com/dataset-1'
-        weth = await TToken.new('Wrapped Ether', 'WETH', admin, MAX, blob)
-        dai = await TToken.new('Dai Stablecoin', 'DAI', admin, MAX, blob)
+        const communityFeeCollector = '0xeE9300b7961e0a01d9f0adb863C7A227A07AaD75'
+        weth = await TToken.new('Wrapped Ether', 'WETH', admin, MAX, blob, communityFeeCollector)
+        dai = await TToken.new('Dai Stablecoin', 'DAI', admin, MAX, blob, communityFeeCollector)
 
         WETH = weth.address
         DAI = dai.address
