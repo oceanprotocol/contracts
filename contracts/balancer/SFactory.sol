@@ -21,26 +21,26 @@ import '../utils/Converter.sol';
 
 contract BFactory is BConst, Deployer, Converter {
 
-    address private _spoolTemplate;
+    address private _bpoolTemplate;
 
     event BPoolCreated(
         address indexed newBPoolAddress,
-        address indexed spoolTemplateAddress
+        address indexed bpoolTemplateAddress
     );
     
     event BPoolRegistered(
-        address spoolAddress,
+        address bpoolAddress,
         address indexed registeredBy,
         uint256 indexed registeredAt
     );
     
     /* @dev Called on contract deployment. Cannot be called with zero address.
-       @param _spoolTemplate -- address of a deployed BPool contract. */
-    constructor(address spoolTemplate) 
+       @param _bpoolTemplate -- address of a deployed BPool contract. */
+    constructor(address bpoolTemplate)
         public 
     {
-        require(spoolTemplate != address(0), 'ERR_ADDRESS_0');
-        _spoolTemplate = spoolTemplate;
+        require(bpoolTemplate != address(0), 'ERR_ADDRESS_0');
+        _bpoolTemplate = bpoolTemplate;
     }
 
     /* @dev Deploys new BPool proxy contract.
@@ -48,15 +48,15 @@ contract BFactory is BConst, Deployer, Converter {
        @return address of a new proxy BPool contract */
     function newBPool()
         public
-        returns (address spool)
+        returns (address bpool)
     {
-        spool = deploy(_spoolTemplate);
-        require(spool != address(0), 'ERR_ADDRESS_0');
+        bpool = deploy(_bpoolTemplate);
+        require(bpool != address(0), 'ERR_ADDRESS_0');
         
         // replace BPool with interface
-        BPool spoolInstance = BPool(spool);
+        BPool bpoolInstance = BPool(bpool);
 
-        spoolInstance.initialize(
+        bpoolInstance.initialize(
             msg.sender,
             address(this), 
             MIN_FEE, 
@@ -64,19 +64,19 @@ contract BFactory is BConst, Deployer, Converter {
             false
         );
 	
-        require(spoolInstance.isInitialized(), 'ERR_INITIALIZE_SPOOL');
-        emit BPoolCreated(spool, _spoolTemplate);
-        emit BPoolRegistered(spool, msg.sender, block.number);
+        require(bpoolInstance.isInitialized(), 'ERR_INITIALIZE_BPOOL');
+        emit BPoolCreated(bpool, _bpoolTemplate);
+        emit BPoolRegistered(bpool, msg.sender, block.number);
     }
 
 
-    /* @dev get the spool template address
+    /* @dev get the bpool template address
        @return the template address */
     function getBPool()
         external
         view
         returns (address)
     {
-        return _spoolTemplate;
+        return _bpoolTemplate;
     }
 }

@@ -17,7 +17,7 @@ contract('BFactory', async (accounts) => {
         it('should create new BPool', async () => {
             const txReceipt = await factory.newBPool({ from: admin })
             const sPoolEventArgs = testUtils.getEventArgsFromTx(txReceipt, 'BPoolCreated')
-            assert(poolTemplate, sPoolEventArgs._spoolTemplate)
+            assert(poolTemplate, sPoolEventArgs._bpoolTemplate)
         })
 
         it('should get BPool', async () => {

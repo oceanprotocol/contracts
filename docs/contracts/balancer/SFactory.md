@@ -5,13 +5,13 @@
 
 
 
-### `constructor(address spoolTemplate)` (public)
+### `constructor(address bpoolTemplate)` (public)
 
 
 
 
 
-### `newBPool() → address spool` (public)
+### `newBPool() → address bpool` (public)
 
 
 
@@ -24,13 +24,13 @@
 
 
 
-### `BPoolCreated(address newBPoolAddress, address spoolTemplateAddress)`
+### `BPoolCreated(address newBPoolAddress, address bpoolTemplateAddress)`
 
 
 
 
 
-### `BPoolRegistered(address spoolAddress, address registeredBy, uint256 registeredAt)`
+### `BPoolRegistered(address bpoolAddress, address registeredBy, uint256 registeredAt)`
 
 
 
