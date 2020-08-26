@@ -14,8 +14,7 @@ import './token/ERC20FeeCollectable.sol';
 *      Used by the factory contract as a bytecode reference to 
 *      deploy new DataTokens.
 */
-contract DataTokenTemplate is IERC20Template, ERC20Pausable, 
-ERC20FeeCollectable {
+contract DataTokenTemplate is IERC20Template, ERC20Pausable {
     using SafeMath for uint256;
     
     bool    private initialized = false;
@@ -25,6 +24,9 @@ ERC20FeeCollectable {
     uint256 private _cap;
     uint256 private _decimals;
     address private _minter;
+    address private __communitFeeCollector;
+    uint256 public constant BASE = 10**18;
+    uint256 public constant BASE_COMMUNITY_FEE = BASE / 100;
 
     event OrderStarted(
             uint256 amount, 
@@ -75,7 +77,6 @@ ERC20FeeCollectable {
         address collector
     )
         public
-        ERC20FeeCollectable(collector)
     {
         _initialize(
             name,
@@ -100,7 +101,7 @@ ERC20FeeCollectable {
         address minter,
         uint256 cap,
         string memory blob,
-        address collector
+        address commumityFeeCollector
     ) 
         public
         onlyNotInitialized
@@ -112,7 +113,8 @@ ERC20FeeCollectable {
             symbol,
             minter,
             cap,
-            blob
+            blob,
+            commumityFeeCollector
         );
     }
 
@@ -128,7 +130,8 @@ ERC20FeeCollectable {
         string memory symbol,
         address minter,
         uint256 cap,
-        string memory blob
+        string memory blob,
+        address commumityFeeCollector
     )
         private
         returns(bool)
@@ -154,6 +157,7 @@ ERC20FeeCollectable {
         _blob = blob;
         _symbol = symbol;
         _minter = minter;
+        _communitFeeCollector = commumityFeeCollector;
         initialized = true;
         return initialized;
     }
@@ -359,5 +363,16 @@ ERC20FeeCollectable {
      */ 
     function isPaused() public view returns(bool) {
         return paused;
+    }
+
+    function calculateFee(
+        uint256 amount,
+        uint256 fee
+    )
+        internal
+        view
+        returns(uint256)
+    {
+        return value.mul(fee).div(BASE);
     }
 }
