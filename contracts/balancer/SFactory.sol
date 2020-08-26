@@ -9,17 +9,17 @@ import '../utils/Deployer.sol';
 import '../utils/Converter.sol';
 
 /*
-* @title SFactory contract
+* @title BFactory contract
 * @author Ocean Protocol (with code from Balancer Labs)
 *
 * @dev Ocean implementation of Balancer BPool Factory
-*      SFactory deploys BPool proxy contracts.
+*      BFactory deploys BPool proxy contracts.
 *      New BPool proxy contracts are links to the template contract's bytecode.
 *      Proxy contract functionality is based on Ocean Protocol custom
 *        implementation of ERC1167 standard.
 */
 
-contract SFactory is BConst, Deployer, Converter {
+contract BFactory is BConst, Deployer, Converter {
 
     address private _spoolTemplate;
 

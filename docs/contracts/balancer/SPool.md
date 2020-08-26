@@ -2,7 +2,7 @@
 
 
 
-Used by the (Ocean version) SFactory contract as a bytecode reference to 
+Used by the (Ocean version) BFactory contract as a bytecode reference to 
 deploy new BPools.
 
 This contract is is nearly identical to the BPool.sol contract at [1]

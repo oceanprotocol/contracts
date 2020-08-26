@@ -1,17 +1,17 @@
 /* eslint-env mocha */
 /* global artifacts, contract, it, assert */
 const BPool = artifacts.require('BPool')
-const SFactory = artifacts.require('SFactory')
+const BFactory = artifacts.require('BFactory')
 const testUtils = require('../../helpers/utils')
 
-contract('SFactory', async (accounts) => {
-    describe('SFactory Tests', () => {
+contract('BFactory', async (accounts) => {
+    describe('BFactory Tests', () => {
         let factory
         let poolTemplate
         const admin = accounts[0]
         before(async () => {
             poolTemplate = await BPool.new()
-            factory = await SFactory.new(poolTemplate.address)
+            factory = await BFactory.new(poolTemplate.address)
         })
 
         it('should create new BPool', async () => {

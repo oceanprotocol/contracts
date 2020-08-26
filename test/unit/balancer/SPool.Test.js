@@ -12,7 +12,7 @@ const {
 const { assert } = require('chai')
 
 const BPool = artifacts.require('BPool')
-const BFactory = artifacts.require('SFactory')
+const BFactory = artifacts.require('BFactory')
 const TToken = artifacts.require('DataTokenTemplate')
 const errorDelta = 10 ** -8
 const swapFee = 10 ** -3 // 0.001;

@@ -9,7 +9,7 @@ import './BMath.sol';
 /**
 * @title BPool
 *  
-* @dev Used by the (Ocean version) SFactory contract as a bytecode reference to 
+* @dev Used by the (Ocean version) BFactory contract as a bytecode reference to
 *      deploy new BPools.
 *
 * This contract is is nearly identical to the BPool.sol contract at [1]
@@ -78,7 +78,7 @@ contract BPool is BToken, BMath {
     
     bool private _mutex;
 
-    address private _factory;    // SFactory address to push token exitFee to
+    address private _factory;    // BFactory address to push token exitFee to
     address private _controller; // has CONTROL role
     bool private _publicSwap; // true if PUBLIC can call SWAP functions
 

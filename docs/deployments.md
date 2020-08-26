@@ -21,7 +21,7 @@ Find [here](https://github.com/oceanprotocol/atlantic/blob/df8d40dfeaceaed357605
    -----------------
    > contract address:    0x7244761d88F6d98c2C75079B82A30f4696E7fD40
 
-   Deploying 'SFactory'
+   Deploying 'BFactory'
    --------------------
    > contract address:    0x6d6dd42bFa9b60A0b8F7E5C9937359bd98c172cb
 
@@ -54,7 +54,7 @@ Find [here](https://github.com/oceanprotocol/atlantic/blob/df8d40dfeaceaed357605
    -----------------
    > contract address:    0x6C89cF9F4347c81b4699Da152b2Da9A26f26Fe75
 
-   Deploying 'SFactory'
+   Deploying 'BFactory'
    --------------------
    > contract address:    0xD28ec5D7C2Af5dAFb30F0c4d3d8B3aC79aCbFa9d
 
@@ -81,7 +81,7 @@ The contracts addresses for the latest deployment:
    -----------------
    > contract address:    0x480b3dD7a22d9c67B7Cfb64dffBE61B9846a0167
 
-   Deploying 'SFactory'
+   Deploying 'BFactory'
    --------------------
    > contract address:    0xA4531C624A3D88323a1e178DABe1233AF178701B
 
