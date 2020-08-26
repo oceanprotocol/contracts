@@ -28,6 +28,7 @@ contract('DataTokenTemplate', async (accounts) => {
         blob,
         orderTxId
     const did = '0x0000000000000000000000000000000000000000000000000000000001111111'
+    const communityFeeCollector = '0xeE9300b7961e0a01d9f0adb863C7A227A07AaD75'
     beforeEach('init contracts for each test', async () => {
         blob = 'https://example.com/dataset-1'
         decimals = 18
@@ -36,7 +37,10 @@ contract('DataTokenTemplate', async (accounts) => {
         newMinter = accounts[2]
         cap = new BigNumber('1400000000')
         template = await Template.new('Template', 'TEMPLATE', minter, cap, blob)
-        factory = await DTFactory.new(template.address)
+        factory = await DTFactory.new(
+            template.address,
+            communityFeeCollector
+        )
         blob = 'https://example.com/dataset-1'
         const trxReceipt = await factory.createToken(blob)
         const TokenCreatedEventArgs = testUtils.getEventArgsFromTx(trxReceipt, 'TokenCreated')
@@ -159,6 +163,7 @@ contract('DataTokenTemplate', async (accounts) => {
     it('should start order', async () => {
         const consumer = accounts[9]
         const provider = accounts[8]
+        const marketAddress = accounts[7]
         const orderDTTokensAmount = 10
         const marketFee = 2
         const serviceId = 1
@@ -168,6 +173,7 @@ contract('DataTokenTemplate', async (accounts) => {
             orderDTTokensAmount,
             did,
             serviceId,
+            marketAddress,
             marketFee,
             {
                 from: consumer

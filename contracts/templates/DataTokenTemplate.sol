@@ -146,7 +146,7 @@ contract DataTokenTemplate is IERC20Template, ERC20Pausable {
         );
 
         require(
-            collector == address(0),
+            collector != address(0),
             'DataTokenTemplate: Invalid community fee collector, zero address'
         );
 
@@ -209,6 +209,11 @@ contract DataTokenTemplate is IERC20Template, ERC20Pausable {
     {
         require(
             receiver != address(0),
+            'DataTokenTemplate: invalid receiver address'
+        );
+
+        require(
+            collector != address(0),
             'DataTokenTemplate: invalid receiver address'
         );
 
