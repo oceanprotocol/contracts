@@ -1,6 +1,6 @@
 /* eslint-env mocha */
 /* global artifacts, contract, it, assert */
-const BPool = artifacts.require('SPool')
+const BPool = artifacts.require('BPool')
 const SFactory = artifacts.require('SFactory')
 const testUtils = require('../../helpers/utils')
 
@@ -14,14 +14,14 @@ contract('SFactory', async (accounts) => {
             factory = await SFactory.new(poolTemplate.address)
         })
 
-        it('should create new SPool', async () => {
-            const txReceipt = await factory.newSPool({ from: admin })
-            const sPoolEventArgs = testUtils.getEventArgsFromTx(txReceipt, 'SPoolCreated')
+        it('should create new BPool', async () => {
+            const txReceipt = await factory.newBPool({ from: admin })
+            const sPoolEventArgs = testUtils.getEventArgsFromTx(txReceipt, 'BPoolCreated')
             assert(poolTemplate, sPoolEventArgs._spoolTemplate)
         })
 
-        it('should get SPool', async () => {
-            const sPoolTemplate = await factory.getSPool()
+        it('should get BPool', async () => {
+            const sPoolTemplate = await factory.getBPool()
             assert(poolTemplate, sPoolTemplate)
         })
     })

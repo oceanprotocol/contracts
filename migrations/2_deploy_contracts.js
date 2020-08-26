@@ -2,7 +2,7 @@
 /* global artifacts */
 var DataTokenTemplate = artifacts.require('./DataTokenTemplate.sol')
 var DTFactory = artifacts.require('./DTFactory.sol')
-var SPool = artifacts.require('./SPool.sol')
+var BPool = artifacts.require('./BPool.sol')
 var SFactory = artifacts.require('./SFactory.sol')
 var DDO = artifacts.require('./DDO.sol')
 var FixedRateExchange = artifacts.require('./FixedRateExchange.sol')
@@ -22,12 +22,12 @@ module.exports = function(deployer, network, accounts) {
             DataTokenTemplate.address
         )
         await deployer.deploy(
-            SPool
+            BPool
         )
 
         await deployer.deploy(
             SFactory,
-            SPool.address
+            BPool.address
         )
 
         await deployer.deploy(

@@ -3,7 +3,7 @@ pragma solidity ^0.5.7;
 // SPDX-License-Identifier: (Apache-2.0 AND CC-BY-4.0)
 // Code is Apache-2.0 and docs are CC-BY-4.0
 
-import './SPool.sol';
+import './BPool.sol';
 import './BConst.sol';
 import '../utils/Deployer.sol';
 import '../utils/Converter.sol';
@@ -12,9 +12,9 @@ import '../utils/Converter.sol';
 * @title SFactory contract
 * @author Ocean Protocol (with code from Balancer Labs)
 *
-* @dev Ocean implementation of Balancer SPool Factory
-*      SFactory deploys SPool proxy contracts.
-*      New SPool proxy contracts are links to the template contract's bytecode. 
+* @dev Ocean implementation of Balancer BPool Factory
+*      SFactory deploys BPool proxy contracts.
+*      New BPool proxy contracts are links to the template contract's bytecode.
 *      Proxy contract functionality is based on Ocean Protocol custom
 *        implementation of ERC1167 standard.
 */
@@ -23,19 +23,19 @@ contract SFactory is BConst, Deployer, Converter {
 
     address private _spoolTemplate;
 
-    event SPoolCreated(
-        address indexed newSPoolAddress, 
+    event BPoolCreated(
+        address indexed newBPoolAddress,
         address indexed spoolTemplateAddress
     );
     
-    event SPoolRegistered(
+    event BPoolRegistered(
         address spoolAddress,
         address indexed registeredBy,
         uint256 indexed registeredAt
     );
     
     /* @dev Called on contract deployment. Cannot be called with zero address.
-       @param _spoolTemplate -- address of a deployed SPool contract. */
+       @param _spoolTemplate -- address of a deployed BPool contract. */
     constructor(address spoolTemplate) 
         public 
     {
@@ -43,18 +43,18 @@ contract SFactory is BConst, Deployer, Converter {
         _spoolTemplate = spoolTemplate;
     }
 
-    /* @dev Deploys new SPool proxy contract.
+    /* @dev Deploys new BPool proxy contract.
        Template contract address could not be a zero address. 
-       @return address of a new proxy SPool contract */
-    function newSPool() 
+       @return address of a new proxy BPool contract */
+    function newBPool()
         public
         returns (address spool)
     {
         spool = deploy(_spoolTemplate);
         require(spool != address(0), 'ERR_ADDRESS_0');
         
-        // replace SPool with interface
-        SPool spoolInstance = SPool(spool);
+        // replace BPool with interface
+        BPool spoolInstance = BPool(spool);
 
         spoolInstance.initialize(
             msg.sender,
@@ -65,14 +65,14 @@ contract SFactory is BConst, Deployer, Converter {
         );
 	
         require(spoolInstance.isInitialized(), 'ERR_INITIALIZE_SPOOL');
-        emit SPoolCreated(spool, _spoolTemplate);
-        emit SPoolRegistered(spool, msg.sender, block.number);
+        emit BPoolCreated(spool, _spoolTemplate);
+        emit BPoolRegistered(spool, msg.sender, block.number);
     }
 
 
     /* @dev get the spool template address
        @return the template address */
-    function getSPool()
+    function getBPool()
         external
         view
         returns (address)

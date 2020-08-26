@@ -11,7 +11,7 @@ const {
 } = require('./helpers/calComparisons.js')
 const { assert } = require('chai')
 
-const BPool = artifacts.require('SPool')
+const BPool = artifacts.require('BPool')
 const BFactory = artifacts.require('SFactory')
 const TToken = artifacts.require('DataTokenTemplate')
 const errorDelta = 10 ** -8
@@ -19,7 +19,7 @@ const swapFee = 10 ** -3 // 0.001;
 const exitFee = 0
 const verbose = process.env.VERBOSE
 
-contract('SPool', async (accounts) => {
+contract('BPool', async (accounts) => {
     const { toWei } = web3.utils
     const { fromWei } = web3.utils
     const admin = accounts[0]
@@ -96,8 +96,8 @@ contract('SPool', async (accounts) => {
         const poolTemplate = await BPool.new()
         factory = await BFactory.new(poolTemplate.address)
 
-        POOL = await factory.newSPool.call() // this works fine in clean room
-        await factory.newSPool({ from: admin })
+        POOL = await factory.newBPool.call() // this works fine in clean room
+        await factory.newBPool({ from: admin })
         pool = await BPool.at(POOL)
 
         const blob = 'https://example.com/dataset-1'

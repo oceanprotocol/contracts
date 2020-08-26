@@ -11,26 +11,26 @@
 
 
 
-### `newSPool() → address spool` (public)
+### `newBPool() → address spool` (public)
 
 
 
 
 
-### `getSPool() → address` (external)
+### `getBPool() → address` (external)
 
 
 
 
 
 
-### `SPoolCreated(address newSPoolAddress, address spoolTemplateAddress)`
+### `BPoolCreated(address newBPoolAddress, address spoolTemplateAddress)`
 
 
 
 
 
-### `SPoolRegistered(address spoolAddress, address registeredBy, uint256 registeredAt)`
+### `BPoolRegistered(address spoolAddress, address registeredBy, uint256 registeredAt)`
 
 
 

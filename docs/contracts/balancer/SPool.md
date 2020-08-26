@@ -1,9 +1,9 @@
-## `SPool`
+## `BPool`
 
 
 
 Used by the (Ocean version) SFactory contract as a bytecode reference to 
-deploy new SPools.
+deploy new BPools.
 
 This contract is is nearly identical to the BPool.sol contract at [1]
 The only difference is the "Proxy contract functionality" section 

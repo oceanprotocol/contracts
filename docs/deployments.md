@@ -17,7 +17,7 @@ Find [here](https://github.com/oceanprotocol/atlantic/blob/df8d40dfeaceaed357605
    ---------------------
    > contract address:    0x1B17d75a1998B2872421a3dbA2c3faD6bAa1B48f
 
-   Deploying 'SPool'
+   Deploying 'BPool'
    -----------------
    > contract address:    0x7244761d88F6d98c2C75079B82A30f4696E7fD40
 
@@ -50,7 +50,7 @@ Find [here](https://github.com/oceanprotocol/atlantic/blob/df8d40dfeaceaed357605
    ---------------------
    > contract address:    0xE7635Ba3cFffdAD6A718c3daA94D7d82f216F930
 
-   Deploying 'SPool'
+   Deploying 'BPool'
    -----------------
    > contract address:    0x6C89cF9F4347c81b4699Da152b2Da9A26f26Fe75
 
@@ -77,7 +77,7 @@ The contracts addresses for the latest deployment:
    ---------------------
    > contract address:    0xcDfEe5D80041224cDCe9AE2334E85B3236385EA3
 
-   Deploying 'SPool'
+   Deploying 'BPool'
    -----------------
    > contract address:    0x480b3dD7a22d9c67B7Cfb64dffBE61B9846a0167
 

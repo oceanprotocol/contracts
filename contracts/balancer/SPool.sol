@@ -7,10 +7,10 @@ import './BToken.sol';
 import './BMath.sol';
 
 /**
-* @title SPool
+* @title BPool
 *  
 * @dev Used by the (Ocean version) SFactory contract as a bytecode reference to 
-*      deploy new SPools.
+*      deploy new BPools.
 *
 * This contract is is nearly identical to the BPool.sol contract at [1]
 *  The only difference is the "Proxy contract functionality" section 
@@ -21,7 +21,7 @@ import './BMath.sol';
 *
 *  [1] https://github.com/balancer-labs/balancer-core/contracts/.
 */
-contract SPool is BToken, BMath {
+contract BPool is BToken, BMath {
 
     struct Record {
         bool bound;   // is token bound to pool
@@ -110,7 +110,7 @@ contract SPool is BToken, BMath {
         _initialize(msg.sender, msg.sender, MIN_FEE, false, false);
     }
     
-    // Called prior to contract initialization (e.g creating new SPool instance)
+    // Called prior to contract initialization (e.g creating new BPool instance)
     // Calls private _initialize function. Only if contract is not initialized.
     function initialize(
         address controller, 
