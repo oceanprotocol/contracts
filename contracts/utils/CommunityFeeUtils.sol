@@ -4,30 +4,22 @@ pragma solidity ^0.5.7;
 // Code is Apache-2.0 and docs are CC-BY-4.0
 import 'openzeppelin-solidity/contracts/math/SafeMath.sol';
 
-contract FeeUtils {
+contract CommunityFeeUtils {
     using SafeMath for uint256;
     uint256 public constant BASE = 10**18;
     uint256 public constant COMMUNITY_FEE_BASE = BASE / 100;
-    address public communityFeeCollectorAddress;
+    address private collector;
 
-    constructor (
-        address collector
-    )
-        public
-    {
-        require(
-            collector != address(0),
-            'FeeUtils: invalid community fee collector address'
-        );
-        communityFeeCollectorAddress = collector;
-    }
-
-    function setCommunityFeeCollector(
-        address collector
+    function setCollector(
+        address _collector
     )
         internal 
     {
-        communityFeeCollectorAddress = collector;
+        require(
+            _collector != address(0),
+            'FeeUtils: invalid community fee collector address'
+        );
+        collector = _collector;
     }
 
     function calcCommunityFee(
@@ -38,5 +30,13 @@ contract FeeUtils {
         returns(uint256)
     {
         return value.mul(COMMUNITY_FEE_BASE).div(BASE);
+    }
+
+    function getCollector()
+        public
+        view
+        returns(address)
+    {
+        return collector;
     }
 }

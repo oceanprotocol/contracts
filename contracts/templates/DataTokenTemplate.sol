@@ -4,8 +4,9 @@ pragma solidity ^0.5.7;
 // Code is Apache-2.0 and docs are CC-BY-4.0
 
 import './token/ERC20Pausable.sol';
-import '../utils/FeeUtils.sol';
 import '../interfaces/IERC20Template.sol';
+import '../utils/CommunityFeeUtils.sol';
+
 /**
 * @title DataTokenTemplate
 *  
@@ -13,7 +14,7 @@ import '../interfaces/IERC20Template.sol';
 *      Used by the factory contract as a bytecode reference to 
 *      deploy new DataTokens.
 */
-contract DataTokenTemplate is IERC20Template, ERC20Pausable, FeeUtils {
+contract DataTokenTemplate is IERC20Template, ERC20Pausable, CommunityFeeUtils {
     using SafeMath for uint256;
     
     bool    private initialized = false;
@@ -73,11 +74,11 @@ contract DataTokenTemplate is IERC20Template, ERC20Pausable, FeeUtils {
         address minter,
         uint256 cap,
         string memory blob,
-        address communityFeeCollector
+        address collector
     )
         public
-        FeeUtils(communityFeeCollector)
     {
+        setCollector(collector);
         _initialize(
             name,
             symbol,
@@ -107,6 +108,7 @@ contract DataTokenTemplate is IERC20Template, ERC20Pausable, FeeUtils {
         onlyNotInitialized
         returns(bool)
     {
+        setCollector(collector);
         return _initialize(
             name,
             symbol,
@@ -114,7 +116,6 @@ contract DataTokenTemplate is IERC20Template, ERC20Pausable, FeeUtils {
             cap,
             blob
         );
-        setCommunityFeeCollector(collector);
     }
 
     /**
@@ -222,7 +223,7 @@ contract DataTokenTemplate is IERC20Template, ERC20Pausable, FeeUtils {
             'DataTokenTemplate: failed to transfer marketplace fee'
         );
         require(
-            transfer(communityFeeCollectorAddress, calcCommunityFee(amount)),
+            transfer(getCollector(), calcCommunityFee(amount)),
             'DataTokenTemplate: failed to transfer community fee'
         );
 
