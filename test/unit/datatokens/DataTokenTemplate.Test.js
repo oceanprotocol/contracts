@@ -205,4 +205,11 @@ contract('DataTokenTemplate', async (accounts) => {
             (await token.balanceOf(consumer)).toNumber() === (OrderFinishedEventArgs.amount).toNumber()
         )
     })
+    it('should calculate total fee', async () => {
+        const totalFee = await token.calculateTotalFee(
+            30000000,
+            2
+        )
+        console.log(totalFee)
+    })
 })
