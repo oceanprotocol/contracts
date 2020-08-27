@@ -14,14 +14,14 @@ contract('Factory test', async accounts => {
     let minter
     let blob
     let cap
-
+    const communityFeeCollector = '0xeE9300b7961e0a01d9f0adb863C7A227A07AaD75'
     beforeEach('init contracts for each test', async function() {
         blob = 'https://example.com/dataset-1'
         minter = accounts[0]
         zeroAddress = '0x0000000000000000000000000000000000000000'
         cap = 1400000000
-        template = await Template.new('Template Contract', 'TEMPLATE', minter, cap, blob)
-        factory = await DTFactory.new(template.address)
+        template = await Template.new('Template Contract', 'TEMPLATE', minter, cap, blob, communityFeeCollector)
+        factory = await DTFactory.new(template.address, communityFeeCollector)
     })
 
     it('should create a token and check that it is not a zero address', async () => {
@@ -40,14 +40,14 @@ contract('Factory test', async accounts => {
     })
 
     it('should fail on zero template address factory initialization', async () => {
-        truffleAssert.fails(DTFactory.new(zeroAddress),
+        truffleAssert.fails(DTFactory.new(zeroAddress, communityFeeCollector),
             truffleAssert.ErrorType.REVERT,
             'DTFactory: Invalid token factory initialization'
         )
     })
 
     it('should fail on zero minter address initialization', async () => {
-        truffleAssert.fails(Template.new('Zero address minter contract', 'ZERO', zeroAddress, cap, blob),
+        truffleAssert.fails(Template.new('Zero address minter contract', 'ZERO', zeroAddress, cap, blob, communityFeeCollector),
             truffleAssert.ErrorType.REVERT,
             'DataTokenTemplate: Invalid minter,  zero address'
         )

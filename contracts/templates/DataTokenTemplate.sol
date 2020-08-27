@@ -5,6 +5,7 @@ pragma solidity ^0.5.7;
 
 import './token/ERC20Pausable.sol';
 import '../interfaces/IERC20Template.sol';
+
 /**
 * @title DataTokenTemplate
 *  
@@ -22,14 +23,18 @@ contract DataTokenTemplate is IERC20Template, ERC20Pausable {
     uint256 private _cap;
     uint256 private _decimals;
     address private _minter;
-    
+    address private _communityFeeCollector;
+    uint256 public constant BASE = 10**18;
+    uint256 public constant BASE_COMMUNITY_FEE_PERCENTAGE = BASE / 1000;
 
     event OrderStarted(
             uint256 amount, 
             bytes32 did, 
             uint256 serviceId, 
             address receiver, 
-            uint256 startedAt
+            uint256 startedAt,
+            address feeCollector,
+            uint256 marketFee
     );
 
     event OrderFinished(
@@ -63,13 +68,17 @@ contract DataTokenTemplate is IERC20Template, ERC20Pausable {
      * @param name refers to a template DataToken name
      * @param symbol refers to a template DataToken symbol
      * @param minter refers to an address that has minter role
+     * @param cap the total ERC20 cap
+     * @param blob data string refering to the resolver for the DID
+     * @param feeCollector it is the community fee collector address
      */
     constructor(
         string memory name,
         string memory symbol,
         address minter,
         uint256 cap,
-        string memory blob
+        string memory blob,
+        address feeCollector
     )
         public
     {
@@ -78,7 +87,8 @@ contract DataTokenTemplate is IERC20Template, ERC20Pausable {
             symbol,
             minter,
             cap,
-            blob
+            blob,
+            feeCollector
         );
     }
     
@@ -89,13 +99,17 @@ contract DataTokenTemplate is IERC20Template, ERC20Pausable {
      * @param name refers to a new DataToken name
      * @param symbol refers to a nea DataToken symbol
      * @param minter refers to an address that has minter rights
+     * @param cap the total ERC20 cap
+     * @param blob data string refering to the resolver for the DID
+     * @param feeCollector it is the community fee collector address
      */
     function initialize(
         string memory name,
         string memory symbol,
         address minter,
         uint256 cap,
-        string memory blob
+        string memory blob,
+        address feeCollector
     ) 
         public
         onlyNotInitialized
@@ -106,7 +120,8 @@ contract DataTokenTemplate is IERC20Template, ERC20Pausable {
             symbol,
             minter,
             cap,
-            blob
+            blob,
+            feeCollector
         );
     }
 
@@ -116,13 +131,17 @@ contract DataTokenTemplate is IERC20Template, ERC20Pausable {
      * @param name refers to a new DataToken name
      * @param symbol refers to a nea DataToken symbol
      * @param minter refers to an address that has minter rights
+     * @param cap the total ERC20 cap
+     * @param blob data string refering to the resolver for the DID
+     * @param feeCollector it is the community fee collector address
      */
     function _initialize(
         string memory name,
         string memory symbol,
         address minter,
         uint256 cap,
-        string memory blob
+        string memory blob,
+        address feeCollector
     )
         private
         returns(bool)
@@ -138,6 +157,11 @@ contract DataTokenTemplate is IERC20Template, ERC20Pausable {
         );
 
         require(
+            feeCollector != address(0),
+            'DataTokenTemplate: Invalid community fee collector, zero address'
+        );
+
+        require(
             cap > 0,
             'DataTokenTemplate: Invalid cap value'
         );
@@ -148,6 +172,7 @@ contract DataTokenTemplate is IERC20Template, ERC20Pausable {
         _blob = blob;
         _symbol = symbol;
         _minter = minter;
+        _communityFeeCollector = feeCollector;
         initialized = true;
         return initialized;
     }
@@ -182,26 +207,52 @@ contract DataTokenTemplate is IERC20Template, ERC20Pausable {
      * @param amount refers to amount of tokens that is going to be transfered.
      * @param did refers to DID or decentralized identifier for an asset
      * @param serviceId service index in the DID
+     * @param feeCollector marketplace fee collector
+     * @param feePercentage marketplace fee percentage
      */
     function startOrder(
         address receiver, 
         uint256 amount,
-        bytes32 did, 
-        uint256 serviceId
+        bytes32 did,
+        uint256 serviceId,
+        address feeCollector,
+        uint256 feePercentage
     )
         public
     {
         require(
-            transfer(receiver, amount),
-            'DataTokenTemplate: failed to start order'
+            receiver != address(0),
+            'DataTokenTemplate: invalid receiver address'
         );
 
-        emit OrderStarted(
+        require(
+            feeCollector != address(0),
+            'DataTokenTemplate: invalid receiver address'
+        );
+
+        uint256 communityFee = calculateFee(
             amount, 
-            did, 
-            serviceId, 
-            receiver, 
-            block.number
+            BASE_COMMUNITY_FEE_PERCENTAGE
+        );
+        uint256 marketFee = calculateFee(amount, feePercentage);
+        
+        require(
+            marketFee.add(communityFee) < amount,
+            'DataTokenTemplate: total fee exceeds the amount'
+        );
+        
+        transfer(receiver, amount.sub(communityFee.add(marketFee)));
+        transfer(feeCollector, marketFee);
+        transfer(_communityFeeCollector, communityFee);
+
+        emit OrderStarted(
+            amount,
+            did,
+            serviceId,
+            receiver,
+            block.number,
+            feeCollector,
+            marketFee
         );
     }
 
@@ -344,5 +395,44 @@ contract DataTokenTemplate is IERC20Template, ERC20Pausable {
      */ 
     function isPaused() public view returns(bool) {
         return paused;
+    }
+
+    /**
+     * @dev calculateFee
+     *      giving a fee percentage, and amount it calculates the actual fee
+     * @param amount the amount of token
+     * @param feePercentage the fee percentage 
+     * @return the token fee.
+     */ 
+    function calculateFee(
+        uint256 amount,
+        uint256 feePercentage
+    )
+        public
+        pure
+        returns(uint256)
+    {
+        return amount.mul(feePercentage).div(BASE);
+    }
+
+     /**
+     * @dev calculateTotalFee
+     *      giving a fee percentage, and amount it calculates 
+     *      the total fee (including the community fee) needed for order.
+     * @param amount the amount of token
+     * @param feePercentage the fee percentage 
+     * @return the total order fee.
+     */ 
+    function calculateTotalFee(
+        uint256 amount,
+        uint256 feePercentage
+    )
+        public
+        pure
+        returns(uint256)
+    {
+        return calculateFee(amount, BASE_COMMUNITY_FEE_PERCENTAGE).add(
+            calculateFee(amount, feePercentage)
+        );
     }
 }

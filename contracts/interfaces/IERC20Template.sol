@@ -6,7 +6,8 @@ interface IERC20Template {
         string calldata symbol,
         address minter,
         uint256 cap,
-        string calldata blob
+        string calldata blob,
+        address collector
     ) external returns (bool);
 
     function mint(address account, uint256 value) external payable;

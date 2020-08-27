@@ -1,5 +1,5 @@
 /* eslint-env mocha */
-/* global artifacts, contract, it, beforeEach */
+/* global artifacts, contract, web3, it, beforeEach */
 const chai = require('chai')
 const { assert } = chai
 const chaiAsPromised = require('chai-as-promised')
@@ -8,7 +8,7 @@ chai.use(chaiAsPromised)
 const Template = artifacts.require('DataTokenTemplate')
 const DTFactory = artifacts.require('DTFactory')
 const Token = artifacts.require('DataTokenTemplate')
-const testUtils = require('../helpers/utils')
+const testUtils = require('../../helpers/utils')
 const truffleAssert = require('truffle-assertions')
 const BigNumber = require('bn.js')
 
@@ -28,6 +28,7 @@ contract('DataTokenTemplate', async (accounts) => {
         blob,
         orderTxId
     const did = '0x0000000000000000000000000000000000000000000000000000000001111111'
+    const communityFeeCollector = '0xeE9300b7961e0a01d9f0adb863C7A227A07AaD75'
     beforeEach('init contracts for each test', async () => {
         blob = 'https://example.com/dataset-1'
         decimals = 18
@@ -35,8 +36,11 @@ contract('DataTokenTemplate', async (accounts) => {
         reciever = accounts[1]
         newMinter = accounts[2]
         cap = new BigNumber('1400000000')
-        template = await Template.new('Template', 'TEMPLATE', minter, cap, blob)
-        factory = await DTFactory.new(template.address)
+        template = await Template.new('Template', 'TEMPLATE', minter, cap, blob, communityFeeCollector)
+        factory = await DTFactory.new(
+            template.address,
+            communityFeeCollector
+        )
         blob = 'https://example.com/dataset-1'
         const trxReceipt = await factory.createToken(blob)
         const TokenCreatedEventArgs = testUtils.getEventArgsFromTx(trxReceipt, 'TokenCreated')
@@ -57,7 +61,7 @@ contract('DataTokenTemplate', async (accounts) => {
     })
 
     it('should fail to re-initialize the contracts', async () => {
-        truffleAssert.fails(token.initialize('NewName', 'NN', reciever, cap, blob),
+        truffleAssert.fails(token.initialize('NewName', 'NN', reciever, cap, blob, communityFeeCollector),
             truffleAssert.ErrorType.REVERT,
             'DataTokenTemplate: token instance already initialized')
     })
@@ -159,7 +163,9 @@ contract('DataTokenTemplate', async (accounts) => {
     it('should start order', async () => {
         const consumer = accounts[9]
         const provider = accounts[8]
+        const marketAddress = accounts[7]
         const orderDTTokensAmount = 10
+        const marketFee = 2
         const serviceId = 1
         truffleAssert.passes(await token.mint(consumer, orderDTTokensAmount, { value: ethValue, from: minter }))
         orderTxId = await token.startOrder(
@@ -167,6 +173,8 @@ contract('DataTokenTemplate', async (accounts) => {
             orderDTTokensAmount,
             did,
             serviceId,
+            marketAddress,
+            marketFee,
             {
                 from: consumer
             }
@@ -195,6 +203,24 @@ contract('DataTokenTemplate', async (accounts) => {
         const OrderFinishedEventArgs = testUtils.getEventArgsFromTx(trxReceipt, 'OrderFinished')
         assert(
             (await token.balanceOf(consumer)).toNumber() === (OrderFinishedEventArgs.amount).toNumber()
+        )
+    })
+    it('should calculate total fee', async () => {
+        const totalFee = await token.calculateTotalFee(
+            30000000,
+            web3.utils.toWei('0.02')
+        )
+        const communityFee = await token.calculateFee(
+            30000000,
+            web3.utils.toWei('0.001')
+        )
+        const marketFee = await token.calculateFee(
+            30000000,
+            web3.utils.toWei('0.02')
+        )
+
+        assert(
+            totalFee.toNumber() === (marketFee.toNumber() + communityFee.toNumber())
         )
     })
 })

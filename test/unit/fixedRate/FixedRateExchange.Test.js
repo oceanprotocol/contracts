@@ -44,10 +44,11 @@ contract('FixedRateExchange', async (accounts) => {
         bob = accounts[1]
         cap = new BigNumber(web3.utils.toWei('1400000000'))
         exchangeOwner = alice
-        template = await Template.new('Template', 'TEMPLATE', alice, cap, blob)
+        const communityFeeCollector = '0xeE9300b7961e0a01d9f0adb863C7A227A07AaD75'
+        template = await Template.new('Template', 'TEMPLATE', alice, cap, blob, communityFeeCollector)
         rate = web3.utils.toWei('1')
         fixedRateExchange = await FixedRateExchange.new()
-        factory = await DTFactory.new(template.address)
+        factory = await DTFactory.new(template.address, communityFeeCollector)
         // Bob creates basetokens
         let trxReceipt = await factory.createToken(blob, {
             from: bob
