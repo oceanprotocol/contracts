@@ -215,8 +215,7 @@ contract FixedRateExchange {
         )
     {
         uint256 baseTokenAmount = CalcInGivenOut(exchangeId,dataTokenAmount);
-            
-       require(
+        require(
             IERC20Template(exchanges[exchangeId].baseToken).transferFrom(
                 msg.sender,
                 exchanges[exchangeId].exchangeOwner,
@@ -224,7 +223,6 @@ contract FixedRateExchange {
             ),
             'FixedRateExchange: transferFrom failed in the baseToken contract'
         );
-        
         require(
             IERC20Template(exchanges[exchangeId].dataToken).transferFrom(
                 exchanges[exchangeId].exchangeOwner,
@@ -355,8 +353,12 @@ contract FixedRateExchange {
     function getSupply(bytes32 exchangeId)
     public view
     returns(uint256 supply){
-        uint256 balance=IERC20Template(exchanges[exchangeId].dataToken).balanceOf(exchanges[exchangeId].exchangeOwner);
-        uint256 allowence=IERC20Template(exchanges[exchangeId].dataToken).allowance(exchanges[exchangeId].exchangeOwner,address(this));
+        uint256 balance=IERC20Template(
+            exchanges[exchangeId].dataToken)
+            .balanceOf(exchanges[exchangeId].exchangeOwner);
+        uint256 allowence=IERC20Template(
+            exchanges[exchangeId].dataToken)
+            .allowance(exchanges[exchangeId].exchangeOwner,address(this));
         if(balance<allowence)
             supply=balance;
         else
@@ -420,7 +422,11 @@ contract FixedRateExchange {
         uint256 counter;
         for (uint256 i = 0; i <= exchangeIds.length; i++)
         {
-            if(exchanges[exchangeIds[i]].active == true && exchanges[exchangeIds[i]].dataToken == dataToken && getSupply(exchangeIds[i])>0){
+            if(
+                exchanges[exchangeIds[i]].active == true &&
+                exchanges[exchangeIds[i]].dataToken == dataToken
+                && getSupply(exchangeIds[i])>0
+            ){
                 
                 exchangeList[counter]=exchangeIds[i];
                 counter++;
