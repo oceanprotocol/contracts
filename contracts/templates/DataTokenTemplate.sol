@@ -25,7 +25,7 @@ contract DataTokenTemplate is IERC20Template, ERC20Pausable {
     address private _minter;
     address private _communityFeeCollector;
     uint256 public constant BASE = 10**18;
-    uint256 public constant BASE_COMMUNITY_FEE = BASE / 100;
+    uint256 public constant BASE_COMMUNITY_FEE = BASE / 1000;
 
     event OrderStarted(
             uint256 amount, 
