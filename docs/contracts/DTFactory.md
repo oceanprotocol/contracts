@@ -9,7 +9,7 @@ New DataToken proxy contracts are links to the template contract's bytecode.
 Proxy contract functionality is based on Ocean Protocol custom implementation of ERC1167 standard.
 
 
-### `constructor(address _template)` (public)
+### `constructor(address _template, address _collector)` (public)
 
 
 

@@ -38,12 +38,6 @@ transferOwnership
 allows only did owners to transfer did ownership
 
 
-### `transferOwnership(bytes32 did, address owner)` (external)
-
-
-
-
-
 
 ### `DDOCreated(bytes32 did, bytes flags, bytes data, uint256 createdAt, address createdBy)`
 

@@ -25,7 +25,7 @@ contract DataTokenTemplate is IERC20Template, ERC20Pausable {
     address private _minter;
     address private _communityFeeCollector;
     uint256 public constant BASE = 10**18;
-    uint256 public constant BASE_COMMUNITY_FEE = BASE / 1000;
+    uint256 public constant BASE_COMMUNITY_FEE_PERCENTAGE = BASE / 1000;
 
     event OrderStarted(
             uint256 amount, 
@@ -68,6 +68,9 @@ contract DataTokenTemplate is IERC20Template, ERC20Pausable {
      * @param name refers to a template DataToken name
      * @param symbol refers to a template DataToken symbol
      * @param minter refers to an address that has minter role
+     * @param cap the total ERC20 cap
+     * @param blob data string refering to the resolver for the DID
+     * @param feeCollector it is the community fee collector address
      */
     constructor(
         string memory name,
@@ -96,6 +99,9 @@ contract DataTokenTemplate is IERC20Template, ERC20Pausable {
      * @param name refers to a new DataToken name
      * @param symbol refers to a nea DataToken symbol
      * @param minter refers to an address that has minter rights
+     * @param cap the total ERC20 cap
+     * @param blob data string refering to the resolver for the DID
+     * @param feeCollector it is the community fee collector address
      */
     function initialize(
         string memory name,
@@ -125,6 +131,9 @@ contract DataTokenTemplate is IERC20Template, ERC20Pausable {
      * @param name refers to a new DataToken name
      * @param symbol refers to a nea DataToken symbol
      * @param minter refers to an address that has minter rights
+     * @param cap the total ERC20 cap
+     * @param blob data string refering to the resolver for the DID
+     * @param feeCollector it is the community fee collector address
      */
     function _initialize(
         string memory name,
@@ -198,6 +207,8 @@ contract DataTokenTemplate is IERC20Template, ERC20Pausable {
      * @param amount refers to amount of tokens that is going to be transfered.
      * @param did refers to DID or decentralized identifier for an asset
      * @param serviceId service index in the DID
+     * @param feeCollector marketplace fee collector
+     * @param feePercentage marketplace fee percentage
      */
     function startOrder(
         address receiver, 
@@ -205,7 +216,7 @@ contract DataTokenTemplate is IERC20Template, ERC20Pausable {
         bytes32 did,
         uint256 serviceId,
         address feeCollector,
-        uint256 fee
+        uint256 feePercentage
     )
         public
     {
@@ -219,8 +230,16 @@ contract DataTokenTemplate is IERC20Template, ERC20Pausable {
             'DataTokenTemplate: invalid receiver address'
         );
 
-        uint256 communityFee = calculateFee(amount, BASE_COMMUNITY_FEE);
-        uint256 marketFee = calculateFee(amount, fee);
+        uint256 communityFee = calculateFee(
+            amount, 
+            BASE_COMMUNITY_FEE_PERCENTAGE
+        );
+        uint256 marketFee = calculateFee(amount, feePercentage);
+        
+        require(
+            marketFee.add(communityFee) < amount,
+            'DataTokenTemplate: total fee exceeds the amount'
+        );
         
         transfer(receiver, amount.sub(communityFee.add(marketFee)));
         transfer(feeCollector, marketFee);
@@ -378,27 +397,42 @@ contract DataTokenTemplate is IERC20Template, ERC20Pausable {
         return paused;
     }
 
+    /**
+     * @dev calculateFee
+     *      giving a fee percentage, and amount it calculates the actual fee
+     * @param amount the amount of token
+     * @param feePercentage the fee percentage 
+     * @return the token fee.
+     */ 
     function calculateFee(
         uint256 amount,
-        uint256 fee
+        uint256 feePercentage
     )
         public
         pure
         returns(uint256)
     {
-        return amount.mul(fee).div(BASE);
+        return amount.mul(feePercentage).div(BASE);
     }
 
+     /**
+     * @dev calculateTotalFee
+     *      giving a fee percentage, and amount it calculates 
+     *      the total fee (including the community fee) needed for order.
+     * @param amount the amount of token
+     * @param feePercentage the fee percentage 
+     * @return the total order fee.
+     */ 
     function calculateTotalFee(
         uint256 amount,
-        uint256 fee
+        uint256 feePercentage
     )
         public
         pure
         returns(uint256)
     {
-        return calculateFee(amount, BASE_COMMUNITY_FEE).add(
-            calculateFee(amount, fee)
+        return calculateFee(amount, BASE_COMMUNITY_FEE_PERCENTAGE).add(
+            calculateFee(amount, feePercentage)
         );
     }
 }
