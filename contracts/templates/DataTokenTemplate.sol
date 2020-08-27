@@ -221,7 +221,7 @@ contract DataTokenTemplate is IERC20Template, ERC20Pausable {
         uint256 communityFee = calculateFee(amount, BASE_COMMUNITY_FEE);
         uint256 marketFee = calculateFee(amount, fee);
         
-        transfer(receiver, amount.sub(communityFee).sub(marketFee));
+        transfer(receiver, amount.sub(communityFee.add(marketFee)));
         transfer(feeCollector, marketFee);
         transfer(_communityFeeCollector, communityFee);
 
