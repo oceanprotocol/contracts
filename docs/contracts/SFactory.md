@@ -1,36 +1,36 @@
-## `SFactory`
+## `BFactory`
 
 
 
 
 
 
-### `constructor(address spoolTemplate)` (public)
+### `constructor(address bpoolTemplate)` (public)
 
 
 
 
 
-### `newSPool() → address spool` (public)
+### `newBPool() → address bpool` (public)
 
 
 
 
 
-### `getSPool() → address` (external)
+### `getBPool() → address` (external)
 
 
 
 
 
 
-### `SPoolCreated(address newSPoolAddress, address spoolTemplateAddress)`
+### `BPoolCreated(address newBPoolAddress, address bpoolTemplateAddress)`
 
 
 
 
 
-### `SPoolRegistered(address spoolAddress, address registeredBy, uint256 registeredAt)`
+### `BPoolRegistered(address bpoolAddress, address registeredBy, uint256 registeredAt)`
 
 
 

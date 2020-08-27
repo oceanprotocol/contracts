@@ -2,8 +2,8 @@
 /* global artifacts */
 var DataTokenTemplate = artifacts.require('./DataTokenTemplate.sol')
 var DTFactory = artifacts.require('./DTFactory.sol')
-var SPool = artifacts.require('./SPool.sol')
-var SFactory = artifacts.require('./SFactory.sol')
+var BPool = artifacts.require('./BPool.sol')
+var BFactory = artifacts.require('./BFactory.sol')
 var DDO = artifacts.require('./DDO.sol')
 var FixedRateExchange = artifacts.require('./FixedRateExchange.sol')
 // dummy communityFeeCollector, replace with real wallet/owner
@@ -27,12 +27,12 @@ module.exports = function(deployer, network, accounts) {
         )
 
         await deployer.deploy(
-            SPool
+            BPool
         )
 
         await deployer.deploy(
-            SFactory,
-            SPool.address
+            BFactory,
+            BPool.address
         )
 
         await deployer.deploy(
