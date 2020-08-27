@@ -418,20 +418,37 @@ contract FixedRateExchange {
      */
     function getExchangesForDataToken(address dataToken)
     external view
-    returns (bytes32[] memory exchangeList){
-        uint256 counter;
-        for (uint256 i = 0; i <= exchangeIds.length; i++)
+    returns (bytes32[] memory){
+        uint counter=0;
+        uint256 i;
+        //since solidty does not support returning dynamic arrays, we need first to count how many elements we will return
+        for (i = 0; i < exchangeIds.length; i++)
         {
             if(
-                exchanges[exchangeIds[i]].active == true &&
-                exchanges[exchangeIds[i]].dataToken == dataToken
-                && getSupply(exchangeIds[i])>0
+                exchanges[exchangeIds[i]].active == true
+                && exchanges[exchangeIds[i]].dataToken == dataToken
             ){
-                
-                exchangeList[counter]=exchangeIds[i];
-                counter++;
+                if(getSupply(exchangeIds[i])>0){
+                    counter++;
+                }
             }
         }
+        //and create the output array and fill it now :()
+        bytes32[] memory exchangeList=new bytes32[](counter);
+        counter=0;
+        for (i = 0; i < exchangeIds.length; i++)
+        {
+            if(
+                exchanges[exchangeIds[i]].active == true
+                && exchanges[exchangeIds[i]].dataToken == dataToken
+            ){
+                if(getSupply(exchangeIds[i])>0){
+                    exchangeList[counter]=exchangeIds[i];
+                    counter++;
+                }
+            }
+        }
+
         return(exchangeList);
     }
 
