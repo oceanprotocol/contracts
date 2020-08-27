@@ -32,7 +32,8 @@ contract DataTokenTemplate is IERC20Template, ERC20Pausable {
             bytes32 did, 
             uint256 serviceId, 
             address receiver, 
-            uint256 startedAt
+            uint256 startedAt,
+            address feeCollector
     );
 
     event OrderFinished(
@@ -73,7 +74,7 @@ contract DataTokenTemplate is IERC20Template, ERC20Pausable {
         address minter,
         uint256 cap,
         string memory blob,
-        address collector
+        address feeCollector
     )
         public
     {
@@ -83,7 +84,7 @@ contract DataTokenTemplate is IERC20Template, ERC20Pausable {
             minter,
             cap,
             blob,
-            collector
+            feeCollector
         );
     }
     
@@ -101,7 +102,7 @@ contract DataTokenTemplate is IERC20Template, ERC20Pausable {
         address minter,
         uint256 cap,
         string memory blob,
-        address collector
+        address feeCollector
     ) 
         public
         onlyNotInitialized
@@ -113,7 +114,7 @@ contract DataTokenTemplate is IERC20Template, ERC20Pausable {
             minter,
             cap,
             blob,
-            collector
+            feeCollector
         );
     }
 
@@ -130,7 +131,7 @@ contract DataTokenTemplate is IERC20Template, ERC20Pausable {
         address minter,
         uint256 cap,
         string memory blob,
-        address collector
+        address feeCollector
     )
         private
         returns(bool)
@@ -146,7 +147,7 @@ contract DataTokenTemplate is IERC20Template, ERC20Pausable {
         );
 
         require(
-            collector != address(0),
+            feeCollector != address(0),
             'DataTokenTemplate: Invalid community fee collector, zero address'
         );
 
@@ -161,7 +162,7 @@ contract DataTokenTemplate is IERC20Template, ERC20Pausable {
         _blob = blob;
         _symbol = symbol;
         _minter = minter;
-        _communityFeeCollector = collector;
+        _communityFeeCollector = feeCollector;
         initialized = true;
         return initialized;
     }
@@ -202,7 +203,7 @@ contract DataTokenTemplate is IERC20Template, ERC20Pausable {
         uint256 amount,
         bytes32 did,
         uint256 serviceId,
-        address collector,
+        address feeCollector,
         uint256 fee
     )
         public
@@ -213,7 +214,7 @@ contract DataTokenTemplate is IERC20Template, ERC20Pausable {
         );
 
         require(
-            collector != address(0),
+            feeCollector != address(0),
             'DataTokenTemplate: invalid receiver address'
         );
 
@@ -221,7 +222,7 @@ contract DataTokenTemplate is IERC20Template, ERC20Pausable {
         uint256 marketFee = calculateFee(amount, fee);
         
         transfer(receiver, amount.sub(communityFee).sub(marketFee));
-        transfer(collector, marketFee);
+        transfer(feeCollector, marketFee);
         transfer(_communityFeeCollector, communityFee);
 
         emit OrderStarted(
@@ -229,7 +230,8 @@ contract DataTokenTemplate is IERC20Template, ERC20Pausable {
             did,
             serviceId,
             receiver,
-            block.number
+            block.number,
+            feeCollector
         );
     }
 
