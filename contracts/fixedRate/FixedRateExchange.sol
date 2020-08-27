@@ -435,16 +435,18 @@ contract FixedRateExchange {
         }
         //and create the output array and fill it now :()
         bytes32[] memory exchangeList=new bytes32[](counter);
-        counter=0;
-        for (i = 0; i < exchangeIds.length; i++)
-        {
-            if(
-                exchanges[exchangeIds[i]].active == true
-                && exchanges[exchangeIds[i]].dataToken == dataToken
-            ){
-                if(getSupply(exchangeIds[i])>0){
-                    exchangeList[counter]=exchangeIds[i];
-                    counter++;
+        if(counter>0){
+            counter=0;
+            for (i = 0; i < exchangeIds.length; i++)
+            {
+                if(
+                    exchanges[exchangeIds[i]].active == true
+                    && exchanges[exchangeIds[i]].dataToken == dataToken
+                ){
+                    if(getSupply(exchangeIds[i])>0){
+                        exchangeList[counter]=exchangeIds[i];
+                        counter++;
+                    }
                 }
             }
         }
