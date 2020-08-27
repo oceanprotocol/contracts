@@ -1,5 +1,5 @@
 /* eslint-env mocha */
-/* global artifacts, contract, it, beforeEach */
+/* global artifacts, contract, web3, it, beforeEach */
 const chai = require('chai')
 const { assert } = chai
 const chaiAsPromised = require('chai-as-promised')
@@ -29,6 +29,7 @@ contract('DataTokenTemplate', async (accounts) => {
         orderTxId
     const did = '0x0000000000000000000000000000000000000000000000000000000001111111'
     const communityFeeCollector = '0xeE9300b7961e0a01d9f0adb863C7A227A07AaD75'
+    const { toWei } = web3.utils
     beforeEach('init contracts for each test', async () => {
         blob = 'https://example.com/dataset-1'
         decimals = 18
@@ -208,8 +209,19 @@ contract('DataTokenTemplate', async (accounts) => {
     it('should calculate total fee', async () => {
         const totalFee = await token.calculateTotalFee(
             30000000,
-            2
+            web3.utils.toWei('0.02')
         )
-        console.log(totalFee)
+        const communityFee = await token.calculateFee(
+            30000000,
+            web3.utils.toWei('0.001')
+        )
+        const marketFee = await token.calculateFee(
+            30000000,
+            web3.utils.toWei('0.02')
+        )
+
+        assert(
+            totalFee.toNumber() === (marketFee.toNumber() + communityFee.toNumber())
+        )
     })
 })
