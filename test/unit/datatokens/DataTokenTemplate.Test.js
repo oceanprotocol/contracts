@@ -29,7 +29,6 @@ contract('DataTokenTemplate', async (accounts) => {
         orderTxId
     const did = '0x0000000000000000000000000000000000000000000000000000000001111111'
     const communityFeeCollector = '0xeE9300b7961e0a01d9f0adb863C7A227A07AaD75'
-    const { toWei } = web3.utils
     beforeEach('init contracts for each test', async () => {
         blob = 'https://example.com/dataset-1'
         decimals = 18
