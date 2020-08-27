@@ -33,7 +33,8 @@ contract DataTokenTemplate is IERC20Template, ERC20Pausable {
             uint256 serviceId, 
             address receiver, 
             uint256 startedAt,
-            address feeCollector
+            address feeCollector,
+            uint256 marketFee
     );
 
     event OrderFinished(
@@ -231,7 +232,8 @@ contract DataTokenTemplate is IERC20Template, ERC20Pausable {
             serviceId,
             receiver,
             block.number,
-            feeCollector
+            feeCollector,
+            marketFee
         );
     }
 
