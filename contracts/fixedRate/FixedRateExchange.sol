@@ -15,7 +15,7 @@ import 'openzeppelin-solidity/contracts/math/SafeMath.sol';
  */
 contract FixedRateExchange {
     using SafeMath for uint256;
-
+    uint256 private constant BASE = 10 ** 18;
     struct Exchange {
         address exchangeOwner;
         address dataToken;
@@ -177,7 +177,28 @@ contract FixedRateExchange {
             )
         );
     }
-
+    
+    /**
+     * @dev CalcInGivenOut
+     *      Calculates how many basetokens are needed to get specifyed amount of datatokens
+     * @param exchangeId a unique exchange idnetifier 
+     * @param dataTokenAmount the amount of data tokens to be exchanged
+     */
+    function CalcInGivenOut(
+        bytes32 exchangeId,
+        uint256 dataTokenAmount
+    )
+        public
+        view
+        onlyActiveExchange(
+            exchangeId
+        )
+        returns (uint256 baseTokenAmount)
+    {
+        baseTokenAmount = dataTokenAmount.mul(
+            exchanges[exchangeId].fixedRate).div(BASE);
+    }
+    
     /**
      * @dev swap
      *      atomic swap between two registered fixed rate exchange.
@@ -193,8 +214,7 @@ contract FixedRateExchange {
             exchangeId
         )
     {
-        uint256 baseTokenAmount = 
-            dataTokenAmount.mul(exchanges[exchangeId].fixedRate).div(10 ** 18);
+        uint256 baseTokenAmount = CalcInGivenOut(exchangeId,dataTokenAmount);
         require(
             IERC20Template(exchanges[exchangeId].baseToken).transferFrom(
                 msg.sender,
@@ -325,6 +345,30 @@ contract FixedRateExchange {
         return exchanges[exchangeId].fixedRate;
     }
 
+    /**
+    * @dev getSupply
+     *      gets the current supply of datatokens
+     * @return supply
+     */
+    function getSupply(bytes32 exchangeId)
+        public
+        view
+        returns (uint256 supply)
+    {
+        if(exchanges[exchangeId].active == false)
+            supply = 0;
+        else {
+            uint256 balance = IERC20Template(exchanges[exchangeId].dataToken)
+                .balanceOf(exchanges[exchangeId].exchangeOwner);
+            uint256 allowance = IERC20Template(exchanges[exchangeId].dataToken)
+                .allowance(exchanges[exchangeId].exchangeOwner, address(this));
+            if(balance < allowance)
+                supply = balance;
+            else
+                supply = allowance;
+        }
+    }
+
      /**
      * @dev getExchange
      *      gets all the exchange details
@@ -341,7 +385,8 @@ contract FixedRateExchange {
             address dataToken,
             address baseToken,
             uint256 fixedRate,
-            bool active
+            bool active,
+            uint256 supply
         )
     {
         exchangeOwner = exchanges[exchangeId].exchangeOwner;
@@ -349,6 +394,7 @@ contract FixedRateExchange {
         baseToken = exchanges[exchangeId].baseToken;
         fixedRate = exchanges[exchangeId].fixedRate;
         active = exchanges[exchangeId].active;
+        supply = getSupply(exchangeId);
     }
 
     /**
@@ -375,7 +421,7 @@ contract FixedRateExchange {
     )
         external
         view
-        returns(bool)
+        returns (bool)
     {
         return exchanges[exchangeId].active;
     }

@@ -94,7 +94,14 @@ contract('FixedRateExchange', async (accounts) => {
             'Exchange was not activated correctly!'
         )
     })
-
+    it('should check that the exchange has no supply yet', async () => {
+        const exchangeDetails = await fixedRateExchange.getExchange(ExchangeCreatedEventArgs.exchangeId)
+        const supply = web3.utils.fromWei(exchangeDetails.supply)
+        assert(
+            supply === '0',
+            'Exchange has supply !=0'
+        )
+    })
     it('Alice should mint some datatokens', async () => {
         truffleAssert.passes(await datatoken.mint(alice, amountOfMintedTokens, { from: alice }))
     })
@@ -108,7 +115,14 @@ contract('FixedRateExchange', async (accounts) => {
         approvedDataTokens = 1
         truffleAssert.passes(await datatoken.approve(fixedRateExchange.address, approvedDataTokens, { from: alice }))
     })
-
+    it('should check that the exchange has supply', async () => {
+        const exchangeDetails = await fixedRateExchange.getExchange(ExchangeCreatedEventArgs.exchangeId)
+        const supply = web3.utils.fromWei(exchangeDetails.supply)
+        assert(
+            supply !== '0',
+            'Exchange has no supply!'
+        )
+    })
     it('should able to generate exchange id using both baseToken and dataToken', async () => {
         assert(
             ExchangeCreatedEventArgs.exchangeId ===
