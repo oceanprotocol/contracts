@@ -353,16 +353,20 @@ contract FixedRateExchange {
     function getSupply(bytes32 exchangeId)
     public view
     returns(uint256 supply){
-        uint256 balance=IERC20Template(
-            exchanges[exchangeId].dataToken)
-            .balanceOf(exchanges[exchangeId].exchangeOwner);
-        uint256 allowence=IERC20Template(
-            exchanges[exchangeId].dataToken)
-            .allowance(exchanges[exchangeId].exchangeOwner,address(this));
-        if(balance<allowence)
-            supply=balance;
-        else
-            supply=allowence;
+        if(exchanges[exchangeId].active == false)
+            supply = 0;
+        else{
+            uint256 balance=IERC20Template(
+                exchanges[exchangeId].dataToken)
+                .balanceOf(exchanges[exchangeId].exchangeOwner);
+            uint256 allowence=IERC20Template(
+                exchanges[exchangeId].dataToken)
+                .allowance(exchanges[exchangeId].exchangeOwner,address(this));
+            if(balance<allowence)
+                supply=balance;
+            else
+                supply=allowence;
+        }
         return(supply);
     }
 
@@ -391,10 +395,7 @@ contract FixedRateExchange {
         baseToken = exchanges[exchangeId].baseToken;
         fixedRate = exchanges[exchangeId].fixedRate;
         active = exchanges[exchangeId].active;
-        if (active == true)
-            supply = getSupply(exchangeId);
-        else
-            supply = 0;
+        supply = getSupply(exchangeId);
     }
 
     /**
@@ -413,10 +414,10 @@ contract FixedRateExchange {
     
     /**
      * @dev getExchangesForDataToken
-     *      gets the active exchange with supply list for that datatoken
+     *      gets the active exchange with supply list for that datatoken with a minimum supply
      * @return a list of all registered exchange Ids
      */
-    function getExchangesForDataToken(address dataToken)
+    function getExchangesForDataToken(address dataToken,uint256 minSupply)
     external view
     returns (bytes32[] memory){
         uint counter=0;
@@ -429,7 +430,7 @@ contract FixedRateExchange {
                 exchanges[exchangeIds[i]].active == true
                 && exchanges[exchangeIds[i]].dataToken == dataToken
             ){
-                if(getSupply(exchangeIds[i])>0){
+                if(getSupply(exchangeIds[i]) >= minSupply){
                     tempList[counter]=exchangeIds[i];
                     counter++;
                 }
