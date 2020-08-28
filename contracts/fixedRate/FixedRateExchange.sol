@@ -420,6 +420,7 @@ contract FixedRateExchange {
     external view
     returns (bytes32[] memory){
         uint counter=0;
+        bytes32[] memory tempList=new bytes32[](exchangeIds.length);
         uint256 i;
         //since solidty does not support returning dynamic arrays, we need first to count how many elements we will return
         for (i = 0; i < exchangeIds.length; i++)
@@ -429,6 +430,7 @@ contract FixedRateExchange {
                 && exchanges[exchangeIds[i]].dataToken == dataToken
             ){
                 if(getSupply(exchangeIds[i])>0){
+                    tempList[counter]=exchangeIds[i];
                     counter++;
                 }
             }
@@ -436,19 +438,8 @@ contract FixedRateExchange {
         //and create the output array and fill it now :()
         bytes32[] memory exchangeList=new bytes32[](counter);
         if(counter>0){
-            counter=0;
-            for (i = 0; i < exchangeIds.length; i++)
-            {
-                if(
-                    exchanges[exchangeIds[i]].active == true
-                    && exchanges[exchangeIds[i]].dataToken == dataToken
-                ){
-                    if(getSupply(exchangeIds[i])>0){
-                        exchangeList[counter]=exchangeIds[i];
-                        counter++;
-                    }
-                }
-            }
+            for (i = 0; i < counter; i++)
+                exchangeList[i]=tempList[i];
         }
 
         return(exchangeList);
