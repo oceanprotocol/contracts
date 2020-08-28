@@ -79,4 +79,17 @@ contract('OPFCommunityFeeCollector', async (accounts) => {
             console.log('Failed as it should')
         }
     })
+    it('should allow ETH withdrawal', async () => {
+        const EthSender = accounts[4]
+        web3.eth.sendTransaction({
+            from: EthSender.coinbase,
+            to: comfeecollector.address, 
+            value: web3.utils.toWei('0.05')
+        })
+
+        await comfeecollector.withdrawETH()
+        console.log(
+            web3.utils.fromWei(web3.eth.getBalance(dave))
+        )
+    }) 
 })
