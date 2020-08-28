@@ -82,7 +82,7 @@ contract('OPFCommunityFeeCollector', async (accounts) => {
     it('should allow ETH withdrawal', async () => {
         const ETHAmount = '0.05'
         const initialETHcharlieBalance = parseFloat(web3.utils.fromWei(await web3.eth.getBalance(charlie)))
-        const expected = parseFloat(initialETHcharlieBalance) +parseFloat(ETHAmount)
+        const expected = parseFloat(initialETHcharlieBalance) + parseFloat(ETHAmount)
         web3.eth.sendTransaction({
             from: alice,
             to: comfeecollector.address,
