@@ -1,6 +1,6 @@
 /* eslint-env mocha */
 /* global artifacts, contract, it, before, web3 */
-const CommunityFeeCollector = artifacts.require('CommunityFeeCollector')
+const OPFCommunityFeeCollector = artifacts.require('OPFCommunityFeeCollector')
 const Template = artifacts.require('DataTokenTemplate')
 const DTFactory = artifacts.require('DTFactory')
 const Token = artifacts.require('DataTokenTemplate')
@@ -18,7 +18,7 @@ const { assert } = require('chai')
    6. Bob tries to change the collector in CommunityFeeCollector
 
    */
-contract('CommunityFeeCollector', async (accounts) => {
+contract('OPFCommunityFeeCollector', async (accounts) => {
     let cap,
         factory,
         template,
@@ -42,7 +42,7 @@ contract('CommunityFeeCollector', async (accounts) => {
         charlie = accounts[3]
         dave = accounts[4]
         cap = new BigNumber(web3.utils.toWei('1400000000'))
-        comfeecollector = await CommunityFeeCollector.new(dave)
+        comfeecollector = await OPFCommunityFeeCollector.new(dave, owner)
         template = await Template.new('Template', 'TEMPLATE', alice, cap, blob, comfeecollector.address)
         factory = await DTFactory.new(template.address, comfeecollector.address)
         // Bob creates basetokens
