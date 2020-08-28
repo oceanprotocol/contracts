@@ -7,7 +7,8 @@ const Token = artifacts.require('DataTokenTemplate')
 const testUtils = require('../../helpers/utils')
 const truffleAssert = require('truffle-assertions')
 const BigNumber = require('bn.js')
-const { assert } = require('chai')
+const chai = require('chai')
+const { assert } = chai
 
 /* FLow:
    1. Alice creates datatoken
@@ -241,6 +242,12 @@ contract('FixedRateExchange', async (accounts) => {
     it('should get all exchange IDs', async () => {
         assert(
             (await fixedRateExchange.getExchanges()).length === 1
+        )
+    })
+    it('should fail to create exchange with non-ERC20 compatiable token', async () => {
+        const invalidERC20Token = accounts[4]
+        await assert.isRejected(
+            fixedRateExchange.create(basetoken.address, invalidERC20Token, rate, { from: exchangeOwner })
         )
     })
 })
