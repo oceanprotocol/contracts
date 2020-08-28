@@ -15,7 +15,7 @@ import 'openzeppelin-solidity/contracts/math/SafeMath.sol';
  */
 contract FixedRateExchange {
     using SafeMath for uint256;
-
+    uint256 private constant BASE = 10 ** 18;
     struct Exchange {
         address exchangeOwner;
         address dataToken;
@@ -195,7 +195,7 @@ contract FixedRateExchange {
         returns (uint256 baseTokenAmount)
     {
         baseTokenAmount = 
-            dataTokenAmount.mul(exchanges[exchangeId].fixedRate).div(10 ** 18);
+            dataTokenAmount.mul(exchanges[exchangeId].fixedRate).div(BASE);
         return(baseTokenAmount);
     }
     
@@ -409,41 +409,6 @@ contract FixedRateExchange {
         returns (bytes32[] memory)
     {
         return exchangeIds;
-    }
-
-    
-    /**
-     * @dev getExchangesForDataToken
-     *      gets the active exchange with supply list for that datatoken with a minimum supply
-     * @return a list of all registered exchange Ids
-     */
-    function getExchangesForDataToken(address dataToken,uint256 minSupply)
-    external view
-    returns (bytes32[] memory){
-        uint counter=0;
-        bytes32[] memory tempList=new bytes32[](exchangeIds.length);
-        uint256 i;
-        //since solidty does not support returning dynamic arrays, we need first to count how many elements we will return
-        for (i = 0; i < exchangeIds.length; i++)
-        {
-            if(
-                exchanges[exchangeIds[i]].active == true
-                && exchanges[exchangeIds[i]].dataToken == dataToken
-            ){
-                if(getSupply(exchangeIds[i]) >= minSupply){
-                    tempList[counter]=exchangeIds[i];
-                    counter++;
-                }
-            }
-        }
-        //and create the output array and fill it now :()
-        bytes32[] memory exchangeList=new bytes32[](counter);
-        if(counter>0){
-            for (i = 0; i < counter; i++)
-                exchangeList[i]=tempList[i];
-        }
-
-        return(exchangeList);
     }
 
     /**

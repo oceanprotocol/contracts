@@ -101,14 +101,6 @@ contract('FixedRateExchange', async (accounts) => {
             'Exchange has supply !=0'
         )
     })
-    it('should check that the exchange cannot be found', async () => {
-        const exchangeList = await fixedRateExchange.getExchangesForDataToken(datatoken.address, 0)
-        assert(
-            !exchangeList.includes(exchangeList),
-            'Exchange is on the list!'
-        )
-    })
-
     it('Alice should mint some datatokens', async () => {
         truffleAssert.passes(await datatoken.mint(alice, amountOfMintedTokens, { from: alice }))
     })
@@ -128,20 +120,6 @@ contract('FixedRateExchange', async (accounts) => {
         assert(
             supply !== '0',
             'Exchange has no supply!'
-        )
-    })
-    it('should check that the exchange can be found', async () => {
-        const exchangeList = await fixedRateExchange.getExchangesForDataToken(datatoken.address, 0)
-        assert(
-            exchangeList.includes(ExchangeCreatedEventArgs.exchangeId),
-            'Exchange is not in the list!'
-        )
-    })
-    it('should check that the exchange cannot be found for large quantities', async () => {
-        const exchangeList = await fixedRateExchange.getExchangesForDataToken(datatoken.address, web3.utils.toWei('1000000000000000000000'))
-        assert(
-            !exchangeList.includes(ExchangeCreatedEventArgs.exchangeId),
-            'Exchange is in the list for large quantities!'
         )
     })
     it('should able to generate exchange id using both baseToken and dataToken', async () => {
