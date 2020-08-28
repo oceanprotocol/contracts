@@ -188,7 +188,7 @@ contract FixedRateExchange {
         bytes32 exchangeId,
         uint256 dataTokenAmount
     )
-        external
+        public
         view
         onlyActiveExchange(
             exchangeId
@@ -351,7 +351,7 @@ contract FixedRateExchange {
      * @return supply
      */
     function getSupply(bytes32 exchangeId)
-        external
+        public
         view
         returns (uint256 supply)
     {
