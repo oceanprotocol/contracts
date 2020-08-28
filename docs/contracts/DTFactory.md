@@ -17,7 +17,7 @@ constructor
 Called on contract deployment. Could not be called with zero address parameters.
 
 
-### `createToken(string blob, string name, string symbol) → address token` (public)
+### `createToken(string blob, string name, string symbol, uint256 cap) → address token` (public)
 
 
 

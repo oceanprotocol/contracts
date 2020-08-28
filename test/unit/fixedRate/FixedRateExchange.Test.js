@@ -50,14 +50,14 @@ contract('FixedRateExchange', async (accounts) => {
         fixedRateExchange = await FixedRateExchange.new()
         factory = await DTFactory.new(template.address, communityFeeCollector)
         // Bob creates basetokens
-        let trxReceipt = await factory.createToken(blob, 'DT1', 'DT1', {
+        let trxReceipt = await factory.createToken(blob, 'DT1', 'DT1', web3.utils.toWei('1000000'), {
             from: bob
         })
         let TokenCreatedEventArgs = testUtils.getEventArgsFromTx(trxReceipt, 'TokenCreated')
         tokenAddress = TokenCreatedEventArgs.newTokenAddress
         basetoken = await Token.at(tokenAddress)
         // ALice creates datatokens
-        trxReceipt = await factory.createToken(blob, 'DT2', 'DT2', {
+        trxReceipt = await factory.createToken(blob, 'DT2', 'DT2', web3.utils.toWei('1000000'), {
             from: alice
         })
         TokenCreatedEventArgs = testUtils.getEventArgsFromTx(trxReceipt, 'TokenCreated')

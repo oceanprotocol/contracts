@@ -21,9 +21,6 @@ contract DTFactory is Deployer, Converter {
     address private tokenTemplate;
     address private communityFeeCollector;
     uint256 private currentTokenCount = 1;
-    // cap has max uint256 (2^256 -1)
-    uint256
-    private constant cap = 115792089237316195423570985008687907853269984665640564039457584007913129639935;
 
     event TokenCreated(
         address indexed newTokenAddress,
@@ -67,17 +64,24 @@ contract DTFactory is Deployer, Converter {
     function createToken(
         string memory blob,
         string memory name,
-        string memory symbol
+        string memory symbol,
+        uint256 cap
     )
         public
         returns (address token)
     {
+        require(
+            cap > 0,
+            '0 cap is not allowed.'
+        );
+
         token = deploy(tokenTemplate);
 
         require(
             token != address(0),
             'DTFactory: Failed to perform minimal deploy of a new token'
         );
+
 
         IERC20Template tokenInstance = IERC20Template(token);
         tokenInstance.initialize(
