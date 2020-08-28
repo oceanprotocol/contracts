@@ -107,6 +107,13 @@ contract FixedRateExchange {
             dataToken,
             msg.sender
         );
+
+        require(
+            IERC20Template(baseToken).cap() > 0 &&
+            IERC20Template(dataToken).cap() > 0,
+            'FixedRateExchange: ERC20 compatibility error'
+        );
+
         require(
             exchanges[exchangeId].fixedRate == 0,
             'FixedRateExchange: Exchange already exists!'
