@@ -102,7 +102,7 @@ contract('FixedRateExchange', async (accounts) => {
         )
     })
     it('should check that the exchange cannot be found', async () => {
-        const exchangeList = await fixedRateExchange.getExchangesForDataToken(datatoken.address,0)
+        const exchangeList = await fixedRateExchange.getExchangesForDataToken(datatoken.address, 0)
         assert(
             !exchangeList.includes(exchangeList),
             'Exchange is on the list!'
@@ -131,14 +131,14 @@ contract('FixedRateExchange', async (accounts) => {
         )
     })
     it('should check that the exchange can be found', async () => {
-        const exchangeList = await fixedRateExchange.getExchangesForDataToken(datatoken.address,0)
+        const exchangeList = await fixedRateExchange.getExchangesForDataToken(datatoken.address, 0)
         assert(
             exchangeList.includes(ExchangeCreatedEventArgs.exchangeId),
             'Exchange is not in the list!'
         )
     })
     it('should check that the exchange cannot be found for large quantities', async () => {
-        const exchangeList = await fixedRateExchange.getExchangesForDataToken(datatoken.address,web3.utils.toWei('1000000000000000000000'))
+        const exchangeList = await fixedRateExchange.getExchangesForDataToken(datatoken.address, web3.utils.toWei('1000000000000000000000'))
         assert(
             !exchangeList.includes(ExchangeCreatedEventArgs.exchangeId),
             'Exchange is in the list for large quantities!'
