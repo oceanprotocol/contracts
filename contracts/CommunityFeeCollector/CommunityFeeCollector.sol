@@ -3,8 +3,7 @@ pragma solidity ^0.5.7;
 // SPDX-License-Identifier: (Apache-2.0 AND CC-BY-4.0)
 // Code is Apache-2.0 and docs are CC-BY-4.0
 import '../interfaces/IERC20Template.sol';
-//import "@openzeppelin/contracts/ownership/Ownable.sol";
-import '../utils/Ownable.sol';
+import 'openzeppelin-solidity/contracts/ownership/Ownable.sol';
 
 contract CommunityFeeCollector is Ownable {
     address payable private collector;

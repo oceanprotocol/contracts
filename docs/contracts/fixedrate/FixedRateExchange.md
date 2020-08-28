@@ -37,6 +37,14 @@ generateExchangeId
 creates unique exchange identifier for two token pairs.
 
 
+### `CalcInGivenOut(bytes32 exchangeId, uint256 dataTokenAmount) → uint256 baseTokenAmount` (public)
+
+
+
+CalcInGivenOut
+Calculates how many basetokens are needed to get specifyed amount of datatokens
+
+
 ### `swap(bytes32 exchangeId, uint256 dataTokenAmount)` (external)
 
 
@@ -85,7 +93,15 @@ getRate
 gets the current fixed rate for an exchange
 
 
-### `getExchange(bytes32 exchangeId) → address exchangeOwner, address dataToken, address baseToken, uint256 fixedRate, bool active` (external)
+### `getSupply(bytes32 exchangeId) → uint256 supply` (public)
+
+
+
+getSupply
+gets the current supply of datatokens
+
+
+### `getExchange(bytes32 exchangeId) → address exchangeOwner, address dataToken, address baseToken, uint256 fixedRate, bool active, uint256 supply` (external)
 
 
 
