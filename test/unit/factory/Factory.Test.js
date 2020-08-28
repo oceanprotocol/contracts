@@ -1,5 +1,5 @@
 /* eslint-env mocha */
-/* global artifacts, contract, it, beforeEach, assert */
+/* global artifacts, contract, web3, it, beforeEach, assert */
 
 const DTFactory = artifacts.require('DTFactory')
 const Template = artifacts.require('DataTokenTemplate')
@@ -27,7 +27,7 @@ contract('Factory test', async accounts => {
     it('should create a token and check that it is not a zero address', async () => {
         truffleAssert.passes(
             result = await factory.createToken(
-                blob,
+                blob, '99-Datatoken', '99-Datatoken', web3.utils.toWei('1000000'),
                 {
                     from: minter
                 }

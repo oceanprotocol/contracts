@@ -21,10 +21,6 @@ contract DTFactory is Deployer, Converter {
     address private tokenTemplate;
     address private communityFeeCollector;
     uint256 private currentTokenCount = 1;
-    // cap has max uint256 (2^256 -1)
-    uint256
-    private constant cap = 115792089237316195423570985008687907853269984665640564039457584007913129639935;
-    string private constant TOKEN_NAME_PREFIX = 'DT';
 
     event TokenCreated(
         address indexed newTokenAddress,
@@ -65,7 +61,20 @@ contract DTFactory is Deployer, Converter {
      *      Template contract address could not be a zero address.
      * @return address of a new proxy DataToken contract
      */
-    function createToken(string memory blob) public returns (address token) {
+    function createToken(
+        string memory blob,
+        string memory name,
+        string memory symbol,
+        uint256 cap
+    )
+        public
+        returns (address token)
+    {
+        require(
+            cap > 0,
+            '0 cap is not allowed.'
+        );
+
         token = deploy(tokenTemplate);
 
         require(
@@ -73,11 +82,6 @@ contract DTFactory is Deployer, Converter {
             'DTFactory: Failed to perform minimal deploy of a new token'
         );
 
-        string memory name = concatenateStrings(
-            TOKEN_NAME_PREFIX,
-            uintToString(currentTokenCount)
-        );
-        string memory symbol = name;
 
         IERC20Template tokenInstance = IERC20Template(token);
         tokenInstance.initialize(
