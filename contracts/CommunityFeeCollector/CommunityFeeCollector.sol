@@ -6,29 +6,28 @@ import '../interfaces/IERC20Template.sol';
 //import "@openzeppelin/contracts/ownership/Ownable.sol";
 import '../utils/Ownable.sol';
 
-contract CommunityFeeCollector is Ownable{
+contract CommunityFeeCollector is Ownable {
     address payable private collector;
-    
 
-  constructor(
-      address payable newCollector
-  ) public {
-      collector = newCollector;
-  }
+    constructor(address payable newCollector) public {
+        collector = newCollector;
+    }
 
-  function () external payable { }
+    function() external payable {}
 
-  function redrawETH() public payable {
-    collector.transfer(address(this).balance);
-  }
+    function withdrawETH() public payable {
+        collector.transfer(address(this).balance);
+    }
 
-  function redrawToken(address tokenaddress) public payable{
-    IERC20Template(tokenaddress).transfer(collector,IERC20Template(tokenaddress).balanceOf(address(this)));
-  }
+    function withdrawToken(address tokenaddress) public payable {
+        IERC20Template(tokenaddress).transfer(
+            collector,
+            IERC20Template(tokenaddress).balanceOf(address(this))
+        );
+    }
 
-  function changeCollector(address payable newCollector) public onlyOwner{
-      require(newCollector != address(0),'New collector should not be 0');
-      collector = newCollector;
-  }
-
+    function changeCollector(address payable newCollector) public onlyOwner {
+        require(newCollector != address(0), 'New collector should not be 0');
+        collector = newCollector;
+    }
 }
