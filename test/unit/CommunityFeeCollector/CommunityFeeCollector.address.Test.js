@@ -72,6 +72,6 @@ contract('CommunityFeeCollector', async (accounts) => {
         assert(charlieBalance === amountOfTokens)
     })
     it('Bob should fail to change the collector in CommunityFeeCollector', async () => {
-        truffleAssert.reverts(await comfeecollector.changeCollector(dave, { from: bob }), 'Not the owner')
+        truffleAssert.fails(comfeecollector.changeCollector(dave, { from: bob }))
     })
 })
