@@ -188,15 +188,15 @@ contract FixedRateExchange {
         bytes32 exchangeId,
         uint256 dataTokenAmount
     )
-        public view
+        external
+        view
         onlyActiveExchange(
             exchangeId
         )
         returns (uint256 baseTokenAmount)
     {
-        baseTokenAmount = 
-            dataTokenAmount.mul(exchanges[exchangeId].fixedRate).div(BASE);
-        return(baseTokenAmount);
+        baseTokenAmount = dataTokenAmount.mul(
+            exchanges[exchangeId].fixedRate).div(BASE);
     }
     
     /**
@@ -351,23 +351,22 @@ contract FixedRateExchange {
      * @return supply
      */
     function getSupply(bytes32 exchangeId)
-    public view
-    returns(uint256 supply){
+        external
+        view
+        returns (uint256 supply)
+    {
         if(exchanges[exchangeId].active == false)
             supply = 0;
-        else{
-            uint256 balance=IERC20Template(
-                exchanges[exchangeId].dataToken)
+        else {
+            uint256 balance = IERC20Template(exchanges[exchangeId].dataToken)
                 .balanceOf(exchanges[exchangeId].exchangeOwner);
-            uint256 allowence=IERC20Template(
-                exchanges[exchangeId].dataToken)
-                .allowance(exchanges[exchangeId].exchangeOwner,address(this));
-            if(balance<allowence)
-                supply=balance;
+            uint256 allowance = IERC20Template(exchanges[exchangeId].dataToken)
+                .allowance(exchanges[exchangeId].exchangeOwner, address(this));
+            if(balance < allowance)
+                supply = balance;
             else
-                supply=allowence;
+                supply = allowance;
         }
-        return(supply);
     }
 
      /**
@@ -422,7 +421,7 @@ contract FixedRateExchange {
     )
         external
         view
-        returns(bool)
+        returns (bool)
     {
         return exchanges[exchangeId].active;
     }
