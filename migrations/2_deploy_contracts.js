@@ -6,13 +6,19 @@ var BPool = artifacts.require('./BPool.sol')
 var BFactory = artifacts.require('./BFactory.sol')
 var DDO = artifacts.require('./DDO.sol')
 var FixedRateExchange = artifacts.require('./FixedRateExchange.sol')
-var CommunityFeeCollector = artifacts.require('./CommunityFeeCollector.sol')
+var OPFCommunityFeeCollector = artifacts.require('./OPFCommunityFeeCollector.sol')
 // dummy communityFeeCollector, replace with real wallet/owner
 const communityCollector = '0xeE9300b7961e0a01d9f0adb863C7A227A07AaD75'
+const OPFOwner = '0xeE9300b7961e0a01d9f0adb863C7A227A07AaD75'
 
 module.exports = function(deployer, network, accounts) {
     deployer.then(async () => {
-        await deployer.deploy(CommunityFeeCollector, communityCollector)
+        await deployer.deploy(
+            OPFCommunityFeeCollector,
+            communityCollector,
+            OPFOwner
+        )
+
         await deployer.deploy(
             DataTokenTemplate,
             'DataTokenTemplate',
@@ -20,12 +26,13 @@ module.exports = function(deployer, network, accounts) {
             accounts[0],
             10000000,
             'http://oceanprotocol.com',
-            CommunityFeeCollector.address
+            OPFCommunityFeeCollector.address
         )
+
         await deployer.deploy(
             DTFactory,
             DataTokenTemplate.address,
-            CommunityFeeCollector.address
+            OPFCommunityFeeCollector.address
         )
 
         await deployer.deploy(

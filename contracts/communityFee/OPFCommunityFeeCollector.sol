@@ -5,12 +5,23 @@ pragma solidity ^0.5.7;
 import '../interfaces/IERC20Template.sol';
 import 'openzeppelin-solidity/contracts/ownership/Ownable.sol';
 
-contract CommunityFeeCollector is Ownable {
+contract OPFCommunityFeeCollector is Ownable {
     address payable private collector;
 
-    constructor(address payable newCollector) public {
-        require(newCollector != address(0), 'New collector should not be 0');
+    constructor(
+        address payable newCollector,
+        address OPFOwnerAddress
+    ) 
+        public
+        Ownable()
+    {
+        require(
+            newCollector != address(0)&&
+            OPFOwnerAddress != address(0), 
+        'OPFCommunityFeeCollector: whether collector address or owner is invalid address'
+        );
         collector = newCollector;
+        transferOwnership(OPFOwnerAddress);
     }
 
     function() external payable {}
@@ -19,7 +30,7 @@ contract CommunityFeeCollector is Ownable {
         collector.transfer(address(this).balance);
     }
 
-    function withdrawToken(address tokenaddress) public payable {
+    function withdrawToken(address tokenaddress) public {
         IERC20Template(tokenaddress).transfer(
             collector,
             IERC20Template(tokenaddress).balanceOf(address(this))
