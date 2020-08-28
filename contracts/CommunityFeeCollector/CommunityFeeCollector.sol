@@ -10,6 +10,7 @@ contract CommunityFeeCollector is Ownable {
     address payable private collector;
 
     constructor(address payable newCollector) public {
+        require(newCollector != address(0), 'New collector should not be 0');
         collector = newCollector;
     }
 
