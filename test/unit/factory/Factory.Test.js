@@ -27,7 +27,7 @@ contract('Factory test', async accounts => {
     it('should create a token and check that it is not a zero address', async () => {
         truffleAssert.passes(
             result = await factory.createToken(
-                blob,
+                blob, '99-Datatoken', '99-Datatoken',
                 {
                     from: minter
                 }
