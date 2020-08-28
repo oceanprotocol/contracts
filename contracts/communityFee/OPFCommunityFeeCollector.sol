@@ -18,7 +18,7 @@ contract OPFCommunityFeeCollector is Ownable {
         require(
             newCollector != address(0)&&
             OPFOwnerAddress != address(0), 
-        'OPFCommunityFeeCollector: whether collector address or owner is invalid address'
+            'OPFCommunityFeeCollector: whether collector address or owner is invalid address'
         );
         collector = newCollector;
         transferOwnership(OPFOwnerAddress);
