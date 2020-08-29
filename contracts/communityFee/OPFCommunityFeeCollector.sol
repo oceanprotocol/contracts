@@ -38,7 +38,10 @@ contract OPFCommunityFeeCollector is Ownable {
     }
 
     function changeCollector(address payable newCollector) public onlyOwner {
-        require(newCollector != address(0), 'New collector should not be 0');
+        require(
+            newCollector != address(0),
+            'OPFCommunityFeeCollector: invalid collector address'
+        );
         collector = newCollector;
     }
 }
