@@ -55,7 +55,7 @@ const dtFactory = new web3.eth.Contract(
 
 // create new datatoken
 const tx = await dtFactory.methods
-               .createToken('https://123example.com')
+               .createToken('https://123example.com', "my datatoken", "DT", web3.utils.toWei('1000000'))
                .send()
 let tokenAddress = null
 try {

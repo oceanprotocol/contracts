@@ -42,7 +42,7 @@ contract('DataTokenTemplate', async (accounts) => {
             communityFeeCollector
         )
         blob = 'https://example.com/dataset-1'
-        const trxReceipt = await factory.createToken(blob)
+        const trxReceipt = await factory.createToken(blob, 'DT1', 'DT1', web3.utils.toWei('1000000'))
         const TokenCreatedEventArgs = testUtils.getEventArgsFromTx(trxReceipt, 'TokenCreated')
         tokenAddress = TokenCreatedEventArgs.newTokenAddress
         token = await Token.at(tokenAddress)
