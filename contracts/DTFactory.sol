@@ -71,7 +71,7 @@ contract DTFactory is Deployer {
     {
         require(
             cap > 0,
-            '0 cap is not allowed.'
+            'DTFactory: zero cap is not allowed'
         );
 
         token = deploy(tokenTemplate);
