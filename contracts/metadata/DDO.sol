@@ -111,7 +111,8 @@ contract DDO {
     {
         require(
             owner != msg.sender &&
-            owner != address(0)
+            owner != address(0),
+            'DDO: invalid DDO owner address'
         );
         didOwners[did] = owner;
         emit DDOOwnershipTransferred(
