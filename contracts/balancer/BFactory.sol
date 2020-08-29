@@ -6,7 +6,6 @@ pragma solidity ^0.5.7;
 import './BPool.sol';
 import './BConst.sol';
 import '../utils/Deployer.sol';
-import '../utils/Converter.sol';
 
 /*
 * @title BFactory contract
@@ -19,7 +18,7 @@ import '../utils/Converter.sol';
 *        implementation of ERC1167 standard.
 */
 
-contract BFactory is BConst, Deployer, Converter {
+contract BFactory is BConst, Deployer {
 
     address private _bpoolTemplate;
 
