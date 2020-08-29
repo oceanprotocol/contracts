@@ -17,7 +17,6 @@ import '../utils/Deployer.sol';
 *      Proxy contract functionality is based on Ocean Protocol custom
 *        implementation of ERC1167 standard.
 */
-
 contract BFactory is BConst, Deployer {
 
     address private _bpoolTemplate;
@@ -51,8 +50,6 @@ contract BFactory is BConst, Deployer {
     {
         bpool = deploy(_bpoolTemplate);
         require(bpool != address(0), 'ERR_ADDRESS_0');
-        
-        // replace BPool with interface
         BPool bpoolInstance = BPool(bpool);
 
         bpoolInstance.initialize(

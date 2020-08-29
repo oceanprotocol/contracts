@@ -67,7 +67,7 @@ contract('OPFCommunityFeeCollector', async (accounts) => {
     it('Bob should trigger a withdraw from CommunityFeeCollector', async () => {
         let charlieBalance = parseFloat(web3.utils.fromWei(await datatoken.balanceOf(charlie)))
         assert(charlieBalance === 0)
-        await comfeecollector.withdrawToken(tokenAddress, { from: bob })
+        await comfeecollector.withdrawToken(tokenAddress, { from: charlie })
         charlieBalance = parseFloat(await datatoken.balanceOf(charlie))
         assert(charlieBalance === amountOfTokens)
     })
@@ -89,7 +89,7 @@ contract('OPFCommunityFeeCollector', async (accounts) => {
             value: web3.utils.toWei(ETHAmount)
         })
 
-        await comfeecollector.withdrawETH()
+        await comfeecollector.withdrawETH({from: charlie})
         const newcharlieBalance = parseFloat(web3.utils.fromWei(await web3.eth.getBalance(charlie)))
         assert(parseFloat(newcharlieBalance) === parseFloat(expected))
     })
