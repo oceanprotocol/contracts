@@ -37,15 +37,16 @@ contract OPFCommunityFeeCollector is Ownable {
         collector = newCollector;
         transferOwnership(OPFOwnerAddress);
     }
-
+    /**
+     * @dev fallback function
+     *      this is a default fallback function in which receives
+     *      the collected ether.
+     */
     function() external payable {}
 
     /**
-     * @dev constructor
-     *      Called prior contract deployment. set the controller address and
-     *      the contract owner address
-     * @param newCollector the fee collector address.
-     * @param OPFOwnerAddress the contract owner address
+     * @dev withdrawETH
+     *      transfers all the accumlated ether the collector address
      */
     function withdrawETH() 
         external 
@@ -54,6 +55,11 @@ contract OPFCommunityFeeCollector is Ownable {
         collector.transfer(address(this).balance);
     }
 
+    /**
+     * @dev withdrawToken
+     *      transfers all the accumlated tokens the collector address
+     * @param tokenAddress the token contract address 
+     */
     function withdrawToken(
         address tokenAddress
     ) 
@@ -70,6 +76,11 @@ contract OPFCommunityFeeCollector is Ownable {
         );
     }
 
+    /**
+     * @dev changeCollector
+     *      change the current collector address. Only owner can do that.
+     * @param newCollector the new collector address 
+     */
     function changeCollector(
         address payable newCollector
     ) 
