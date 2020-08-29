@@ -15,15 +15,6 @@ import 'openzeppelin-solidity/contracts/ownership/Ownable.sol';
  */
 contract OPFCommunityFeeCollector is Ownable {
     address payable private collector;
-    modifier onlyCollector()
-    {
-        require(
-            collector == msg.sender,
-            'OPFCommunityFeeCollector: invalid collector address'
-        );
-        _;
-    }
-
     /**
      * @dev constructor
      *      Called prior contract deployment. set the controller address and
@@ -49,10 +40,16 @@ contract OPFCommunityFeeCollector is Ownable {
 
     function() external payable {}
 
+    /**
+     * @dev constructor
+     *      Called prior contract deployment. set the controller address and
+     *      the contract owner address
+     * @param newCollector the fee collector address.
+     * @param OPFOwnerAddress the contract owner address
+     */
     function withdrawETH() 
         external 
         payable
-        onlyCollector()
     {
         collector.transfer(address(this).balance);
     }
@@ -61,7 +58,6 @@ contract OPFCommunityFeeCollector is Ownable {
         address tokenAddress
     ) 
         external
-        onlyCollector()
     {
         require(
             tokenAddress != address(0),

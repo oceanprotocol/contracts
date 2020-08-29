@@ -16,7 +16,6 @@ const { assert } = require('chai')
    4. Alice transfers datatokens to the CommunityFeeCollector
    5. Bob triggers a withdraw from CommunityFeeCollector
    6. Bob tries to change the collector in CommunityFeeCollector
-
    */
 contract('OPFCommunityFeeCollector', async (accounts) => {
     let cap,
@@ -67,7 +66,7 @@ contract('OPFCommunityFeeCollector', async (accounts) => {
     it('Bob should trigger a withdraw from CommunityFeeCollector', async () => {
         let charlieBalance = parseFloat(web3.utils.fromWei(await datatoken.balanceOf(charlie)))
         assert(charlieBalance === 0)
-        await comfeecollector.withdrawToken(tokenAddress, { from: charlie })
+        await comfeecollector.withdrawToken(tokenAddress, { from: bob })
         charlieBalance = parseFloat(await datatoken.balanceOf(charlie))
         assert(charlieBalance === amountOfTokens)
     })
@@ -89,7 +88,7 @@ contract('OPFCommunityFeeCollector', async (accounts) => {
             value: web3.utils.toWei(ETHAmount)
         })
 
-        await comfeecollector.withdrawETH({from: charlie})
+        await comfeecollector.withdrawETH()
         const newcharlieBalance = parseFloat(web3.utils.fromWei(await web3.eth.getBalance(charlie)))
         assert(parseFloat(newcharlieBalance) === parseFloat(expected))
     })
