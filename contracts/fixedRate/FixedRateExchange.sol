@@ -217,6 +217,10 @@ contract FixedRateExchange {
             exchangeId
         )
     {
+        require(
+            dataTokenAmount > 0,
+            'FixedRateExchange: zero data token amount'
+        );
         uint256 baseTokenAmount = CalcInGivenOut(exchangeId,dataTokenAmount);
         require(
             IERC20Template(exchanges[exchangeId].baseToken).transferFrom(
@@ -349,8 +353,10 @@ contract FixedRateExchange {
     }
 
     /**
-    * @dev getSupply
-     *      gets the current supply of datatokens
+     * @dev getSupply
+     *      gets the current supply of datatokens in an fixed
+     *      rate exchagne
+     * @param  exchangeId the exchange ID
      * @return supply
      */
     function getSupply(bytes32 exchangeId)
@@ -372,11 +378,14 @@ contract FixedRateExchange {
         }
     }
 
-     /**
+    /**
      * @dev getExchange
      *      gets all the exchange details
      * @param exchangeId a unique exchange idnetifier
-     * @return all the exchange details
+     * @return all the exchange details including  the exchange Owner
+     *         the dataToken contract address, the base token address, the 
+     *         fixed rate, whether the exchange is active and the supply or the 
+     *         the current data token liquidity.
      */
     function getExchange(
         bytes32 exchangeId
@@ -402,7 +411,7 @@ contract FixedRateExchange {
 
     /**
      * @dev getExchanges
-     *      gets all the exchange list
+     *      gets all the exchanges list
      * @return a list of all registered exchange Ids
      */
     function getExchanges()

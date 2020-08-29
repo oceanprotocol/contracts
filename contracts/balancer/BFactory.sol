@@ -6,7 +6,6 @@ pragma solidity ^0.5.7;
 import './BPool.sol';
 import './BConst.sol';
 import '../utils/Deployer.sol';
-import '../utils/Converter.sol';
 
 /*
 * @title BFactory contract
@@ -18,8 +17,7 @@ import '../utils/Converter.sol';
 *      Proxy contract functionality is based on Ocean Protocol custom
 *        implementation of ERC1167 standard.
 */
-
-contract BFactory is BConst, Deployer, Converter {
+contract BFactory is BConst, Deployer {
 
     address private _bpoolTemplate;
 
@@ -52,8 +50,6 @@ contract BFactory is BConst, Deployer, Converter {
     {
         bpool = deploy(_bpoolTemplate);
         require(bpool != address(0), 'ERR_ADDRESS_0');
-        
-        // replace BPool with interface
         BPool bpoolInstance = BPool(bpool);
 
         bpoolInstance.initialize(

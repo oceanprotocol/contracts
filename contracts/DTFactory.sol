@@ -4,7 +4,6 @@ pragma solidity ^0.5.7;
 // Code is Apache-2.0 and docs are CC-BY-4.0
 
 import './utils/Deployer.sol';
-import './utils/Converter.sol';
 import './interfaces/IERC20Template.sol';
 
 /**
@@ -17,7 +16,7 @@ import './interfaces/IERC20Template.sol';
  *      New DataToken proxy contracts are links to the template contract's bytecode.
  *      Proxy contract functionality is based on Ocean Protocol custom implementation of ERC1167 standard.
  */
-contract DTFactory is Deployer, Converter {
+contract DTFactory is Deployer {
     address private tokenTemplate;
     address private communityFeeCollector;
     uint256 private currentTokenCount = 1;
@@ -72,7 +71,7 @@ contract DTFactory is Deployer, Converter {
     {
         require(
             cap > 0,
-            '0 cap is not allowed.'
+            'DTFactory: zero cap is not allowed'
         );
 
         token = deploy(tokenTemplate);

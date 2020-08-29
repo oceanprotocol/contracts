@@ -16,7 +16,6 @@ const { assert } = require('chai')
    4. Alice transfers datatokens to the CommunityFeeCollector
    5. Bob triggers a withdraw from CommunityFeeCollector
    6. Bob tries to change the collector in CommunityFeeCollector
-
    */
 contract('OPFCommunityFeeCollector', async (accounts) => {
     let cap,
