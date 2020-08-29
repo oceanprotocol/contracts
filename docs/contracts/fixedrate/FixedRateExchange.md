@@ -98,7 +98,8 @@ gets the current fixed rate for an exchange
 
 
 getSupply
-gets the current supply of datatokens
+gets the current supply of datatokens in an fixed
+rate exchagne
 
 
 ### `getExchange(bytes32 exchangeId) → address exchangeOwner, address dataToken, address baseToken, uint256 fixedRate, bool active, uint256 supply` (external)
@@ -114,7 +115,7 @@ gets all the exchange details
 
 
 getExchanges
-gets all the exchange list
+gets all the exchanges list
 
 
 ### `isActive(bytes32 exchangeId) → bool` (external)
