@@ -46,7 +46,7 @@ contract('OPFCommunityFeeCollector', async (accounts) => {
         template = await Template.new('Template', 'TEMPLATE', alice, cap, blob, comfeecollector.address)
         factory = await DTFactory.new(template.address, comfeecollector.address)
         // Bob creates basetokens
-        const trxReceipt = await factory.createToken(blob, {
+        const trxReceipt = await factory.createToken(blob, 'DT1', 'DT1', web3.utils.toWei('1000000'), {
             from: alice
         })
         const TokenCreatedEventArgs = testUtils.getEventArgsFromTx(trxReceipt, 'TokenCreated')
