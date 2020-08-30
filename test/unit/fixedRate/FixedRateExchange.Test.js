@@ -73,7 +73,6 @@ contract('FixedRateExchange', async (accounts) => {
             'Invalid exchange owner'
         )
     })
-
     it('should check that the basetoken contract is initialized', async () => {
         const isInitialized = await basetoken.isInitialized()
         assert(
@@ -262,6 +261,11 @@ contract('FixedRateExchange', async (accounts) => {
         const invalidERC20Token = accounts[4]
         await assert.isRejected(
             fixedRateExchange.create(basetoken.address, invalidERC20Token, rate, { from: exchangeOwner })
+        )
+    })
+    it('should fail to create the same exchange by the same user', async () => {
+        await assert.isRejected(
+            fixedRateExchange.create(basetoken.address, datatoken.address, rate, { from: exchangeOwner })
         )
     })
 })
