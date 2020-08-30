@@ -41,6 +41,7 @@ contract DTFactory is Deployer {
      * @dev constructor
      *      Called on contract deployment. Could not be called with zero address parameters.
      * @param _template refers to the address of a deployed DataToken contract.
+     * @param _collector refers to the community fee collector address
      */
     constructor(
         address _template,
@@ -49,7 +50,7 @@ contract DTFactory is Deployer {
         require(
             _template != address(0) &&
             _collector != address(0),
-            'DTFactory: Invalid token factory initialization'
+            'DTFactory: Invalid template token/community fee collector address'
         );
         tokenTemplate = _template;
         communityFeeCollector = _collector;
