@@ -314,6 +314,10 @@ contract BPool is BToken, BMath {
         _logs_
         _lock_
     {
+        require(
+            manager != address(0),
+            'ERR_INVALID_MANAGER_ADDRESS'
+        );
         require(msg.sender == _controller, 'ERR_NOT_CONTROLLER');
         _controller = manager;
     }
