@@ -123,6 +123,16 @@ contract BPool is BToken, BMath {
         onlyNotInitialized
         returns(bool)
     {
+        require(
+            controller != address(0),
+            'ERR_INVALID_CONTROLLER_ADDRESS'
+        );
+        require(
+            factory != address(0),
+            'ERR_INVALID_FACTORY_ADDRESS'
+        );
+        require(swapFee >= MIN_FEE, 'ERR_MIN_FEE');
+        require(swapFee <= MAX_FEE, 'ERR_MAX_FEE');
         return _initialize(controller, factory, swapFee, publicSwap, finalized);
     }
 	
@@ -158,6 +168,16 @@ contract BPool is BToken, BMath {
     )
         external
     {
+        require(
+            dataTokenAaddress != address(0),
+            'ERR_INVALID_DATATOKEN_ADDRESS'
+        );
+        require(
+            baseTokenAddress != address(0),
+            'ERR_INVALID_BASETOKEN_ADDRESS'
+        );
+        // other inputs will be validated prior
+        // calling the below functions
         // bind data token
         bind(
             dataTokenAaddress,
@@ -294,6 +314,10 @@ contract BPool is BToken, BMath {
         _logs_
         _lock_
     {
+        require(
+            manager != address(0),
+            'ERR_INVALID_MANAGER_ADDRESS'
+        );
         require(msg.sender == _controller, 'ERR_NOT_CONTROLLER');
         _controller = manager;
     }
