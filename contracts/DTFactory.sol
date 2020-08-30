@@ -59,6 +59,10 @@ contract DTFactory is Deployer {
     /**
      * @dev Deploys new DataToken proxy contract.
      *      Template contract address could not be a zero address.
+     * @param blob any string that hold data/metadata for the new token
+     * @param name token name
+     * @param symbol token symbol
+     * @param cap the maximum total supply
      * @return address of a new proxy DataToken contract
      */
     function createToken(
