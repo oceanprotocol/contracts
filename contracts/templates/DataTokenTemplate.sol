@@ -227,7 +227,7 @@ contract DataTokenTemplate is IERC20Template, ERC20Pausable {
 
         require(
             feeCollector != address(0),
-            'DataTokenTemplate: invalid receiver address'
+            'DataTokenTemplate: invalid fee collector address'
         );
 
         uint256 communityFee = calculateFee(
