@@ -268,4 +268,11 @@ contract('FixedRateExchange', async (accounts) => {
             fixedRateExchange.create(basetoken.address, datatoken.address, rate, { from: exchangeOwner })
         )
     })
+    it('should fail to create new exchange with zero rate', async () => {
+        const zeroRate = 0
+        const newExchangeOwner = accounts[9]
+        await assert.isRejected(
+            fixedRateExchange.create(basetoken.address, datatoken, zeroRate, { from: newExchangeOwner })
+        )
+    })
 })
