@@ -168,6 +168,16 @@ contract BPool is BToken, BMath {
     )
         external
     {
+        require(
+            dataTokenAaddress != address(0),
+            'ERR_INVALID_DATATOKEN_ADDRESS'
+        );
+        require(
+            baseTokenAddress != address(0),
+            'ERR_INVALID_BASETOKEN_ADDRESS'
+        );
+        // other inputs will be validated prior
+        // calling the below functions
         // bind data token
         bind(
             dataTokenAaddress,
