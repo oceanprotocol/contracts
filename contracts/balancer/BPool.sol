@@ -123,6 +123,16 @@ contract BPool is BToken, BMath {
         onlyNotInitialized
         returns(bool)
     {
+        require(
+            controller != address(0),
+            'ERR_INVALID_CONTROLLER_ADDRESS'
+        );
+        require(
+            factory != address(0),
+            'ERR_INVALID_FACTORY_ADDRESS'
+        );
+        require(swapFee >= MIN_FEE, 'ERR_MIN_FEE');
+        require(swapFee <= MAX_FEE, 'ERR_MAX_FEE');
         return _initialize(controller, factory, swapFee, publicSwap, finalized);
     }
 	
