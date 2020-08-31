@@ -81,9 +81,6 @@ Reentrancy in BPool.setup(address,uint256,uint256,address,uint256,uint256,uint25
 		- _totalWeight = badd(_totalWeight,bsub(denorm,oldWeight)) (balancer/BPool.sol#367)
 		- _totalWeight = bsub(_totalWeight,bsub(oldWeight,denorm)) (balancer/BPool.sol#370)
 Reference: https://github.com/crytic/slither/wiki/Detector-Documentation#reentrancy-vulnerabilities-1[0m
-INFO:Detectors:[93m
-OPFCommunityFeeCollector.withdrawToken(address) (communityFee/OPFCommunityFeeCollector.sol#63-77) ignores return value by IERC20Template(tokenAddress).transfer(collector,IERC20Template(tokenAddress).balanceOf(address(this))) (communityFee/OPFCommunityFeeCollector.sol#73-76)
-Reference: https://github.com/crytic/slither/wiki/Detector-Documentation#unused-return[0m
 INFO:Detectors:[92m
 IERC20Template.initialize(string,string,address,uint256,string,address).name (interfaces/IERC20Template.sol#5) shadows:
 	- IERC20Template.name() (interfaces/IERC20Template.sol#21) (function)
@@ -143,9 +140,9 @@ Reentrancy in BPool.setup(address,uint256,uint256,address,uint256,uint256,uint25
 	- LOG_CALL(msg.sig,msg.sender,msg.data) (balancer/BPool.sol#60)
 		- setSwapFee(swapFee) (balancer/BPool.sol#173)
 	- LOG_CALL(msg.sig,msg.sender,msg.data) (balancer/BPool.sol#60)
-		- finalize() (balancer/BPool.sol#175)
-	- LOG_CALL(msg.sig,msg.sender,msg.data) (balancer/BPool.sol#60)
 		- bind(baseTokenAddress,baseTokenAmount,baseTokenWeight) (balancer/BPool.sol#168-172)
+	- LOG_CALL(msg.sig,msg.sender,msg.data) (balancer/BPool.sol#60)
+		- finalize() (balancer/BPool.sol#175)
 	- Transfer(address(0),address(this),amt) (balancer/BToken.sol#47)
 		- finalize() (balancer/BPool.sol#175)
 	- Transfer(src,dst,amt) (balancer/BToken.sol#64)
@@ -275,5 +272,5 @@ increaseAllowance(address,uint256) should be declared external:
 decreaseAllowance(address,uint256) should be declared external:
 	- ERC20.decreaseAllowance(address,uint256) (openzeppelin-solidity/contracts/token/ERC20/ERC20.sol#135-138)
 Reference: https://github.com/crytic/slither/wiki/Detector-Documentation#public-function-that-could-be-declared-as-external[0m
-INFO:Slither:. analyzed (21 contracts with 46 detectors), 74 result(s) found
+INFO:Slither:. analyzed (21 contracts with 46 detectors), 73 result(s) found
 INFO:Slither:[94mUse https://crytic.io/ to get access to additional detectors and Github integration[0m
