@@ -22,59 +22,10 @@ Compiling your contracts...
 > Compiling openzeppelin-solidity/contracts/ownership/Ownable.sol
 > Compiling openzeppelin-solidity/contracts/token/ERC20/ERC20.sol
 > Compiling openzeppelin-solidity/contracts/token/ERC20/IERC20.sol
+> Artifacts written to /Users/ahmedali/Desktop/work/ocean-contracts/build/contracts
+> Compiled successfully using:
+   - solc: 0.5.7+commit.6da8b019.Emscripten.clang
 
-/Users/ahmedali/Desktop/work/ocean-contracts/contracts/interfaces/IERC20Template.sol:48:5: TypeError: Overriding function visibility differs.
-    function transfer(address to, uint256 value) external returns (bool);
-    ^-------------------------------------------------------------------^
-/Users/ahmedali/Desktop/work/ocean-contracts/contracts/templates/token/ERC20Pausable.sol:42:5: Overridden function is here:
-    function transfer(
-    ^ (Relevant source part starts here and spans across multiple lines).
-,/Users/ahmedali/Desktop/work/ocean-contracts/contracts/interfaces/IERC20Template.sol:40:5: TypeError: Overriding function visibility differs.
-    function transferFrom(
-    ^ (Relevant source part starts here and spans across multiple lines).
-/Users/ahmedali/Desktop/work/ocean-contracts/contracts/templates/token/ERC20Pausable.sol:62:5: Overridden function is here:
-    function transferFrom(
-    ^ (Relevant source part starts here and spans across multiple lines).
-,/Users/ahmedali/Desktop/work/ocean-contracts/contracts/interfaces/IERC20Template.sol:46:5: TypeError: Overriding function visibility differs.
-    function balanceOf(address account) external view returns (uint256);
-    ^------------------------------------------------------------------^
-openzeppelin-solidity/contracts/token/ERC20/ERC20.sol:50:5: Overridden function is here:
-    function balanceOf(address account) public view returns (uint256) {
-    ^ (Relevant source part starts here and spans across multiple lines).
-,/Users/ahmedali/Desktop/work/ocean-contracts/contracts/interfaces/IERC20Template.sol:48:5: TypeError: Overriding function visibility differs.
-    function transfer(address to, uint256 value) external returns (bool);
-    ^-------------------------------------------------------------------^
-openzeppelin-solidity/contracts/token/ERC20/ERC20.sol:62:5: Overridden function is here:
-    function transfer(address recipient, uint256 amount) public returns (bool) {
-    ^ (Relevant source part starts here and spans across multiple lines).
-,/Users/ahmedali/Desktop/work/ocean-contracts/contracts/interfaces/IERC20Template.sol:35:5: TypeError: Overriding function visibility differs.
-    function allowance(address owner, address spender)
-    ^ (Relevant source part starts here and spans across multiple lines).
-openzeppelin-solidity/contracts/token/ERC20/ERC20.sol:70:5: Overridden function is here:
-    function allowance(address owner, address spender) public view returns (uint256) {
-    ^ (Relevant source part starts here and spans across multiple lines).
-,/Users/ahmedali/Desktop/work/ocean-contracts/contracts/interfaces/IERC20Template.sol:40:5: TypeError: Overriding function visibility differs.
-    function transferFrom(
-    ^ (Relevant source part starts here and spans across multiple lines).
-openzeppelin-solidity/contracts/token/ERC20/ERC20.sol:98:5: Overridden function is here:
-    function transferFrom(address sender, address recipient, uint256 amount) public returns (bool) {
-    ^ (Relevant source part starts here and spans across multiple lines).
-,/Users/ahmedali/Desktop/work/ocean-contracts/contracts/interfaces/IERC20Template.sol:35:5: TypeError: Redeclaring an already implemented function as abstract
-    function allowance(address owner, address spender)
-    ^ (Relevant source part starts here and spans across multiple lines).
-,/Users/ahmedali/Desktop/work/ocean-contracts/contracts/interfaces/IERC20Template.sol:40:5: TypeError: Redeclaring an already implemented function as abstract
-    function transferFrom(
-    ^ (Relevant source part starts here and spans across multiple lines).
-,/Users/ahmedali/Desktop/work/ocean-contracts/contracts/interfaces/IERC20Template.sol:46:5: TypeError: Redeclaring an already implemented function as abstract
-    function balanceOf(address account) external view returns (uint256);
-    ^------------------------------------------------------------------^
-,/Users/ahmedali/Desktop/work/ocean-contracts/contracts/interfaces/IERC20Template.sol:48:5: TypeError: Redeclaring an already implemented function as abstract
-    function transfer(address to, uint256 value) external returns (bool);
-    ^-------------------------------------------------------------------^
-
-[31mCompilation failed. See above.[39m
-Truffle v5.1.29 (core: 5.1.29)
-Node v10.22.0
 
 - Fetching solc version list from solc-bin. Attempt #1
 
@@ -192,11 +143,11 @@ Reentrancy in BPool.setup(address,uint256,uint256,address,uint256,uint256,uint25
 		- xfer = IERC20(erc20).transfer(to,amount) (balancer/BPool.sol#864)
 	Event emitted after the call(s):
 	- LOG_CALL(msg.sig,msg.sender,msg.data) (balancer/BPool.sol#60)
+		- bind(baseTokenAddress,baseTokenAmount,baseTokenWeight) (balancer/BPool.sol#168-172)
+	- LOG_CALL(msg.sig,msg.sender,msg.data) (balancer/BPool.sol#60)
 		- finalize() (balancer/BPool.sol#175)
 	- LOG_CALL(msg.sig,msg.sender,msg.data) (balancer/BPool.sol#60)
 		- setSwapFee(swapFee) (balancer/BPool.sol#173)
-	- LOG_CALL(msg.sig,msg.sender,msg.data) (balancer/BPool.sol#60)
-		- bind(baseTokenAddress,baseTokenAmount,baseTokenWeight) (balancer/BPool.sol#168-172)
 	- Transfer(address(0),address(this),amt) (balancer/BToken.sol#47)
 		- finalize() (balancer/BPool.sol#175)
 	- Transfer(src,dst,amt) (balancer/BToken.sol#64)

@@ -115,7 +115,7 @@ contract DataTokenTemplate is IERC20Template, ERC20Pausable {
         onlyNotInitialized
         returns(bool)
     {
-        return _initialize(
+        _initialize(
             name,
             symbol,
             minter,
@@ -144,7 +144,6 @@ contract DataTokenTemplate is IERC20Template, ERC20Pausable {
         address feeCollector
     )
         private
-        returns(bool)
     {
         require(
             minter != address(0), 
@@ -174,7 +173,6 @@ contract DataTokenTemplate is IERC20Template, ERC20Pausable {
         _minter = minter;
         _communityFeeCollector = feeCollector;
         initialized = true;
-        return initialized;
     }
 
     /**
