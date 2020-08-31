@@ -22,14 +22,10 @@ Compiling your contracts...
 > Compiling openzeppelin-solidity/contracts/ownership/Ownable.sol
 > Compiling openzeppelin-solidity/contracts/token/ERC20/ERC20.sol
 > Compiling openzeppelin-solidity/contracts/token/ERC20/IERC20.sol
+> Artifacts written to /Users/ahmedali/Desktop/work/ocean-contracts/build/contracts
+> Compiled successfully using:
+   - solc: 0.5.7+commit.6da8b019.Emscripten.clang
 
-/Users/ahmedali/Desktop/work/ocean-contracts/contracts/DTFactory.sol:95:17: CompilerError: Stack too deep, try removing local variables.
-                blob,
-                ^--^
-
-[31mCompilation failed. See above.[39m
-Truffle v5.1.29 (core: 5.1.29)
-Node v10.22.0
 
 - Fetching solc version list from solc-bin. Attempt #1
 
@@ -111,7 +107,7 @@ IERC20Template.initialize(string,string,address,uint256,string,address).cap (int
 	- IERC20Template.cap() (interfaces/IERC20Template.sol#27) (function)
 Reference: https://github.com/crytic/slither/wiki/Detector-Documentation#local-variable-shadowing[0m
 INFO:Detectors:[92m
-Reentrancy in DTFactory.createToken(string,string,string,uint256) (DTFactory.sol#68-110):
+Reentrancy in DTFactory.createToken(string,string,string,uint256) (DTFactory.sol#68-111):
 	External calls:
 	- require(bool,string)(tokenInstance.initialize(name,symbol,msg.sender,cap,blob,communityFeeCollector),DTFactory: Unable to initialize token instance) (DTFactory.sol#89-99)
 	State variables written after the call(s):
@@ -137,7 +133,7 @@ Reentrancy in BPool.setup(address,uint256,uint256,address,uint256,uint256,uint25
 		- _totalSupply = badd(_totalSupply,amt) (balancer/BToken.sol#47)
 Reference: https://github.com/crytic/slither/wiki/Detector-Documentation#reentrancy-vulnerabilities-2[0m
 INFO:Detectors:[92m
-Reentrancy in DTFactory.createToken(string,string,string,uint256) (DTFactory.sol#68-110):
+Reentrancy in DTFactory.createToken(string,string,string,uint256) (DTFactory.sol#68-111):
 	External calls:
 	- require(bool,string)(tokenInstance.initialize(name,symbol,msg.sender,cap,blob,communityFeeCollector),DTFactory: Unable to initialize token instance) (DTFactory.sol#89-99)
 	Event emitted after the call(s):
@@ -159,9 +155,9 @@ Reentrancy in BPool.setup(address,uint256,uint256,address,uint256,uint256,uint25
 		- xfer = IERC20(erc20).transfer(to,amount) (balancer/BPool.sol#865)
 	Event emitted after the call(s):
 	- LOG_CALL(msg.sig,msg.sender,msg.data) (balancer/BPool.sol#60)
-		- setSwapFee(swapFee) (balancer/BPool.sol#174)
-	- LOG_CALL(msg.sig,msg.sender,msg.data) (balancer/BPool.sol#60)
 		- finalize() (balancer/BPool.sol#176)
+	- LOG_CALL(msg.sig,msg.sender,msg.data) (balancer/BPool.sol#60)
+		- setSwapFee(swapFee) (balancer/BPool.sol#174)
 	- LOG_CALL(msg.sig,msg.sender,msg.data) (balancer/BPool.sol#60)
 		- bind(baseTokenAddress,baseTokenAmount,baseTokenWeight) (balancer/BPool.sol#169-173)
 	- Transfer(address(0),address(this),amt) (balancer/BToken.sol#48)
@@ -262,18 +258,10 @@ symbol() should be declared external:
 	- BToken.symbol() (balancer/BToken.sol#87-89)
 decimals() should be declared external:
 	- BToken.decimals() (balancer/BToken.sol#91-93)
-isMinter(address) should be declared external:
-	- DataTokenTemplate.isMinter(address) (templates/DataTokenTemplate.sol#377-379)
-isInitialized() should be declared external:
-	- BPool.isInitialized() (balancer/BPool.sol#104-106)
-initialize(address,address,uint256,bool,bool) should be declared external:
-	- BPool.initialize(address,address,uint256,bool,bool) (balancer/BPool.sol#115-127)
 setPublicSwap(bool) should be declared external:
 	- BPool.setPublicSwap(bool) (balancer/BPool.sol#302-310)
 createToken(string,string,string,uint256) should be declared external:
-	- DTFactory.createToken(string,string,string,uint256) (DTFactory.sol#68-110)
-newBPool() should be declared external:
-	- BFactory.newBPool() (balancer/BFactory.sol#47-66)
+	- DTFactory.createToken(string,string,string,uint256) (DTFactory.sol#68-111)
 setCompleted(uint256) should be declared external:
 	- Migrations.setCompleted(uint256) (Migrations.sol#16-18)
 owner() should be declared external:
@@ -285,5 +273,5 @@ balanceOf(address) should be declared external:
 allowance(address,address) should be declared external:
 	- ERC20.allowance(address,address) (openzeppelin-solidity/contracts/token/ERC20/ERC20.sol#70-72)
 Reference: https://github.com/crytic/slither/wiki/Detector-Documentation#public-function-that-could-be-declared-as-external[0m
-INFO:Slither:. analyzed (21 contracts with 46 detectors), 79 result(s) found
+INFO:Slither:. analyzed (21 contracts with 46 detectors), 75 result(s) found
 INFO:Slither:[94mUse https://crytic.io/ to get access to additional detectors and Github integration[0m
