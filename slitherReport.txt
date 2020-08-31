@@ -29,36 +29,20 @@ Compiling your contracts...
 
 - Fetching solc version list from solc-bin. Attempt #1
 
-ERROR:ContractSolcParsing:Missing inheritance DataTokenTemplate
-ERROR:ContractSolcParsing:Missing inheritance ERC20Pausable
 INFO:Detectors:[91m
 OPFCommunityFeeCollector.withdrawETH() (communityFee/OPFCommunityFeeCollector.sol#51-56) sends eth to arbitrary user
 	Dangerous calls:
 	- collector.transfer(address(this).balance) (communityFee/OPFCommunityFeeCollector.sol#55)
 Reference: https://github.com/crytic/slither/wiki/Detector-Documentation#functions-that-send-ether-to-arbitrary-destinations[0m
-INFO:Detectors:[91m
-IERC20 is re-used:
-	- openzeppelin-solidity/contracts/token/ERC20/IERC20.sol#7-76
-	- balancer/BToken.sol#20-33
-ERC20Pausable (templates/token/ERC20Pausable.sol#14-130) inherits from a contract for which the name is reused.
-	- Slither could not determine which contract has a duplicate name:
-		-ERC20 (openzeppelin-solidity/contracts/token/ERC20/ERC20.sol#31-230)
-		-Context (openzeppelin-solidity/contracts/GSN/Context.sol#13-27)
-	- Check if:
-		- A inherited contract is missing from this list,
-		- The contract are imported from the correct files.
-	- This issue impacts the contracts inheriting from ERC20Pausable:
-		-DataTokenTemplate (templates/DataTokenTemplate.sol#16-437)
-Reference: https://github.com/crytic/slither/wiki/Detector-Documentation#name-reused[0m
 INFO:Detectors:[93m
 Reentrancy in BPool.setup(address,uint256,uint256,address,uint256,uint256,uint256) (balancer/BPool.sol#150-176):
 	External calls:
 	- bind(dataTokenAaddress,dataTokenAmount,dataTokenWeight) (balancer/BPool.sol#162-166)
-		- xfer = IERC20(erc20).transferFrom(from,address(this),amount) (balancer/BPool.sol#857)
 		- xfer = IERC20(erc20).transfer(to,amount) (balancer/BPool.sol#864)
+		- xfer = IERC20(erc20).transferFrom(from,address(this),amount) (balancer/BPool.sol#857)
 	- bind(baseTokenAddress,baseTokenAmount,baseTokenWeight) (balancer/BPool.sol#168-172)
-		- xfer = IERC20(erc20).transferFrom(from,address(this),amount) (balancer/BPool.sol#857)
 		- xfer = IERC20(erc20).transfer(to,amount) (balancer/BPool.sol#864)
+		- xfer = IERC20(erc20).transferFrom(from,address(this),amount) (balancer/BPool.sol#857)
 	State variables written after the call(s):
 	- finalize() (balancer/BPool.sol#175)
 		- _finalized = true (balancer/BPool.sol#320)
@@ -82,6 +66,39 @@ Reentrancy in BPool.setup(address,uint256,uint256,address,uint256,uint256,uint25
 		- _totalWeight = bsub(_totalWeight,bsub(oldWeight,denorm)) (balancer/BPool.sol#370)
 Reference: https://github.com/crytic/slither/wiki/Detector-Documentation#reentrancy-vulnerabilities-1[0m
 INFO:Detectors:[92m
+DataTokenTemplate.constructor(string,string,address,uint256,string,address).name (templates/DataTokenTemplate.sol#76) shadows:
+	- DataTokenTemplate.name() (templates/DataTokenTemplate.sol#330-332) (function)
+	- IERC20Template.name() (interfaces/IERC20Template.sol#21) (function)
+DataTokenTemplate.constructor(string,string,address,uint256,string,address).symbol (templates/DataTokenTemplate.sol#77) shadows:
+	- DataTokenTemplate.symbol() (templates/DataTokenTemplate.sol#339-341) (function)
+	- IERC20Template.symbol() (interfaces/IERC20Template.sol#23) (function)
+DataTokenTemplate.constructor(string,string,address,uint256,string,address).cap (templates/DataTokenTemplate.sol#79) shadows:
+	- DataTokenTemplate.cap() (templates/DataTokenTemplate.sol#367-369) (function)
+	- IERC20Template.cap() (interfaces/IERC20Template.sol#27) (function)
+DataTokenTemplate.constructor(string,string,address,uint256,string,address).blob (templates/DataTokenTemplate.sol#80) shadows:
+	- DataTokenTemplate.blob() (templates/DataTokenTemplate.sol#348-350) (function)
+DataTokenTemplate.initialize(string,string,address,uint256,string,address).name (templates/DataTokenTemplate.sol#107) shadows:
+	- DataTokenTemplate.name() (templates/DataTokenTemplate.sol#330-332) (function)
+	- IERC20Template.name() (interfaces/IERC20Template.sol#21) (function)
+DataTokenTemplate.initialize(string,string,address,uint256,string,address).symbol (templates/DataTokenTemplate.sol#108) shadows:
+	- DataTokenTemplate.symbol() (templates/DataTokenTemplate.sol#339-341) (function)
+	- IERC20Template.symbol() (interfaces/IERC20Template.sol#23) (function)
+DataTokenTemplate.initialize(string,string,address,uint256,string,address).cap (templates/DataTokenTemplate.sol#110) shadows:
+	- DataTokenTemplate.cap() (templates/DataTokenTemplate.sol#367-369) (function)
+	- IERC20Template.cap() (interfaces/IERC20Template.sol#27) (function)
+DataTokenTemplate.initialize(string,string,address,uint256,string,address).blob (templates/DataTokenTemplate.sol#111) shadows:
+	- DataTokenTemplate.blob() (templates/DataTokenTemplate.sol#348-350) (function)
+DataTokenTemplate._initialize(string,string,address,uint256,string,address).name (templates/DataTokenTemplate.sol#139) shadows:
+	- DataTokenTemplate.name() (templates/DataTokenTemplate.sol#330-332) (function)
+	- IERC20Template.name() (interfaces/IERC20Template.sol#21) (function)
+DataTokenTemplate._initialize(string,string,address,uint256,string,address).symbol (templates/DataTokenTemplate.sol#140) shadows:
+	- DataTokenTemplate.symbol() (templates/DataTokenTemplate.sol#339-341) (function)
+	- IERC20Template.symbol() (interfaces/IERC20Template.sol#23) (function)
+DataTokenTemplate._initialize(string,string,address,uint256,string,address).cap (templates/DataTokenTemplate.sol#142) shadows:
+	- DataTokenTemplate.cap() (templates/DataTokenTemplate.sol#367-369) (function)
+	- IERC20Template.cap() (interfaces/IERC20Template.sol#27) (function)
+DataTokenTemplate._initialize(string,string,address,uint256,string,address).blob (templates/DataTokenTemplate.sol#143) shadows:
+	- DataTokenTemplate.blob() (templates/DataTokenTemplate.sol#348-350) (function)
 IERC20Template.initialize(string,string,address,uint256,string,address).name (interfaces/IERC20Template.sol#5) shadows:
 	- IERC20Template.name() (interfaces/IERC20Template.sol#21) (function)
 IERC20Template.initialize(string,string,address,uint256,string,address).symbol (interfaces/IERC20Template.sol#6) shadows:
@@ -98,22 +115,22 @@ Reentrancy in DTFactory.createToken(string,string,string,uint256) (DTFactory.sol
 Reentrancy in BPool.setup(address,uint256,uint256,address,uint256,uint256,uint256) (balancer/BPool.sol#150-176):
 	External calls:
 	- bind(dataTokenAaddress,dataTokenAmount,dataTokenWeight) (balancer/BPool.sol#162-166)
-		- xfer = IERC20(erc20).transferFrom(from,address(this),amount) (balancer/BPool.sol#857)
 		- xfer = IERC20(erc20).transfer(to,amount) (balancer/BPool.sol#864)
+		- xfer = IERC20(erc20).transferFrom(from,address(this),amount) (balancer/BPool.sol#857)
 	- bind(baseTokenAddress,baseTokenAmount,baseTokenWeight) (balancer/BPool.sol#168-172)
-		- xfer = IERC20(erc20).transferFrom(from,address(this),amount) (balancer/BPool.sol#857)
 		- xfer = IERC20(erc20).transfer(to,amount) (balancer/BPool.sol#864)
+		- xfer = IERC20(erc20).transferFrom(from,address(this),amount) (balancer/BPool.sol#857)
 	State variables written after the call(s):
 	- finalize() (balancer/BPool.sol#175)
-		- _balance[address(this)] = badd(_balance[address(this)],amt) (balancer/BToken.sol#45)
-		- _balance[src] = bsub(_balance[src],amt) (balancer/BToken.sol#62)
-		- _balance[dst] = badd(_balance[dst],amt) (balancer/BToken.sol#63)
+		- _balance[address(this)] = badd(_balance[address(this)],amt) (balancer/BToken.sol#46)
+		- _balance[src] = bsub(_balance[src],amt) (balancer/BToken.sol#63)
+		- _balance[dst] = badd(_balance[dst],amt) (balancer/BToken.sol#64)
 	- finalize() (balancer/BPool.sol#175)
 		- _publicSwap = true (balancer/BPool.sol#321)
 	- setSwapFee(swapFee) (balancer/BPool.sol#173)
 		- _swapFee = swapFee (balancer/BPool.sol#289)
 	- finalize() (balancer/BPool.sol#175)
-		- _totalSupply = badd(_totalSupply,amt) (balancer/BToken.sol#46)
+		- _totalSupply = badd(_totalSupply,amt) (balancer/BToken.sol#47)
 Reference: https://github.com/crytic/slither/wiki/Detector-Documentation#reentrancy-vulnerabilities-2[0m
 INFO:Detectors:[92m
 Reentrancy in DTFactory.createToken(string,string,string,uint256) (DTFactory.sol#68-111):
@@ -131,21 +148,21 @@ Reentrancy in BFactory.newBPool() (balancer/BFactory.sol#47-66):
 Reentrancy in BPool.setup(address,uint256,uint256,address,uint256,uint256,uint256) (balancer/BPool.sol#150-176):
 	External calls:
 	- bind(dataTokenAaddress,dataTokenAmount,dataTokenWeight) (balancer/BPool.sol#162-166)
-		- xfer = IERC20(erc20).transferFrom(from,address(this),amount) (balancer/BPool.sol#857)
 		- xfer = IERC20(erc20).transfer(to,amount) (balancer/BPool.sol#864)
+		- xfer = IERC20(erc20).transferFrom(from,address(this),amount) (balancer/BPool.sol#857)
 	- bind(baseTokenAddress,baseTokenAmount,baseTokenWeight) (balancer/BPool.sol#168-172)
-		- xfer = IERC20(erc20).transferFrom(from,address(this),amount) (balancer/BPool.sol#857)
 		- xfer = IERC20(erc20).transfer(to,amount) (balancer/BPool.sol#864)
+		- xfer = IERC20(erc20).transferFrom(from,address(this),amount) (balancer/BPool.sol#857)
 	Event emitted after the call(s):
 	- LOG_CALL(msg.sig,msg.sender,msg.data) (balancer/BPool.sol#60)
 		- setSwapFee(swapFee) (balancer/BPool.sol#173)
 	- LOG_CALL(msg.sig,msg.sender,msg.data) (balancer/BPool.sol#60)
-		- bind(baseTokenAddress,baseTokenAmount,baseTokenWeight) (balancer/BPool.sol#168-172)
+		- finalize() (balancer/BPool.sol#175)
 	- LOG_CALL(msg.sig,msg.sender,msg.data) (balancer/BPool.sol#60)
+		- bind(baseTokenAddress,baseTokenAmount,baseTokenWeight) (balancer/BPool.sol#168-172)
+	- Transfer(address(0),address(this),amt) (balancer/BToken.sol#48)
 		- finalize() (balancer/BPool.sol#175)
-	- Transfer(address(0),address(this),amt) (balancer/BToken.sol#47)
-		- finalize() (balancer/BPool.sol#175)
-	- Transfer(src,dst,amt) (balancer/BToken.sol#64)
+	- Transfer(src,dst,amt) (balancer/BToken.sol#65)
 		- finalize() (balancer/BPool.sol#175)
 Reentrancy in FixedRateExchange.swap(bytes32,uint256) (fixedRate/FixedRateExchange.sol#211-248):
 	External calls:
@@ -215,9 +232,9 @@ Pragma version^0.5.0 (openzeppelin-solidity/contracts/token/ERC20/ERC20.sol#1) a
 Pragma version^0.5.0 (openzeppelin-solidity/contracts/token/ERC20/IERC20.sol#1) allows old versions
 Reference: https://github.com/crytic/slither/wiki/Detector-Documentation#incorrect-versions-of-solidity[0m
 INFO:Detectors:[92m
-Variable BTokenBase._balance (balancer/BToken.sol#37) is not in mixedCase
-Variable BTokenBase._allowance (balancer/BToken.sol#38) is not in mixedCase
-Variable BTokenBase._totalSupply (balancer/BToken.sol#39) is not in mixedCase
+Variable BTokenBase._balance (balancer/BToken.sol#38) is not in mixedCase
+Variable BTokenBase._allowance (balancer/BToken.sol#39) is not in mixedCase
+Variable BTokenBase._totalSupply (balancer/BToken.sol#40) is not in mixedCase
 Function FixedRateExchange.CalcInGivenOut(bytes32,uint256) (fixedRate/FixedRateExchange.sol#190-203) is not in mixedCase
 Parameter Deployer.deploy(address)._logic (utils/Deployer.sol#28) is not in mixedCase
 Event BPoolLOG_SWAP(address,address,address,uint256,uint256) (balancer/BPool.sol#33-39) is not in CapWords
@@ -230,17 +247,49 @@ Modifier BPool._viewlock_() (balancer/BPool.sol#74-77) is not in mixedCase
 Variable Migrations.last_completed_migration (Migrations.sol#6) is not in mixedCase
 Reference: https://github.com/crytic/slither/wiki/Detector-Documentation#conformance-to-solidity-naming-conventions[0m
 INFO:Detectors:[92m
-BToken._decimals (balancer/BToken.sol#80) should be constant
-BToken._name (balancer/BToken.sol#78) should be constant
-BToken._symbol (balancer/BToken.sol#79) should be constant
+BToken._decimals (balancer/BToken.sol#81) should be constant
+BToken._name (balancer/BToken.sol#79) should be constant
+BToken._symbol (balancer/BToken.sol#80) should be constant
 Reference: https://github.com/crytic/slither/wiki/Detector-Documentation#state-variables-that-could-be-declared-constant[0m
 INFO:Detectors:[92m
 name() should be declared external:
-	- BToken.name() (balancer/BToken.sol#82-84)
+	- BToken.name() (balancer/BToken.sol#83-85)
 symbol() should be declared external:
-	- BToken.symbol() (balancer/BToken.sol#86-88)
+	- BToken.symbol() (balancer/BToken.sol#87-89)
 decimals() should be declared external:
-	- BToken.decimals() (balancer/BToken.sol#90-92)
+	- BToken.decimals() (balancer/BToken.sol#91-93)
+initialize(string,string,address,uint256,string,address) should be declared external:
+	- DataTokenTemplate.initialize(string,string,address,uint256,string,address) (templates/DataTokenTemplate.sol#106-126)
+mint(address,uint256) should be declared external:
+	- DataTokenTemplate.mint(address,uint256) (templates/DataTokenTemplate.sol#187-200)
+startOrder(address,uint256,bytes32,uint256,address,uint256) should be declared external:
+	- DataTokenTemplate.startOrder(address,uint256,bytes32,uint256,address,uint256) (templates/DataTokenTemplate.sol#212-256)
+finishOrder(bytes32,address,uint256,bytes32,uint256) should be declared external:
+	- DataTokenTemplate.finishOrder(bytes32,address,uint256,bytes32,uint256) (templates/DataTokenTemplate.sol#269-292)
+pause() should be declared external:
+	- DataTokenTemplate.pause() (templates/DataTokenTemplate.sol#300-302)
+unpause() should be declared external:
+	- DataTokenTemplate.unpause() (templates/DataTokenTemplate.sol#310-312)
+setMinter(address) should be declared external:
+	- DataTokenTemplate.setMinter(address) (templates/DataTokenTemplate.sol#321-323)
+name() should be declared external:
+	- DataTokenTemplate.name() (templates/DataTokenTemplate.sol#330-332)
+symbol() should be declared external:
+	- DataTokenTemplate.symbol() (templates/DataTokenTemplate.sol#339-341)
+blob() should be declared external:
+	- DataTokenTemplate.blob() (templates/DataTokenTemplate.sol#348-350)
+decimals() should be declared external:
+	- DataTokenTemplate.decimals() (templates/DataTokenTemplate.sol#358-360)
+cap() should be declared external:
+	- DataTokenTemplate.cap() (templates/DataTokenTemplate.sol#367-369)
+isMinter(address) should be declared external:
+	- DataTokenTemplate.isMinter(address) (templates/DataTokenTemplate.sol#377-379)
+isInitialized() should be declared external:
+	- DataTokenTemplate.isInitialized() (templates/DataTokenTemplate.sol#386-388)
+isPaused() should be declared external:
+	- DataTokenTemplate.isPaused() (templates/DataTokenTemplate.sol#395-397)
+calculateTotalFee(uint256,uint256) should be declared external:
+	- DataTokenTemplate.calculateTotalFee(uint256,uint256) (templates/DataTokenTemplate.sol#425-436)
 isInitialized() should be declared external:
 	- BPool.isInitialized() (balancer/BPool.sol#104-106)
 initialize(address,address,uint256,bool,bool) should be declared external:
@@ -259,18 +308,8 @@ renounceOwnership() should be declared external:
 	- Ownable.renounceOwnership() (openzeppelin-solidity/contracts/ownership/Ownable.sol#56-59)
 balanceOf(address) should be declared external:
 	- ERC20.balanceOf(address) (openzeppelin-solidity/contracts/token/ERC20/ERC20.sol#50-52)
-transfer(address,uint256) should be declared external:
-	- ERC20.transfer(address,uint256) (openzeppelin-solidity/contracts/token/ERC20/ERC20.sol#62-65)
 allowance(address,address) should be declared external:
 	- ERC20.allowance(address,address) (openzeppelin-solidity/contracts/token/ERC20/ERC20.sol#70-72)
-approve(address,uint256) should be declared external:
-	- ERC20.approve(address,uint256) (openzeppelin-solidity/contracts/token/ERC20/ERC20.sol#81-84)
-transferFrom(address,address,uint256) should be declared external:
-	- ERC20.transferFrom(address,address,uint256) (openzeppelin-solidity/contracts/token/ERC20/ERC20.sol#98-102)
-increaseAllowance(address,uint256) should be declared external:
-	- ERC20.increaseAllowance(address,uint256) (openzeppelin-solidity/contracts/token/ERC20/ERC20.sol#116-119)
-decreaseAllowance(address,uint256) should be declared external:
-	- ERC20.decreaseAllowance(address,uint256) (openzeppelin-solidity/contracts/token/ERC20/ERC20.sol#135-138)
 Reference: https://github.com/crytic/slither/wiki/Detector-Documentation#public-function-that-could-be-declared-as-external[0m
-INFO:Slither:. analyzed (21 contracts with 46 detectors), 73 result(s) found
+INFO:Slither:. analyzed (21 contracts with 46 detectors), 94 result(s) found
 INFO:Slither:[94mUse https://crytic.io/ to get access to additional detectors and Github integration[0m
