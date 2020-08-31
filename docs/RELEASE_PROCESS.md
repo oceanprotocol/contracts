@@ -15,6 +15,8 @@ cp ./build/contracts/* ./artifacts/
 - Update contracts documentation
 ```bash
 npm run doc:generate
+git add .
+git commit -m 'prepare for a new release'
 ```
 
 - install bumpversion `pip install bumpversion` (if you don't have it installed on your machine)
