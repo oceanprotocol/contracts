@@ -189,7 +189,6 @@ contract DataTokenTemplate is IERC20Template, ERC20Pausable {
         uint256 value
     ) 
         public 
-        payable 
         onlyNotPaused 
         onlyMinter 
     {

@@ -48,14 +48,8 @@ ERC20Pausable (templates/token/ERC20Pausable.sol#14-130) inherits from a contrac
 		- A inherited contract is missing from this list,
 		- The contract are imported from the correct files.
 	- This issue impacts the contracts inheriting from ERC20Pausable:
-		-DataTokenTemplate (templates/DataTokenTemplate.sol#16-438)
+		-DataTokenTemplate (templates/DataTokenTemplate.sol#16-437)
 Reference: https://github.com/crytic/slither/wiki/Detector-Documentation#name-reused[0m
-INFO:Detectors:[93m
-Contract locking ether found in :
-	Contract DataTokenTemplate (templates/DataTokenTemplate.sol#16-438) has payable functions:
-	 - IERC20Template.mint(address,uint256) (interfaces/IERC20Template.sol#13)
-	But does not have a function to withdraw the ether
-Reference: https://github.com/crytic/slither/wiki/Detector-Documentation#contracts-that-lock-ether[0m
 INFO:Detectors:[93m
 Reentrancy in BPool.setup(address,uint256,uint256,address,uint256,uint256,uint256) (balancer/BPool.sol#150-176):
 	External calls:
@@ -149,11 +143,11 @@ Reentrancy in BPool.setup(address,uint256,uint256,address,uint256,uint256,uint25
 		- xfer = IERC20(erc20).transfer(to,amount) (balancer/BPool.sol#864)
 	Event emitted after the call(s):
 	- LOG_CALL(msg.sig,msg.sender,msg.data) (balancer/BPool.sol#60)
+		- setSwapFee(swapFee) (balancer/BPool.sol#173)
+	- LOG_CALL(msg.sig,msg.sender,msg.data) (balancer/BPool.sol#60)
 		- bind(baseTokenAddress,baseTokenAmount,baseTokenWeight) (balancer/BPool.sol#168-172)
 	- LOG_CALL(msg.sig,msg.sender,msg.data) (balancer/BPool.sol#60)
 		- finalize() (balancer/BPool.sol#175)
-	- LOG_CALL(msg.sig,msg.sender,msg.data) (balancer/BPool.sol#60)
-		- setSwapFee(swapFee) (balancer/BPool.sol#173)
 	- Transfer(address(0),address(this),amt) (balancer/BToken.sol#47)
 		- finalize() (balancer/BPool.sol#175)
 	- Transfer(src,dst,amt) (balancer/BToken.sol#64)
@@ -283,5 +277,5 @@ increaseAllowance(address,uint256) should be declared external:
 decreaseAllowance(address,uint256) should be declared external:
 	- ERC20.decreaseAllowance(address,uint256) (openzeppelin-solidity/contracts/token/ERC20/ERC20.sol#135-138)
 Reference: https://github.com/crytic/slither/wiki/Detector-Documentation#public-function-that-could-be-declared-as-external[0m
-INFO:Slither:. analyzed (21 contracts with 46 detectors), 77 result(s) found
+INFO:Slither:. analyzed (21 contracts with 46 detectors), 76 result(s) found
 INFO:Slither:[94mUse https://crytic.io/ to get access to additional detectors and Github integration[0m
