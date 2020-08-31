@@ -11,7 +11,7 @@
 
 
 
-### `newBPool() → address bpool` (public)
+### `newBPool() → address bpool` (external)
 
 
 

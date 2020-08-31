@@ -181,14 +181,14 @@
     "absolutePath": "/Users/ahmedali/Desktop/work/ocean-contracts/contracts/metadata/DDO.sol",
     "exportedSymbols": {
       "DDO": [
-        5301
+        5289
       ]
     },
-    "id": 5302,
+    "id": 5290,
     "nodeType": "SourceUnit",
     "nodes": [
       {
-        "id": 5148,
+        "id": 5136,
         "literals": [
           "solidity",
           "^",
@@ -204,19 +204,19 @@
         "contractKind": "contract",
         "documentation": "@title DDO\n \n@dev DDO stands for Decentralized Document. It allows publishers\n     to publish their dataset metadata in decentralized way.\n     It follows the Ocean DID Document standard: \n     https://github.com/oceanprotocol/OEPs/blob/master/7/v0.2/README.md",
         "fullyImplemented": true,
-        "id": 5301,
+        "id": 5289,
         "linearizedBaseContracts": [
-          5301
+          5289
         ],
         "name": "DDO",
         "nodeType": "ContractDefinition",
         "nodes": [
           {
             "constant": false,
-            "id": 5152,
+            "id": 5140,
             "name": "didOwners",
             "nodeType": "VariableDeclaration",
-            "scope": 5301,
+            "scope": 5289,
             "src": "486:44:11",
             "stateVariable": true,
             "storageLocation": "default",
@@ -225,9 +225,9 @@
               "typeString": "mapping(bytes32 => address)"
             },
             "typeName": {
-              "id": 5151,
+              "id": 5139,
               "keyType": {
-                "id": 5149,
+                "id": 5137,
                 "name": "bytes32",
                 "nodeType": "ElementaryTypeName",
                 "src": "494:7:11",
@@ -243,7 +243,7 @@
                 "typeString": "mapping(bytes32 => address)"
               },
               "valueType": {
-                "id": 5150,
+                "id": 5138,
                 "name": "address",
                 "nodeType": "ElementaryTypeName",
                 "src": "505:7:11",
@@ -260,20 +260,20 @@
           {
             "anonymous": false,
             "documentation": null,
-            "id": 5164,
+            "id": 5152,
             "name": "DDOCreated",
             "nodeType": "EventDefinition",
             "parameters": {
-              "id": 5163,
+              "id": 5151,
               "nodeType": "ParameterList",
               "parameters": [
                 {
                   "constant": false,
-                  "id": 5154,
+                  "id": 5142,
                   "indexed": true,
                   "name": "did",
                   "nodeType": "VariableDeclaration",
-                  "scope": 5164,
+                  "scope": 5152,
                   "src": "563:19:11",
                   "stateVariable": false,
                   "storageLocation": "default",
@@ -282,7 +282,7 @@
                     "typeString": "bytes32"
                   },
                   "typeName": {
-                    "id": 5153,
+                    "id": 5141,
                     "name": "bytes32",
                     "nodeType": "ElementaryTypeName",
                     "src": "563:7:11",
@@ -296,11 +296,11 @@
                 },
                 {
                   "constant": false,
-                  "id": 5156,
+                  "id": 5144,
                   "indexed": false,
                   "name": "flags",
                   "nodeType": "VariableDeclaration",
-                  "scope": 5164,
+                  "scope": 5152,
                   "src": "592:11:11",
                   "stateVariable": false,
                   "storageLocation": "default",
@@ -309,7 +309,7 @@
                     "typeString": "bytes"
                   },
                   "typeName": {
-                    "id": 5155,
+                    "id": 5143,
                     "name": "bytes",
                     "nodeType": "ElementaryTypeName",
                     "src": "592:5:11",
@@ -323,11 +323,11 @@
                 },
                 {
                   "constant": false,
-                  "id": 5158,
+                  "id": 5146,
                   "indexed": false,
                   "name": "data",
                   "nodeType": "VariableDeclaration",
-                  "scope": 5164,
+                  "scope": 5152,
                   "src": "613:10:11",
                   "stateVariable": false,
                   "storageLocation": "default",
@@ -336,7 +336,7 @@
                     "typeString": "bytes"
                   },
                   "typeName": {
-                    "id": 5157,
+                    "id": 5145,
                     "name": "bytes",
                     "nodeType": "ElementaryTypeName",
                     "src": "613:5:11",
@@ -350,11 +350,11 @@
                 },
                 {
                   "constant": false,
-                  "id": 5160,
+                  "id": 5148,
                   "indexed": false,
                   "name": "createdAt",
                   "nodeType": "VariableDeclaration",
-                  "scope": 5164,
+                  "scope": 5152,
                   "src": "633:17:11",
                   "stateVariable": false,
                   "storageLocation": "default",
@@ -363,7 +363,7 @@
                     "typeString": "uint256"
                   },
                   "typeName": {
-                    "id": 5159,
+                    "id": 5147,
                     "name": "uint256",
                     "nodeType": "ElementaryTypeName",
                     "src": "633:7:11",
@@ -377,11 +377,11 @@
                 },
                 {
                   "constant": false,
-                  "id": 5162,
+                  "id": 5150,
                   "indexed": false,
                   "name": "createdBy",
                   "nodeType": "VariableDeclaration",
-                  "scope": 5164,
+                  "scope": 5152,
                   "src": "660:17:11",
                   "stateVariable": false,
                   "storageLocation": "default",
@@ -390,7 +390,7 @@
                     "typeString": "address"
                   },
                   "typeName": {
-                    "id": 5161,
+                    "id": 5149,
                     "name": "address",
                     "nodeType": "ElementaryTypeName",
                     "src": "660:7:11",
@@ -411,20 +411,20 @@
           {
             "anonymous": false,
             "documentation": null,
-            "id": 5176,
+            "id": 5164,
             "name": "DDOUpdated",
             "nodeType": "EventDefinition",
             "parameters": {
-              "id": 5175,
+              "id": 5163,
               "nodeType": "ParameterList",
               "parameters": [
                 {
                   "constant": false,
-                  "id": 5166,
+                  "id": 5154,
                   "indexed": true,
                   "name": "did",
                   "nodeType": "VariableDeclaration",
-                  "scope": 5176,
+                  "scope": 5164,
                   "src": "715:19:11",
                   "stateVariable": false,
                   "storageLocation": "default",
@@ -433,7 +433,7 @@
                     "typeString": "bytes32"
                   },
                   "typeName": {
-                    "id": 5165,
+                    "id": 5153,
                     "name": "bytes32",
                     "nodeType": "ElementaryTypeName",
                     "src": "715:7:11",
@@ -447,11 +447,11 @@
                 },
                 {
                   "constant": false,
-                  "id": 5168,
+                  "id": 5156,
                   "indexed": false,
                   "name": "flags",
                   "nodeType": "VariableDeclaration",
-                  "scope": 5176,
+                  "scope": 5164,
                   "src": "744:11:11",
                   "stateVariable": false,
                   "storageLocation": "default",
@@ -460,7 +460,7 @@
                     "typeString": "bytes"
                   },
                   "typeName": {
-                    "id": 5167,
+                    "id": 5155,
                     "name": "bytes",
                     "nodeType": "ElementaryTypeName",
                     "src": "744:5:11",
@@ -474,11 +474,11 @@
                 },
                 {
                   "constant": false,
-                  "id": 5170,
+                  "id": 5158,
                   "indexed": false,
                   "name": "data",
                   "nodeType": "VariableDeclaration",
-                  "scope": 5176,
+                  "scope": 5164,
                   "src": "765:10:11",
                   "stateVariable": false,
                   "storageLocation": "default",
@@ -487,7 +487,7 @@
                     "typeString": "bytes"
                   },
                   "typeName": {
-                    "id": 5169,
+                    "id": 5157,
                     "name": "bytes",
                     "nodeType": "ElementaryTypeName",
                     "src": "765:5:11",
@@ -501,11 +501,11 @@
                 },
                 {
                   "constant": false,
-                  "id": 5172,
+                  "id": 5160,
                   "indexed": false,
                   "name": "updatedAt",
                   "nodeType": "VariableDeclaration",
-                  "scope": 5176,
+                  "scope": 5164,
                   "src": "785:17:11",
                   "stateVariable": false,
                   "storageLocation": "default",
@@ -514,7 +514,7 @@
                     "typeString": "uint256"
                   },
                   "typeName": {
-                    "id": 5171,
+                    "id": 5159,
                     "name": "uint256",
                     "nodeType": "ElementaryTypeName",
                     "src": "785:7:11",
@@ -528,11 +528,11 @@
                 },
                 {
                   "constant": false,
-                  "id": 5174,
+                  "id": 5162,
                   "indexed": false,
                   "name": "updatedBy",
                   "nodeType": "VariableDeclaration",
-                  "scope": 5176,
+                  "scope": 5164,
                   "src": "812:17:11",
                   "stateVariable": false,
                   "storageLocation": "default",
@@ -541,7 +541,7 @@
                     "typeString": "address"
                   },
                   "typeName": {
-                    "id": 5173,
+                    "id": 5161,
                     "name": "address",
                     "nodeType": "ElementaryTypeName",
                     "src": "812:7:11",
@@ -562,20 +562,20 @@
           {
             "anonymous": false,
             "documentation": null,
-            "id": 5182,
+            "id": 5170,
             "name": "DDOOwnershipTransferred",
             "nodeType": "EventDefinition",
             "parameters": {
-              "id": 5181,
+              "id": 5169,
               "nodeType": "ParameterList",
               "parameters": [
                 {
                   "constant": false,
-                  "id": 5178,
+                  "id": 5166,
                   "indexed": false,
                   "name": "did",
                   "nodeType": "VariableDeclaration",
-                  "scope": 5182,
+                  "scope": 5170,
                   "src": "881:11:11",
                   "stateVariable": false,
                   "storageLocation": "default",
@@ -584,7 +584,7 @@
                     "typeString": "bytes32"
                   },
                   "typeName": {
-                    "id": 5177,
+                    "id": 5165,
                     "name": "bytes32",
                     "nodeType": "ElementaryTypeName",
                     "src": "881:7:11",
@@ -598,11 +598,11 @@
                 },
                 {
                   "constant": false,
-                  "id": 5180,
+                  "id": 5168,
                   "indexed": false,
                   "name": "owner",
                   "nodeType": "VariableDeclaration",
-                  "scope": 5182,
+                  "scope": 5170,
                   "src": "902:13:11",
                   "stateVariable": false,
                   "storageLocation": "default",
@@ -611,7 +611,7 @@
                     "typeString": "address"
                   },
                   "typeName": {
-                    "id": 5179,
+                    "id": 5167,
                     "name": "address",
                     "nodeType": "ElementaryTypeName",
                     "src": "902:7:11",
@@ -631,7 +631,7 @@
           },
           {
             "body": {
-              "id": 5197,
+              "id": 5185,
               "nodeType": "Block",
               "src": "967:147:11",
               "statements": [
@@ -645,7 +645,7 @@
                           "typeIdentifier": "t_address",
                           "typeString": "address"
                         },
-                        "id": 5192,
+                        "id": 5180,
                         "isConstant": false,
                         "isLValue": false,
                         "isPure": false,
@@ -654,25 +654,25 @@
                           "argumentTypes": null,
                           "baseExpression": {
                             "argumentTypes": null,
-                            "id": 5187,
+                            "id": 5175,
                             "name": "didOwners",
                             "nodeType": "Identifier",
                             "overloadedDeclarations": [],
-                            "referencedDeclaration": 5152,
+                            "referencedDeclaration": 5140,
                             "src": "998:9:11",
                             "typeDescriptions": {
                               "typeIdentifier": "t_mapping$_t_bytes32_$_t_address_$",
                               "typeString": "mapping(bytes32 => address)"
                             }
                           },
-                          "id": 5189,
+                          "id": 5177,
                           "indexExpression": {
                             "argumentTypes": null,
-                            "id": 5188,
+                            "id": 5176,
                             "name": "did",
                             "nodeType": "Identifier",
                             "overloadedDeclarations": [],
-                            "referencedDeclaration": 5184,
+                            "referencedDeclaration": 5172,
                             "src": "1008:3:11",
                             "typeDescriptions": {
                               "typeIdentifier": "t_bytes32",
@@ -696,18 +696,18 @@
                           "argumentTypes": null,
                           "expression": {
                             "argumentTypes": null,
-                            "id": 5190,
+                            "id": 5178,
                             "name": "msg",
                             "nodeType": "Identifier",
                             "overloadedDeclarations": [],
-                            "referencedDeclaration": 6802,
+                            "referencedDeclaration": 6790,
                             "src": "1016:3:11",
                             "typeDescriptions": {
                               "typeIdentifier": "t_magic_message",
                               "typeString": "msg"
                             }
                           },
-                          "id": 5191,
+                          "id": 5179,
                           "isConstant": false,
                           "isLValue": false,
                           "isPure": false,
@@ -730,7 +730,7 @@
                       {
                         "argumentTypes": null,
                         "hexValue": "44444f3a20496e76616c696420444944204f776e6572206f722044494420646f6573206e6f74206578697374",
-                        "id": 5193,
+                        "id": 5181,
                         "isConstant": false,
                         "isLValue": false,
                         "isPure": true,
@@ -757,21 +757,21 @@
                           "typeString": "literal_string \"DDO: Invalid DID Owner or DID does not exist\""
                         }
                       ],
-                      "id": 5186,
+                      "id": 5174,
                       "name": "require",
                       "nodeType": "Identifier",
                       "overloadedDeclarations": [
-                        6805,
-                        6806
+                        6793,
+                        6794
                       ],
-                      "referencedDeclaration": 6806,
+                      "referencedDeclaration": 6794,
                       "src": "977:7:11",
                       "typeDescriptions": {
                         "typeIdentifier": "t_function_require_pure$_t_bool_$_t_string_memory_ptr_$returns$__$",
                         "typeString": "function (bool,string memory) pure"
                       }
                     },
-                    "id": 5194,
+                    "id": 5182,
                     "isConstant": false,
                     "isLValue": false,
                     "isPure": false,
@@ -785,31 +785,31 @@
                       "typeString": "tuple()"
                     }
                   },
-                  "id": 5195,
+                  "id": 5183,
                   "nodeType": "ExpressionStatement",
                   "src": "977:119:11"
                 },
                 {
-                  "id": 5196,
+                  "id": 5184,
                   "nodeType": "PlaceholderStatement",
                   "src": "1106:1:11"
                 }
               ]
             },
             "documentation": null,
-            "id": 5198,
+            "id": 5186,
             "name": "onlyDIDOwner",
             "nodeType": "ModifierDefinition",
             "parameters": {
-              "id": 5185,
+              "id": 5173,
               "nodeType": "ParameterList",
               "parameters": [
                 {
                   "constant": false,
-                  "id": 5184,
+                  "id": 5172,
                   "name": "did",
                   "nodeType": "VariableDeclaration",
-                  "scope": 5198,
+                  "scope": 5186,
                   "src": "950:11:11",
                   "stateVariable": false,
                   "storageLocation": "default",
@@ -818,7 +818,7 @@
                     "typeString": "bytes32"
                   },
                   "typeName": {
-                    "id": 5183,
+                    "id": 5171,
                     "name": "bytes32",
                     "nodeType": "ElementaryTypeName",
                     "src": "950:7:11",
@@ -838,31 +838,31 @@
           },
           {
             "body": {
-              "id": 5201,
+              "id": 5189,
               "nodeType": "Block",
               "src": "1140:2:11",
               "statements": []
             },
             "documentation": null,
-            "id": 5202,
+            "id": 5190,
             "implemented": true,
             "kind": "constructor",
             "modifiers": [],
             "name": "",
             "nodeType": "FunctionDefinition",
             "parameters": {
-              "id": 5199,
+              "id": 5187,
               "nodeType": "ParameterList",
               "parameters": [],
               "src": "1130:2:11"
             },
             "returnParameters": {
-              "id": 5200,
+              "id": 5188,
               "nodeType": "ParameterList",
               "parameters": [],
               "src": "1140:0:11"
             },
-            "scope": 5301,
+            "scope": 5289,
             "src": "1119:23:11",
             "stateMutability": "nonpayable",
             "superFunction": null,
@@ -870,7 +870,7 @@
           },
           {
             "body": {
-              "id": 5240,
+              "id": 5228,
               "nodeType": "Block",
               "src": "1522:295:11",
               "statements": [
@@ -884,7 +884,7 @@
                           "typeIdentifier": "t_address",
                           "typeString": "address"
                         },
-                        "id": 5218,
+                        "id": 5206,
                         "isConstant": false,
                         "isLValue": false,
                         "isPure": false,
@@ -893,25 +893,25 @@
                           "argumentTypes": null,
                           "baseExpression": {
                             "argumentTypes": null,
-                            "id": 5212,
+                            "id": 5200,
                             "name": "didOwners",
                             "nodeType": "Identifier",
                             "overloadedDeclarations": [],
-                            "referencedDeclaration": 5152,
+                            "referencedDeclaration": 5140,
                             "src": "1553:9:11",
                             "typeDescriptions": {
                               "typeIdentifier": "t_mapping$_t_bytes32_$_t_address_$",
                               "typeString": "mapping(bytes32 => address)"
                             }
                           },
-                          "id": 5214,
+                          "id": 5202,
                           "indexExpression": {
                             "argumentTypes": null,
-                            "id": 5213,
+                            "id": 5201,
                             "name": "did",
                             "nodeType": "Identifier",
                             "overloadedDeclarations": [],
-                            "referencedDeclaration": 5204,
+                            "referencedDeclaration": 5192,
                             "src": "1563:3:11",
                             "typeDescriptions": {
                               "typeIdentifier": "t_bytes32",
@@ -937,7 +937,7 @@
                             {
                               "argumentTypes": null,
                               "hexValue": "30",
-                              "id": 5216,
+                              "id": 5204,
                               "isConstant": false,
                               "isLValue": false,
                               "isPure": true,
@@ -960,7 +960,7 @@
                                 "typeString": "int_const 0"
                               }
                             ],
-                            "id": 5215,
+                            "id": 5203,
                             "isConstant": false,
                             "isLValue": false,
                             "isPure": true,
@@ -973,7 +973,7 @@
                             },
                             "typeName": "address"
                           },
-                          "id": 5217,
+                          "id": 5205,
                           "isConstant": false,
                           "isLValue": false,
                           "isPure": true,
@@ -996,7 +996,7 @@
                       {
                         "argumentTypes": null,
                         "hexValue": "44444f3a2044494420616c726561647920657869737473",
-                        "id": 5219,
+                        "id": 5207,
                         "isConstant": false,
                         "isLValue": false,
                         "isPure": true,
@@ -1023,21 +1023,21 @@
                           "typeString": "literal_string \"DDO: DID already exists\""
                         }
                       ],
-                      "id": 5211,
+                      "id": 5199,
                       "name": "require",
                       "nodeType": "Identifier",
                       "overloadedDeclarations": [
-                        6805,
-                        6806
+                        6793,
+                        6794
                       ],
-                      "referencedDeclaration": 6806,
+                      "referencedDeclaration": 6794,
                       "src": "1532:7:11",
                       "typeDescriptions": {
                         "typeIdentifier": "t_function_require_pure$_t_bool_$_t_string_memory_ptr_$returns$__$",
                         "typeString": "function (bool,string memory) pure"
                       }
                     },
-                    "id": 5220,
+                    "id": 5208,
                     "isConstant": false,
                     "isLValue": false,
                     "isPure": false,
@@ -1051,14 +1051,14 @@
                       "typeString": "tuple()"
                     }
                   },
-                  "id": 5221,
+                  "id": 5209,
                   "nodeType": "ExpressionStatement",
                   "src": "1532:98:11"
                 },
                 {
                   "expression": {
                     "argumentTypes": null,
-                    "id": 5227,
+                    "id": 5215,
                     "isConstant": false,
                     "isLValue": false,
                     "isPure": false,
@@ -1067,25 +1067,25 @@
                       "argumentTypes": null,
                       "baseExpression": {
                         "argumentTypes": null,
-                        "id": 5222,
+                        "id": 5210,
                         "name": "didOwners",
                         "nodeType": "Identifier",
                         "overloadedDeclarations": [],
-                        "referencedDeclaration": 5152,
+                        "referencedDeclaration": 5140,
                         "src": "1640:9:11",
                         "typeDescriptions": {
                           "typeIdentifier": "t_mapping$_t_bytes32_$_t_address_$",
                           "typeString": "mapping(bytes32 => address)"
                         }
                       },
-                      "id": 5224,
+                      "id": 5212,
                       "indexExpression": {
                         "argumentTypes": null,
-                        "id": 5223,
+                        "id": 5211,
                         "name": "did",
                         "nodeType": "Identifier",
                         "overloadedDeclarations": [],
-                        "referencedDeclaration": 5204,
+                        "referencedDeclaration": 5192,
                         "src": "1650:3:11",
                         "typeDescriptions": {
                           "typeIdentifier": "t_bytes32",
@@ -1109,18 +1109,18 @@
                       "argumentTypes": null,
                       "expression": {
                         "argumentTypes": null,
-                        "id": 5225,
+                        "id": 5213,
                         "name": "msg",
                         "nodeType": "Identifier",
                         "overloadedDeclarations": [],
-                        "referencedDeclaration": 6802,
+                        "referencedDeclaration": 6790,
                         "src": "1657:3:11",
                         "typeDescriptions": {
                           "typeIdentifier": "t_magic_message",
                           "typeString": "msg"
                         }
                       },
-                      "id": 5226,
+                      "id": 5214,
                       "isConstant": false,
                       "isLValue": false,
                       "isPure": false,
@@ -1140,7 +1140,7 @@
                       "typeString": "address"
                     }
                   },
-                  "id": 5228,
+                  "id": 5216,
                   "nodeType": "ExpressionStatement",
                   "src": "1640:27:11"
                 },
@@ -1150,11 +1150,11 @@
                     "arguments": [
                       {
                         "argumentTypes": null,
-                        "id": 5230,
+                        "id": 5218,
                         "name": "did",
                         "nodeType": "Identifier",
                         "overloadedDeclarations": [],
-                        "referencedDeclaration": 5204,
+                        "referencedDeclaration": 5192,
                         "src": "1706:3:11",
                         "typeDescriptions": {
                           "typeIdentifier": "t_bytes32",
@@ -1163,11 +1163,11 @@
                       },
                       {
                         "argumentTypes": null,
-                        "id": 5231,
+                        "id": 5219,
                         "name": "flags",
                         "nodeType": "Identifier",
                         "overloadedDeclarations": [],
-                        "referencedDeclaration": 5206,
+                        "referencedDeclaration": 5194,
                         "src": "1723:5:11",
                         "typeDescriptions": {
                           "typeIdentifier": "t_bytes_calldata_ptr",
@@ -1176,11 +1176,11 @@
                       },
                       {
                         "argumentTypes": null,
-                        "id": 5232,
+                        "id": 5220,
                         "name": "data",
                         "nodeType": "Identifier",
                         "overloadedDeclarations": [],
-                        "referencedDeclaration": 5208,
+                        "referencedDeclaration": 5196,
                         "src": "1742:4:11",
                         "typeDescriptions": {
                           "typeIdentifier": "t_bytes_calldata_ptr",
@@ -1191,18 +1191,18 @@
                         "argumentTypes": null,
                         "expression": {
                           "argumentTypes": null,
-                          "id": 5233,
+                          "id": 5221,
                           "name": "block",
                           "nodeType": "Identifier",
                           "overloadedDeclarations": [],
-                          "referencedDeclaration": 6792,
+                          "referencedDeclaration": 6780,
                           "src": "1760:5:11",
                           "typeDescriptions": {
                             "typeIdentifier": "t_magic_block",
                             "typeString": "block"
                           }
                         },
-                        "id": 5234,
+                        "id": 5222,
                         "isConstant": false,
                         "isLValue": false,
                         "isPure": false,
@@ -1220,25 +1220,25 @@
                         "argumentTypes": null,
                         "baseExpression": {
                           "argumentTypes": null,
-                          "id": 5235,
+                          "id": 5223,
                           "name": "didOwners",
                           "nodeType": "Identifier",
                           "overloadedDeclarations": [],
-                          "referencedDeclaration": 5152,
+                          "referencedDeclaration": 5140,
                           "src": "1786:9:11",
                           "typeDescriptions": {
                             "typeIdentifier": "t_mapping$_t_bytes32_$_t_address_$",
                             "typeString": "mapping(bytes32 => address)"
                           }
                         },
-                        "id": 5237,
+                        "id": 5225,
                         "indexExpression": {
                           "argumentTypes": null,
-                          "id": 5236,
+                          "id": 5224,
                           "name": "did",
                           "nodeType": "Identifier",
                           "overloadedDeclarations": [],
-                          "referencedDeclaration": 5204,
+                          "referencedDeclaration": 5192,
                           "src": "1796:3:11",
                           "typeDescriptions": {
                             "typeIdentifier": "t_bytes32",
@@ -1280,18 +1280,18 @@
                           "typeString": "address"
                         }
                       ],
-                      "id": 5229,
+                      "id": 5217,
                       "name": "DDOCreated",
                       "nodeType": "Identifier",
                       "overloadedDeclarations": [],
-                      "referencedDeclaration": 5164,
+                      "referencedDeclaration": 5152,
                       "src": "1682:10:11",
                       "typeDescriptions": {
                         "typeIdentifier": "t_function_event_nonpayable$_t_bytes32_$_t_bytes_memory_ptr_$_t_bytes_memory_ptr_$_t_uint256_$_t_address_$returns$__$",
                         "typeString": "function (bytes32,bytes memory,bytes memory,uint256,address)"
                       }
                     },
-                    "id": 5238,
+                    "id": 5226,
                     "isConstant": false,
                     "isLValue": false,
                     "isPure": false,
@@ -1305,29 +1305,29 @@
                       "typeString": "tuple()"
                     }
                   },
-                  "id": 5239,
+                  "id": 5227,
                   "nodeType": "EmitStatement",
                   "src": "1677:133:11"
                 }
               ]
             },
             "documentation": "@dev create\n     creates/publishes new DDO document on-chain. \n@param did refers to decentralized identifier\n@param flags special flags associated with DID\n@param data referes to the actual metadata",
-            "id": 5241,
+            "id": 5229,
             "implemented": true,
             "kind": "function",
             "modifiers": [],
             "name": "create",
             "nodeType": "FunctionDefinition",
             "parameters": {
-              "id": 5209,
+              "id": 5197,
               "nodeType": "ParameterList",
               "parameters": [
                 {
                   "constant": false,
-                  "id": 5204,
+                  "id": 5192,
                   "name": "did",
                   "nodeType": "VariableDeclaration",
-                  "scope": 5241,
+                  "scope": 5229,
                   "src": "1423:11:11",
                   "stateVariable": false,
                   "storageLocation": "default",
@@ -1336,7 +1336,7 @@
                     "typeString": "bytes32"
                   },
                   "typeName": {
-                    "id": 5203,
+                    "id": 5191,
                     "name": "bytes32",
                     "nodeType": "ElementaryTypeName",
                     "src": "1423:7:11",
@@ -1350,10 +1350,10 @@
                 },
                 {
                   "constant": false,
-                  "id": 5206,
+                  "id": 5194,
                   "name": "flags",
                   "nodeType": "VariableDeclaration",
-                  "scope": 5241,
+                  "scope": 5229,
                   "src": "1444:20:11",
                   "stateVariable": false,
                   "storageLocation": "calldata",
@@ -1362,7 +1362,7 @@
                     "typeString": "bytes"
                   },
                   "typeName": {
-                    "id": 5205,
+                    "id": 5193,
                     "name": "bytes",
                     "nodeType": "ElementaryTypeName",
                     "src": "1444:5:11",
@@ -1376,10 +1376,10 @@
                 },
                 {
                   "constant": false,
-                  "id": 5208,
+                  "id": 5196,
                   "name": "data",
                   "nodeType": "VariableDeclaration",
-                  "scope": 5241,
+                  "scope": 5229,
                   "src": "1474:19:11",
                   "stateVariable": false,
                   "storageLocation": "calldata",
@@ -1388,7 +1388,7 @@
                     "typeString": "bytes"
                   },
                   "typeName": {
-                    "id": 5207,
+                    "id": 5195,
                     "name": "bytes",
                     "nodeType": "ElementaryTypeName",
                     "src": "1474:5:11",
@@ -1404,12 +1404,12 @@
               "src": "1413:86:11"
             },
             "returnParameters": {
-              "id": 5210,
+              "id": 5198,
               "nodeType": "ParameterList",
               "parameters": [],
               "src": "1522:0:11"
             },
-            "scope": 5301,
+            "scope": 5289,
             "src": "1398:419:11",
             "stateMutability": "nonpayable",
             "superFunction": null,
@@ -1417,7 +1417,7 @@
           },
           {
             "body": {
-              "id": 5263,
+              "id": 5251,
               "nodeType": "Block",
               "src": "2235:146:11",
               "statements": [
@@ -1427,11 +1427,11 @@
                     "arguments": [
                       {
                         "argumentTypes": null,
-                        "id": 5254,
+                        "id": 5242,
                         "name": "did",
                         "nodeType": "Identifier",
                         "overloadedDeclarations": [],
-                        "referencedDeclaration": 5243,
+                        "referencedDeclaration": 5231,
                         "src": "2274:3:11",
                         "typeDescriptions": {
                           "typeIdentifier": "t_bytes32",
@@ -1440,11 +1440,11 @@
                       },
                       {
                         "argumentTypes": null,
-                        "id": 5255,
+                        "id": 5243,
                         "name": "flags",
                         "nodeType": "Identifier",
                         "overloadedDeclarations": [],
-                        "referencedDeclaration": 5245,
+                        "referencedDeclaration": 5233,
                         "src": "2291:5:11",
                         "typeDescriptions": {
                           "typeIdentifier": "t_bytes_calldata_ptr",
@@ -1453,11 +1453,11 @@
                       },
                       {
                         "argumentTypes": null,
-                        "id": 5256,
+                        "id": 5244,
                         "name": "data",
                         "nodeType": "Identifier",
                         "overloadedDeclarations": [],
-                        "referencedDeclaration": 5247,
+                        "referencedDeclaration": 5235,
                         "src": "2310:4:11",
                         "typeDescriptions": {
                           "typeIdentifier": "t_bytes_calldata_ptr",
@@ -1468,18 +1468,18 @@
                         "argumentTypes": null,
                         "expression": {
                           "argumentTypes": null,
-                          "id": 5257,
+                          "id": 5245,
                           "name": "block",
                           "nodeType": "Identifier",
                           "overloadedDeclarations": [],
-                          "referencedDeclaration": 6792,
+                          "referencedDeclaration": 6780,
                           "src": "2328:5:11",
                           "typeDescriptions": {
                             "typeIdentifier": "t_magic_block",
                             "typeString": "block"
                           }
                         },
-                        "id": 5258,
+                        "id": 5246,
                         "isConstant": false,
                         "isLValue": false,
                         "isPure": false,
@@ -1497,18 +1497,18 @@
                         "argumentTypes": null,
                         "expression": {
                           "argumentTypes": null,
-                          "id": 5259,
+                          "id": 5247,
                           "name": "msg",
                           "nodeType": "Identifier",
                           "overloadedDeclarations": [],
-                          "referencedDeclaration": 6802,
+                          "referencedDeclaration": 6790,
                           "src": "2354:3:11",
                           "typeDescriptions": {
                             "typeIdentifier": "t_magic_message",
                             "typeString": "msg"
                           }
                         },
-                        "id": 5260,
+                        "id": 5248,
                         "isConstant": false,
                         "isLValue": false,
                         "isPure": false,
@@ -1546,18 +1546,18 @@
                           "typeString": "address payable"
                         }
                       ],
-                      "id": 5253,
+                      "id": 5241,
                       "name": "DDOUpdated",
                       "nodeType": "Identifier",
                       "overloadedDeclarations": [],
-                      "referencedDeclaration": 5176,
+                      "referencedDeclaration": 5164,
                       "src": "2250:10:11",
                       "typeDescriptions": {
                         "typeIdentifier": "t_function_event_nonpayable$_t_bytes32_$_t_bytes_memory_ptr_$_t_bytes_memory_ptr_$_t_uint256_$_t_address_$returns$__$",
                         "typeString": "function (bytes32,bytes memory,bytes memory,uint256,address)"
                       }
                     },
-                    "id": 5261,
+                    "id": 5249,
                     "isConstant": false,
                     "isLValue": false,
                     "isPure": false,
@@ -1571,14 +1571,14 @@
                       "typeString": "tuple()"
                     }
                   },
-                  "id": 5262,
+                  "id": 5250,
                   "nodeType": "EmitStatement",
                   "src": "2245:129:11"
                 }
               ]
             },
             "documentation": "@dev update\n     allows only did owners to update the DDO/metadata content\n@param did refers to decentralized identifier\n@param flags special flags associated with DID\n@param data referes to the actual metadata",
-            "id": 5264,
+            "id": 5252,
             "implemented": true,
             "kind": "function",
             "modifiers": [
@@ -1586,11 +1586,11 @@
                 "arguments": [
                   {
                     "argumentTypes": null,
-                    "id": 5250,
+                    "id": 5238,
                     "name": "did",
                     "nodeType": "Identifier",
                     "overloadedDeclarations": [],
-                    "referencedDeclaration": 5243,
+                    "referencedDeclaration": 5231,
                     "src": "2226:3:11",
                     "typeDescriptions": {
                       "typeIdentifier": "t_bytes32",
@@ -1598,14 +1598,14 @@
                     }
                   }
                 ],
-                "id": 5251,
+                "id": 5239,
                 "modifierName": {
                   "argumentTypes": null,
-                  "id": 5249,
+                  "id": 5237,
                   "name": "onlyDIDOwner",
                   "nodeType": "Identifier",
                   "overloadedDeclarations": [],
-                  "referencedDeclaration": 5198,
+                  "referencedDeclaration": 5186,
                   "src": "2213:12:11",
                   "typeDescriptions": {
                     "typeIdentifier": "t_modifier$_t_bytes32_$",
@@ -1619,15 +1619,15 @@
             "name": "update",
             "nodeType": "FunctionDefinition",
             "parameters": {
-              "id": 5248,
+              "id": 5236,
               "nodeType": "ParameterList",
               "parameters": [
                 {
                   "constant": false,
-                  "id": 5243,
+                  "id": 5231,
                   "name": "did",
                   "nodeType": "VariableDeclaration",
-                  "scope": 5264,
+                  "scope": 5252,
                   "src": "2110:11:11",
                   "stateVariable": false,
                   "storageLocation": "default",
@@ -1636,7 +1636,7 @@
                     "typeString": "bytes32"
                   },
                   "typeName": {
-                    "id": 5242,
+                    "id": 5230,
                     "name": "bytes32",
                     "nodeType": "ElementaryTypeName",
                     "src": "2110:7:11",
@@ -1650,10 +1650,10 @@
                 },
                 {
                   "constant": false,
-                  "id": 5245,
+                  "id": 5233,
                   "name": "flags",
                   "nodeType": "VariableDeclaration",
-                  "scope": 5264,
+                  "scope": 5252,
                   "src": "2131:20:11",
                   "stateVariable": false,
                   "storageLocation": "calldata",
@@ -1662,7 +1662,7 @@
                     "typeString": "bytes"
                   },
                   "typeName": {
-                    "id": 5244,
+                    "id": 5232,
                     "name": "bytes",
                     "nodeType": "ElementaryTypeName",
                     "src": "2131:5:11",
@@ -1676,10 +1676,10 @@
                 },
                 {
                   "constant": false,
-                  "id": 5247,
+                  "id": 5235,
                   "name": "data",
                   "nodeType": "VariableDeclaration",
-                  "scope": 5264,
+                  "scope": 5252,
                   "src": "2161:19:11",
                   "stateVariable": false,
                   "storageLocation": "calldata",
@@ -1688,7 +1688,7 @@
                     "typeString": "bytes"
                   },
                   "typeName": {
-                    "id": 5246,
+                    "id": 5234,
                     "name": "bytes",
                     "nodeType": "ElementaryTypeName",
                     "src": "2161:5:11",
@@ -1704,12 +1704,12 @@
               "src": "2100:86:11"
             },
             "returnParameters": {
-              "id": 5252,
+              "id": 5240,
               "nodeType": "ParameterList",
               "parameters": [],
               "src": "2235:0:11"
             },
-            "scope": 5301,
+            "scope": 5289,
             "src": "2085:296:11",
             "stateMutability": "nonpayable",
             "superFunction": null,
@@ -1717,7 +1717,7 @@
           },
           {
             "body": {
-              "id": 5299,
+              "id": 5287,
               "nodeType": "Block",
               "src": "2713:264:11",
               "statements": [
@@ -1731,7 +1731,7 @@
                           "typeIdentifier": "t_bool",
                           "typeString": "bool"
                         },
-                        "id": 5284,
+                        "id": 5272,
                         "isConstant": false,
                         "isLValue": false,
                         "isPure": false,
@@ -1742,18 +1742,18 @@
                             "typeIdentifier": "t_address",
                             "typeString": "address"
                           },
-                          "id": 5278,
+                          "id": 5266,
                           "isConstant": false,
                           "isLValue": false,
                           "isPure": false,
                           "lValueRequested": false,
                           "leftExpression": {
                             "argumentTypes": null,
-                            "id": 5275,
+                            "id": 5263,
                             "name": "owner",
                             "nodeType": "Identifier",
                             "overloadedDeclarations": [],
-                            "referencedDeclaration": 5268,
+                            "referencedDeclaration": 5256,
                             "src": "2744:5:11",
                             "typeDescriptions": {
                               "typeIdentifier": "t_address",
@@ -1766,18 +1766,18 @@
                             "argumentTypes": null,
                             "expression": {
                               "argumentTypes": null,
-                              "id": 5276,
+                              "id": 5264,
                               "name": "msg",
                               "nodeType": "Identifier",
                               "overloadedDeclarations": [],
-                              "referencedDeclaration": 6802,
+                              "referencedDeclaration": 6790,
                               "src": "2753:3:11",
                               "typeDescriptions": {
                                 "typeIdentifier": "t_magic_message",
                                 "typeString": "msg"
                               }
                             },
-                            "id": 5277,
+                            "id": 5265,
                             "isConstant": false,
                             "isLValue": false,
                             "isPure": false,
@@ -1805,18 +1805,18 @@
                             "typeIdentifier": "t_address",
                             "typeString": "address"
                           },
-                          "id": 5283,
+                          "id": 5271,
                           "isConstant": false,
                           "isLValue": false,
                           "isPure": false,
                           "lValueRequested": false,
                           "leftExpression": {
                             "argumentTypes": null,
-                            "id": 5279,
+                            "id": 5267,
                             "name": "owner",
                             "nodeType": "Identifier",
                             "overloadedDeclarations": [],
-                            "referencedDeclaration": 5268,
+                            "referencedDeclaration": 5256,
                             "src": "2779:5:11",
                             "typeDescriptions": {
                               "typeIdentifier": "t_address",
@@ -1831,7 +1831,7 @@
                               {
                                 "argumentTypes": null,
                                 "hexValue": "30",
-                                "id": 5281,
+                                "id": 5269,
                                 "isConstant": false,
                                 "isLValue": false,
                                 "isPure": true,
@@ -1854,7 +1854,7 @@
                                   "typeString": "int_const 0"
                                 }
                               ],
-                              "id": 5280,
+                              "id": 5268,
                               "isConstant": false,
                               "isLValue": false,
                               "isPure": true,
@@ -1867,7 +1867,7 @@
                               },
                               "typeName": "address"
                             },
-                            "id": 5282,
+                            "id": 5270,
                             "isConstant": false,
                             "isLValue": false,
                             "isPure": true,
@@ -1896,7 +1896,7 @@
                       {
                         "argumentTypes": null,
                         "hexValue": "44444f3a20696e76616c69642044444f206f776e65722061646472657373",
-                        "id": 5285,
+                        "id": 5273,
                         "isConstant": false,
                         "isLValue": false,
                         "isPure": true,
@@ -1923,21 +1923,21 @@
                           "typeString": "literal_string \"DDO: invalid DDO owner address\""
                         }
                       ],
-                      "id": 5274,
+                      "id": 5262,
                       "name": "require",
                       "nodeType": "Identifier",
                       "overloadedDeclarations": [
-                        6805,
-                        6806
+                        6793,
+                        6794
                       ],
-                      "referencedDeclaration": 6806,
+                      "referencedDeclaration": 6794,
                       "src": "2723:7:11",
                       "typeDescriptions": {
                         "typeIdentifier": "t_function_require_pure$_t_bool_$_t_string_memory_ptr_$returns$__$",
                         "typeString": "function (bool,string memory) pure"
                       }
                     },
-                    "id": 5286,
+                    "id": 5274,
                     "isConstant": false,
                     "isLValue": false,
                     "isPure": false,
@@ -1951,14 +1951,14 @@
                       "typeString": "tuple()"
                     }
                   },
-                  "id": 5287,
+                  "id": 5275,
                   "nodeType": "ExpressionStatement",
                   "src": "2723:131:11"
                 },
                 {
                   "expression": {
                     "argumentTypes": null,
-                    "id": 5292,
+                    "id": 5280,
                     "isConstant": false,
                     "isLValue": false,
                     "isPure": false,
@@ -1967,25 +1967,25 @@
                       "argumentTypes": null,
                       "baseExpression": {
                         "argumentTypes": null,
-                        "id": 5288,
+                        "id": 5276,
                         "name": "didOwners",
                         "nodeType": "Identifier",
                         "overloadedDeclarations": [],
-                        "referencedDeclaration": 5152,
+                        "referencedDeclaration": 5140,
                         "src": "2864:9:11",
                         "typeDescriptions": {
                           "typeIdentifier": "t_mapping$_t_bytes32_$_t_address_$",
                           "typeString": "mapping(bytes32 => address)"
                         }
                       },
-                      "id": 5290,
+                      "id": 5278,
                       "indexExpression": {
                         "argumentTypes": null,
-                        "id": 5289,
+                        "id": 5277,
                         "name": "did",
                         "nodeType": "Identifier",
                         "overloadedDeclarations": [],
-                        "referencedDeclaration": 5266,
+                        "referencedDeclaration": 5254,
                         "src": "2874:3:11",
                         "typeDescriptions": {
                           "typeIdentifier": "t_bytes32",
@@ -2007,11 +2007,11 @@
                     "operator": "=",
                     "rightHandSide": {
                       "argumentTypes": null,
-                      "id": 5291,
+                      "id": 5279,
                       "name": "owner",
                       "nodeType": "Identifier",
                       "overloadedDeclarations": [],
-                      "referencedDeclaration": 5268,
+                      "referencedDeclaration": 5256,
                       "src": "2881:5:11",
                       "typeDescriptions": {
                         "typeIdentifier": "t_address",
@@ -2024,7 +2024,7 @@
                       "typeString": "address"
                     }
                   },
-                  "id": 5293,
+                  "id": 5281,
                   "nodeType": "ExpressionStatement",
                   "src": "2864:22:11"
                 },
@@ -2034,11 +2034,11 @@
                     "arguments": [
                       {
                         "argumentTypes": null,
-                        "id": 5295,
+                        "id": 5283,
                         "name": "did",
                         "nodeType": "Identifier",
                         "overloadedDeclarations": [],
-                        "referencedDeclaration": 5266,
+                        "referencedDeclaration": 5254,
                         "src": "2938:3:11",
                         "typeDescriptions": {
                           "typeIdentifier": "t_bytes32",
@@ -2047,11 +2047,11 @@
                       },
                       {
                         "argumentTypes": null,
-                        "id": 5296,
+                        "id": 5284,
                         "name": "owner",
                         "nodeType": "Identifier",
                         "overloadedDeclarations": [],
-                        "referencedDeclaration": 5268,
+                        "referencedDeclaration": 5256,
                         "src": "2955:5:11",
                         "typeDescriptions": {
                           "typeIdentifier": "t_address",
@@ -2070,18 +2070,18 @@
                           "typeString": "address"
                         }
                       ],
-                      "id": 5294,
+                      "id": 5282,
                       "name": "DDOOwnershipTransferred",
                       "nodeType": "Identifier",
                       "overloadedDeclarations": [],
-                      "referencedDeclaration": 5182,
+                      "referencedDeclaration": 5170,
                       "src": "2901:23:11",
                       "typeDescriptions": {
                         "typeIdentifier": "t_function_event_nonpayable$_t_bytes32_$_t_address_$returns$__$",
                         "typeString": "function (bytes32,address)"
                       }
                     },
-                    "id": 5297,
+                    "id": 5285,
                     "isConstant": false,
                     "isLValue": false,
                     "isPure": false,
@@ -2095,14 +2095,14 @@
                       "typeString": "tuple()"
                     }
                   },
-                  "id": 5298,
+                  "id": 5286,
                   "nodeType": "EmitStatement",
                   "src": "2896:74:11"
                 }
               ]
             },
             "documentation": "@dev transferOwnership\n     allows only did owners to transfer did ownership\n@param did refers to decentralized identifier\n@param owner the new owner address",
-            "id": 5300,
+            "id": 5288,
             "implemented": true,
             "kind": "function",
             "modifiers": [
@@ -2110,11 +2110,11 @@
                 "arguments": [
                   {
                     "argumentTypes": null,
-                    "id": 5271,
+                    "id": 5259,
                     "name": "did",
                     "nodeType": "Identifier",
                     "overloadedDeclarations": [],
-                    "referencedDeclaration": 5266,
+                    "referencedDeclaration": 5254,
                     "src": "2704:3:11",
                     "typeDescriptions": {
                       "typeIdentifier": "t_bytes32",
@@ -2122,14 +2122,14 @@
                     }
                   }
                 ],
-                "id": 5272,
+                "id": 5260,
                 "modifierName": {
                   "argumentTypes": null,
-                  "id": 5270,
+                  "id": 5258,
                   "name": "onlyDIDOwner",
                   "nodeType": "Identifier",
                   "overloadedDeclarations": [],
-                  "referencedDeclaration": 5198,
+                  "referencedDeclaration": 5186,
                   "src": "2691:12:11",
                   "typeDescriptions": {
                     "typeIdentifier": "t_modifier$_t_bytes32_$",
@@ -2143,15 +2143,15 @@
             "name": "transferOwnership",
             "nodeType": "FunctionDefinition",
             "parameters": {
-              "id": 5269,
+              "id": 5257,
               "nodeType": "ParameterList",
               "parameters": [
                 {
                   "constant": false,
-                  "id": 5266,
+                  "id": 5254,
                   "name": "did",
                   "nodeType": "VariableDeclaration",
-                  "scope": 5300,
+                  "scope": 5288,
                   "src": "2625:11:11",
                   "stateVariable": false,
                   "storageLocation": "default",
@@ -2160,7 +2160,7 @@
                     "typeString": "bytes32"
                   },
                   "typeName": {
-                    "id": 5265,
+                    "id": 5253,
                     "name": "bytes32",
                     "nodeType": "ElementaryTypeName",
                     "src": "2625:7:11",
@@ -2174,10 +2174,10 @@
                 },
                 {
                   "constant": false,
-                  "id": 5268,
+                  "id": 5256,
                   "name": "owner",
                   "nodeType": "VariableDeclaration",
-                  "scope": 5300,
+                  "scope": 5288,
                   "src": "2646:13:11",
                   "stateVariable": false,
                   "storageLocation": "default",
@@ -2186,7 +2186,7 @@
                     "typeString": "address"
                   },
                   "typeName": {
-                    "id": 5267,
+                    "id": 5255,
                     "name": "address",
                     "nodeType": "ElementaryTypeName",
                     "src": "2646:7:11",
@@ -2203,19 +2203,19 @@
               "src": "2615:50:11"
             },
             "returnParameters": {
-              "id": 5273,
+              "id": 5261,
               "nodeType": "ParameterList",
               "parameters": [],
               "src": "2713:0:11"
             },
-            "scope": 5301,
+            "scope": 5289,
             "src": "2589:388:11",
             "stateMutability": "nonpayable",
             "superFunction": null,
             "visibility": "external"
           }
         ],
-        "scope": 5302,
+        "scope": 5290,
         "src": "466:2513:11"
       }
     ],
@@ -2225,14 +2225,14 @@
     "absolutePath": "/Users/ahmedali/Desktop/work/ocean-contracts/contracts/metadata/DDO.sol",
     "exportedSymbols": {
       "DDO": [
-        5301
+        5289
       ]
     },
-    "id": 5302,
+    "id": 5290,
     "nodeType": "SourceUnit",
     "nodes": [
       {
-        "id": 5148,
+        "id": 5136,
         "literals": [
           "solidity",
           "^",
@@ -2248,19 +2248,19 @@
         "contractKind": "contract",
         "documentation": "@title DDO\n \n@dev DDO stands for Decentralized Document. It allows publishers\n     to publish their dataset metadata in decentralized way.\n     It follows the Ocean DID Document standard: \n     https://github.com/oceanprotocol/OEPs/blob/master/7/v0.2/README.md",
         "fullyImplemented": true,
-        "id": 5301,
+        "id": 5289,
         "linearizedBaseContracts": [
-          5301
+          5289
         ],
         "name": "DDO",
         "nodeType": "ContractDefinition",
         "nodes": [
           {
             "constant": false,
-            "id": 5152,
+            "id": 5140,
             "name": "didOwners",
             "nodeType": "VariableDeclaration",
-            "scope": 5301,
+            "scope": 5289,
             "src": "486:44:11",
             "stateVariable": true,
             "storageLocation": "default",
@@ -2269,9 +2269,9 @@
               "typeString": "mapping(bytes32 => address)"
             },
             "typeName": {
-              "id": 5151,
+              "id": 5139,
               "keyType": {
-                "id": 5149,
+                "id": 5137,
                 "name": "bytes32",
                 "nodeType": "ElementaryTypeName",
                 "src": "494:7:11",
@@ -2287,7 +2287,7 @@
                 "typeString": "mapping(bytes32 => address)"
               },
               "valueType": {
-                "id": 5150,
+                "id": 5138,
                 "name": "address",
                 "nodeType": "ElementaryTypeName",
                 "src": "505:7:11",
@@ -2304,20 +2304,20 @@
           {
             "anonymous": false,
             "documentation": null,
-            "id": 5164,
+            "id": 5152,
             "name": "DDOCreated",
             "nodeType": "EventDefinition",
             "parameters": {
-              "id": 5163,
+              "id": 5151,
               "nodeType": "ParameterList",
               "parameters": [
                 {
                   "constant": false,
-                  "id": 5154,
+                  "id": 5142,
                   "indexed": true,
                   "name": "did",
                   "nodeType": "VariableDeclaration",
-                  "scope": 5164,
+                  "scope": 5152,
                   "src": "563:19:11",
                   "stateVariable": false,
                   "storageLocation": "default",
@@ -2326,7 +2326,7 @@
                     "typeString": "bytes32"
                   },
                   "typeName": {
-                    "id": 5153,
+                    "id": 5141,
                     "name": "bytes32",
                     "nodeType": "ElementaryTypeName",
                     "src": "563:7:11",
@@ -2340,11 +2340,11 @@
                 },
                 {
                   "constant": false,
-                  "id": 5156,
+                  "id": 5144,
                   "indexed": false,
                   "name": "flags",
                   "nodeType": "VariableDeclaration",
-                  "scope": 5164,
+                  "scope": 5152,
                   "src": "592:11:11",
                   "stateVariable": false,
                   "storageLocation": "default",
@@ -2353,7 +2353,7 @@
                     "typeString": "bytes"
                   },
                   "typeName": {
-                    "id": 5155,
+                    "id": 5143,
                     "name": "bytes",
                     "nodeType": "ElementaryTypeName",
                     "src": "592:5:11",
@@ -2367,11 +2367,11 @@
                 },
                 {
                   "constant": false,
-                  "id": 5158,
+                  "id": 5146,
                   "indexed": false,
                   "name": "data",
                   "nodeType": "VariableDeclaration",
-                  "scope": 5164,
+                  "scope": 5152,
                   "src": "613:10:11",
                   "stateVariable": false,
                   "storageLocation": "default",
@@ -2380,7 +2380,7 @@
                     "typeString": "bytes"
                   },
                   "typeName": {
-                    "id": 5157,
+                    "id": 5145,
                     "name": "bytes",
                     "nodeType": "ElementaryTypeName",
                     "src": "613:5:11",
@@ -2394,11 +2394,11 @@
                 },
                 {
                   "constant": false,
-                  "id": 5160,
+                  "id": 5148,
                   "indexed": false,
                   "name": "createdAt",
                   "nodeType": "VariableDeclaration",
-                  "scope": 5164,
+                  "scope": 5152,
                   "src": "633:17:11",
                   "stateVariable": false,
                   "storageLocation": "default",
@@ -2407,7 +2407,7 @@
                     "typeString": "uint256"
                   },
                   "typeName": {
-                    "id": 5159,
+                    "id": 5147,
                     "name": "uint256",
                     "nodeType": "ElementaryTypeName",
                     "src": "633:7:11",
@@ -2421,11 +2421,11 @@
                 },
                 {
                   "constant": false,
-                  "id": 5162,
+                  "id": 5150,
                   "indexed": false,
                   "name": "createdBy",
                   "nodeType": "VariableDeclaration",
-                  "scope": 5164,
+                  "scope": 5152,
                   "src": "660:17:11",
                   "stateVariable": false,
                   "storageLocation": "default",
@@ -2434,7 +2434,7 @@
                     "typeString": "address"
                   },
                   "typeName": {
-                    "id": 5161,
+                    "id": 5149,
                     "name": "address",
                     "nodeType": "ElementaryTypeName",
                     "src": "660:7:11",
@@ -2455,20 +2455,20 @@
           {
             "anonymous": false,
             "documentation": null,
-            "id": 5176,
+            "id": 5164,
             "name": "DDOUpdated",
             "nodeType": "EventDefinition",
             "parameters": {
-              "id": 5175,
+              "id": 5163,
               "nodeType": "ParameterList",
               "parameters": [
                 {
                   "constant": false,
-                  "id": 5166,
+                  "id": 5154,
                   "indexed": true,
                   "name": "did",
                   "nodeType": "VariableDeclaration",
-                  "scope": 5176,
+                  "scope": 5164,
                   "src": "715:19:11",
                   "stateVariable": false,
                   "storageLocation": "default",
@@ -2477,7 +2477,7 @@
                     "typeString": "bytes32"
                   },
                   "typeName": {
-                    "id": 5165,
+                    "id": 5153,
                     "name": "bytes32",
                     "nodeType": "ElementaryTypeName",
                     "src": "715:7:11",
@@ -2491,11 +2491,11 @@
                 },
                 {
                   "constant": false,
-                  "id": 5168,
+                  "id": 5156,
                   "indexed": false,
                   "name": "flags",
                   "nodeType": "VariableDeclaration",
-                  "scope": 5176,
+                  "scope": 5164,
                   "src": "744:11:11",
                   "stateVariable": false,
                   "storageLocation": "default",
@@ -2504,7 +2504,7 @@
                     "typeString": "bytes"
                   },
                   "typeName": {
-                    "id": 5167,
+                    "id": 5155,
                     "name": "bytes",
                     "nodeType": "ElementaryTypeName",
                     "src": "744:5:11",
@@ -2518,11 +2518,11 @@
                 },
                 {
                   "constant": false,
-                  "id": 5170,
+                  "id": 5158,
                   "indexed": false,
                   "name": "data",
                   "nodeType": "VariableDeclaration",
-                  "scope": 5176,
+                  "scope": 5164,
                   "src": "765:10:11",
                   "stateVariable": false,
                   "storageLocation": "default",
@@ -2531,7 +2531,7 @@
                     "typeString": "bytes"
                   },
                   "typeName": {
-                    "id": 5169,
+                    "id": 5157,
                     "name": "bytes",
                     "nodeType": "ElementaryTypeName",
                     "src": "765:5:11",
@@ -2545,11 +2545,11 @@
                 },
                 {
                   "constant": false,
-                  "id": 5172,
+                  "id": 5160,
                   "indexed": false,
                   "name": "updatedAt",
                   "nodeType": "VariableDeclaration",
-                  "scope": 5176,
+                  "scope": 5164,
                   "src": "785:17:11",
                   "stateVariable": false,
                   "storageLocation": "default",
@@ -2558,7 +2558,7 @@
                     "typeString": "uint256"
                   },
                   "typeName": {
-                    "id": 5171,
+                    "id": 5159,
                     "name": "uint256",
                     "nodeType": "ElementaryTypeName",
                     "src": "785:7:11",
@@ -2572,11 +2572,11 @@
                 },
                 {
                   "constant": false,
-                  "id": 5174,
+                  "id": 5162,
                   "indexed": false,
                   "name": "updatedBy",
                   "nodeType": "VariableDeclaration",
-                  "scope": 5176,
+                  "scope": 5164,
                   "src": "812:17:11",
                   "stateVariable": false,
                   "storageLocation": "default",
@@ -2585,7 +2585,7 @@
                     "typeString": "address"
                   },
                   "typeName": {
-                    "id": 5173,
+                    "id": 5161,
                     "name": "address",
                     "nodeType": "ElementaryTypeName",
                     "src": "812:7:11",
@@ -2606,20 +2606,20 @@
           {
             "anonymous": false,
             "documentation": null,
-            "id": 5182,
+            "id": 5170,
             "name": "DDOOwnershipTransferred",
             "nodeType": "EventDefinition",
             "parameters": {
-              "id": 5181,
+              "id": 5169,
               "nodeType": "ParameterList",
               "parameters": [
                 {
                   "constant": false,
-                  "id": 5178,
+                  "id": 5166,
                   "indexed": false,
                   "name": "did",
                   "nodeType": "VariableDeclaration",
-                  "scope": 5182,
+                  "scope": 5170,
                   "src": "881:11:11",
                   "stateVariable": false,
                   "storageLocation": "default",
@@ -2628,7 +2628,7 @@
                     "typeString": "bytes32"
                   },
                   "typeName": {
-                    "id": 5177,
+                    "id": 5165,
                     "name": "bytes32",
                     "nodeType": "ElementaryTypeName",
                     "src": "881:7:11",
@@ -2642,11 +2642,11 @@
                 },
                 {
                   "constant": false,
-                  "id": 5180,
+                  "id": 5168,
                   "indexed": false,
                   "name": "owner",
                   "nodeType": "VariableDeclaration",
-                  "scope": 5182,
+                  "scope": 5170,
                   "src": "902:13:11",
                   "stateVariable": false,
                   "storageLocation": "default",
@@ -2655,7 +2655,7 @@
                     "typeString": "address"
                   },
                   "typeName": {
-                    "id": 5179,
+                    "id": 5167,
                     "name": "address",
                     "nodeType": "ElementaryTypeName",
                     "src": "902:7:11",
@@ -2675,7 +2675,7 @@
           },
           {
             "body": {
-              "id": 5197,
+              "id": 5185,
               "nodeType": "Block",
               "src": "967:147:11",
               "statements": [
@@ -2689,7 +2689,7 @@
                           "typeIdentifier": "t_address",
                           "typeString": "address"
                         },
-                        "id": 5192,
+                        "id": 5180,
                         "isConstant": false,
                         "isLValue": false,
                         "isPure": false,
@@ -2698,25 +2698,25 @@
                           "argumentTypes": null,
                           "baseExpression": {
                             "argumentTypes": null,
-                            "id": 5187,
+                            "id": 5175,
                             "name": "didOwners",
                             "nodeType": "Identifier",
                             "overloadedDeclarations": [],
-                            "referencedDeclaration": 5152,
+                            "referencedDeclaration": 5140,
                             "src": "998:9:11",
                             "typeDescriptions": {
                               "typeIdentifier": "t_mapping$_t_bytes32_$_t_address_$",
                               "typeString": "mapping(bytes32 => address)"
                             }
                           },
-                          "id": 5189,
+                          "id": 5177,
                           "indexExpression": {
                             "argumentTypes": null,
-                            "id": 5188,
+                            "id": 5176,
                             "name": "did",
                             "nodeType": "Identifier",
                             "overloadedDeclarations": [],
-                            "referencedDeclaration": 5184,
+                            "referencedDeclaration": 5172,
                             "src": "1008:3:11",
                             "typeDescriptions": {
                               "typeIdentifier": "t_bytes32",
@@ -2740,18 +2740,18 @@
                           "argumentTypes": null,
                           "expression": {
                             "argumentTypes": null,
-                            "id": 5190,
+                            "id": 5178,
                             "name": "msg",
                             "nodeType": "Identifier",
                             "overloadedDeclarations": [],
-                            "referencedDeclaration": 6802,
+                            "referencedDeclaration": 6790,
                             "src": "1016:3:11",
                             "typeDescriptions": {
                               "typeIdentifier": "t_magic_message",
                               "typeString": "msg"
                             }
                           },
-                          "id": 5191,
+                          "id": 5179,
                           "isConstant": false,
                           "isLValue": false,
                           "isPure": false,
@@ -2774,7 +2774,7 @@
                       {
                         "argumentTypes": null,
                         "hexValue": "44444f3a20496e76616c696420444944204f776e6572206f722044494420646f6573206e6f74206578697374",
-                        "id": 5193,
+                        "id": 5181,
                         "isConstant": false,
                         "isLValue": false,
                         "isPure": true,
@@ -2801,21 +2801,21 @@
                           "typeString": "literal_string \"DDO: Invalid DID Owner or DID does not exist\""
                         }
                       ],
-                      "id": 5186,
+                      "id": 5174,
                       "name": "require",
                       "nodeType": "Identifier",
                       "overloadedDeclarations": [
-                        6805,
-                        6806
+                        6793,
+                        6794
                       ],
-                      "referencedDeclaration": 6806,
+                      "referencedDeclaration": 6794,
                       "src": "977:7:11",
                       "typeDescriptions": {
                         "typeIdentifier": "t_function_require_pure$_t_bool_$_t_string_memory_ptr_$returns$__$",
                         "typeString": "function (bool,string memory) pure"
                       }
                     },
-                    "id": 5194,
+                    "id": 5182,
                     "isConstant": false,
                     "isLValue": false,
                     "isPure": false,
@@ -2829,31 +2829,31 @@
                       "typeString": "tuple()"
                     }
                   },
-                  "id": 5195,
+                  "id": 5183,
                   "nodeType": "ExpressionStatement",
                   "src": "977:119:11"
                 },
                 {
-                  "id": 5196,
+                  "id": 5184,
                   "nodeType": "PlaceholderStatement",
                   "src": "1106:1:11"
                 }
               ]
             },
             "documentation": null,
-            "id": 5198,
+            "id": 5186,
             "name": "onlyDIDOwner",
             "nodeType": "ModifierDefinition",
             "parameters": {
-              "id": 5185,
+              "id": 5173,
               "nodeType": "ParameterList",
               "parameters": [
                 {
                   "constant": false,
-                  "id": 5184,
+                  "id": 5172,
                   "name": "did",
                   "nodeType": "VariableDeclaration",
-                  "scope": 5198,
+                  "scope": 5186,
                   "src": "950:11:11",
                   "stateVariable": false,
                   "storageLocation": "default",
@@ -2862,7 +2862,7 @@
                     "typeString": "bytes32"
                   },
                   "typeName": {
-                    "id": 5183,
+                    "id": 5171,
                     "name": "bytes32",
                     "nodeType": "ElementaryTypeName",
                     "src": "950:7:11",
@@ -2882,31 +2882,31 @@
           },
           {
             "body": {
-              "id": 5201,
+              "id": 5189,
               "nodeType": "Block",
               "src": "1140:2:11",
               "statements": []
             },
             "documentation": null,
-            "id": 5202,
+            "id": 5190,
             "implemented": true,
             "kind": "constructor",
             "modifiers": [],
             "name": "",
             "nodeType": "FunctionDefinition",
             "parameters": {
-              "id": 5199,
+              "id": 5187,
               "nodeType": "ParameterList",
               "parameters": [],
               "src": "1130:2:11"
             },
             "returnParameters": {
-              "id": 5200,
+              "id": 5188,
               "nodeType": "ParameterList",
               "parameters": [],
               "src": "1140:0:11"
             },
-            "scope": 5301,
+            "scope": 5289,
             "src": "1119:23:11",
             "stateMutability": "nonpayable",
             "superFunction": null,
@@ -2914,7 +2914,7 @@
           },
           {
             "body": {
-              "id": 5240,
+              "id": 5228,
               "nodeType": "Block",
               "src": "1522:295:11",
               "statements": [
@@ -2928,7 +2928,7 @@
                           "typeIdentifier": "t_address",
                           "typeString": "address"
                         },
-                        "id": 5218,
+                        "id": 5206,
                         "isConstant": false,
                         "isLValue": false,
                         "isPure": false,
@@ -2937,25 +2937,25 @@
                           "argumentTypes": null,
                           "baseExpression": {
                             "argumentTypes": null,
-                            "id": 5212,
+                            "id": 5200,
                             "name": "didOwners",
                             "nodeType": "Identifier",
                             "overloadedDeclarations": [],
-                            "referencedDeclaration": 5152,
+                            "referencedDeclaration": 5140,
                             "src": "1553:9:11",
                             "typeDescriptions": {
                               "typeIdentifier": "t_mapping$_t_bytes32_$_t_address_$",
                               "typeString": "mapping(bytes32 => address)"
                             }
                           },
-                          "id": 5214,
+                          "id": 5202,
                           "indexExpression": {
                             "argumentTypes": null,
-                            "id": 5213,
+                            "id": 5201,
                             "name": "did",
                             "nodeType": "Identifier",
                             "overloadedDeclarations": [],
-                            "referencedDeclaration": 5204,
+                            "referencedDeclaration": 5192,
                             "src": "1563:3:11",
                             "typeDescriptions": {
                               "typeIdentifier": "t_bytes32",
@@ -2981,7 +2981,7 @@
                             {
                               "argumentTypes": null,
                               "hexValue": "30",
-                              "id": 5216,
+                              "id": 5204,
                               "isConstant": false,
                               "isLValue": false,
                               "isPure": true,
@@ -3004,7 +3004,7 @@
                                 "typeString": "int_const 0"
                               }
                             ],
-                            "id": 5215,
+                            "id": 5203,
                             "isConstant": false,
                             "isLValue": false,
                             "isPure": true,
@@ -3017,7 +3017,7 @@
                             },
                             "typeName": "address"
                           },
-                          "id": 5217,
+                          "id": 5205,
                           "isConstant": false,
                           "isLValue": false,
                           "isPure": true,
@@ -3040,7 +3040,7 @@
                       {
                         "argumentTypes": null,
                         "hexValue": "44444f3a2044494420616c726561647920657869737473",
-                        "id": 5219,
+                        "id": 5207,
                         "isConstant": false,
                         "isLValue": false,
                         "isPure": true,
@@ -3067,21 +3067,21 @@
                           "typeString": "literal_string \"DDO: DID already exists\""
                         }
                       ],
-                      "id": 5211,
+                      "id": 5199,
                       "name": "require",
                       "nodeType": "Identifier",
                       "overloadedDeclarations": [
-                        6805,
-                        6806
+                        6793,
+                        6794
                       ],
-                      "referencedDeclaration": 6806,
+                      "referencedDeclaration": 6794,
                       "src": "1532:7:11",
                       "typeDescriptions": {
                         "typeIdentifier": "t_function_require_pure$_t_bool_$_t_string_memory_ptr_$returns$__$",
                         "typeString": "function (bool,string memory) pure"
                       }
                     },
-                    "id": 5220,
+                    "id": 5208,
                     "isConstant": false,
                     "isLValue": false,
                     "isPure": false,
@@ -3095,14 +3095,14 @@
                       "typeString": "tuple()"
                     }
                   },
-                  "id": 5221,
+                  "id": 5209,
                   "nodeType": "ExpressionStatement",
                   "src": "1532:98:11"
                 },
                 {
                   "expression": {
                     "argumentTypes": null,
-                    "id": 5227,
+                    "id": 5215,
                     "isConstant": false,
                     "isLValue": false,
                     "isPure": false,
@@ -3111,25 +3111,25 @@
                       "argumentTypes": null,
                       "baseExpression": {
                         "argumentTypes": null,
-                        "id": 5222,
+                        "id": 5210,
                         "name": "didOwners",
                         "nodeType": "Identifier",
                         "overloadedDeclarations": [],
-                        "referencedDeclaration": 5152,
+                        "referencedDeclaration": 5140,
                         "src": "1640:9:11",
                         "typeDescriptions": {
                           "typeIdentifier": "t_mapping$_t_bytes32_$_t_address_$",
                           "typeString": "mapping(bytes32 => address)"
                         }
                       },
-                      "id": 5224,
+                      "id": 5212,
                       "indexExpression": {
                         "argumentTypes": null,
-                        "id": 5223,
+                        "id": 5211,
                         "name": "did",
                         "nodeType": "Identifier",
                         "overloadedDeclarations": [],
-                        "referencedDeclaration": 5204,
+                        "referencedDeclaration": 5192,
                         "src": "1650:3:11",
                         "typeDescriptions": {
                           "typeIdentifier": "t_bytes32",
@@ -3153,18 +3153,18 @@
                       "argumentTypes": null,
                       "expression": {
                         "argumentTypes": null,
-                        "id": 5225,
+                        "id": 5213,
                         "name": "msg",
                         "nodeType": "Identifier",
                         "overloadedDeclarations": [],
-                        "referencedDeclaration": 6802,
+                        "referencedDeclaration": 6790,
                         "src": "1657:3:11",
                         "typeDescriptions": {
                           "typeIdentifier": "t_magic_message",
                           "typeString": "msg"
                         }
                       },
-                      "id": 5226,
+                      "id": 5214,
                       "isConstant": false,
                       "isLValue": false,
                       "isPure": false,
@@ -3184,7 +3184,7 @@
                       "typeString": "address"
                     }
                   },
-                  "id": 5228,
+                  "id": 5216,
                   "nodeType": "ExpressionStatement",
                   "src": "1640:27:11"
                 },
@@ -3194,11 +3194,11 @@
                     "arguments": [
                       {
                         "argumentTypes": null,
-                        "id": 5230,
+                        "id": 5218,
                         "name": "did",
                         "nodeType": "Identifier",
                         "overloadedDeclarations": [],
-                        "referencedDeclaration": 5204,
+                        "referencedDeclaration": 5192,
                         "src": "1706:3:11",
                         "typeDescriptions": {
                           "typeIdentifier": "t_bytes32",
@@ -3207,11 +3207,11 @@
                       },
                       {
                         "argumentTypes": null,
-                        "id": 5231,
+                        "id": 5219,
                         "name": "flags",
                         "nodeType": "Identifier",
                         "overloadedDeclarations": [],
-                        "referencedDeclaration": 5206,
+                        "referencedDeclaration": 5194,
                         "src": "1723:5:11",
                         "typeDescriptions": {
                           "typeIdentifier": "t_bytes_calldata_ptr",
@@ -3220,11 +3220,11 @@
                       },
                       {
                         "argumentTypes": null,
-                        "id": 5232,
+                        "id": 5220,
                         "name": "data",
                         "nodeType": "Identifier",
                         "overloadedDeclarations": [],
-                        "referencedDeclaration": 5208,
+                        "referencedDeclaration": 5196,
                         "src": "1742:4:11",
                         "typeDescriptions": {
                           "typeIdentifier": "t_bytes_calldata_ptr",
@@ -3235,18 +3235,18 @@
                         "argumentTypes": null,
                         "expression": {
                           "argumentTypes": null,
-                          "id": 5233,
+                          "id": 5221,
                           "name": "block",
                           "nodeType": "Identifier",
                           "overloadedDeclarations": [],
-                          "referencedDeclaration": 6792,
+                          "referencedDeclaration": 6780,
                           "src": "1760:5:11",
                           "typeDescriptions": {
                             "typeIdentifier": "t_magic_block",
                             "typeString": "block"
                           }
                         },
-                        "id": 5234,
+                        "id": 5222,
                         "isConstant": false,
                         "isLValue": false,
                         "isPure": false,
@@ -3264,25 +3264,25 @@
                         "argumentTypes": null,
                         "baseExpression": {
                           "argumentTypes": null,
-                          "id": 5235,
+                          "id": 5223,
                           "name": "didOwners",
                           "nodeType": "Identifier",
                           "overloadedDeclarations": [],
-                          "referencedDeclaration": 5152,
+                          "referencedDeclaration": 5140,
                           "src": "1786:9:11",
                           "typeDescriptions": {
                             "typeIdentifier": "t_mapping$_t_bytes32_$_t_address_$",
                             "typeString": "mapping(bytes32 => address)"
                           }
                         },
-                        "id": 5237,
+                        "id": 5225,
                         "indexExpression": {
                           "argumentTypes": null,
-                          "id": 5236,
+                          "id": 5224,
                           "name": "did",
                           "nodeType": "Identifier",
                           "overloadedDeclarations": [],
-                          "referencedDeclaration": 5204,
+                          "referencedDeclaration": 5192,
                           "src": "1796:3:11",
                           "typeDescriptions": {
                             "typeIdentifier": "t_bytes32",
@@ -3324,18 +3324,18 @@
                           "typeString": "address"
                         }
                       ],
-                      "id": 5229,
+                      "id": 5217,
                       "name": "DDOCreated",
                       "nodeType": "Identifier",
                       "overloadedDeclarations": [],
-                      "referencedDeclaration": 5164,
+                      "referencedDeclaration": 5152,
                       "src": "1682:10:11",
                       "typeDescriptions": {
                         "typeIdentifier": "t_function_event_nonpayable$_t_bytes32_$_t_bytes_memory_ptr_$_t_bytes_memory_ptr_$_t_uint256_$_t_address_$returns$__$",
                         "typeString": "function (bytes32,bytes memory,bytes memory,uint256,address)"
                       }
                     },
-                    "id": 5238,
+                    "id": 5226,
                     "isConstant": false,
                     "isLValue": false,
                     "isPure": false,
@@ -3349,29 +3349,29 @@
                       "typeString": "tuple()"
                     }
                   },
-                  "id": 5239,
+                  "id": 5227,
                   "nodeType": "EmitStatement",
                   "src": "1677:133:11"
                 }
               ]
             },
             "documentation": "@dev create\n     creates/publishes new DDO document on-chain. \n@param did refers to decentralized identifier\n@param flags special flags associated with DID\n@param data referes to the actual metadata",
-            "id": 5241,
+            "id": 5229,
             "implemented": true,
             "kind": "function",
             "modifiers": [],
             "name": "create",
             "nodeType": "FunctionDefinition",
             "parameters": {
-              "id": 5209,
+              "id": 5197,
               "nodeType": "ParameterList",
               "parameters": [
                 {
                   "constant": false,
-                  "id": 5204,
+                  "id": 5192,
                   "name": "did",
                   "nodeType": "VariableDeclaration",
-                  "scope": 5241,
+                  "scope": 5229,
                   "src": "1423:11:11",
                   "stateVariable": false,
                   "storageLocation": "default",
@@ -3380,7 +3380,7 @@
                     "typeString": "bytes32"
                   },
                   "typeName": {
-                    "id": 5203,
+                    "id": 5191,
                     "name": "bytes32",
                     "nodeType": "ElementaryTypeName",
                     "src": "1423:7:11",
@@ -3394,10 +3394,10 @@
                 },
                 {
                   "constant": false,
-                  "id": 5206,
+                  "id": 5194,
                   "name": "flags",
                   "nodeType": "VariableDeclaration",
-                  "scope": 5241,
+                  "scope": 5229,
                   "src": "1444:20:11",
                   "stateVariable": false,
                   "storageLocation": "calldata",
@@ -3406,7 +3406,7 @@
                     "typeString": "bytes"
                   },
                   "typeName": {
-                    "id": 5205,
+                    "id": 5193,
                     "name": "bytes",
                     "nodeType": "ElementaryTypeName",
                     "src": "1444:5:11",
@@ -3420,10 +3420,10 @@
                 },
                 {
                   "constant": false,
-                  "id": 5208,
+                  "id": 5196,
                   "name": "data",
                   "nodeType": "VariableDeclaration",
-                  "scope": 5241,
+                  "scope": 5229,
                   "src": "1474:19:11",
                   "stateVariable": false,
                   "storageLocation": "calldata",
@@ -3432,7 +3432,7 @@
                     "typeString": "bytes"
                   },
                   "typeName": {
-                    "id": 5207,
+                    "id": 5195,
                     "name": "bytes",
                     "nodeType": "ElementaryTypeName",
                     "src": "1474:5:11",
@@ -3448,12 +3448,12 @@
               "src": "1413:86:11"
             },
             "returnParameters": {
-              "id": 5210,
+              "id": 5198,
               "nodeType": "ParameterList",
               "parameters": [],
               "src": "1522:0:11"
             },
-            "scope": 5301,
+            "scope": 5289,
             "src": "1398:419:11",
             "stateMutability": "nonpayable",
             "superFunction": null,
@@ -3461,7 +3461,7 @@
           },
           {
             "body": {
-              "id": 5263,
+              "id": 5251,
               "nodeType": "Block",
               "src": "2235:146:11",
               "statements": [
@@ -3471,11 +3471,11 @@
                     "arguments": [
                       {
                         "argumentTypes": null,
-                        "id": 5254,
+                        "id": 5242,
                         "name": "did",
                         "nodeType": "Identifier",
                         "overloadedDeclarations": [],
-                        "referencedDeclaration": 5243,
+                        "referencedDeclaration": 5231,
                         "src": "2274:3:11",
                         "typeDescriptions": {
                           "typeIdentifier": "t_bytes32",
@@ -3484,11 +3484,11 @@
                       },
                       {
                         "argumentTypes": null,
-                        "id": 5255,
+                        "id": 5243,
                         "name": "flags",
                         "nodeType": "Identifier",
                         "overloadedDeclarations": [],
-                        "referencedDeclaration": 5245,
+                        "referencedDeclaration": 5233,
                         "src": "2291:5:11",
                         "typeDescriptions": {
                           "typeIdentifier": "t_bytes_calldata_ptr",
@@ -3497,11 +3497,11 @@
                       },
                       {
                         "argumentTypes": null,
-                        "id": 5256,
+                        "id": 5244,
                         "name": "data",
                         "nodeType": "Identifier",
                         "overloadedDeclarations": [],
-                        "referencedDeclaration": 5247,
+                        "referencedDeclaration": 5235,
                         "src": "2310:4:11",
                         "typeDescriptions": {
                           "typeIdentifier": "t_bytes_calldata_ptr",
@@ -3512,18 +3512,18 @@
                         "argumentTypes": null,
                         "expression": {
                           "argumentTypes": null,
-                          "id": 5257,
+                          "id": 5245,
                           "name": "block",
                           "nodeType": "Identifier",
                           "overloadedDeclarations": [],
-                          "referencedDeclaration": 6792,
+                          "referencedDeclaration": 6780,
                           "src": "2328:5:11",
                           "typeDescriptions": {
                             "typeIdentifier": "t_magic_block",
                             "typeString": "block"
                           }
                         },
-                        "id": 5258,
+                        "id": 5246,
                         "isConstant": false,
                         "isLValue": false,
                         "isPure": false,
@@ -3541,18 +3541,18 @@
                         "argumentTypes": null,
                         "expression": {
                           "argumentTypes": null,
-                          "id": 5259,
+                          "id": 5247,
                           "name": "msg",
                           "nodeType": "Identifier",
                           "overloadedDeclarations": [],
-                          "referencedDeclaration": 6802,
+                          "referencedDeclaration": 6790,
                           "src": "2354:3:11",
                           "typeDescriptions": {
                             "typeIdentifier": "t_magic_message",
                             "typeString": "msg"
                           }
                         },
-                        "id": 5260,
+                        "id": 5248,
                         "isConstant": false,
                         "isLValue": false,
                         "isPure": false,
@@ -3590,18 +3590,18 @@
                           "typeString": "address payable"
                         }
                       ],
-                      "id": 5253,
+                      "id": 5241,
                       "name": "DDOUpdated",
                       "nodeType": "Identifier",
                       "overloadedDeclarations": [],
-                      "referencedDeclaration": 5176,
+                      "referencedDeclaration": 5164,
                       "src": "2250:10:11",
                       "typeDescriptions": {
                         "typeIdentifier": "t_function_event_nonpayable$_t_bytes32_$_t_bytes_memory_ptr_$_t_bytes_memory_ptr_$_t_uint256_$_t_address_$returns$__$",
                         "typeString": "function (bytes32,bytes memory,bytes memory,uint256,address)"
                       }
                     },
-                    "id": 5261,
+                    "id": 5249,
                     "isConstant": false,
                     "isLValue": false,
                     "isPure": false,
@@ -3615,14 +3615,14 @@
                       "typeString": "tuple()"
                     }
                   },
-                  "id": 5262,
+                  "id": 5250,
                   "nodeType": "EmitStatement",
                   "src": "2245:129:11"
                 }
               ]
             },
             "documentation": "@dev update\n     allows only did owners to update the DDO/metadata content\n@param did refers to decentralized identifier\n@param flags special flags associated with DID\n@param data referes to the actual metadata",
-            "id": 5264,
+            "id": 5252,
             "implemented": true,
             "kind": "function",
             "modifiers": [
@@ -3630,11 +3630,11 @@
                 "arguments": [
                   {
                     "argumentTypes": null,
-                    "id": 5250,
+                    "id": 5238,
                     "name": "did",
                     "nodeType": "Identifier",
                     "overloadedDeclarations": [],
-                    "referencedDeclaration": 5243,
+                    "referencedDeclaration": 5231,
                     "src": "2226:3:11",
                     "typeDescriptions": {
                       "typeIdentifier": "t_bytes32",
@@ -3642,14 +3642,14 @@
                     }
                   }
                 ],
-                "id": 5251,
+                "id": 5239,
                 "modifierName": {
                   "argumentTypes": null,
-                  "id": 5249,
+                  "id": 5237,
                   "name": "onlyDIDOwner",
                   "nodeType": "Identifier",
                   "overloadedDeclarations": [],
-                  "referencedDeclaration": 5198,
+                  "referencedDeclaration": 5186,
                   "src": "2213:12:11",
                   "typeDescriptions": {
                     "typeIdentifier": "t_modifier$_t_bytes32_$",
@@ -3663,15 +3663,15 @@
             "name": "update",
             "nodeType": "FunctionDefinition",
             "parameters": {
-              "id": 5248,
+              "id": 5236,
               "nodeType": "ParameterList",
               "parameters": [
                 {
                   "constant": false,
-                  "id": 5243,
+                  "id": 5231,
                   "name": "did",
                   "nodeType": "VariableDeclaration",
-                  "scope": 5264,
+                  "scope": 5252,
                   "src": "2110:11:11",
                   "stateVariable": false,
                   "storageLocation": "default",
@@ -3680,7 +3680,7 @@
                     "typeString": "bytes32"
                   },
                   "typeName": {
-                    "id": 5242,
+                    "id": 5230,
                     "name": "bytes32",
                     "nodeType": "ElementaryTypeName",
                     "src": "2110:7:11",
@@ -3694,10 +3694,10 @@
                 },
                 {
                   "constant": false,
-                  "id": 5245,
+                  "id": 5233,
                   "name": "flags",
                   "nodeType": "VariableDeclaration",
-                  "scope": 5264,
+                  "scope": 5252,
                   "src": "2131:20:11",
                   "stateVariable": false,
                   "storageLocation": "calldata",
@@ -3706,7 +3706,7 @@
                     "typeString": "bytes"
                   },
                   "typeName": {
-                    "id": 5244,
+                    "id": 5232,
                     "name": "bytes",
                     "nodeType": "ElementaryTypeName",
                     "src": "2131:5:11",
@@ -3720,10 +3720,10 @@
                 },
                 {
                   "constant": false,
-                  "id": 5247,
+                  "id": 5235,
                   "name": "data",
                   "nodeType": "VariableDeclaration",
-                  "scope": 5264,
+                  "scope": 5252,
                   "src": "2161:19:11",
                   "stateVariable": false,
                   "storageLocation": "calldata",
@@ -3732,7 +3732,7 @@
                     "typeString": "bytes"
                   },
                   "typeName": {
-                    "id": 5246,
+                    "id": 5234,
                     "name": "bytes",
                     "nodeType": "ElementaryTypeName",
                     "src": "2161:5:11",
@@ -3748,12 +3748,12 @@
               "src": "2100:86:11"
             },
             "returnParameters": {
-              "id": 5252,
+              "id": 5240,
               "nodeType": "ParameterList",
               "parameters": [],
               "src": "2235:0:11"
             },
-            "scope": 5301,
+            "scope": 5289,
             "src": "2085:296:11",
             "stateMutability": "nonpayable",
             "superFunction": null,
@@ -3761,7 +3761,7 @@
           },
           {
             "body": {
-              "id": 5299,
+              "id": 5287,
               "nodeType": "Block",
               "src": "2713:264:11",
               "statements": [
@@ -3775,7 +3775,7 @@
                           "typeIdentifier": "t_bool",
                           "typeString": "bool"
                         },
-                        "id": 5284,
+                        "id": 5272,
                         "isConstant": false,
                         "isLValue": false,
                         "isPure": false,
@@ -3786,18 +3786,18 @@
                             "typeIdentifier": "t_address",
                             "typeString": "address"
                           },
-                          "id": 5278,
+                          "id": 5266,
                           "isConstant": false,
                           "isLValue": false,
                           "isPure": false,
                           "lValueRequested": false,
                           "leftExpression": {
                             "argumentTypes": null,
-                            "id": 5275,
+                            "id": 5263,
                             "name": "owner",
                             "nodeType": "Identifier",
                             "overloadedDeclarations": [],
-                            "referencedDeclaration": 5268,
+                            "referencedDeclaration": 5256,
                             "src": "2744:5:11",
                             "typeDescriptions": {
                               "typeIdentifier": "t_address",
@@ -3810,18 +3810,18 @@
                             "argumentTypes": null,
                             "expression": {
                               "argumentTypes": null,
-                              "id": 5276,
+                              "id": 5264,
                               "name": "msg",
                               "nodeType": "Identifier",
                               "overloadedDeclarations": [],
-                              "referencedDeclaration": 6802,
+                              "referencedDeclaration": 6790,
                               "src": "2753:3:11",
                               "typeDescriptions": {
                                 "typeIdentifier": "t_magic_message",
                                 "typeString": "msg"
                               }
                             },
-                            "id": 5277,
+                            "id": 5265,
                             "isConstant": false,
                             "isLValue": false,
                             "isPure": false,
@@ -3849,18 +3849,18 @@
                             "typeIdentifier": "t_address",
                             "typeString": "address"
                           },
-                          "id": 5283,
+                          "id": 5271,
                           "isConstant": false,
                           "isLValue": false,
                           "isPure": false,
                           "lValueRequested": false,
                           "leftExpression": {
                             "argumentTypes": null,
-                            "id": 5279,
+                            "id": 5267,
                             "name": "owner",
                             "nodeType": "Identifier",
                             "overloadedDeclarations": [],
-                            "referencedDeclaration": 5268,
+                            "referencedDeclaration": 5256,
                             "src": "2779:5:11",
                             "typeDescriptions": {
                               "typeIdentifier": "t_address",
@@ -3875,7 +3875,7 @@
                               {
                                 "argumentTypes": null,
                                 "hexValue": "30",
-                                "id": 5281,
+                                "id": 5269,
                                 "isConstant": false,
                                 "isLValue": false,
                                 "isPure": true,
@@ -3898,7 +3898,7 @@
                                   "typeString": "int_const 0"
                                 }
                               ],
-                              "id": 5280,
+                              "id": 5268,
                               "isConstant": false,
                               "isLValue": false,
                               "isPure": true,
@@ -3911,7 +3911,7 @@
                               },
                               "typeName": "address"
                             },
-                            "id": 5282,
+                            "id": 5270,
                             "isConstant": false,
                             "isLValue": false,
                             "isPure": true,
@@ -3940,7 +3940,7 @@
                       {
                         "argumentTypes": null,
                         "hexValue": "44444f3a20696e76616c69642044444f206f776e65722061646472657373",
-                        "id": 5285,
+                        "id": 5273,
                         "isConstant": false,
                         "isLValue": false,
                         "isPure": true,
@@ -3967,21 +3967,21 @@
                           "typeString": "literal_string \"DDO: invalid DDO owner address\""
                         }
                       ],
-                      "id": 5274,
+                      "id": 5262,
                       "name": "require",
                       "nodeType": "Identifier",
                       "overloadedDeclarations": [
-                        6805,
-                        6806
+                        6793,
+                        6794
                       ],
-                      "referencedDeclaration": 6806,
+                      "referencedDeclaration": 6794,
                       "src": "2723:7:11",
                       "typeDescriptions": {
                         "typeIdentifier": "t_function_require_pure$_t_bool_$_t_string_memory_ptr_$returns$__$",
                         "typeString": "function (bool,string memory) pure"
                       }
                     },
-                    "id": 5286,
+                    "id": 5274,
                     "isConstant": false,
                     "isLValue": false,
                     "isPure": false,
@@ -3995,14 +3995,14 @@
                       "typeString": "tuple()"
                     }
                   },
-                  "id": 5287,
+                  "id": 5275,
                   "nodeType": "ExpressionStatement",
                   "src": "2723:131:11"
                 },
                 {
                   "expression": {
                     "argumentTypes": null,
-                    "id": 5292,
+                    "id": 5280,
                     "isConstant": false,
                     "isLValue": false,
                     "isPure": false,
@@ -4011,25 +4011,25 @@
                       "argumentTypes": null,
                       "baseExpression": {
                         "argumentTypes": null,
-                        "id": 5288,
+                        "id": 5276,
                         "name": "didOwners",
                         "nodeType": "Identifier",
                         "overloadedDeclarations": [],
-                        "referencedDeclaration": 5152,
+                        "referencedDeclaration": 5140,
                         "src": "2864:9:11",
                         "typeDescriptions": {
                           "typeIdentifier": "t_mapping$_t_bytes32_$_t_address_$",
                           "typeString": "mapping(bytes32 => address)"
                         }
                       },
-                      "id": 5290,
+                      "id": 5278,
                       "indexExpression": {
                         "argumentTypes": null,
-                        "id": 5289,
+                        "id": 5277,
                         "name": "did",
                         "nodeType": "Identifier",
                         "overloadedDeclarations": [],
-                        "referencedDeclaration": 5266,
+                        "referencedDeclaration": 5254,
                         "src": "2874:3:11",
                         "typeDescriptions": {
                           "typeIdentifier": "t_bytes32",
@@ -4051,11 +4051,11 @@
                     "operator": "=",
                     "rightHandSide": {
                       "argumentTypes": null,
-                      "id": 5291,
+                      "id": 5279,
                       "name": "owner",
                       "nodeType": "Identifier",
                       "overloadedDeclarations": [],
-                      "referencedDeclaration": 5268,
+                      "referencedDeclaration": 5256,
                       "src": "2881:5:11",
                       "typeDescriptions": {
                         "typeIdentifier": "t_address",
@@ -4068,7 +4068,7 @@
                       "typeString": "address"
                     }
                   },
-                  "id": 5293,
+                  "id": 5281,
                   "nodeType": "ExpressionStatement",
                   "src": "2864:22:11"
                 },
@@ -4078,11 +4078,11 @@
                     "arguments": [
                       {
                         "argumentTypes": null,
-                        "id": 5295,
+                        "id": 5283,
                         "name": "did",
                         "nodeType": "Identifier",
                         "overloadedDeclarations": [],
-                        "referencedDeclaration": 5266,
+                        "referencedDeclaration": 5254,
                         "src": "2938:3:11",
                         "typeDescriptions": {
                           "typeIdentifier": "t_bytes32",
@@ -4091,11 +4091,11 @@
                       },
                       {
                         "argumentTypes": null,
-                        "id": 5296,
+                        "id": 5284,
                         "name": "owner",
                         "nodeType": "Identifier",
                         "overloadedDeclarations": [],
-                        "referencedDeclaration": 5268,
+                        "referencedDeclaration": 5256,
                         "src": "2955:5:11",
                         "typeDescriptions": {
                           "typeIdentifier": "t_address",
@@ -4114,18 +4114,18 @@
                           "typeString": "address"
                         }
                       ],
-                      "id": 5294,
+                      "id": 5282,
                       "name": "DDOOwnershipTransferred",
                       "nodeType": "Identifier",
                       "overloadedDeclarations": [],
-                      "referencedDeclaration": 5182,
+                      "referencedDeclaration": 5170,
                       "src": "2901:23:11",
                       "typeDescriptions": {
                         "typeIdentifier": "t_function_event_nonpayable$_t_bytes32_$_t_address_$returns$__$",
                         "typeString": "function (bytes32,address)"
                       }
                     },
-                    "id": 5297,
+                    "id": 5285,
                     "isConstant": false,
                     "isLValue": false,
                     "isPure": false,
@@ -4139,14 +4139,14 @@
                       "typeString": "tuple()"
                     }
                   },
-                  "id": 5298,
+                  "id": 5286,
                   "nodeType": "EmitStatement",
                   "src": "2896:74:11"
                 }
               ]
             },
             "documentation": "@dev transferOwnership\n     allows only did owners to transfer did ownership\n@param did refers to decentralized identifier\n@param owner the new owner address",
-            "id": 5300,
+            "id": 5288,
             "implemented": true,
             "kind": "function",
             "modifiers": [
@@ -4154,11 +4154,11 @@
                 "arguments": [
                   {
                     "argumentTypes": null,
-                    "id": 5271,
+                    "id": 5259,
                     "name": "did",
                     "nodeType": "Identifier",
                     "overloadedDeclarations": [],
-                    "referencedDeclaration": 5266,
+                    "referencedDeclaration": 5254,
                     "src": "2704:3:11",
                     "typeDescriptions": {
                       "typeIdentifier": "t_bytes32",
@@ -4166,14 +4166,14 @@
                     }
                   }
                 ],
-                "id": 5272,
+                "id": 5260,
                 "modifierName": {
                   "argumentTypes": null,
-                  "id": 5270,
+                  "id": 5258,
                   "name": "onlyDIDOwner",
                   "nodeType": "Identifier",
                   "overloadedDeclarations": [],
-                  "referencedDeclaration": 5198,
+                  "referencedDeclaration": 5186,
                   "src": "2691:12:11",
                   "typeDescriptions": {
                     "typeIdentifier": "t_modifier$_t_bytes32_$",
@@ -4187,15 +4187,15 @@
             "name": "transferOwnership",
             "nodeType": "FunctionDefinition",
             "parameters": {
-              "id": 5269,
+              "id": 5257,
               "nodeType": "ParameterList",
               "parameters": [
                 {
                   "constant": false,
-                  "id": 5266,
+                  "id": 5254,
                   "name": "did",
                   "nodeType": "VariableDeclaration",
-                  "scope": 5300,
+                  "scope": 5288,
                   "src": "2625:11:11",
                   "stateVariable": false,
                   "storageLocation": "default",
@@ -4204,7 +4204,7 @@
                     "typeString": "bytes32"
                   },
                   "typeName": {
-                    "id": 5265,
+                    "id": 5253,
                     "name": "bytes32",
                     "nodeType": "ElementaryTypeName",
                     "src": "2625:7:11",
@@ -4218,10 +4218,10 @@
                 },
                 {
                   "constant": false,
-                  "id": 5268,
+                  "id": 5256,
                   "name": "owner",
                   "nodeType": "VariableDeclaration",
-                  "scope": 5300,
+                  "scope": 5288,
                   "src": "2646:13:11",
                   "stateVariable": false,
                   "storageLocation": "default",
@@ -4230,7 +4230,7 @@
                     "typeString": "address"
                   },
                   "typeName": {
-                    "id": 5267,
+                    "id": 5255,
                     "name": "address",
                     "nodeType": "ElementaryTypeName",
                     "src": "2646:7:11",
@@ -4247,19 +4247,19 @@
               "src": "2615:50:11"
             },
             "returnParameters": {
-              "id": 5273,
+              "id": 5261,
               "nodeType": "ParameterList",
               "parameters": [],
               "src": "2713:0:11"
             },
-            "scope": 5301,
+            "scope": 5289,
             "src": "2589:388:11",
             "stateMutability": "nonpayable",
             "superFunction": null,
             "visibility": "external"
           }
         ],
-        "scope": 5302,
+        "scope": 5290,
         "src": "466:2513:11"
       }
     ],
@@ -4271,7 +4271,7 @@
   },
   "networks": {},
   "schemaVersion": "3.2.0",
-  "updatedAt": "2020-08-29T17:23:10.807Z",
+  "updatedAt": "2020-08-31T13:01:35.555Z",
   "devdoc": {
     "details": "DDO stands for Decentralized Document. It allows publishers     to publish their dataset metadata in decentralized way.     It follows the Ocean DID Document standard:      https://github.com/oceanprotocol/OEPs/blob/master/7/v0.2/README.md",
     "methods": {

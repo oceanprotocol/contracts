@@ -27,7 +27,7 @@ constructor
 Called prior contract deployment
 
 
-### `initialize(string name, string symbol, address minter, uint256 cap, string blob, address feeCollector) → bool` (public)
+### `initialize(string name, string symbol, address minter, uint256 cap, string blob, address feeCollector) → bool` (external)
 
 
 
@@ -36,7 +36,7 @@ Called prior contract initialization (e.g creating new DataToken instance)
 Calls private _initialize function. Only if contract is not initialized.
 
 
-### `mint(address account, uint256 value)` (public)
+### `mint(address account, uint256 value)` (external)
 
 
 
@@ -45,7 +45,7 @@ Only the minter address can call it.
 msg.value should be higher than zero and gt or eq minting fee
 
 
-### `startOrder(address receiver, uint256 amount, bytes32 did, uint256 serviceId, address feeCollector, uint256 feePercentage)` (public)
+### `startOrder(address receiver, uint256 amount, bytes32 did, uint256 serviceId, address feeCollector, uint256 feePercentage)` (external)
 
 
 
@@ -53,7 +53,7 @@ startOrder
 called by consumer prior ordering a service consume on a marketplace
 
 
-### `finishOrder(bytes32 orderTxId, address consumer, uint256 amount, bytes32 did, uint256 serviceId)` (public)
+### `finishOrder(bytes32 orderTxId, address consumer, uint256 amount, bytes32 did, uint256 serviceId)` (external)
 
 
 
@@ -62,7 +62,7 @@ called by provider prior completing service delivery only
 if there is a partial or full refund.
 
 
-### `pause()` (public)
+### `pause()` (external)
 
 
 
@@ -71,7 +71,7 @@ It pauses the contract functionalities (transfer, mint, etc)
 Only could be called if the contract is not already paused.
 Only called by the minter address.
 
-### `unpause()` (public)
+### `unpause()` (external)
 
 
 
@@ -80,7 +80,7 @@ It unpauses the contract.
 Only called if the contract is paused.
 Only minter can call it.
 
-### `setMinter(address minter)` (public)
+### `setMinter(address minter)` (external)
 
 
 
@@ -90,7 +90,7 @@ Only called be called if the contract is not paused.
 Only the current minter can call it.
 
 
-### `name() → string` (public)
+### `name() → string` (external)
 
 
 
@@ -98,7 +98,7 @@ name
 It returns the token name.
 
 
-### `symbol() → string` (public)
+### `symbol() → string` (external)
 
 
 
@@ -106,7 +106,7 @@ symbol
 It returns the token symbol.
 
 
-### `blob() → string` (public)
+### `blob() → string` (external)
 
 
 
@@ -114,7 +114,7 @@ blob
 It returns the blob (e.g https://123.com).
 
 
-### `decimals() → uint256` (public)
+### `decimals() → uint256` (external)
 
 
 
@@ -123,7 +123,7 @@ It returns the token decimals.
 how many supported decimal points
 
 
-### `cap() → uint256` (public)
+### `cap() → uint256` (external)
 
 
 
@@ -131,7 +131,7 @@ cap
 it returns the capital.
 
 
-### `isMinter(address account) → bool` (public)
+### `isMinter(address account) → bool` (external)
 
 
 
@@ -139,7 +139,7 @@ isMinter
 It takes the address and checks whether it has a minter role.
 
 
-### `isInitialized() → bool` (public)
+### `isInitialized() → bool` (external)
 
 
 
@@ -147,7 +147,7 @@ isInitialized
 It checks whether the contract is initialized.
 
 
-### `isPaused() → bool` (public)
+### `isPaused() → bool` (external)
 
 
 
@@ -163,7 +163,7 @@ calculateFee
 giving a fee percentage, and amount it calculates the actual fee
 
 
-### `calculateTotalFee(uint256 amount, uint256 feePercentage) → uint256` (public)
+### `calculateTotalFee(uint256 amount, uint256 feePercentage) → uint256` (external)
 
 
 

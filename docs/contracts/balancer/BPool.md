@@ -39,13 +39,13 @@ the best we can do for now is clearly demarcate the proxy section.
 
 
 
-### `isInitialized() → bool` (public)
+### `isInitialized() → bool` (external)
 
 
 
 
 
-### `initialize(address controller, address factory, uint256 swapFee, bool publicSwap, bool finalized) → bool` (public)
+### `initialize(address controller, address factory, uint256 swapFee, bool publicSwap, bool finalized) → bool` (external)
 
 
 
