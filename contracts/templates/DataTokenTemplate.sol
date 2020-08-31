@@ -104,14 +104,14 @@ contract DataTokenTemplate is IERC20Template, ERC20Pausable {
      * @param feeCollector it is the community fee collector address
      */
     function initialize(
-        string memory name,
-        string memory symbol,
+        string calldata name,
+        string calldata symbol,
         address minter,
         uint256 cap,
-        string memory blob,
+        string calldata blob,
         address feeCollector
     ) 
-        public
+        external
         onlyNotInitialized
         returns(bool)
     {
@@ -188,8 +188,7 @@ contract DataTokenTemplate is IERC20Template, ERC20Pausable {
         address account,
         uint256 value
     ) 
-        public 
-        payable 
+        external 
         onlyNotPaused 
         onlyMinter 
     {
@@ -218,7 +217,7 @@ contract DataTokenTemplate is IERC20Template, ERC20Pausable {
         address feeCollector,
         uint256 feePercentage
     )
-        public
+        external
     {
         require(
             receiver != address(0),
@@ -274,7 +273,7 @@ contract DataTokenTemplate is IERC20Template, ERC20Pausable {
         bytes32 did, 
         uint256 serviceId
     )
-        public
+        external
     {
         if ( amount > 0 )  
             require(
@@ -298,7 +297,7 @@ contract DataTokenTemplate is IERC20Template, ERC20Pausable {
      *      Only could be called if the contract is not already paused.
      *      Only called by the minter address.
      */
-    function pause() public onlyNotPaused onlyMinter {
+    function pause() external onlyNotPaused onlyMinter {
         paused = true;
     }
 
@@ -308,7 +307,7 @@ contract DataTokenTemplate is IERC20Template, ERC20Pausable {
      *      Only called if the contract is paused.
      *      Only minter can call it.
      */
-    function unpause() public onlyPaused onlyMinter {
+    function unpause() external onlyPaused onlyMinter {
         paused = false;
     }
 
@@ -319,7 +318,7 @@ contract DataTokenTemplate is IERC20Template, ERC20Pausable {
      *      Only the current minter can call it.
      * @param minter refers to a new token minter address.
      */
-    function setMinter(address minter) public onlyNotPaused onlyMinter {
+    function setMinter(address minter) external onlyNotPaused onlyMinter {
         _minter = minter;
     }
 
@@ -328,7 +327,7 @@ contract DataTokenTemplate is IERC20Template, ERC20Pausable {
      *      It returns the token name.
      * @return DataToken name.
      */
-    function name() public view returns(string memory) {
+    function name() external view returns(string memory) {
         return _name;
     }
 
@@ -337,7 +336,7 @@ contract DataTokenTemplate is IERC20Template, ERC20Pausable {
      *      It returns the token symbol.
      * @return DataToken symbol.
      */
-    function symbol() public view returns(string memory) {
+    function symbol() external view returns(string memory) {
         return _symbol;
     }
 
@@ -346,7 +345,7 @@ contract DataTokenTemplate is IERC20Template, ERC20Pausable {
      *      It returns the blob (e.g https://123.com).
      * @return DataToken blob.
      */
-    function blob() public view returns(string memory) {
+    function blob() external view returns(string memory) {
         return _blob;
     }
 
@@ -356,7 +355,7 @@ contract DataTokenTemplate is IERC20Template, ERC20Pausable {
      *      how many supported decimal points
      * @return DataToken decimals.
      */
-    function decimals() public view returns(uint256) {
+    function decimals() external view returns(uint256) {
         return _decimals;
     }
 
@@ -365,7 +364,7 @@ contract DataTokenTemplate is IERC20Template, ERC20Pausable {
      *      it returns the capital.
      * @return DataToken cap.
      */
-    function cap() public view returns (uint256) {
+    function cap() external view returns (uint256) {
         return _cap;
     }
 
@@ -375,7 +374,7 @@ contract DataTokenTemplate is IERC20Template, ERC20Pausable {
      * @param account refers to the address.
      * @return true if account has a minter role.
      */
-    function isMinter(address account) public view returns(bool) {
+    function isMinter(address account) external view returns(bool) {
         return (_minter == account);
     } 
 
@@ -384,7 +383,7 @@ contract DataTokenTemplate is IERC20Template, ERC20Pausable {
      *      It checks whether the contract is initialized.
      * @return true if the contract is initialized.
      */ 
-    function isInitialized() public view returns(bool) {
+    function isInitialized() external view returns(bool) {
         return initialized;
     }
 
@@ -393,7 +392,7 @@ contract DataTokenTemplate is IERC20Template, ERC20Pausable {
      *      Function checks if the contract is paused.
      * @return true if the contract is paused.
      */ 
-    function isPaused() public view returns(bool) {
+    function isPaused() external view returns(bool) {
         return paused;
     }
 
@@ -427,7 +426,7 @@ contract DataTokenTemplate is IERC20Template, ERC20Pausable {
         uint256 amount,
         uint256 feePercentage
     )
-        public
+        external
         pure
         returns(uint256)
     {

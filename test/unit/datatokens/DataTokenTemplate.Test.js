@@ -83,9 +83,11 @@ contract('DataTokenTemplate', async (accounts) => {
 
     it('should unpause the contract', async () => {
         await token.pause({ from: minter })
+        const isPausedTrue = await token.isPaused()
+        assert(isPausedTrue === true)
         await token.unpause({ from: minter })
-        const isPaused = await token.isPaused()
-        assert(isPaused === false)
+        const isPausedFalse = await token.isPaused()
+        assert(isPausedFalse === false)
     })
 
     it('should set a new minter', async () => {
@@ -95,10 +97,9 @@ contract('DataTokenTemplate', async (accounts) => {
     })
 
     it('should not mint the tokens because of the paused contract', async () => {
-        await token.pause()
-        truffleAssert.fails(token.mint(reciever, 10, { value: ethValue, from: minter }),
-            truffleAssert.ErrorType.REVERT,
-            'ERC20Pausable: this token contract is paused')
+        await token.pause({ from: minter })
+        truffleAssert.fails(token.mint(reciever, 10, { value: ethValue, from: minter }))
+        await token.unpause({ from: minter })
     })
 
     it('should mint the tokens', async () => {
@@ -138,12 +139,12 @@ contract('DataTokenTemplate', async (accounts) => {
     })
 
     it('should transfer token tokens to another address', async () => {
-        truffleAssert.passes(await token.mint(minter, 10, { value: ethValue, from: minter }))
+        truffleAssert.passes(await token.mint(minter, 10, { from: minter }))
         truffleAssert.passes(await token.transfer(reciever, 1, { from: minter }))
     })
 
     it('should transfer token tokens to another address', async () => {
-        truffleAssert.passes(await token.mint(minter, 10, { value: ethValue, from: minter }))
+        truffleAssert.passes(await token.mint(minter, 10, { from: minter }))
         truffleAssert.passes(await token.approve(reciever, 10, { from: minter }))
         truffleAssert.passes(await token.transferFrom(minter, reciever, 1, { from: reciever }))
     })
@@ -167,7 +168,7 @@ contract('DataTokenTemplate', async (accounts) => {
         const orderDTTokensAmount = 10
         const marketFee = 2
         const serviceId = 1
-        truffleAssert.passes(await token.mint(consumer, orderDTTokensAmount, { value: ethValue, from: minter }))
+        truffleAssert.passes(await token.mint(consumer, orderDTTokensAmount, { from: minter }))
         orderTxId = await token.startOrder(
             provider,
             orderDTTokensAmount,
@@ -189,7 +190,7 @@ contract('DataTokenTemplate', async (accounts) => {
         const provider = accounts[8]
         const restOfDTTokensAmount = 2
         const serviceId = 1
-        truffleAssert.passes(await token.mint(provider, restOfDTTokensAmount, { value: ethValue, from: minter }))
+        truffleAssert.passes(await token.mint(provider, restOfDTTokensAmount, { from: minter }))
         const trxReceipt = await token.finishOrder(
             orderTxId.receipt.transactionHash,
             consumer,

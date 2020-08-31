@@ -10,7 +10,7 @@ interface IERC20Template {
         address collector
     ) external returns (bool);
 
-    function mint(address account, uint256 value) external payable;
+    function mint(address account, uint256 value) external;
 
     function pause() external;
 

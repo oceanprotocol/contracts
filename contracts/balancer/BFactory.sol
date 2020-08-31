@@ -45,22 +45,22 @@ contract BFactory is BConst, Deployer {
        Template contract address could not be a zero address. 
        @return address of a new proxy BPool contract */
     function newBPool()
-        public
+        external
         returns (address bpool)
     {
         bpool = deploy(_bpoolTemplate);
         require(bpool != address(0), 'ERR_ADDRESS_0');
-        BPool bpoolInstance = BPool(bpool);
-
-        bpoolInstance.initialize(
-            msg.sender,
-            address(this), 
-            MIN_FEE, 
-            false,
-            false
+        BPool bpoolInstance = BPool(bpool);	
+        require(
+            bpoolInstance.initialize(
+                msg.sender,
+                address(this), 
+                MIN_FEE, 
+                false,
+                false
+            ),
+            'ERR_INITIALIZE_BPOOL'
         );
-	
-        require(bpoolInstance.isInitialized(), 'ERR_INITIALIZE_BPOOL');
         emit BPoolCreated(bpool, _bpoolTemplate);
         emit BPoolRegistered(bpool, msg.sender, block.number);
     }

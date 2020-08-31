@@ -70,9 +70,12 @@ contract OPFCommunityFeeCollector is Ownable {
             'OPFCommunityFeeCollector: invalid token contract address'
         );
 
-        IERC20Template(tokenAddress).transfer(
-            collector,
-            IERC20Template(tokenAddress).balanceOf(address(this))
+        require (
+            IERC20Template(tokenAddress).transfer(
+                collector,
+                IERC20Template(tokenAddress).balanceOf(address(this))
+            ),
+            'OPFCommunityFeeCollector: failed to withdraw tokens'
         );
     }
 

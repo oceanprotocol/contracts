@@ -101,7 +101,7 @@ contract BPool is BToken, BMath {
         );
         _;
     }
-    function isInitialized() public view returns(bool) {
+    function isInitialized() external view returns(bool) {
         return initialized;
     }
     
@@ -119,7 +119,7 @@ contract BPool is BToken, BMath {
         bool publicSwap,
         bool finalized
     )
-        public
+        external
         onlyNotInitialized
         returns(bool)
     {
@@ -167,6 +167,7 @@ contract BPool is BToken, BMath {
         uint256 swapFee
     )
         external
+        _logs_
     {
         require(
             dataTokenAaddress != address(0),
