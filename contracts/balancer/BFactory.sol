@@ -45,7 +45,7 @@ contract BFactory is BConst, Deployer {
        Template contract address could not be a zero address. 
        @return address of a new proxy BPool contract */
     function newBPool()
-        public
+        external
         returns (address bpool)
     {
         bpool = deploy(_bpoolTemplate);
