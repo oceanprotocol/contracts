@@ -48,7 +48,7 @@ ERC20Pausable (templates/token/ERC20Pausable.sol#14-130) inherits from a contrac
 		- A inherited contract is missing from this list,
 		- The contract are imported from the correct files.
 	- This issue impacts the contracts inheriting from ERC20Pausable:
-		-DataTokenTemplate (templates/DataTokenTemplate.sol#16-434)
+		-DataTokenTemplate (templates/DataTokenTemplate.sol#16-437)
 Reference: https://github.com/crytic/slither/wiki/Detector-Documentation#name-reused[0m
 INFO:Detectors:[93m
 Reentrancy in BPool.setup(address,uint256,uint256,address,uint256,uint256,uint256) (balancer/BPool.sol#150-176):
@@ -82,8 +82,6 @@ Reentrancy in BPool.setup(address,uint256,uint256,address,uint256,uint256,uint25
 		- _totalWeight = bsub(_totalWeight,bsub(oldWeight,denorm)) (balancer/BPool.sol#370)
 Reference: https://github.com/crytic/slither/wiki/Detector-Documentation#reentrancy-vulnerabilities-1[0m
 INFO:Detectors:[93m
-DTFactory.createToken(string,string,string,uint256) (DTFactory.sol#68-118) ignores return value by tokenInstance.initialize(name,symbol,msg.sender,cap,blob,communityFeeCollector) (DTFactory.sol#91-98)
-BFactory.newBPool() (balancer/BFactory.sol#47-66) ignores return value by bpoolInstance.initialize(msg.sender,address(this),MIN_FEE,false,false) (balancer/BFactory.sol#55-61)
 OPFCommunityFeeCollector.withdrawToken(address) (communityFee/OPFCommunityFeeCollector.sol#63-77) ignores return value by IERC20Template(tokenAddress).transfer(collector,IERC20Template(tokenAddress).balanceOf(address(this))) (communityFee/OPFCommunityFeeCollector.sol#73-76)
 Reference: https://github.com/crytic/slither/wiki/Detector-Documentation#unused-return[0m
 INFO:Detectors:[92m
@@ -95,11 +93,11 @@ IERC20Template.initialize(string,string,address,uint256,string,address).cap (int
 	- IERC20Template.cap() (interfaces/IERC20Template.sol#27) (function)
 Reference: https://github.com/crytic/slither/wiki/Detector-Documentation#local-variable-shadowing[0m
 INFO:Detectors:[92m
-Reentrancy in DTFactory.createToken(string,string,string,uint256) (DTFactory.sol#68-118):
+Reentrancy in DTFactory.createToken(string,string,string,uint256) (DTFactory.sol#68-111):
 	External calls:
-	- tokenInstance.initialize(name,symbol,msg.sender,cap,blob,communityFeeCollector) (DTFactory.sol#91-98)
+	- require(bool,string)(tokenInstance.initialize(name,symbol,msg.sender,cap,blob,communityFeeCollector),DTFactory: Unable to initialize token instance) (DTFactory.sol#89-99)
 	State variables written after the call(s):
-	- currentTokenCount += 1 (DTFactory.sol#117)
+	- currentTokenCount += 1 (DTFactory.sol#110)
 Reentrancy in BPool.setup(address,uint256,uint256,address,uint256,uint256,uint256) (balancer/BPool.sol#150-176):
 	External calls:
 	- bind(dataTokenAaddress,dataTokenAmount,dataTokenWeight) (balancer/BPool.sol#162-166)
@@ -121,15 +119,15 @@ Reentrancy in BPool.setup(address,uint256,uint256,address,uint256,uint256,uint25
 		- _totalSupply = badd(_totalSupply,amt) (balancer/BToken.sol#46)
 Reference: https://github.com/crytic/slither/wiki/Detector-Documentation#reentrancy-vulnerabilities-2[0m
 INFO:Detectors:[92m
-Reentrancy in DTFactory.createToken(string,string,string,uint256) (DTFactory.sol#68-118):
+Reentrancy in DTFactory.createToken(string,string,string,uint256) (DTFactory.sol#68-111):
 	External calls:
-	- tokenInstance.initialize(name,symbol,msg.sender,cap,blob,communityFeeCollector) (DTFactory.sol#91-98)
+	- require(bool,string)(tokenInstance.initialize(name,symbol,msg.sender,cap,blob,communityFeeCollector),DTFactory: Unable to initialize token instance) (DTFactory.sol#89-99)
 	Event emitted after the call(s):
-	- TokenCreated(token,tokenTemplate,name) (DTFactory.sol#105)
-	- TokenRegistered(token,name,symbol,cap,msg.sender,block.number,blob) (DTFactory.sol#107-115)
+	- TokenCreated(token,tokenTemplate,name) (DTFactory.sol#100)
+	- TokenRegistered(token,name,symbol,cap,msg.sender,block.number,blob) (DTFactory.sol#101-109)
 Reentrancy in BFactory.newBPool() (balancer/BFactory.sol#47-66):
 	External calls:
-	- bpoolInstance.initialize(msg.sender,address(this),MIN_FEE,false,false) (balancer/BFactory.sol#55-61)
+	- require(bool,string)(bpoolInstance.initialize(msg.sender,address(this),MIN_FEE,false,false),ERR_INITIALIZE_BPOOL) (balancer/BFactory.sol#54-63)
 	Event emitted after the call(s):
 	- BPoolCreated(bpool,_bpoolTemplate) (balancer/BFactory.sol#64)
 	- BPoolRegistered(bpool,msg.sender,block.number) (balancer/BFactory.sol#65)
@@ -145,9 +143,9 @@ Reentrancy in BPool.setup(address,uint256,uint256,address,uint256,uint256,uint25
 	- LOG_CALL(msg.sig,msg.sender,msg.data) (balancer/BPool.sol#60)
 		- setSwapFee(swapFee) (balancer/BPool.sol#173)
 	- LOG_CALL(msg.sig,msg.sender,msg.data) (balancer/BPool.sol#60)
-		- bind(baseTokenAddress,baseTokenAmount,baseTokenWeight) (balancer/BPool.sol#168-172)
-	- LOG_CALL(msg.sig,msg.sender,msg.data) (balancer/BPool.sol#60)
 		- finalize() (balancer/BPool.sol#175)
+	- LOG_CALL(msg.sig,msg.sender,msg.data) (balancer/BPool.sol#60)
+		- bind(baseTokenAddress,baseTokenAmount,baseTokenWeight) (balancer/BPool.sol#168-172)
 	- Transfer(address(0),address(this),amt) (balancer/BToken.sol#47)
 		- finalize() (balancer/BPool.sol#175)
 	- Transfer(src,dst,amt) (balancer/BToken.sol#64)
@@ -253,7 +251,7 @@ initialize(address,address,uint256,bool,bool) should be declared external:
 setPublicSwap(bool) should be declared external:
 	- BPool.setPublicSwap(bool) (balancer/BPool.sol#301-309)
 createToken(string,string,string,uint256) should be declared external:
-	- DTFactory.createToken(string,string,string,uint256) (DTFactory.sol#68-118)
+	- DTFactory.createToken(string,string,string,uint256) (DTFactory.sol#68-111)
 newBPool() should be declared external:
 	- BFactory.newBPool() (balancer/BFactory.sol#47-66)
 setCompleted(uint256) should be declared external:
@@ -277,5 +275,5 @@ increaseAllowance(address,uint256) should be declared external:
 decreaseAllowance(address,uint256) should be declared external:
 	- ERC20.decreaseAllowance(address,uint256) (openzeppelin-solidity/contracts/token/ERC20/ERC20.sol#135-138)
 Reference: https://github.com/crytic/slither/wiki/Detector-Documentation#public-function-that-could-be-declared-as-external[0m
-INFO:Slither:. analyzed (21 contracts with 46 detectors), 76 result(s) found
+INFO:Slither:. analyzed (21 contracts with 46 detectors), 74 result(s) found
 INFO:Slither:[94mUse https://crytic.io/ to get access to additional detectors and Github integration[0m
