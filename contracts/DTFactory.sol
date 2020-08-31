@@ -85,25 +85,19 @@ contract DTFactory is Deployer {
             token != address(0),
             'DTFactory: Failed to perform minimal deploy of a new token'
         );
-
-
         IERC20Template tokenInstance = IERC20Template(token);
-        tokenInstance.initialize(
-            name,
-            symbol,
-            msg.sender,
-            cap,
-            blob,
-            communityFeeCollector
-        );
-
         require(
-            tokenInstance.isInitialized(),
+            tokenInstance.initialize(
+                name,
+                symbol,
+                msg.sender,
+                cap,
+                blob,
+                communityFeeCollector
+            ),
             'DTFactory: Unable to initialize token instance'
         );
-
         emit TokenCreated(token, tokenTemplate, name);
-
         emit TokenRegistered(
             token,
             name,
@@ -113,7 +107,6 @@ contract DTFactory is Deployer {
             block.number,
             blob
         );
-
         currentTokenCount += 1;
     }
 

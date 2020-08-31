@@ -48,7 +48,7 @@ ERC20Pausable (templates/token/ERC20Pausable.sol#14-130) inherits from a contrac
 		- A inherited contract is missing from this list,
 		- The contract are imported from the correct files.
 	- This issue impacts the contracts inheriting from ERC20Pausable:
-		-DataTokenTemplate (templates/DataTokenTemplate.sol#16-437)
+		-DataTokenTemplate (templates/DataTokenTemplate.sol#16-434)
 Reference: https://github.com/crytic/slither/wiki/Detector-Documentation#name-reused[0m
 INFO:Detectors:[93m
 Reentrancy in BPool.setup(address,uint256,uint256,address,uint256,uint256,uint256) (balancer/BPool.sol#150-176):
@@ -143,11 +143,11 @@ Reentrancy in BPool.setup(address,uint256,uint256,address,uint256,uint256,uint25
 		- xfer = IERC20(erc20).transfer(to,amount) (balancer/BPool.sol#864)
 	Event emitted after the call(s):
 	- LOG_CALL(msg.sig,msg.sender,msg.data) (balancer/BPool.sol#60)
+		- setSwapFee(swapFee) (balancer/BPool.sol#173)
+	- LOG_CALL(msg.sig,msg.sender,msg.data) (balancer/BPool.sol#60)
 		- bind(baseTokenAddress,baseTokenAmount,baseTokenWeight) (balancer/BPool.sol#168-172)
 	- LOG_CALL(msg.sig,msg.sender,msg.data) (balancer/BPool.sol#60)
 		- finalize() (balancer/BPool.sol#175)
-	- LOG_CALL(msg.sig,msg.sender,msg.data) (balancer/BPool.sol#60)
-		- setSwapFee(swapFee) (balancer/BPool.sol#173)
 	- Transfer(address(0),address(this),amt) (balancer/BToken.sol#47)
 		- finalize() (balancer/BPool.sol#175)
 	- Transfer(src,dst,amt) (balancer/BToken.sol#64)
