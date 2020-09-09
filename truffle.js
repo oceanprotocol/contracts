@@ -23,6 +23,8 @@ const NonceTrackerSubprovider = require('web3-provider-engine/subproviders/nonce
 const utils = require('web3-utils')
 
 const MNEMONIC = process.env.MNEMONIC || process.env.NMEMORIC
+const rpcHost = process.env.NETWORK_RPC_HOST
+const rpcPort = process.env.NETWORK_RPC_PORT
 const hdWalletStartIndex = 0
 const hdWalletAccounts = 5
 let hdWalletProvider
@@ -60,9 +62,11 @@ module.exports = {
     // options below to some value.
     //
         development: {
-            host: '127.0.0.1', // Localhost (default: none)
-            port: 8545, // Standard Ethereum port (default: none)
-            network_id: '*' // Any network (default: none)
+            host: rpcHost || '127.0.0.1',
+            port: rpcPort || 8545,
+            // has to be '*' because this is usually ganache
+            //gas: 6721975,
+            network_id: '*'
         },
         coverage: {
             host: 'localhost',

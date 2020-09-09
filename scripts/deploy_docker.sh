@@ -10,10 +10,8 @@ then
     # remove ready flag if we deploy contracts
     rm -f /ocean-contracts/artifacts/ready
 
-    npm run clean
-    npm run compile
     export NETWORK="${NETWORK_NAME:-development}"
-    truffle migrate --network ${NETWORK}
+    npm run deploy:${NETWORK}
 
     # set flag to indicate contracts are ready
     touch /ocean-contracts/artifacts/ready
