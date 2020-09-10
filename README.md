@@ -9,7 +9,7 @@ This is in alpha state and you can expect running into problems. If you run into
 
 A high level overview of OceanProtocol contracts:
 
-![image](https://user-images.githubusercontent.com/5428661/89401154-2b5cab80-d715-11ea-8a6f-413d6a03a283.png)
+![image](docs/imgs/oceanprotocol-contracts-highLevelArch.png)
 
 
 ## Table of Contents
@@ -55,8 +55,12 @@ const dtFactory = new web3.eth.Contract(
 
 // create new datatoken
 const tx = await dtFactory.methods
-               .createToken('https://123example.com', "my datatoken", "DT", web3.utils.toWei('1000000'))
-               .send()
+               .createToken(
+                  'https://123example.com', 
+                  "my datatoken", 
+                  "DT", 
+                  web3.utils.toWei('1000000')
+               ).send()
 let tokenAddress = null
 try {
    tokenAddress = tx.events.TokenCreated.returnValue[0]
