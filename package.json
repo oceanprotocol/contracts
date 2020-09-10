@@ -26,6 +26,7 @@
     "changelog": "auto-changelog -p",
     "cp-artifacts": "cp ./build/contracts/*.json ./artifacts",
     "deploy": "npm run deploy:development",
+    "deploy:ganache": "npm run deploy:development",
     "deploy:development": "npm run clean && npm run compile && export NETWORK='development' && truffle migrate && npm run cp-artifacts",
     "deploy:nile": "npm run clean && npm run compile && export NETWORK='nile' && truffle migrate --network nile && npm run cp-artifacts",
     "deploy:pacific": "npm run clean && npm run compile && export NETWORK='pacific' && truffle migrate --network pacific && npm run cp-artifacts",
