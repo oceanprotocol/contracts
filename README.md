@@ -38,7 +38,7 @@ For quick installation of the contracts `ABIs`:
 npm i @oceanprotocol/contracts
 ```
 ### Usage
-For more details about how to use ocean contracts, follow the developer guides in [ocean-lib-js](https://github.com/oceanprotocol/ocean-lib-js#-quick-start) and [ocean-lib-py](https://github.com/oceanprotocol/ocean-lib-py#quickstart).
+For more details about how to use ocean contracts, please refer to the quick start section in [ocean-lib-js](https://github.com/oceanprotocol/ocean-lib-js#-quick-start) and [ocean-lib-py](https://github.com/oceanprotocol/ocean-lib-py#quickstart).
 
 ### Local development
 
