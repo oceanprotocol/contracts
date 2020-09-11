@@ -14,7 +14,7 @@ const OPFOwner = '0xeE9300b7961e0a01d9f0adb863C7A227A07AaD75'
 
 module.exports = function(deployer, network, accounts) {
     deployer.then(async () => {
-        addresses = {}
+        const addresses = {}
         await deployer.deploy(
             OPFCommunityFeeCollector,
             communityCollector,
@@ -58,6 +58,6 @@ module.exports = function(deployer, network, accounts) {
         )
         addresses.DDO = DDO.address
 
-        fs.writeFileSync('./artifacts/address.json', JSON.stringify({'ganache': addresses}))
+        fs.writeFileSync('./artifacts/address.json', JSON.stringify({ ganache: addresses }))
     })
 }

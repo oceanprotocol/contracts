@@ -65,14 +65,12 @@ module.exports = {
             host: rpcHost || '127.0.0.1',
             port: rpcPort || 8545,
             // has to be '*' because this is usually ganache
-            //gas: 6721975,
             network_id: '*'
         },
         ganache: {
             host: rpcHost || '127.0.0.1',
             port: rpcPort || 8545,
             // has to be '*' because this is usually ganache
-            //gas: 6721975,
             network_id: '*'
         },
         coverage: {
