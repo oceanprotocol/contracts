@@ -38,37 +38,7 @@ For quick installation of the contracts `ABIs`:
 npm i @oceanprotocol/contracts
 ```
 ### Usage
-
-To import a contract ABI:
-
-```javascript
-const dtFactoryABI = require('@oceanprotocol/contracts/artifacts/development/DTFactory.json')
-
-const dtFactoryAddress = '0x123456789.....'
-
-const dtFactory = new web3.eth.Contract(
-                  dtFactoryABI, 
-                  dtFactoryAddress,
-                  {
-                     from: accounts[0]
-                  }
-               )
-
-// create new datatoken
-const tx = await dtFactory.methods
-               .createToken(
-                  'https://123example.com', 
-                  "my datatoken", 
-                  "DT", 
-                  web3.utils.toWei('1000000')
-               ).send()
-let tokenAddress = null
-try {
-   tokenAddress = tx.events.TokenCreated.returnValue[0]
-} catch (e) {
-   console.error(e)
-}
-```
+For more details about how to use ocean contracts, follow the developer guides in [ocean-lib-js](https://github.com/oceanprotocol/ocean-lib-js#-quick-start) and [ocean-lib-py](https://github.com/oceanprotocol/ocean-lib-py#quickstart).
 
 ### Local development
 
