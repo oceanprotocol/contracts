@@ -411,6 +411,8 @@ contract DataTokenTemplate is IERC20Template, ERC20Pausable {
         pure
         returns(uint256)
     {
+        if(amount == 0) return 0;
+        if(feePercentage == 0) return 0;
         return amount.mul(feePercentage).div(BASE);
     }
 
