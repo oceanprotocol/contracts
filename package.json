@@ -17,7 +17,7 @@
     "compile": "truffle compile",
     "test:cover": "npx truffle run coverage --network coverage",
     "report:coverage": "cat coverage/lcov.info | coveralls",
-    "clean": "rm -rf ./build/ ./artifacts/*.json",
+    "clean": "rm -rf ./build/",
     "lint:ethlint": "solium -d ./contracts/",
     "lint:eslint": "eslint --ignore-pattern '/coverage/' .",
     "lint": "npm run lint:eslint && npm run lint:ethlint",

@@ -17422,7 +17422,7 @@
   },
   "networks": {},
   "schemaVersion": "3.2.0",
-  "updatedAt": "2020-09-11T12:01:23.061Z",
+  "updatedAt": "2020-09-11T12:10:58.043Z",
   "devdoc": {
     "details": "FixedRateExchange is a fixed rate exchange Contract     Marketplaces uses this contract to allow consumers      exchanging datatokens with ocean token using a fixed      exchange rate.",
     "methods": {

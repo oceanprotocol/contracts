@@ -161,7 +161,7 @@ contract('DataTokenTemplate', async (accounts) => {
             blob
         )
     })
-    it('should accept zero marketplace fee', async() => {
+    it('should accept zero marketplace fee', async () => {
         const consumer = accounts[6]
         const provider = accounts[7]
         const marketAddress = constants.address.zero
