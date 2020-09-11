@@ -1,6 +1,6 @@
 const constants = {
     network: {
-        nodeUrl: `http://localhost:${process.env.ETHEREUM_RPC_PORT || '8545'}`
+        nodeUrl: `http://localhost:${process.env.NETWORK_RPC_PORT || '8545'}`
     },
     did: [
         '0x0000000000000000000000000000000000000000000000000000000001111111',

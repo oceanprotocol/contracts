@@ -1,5 +1,6 @@
 /* eslint-env mocha */
 /* global artifacts */
+const fs = require('fs')
 var DataTokenTemplate = artifacts.require('./DataTokenTemplate.sol')
 var DTFactory = artifacts.require('./DTFactory.sol')
 var BPool = artifacts.require('./BPool.sol')
@@ -13,6 +14,7 @@ const OPFOwner = '0xeE9300b7961e0a01d9f0adb863C7A227A07AaD75'
 
 module.exports = function(deployer, network, accounts) {
     deployer.then(async () => {
+        const addresses = {}
         await deployer.deploy(
             OPFCommunityFeeCollector,
             communityCollector,
@@ -34,6 +36,7 @@ module.exports = function(deployer, network, accounts) {
             DataTokenTemplate.address,
             OPFCommunityFeeCollector.address
         )
+        addresses.DTFactory = DTFactory.address
 
         await deployer.deploy(
             BPool
@@ -43,13 +46,18 @@ module.exports = function(deployer, network, accounts) {
             BFactory,
             BPool.address
         )
+        addresses.BFactory = BFactory.address
 
         await deployer.deploy(
             FixedRateExchange
         )
+        addresses.FixedRateExchange = FixedRateExchange.address
 
         await deployer.deploy(
             DDO
         )
+        addresses.DDO = DDO.address
+
+        fs.writeFileSync('./artifacts/address.json', JSON.stringify({ ganache: addresses }))
     })
 }
