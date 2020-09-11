@@ -11,6 +11,7 @@ const Token = artifacts.require('DataTokenTemplate')
 const testUtils = require('../../helpers/utils')
 const truffleAssert = require('truffle-assertions')
 const BigNumber = require('bn.js')
+const constants = require('../../helpers/constants')
 
 contract('DataTokenTemplate', async (accounts) => {
     let cap,
@@ -160,7 +161,26 @@ contract('DataTokenTemplate', async (accounts) => {
             blob
         )
     })
-
+    it('should accept zero marketplace fee', async() => {
+        const consumer = accounts[6]
+        const provider = accounts[7]
+        const marketAddress = constants.address.zero
+        const orderDTTokensAmount = 2
+        const marketFee = 0
+        const serviceId = 1
+        await token.mint(consumer, 20, { from: minter })
+        await token.startOrder(
+            provider,
+            orderDTTokensAmount,
+            did,
+            serviceId,
+            marketAddress,
+            marketFee,
+            {
+                from: consumer
+            }
+        )
+    })
     it('should start order', async () => {
         const consumer = accounts[9]
         const provider = accounts[8]
