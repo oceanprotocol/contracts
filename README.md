@@ -9,7 +9,8 @@ This is in alpha state and you can expect running into problems. If you run into
 
 A high level overview of OceanProtocol contracts:
 
-![image](docs/imgs/oceanprotocol-contracts-highLevelArch.png)
+![image](https://user-images.githubusercontent.com/5428661/92893688-31cbfa80-f41a-11ea-845c-2c94ecc978f1.png)
+
 
 
 ## Table of Contents
