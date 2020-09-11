@@ -223,11 +223,12 @@ contract DataTokenTemplate is IERC20Template, ERC20Pausable {
             receiver != address(0),
             'DataTokenTemplate: invalid receiver address'
         );
-
-        require(
-            feeCollector != address(0),
-            'DataTokenTemplate: invalid fee collector address'
-        );
+        if(feePercentage != 0) {
+            require(
+                feeCollector != address(0),
+                'DataTokenTemplate: invalid fee collector address'
+            );
+        }
 
         uint256 communityFee = calculateFee(
             amount, 
@@ -240,8 +241,8 @@ contract DataTokenTemplate is IERC20Template, ERC20Pausable {
             'DataTokenTemplate: total fee exceeds the amount'
         );
         
-        transfer(receiver, amount.sub(communityFee.add(marketFee)));
-        transfer(feeCollector, marketFee);
+        transfer(receiver, amount);
+        if(feePercentage != 0) transfer(feeCollector, marketFee);
         transfer(_communityFeeCollector, communityFee);
 
         emit OrderStarted(
