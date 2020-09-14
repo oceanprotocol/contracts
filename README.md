@@ -95,7 +95,7 @@ For local development, start a local testnet using `ganache-cli`, then run:
 ```
 npm run deploy
 ```
-Checkout the supported deployment(s) on test [networks](docs/deployments.md).
+Checkout the supported deployment(s) on test [networks](docs/README.md#deployments).
 
 ## Documentation
 
