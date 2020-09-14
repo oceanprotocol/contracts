@@ -1,4 +1,4 @@
-FROM node:14-alpine
+FROM node:12-alpine
 LABEL maintainer="Ocean Protocol <devops@oceanprotocol.com>"
 
 RUN apk add --no-cache --update\
