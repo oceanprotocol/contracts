@@ -15,6 +15,6 @@ RUN apk add --no-cache --update\
 COPY . /ocean-contracts
 WORKDIR /ocean-contracts
 
-RUN npm install
+RUN npm install --no-optional && npm cache clean --force
 
 ENTRYPOINT ["/ocean-contracts/scripts/deploy_docker.sh"]
