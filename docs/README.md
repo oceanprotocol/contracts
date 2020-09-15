@@ -1,4 +1,4 @@
-# Ocean-Contract Core Documentation
+# Ocean-Contracts Core Documentation
 
 ## Contracts
 - [DataTokenFactory](contracts/DTFactory.md)
