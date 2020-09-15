@@ -14,7 +14,7 @@
 - [BalancerMath](contracts/balancer/BMath.md)
 - [BalancerConstants](contracts/balancer/BConst.md)
 - [BalancerNumUtils](contracts/balancer/BNum.md)
-- [CommuintyFee](contracts/communityFee/OPFCommunityFeeCollector.md)
+- [CommunityFee](contracts/communityFee/OPFCommunityFeeCollector.md)
 
 ## Releases
 
