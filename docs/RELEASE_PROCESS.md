@@ -1,7 +1,6 @@
 # Releases
 
-Releases are managed manually. They are always manually triggered from a developer's machine with release scripts for 
-both python and javascript packages:
+Releases are managed manually. They are always manually triggered from a developer's machine with release scripts for both python and javascript packages:
 
 ## Production
 
