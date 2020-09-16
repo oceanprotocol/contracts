@@ -22,18 +22,18 @@ contract DataTokenTemplate is IERC20Template, ERC20Pausable {
     string  private _blob;
     uint256 private _cap;
     uint256 private _decimals;
-    address private _minter;
     address private _communityFeeCollector;
+    address public minter;
     uint256 public constant BASE = 10**18;
     uint256 public constant BASE_COMMUNITY_FEE_PERCENTAGE = BASE / 1000;
+    uint256 public constant BASE_MARKET_FEE_PERCENTAGE = BASE / 1000;
 
     event OrderStarted(
             uint256 amount, 
             bytes32 did, 
             uint256 serviceId, 
-            address receiver, 
             uint256 startedAt,
-            address feeCollector,
+            address mrktFeeCollector,
             uint256 marketFee
     );
 
@@ -56,7 +56,7 @@ contract DataTokenTemplate is IERC20Template, ERC20Pausable {
     
     modifier onlyMinter() {
         require(
-            msg.sender == _minter,
+            msg.sender == minter,
             'DataTokenTemplate: invalid minter' 
         );
         _;
@@ -67,7 +67,7 @@ contract DataTokenTemplate is IERC20Template, ERC20Pausable {
      *      Called prior contract deployment
      * @param name refers to a template DataToken name
      * @param symbol refers to a template DataToken symbol
-     * @param minter refers to an address that has minter role
+     * @param minterAddress refers to an address that has minter role
      * @param cap the total ERC20 cap
      * @param blob data string refering to the resolver for the DID
      * @param feeCollector it is the community fee collector address
@@ -75,7 +75,7 @@ contract DataTokenTemplate is IERC20Template, ERC20Pausable {
     constructor(
         string memory name,
         string memory symbol,
-        address minter,
+        address minterAddress,
         uint256 cap,
         string memory blob,
         address feeCollector
@@ -85,7 +85,7 @@ contract DataTokenTemplate is IERC20Template, ERC20Pausable {
         _initialize(
             name,
             symbol,
-            minter,
+            minterAddress,
             cap,
             blob,
             feeCollector
@@ -98,7 +98,7 @@ contract DataTokenTemplate is IERC20Template, ERC20Pausable {
      *      Calls private _initialize function. Only if contract is not initialized.
      * @param name refers to a new DataToken name
      * @param symbol refers to a nea DataToken symbol
-     * @param minter refers to an address that has minter rights
+     * @param minterAddress refers to an address that has minter rights
      * @param cap the total ERC20 cap
      * @param blob data string refering to the resolver for the DID
      * @param feeCollector it is the community fee collector address
@@ -106,7 +106,7 @@ contract DataTokenTemplate is IERC20Template, ERC20Pausable {
     function initialize(
         string calldata name,
         string calldata symbol,
-        address minter,
+        address minterAddress,
         uint256 cap,
         string calldata blob,
         address feeCollector
@@ -118,7 +118,7 @@ contract DataTokenTemplate is IERC20Template, ERC20Pausable {
         return _initialize(
             name,
             symbol,
-            minter,
+            minterAddress,
             cap,
             blob,
             feeCollector
@@ -130,7 +130,7 @@ contract DataTokenTemplate is IERC20Template, ERC20Pausable {
      *      Private function called on contract initialization.
      * @param name refers to a new DataToken name
      * @param symbol refers to a nea DataToken symbol
-     * @param minter refers to an address that has minter rights
+     * @param minterAddress refers to an address that has minter rights
      * @param cap the total ERC20 cap
      * @param blob data string refering to the resolver for the DID
      * @param feeCollector it is the community fee collector address
@@ -138,7 +138,7 @@ contract DataTokenTemplate is IERC20Template, ERC20Pausable {
     function _initialize(
         string memory name,
         string memory symbol,
-        address minter,
+        address minterAddress,
         uint256 cap,
         string memory blob,
         address feeCollector
@@ -147,12 +147,12 @@ contract DataTokenTemplate is IERC20Template, ERC20Pausable {
         returns(bool)
     {
         require(
-            minter != address(0), 
+            minterAddress != address(0), 
             'DataTokenTemplate: Invalid minter,  zero address'
         );
 
         require(
-            _minter == address(0), 
+            minter == address(0), 
             'DataTokenTemplate: Invalid minter, zero address'
         );
 
@@ -171,7 +171,7 @@ contract DataTokenTemplate is IERC20Template, ERC20Pausable {
         _name = name;
         _blob = blob;
         _symbol = symbol;
-        _minter = minter;
+        minter = minterAddress;
         _communityFeeCollector = feeCollector;
         initialized = true;
         return initialized;
@@ -202,55 +202,41 @@ contract DataTokenTemplate is IERC20Template, ERC20Pausable {
     /**
      * @dev startOrder
      *      called by consumer prior ordering a service consume on a marketplace
-     * @param receiver refers to an address that provide a service.
      * @param amount refers to amount of tokens that is going to be transfered.
      * @param did refers to DID or decentralized identifier for an asset
      * @param serviceId service index in the DID
-     * @param feeCollector marketplace fee collector
-     * @param feePercentage marketplace fee percentage
+     * @param mrktFeeCollector marketplace fee collector
      */
     function startOrder(
-        address receiver, 
         uint256 amount,
         bytes32 did,
         uint256 serviceId,
-        address feeCollector,
-        uint256 feePercentage
+        address mrktFeeCollector
     )
         external
     {
-        require(
-            receiver != address(0),
-            'DataTokenTemplate: invalid receiver address'
-        );
-
-        require(
-            feeCollector != address(0),
-            'DataTokenTemplate: invalid fee collector address'
-        );
-
+        uint256 marketFee = 0;
         uint256 communityFee = calculateFee(
             amount, 
             BASE_COMMUNITY_FEE_PERCENTAGE
         );
-        uint256 marketFee = calculateFee(amount, feePercentage);
-        
-        require(
-            marketFee.add(communityFee) < amount,
-            'DataTokenTemplate: total fee exceeds the amount'
-        );
-        
-        transfer(receiver, amount.sub(communityFee.add(marketFee)));
-        transfer(feeCollector, marketFee);
         transfer(_communityFeeCollector, communityFee);
+        if(mrktFeeCollector != address(0)){
+            marketFee = calculateFee(
+                amount, 
+                BASE_MARKET_FEE_PERCENTAGE
+            );
+            transfer(mrktFeeCollector, marketFee);
+        }
+        uint256 totalFee = communityFee.add(marketFee);
+        transfer(minter, amount.sub(totalFee));
 
         emit OrderStarted(
             amount,
             did,
             serviceId,
-            receiver,
             block.number,
-            feeCollector,
+            mrktFeeCollector,
             marketFee
         );
     }
@@ -316,10 +302,14 @@ contract DataTokenTemplate is IERC20Template, ERC20Pausable {
      *      It sets a new token minter address.
      *      Only called be called if the contract is not paused.
      *      Only the current minter can call it.
-     * @param minter refers to a new token minter address.
+     * @param minterAddress refers to a new token minter address.
      */
-    function setMinter(address minter) external onlyNotPaused onlyMinter {
-        _minter = minter;
+    function setMinter(address minterAddress) 
+        external 
+        onlyNotPaused 
+        onlyMinter 
+    {
+        minter = minterAddress;
     }
 
     /**
@@ -375,7 +365,7 @@ contract DataTokenTemplate is IERC20Template, ERC20Pausable {
      * @return true if account has a minter role.
      */
     function isMinter(address account) external view returns(bool) {
-        return (_minter == account);
+        return (minter == account);
     } 
 
     /**
@@ -411,6 +401,8 @@ contract DataTokenTemplate is IERC20Template, ERC20Pausable {
         pure
         returns(uint256)
     {
+        if(amount == 0) return 0;
+        if(feePercentage == 0) return 0;
         return amount.mul(feePercentage).div(BASE);
     }
 
