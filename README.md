@@ -9,7 +9,8 @@ This is in alpha state and you can expect running into problems. If you run into
 
 A high level overview of OceanProtocol contracts:
 
-![image](https://user-images.githubusercontent.com/5428661/89401154-2b5cab80-d715-11ea-8a6f-413d6a03a283.png)
+![image](https://user-images.githubusercontent.com/5428661/92893688-31cbfa80-f41a-11ea-845c-2c94ecc978f1.png)
+
 
 
 ## Table of Contents
@@ -37,33 +38,7 @@ For quick installation of the contracts `ABIs`:
 npm i @oceanprotocol/contracts
 ```
 ### Usage
-
-To import a contract ABI:
-
-```javascript
-const dtFactoryABI = require('@oceanprotocol/contracts/artifacts/development/DTFactory.json')
-
-const dtFactoryAddress = '0x123456789.....'
-
-const dtFactory = new web3.eth.Contract(
-                  dtFactoryABI, 
-                  dtFactoryAddress,
-                  {
-                     from: accounts[0]
-                  }
-               )
-
-// create new datatoken
-const tx = await dtFactory.methods
-               .createToken('https://123example.com', "my datatoken", "DT", web3.utils.toWei('1000000'))
-               .send()
-let tokenAddress = null
-try {
-   tokenAddress = tx.events.TokenCreated.returnValue[0]
-} catch (e) {
-   console.error(e)
-}
-```
+For more details about how to use ocean contracts, please refer to the quick start section in [ocean-lib-js](https://github.com/oceanprotocol/ocean-lib-js#-quick-start) and [ocean-lib-py](https://github.com/oceanprotocol/ocean-lib-py#quickstart).
 
 ### Local development
 
@@ -120,7 +95,7 @@ For local development, start a local testnet using `ganache-cli`, then run:
 ```
 npm run deploy
 ```
-Checkout the supported deployment(s) on test [networks](docs/deployments.md).
+Checkout the supported deployment(s) on test [networks](docs/README.md#deployments).
 
 ## Documentation
 
