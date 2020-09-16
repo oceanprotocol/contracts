@@ -405,25 +405,4 @@ contract DataTokenTemplate is IERC20Template, ERC20Pausable {
         if(feePercentage == 0) return 0;
         return amount.mul(feePercentage).div(BASE);
     }
-
-     /**
-     * @dev calculateTotalFee
-     *      giving a fee percentage, and amount it calculates 
-     *      the total fee (including the community fee) needed for order.
-     * @param amount the amount of token
-     * @param feePercentage the fee percentage 
-     * @return the total order fee.
-     */ 
-    function calculateTotalFee(
-        uint256 amount,
-        uint256 feePercentage
-    )
-        external
-        pure
-        returns(uint256)
-    {
-        return calculateFee(amount, BASE_COMMUNITY_FEE_PERCENTAGE).add(
-            calculateFee(amount, feePercentage)
-        );
-    }
 }
