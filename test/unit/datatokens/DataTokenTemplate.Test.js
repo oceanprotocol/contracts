@@ -163,19 +163,15 @@ contract('DataTokenTemplate', async (accounts) => {
     })
     it('should accept zero marketplace fee', async () => {
         const consumer = accounts[6]
-        const provider = accounts[7]
         const marketAddress = constants.address.zero
         const orderDTTokensAmount = 2
-        const marketFee = 0
         const serviceId = 1
         await token.mint(consumer, 20, { from: minter })
         await token.startOrder(
-            provider,
             orderDTTokensAmount,
             did,
             serviceId,
             marketAddress,
-            marketFee,
             {
                 from: consumer
             }
@@ -183,26 +179,22 @@ contract('DataTokenTemplate', async (accounts) => {
     })
     it('should start order', async () => {
         const consumer = accounts[9]
-        const provider = accounts[8]
         const marketAddress = accounts[7]
         const orderDTTokensAmount = 10
-        const marketFee = 2
         const serviceId = 1
+        const minterBalanceBefore = (await token.balanceOf(minter)).toNumber()
         truffleAssert.passes(await token.mint(consumer, orderDTTokensAmount, { from: minter }))
         orderTxId = await token.startOrder(
-            provider,
             orderDTTokensAmount,
             did,
             serviceId,
             marketAddress,
-            marketFee,
             {
                 from: consumer
             }
         )
-        const OrderStartedEventArgs = testUtils.getEventArgsFromTx(orderTxId, 'OrderStarted')
         assert(
-            (await token.balanceOf(provider)).toNumber() === (OrderStartedEventArgs.amount).toNumber()
+            minterBalanceBefore < (await token.balanceOf(minter)).toNumber()
         )
     })
     it('should finish order', async () => {

@@ -26,6 +26,7 @@ contract DataTokenTemplate is IERC20Template, ERC20Pausable {
     address public minter;
     uint256 public constant BASE = 10**18;
     uint256 public constant BASE_COMMUNITY_FEE_PERCENTAGE = BASE / 1000;
+    uint256 public constant BASE_MARKET_FEE_PERCENTAGE = BASE / 1000;
 
     event OrderStarted(
             uint256 amount, 
@@ -202,56 +203,41 @@ contract DataTokenTemplate is IERC20Template, ERC20Pausable {
     /**
      * @dev startOrder
      *      called by consumer prior ordering a service consume on a marketplace
-     * @param receiver refers to an address that provide a service.
      * @param amount refers to amount of tokens that is going to be transfered.
      * @param did refers to DID or decentralized identifier for an asset
      * @param serviceId service index in the DID
-     * @param feeCollector marketplace fee collector
-     * @param feePercentage marketplace fee percentage
+     * @param mrktFeeCollector marketplace fee collector
      */
     function startOrder(
-        address receiver, 
         uint256 amount,
         bytes32 did,
         uint256 serviceId,
-        address feeCollector,
-        uint256 feePercentage
+        address mrktFeeCollector
     )
         external
     {
-        require(
-            receiver != address(0),
-            'DataTokenTemplate: invalid receiver address'
-        );
-        if(feePercentage != 0) {
-            require(
-                feeCollector != address(0),
-                'DataTokenTemplate: invalid fee collector address'
-            );
-        }
-
+        uint256 marketFee = 0;
         uint256 communityFee = calculateFee(
             amount, 
             BASE_COMMUNITY_FEE_PERCENTAGE
         );
-        uint256 marketFee = calculateFee(amount, feePercentage);
-        
-        require(
-            marketFee.add(communityFee) < amount,
-            'DataTokenTemplate: total fee exceeds the amount'
-        );
-        
-        transfer(receiver, amount);
-        if(feePercentage != 0) transfer(feeCollector, marketFee);
+        transfer(minter, amount);
         transfer(_communityFeeCollector, communityFee);
+        if(mrktFeeCollector != address(0)){
+            marketFee = calculateFee(
+                amount, 
+                BASE_MARKET_FEE_PERCENTAGE
+            );
+            transfer(mrktFeeCollector, marketFee);
+        }
 
         emit OrderStarted(
             amount,
             did,
             serviceId,
-            receiver,
+            minter,
             block.number,
-            feeCollector,
+            mrktFeeCollector,
             marketFee
         );
     }
@@ -319,7 +305,11 @@ contract DataTokenTemplate is IERC20Template, ERC20Pausable {
      *      Only the current minter can call it.
      * @param minterAddress refers to a new token minter address.
      */
-    function setMinter(address minterAddress) external onlyNotPaused onlyMinter {
+    function setMinter(address minterAddress) 
+        external 
+        onlyNotPaused 
+        onlyMinter 
+    {
         minter = minterAddress;
     }
 
