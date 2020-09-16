@@ -19,7 +19,7 @@ deploy new DataTokens.
 
 
 
-### `constructor(string name, string symbol, address minter, uint256 cap, string blob, address feeCollector)` (public)
+### `constructor(string name, string symbol, address minterAddress, uint256 cap, string blob, address feeCollector)` (public)
 
 
 
@@ -27,7 +27,7 @@ constructor
 Called prior contract deployment
 
 
-### `initialize(string name, string symbol, address minter, uint256 cap, string blob, address feeCollector) → bool` (external)
+### `initialize(string name, string symbol, address minterAddress, uint256 cap, string blob, address feeCollector) → bool` (external)
 
 
 
@@ -45,7 +45,7 @@ Only the minter address can call it.
 msg.value should be higher than zero and gt or eq minting fee
 
 
-### `startOrder(address receiver, uint256 amount, bytes32 did, uint256 serviceId, address feeCollector, uint256 feePercentage)` (external)
+### `startOrder(uint256 amount, bytes32 did, uint256 serviceId, address mrktFeeCollector)` (external)
 
 
 
@@ -80,7 +80,7 @@ It unpauses the contract.
 Only called if the contract is paused.
 Only minter can call it.
 
-### `setMinter(address minter)` (external)
+### `setMinter(address minterAddress)` (external)
 
 
 
@@ -173,7 +173,7 @@ the total fee (including the community fee) needed for order.
 
 
 
-### `OrderStarted(uint256 amount, bytes32 did, uint256 serviceId, address receiver, uint256 startedAt, address feeCollector, uint256 marketFee)`
+### `OrderStarted(uint256 amount, bytes32 did, uint256 serviceId, uint256 startedAt, address mrktFeeCollector, uint256 marketFee)`
 
 
 
