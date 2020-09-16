@@ -3236,7 +3236,7 @@
   },
   "networks": {},
   "schemaVersion": "3.2.0",
-  "updatedAt": "2020-09-16T10:18:23.930Z",
+  "updatedAt": "2020-09-16T10:31:01.109Z",
   "devdoc": {
     "details": "ERC20Pausable adds the ability to pause ERC20 compliant template      used by the ERC20Template contract for pausing the contract.",
     "methods": {

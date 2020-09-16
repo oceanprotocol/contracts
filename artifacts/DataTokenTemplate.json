@@ -14355,7 +14355,7 @@
   },
   "networks": {},
   "schemaVersion": "3.2.0",
-  "updatedAt": "2020-09-16T10:18:23.925Z",
+  "updatedAt": "2020-09-16T10:31:01.104Z",
   "devdoc": {
     "details": "DataTokenTemplate is an ERC20 compliant token template     Used by the factory contract as a bytecode reference to      deploy new DataTokens.",
     "methods": {

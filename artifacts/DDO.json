@@ -4271,7 +4271,7 @@
   },
   "networks": {},
   "schemaVersion": "3.2.0",
-  "updatedAt": "2020-09-16T10:18:23.923Z",
+  "updatedAt": "2020-09-16T10:31:01.102Z",
   "devdoc": {
     "details": "DDO stands for Decentralized Document. It allows publishers     to publish their dataset metadata in decentralized way.     It follows the Ocean DID Document standard:      https://github.com/oceanprotocol/OEPs/blob/master/7/v0.2/README.md",
     "methods": {
