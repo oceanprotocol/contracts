@@ -32,9 +32,8 @@ contract DataTokenTemplate is IERC20Template, ERC20Pausable {
             uint256 amount, 
             bytes32 did, 
             uint256 serviceId, 
-            address receiver, 
             uint256 startedAt,
-            address feeCollector,
+            address mrktFeeCollector,
             uint256 marketFee
     );
 
@@ -221,7 +220,6 @@ contract DataTokenTemplate is IERC20Template, ERC20Pausable {
             amount, 
             BASE_COMMUNITY_FEE_PERCENTAGE
         );
-        transfer(minter, amount);
         transfer(_communityFeeCollector, communityFee);
         if(mrktFeeCollector != address(0)){
             marketFee = calculateFee(
@@ -230,12 +228,13 @@ contract DataTokenTemplate is IERC20Template, ERC20Pausable {
             );
             transfer(mrktFeeCollector, marketFee);
         }
+        uint256 totalFee = communityFee.add(marketFee);
+        transfer(minter, amount.sub(totalFee));
 
         emit OrderStarted(
             amount,
             did,
             serviceId,
-            minter,
             block.number,
             mrktFeeCollector,
             marketFee
