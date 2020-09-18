@@ -379,6 +379,18 @@ contract DataTokenTemplate is IERC20Template, ERC20Pausable {
     } 
 
     /**
+     * @dev minter
+     * @return minter's address.
+     */
+    function minter()
+        external
+        view 
+        returns(address)
+    {
+        return _minter;
+    }
+
+    /**
      * @dev isInitialized
      *      It checks whether the contract is initialized.
      * @return true if the contract is initialized.

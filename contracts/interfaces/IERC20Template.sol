@@ -11,12 +11,12 @@ interface IERC20Template {
     ) external returns (bool);
 
     function mint(address account, uint256 value) external;
-
+    function minter() external view returns(address);
     function pause() external;
 
     function unpause() external;
 
-    function setMinter(address minter) external;
+    function setMinter(address _minter) external;
 
     function name() external view returns (string memory);
 

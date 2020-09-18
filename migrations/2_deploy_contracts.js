@@ -5,7 +5,7 @@ var DataTokenTemplate = artifacts.require('./DataTokenTemplate.sol')
 var DTFactory = artifacts.require('./DTFactory.sol')
 var BPool = artifacts.require('./BPool.sol')
 var BFactory = artifacts.require('./BFactory.sol')
-var DDO = artifacts.require('./DDO.sol')
+var Metadata = artifacts.require('./Metadata.sol')
 var FixedRateExchange = artifacts.require('./FixedRateExchange.sol')
 var OPFCommunityFeeCollector = artifacts.require('./OPFCommunityFeeCollector.sol')
 // dummy communityFeeCollector, replace with real wallet/owner
@@ -54,9 +54,9 @@ module.exports = function(deployer, network, accounts) {
         addresses.FixedRateExchange = FixedRateExchange.address
 
         await deployer.deploy(
-            DDO
+            Metadata
         )
-        addresses.DDO = DDO.address
+        addresses.Metadata = Metadata.address
 
         fs.writeFileSync('./artifacts/address.json', JSON.stringify({ ganache: addresses }))
     })
