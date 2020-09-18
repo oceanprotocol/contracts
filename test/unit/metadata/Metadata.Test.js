@@ -70,18 +70,4 @@ contract('Metadata test', async accounts => {
         const MetadataUpdatedEvent = testUtils.getEventArgsFromTx(tx, 'MetadataUpdated')
         assert(MetadataUpdatedEvent.dataToken === dataToken)
     })
-    it('should change minter and update metadata', async () => {
-        // const did = constants.did[0]
-        // newMinter = accounts[4]
-        // const tx = await dataToken.transferOwnership(8889888
-        //     did,
-        //     newMinter,
-        //     {
-        //         from: minter
-        //     }
-        // )
-        // const DDOOwnershipTransferredEvent = testUtils.getEventArgsFromTx(tx, 'DDOOwnershipTransferred')
-        // assert(DDOOwnershipTransferredEvent.did === did)
-        // assert(DDOOwnershipTransferredEvent.owner === accounts[4])
-    })
 })
