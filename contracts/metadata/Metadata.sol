@@ -18,17 +18,15 @@ contract Metadata {
 
     event MetadataCreated(
         address indexed dataToken,
+        address indexed createdBy,
         bytes flags,
-        bytes data,
-        uint256 createdAt,
-        address createdBy
+        bytes data
     );
     event MetadataUpdated(
         address indexed dataToken,
+        address indexed updatedBy,
         bytes flags,
-        bytes data,
-        uint256 updatedAt,
-        address updatedBy
+        bytes data
     );
 
     modifier onlyDataTokenMinter(address dataToken)
@@ -36,7 +34,7 @@ contract Metadata {
         IERC20Template token = IERC20Template(dataToken);
         require(
             token.minter() == msg.sender,
-            'DDO: Invalid DataToken Minter'
+            'Metadata: Invalid DataToken Minter'
         );
         _;
     }
@@ -47,7 +45,7 @@ contract Metadata {
      * @dev create
      *      creates/publishes new metadata/DDO document on-chain. 
      * @param dataToken refers to data token address
-     * @param flags special flags associated with DID
+     * @param flags special flags associated with metadata
      * @param data referes to the actual metadata
      */
     function create(
@@ -60,10 +58,9 @@ contract Metadata {
     {
         emit MetadataCreated(
             dataToken,
+            msg.sender,
             flags,
-            data,
-            block.number,
-            msg.sender
+            data
         );
     }
 
@@ -71,7 +68,7 @@ contract Metadata {
      * @dev update
      *      allows only datatoken minter(s) to update the DDO/metadata content
      * @param dataToken refers to data token address
-     * @param flags special flags associated with DID
+     * @param flags special flags associated with metadata
      * @param data referes to the actual metadata
      */
     function update(
@@ -84,10 +81,9 @@ contract Metadata {
     {
         emit MetadataUpdated(
             dataToken,
+            msg.sender,
             flags,
-            data,
-            block.number,
-            msg.sender
+            data
         );
     }
 }
