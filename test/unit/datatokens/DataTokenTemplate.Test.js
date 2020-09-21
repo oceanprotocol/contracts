@@ -219,21 +219,17 @@ contract('DataTokenTemplate', async (accounts) => {
         )
     })
     it('should calculate total fee', async () => {
-        const totalFee = await token.calculateTotalFee(
-            30000000,
-            web3.utils.toWei('0.02')
-        )
         const communityFee = await token.calculateFee(
             30000000,
             web3.utils.toWei('0.001')
         )
         const marketFee = await token.calculateFee(
             30000000,
-            web3.utils.toWei('0.02')
+            web3.utils.toWei('0.001')
         )
 
         assert(
-            totalFee.toNumber() === (marketFee.toNumber() + communityFee.toNumber())
+            marketFee.toNumber() === communityFee.toNumber()
         )
     })
 })
