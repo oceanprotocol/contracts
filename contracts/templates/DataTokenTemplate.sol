@@ -23,7 +23,7 @@ contract DataTokenTemplate is IERC20Template, ERC20Pausable {
     uint256 private _cap;
     uint256 private _decimals;
     address private _communityFeeCollector;
-    address public minter;
+    address private _minter;
     uint256 public constant BASE = 10**18;
     uint256 public constant BASE_COMMUNITY_FEE_PERCENTAGE = BASE / 1000;
     uint256 public constant BASE_MARKET_FEE_PERCENTAGE = BASE / 1000;
@@ -56,7 +56,7 @@ contract DataTokenTemplate is IERC20Template, ERC20Pausable {
     
     modifier onlyMinter() {
         require(
-            msg.sender == minter,
+            msg.sender == _minter,
             'DataTokenTemplate: invalid minter' 
         );
         _;
@@ -152,7 +152,7 @@ contract DataTokenTemplate is IERC20Template, ERC20Pausable {
         );
 
         require(
-            minter == address(0), 
+            _minter == address(0), 
             'DataTokenTemplate: Invalid minter, zero address'
         );
 
@@ -171,7 +171,7 @@ contract DataTokenTemplate is IERC20Template, ERC20Pausable {
         _name = name;
         _blob = blob;
         _symbol = symbol;
-        minter = minterAddress;
+        _minter = minterAddress;
         _communityFeeCollector = feeCollector;
         initialized = true;
         return initialized;
@@ -229,7 +229,7 @@ contract DataTokenTemplate is IERC20Template, ERC20Pausable {
             transfer(mrktFeeCollector, marketFee);
         }
         uint256 totalFee = communityFee.add(marketFee);
-        transfer(minter, amount.sub(totalFee));
+        transfer(_minter, amount.sub(totalFee));
 
         emit OrderStarted(
             amount,
@@ -309,7 +309,7 @@ contract DataTokenTemplate is IERC20Template, ERC20Pausable {
         onlyNotPaused 
         onlyMinter 
     {
-        minter = minterAddress;
+        _minter = minterAddress;
     }
 
     /**
@@ -365,8 +365,20 @@ contract DataTokenTemplate is IERC20Template, ERC20Pausable {
      * @return true if account has a minter role.
      */
     function isMinter(address account) external view returns(bool) {
-        return (minter == account);
+        return (_minter == account);
     } 
+
+    /**
+     * @dev minter
+     * @return minter's address.
+     */
+    function minter()
+        external
+        view 
+        returns(address)
+    {
+        return _minter;
+    }
 
     /**
      * @dev isInitialized
