@@ -3235,8 +3235,8 @@
     "version": "0.5.7+commit.6da8b019.Emscripten.clang"
   },
   "networks": {},
-  "schemaVersion": "3.2.0",
-  "updatedAt": "2020-09-21T10:30:10.041Z",
+  "schemaVersion": "3.2.4",
+  "updatedAt": "2020-09-21T11:28:22.542Z",
   "devdoc": {
     "details": "ERC20Pausable adds the ability to pause ERC20 compliant template      used by the ERC20Template contract for pausing the contract.",
     "methods": {
