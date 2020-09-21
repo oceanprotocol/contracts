@@ -17,6 +17,12 @@
 
 
 
+### `minter() → address` (external)
+
+
+
+
+
 ### `pause()` (external)
 
 
@@ -29,7 +35,7 @@
 
 
 
-### `setMinter(address minter)` (external)
+### `setMinter(address _minter)` (external)
 
 
 
