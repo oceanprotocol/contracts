@@ -11,6 +11,7 @@ const Token = artifacts.require('DataTokenTemplate')
 const testUtils = require('../../helpers/utils')
 const truffleAssert = require('truffle-assertions')
 const BigNumber = require('bn.js')
+const constants = require('../../helpers/constants')
 
 contract('DataTokenTemplate', async (accounts) => {
     let cap,
@@ -160,29 +161,40 @@ contract('DataTokenTemplate', async (accounts) => {
             blob
         )
     })
-
-    it('should start order', async () => {
-        const consumer = accounts[9]
-        const provider = accounts[8]
-        const marketAddress = accounts[7]
-        const orderDTTokensAmount = 10
-        const marketFee = 2
+    it('should accept zero marketplace fee', async () => {
+        const consumer = accounts[6]
+        const marketAddress = constants.address.zero
+        const orderDTTokensAmount = 2
         const serviceId = 1
-        truffleAssert.passes(await token.mint(consumer, orderDTTokensAmount, { from: minter }))
-        orderTxId = await token.startOrder(
-            provider,
+        await token.mint(consumer, 20, { from: minter })
+        await token.startOrder(
             orderDTTokensAmount,
             did,
             serviceId,
             marketAddress,
-            marketFee,
             {
                 from: consumer
             }
         )
-        const OrderStartedEventArgs = testUtils.getEventArgsFromTx(orderTxId, 'OrderStarted')
+    })
+    it('should start order', async () => {
+        const consumer = accounts[9]
+        const marketAddress = accounts[7]
+        const orderDTTokensAmount = 10
+        const serviceId = 1
+        const minterBalanceBefore = (await token.balanceOf(minter)).toNumber()
+        truffleAssert.passes(await token.mint(consumer, orderDTTokensAmount, { from: minter }))
+        orderTxId = await token.startOrder(
+            orderDTTokensAmount,
+            did,
+            serviceId,
+            marketAddress,
+            {
+                from: consumer
+            }
+        )
         assert(
-            (await token.balanceOf(provider)).toNumber() === (OrderStartedEventArgs.amount).toNumber()
+            minterBalanceBefore < (await token.balanceOf(minter)).toNumber()
         )
     })
     it('should finish order', async () => {
@@ -207,21 +219,17 @@ contract('DataTokenTemplate', async (accounts) => {
         )
     })
     it('should calculate total fee', async () => {
-        const totalFee = await token.calculateTotalFee(
-            30000000,
-            web3.utils.toWei('0.02')
-        )
         const communityFee = await token.calculateFee(
             30000000,
             web3.utils.toWei('0.001')
         )
         const marketFee = await token.calculateFee(
             30000000,
-            web3.utils.toWei('0.02')
+            web3.utils.toWei('0.001')
         )
 
         assert(
-            totalFee.toNumber() === (marketFee.toNumber() + communityFee.toNumber())
+            marketFee.toNumber() === communityFee.toNumber()
         )
     })
 })

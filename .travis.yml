@@ -1,20 +1,18 @@
 language: node_js
 
 node_js:
-    - "10"
+  - "12"
 
 dist: xenial
 
 sudo: required
 
-cache:
-    directories:
-        - node_modules
+cache: npm
+
 env:
   - DEPLOY_PACKAGE=true
 
 before_install:
-    - npm install -g npm
     - npm install -g ganache-cli@~6.4.1 
     - npm i
     - |
