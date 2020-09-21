@@ -74,7 +74,7 @@ contract DTFactory is Deployer {
         returns (address token)
     {
         require(
-            cap > 0,
+            cap != 0,
             'DTFactory: zero cap is not allowed'
         );
 
