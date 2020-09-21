@@ -13911,8 +13911,8 @@
     "version": "0.5.7+commit.6da8b019.Emscripten.clang"
   },
   "networks": {},
-  "schemaVersion": "3.2.0",
-  "updatedAt": "2020-09-21T10:30:10.036Z",
+  "schemaVersion": "3.2.4",
+  "updatedAt": "2020-09-21T11:28:22.536Z",
   "devdoc": {
     "details": "DataTokenTemplate is an ERC20 compliant token template     Used by the factory contract as a bytecode reference to      deploy new DataTokens.",
     "methods": {

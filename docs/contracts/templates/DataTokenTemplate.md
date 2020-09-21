@@ -139,6 +139,13 @@ isMinter
 It takes the address and checks whether it has a minter role.
 
 
+### `minter() → address` (external)
+
+
+
+minter
+
+
 ### `isInitialized() → bool` (external)
 
 
@@ -161,15 +168,6 @@ Function checks if the contract is paused.
 
 calculateFee
 giving a fee percentage, and amount it calculates the actual fee
-
-
-### `calculateTotalFee(uint256 amount, uint256 feePercentage) → uint256` (external)
-
-
-
-calculateTotalFee
-giving a fee percentage, and amount it calculates 
-the total fee (including the community fee) needed for order.
 
 
 
