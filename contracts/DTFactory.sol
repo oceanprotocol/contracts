@@ -109,10 +109,10 @@ contract DTFactory is Deployer {
     }
 
     /**
-     * @dev get the current token index.
+     * @dev get the current token count.
      * @return the current token count
      */
-    function getCurrentTokenIndex() external view returns (uint256) {
+    function getCurrentTokenCount() external view returns (uint256) {
         return currentTokenCount;
     }
 
