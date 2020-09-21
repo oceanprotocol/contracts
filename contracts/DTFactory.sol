@@ -33,7 +33,6 @@ contract DTFactory is Deployer {
         string tokenSymbol,
         uint256 tokenCap,
         address indexed registeredBy,
-        uint256 registeredAt,
         string indexed blob
     );
 
@@ -104,7 +103,6 @@ contract DTFactory is Deployer {
             symbol,
             cap,
             msg.sender,
-            block.number,
             blob
         );
         currentTokenCount += 1;
