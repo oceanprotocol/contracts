@@ -67,14 +67,12 @@ contract FixedRateExchange {
 
     event ExchangeActivated(
         bytes32 indexed exchangeId,
-        address indexed exchangeOwner,
-        uint256 timestamp
+        address indexed exchangeOwner
     );
 
     event ExchangeDeactivated(
         bytes32 indexed exchangeId,
-        address indexed exchangeOwner,
-        uint256 timestamp
+        address indexed exchangeOwner
     );
 
     event Swapped(
@@ -148,8 +146,7 @@ contract FixedRateExchange {
 
         emit ExchangeActivated(
             exchangeId,
-            msg.sender,
-            block.number
+            msg.sender
         );
     }
 
@@ -303,8 +300,7 @@ contract FixedRateExchange {
 
         emit ExchangeActivated(
             exchangeId,
-            msg.sender,
-            block.number
+            msg.sender
         );
     }
 
@@ -328,8 +324,7 @@ contract FixedRateExchange {
 
         emit ExchangeDeactivated(
             exchangeId,
-            msg.sender,
-            block.number
+            msg.sender
         );
     }
 
