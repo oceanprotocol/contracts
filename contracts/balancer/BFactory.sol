@@ -36,7 +36,10 @@ contract BFactory is BConst, Deployer {
     constructor(address _bpoolTemplate)
         public 
     {
-        require(_bpoolTemplate != address(0), 'ERR_ADDRESS_0');
+        require(
+            _bpoolTemplate != address(0), 
+            'BFactory: invalid bpool template zero address'
+        );
         bpoolTemplate = _bpoolTemplate;
     }
 
@@ -48,7 +51,10 @@ contract BFactory is BConst, Deployer {
         returns (address bpool)
     {
         bpool = deploy(bpoolTemplate);
-        require(bpool != address(0), 'ERR_ADDRESS_0');
+        require(
+            bpool != address(0), 
+            'BFactory: invalid bpool zero address'
+        );
         BPool bpoolInstance = BPool(bpool);	
         require(
             bpoolInstance.initialize(
