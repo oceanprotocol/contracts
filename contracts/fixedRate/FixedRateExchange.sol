@@ -17,11 +17,11 @@ contract FixedRateExchange {
     using SafeMath for uint256;
     uint256 private constant BASE = 10 ** 18;
     struct Exchange {
+        bool active;
+        uint256 fixedRate;
         address exchangeOwner;
         address dataToken;
         address baseToken;
-        uint256 fixedRate;
-        bool active;
     }
 
     // maps an exchangeId to an exchange
@@ -130,11 +130,11 @@ contract FixedRateExchange {
             'FixedRateExchange: Exchange already exists!'
         );
         exchanges[exchangeId] = Exchange({
+            active: true,
+            fixedRate: fixedRate,
             exchangeOwner: msg.sender,
             dataToken: dataToken,
-            baseToken: baseToken,
-            fixedRate: fixedRate,
-            active: true
+            baseToken: baseToken
         });
         exchangeIds.push(exchangeId);
 
