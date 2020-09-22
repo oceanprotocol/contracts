@@ -167,7 +167,7 @@ contract FixedRateExchange {
         returns (bytes32)
     {
         return keccak256(
-            abi.encodePacked(
+            abi.encode(
                 baseToken,
                 dataToken,
                 exchangeOwner
