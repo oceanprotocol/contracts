@@ -19,7 +19,7 @@ import '../utils/Deployer.sol';
 */
 contract BFactory is BConst, Deployer {
 
-    address private _bpoolTemplate;
+    address public bpoolTemplate;
 
     event BPoolCreated(
         address indexed newBPoolAddress,
@@ -33,11 +33,11 @@ contract BFactory is BConst, Deployer {
     
     /* @dev Called on contract deployment. Cannot be called with zero address.
        @param _bpoolTemplate -- address of a deployed BPool contract. */
-    constructor(address bpoolTemplate)
+    constructor(address _bpoolTemplate)
         public 
     {
-        require(bpoolTemplate != address(0), 'ERR_ADDRESS_0');
-        _bpoolTemplate = bpoolTemplate;
+        require(_bpoolTemplate != address(0), 'ERR_ADDRESS_0');
+        bpoolTemplate = _bpoolTemplate;
     }
 
     /* @dev Deploys new BPool proxy contract.
@@ -47,7 +47,7 @@ contract BFactory is BConst, Deployer {
         external
         returns (address bpool)
     {
-        bpool = deploy(_bpoolTemplate);
+        bpool = deploy(bpoolTemplate);
         require(bpool != address(0), 'ERR_ADDRESS_0');
         BPool bpoolInstance = BPool(bpool);	
         require(
@@ -60,7 +60,7 @@ contract BFactory is BConst, Deployer {
             ),
             'ERR_INITIALIZE_BPOOL'
         );
-        emit BPoolCreated(bpool, _bpoolTemplate);
+        emit BPoolCreated(bpool, bpoolTemplate);
         emit BPoolRegistered(bpool, msg.sender);
     }
 
@@ -72,6 +72,6 @@ contract BFactory is BConst, Deployer {
         view
         returns (address)
     {
-        return _bpoolTemplate;
+        return bpoolTemplate;
     }
 }
