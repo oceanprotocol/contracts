@@ -63,15 +63,4 @@ contract BFactory is BConst, Deployer {
         emit BPoolCreated(bpool, bpoolTemplate);
         emit BPoolRegistered(bpool, msg.sender);
     }
-
-
-    /* @dev get the bpool template address
-       @return the template address */
-    function getBPool()
-        external
-        view
-        returns (address)
-    {
-        return bpoolTemplate;
-    }
 }
