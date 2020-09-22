@@ -28,8 +28,7 @@ contract BFactory is BConst, Deployer {
     
     event BPoolRegistered(
         address bpoolAddress,
-        address indexed registeredBy,
-        uint256 indexed registeredAt
+        address indexed registeredBy
     );
     
     /* @dev Called on contract deployment. Cannot be called with zero address.
@@ -62,7 +61,7 @@ contract BFactory is BConst, Deployer {
             'ERR_INITIALIZE_BPOOL'
         );
         emit BPoolCreated(bpool, _bpoolTemplate);
-        emit BPoolRegistered(bpool, msg.sender, block.number);
+        emit BPoolRegistered(bpool, msg.sender);
     }
 
 
