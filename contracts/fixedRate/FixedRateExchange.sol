@@ -84,9 +84,6 @@ contract FixedRateExchange {
         uint256 dataTokenSwappedAmount
     );
 
-
-    constructor () public {}
-
     /**
      * @dev create
      *      creates new exchange pairs between base token
