@@ -112,12 +112,12 @@ contract FixedRateExchange {
             'FixedRateExchange: Invalid datatoken,  equals basetoken'
         );
         require(
-            fixedRate > 0, 
+            fixedRate != 0, 
             'FixedRateExchange: Invalid exchange rate value'
         );
         require(
-            IERC20Template(baseToken).cap() > 0 &&
-            IERC20Template(dataToken).cap() > 0,
+            IERC20Template(baseToken).cap() != 0 &&
+            IERC20Template(dataToken).cap() != 0,
             'FixedRateExchange: ERC20 compatibility error'
         );
         bytes32 exchangeId = generateExchangeId(
@@ -215,7 +215,7 @@ contract FixedRateExchange {
         )
     {
         require(
-            dataTokenAmount > 0,
+            dataTokenAmount != 0,
             'FixedRateExchange: zero data token amount'
         );
         uint256 baseTokenAmount = CalcInGivenOut(exchangeId,dataTokenAmount);
@@ -271,7 +271,7 @@ contract FixedRateExchange {
         onlyExchangeOwner(exchangeId)
     {
         require(
-            newRate >0,
+            newRate != 0,
             'FixedRateExchange: Ratio must be >0'
         );
 
