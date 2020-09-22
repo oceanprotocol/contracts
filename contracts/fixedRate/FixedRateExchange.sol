@@ -25,8 +25,8 @@ contract FixedRateExchange {
     }
 
     // maps an exchangeId to an exchange
-    mapping(bytes32 => Exchange) exchanges;
-    bytes32[] exchangeIds;
+    mapping(bytes32 => Exchange) private exchanges;
+    bytes32[] private exchangeIds;
 
     modifier onlyActiveExchange(
         bytes32 exchangeId
