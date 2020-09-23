@@ -30,7 +30,6 @@ contract DataTokenTemplate is IERC20Template, ERC20Pausable {
 
     event OrderStarted(
             uint256 amount, 
-            bytes32 did, 
             uint256 serviceId, 
             uint256 startedAt,
             address mrktFeeCollector,
@@ -41,7 +40,6 @@ contract DataTokenTemplate is IERC20Template, ERC20Pausable {
             bytes32 orderTxId, 
             address consumer, 
             uint256 amount, 
-            bytes32 did, 
             uint256 serviceId, 
             address provider
     );
@@ -203,13 +201,11 @@ contract DataTokenTemplate is IERC20Template, ERC20Pausable {
      * @dev startOrder
      *      called by consumer prior ordering a service consume on a marketplace
      * @param amount refers to amount of tokens that is going to be transfered.
-     * @param did refers to DID or decentralized identifier for an asset
      * @param serviceId service index in the DID
      * @param mrktFeeCollector marketplace fee collector
      */
     function startOrder(
         uint256 amount,
-        bytes32 did,
         uint256 serviceId,
         address mrktFeeCollector
     )
@@ -233,7 +229,6 @@ contract DataTokenTemplate is IERC20Template, ERC20Pausable {
 
         emit OrderStarted(
             amount,
-            did,
             serviceId,
             block.number,
             mrktFeeCollector,
@@ -249,14 +244,12 @@ contract DataTokenTemplate is IERC20Template, ERC20Pausable {
      *                  as a payment reference.
      * @param consumer refers to an address that has consumed that service.
      * @param amount refers to amount of tokens that is going to be transfered.
-     * @param did refers to DID or decentralized identifier for an asset.
      * @param serviceId service index in the DID.
      */
     function finishOrder(
         bytes32 orderTxId, 
         address consumer, 
         uint256 amount,
-        bytes32 did, 
         uint256 serviceId
     )
         external
@@ -271,7 +264,6 @@ contract DataTokenTemplate is IERC20Template, ERC20Pausable {
             orderTxId, 
             consumer, 
             amount, 
-            did, 
             serviceId, 
             msg.sender
         );
