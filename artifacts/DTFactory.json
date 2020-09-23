@@ -186,7 +186,7 @@
         "id": 2,
         "nodeType": "ImportDirective",
         "scope": 163,
-        "sourceUnit": 5896,
+        "sourceUnit": 5886,
         "src": "186:30:0",
         "symbolAliases": [],
         "unitAlias": ""
@@ -211,10 +211,10 @@
               "id": 4,
               "name": "Deployer",
               "nodeType": "UserDefinedTypeName",
-              "referencedDeclaration": 5895,
+              "referencedDeclaration": 5885,
               "src": "652:8:0",
               "typeDescriptions": {
-                "typeIdentifier": "t_contract$_Deployer_$5895",
+                "typeIdentifier": "t_contract$_Deployer_$5885",
                 "typeString": "contract Deployer"
               }
             },
@@ -224,7 +224,7 @@
           }
         ],
         "contractDependencies": [
-          5895
+          5885
         ],
         "contractKind": "contract",
         "documentation": "@title DTFactory contract\n@author Ocean Protocol Team\n * @dev Implementation of Ocean DataTokens Factory\n *      DTFactory deploys DataToken proxy contracts.\n     New DataToken proxy contracts are links to the template contract's bytecode.\n     Proxy contract functionality is based on Ocean Protocol custom implementation of ERC1167 standard.",
@@ -232,7 +232,7 @@
         "id": 162,
         "linearizedBaseContracts": [
           162,
-          5895
+          5885
         ],
         "name": "DTFactory",
         "nodeType": "ContractDefinition",
@@ -877,10 +877,10 @@
                       "name": "require",
                       "nodeType": "Identifier",
                       "overloadedDeclarations": [
-                        6719,
-                        6720
+                        6709,
+                        6710
                       ],
-                      "referencedDeclaration": 6720,
+                      "referencedDeclaration": 6710,
                       "src": "1559:7:0",
                       "typeDescriptions": {
                         "typeIdentifier": "t_function_require_pure$_t_bool_$_t_string_memory_ptr_$returns$__$",
@@ -1173,10 +1173,10 @@
                       "name": "require",
                       "nodeType": "Identifier",
                       "overloadedDeclarations": [
-                        6719,
-                        6720
+                        6709,
+                        6710
                       ],
-                      "referencedDeclaration": 6720,
+                      "referencedDeclaration": 6710,
                       "src": "2390:7:0",
                       "typeDescriptions": {
                         "typeIdentifier": "t_function_require_pure$_t_bool_$_t_string_memory_ptr_$returns$__$",
@@ -1252,7 +1252,7 @@
                         "name": "deploy",
                         "nodeType": "Identifier",
                         "overloadedDeclarations": [],
-                        "referencedDeclaration": 5894,
+                        "referencedDeclaration": 5884,
                         "src": "2497:6:0",
                         "typeDescriptions": {
                           "typeIdentifier": "t_function_internal_nonpayable$_t_address_$returns$_t_address_$",
@@ -1409,10 +1409,10 @@
                       "name": "require",
                       "nodeType": "Identifier",
                       "overloadedDeclarations": [
-                        6719,
-                        6720
+                        6709,
+                        6710
                       ],
-                      "referencedDeclaration": 6720,
+                      "referencedDeclaration": 6710,
                       "src": "2529:7:0",
                       "typeDescriptions": {
                         "typeIdentifier": "t_function_require_pure$_t_bool_$_t_string_memory_ptr_$returns$__$",
@@ -1565,7 +1565,7 @@
                               "name": "msg",
                               "nodeType": "Identifier",
                               "overloadedDeclarations": [],
-                              "referencedDeclaration": 6716,
+                              "referencedDeclaration": 6706,
                               "src": "2834:3:0",
                               "typeDescriptions": {
                                 "typeIdentifier": "t_magic_message",
@@ -1728,10 +1728,10 @@
                       "name": "require",
                       "nodeType": "Identifier",
                       "overloadedDeclarations": [
-                        6719,
-                        6720
+                        6709,
+                        6710
                       ],
-                      "referencedDeclaration": 6720,
+                      "referencedDeclaration": 6710,
                       "src": "2725:7:0",
                       "typeDescriptions": {
                         "typeIdentifier": "t_function_require_pure$_t_bool_$_t_string_memory_ptr_$returns$__$",
@@ -1908,7 +1908,7 @@
                           "name": "msg",
                           "nodeType": "Identifier",
                           "overloadedDeclarations": [],
-                          "referencedDeclaration": 6716,
+                          "referencedDeclaration": 6706,
                           "src": "3185:3:0",
                           "typeDescriptions": {
                             "typeIdentifier": "t_magic_message",
@@ -1937,7 +1937,7 @@
                           "name": "block",
                           "nodeType": "Identifier",
                           "overloadedDeclarations": [],
-                          "referencedDeclaration": 6706,
+                          "referencedDeclaration": 6696,
                           "src": "3209:5:0",
                           "typeDescriptions": {
                             "typeIdentifier": "t_magic_block",
@@ -2436,7 +2436,7 @@
         "id": 2,
         "nodeType": "ImportDirective",
         "scope": 163,
-        "sourceUnit": 5896,
+        "sourceUnit": 5886,
         "src": "186:30:0",
         "symbolAliases": [],
         "unitAlias": ""
@@ -2461,10 +2461,10 @@
               "id": 4,
               "name": "Deployer",
               "nodeType": "UserDefinedTypeName",
-              "referencedDeclaration": 5895,
+              "referencedDeclaration": 5885,
               "src": "652:8:0",
               "typeDescriptions": {
-                "typeIdentifier": "t_contract$_Deployer_$5895",
+                "typeIdentifier": "t_contract$_Deployer_$5885",
                 "typeString": "contract Deployer"
               }
             },
@@ -2474,7 +2474,7 @@
           }
         ],
         "contractDependencies": [
-          5895
+          5885
         ],
         "contractKind": "contract",
         "documentation": "@title DTFactory contract\n@author Ocean Protocol Team\n * @dev Implementation of Ocean DataTokens Factory\n *      DTFactory deploys DataToken proxy contracts.\n     New DataToken proxy contracts are links to the template contract's bytecode.\n     Proxy contract functionality is based on Ocean Protocol custom implementation of ERC1167 standard.",
@@ -2482,7 +2482,7 @@
         "id": 162,
         "linearizedBaseContracts": [
           162,
-          5895
+          5885
         ],
         "name": "DTFactory",
         "nodeType": "ContractDefinition",
@@ -3127,10 +3127,10 @@
                       "name": "require",
                       "nodeType": "Identifier",
                       "overloadedDeclarations": [
-                        6719,
-                        6720
+                        6709,
+                        6710
                       ],
-                      "referencedDeclaration": 6720,
+                      "referencedDeclaration": 6710,
                       "src": "1559:7:0",
                       "typeDescriptions": {
                         "typeIdentifier": "t_function_require_pure$_t_bool_$_t_string_memory_ptr_$returns$__$",
@@ -3423,10 +3423,10 @@
                       "name": "require",
                       "nodeType": "Identifier",
                       "overloadedDeclarations": [
-                        6719,
-                        6720
+                        6709,
+                        6710
                       ],
-                      "referencedDeclaration": 6720,
+                      "referencedDeclaration": 6710,
                       "src": "2390:7:0",
                       "typeDescriptions": {
                         "typeIdentifier": "t_function_require_pure$_t_bool_$_t_string_memory_ptr_$returns$__$",
@@ -3502,7 +3502,7 @@
                         "name": "deploy",
                         "nodeType": "Identifier",
                         "overloadedDeclarations": [],
-                        "referencedDeclaration": 5894,
+                        "referencedDeclaration": 5884,
                         "src": "2497:6:0",
                         "typeDescriptions": {
                           "typeIdentifier": "t_function_internal_nonpayable$_t_address_$returns$_t_address_$",
@@ -3659,10 +3659,10 @@
                       "name": "require",
                       "nodeType": "Identifier",
                       "overloadedDeclarations": [
-                        6719,
-                        6720
+                        6709,
+                        6710
                       ],
-                      "referencedDeclaration": 6720,
+                      "referencedDeclaration": 6710,
                       "src": "2529:7:0",
                       "typeDescriptions": {
                         "typeIdentifier": "t_function_require_pure$_t_bool_$_t_string_memory_ptr_$returns$__$",
@@ -3815,7 +3815,7 @@
                               "name": "msg",
                               "nodeType": "Identifier",
                               "overloadedDeclarations": [],
-                              "referencedDeclaration": 6716,
+                              "referencedDeclaration": 6706,
                               "src": "2834:3:0",
                               "typeDescriptions": {
                                 "typeIdentifier": "t_magic_message",
@@ -3978,10 +3978,10 @@
                       "name": "require",
                       "nodeType": "Identifier",
                       "overloadedDeclarations": [
-                        6719,
-                        6720
+                        6709,
+                        6710
                       ],
-                      "referencedDeclaration": 6720,
+                      "referencedDeclaration": 6710,
                       "src": "2725:7:0",
                       "typeDescriptions": {
                         "typeIdentifier": "t_function_require_pure$_t_bool_$_t_string_memory_ptr_$returns$__$",
@@ -4158,7 +4158,7 @@
                           "name": "msg",
                           "nodeType": "Identifier",
                           "overloadedDeclarations": [],
-                          "referencedDeclaration": 6716,
+                          "referencedDeclaration": 6706,
                           "src": "3185:3:0",
                           "typeDescriptions": {
                             "typeIdentifier": "t_magic_message",
@@ -4187,7 +4187,7 @@
                           "name": "block",
                           "nodeType": "Identifier",
                           "overloadedDeclarations": [],
-                          "referencedDeclaration": 6706,
+                          "referencedDeclaration": 6696,
                           "src": "3209:5:0",
                           "typeDescriptions": {
                             "typeIdentifier": "t_magic_block",
@@ -4665,7 +4665,7 @@
   },
   "networks": {},
   "schemaVersion": "3.2.4",
-  "updatedAt": "2020-09-21T11:28:22.466Z",
+  "updatedAt": "2020-09-23T08:45:11.731Z",
   "devdoc": {
     "author": "Ocean Protocol Team",
     "details": "Implementation of Ocean DataTokens Factory *      DTFactory deploys DataToken proxy contracts.     New DataToken proxy contracts are links to the template contract's bytecode.     Proxy contract functionality is based on Ocean Protocol custom implementation of ERC1167 standard.",
