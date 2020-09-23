@@ -210,6 +210,7 @@ contract DataTokenTemplate is IERC20Template, ERC20Pausable {
         address mrktFeeCollector
     )
         external
+        onlyNotPaused
     {
         uint256 marketFee = 0;
         uint256 communityFee = calculateFee(
@@ -253,6 +254,7 @@ contract DataTokenTemplate is IERC20Template, ERC20Pausable {
         uint256 serviceId
     )
         external
+        onlyNotPaused
     {
         if ( amount > 0 )  
             require(
