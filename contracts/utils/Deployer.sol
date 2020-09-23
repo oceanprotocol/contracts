@@ -32,6 +32,7 @@ contract Deployer {
     {
         bytes20 targetBytes = bytes20(_logic);
         /* solium-disable-next-line security/no-inline-assembly */
+        // Follows OpenZeppelin Implementation https://github.com/OpenZeppelin/openzeppelin-sdk/blob/71c9ad77e0326db079e6a643eca8568ab316d4a9/packages/lib/contracts/upgradeability/ProxyFactory.sol
         // Adapted from https://github.com/optionality/clone-factory/blob/32782f82dfc5a00d103a7e61a17a5dedbd1e8e9d/contracts/CloneFactory.sol
         assembly {
           let clone := mload(0x40)
