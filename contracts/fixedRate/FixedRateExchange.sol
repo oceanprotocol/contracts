@@ -371,11 +371,12 @@ contract FixedRateExchange {
             uint256 supply
         )
     {
-        exchangeOwner = exchanges[exchangeId].exchangeOwner;
-        dataToken = exchanges[exchangeId].dataToken;
-        baseToken = exchanges[exchangeId].baseToken;
-        fixedRate = exchanges[exchangeId].fixedRate;
-        active = exchanges[exchangeId].active;
+        Exchange memory exchange = exchanges[exchangeId];
+        exchangeOwner = exchange.exchangeOwner;
+        dataToken = exchange.dataToken;
+        baseToken = exchange.baseToken;
+        fixedRate = exchange.fixedRate;
+        active = exchange.active;
         supply = getSupply(exchangeId);
     }
 
