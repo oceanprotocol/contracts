@@ -28,7 +28,6 @@ contract('DataTokenTemplate', async (accounts) => {
         reciever,
         blob,
         orderTxId
-    const did = '0x0000000000000000000000000000000000000000000000000000000001111111'
     const communityFeeCollector = '0xeE9300b7961e0a01d9f0adb863C7A227A07AaD75'
     beforeEach('init contracts for each test', async () => {
         blob = 'https://example.com/dataset-1'
@@ -169,7 +168,6 @@ contract('DataTokenTemplate', async (accounts) => {
         await token.mint(consumer, 20, { from: minter })
         await token.startOrder(
             orderDTTokensAmount,
-            did,
             serviceId,
             marketAddress,
             {
@@ -186,7 +184,6 @@ contract('DataTokenTemplate', async (accounts) => {
         truffleAssert.passes(await token.mint(consumer, orderDTTokensAmount, { from: minter }))
         orderTxId = await token.startOrder(
             orderDTTokensAmount,
-            did,
             serviceId,
             marketAddress,
             {
@@ -207,7 +204,6 @@ contract('DataTokenTemplate', async (accounts) => {
             orderTxId.receipt.transactionHash,
             consumer,
             restOfDTTokensAmount,
-            did,
             serviceId,
             {
                 from: provider
