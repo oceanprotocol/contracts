@@ -39,8 +39,6 @@ contract Metadata {
         _;
     }
 
-    constructor() public {}
-
     /**
      * @dev create
      *      creates/publishes new metadata/DDO document on-chain. 
