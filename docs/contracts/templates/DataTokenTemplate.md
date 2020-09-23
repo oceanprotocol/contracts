@@ -45,7 +45,7 @@ Only the minter address can call it.
 msg.value should be higher than zero and gt or eq minting fee
 
 
-### `startOrder(uint256 amount, bytes32 did, uint256 serviceId, address mrktFeeCollector)` (external)
+### `startOrder(uint256 amount, uint256 serviceId, address mrktFeeCollector)` (external)
 
 
 
@@ -53,7 +53,7 @@ startOrder
 called by consumer prior ordering a service consume on a marketplace
 
 
-### `finishOrder(bytes32 orderTxId, address consumer, uint256 amount, bytes32 did, uint256 serviceId)` (external)
+### `finishOrder(bytes32 orderTxId, address consumer, uint256 amount, uint256 serviceId)` (external)
 
 
 
@@ -171,13 +171,13 @@ giving a fee percentage, and amount it calculates the actual fee
 
 
 
-### `OrderStarted(uint256 amount, bytes32 did, uint256 serviceId, uint256 startedAt, address mrktFeeCollector, uint256 marketFee)`
+### `OrderStarted(uint256 amount, uint256 serviceId, uint256 startedAt, address mrktFeeCollector, uint256 marketFee)`
 
 
 
 
 
-### `OrderFinished(bytes32 orderTxId, address consumer, uint256 amount, bytes32 did, uint256 serviceId, address provider)`
+### `OrderFinished(bytes32 orderTxId, address consumer, uint256 amount, uint256 serviceId, address provider)`
 
 
 
