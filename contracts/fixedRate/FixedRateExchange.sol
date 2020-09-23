@@ -281,51 +281,29 @@ contract FixedRateExchange {
     }
 
      /**
-     * @dev activate
-     *      sets exchange status to active to true (only called by exchagne owner)
+     * @dev toggle
+     *      toggles the active state of an existing exchange
      * @param exchangeId a unique exchange idnetifier
      */
-    function activate(
+    function toggle(
         bytes32 exchangeId
     )
         external
         onlyExchangeOwner(exchangeId)
     {
-        require(
-            exchanges[exchangeId].active == false,
-            'FixedRateExchange: Exchange is already activated'
-        );
-
-        exchanges[exchangeId].active = true;
-
-        emit ExchangeActivated(
-            exchangeId,
-            msg.sender
-        );
-    }
-
-    /**
-     * @dev deactivate
-     *      sets exchange status to active to false (only called by exchagne owner)
-     * @param exchangeId a unique exchange idnetifier
-     */
-    function deactivate(
-        bytes32 exchangeId
-    )
-        external
-        onlyExchangeOwner(exchangeId)
-    {
-        require(
-            exchanges[exchangeId].active == true,
-            'FixedRateExchange: Exchange is already deactivated'
-        );
-
-        exchanges[exchangeId].active = false;
-
-        emit ExchangeDeactivated(
-            exchangeId,
-            msg.sender
-        );
+        if(exchanges[exchangeId].active){
+            exchanges[exchangeId].active = false;
+            emit ExchangeDeactivated(
+                exchangeId,
+                msg.sender
+            );
+        } else {
+            exchanges[exchangeId].active = true;
+            emit ExchangeActivated(
+                exchangeId,
+                msg.sender
+            );
+        }
     }
 
     /**
