@@ -160,7 +160,7 @@ contract DataTokenTemplate is IERC20Template, ERC20Pausable {
         );
 
         require(
-            cap > 0,
+            cap != 0,
             'DataTokenTemplate: Invalid cap value'
         );
         
@@ -254,7 +254,7 @@ contract DataTokenTemplate is IERC20Template, ERC20Pausable {
     )
         external
     {
-        if ( amount > 0 )  
+        if ( amount != 0 )  
             require(
                 transfer(consumer, amount),
                 'DataTokenTemplate: failed to finish order'
