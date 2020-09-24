@@ -15,14 +15,14 @@ import '../interfaces/IERC20Template.sol';
 */
 contract DataTokenTemplate is IERC20Template, ERC20Pausable {
     using SafeMath for uint256;
-    
-    bool    private initialized = false;
+
     string  private _name;
     string  private _symbol;
     string  private _blob;
     uint256 private _cap;
     uint256 private _decimals;
     address private _communityFeeCollector;
+    bool    private initialized = false;
     address private _minter;
     uint256 public constant BASE = 10**18;
     uint256 public constant BASE_COMMUNITY_FEE_PERCENTAGE = BASE / 1000;
