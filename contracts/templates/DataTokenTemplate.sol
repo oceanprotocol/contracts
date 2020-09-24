@@ -20,7 +20,7 @@ contract DataTokenTemplate is IERC20Template, ERC20Pausable {
     string  private _symbol;
     string  private _blob;
     uint256 private _cap;
-    uint8 private _decimals;
+    uint8 private constant _decimals = 18;
     address private _communityFeeCollector;
     bool    private initialized = false;
     address private _minter;
@@ -163,8 +163,6 @@ contract DataTokenTemplate is IERC20Template, ERC20Pausable {
             cap != 0,
             'DataTokenTemplate: Invalid cap value'
         );
-        
-        _decimals = 18;
         _cap = cap;
         _name = name;
         _blob = blob;
