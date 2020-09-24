@@ -20,7 +20,7 @@ contract DataTokenTemplate is IERC20Template, ERC20Pausable {
     string  private _symbol;
     string  private _blob;
     uint256 private _cap;
-    uint256 private _decimals;
+    uint8 private _decimals;
     address private _communityFeeCollector;
     bool    private initialized = false;
     address private _minter;
@@ -337,7 +337,7 @@ contract DataTokenTemplate is IERC20Template, ERC20Pausable {
      *      how many supported decimal points
      * @return DataToken decimals.
      */
-    function decimals() external view returns(uint256) {
+    function decimals() external view returns(uint8) {
         return _decimals;
     }
 
