@@ -32,16 +32,16 @@ contract DataTokenTemplate is IERC20Template, ERC20Pausable {
             uint256 amount, 
             uint256 serviceId, 
             uint256 startedAt,
-            address mrktFeeCollector,
+            address indexed mrktFeeCollector,
             uint256 marketFee
     );
 
     event OrderFinished(
             bytes32 orderTxId, 
-            address consumer, 
+            address indexed consumer, 
             uint256 amount, 
             uint256 serviceId, 
-            address provider
+            address indexed provider
     );
 
     modifier onlyNotInitialized() {
@@ -67,7 +67,7 @@ contract DataTokenTemplate is IERC20Template, ERC20Pausable {
      * @param symbol refers to a template DataToken symbol
      * @param minterAddress refers to an address that has minter role
      * @param cap the total ERC20 cap
-     * @param blob data string refering to the resolver for the DID
+     * @param blob data string refering to the resolver for the metadata
      * @param feeCollector it is the community fee collector address
      */
     constructor(
@@ -98,7 +98,7 @@ contract DataTokenTemplate is IERC20Template, ERC20Pausable {
      * @param symbol refers to a nea DataToken symbol
      * @param minterAddress refers to an address that has minter rights
      * @param cap the total ERC20 cap
-     * @param blob data string refering to the resolver for the DID
+     * @param blob data string refering to the resolver for the metadata
      * @param feeCollector it is the community fee collector address
      */
     function initialize(
@@ -130,7 +130,7 @@ contract DataTokenTemplate is IERC20Template, ERC20Pausable {
      * @param symbol refers to a nea DataToken symbol
      * @param minterAddress refers to an address that has minter rights
      * @param cap the total ERC20 cap
-     * @param blob data string refering to the resolver for the DID
+     * @param blob data string refering to the resolver for the metadata
      * @param feeCollector it is the community fee collector address
      */
     function _initialize(
@@ -201,7 +201,7 @@ contract DataTokenTemplate is IERC20Template, ERC20Pausable {
      * @dev startOrder
      *      called by consumer prior ordering a service consume on a marketplace
      * @param amount refers to amount of tokens that is going to be transfered.
-     * @param serviceId service index in the DID
+     * @param serviceId service index in the metadata
      * @param mrktFeeCollector marketplace fee collector
      */
     function startOrder(
@@ -244,7 +244,7 @@ contract DataTokenTemplate is IERC20Template, ERC20Pausable {
      *                  as a payment reference.
      * @param consumer refers to an address that has consumed that service.
      * @param amount refers to amount of tokens that is going to be transfered.
-     * @param serviceId service index in the DID.
+     * @param serviceId service index in the metadata.
      */
     function finishOrder(
         bytes32 orderTxId, 
