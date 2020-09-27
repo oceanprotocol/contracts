@@ -5,6 +5,7 @@ pragma solidity 0.5.7;
 
 import './token/ERC20Pausable.sol';
 import '../interfaces/IERC20Template.sol';
+import 'openzeppelin-solidity/contracts/cryptography/ECDSA.sol';
 
 /**
 * @title DataTokenTemplate
@@ -24,6 +25,7 @@ contract DataTokenTemplate is IERC20Template, ERC20Pausable {
     address private _communityFeeCollector;
     bool    private initialized = false;
     address private _minter;
+    address private _proposedMinter;
     uint256 public constant BASE = 10**18;
     uint256 public constant BASE_COMMUNITY_FEE_PERCENTAGE = BASE / 1000;
     uint256 public constant BASE_MARKET_FEE_PERCENTAGE = BASE / 1000;
@@ -42,6 +44,22 @@ contract DataTokenTemplate is IERC20Template, ERC20Pausable {
             uint256 amount, 
             uint256 serviceId, 
             address indexed provider
+    );
+
+    event MinterProposed(
+        address currentMinter,
+        address newMinter
+    );
+
+    event MinterApproved(
+        address currentMinter,
+        address newMinter
+    );
+
+    event DATA(
+        address newMinter,
+        bytes32 message,
+        bytes signature
     );
 
     modifier onlyNotInitialized() {
@@ -292,14 +310,42 @@ contract DataTokenTemplate is IERC20Template, ERC20Pausable {
      *      It sets a new token minter address.
      *      Only called be called if the contract is not paused.
      *      Only the current minter can call it.
-     * @param minterAddress refers to a new token minter address.
+     * @param newMinter refers to a new token minter address.
      */
-    function setMinter(address minterAddress) 
+    function proposeMinter(address newMinter) 
         external 
         onlyNotPaused 
         onlyMinter 
     {
-        _minter = minterAddress;
+        _proposedMinter = newMinter;
+        emit MinterProposed(
+            msg.sender,
+            _proposedMinter
+        );
+    }
+
+    function approveMinter(
+        bytes32 _message,
+        bytes calldata _signature
+    )
+        external
+        onlyNotPaused
+    {
+        require(
+            ECDSA.recover(_message, _signature) == _proposedMinter,
+            'DataToken: Invalid new minter signature'
+        );
+        // emit DATA (
+        //     __minter,
+        //     _message,
+        //     _signature
+        // );
+        emit MinterApproved(
+            _minter,
+            _proposedMinter
+        );
+        _minter = _proposedMinter;
+        _proposedMinter = address(0);   
     }
 
     /**

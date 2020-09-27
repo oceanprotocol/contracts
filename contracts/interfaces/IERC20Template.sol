@@ -15,9 +15,7 @@ interface IERC20Template {
     function pause() external;
 
     function unpause() external;
-
-    function setMinter(address _minter) external;
-
+    
     function name() external view returns (string memory);
 
     function symbol() external view returns (string memory);
@@ -46,4 +44,7 @@ interface IERC20Template {
     function balanceOf(address account) external view returns (uint256);
 
     function transfer(address to, uint256 value) external returns (bool);
+    function proposeMinter(address newMinter) external;
+    function approveMinter(bytes32 _message, bytes calldata _signature) 
+    external;
 }

@@ -106,25 +106,25 @@
       "type": "function"
     }
   ],
-  "metadata": "{\"compiler\":{\"version\":\"0.5.7+commit.6da8b019\"},\"language\":\"Solidity\",\"output\":{\"abi\":[{\"constant\":false,\"inputs\":[{\"name\":\"dataToken\",\"type\":\"address\"},{\"name\":\"flags\",\"type\":\"bytes\"},{\"name\":\"data\",\"type\":\"bytes\"}],\"name\":\"create\",\"outputs\":[],\"payable\":false,\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"constant\":false,\"inputs\":[{\"name\":\"dataToken\",\"type\":\"address\"},{\"name\":\"flags\",\"type\":\"bytes\"},{\"name\":\"data\",\"type\":\"bytes\"}],\"name\":\"update\",\"outputs\":[],\"payable\":false,\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[],\"payable\":false,\"stateMutability\":\"nonpayable\",\"type\":\"constructor\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":true,\"name\":\"dataToken\",\"type\":\"address\"},{\"indexed\":true,\"name\":\"createdBy\",\"type\":\"address\"},{\"indexed\":false,\"name\":\"flags\",\"type\":\"bytes\"},{\"indexed\":false,\"name\":\"data\",\"type\":\"bytes\"}],\"name\":\"MetadataCreated\",\"type\":\"event\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":true,\"name\":\"dataToken\",\"type\":\"address\"},{\"indexed\":true,\"name\":\"updatedBy\",\"type\":\"address\"},{\"indexed\":false,\"name\":\"flags\",\"type\":\"bytes\"},{\"indexed\":false,\"name\":\"data\",\"type\":\"bytes\"}],\"name\":\"MetadataUpdated\",\"type\":\"event\"}],\"devdoc\":{\"details\":\"Metadata stands for Decentralized Document. It allows publishers     to publish their dataset metadata in decentralized way.     It follows the Ocean DID Document standard:      https://github.com/oceanprotocol/OEPs/blob/master/7/v0.2/README.md\",\"methods\":{\"create(address,bytes,bytes)\":{\"details\":\"create     creates/publishes new metadata/DDO document on-chain. \",\"params\":{\"data\":\"referes to the actual metadata\",\"dataToken\":\"refers to data token address\",\"flags\":\"special flags associated with metadata\"}},\"update(address,bytes,bytes)\":{\"details\":\"update     allows only datatoken minter(s) to update the DDO/metadata content\",\"params\":{\"data\":\"referes to the actual metadata\",\"dataToken\":\"refers to data token address\",\"flags\":\"special flags associated with metadata\"}}},\"title\":\"Metadata \"},\"userdoc\":{\"methods\":{}}},\"settings\":{\"compilationTarget\":{\"/home/ssallam/pycharm_projects/ocean-contracts/contracts/metadata/Metadata.sol\":\"Metadata\"},\"evmVersion\":\"byzantium\",\"libraries\":{},\"optimizer\":{\"enabled\":true,\"runs\":200},\"remappings\":[]},\"sources\":{\"/home/ssallam/pycharm_projects/ocean-contracts/contracts/interfaces/IERC20Template.sol\":{\"keccak256\":\"0x3634a76d03b8c4595b417449d4e79570c4e6e6e366d4db41ba96b220c6460628\",\"urls\":[\"bzzr://d9be0df0cd5f3e29741757ced8b86f0909980af90ef0fe4742ca977b29e26b9c\"]},\"/home/ssallam/pycharm_projects/ocean-contracts/contracts/metadata/Metadata.sol\":{\"keccak256\":\"0xa2861efde08a73313defdd83f9ef56c32bda732a9a88a812049dc59dc8c1a293\",\"urls\":[\"bzzr://27b567ba97596d13de6c33b9cfa71bdfd11e22de28aa50efd43f7e595022907b\"]}},\"version\":1}",
-  "bytecode": "0x608060405234801561001057600080fd5b50610531806100206000396000f3fe608060405234801561001057600080fd5b50600436106100395760e060020a600035046382743814811461003e578063f89b1f3614610112575b600080fd5b6101106004803603606081101561005457600080fd5b600160a060020a03823516919081019060408101602082013564010000000081111561007f57600080fd5b82018360208201111561009157600080fd5b803590602001918460018302840111640100000000831117156100b357600080fd5b9193909290916020810190356401000000008111156100d157600080fd5b8201836020820111156100e357600080fd5b8035906020019184600183028401116401000000008311171561010557600080fd5b5090925090506101e4565b005b6101106004803603606081101561012857600080fd5b600160a060020a03823516919081019060408101602082013564010000000081111561015357600080fd5b82018360208201111561016557600080fd5b8035906020019184600183028401116401000000008311171561018757600080fd5b9193909290916020810190356401000000008111156101a557600080fd5b8201836020820111156101b757600080fd5b803590602001918460018302840111640100000000831117156101d957600080fd5b509092509050610363565b84600081905033600160a060020a031681600160a060020a031663075461726040518163ffffffff1660e060020a02815260040160206040518083038186803b15801561023057600080fd5b505afa158015610244573d6000803e3d6000fd5b505050506040513d602081101561025a57600080fd5b5051600160a060020a0316146102bb576040517f08c379a00000000000000000000000000000000000000000000000000000000081526004018080602001828103825260228152602001806104e46022913960400191505060405180910390fd5b33600160a060020a031687600160a060020a03167ee7283fcf5726344ed567dc39b1822ff824bc90f96c137b622781d3570b81ef888888886040518080602001806020018381038352878782818152602001925080828437600083820152601f01601f191690910184810383528581526020019050858580828437600083820152604051601f909101601f19169092018290039850909650505050505050a350505050505050565b84600081905033600160a060020a031681600160a060020a031663075461726040518163ffffffff1660e060020a02815260040160206040518083038186803b1580156103af57600080fd5b505afa1580156103c3573d6000803e3d6000fd5b505050506040513d60208110156103d957600080fd5b5051600160a060020a03161461043a576040517f08c379a00000000000000000000000000000000000000000000000000000000081526004018080602001828103825260228152602001806104e46022913960400191505060405180910390fd5b33600160a060020a031687600160a060020a03167fb8c028de5d50845d8e50bbc36728f4e9d523e16a1a431a299e8b216c7b2f5584888888886040518080602001806020018381038352878782818152602001925080828437600083820152601f01601f191690910184810383528581526020019050858580828437600083820152604051601f909101601f19169092018290039850909650505050505050a35050505050505056fe4d657461646174613a20496e76616c69642044617461546f6b656e204d696e746572a165627a7a7230582041424f06524e8b6a806dfe0a04eaf2c425d5767213bf5ea7550ffd53ce95a92d0029",
-  "deployedBytecode": "0x608060405234801561001057600080fd5b50600436106100395760e060020a600035046382743814811461003e578063f89b1f3614610112575b600080fd5b6101106004803603606081101561005457600080fd5b600160a060020a03823516919081019060408101602082013564010000000081111561007f57600080fd5b82018360208201111561009157600080fd5b803590602001918460018302840111640100000000831117156100b357600080fd5b9193909290916020810190356401000000008111156100d157600080fd5b8201836020820111156100e357600080fd5b8035906020019184600183028401116401000000008311171561010557600080fd5b5090925090506101e4565b005b6101106004803603606081101561012857600080fd5b600160a060020a03823516919081019060408101602082013564010000000081111561015357600080fd5b82018360208201111561016557600080fd5b8035906020019184600183028401116401000000008311171561018757600080fd5b9193909290916020810190356401000000008111156101a557600080fd5b8201836020820111156101b757600080fd5b803590602001918460018302840111640100000000831117156101d957600080fd5b509092509050610363565b84600081905033600160a060020a031681600160a060020a031663075461726040518163ffffffff1660e060020a02815260040160206040518083038186803b15801561023057600080fd5b505afa158015610244573d6000803e3d6000fd5b505050506040513d602081101561025a57600080fd5b5051600160a060020a0316146102bb576040517f08c379a00000000000000000000000000000000000000000000000000000000081526004018080602001828103825260228152602001806104e46022913960400191505060405180910390fd5b33600160a060020a031687600160a060020a03167ee7283fcf5726344ed567dc39b1822ff824bc90f96c137b622781d3570b81ef888888886040518080602001806020018381038352878782818152602001925080828437600083820152601f01601f191690910184810383528581526020019050858580828437600083820152604051601f909101601f19169092018290039850909650505050505050a350505050505050565b84600081905033600160a060020a031681600160a060020a031663075461726040518163ffffffff1660e060020a02815260040160206040518083038186803b1580156103af57600080fd5b505afa1580156103c3573d6000803e3d6000fd5b505050506040513d60208110156103d957600080fd5b5051600160a060020a03161461043a576040517f08c379a00000000000000000000000000000000000000000000000000000000081526004018080602001828103825260228152602001806104e46022913960400191505060405180910390fd5b33600160a060020a031687600160a060020a03167fb8c028de5d50845d8e50bbc36728f4e9d523e16a1a431a299e8b216c7b2f5584888888886040518080602001806020018381038352878782818152602001925080828437600083820152601f01601f191690910184810383528581526020019050858580828437600083820152604051601f909101601f19169092018290039850909650505050505050a35050505050505056fe4d657461646174613a20496e76616c69642044617461546f6b656e204d696e746572a165627a7a7230582041424f06524e8b6a806dfe0a04eaf2c425d5767213bf5ea7550ffd53ce95a92d0029",
+  "metadata": "{\"compiler\":{\"version\":\"0.5.7+commit.6da8b019\"},\"language\":\"Solidity\",\"output\":{\"abi\":[{\"constant\":false,\"inputs\":[{\"name\":\"dataToken\",\"type\":\"address\"},{\"name\":\"flags\",\"type\":\"bytes\"},{\"name\":\"data\",\"type\":\"bytes\"}],\"name\":\"create\",\"outputs\":[],\"payable\":false,\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"constant\":false,\"inputs\":[{\"name\":\"dataToken\",\"type\":\"address\"},{\"name\":\"flags\",\"type\":\"bytes\"},{\"name\":\"data\",\"type\":\"bytes\"}],\"name\":\"update\",\"outputs\":[],\"payable\":false,\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[],\"payable\":false,\"stateMutability\":\"nonpayable\",\"type\":\"constructor\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":true,\"name\":\"dataToken\",\"type\":\"address\"},{\"indexed\":true,\"name\":\"createdBy\",\"type\":\"address\"},{\"indexed\":false,\"name\":\"flags\",\"type\":\"bytes\"},{\"indexed\":false,\"name\":\"data\",\"type\":\"bytes\"}],\"name\":\"MetadataCreated\",\"type\":\"event\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":true,\"name\":\"dataToken\",\"type\":\"address\"},{\"indexed\":true,\"name\":\"updatedBy\",\"type\":\"address\"},{\"indexed\":false,\"name\":\"flags\",\"type\":\"bytes\"},{\"indexed\":false,\"name\":\"data\",\"type\":\"bytes\"}],\"name\":\"MetadataUpdated\",\"type\":\"event\"}],\"devdoc\":{\"details\":\"Metadata stands for Decentralized Document. It allows publishers     to publish their dataset metadata in decentralized way.     It follows the Ocean DID Document standard:      https://github.com/oceanprotocol/OEPs/blob/master/7/v0.2/README.md\",\"methods\":{\"create(address,bytes,bytes)\":{\"details\":\"create     creates/publishes new metadata/DDO document on-chain. \",\"params\":{\"data\":\"referes to the actual metadata\",\"dataToken\":\"refers to data token address\",\"flags\":\"special flags associated with metadata\"}},\"update(address,bytes,bytes)\":{\"details\":\"update     allows only datatoken minter(s) to update the DDO/metadata content\",\"params\":{\"data\":\"referes to the actual metadata\",\"dataToken\":\"refers to data token address\",\"flags\":\"special flags associated with metadata\"}}},\"title\":\"Metadata \"},\"userdoc\":{\"methods\":{}}},\"settings\":{\"compilationTarget\":{\"/Users/ahmedali/Desktop/work/ocean-contracts/contracts/metadata/Metadata.sol\":\"Metadata\"},\"evmVersion\":\"byzantium\",\"libraries\":{},\"optimizer\":{\"enabled\":true,\"runs\":200},\"remappings\":[]},\"sources\":{\"/Users/ahmedali/Desktop/work/ocean-contracts/contracts/interfaces/IERC20Template.sol\":{\"keccak256\":\"0x28aa2bc67c6a5b21f30dae2ab415202dbc3673fc9f46f1cc757dabf9109a2bce\",\"urls\":[\"bzzr://7c63c27b4a4b5a101be7929678d19ed6d295172b246dd491886a03e4a6ce3407\"]},\"/Users/ahmedali/Desktop/work/ocean-contracts/contracts/metadata/Metadata.sol\":{\"keccak256\":\"0xa2861efde08a73313defdd83f9ef56c32bda732a9a88a812049dc59dc8c1a293\",\"urls\":[\"bzzr://27b567ba97596d13de6c33b9cfa71bdfd11e22de28aa50efd43f7e595022907b\"]}},\"version\":1}",
+  "bytecode": "0x608060405234801561001057600080fd5b50610531806100206000396000f3fe608060405234801561001057600080fd5b50600436106100395760e060020a600035046382743814811461003e578063f89b1f3614610112575b600080fd5b6101106004803603606081101561005457600080fd5b600160a060020a03823516919081019060408101602082013564010000000081111561007f57600080fd5b82018360208201111561009157600080fd5b803590602001918460018302840111640100000000831117156100b357600080fd5b9193909290916020810190356401000000008111156100d157600080fd5b8201836020820111156100e357600080fd5b8035906020019184600183028401116401000000008311171561010557600080fd5b5090925090506101e4565b005b6101106004803603606081101561012857600080fd5b600160a060020a03823516919081019060408101602082013564010000000081111561015357600080fd5b82018360208201111561016557600080fd5b8035906020019184600183028401116401000000008311171561018757600080fd5b9193909290916020810190356401000000008111156101a557600080fd5b8201836020820111156101b757600080fd5b803590602001918460018302840111640100000000831117156101d957600080fd5b509092509050610363565b84600081905033600160a060020a031681600160a060020a031663075461726040518163ffffffff1660e060020a02815260040160206040518083038186803b15801561023057600080fd5b505afa158015610244573d6000803e3d6000fd5b505050506040513d602081101561025a57600080fd5b5051600160a060020a0316146102bb576040517f08c379a00000000000000000000000000000000000000000000000000000000081526004018080602001828103825260228152602001806104e46022913960400191505060405180910390fd5b33600160a060020a031687600160a060020a03167ee7283fcf5726344ed567dc39b1822ff824bc90f96c137b622781d3570b81ef888888886040518080602001806020018381038352878782818152602001925080828437600083820152601f01601f191690910184810383528581526020019050858580828437600083820152604051601f909101601f19169092018290039850909650505050505050a350505050505050565b84600081905033600160a060020a031681600160a060020a031663075461726040518163ffffffff1660e060020a02815260040160206040518083038186803b1580156103af57600080fd5b505afa1580156103c3573d6000803e3d6000fd5b505050506040513d60208110156103d957600080fd5b5051600160a060020a03161461043a576040517f08c379a00000000000000000000000000000000000000000000000000000000081526004018080602001828103825260228152602001806104e46022913960400191505060405180910390fd5b33600160a060020a031687600160a060020a03167fb8c028de5d50845d8e50bbc36728f4e9d523e16a1a431a299e8b216c7b2f5584888888886040518080602001806020018381038352878782818152602001925080828437600083820152601f01601f191690910184810383528581526020019050858580828437600083820152604051601f909101601f19169092018290039850909650505050505050a35050505050505056fe4d657461646174613a20496e76616c69642044617461546f6b656e204d696e746572a165627a7a7230582007182d4f4feba7fd994cf8aafc2caf58c6d2e7b2a0d71d6e103f8b7ed122ebfd0029",
+  "deployedBytecode": "0x608060405234801561001057600080fd5b50600436106100395760e060020a600035046382743814811461003e578063f89b1f3614610112575b600080fd5b6101106004803603606081101561005457600080fd5b600160a060020a03823516919081019060408101602082013564010000000081111561007f57600080fd5b82018360208201111561009157600080fd5b803590602001918460018302840111640100000000831117156100b357600080fd5b9193909290916020810190356401000000008111156100d157600080fd5b8201836020820111156100e357600080fd5b8035906020019184600183028401116401000000008311171561010557600080fd5b5090925090506101e4565b005b6101106004803603606081101561012857600080fd5b600160a060020a03823516919081019060408101602082013564010000000081111561015357600080fd5b82018360208201111561016557600080fd5b8035906020019184600183028401116401000000008311171561018757600080fd5b9193909290916020810190356401000000008111156101a557600080fd5b8201836020820111156101b757600080fd5b803590602001918460018302840111640100000000831117156101d957600080fd5b509092509050610363565b84600081905033600160a060020a031681600160a060020a031663075461726040518163ffffffff1660e060020a02815260040160206040518083038186803b15801561023057600080fd5b505afa158015610244573d6000803e3d6000fd5b505050506040513d602081101561025a57600080fd5b5051600160a060020a0316146102bb576040517f08c379a00000000000000000000000000000000000000000000000000000000081526004018080602001828103825260228152602001806104e46022913960400191505060405180910390fd5b33600160a060020a031687600160a060020a03167ee7283fcf5726344ed567dc39b1822ff824bc90f96c137b622781d3570b81ef888888886040518080602001806020018381038352878782818152602001925080828437600083820152601f01601f191690910184810383528581526020019050858580828437600083820152604051601f909101601f19169092018290039850909650505050505050a350505050505050565b84600081905033600160a060020a031681600160a060020a031663075461726040518163ffffffff1660e060020a02815260040160206040518083038186803b1580156103af57600080fd5b505afa1580156103c3573d6000803e3d6000fd5b505050506040513d60208110156103d957600080fd5b5051600160a060020a03161461043a576040517f08c379a00000000000000000000000000000000000000000000000000000000081526004018080602001828103825260228152602001806104e46022913960400191505060405180910390fd5b33600160a060020a031687600160a060020a03167fb8c028de5d50845d8e50bbc36728f4e9d523e16a1a431a299e8b216c7b2f5584888888886040518080602001806020018381038352878782818152602001925080828437600083820152601f01601f191690910184810383528581526020019050858580828437600083820152604051601f909101601f19169092018290039850909650505050505050a35050505050505056fe4d657461646174613a20496e76616c69642044617461546f6b656e204d696e746572a165627a7a7230582007182d4f4feba7fd994cf8aafc2caf58c6d2e7b2a0d71d6e103f8b7ed122ebfd0029",
   "sourceMap": "521:1744:11:-;;;1088:23;8:9:-1;5:2;;;30:1;27;20:12;5:2;1088:23:11;521:1744;;;;;;",
   "deployedSourceMap": "521:1744:11:-;;;;8:9:-1;5:2;;;30:1;27;20:12;5:2;521:1744:11;;;;;;-1:-1:-1;;;521:1744:11;;;;;;;;;;;;;;;;;1381:300;;;;;;13:2:-1;8:3;5:11;2:2;;;29:1;26;19:12;2:2;-1:-1;;;;;1381:300:11;;;;;;;;;;;;;;;21:11:-1;5:28;;2:2;;;46:1;43;36:12;2:2;1381:300:11;;35:9:-1;28:4;12:14;8:25;5:40;2:2;;;58:1;55;48:12;2:2;1381:300:11;;;;;;100:9:-1;95:1;81:12;77:20;67:8;63:35;60:50;39:11;25:12;22:29;11:107;8:2;;;131:1;128;121:12;8:2;1381:300:11;;;;;;;;;;;21:11:-1;5:28;;2:2;;;46:1;43;36:12;2:2;1381:300:11;;35:9:-1;28:4;12:14;8:25;5:40;2:2;;;58:1;55;48:12;2:2;1381:300:11;;;;;;100:9:-1;95:1;81:12;77:20;67:8;63:35;60:50;39:11;25:12;22:29;11:107;8:2;;;131:1;128;121:12;8:2;-1:-1;1381:300:11;;-1:-1:-1;1381:300:11;-1:-1:-1;1381:300:11;:::i;:::-;;1963;;;;;;13:2:-1;8:3;5:11;2:2;;;29:1;26;19:12;2:2;-1:-1;;;;;1963:300:11;;;;;;;;;;;;;;;21:11:-1;5:28;;2:2;;;46:1;43;36:12;2:2;1963:300:11;;35:9:-1;28:4;12:14;8:25;5:40;2:2;;;58:1;55;48:12;2:2;1963:300:11;;;;;;100:9:-1;95:1;81:12;77:20;67:8;63:35;60:50;39:11;25:12;22:29;11:107;8:2;;;131:1;128;121:12;8:2;1963:300:11;;;;;;;;;;;21:11:-1;5:28;;2:2;;;46:1;43;36:12;2:2;1963:300:11;;35:9:-1;28:4;12:14;8:25;5:40;2:2;;;58:1;55;48:12;2:2;1963:300:11;;;;;;100:9:-1;95:1;81:12;77:20;67:8;63:35;60:50;39:11;25:12;22:29;11:107;8:2;;;131:1;128;121:12;8:2;-1:-1;1963:300:11;;-1:-1:-1;1963:300:11;-1:-1:-1;1963:300:11;:::i;1381:::-;1535:9;897:20;935:9;897:48;;994:10;-1:-1:-1;;;;;976:28:11;:5;-1:-1:-1;;;;;976:12:11;;:14;;;;;-1:-1:-1;;;976:14:11;;;;;;;;;;;;;;;;8:9:-1;5:2;;;30:1;27;20:12;5:2;976:14:11;;;;8:9:-1;5:2;;;45:16;42:1;39;24:38;77:16;74:1;67:27;5:2;976:14:11;;;;;;;13:2:-1;8:3;5:11;2:2;;;29:1;26;19:12;2:2;-1:-1;976:14:11;-1:-1:-1;;;;;976:28:11;;955:109;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;1617:10;-1:-1:-1;;;;;1565:109:11;1594:9;-1:-1:-1;;;;;1565:109:11;;1641:5;;1660:4;;1565:109;;;;;;;;;;;;;;;;;;;;;;;;30:3:-1;22:6;14;1:33;99:1;81:16;;;74:27;137:4;117:14;-1:-1;;113:30;157:16;;;1565:109:11;;;;;;;;;;;-1:-1:-1;1565:109:11;;;;;1:33:-1;99:1;81:16;;;74:27;1565:109:11;;137:4:-1;117:14;;;-1:-1;;113:30;157:16;;;1565:109:11;;;;-1:-1:-1;1565:109:11;;-1:-1:-1;;;;;;;1565:109:11;1381:300;;;;;;;:::o;1963:::-;2117:9;897:20;935:9;897:48;;994:10;-1:-1:-1;;;;;976:28:11;:5;-1:-1:-1;;;;;976:12:11;;:14;;;;;-1:-1:-1;;;976:14:11;;;;;;;;;;;;;;;;8:9:-1;5:2;;;30:1;27;20:12;5:2;976:14:11;;;;8:9:-1;5:2;;;45:16;42:1;39;24:38;77:16;74:1;67:27;5:2;976:14:11;;;;;;;13:2:-1;8:3;5:11;2:2;;;29:1;26;19:12;2:2;-1:-1;976:14:11;-1:-1:-1;;;;;976:28:11;;955:109;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;2199:10;-1:-1:-1;;;;;2147:109:11;2176:9;-1:-1:-1;;;;;2147:109:11;;2223:5;;2242:4;;2147:109;;;;;;;;;;;;;;;;;;;;;;;;30:3:-1;22:6;14;1:33;99:1;81:16;;;74:27;137:4;117:14;-1:-1;;113:30;157:16;;;2147:109:11;;;;;;;;;;;-1:-1:-1;2147:109:11;;;;;1:33:-1;99:1;81:16;;;74:27;2147:109:11;;137:4:-1;117:14;;;-1:-1;;113:30;157:16;;;2147:109:11;;;;-1:-1:-1;2147:109:11;;-1:-1:-1;;;;;;;2147:109:11;1963:300;;;;;;;:::o",
   "source": "pragma solidity ^0.5.7;\n// Copyright BigchainDB GmbH and Ocean Protocol contributors\n// SPDX-License-Identifier: (Apache-2.0 AND CC-BY-4.0)\n// Code is Apache-2.0 and docs are CC-BY-4.0\n\nimport '../interfaces/IERC20Template.sol';\n\n\n/**\n* @title Metadata\n*  \n* @dev Metadata stands for Decentralized Document. It allows publishers\n*      to publish their dataset metadata in decentralized way.\n*      It follows the Ocean DID Document standard: \n*      https://github.com/oceanprotocol/OEPs/blob/master/7/v0.2/README.md\n*/\ncontract Metadata {\n\n    event MetadataCreated(\n        address indexed dataToken,\n        address indexed createdBy,\n        bytes flags,\n        bytes data\n    );\n    event MetadataUpdated(\n        address indexed dataToken,\n        address indexed updatedBy,\n        bytes flags,\n        bytes data\n    );\n\n    modifier onlyDataTokenMinter(address dataToken)\n    {\n        IERC20Template token = IERC20Template(dataToken);\n        require(\n            token.minter() == msg.sender,\n            'Metadata: Invalid DataToken Minter'\n        );\n        _;\n    }\n\n    constructor() public {}\n\n    /**\n     * @dev create\n     *      creates/publishes new metadata/DDO document on-chain. \n     * @param dataToken refers to data token address\n     * @param flags special flags associated with metadata\n     * @param data referes to the actual metadata\n     */\n    function create(\n        address dataToken,\n        bytes calldata flags,\n        bytes calldata data\n    ) \n        external\n        onlyDataTokenMinter(dataToken)\n    {\n        emit MetadataCreated(\n            dataToken,\n            msg.sender,\n            flags,\n            data\n        );\n    }\n\n    /**\n     * @dev update\n     *      allows only datatoken minter(s) to update the DDO/metadata content\n     * @param dataToken refers to data token address\n     * @param flags special flags associated with metadata\n     * @param data referes to the actual metadata\n     */\n    function update(\n        address dataToken,\n        bytes calldata flags,\n        bytes calldata data\n    ) \n        external\n        onlyDataTokenMinter(dataToken)\n    {\n        emit MetadataUpdated(\n            dataToken,\n            msg.sender,\n            flags,\n            data\n        );\n    }\n}",
-  "sourcePath": "/home/ssallam/pycharm_projects/ocean-contracts/contracts/metadata/Metadata.sol",
+  "sourcePath": "/Users/ahmedali/Desktop/work/ocean-contracts/contracts/metadata/Metadata.sol",
   "ast": {
-    "absolutePath": "/home/ssallam/pycharm_projects/ocean-contracts/contracts/metadata/Metadata.sol",
+    "absolutePath": "/Users/ahmedali/Desktop/work/ocean-contracts/contracts/metadata/Metadata.sol",
     "exportedSymbols": {
       "Metadata": [
-        5231
+        5238
       ]
     },
-    "id": 5232,
+    "id": 5239,
     "nodeType": "SourceUnit",
     "nodes": [
       {
-        "id": 5141,
+        "id": 5148,
         "literals": [
           "solidity",
           "^",
@@ -135,12 +135,12 @@
         "src": "0:23:11"
       },
       {
-        "absolutePath": "/home/ssallam/pycharm_projects/ocean-contracts/contracts/interfaces/IERC20Template.sol",
+        "absolutePath": "/Users/ahmedali/Desktop/work/ocean-contracts/contracts/interfaces/IERC20Template.sol",
         "file": "../interfaces/IERC20Template.sol",
-        "id": 5142,
+        "id": 5149,
         "nodeType": "ImportDirective",
-        "scope": 5232,
-        "sourceUnit": 5140,
+        "scope": 5239,
+        "sourceUnit": 5147,
         "src": "186:42:11",
         "symbolAliases": [],
         "unitAlias": ""
@@ -151,9 +151,9 @@
         "contractKind": "contract",
         "documentation": "@title Metadata\n \n@dev Metadata stands for Decentralized Document. It allows publishers\n     to publish their dataset metadata in decentralized way.\n     It follows the Ocean DID Document standard: \n     https://github.com/oceanprotocol/OEPs/blob/master/7/v0.2/README.md",
         "fullyImplemented": true,
-        "id": 5231,
+        "id": 5238,
         "linearizedBaseContracts": [
-          5231
+          5238
         ],
         "name": "Metadata",
         "nodeType": "ContractDefinition",
@@ -161,20 +161,20 @@
           {
             "anonymous": false,
             "documentation": null,
-            "id": 5152,
+            "id": 5159,
             "name": "MetadataCreated",
             "nodeType": "EventDefinition",
             "parameters": {
-              "id": 5151,
+              "id": 5158,
               "nodeType": "ParameterList",
               "parameters": [
                 {
                   "constant": false,
-                  "id": 5144,
+                  "id": 5151,
                   "indexed": true,
                   "name": "dataToken",
                   "nodeType": "VariableDeclaration",
-                  "scope": 5152,
+                  "scope": 5159,
                   "src": "577:25:11",
                   "stateVariable": false,
                   "storageLocation": "default",
@@ -183,7 +183,7 @@
                     "typeString": "address"
                   },
                   "typeName": {
-                    "id": 5143,
+                    "id": 5150,
                     "name": "address",
                     "nodeType": "ElementaryTypeName",
                     "src": "577:7:11",
@@ -198,11 +198,11 @@
                 },
                 {
                   "constant": false,
-                  "id": 5146,
+                  "id": 5153,
                   "indexed": true,
                   "name": "createdBy",
                   "nodeType": "VariableDeclaration",
-                  "scope": 5152,
+                  "scope": 5159,
                   "src": "612:25:11",
                   "stateVariable": false,
                   "storageLocation": "default",
@@ -211,7 +211,7 @@
                     "typeString": "address"
                   },
                   "typeName": {
-                    "id": 5145,
+                    "id": 5152,
                     "name": "address",
                     "nodeType": "ElementaryTypeName",
                     "src": "612:7:11",
@@ -226,11 +226,11 @@
                 },
                 {
                   "constant": false,
-                  "id": 5148,
+                  "id": 5155,
                   "indexed": false,
                   "name": "flags",
                   "nodeType": "VariableDeclaration",
-                  "scope": 5152,
+                  "scope": 5159,
                   "src": "647:11:11",
                   "stateVariable": false,
                   "storageLocation": "default",
@@ -239,7 +239,7 @@
                     "typeString": "bytes"
                   },
                   "typeName": {
-                    "id": 5147,
+                    "id": 5154,
                     "name": "bytes",
                     "nodeType": "ElementaryTypeName",
                     "src": "647:5:11",
@@ -253,11 +253,11 @@
                 },
                 {
                   "constant": false,
-                  "id": 5150,
+                  "id": 5157,
                   "indexed": false,
                   "name": "data",
                   "nodeType": "VariableDeclaration",
-                  "scope": 5152,
+                  "scope": 5159,
                   "src": "668:10:11",
                   "stateVariable": false,
                   "storageLocation": "default",
@@ -266,7 +266,7 @@
                     "typeString": "bytes"
                   },
                   "typeName": {
-                    "id": 5149,
+                    "id": 5156,
                     "name": "bytes",
                     "nodeType": "ElementaryTypeName",
                     "src": "668:5:11",
@@ -286,20 +286,20 @@
           {
             "anonymous": false,
             "documentation": null,
-            "id": 5162,
+            "id": 5169,
             "name": "MetadataUpdated",
             "nodeType": "EventDefinition",
             "parameters": {
-              "id": 5161,
+              "id": 5168,
               "nodeType": "ParameterList",
               "parameters": [
                 {
                   "constant": false,
-                  "id": 5154,
+                  "id": 5161,
                   "indexed": true,
                   "name": "dataToken",
                   "nodeType": "VariableDeclaration",
-                  "scope": 5162,
+                  "scope": 5169,
                   "src": "721:25:11",
                   "stateVariable": false,
                   "storageLocation": "default",
@@ -308,7 +308,7 @@
                     "typeString": "address"
                   },
                   "typeName": {
-                    "id": 5153,
+                    "id": 5160,
                     "name": "address",
                     "nodeType": "ElementaryTypeName",
                     "src": "721:7:11",
@@ -323,11 +323,11 @@
                 },
                 {
                   "constant": false,
-                  "id": 5156,
+                  "id": 5163,
                   "indexed": true,
                   "name": "updatedBy",
                   "nodeType": "VariableDeclaration",
-                  "scope": 5162,
+                  "scope": 5169,
                   "src": "756:25:11",
                   "stateVariable": false,
                   "storageLocation": "default",
@@ -336,7 +336,7 @@
                     "typeString": "address"
                   },
                   "typeName": {
-                    "id": 5155,
+                    "id": 5162,
                     "name": "address",
                     "nodeType": "ElementaryTypeName",
                     "src": "756:7:11",
@@ -351,11 +351,11 @@
                 },
                 {
                   "constant": false,
-                  "id": 5158,
+                  "id": 5165,
                   "indexed": false,
                   "name": "flags",
                   "nodeType": "VariableDeclaration",
-                  "scope": 5162,
+                  "scope": 5169,
                   "src": "791:11:11",
                   "stateVariable": false,
                   "storageLocation": "default",
@@ -364,7 +364,7 @@
                     "typeString": "bytes"
                   },
                   "typeName": {
-                    "id": 5157,
+                    "id": 5164,
                     "name": "bytes",
                     "nodeType": "ElementaryTypeName",
                     "src": "791:5:11",
@@ -378,11 +378,11 @@
                 },
                 {
                   "constant": false,
-                  "id": 5160,
+                  "id": 5167,
                   "indexed": false,
                   "name": "data",
                   "nodeType": "VariableDeclaration",
-                  "scope": 5162,
+                  "scope": 5169,
                   "src": "812:10:11",
                   "stateVariable": false,
                   "storageLocation": "default",
@@ -391,7 +391,7 @@
                     "typeString": "bytes"
                   },
                   "typeName": {
-                    "id": 5159,
+                    "id": 5166,
                     "name": "bytes",
                     "nodeType": "ElementaryTypeName",
                     "src": "812:5:11",
@@ -410,37 +410,37 @@
           },
           {
             "body": {
-              "id": 5183,
+              "id": 5190,
               "nodeType": "Block",
               "src": "887:195:11",
               "statements": [
                 {
                   "assignments": [
-                    5167
+                    5174
                   ],
                   "declarations": [
                     {
                       "constant": false,
-                      "id": 5167,
+                      "id": 5174,
                       "name": "token",
                       "nodeType": "VariableDeclaration",
-                      "scope": 5183,
+                      "scope": 5190,
                       "src": "897:20:11",
                       "stateVariable": false,
                       "storageLocation": "default",
                       "typeDescriptions": {
-                        "typeIdentifier": "t_contract$_IERC20Template_$5139",
+                        "typeIdentifier": "t_contract$_IERC20Template_$5146",
                         "typeString": "contract IERC20Template"
                       },
                       "typeName": {
                         "contractScope": null,
-                        "id": 5166,
+                        "id": 5173,
                         "name": "IERC20Template",
                         "nodeType": "UserDefinedTypeName",
-                        "referencedDeclaration": 5139,
+                        "referencedDeclaration": 5146,
                         "src": "897:14:11",
                         "typeDescriptions": {
-                          "typeIdentifier": "t_contract$_IERC20Template_$5139",
+                          "typeIdentifier": "t_contract$_IERC20Template_$5146",
                           "typeString": "contract IERC20Template"
                         }
                       },
@@ -448,17 +448,17 @@
                       "visibility": "internal"
                     }
                   ],
-                  "id": 5171,
+                  "id": 5178,
                   "initialValue": {
                     "argumentTypes": null,
                     "arguments": [
                       {
                         "argumentTypes": null,
-                        "id": 5169,
+                        "id": 5176,
                         "name": "dataToken",
                         "nodeType": "Identifier",
                         "overloadedDeclarations": [],
-                        "referencedDeclaration": 5164,
+                        "referencedDeclaration": 5171,
                         "src": "935:9:11",
                         "typeDescriptions": {
                           "typeIdentifier": "t_address",
@@ -473,18 +473,18 @@
                           "typeString": "address"
                         }
                       ],
-                      "id": 5168,
+                      "id": 5175,
                       "name": "IERC20Template",
                       "nodeType": "Identifier",
                       "overloadedDeclarations": [],
-                      "referencedDeclaration": 5139,
+                      "referencedDeclaration": 5146,
                       "src": "920:14:11",
                       "typeDescriptions": {
-                        "typeIdentifier": "t_type$_t_contract$_IERC20Template_$5139_$",
+                        "typeIdentifier": "t_type$_t_contract$_IERC20Template_$5146_$",
                         "typeString": "type(contract IERC20Template)"
                       }
                     },
-                    "id": 5170,
+                    "id": 5177,
                     "isConstant": false,
                     "isLValue": false,
                     "isPure": false,
@@ -494,7 +494,7 @@
                     "nodeType": "FunctionCall",
                     "src": "920:25:11",
                     "typeDescriptions": {
-                      "typeIdentifier": "t_contract$_IERC20Template_$5139",
+                      "typeIdentifier": "t_contract$_IERC20Template_$5146",
                       "typeString": "contract IERC20Template"
                     }
                   },
@@ -511,7 +511,7 @@
                           "typeIdentifier": "t_address",
                           "typeString": "address"
                         },
-                        "id": 5178,
+                        "id": 5185,
                         "isConstant": false,
                         "isLValue": false,
                         "isPure": false,
@@ -523,18 +523,18 @@
                             "argumentTypes": [],
                             "expression": {
                               "argumentTypes": null,
-                              "id": 5173,
+                              "id": 5180,
                               "name": "token",
                               "nodeType": "Identifier",
                               "overloadedDeclarations": [],
-                              "referencedDeclaration": 5167,
+                              "referencedDeclaration": 5174,
                               "src": "976:5:11",
                               "typeDescriptions": {
-                                "typeIdentifier": "t_contract$_IERC20Template_$5139",
+                                "typeIdentifier": "t_contract$_IERC20Template_$5146",
                                 "typeString": "contract IERC20Template"
                               }
                             },
-                            "id": 5174,
+                            "id": 5181,
                             "isConstant": false,
                             "isLValue": false,
                             "isPure": false,
@@ -548,7 +548,7 @@
                               "typeString": "function () view external returns (address)"
                             }
                           },
-                          "id": 5175,
+                          "id": 5182,
                           "isConstant": false,
                           "isLValue": false,
                           "isPure": false,
@@ -568,18 +568,18 @@
                           "argumentTypes": null,
                           "expression": {
                             "argumentTypes": null,
-                            "id": 5176,
+                            "id": 5183,
                             "name": "msg",
                             "nodeType": "Identifier",
                             "overloadedDeclarations": [],
-                            "referencedDeclaration": 6706,
+                            "referencedDeclaration": 6851,
                             "src": "994:3:11",
                             "typeDescriptions": {
                               "typeIdentifier": "t_magic_message",
                               "typeString": "msg"
                             }
                           },
-                          "id": 5177,
+                          "id": 5184,
                           "isConstant": false,
                           "isLValue": false,
                           "isPure": false,
@@ -602,7 +602,7 @@
                       {
                         "argumentTypes": null,
                         "hexValue": "4d657461646174613a20496e76616c69642044617461546f6b656e204d696e746572",
-                        "id": 5179,
+                        "id": 5186,
                         "isConstant": false,
                         "isLValue": false,
                         "isPure": true,
@@ -629,21 +629,21 @@
                           "typeString": "literal_string \"Metadata: Invalid DataToken Minter\""
                         }
                       ],
-                      "id": 5172,
+                      "id": 5179,
                       "name": "require",
                       "nodeType": "Identifier",
                       "overloadedDeclarations": [
-                        6709,
-                        6710
+                        6854,
+                        6855
                       ],
-                      "referencedDeclaration": 6710,
+                      "referencedDeclaration": 6855,
                       "src": "955:7:11",
                       "typeDescriptions": {
                         "typeIdentifier": "t_function_require_pure$_t_bool_$_t_string_memory_ptr_$returns$__$",
                         "typeString": "function (bool,string memory) pure"
                       }
                     },
-                    "id": 5180,
+                    "id": 5187,
                     "isConstant": false,
                     "isLValue": false,
                     "isPure": false,
@@ -657,31 +657,31 @@
                       "typeString": "tuple()"
                     }
                   },
-                  "id": 5181,
+                  "id": 5188,
                   "nodeType": "ExpressionStatement",
                   "src": "955:109:11"
                 },
                 {
-                  "id": 5182,
+                  "id": 5189,
                   "nodeType": "PlaceholderStatement",
                   "src": "1074:1:11"
                 }
               ]
             },
             "documentation": null,
-            "id": 5184,
+            "id": 5191,
             "name": "onlyDataTokenMinter",
             "nodeType": "ModifierDefinition",
             "parameters": {
-              "id": 5165,
+              "id": 5172,
               "nodeType": "ParameterList",
               "parameters": [
                 {
                   "constant": false,
-                  "id": 5164,
+                  "id": 5171,
                   "name": "dataToken",
                   "nodeType": "VariableDeclaration",
-                  "scope": 5184,
+                  "scope": 5191,
                   "src": "864:17:11",
                   "stateVariable": false,
                   "storageLocation": "default",
@@ -690,7 +690,7 @@
                     "typeString": "address"
                   },
                   "typeName": {
-                    "id": 5163,
+                    "id": 5170,
                     "name": "address",
                     "nodeType": "ElementaryTypeName",
                     "src": "864:7:11",
@@ -711,31 +711,31 @@
           },
           {
             "body": {
-              "id": 5187,
+              "id": 5194,
               "nodeType": "Block",
               "src": "1109:2:11",
               "statements": []
             },
             "documentation": null,
-            "id": 5188,
+            "id": 5195,
             "implemented": true,
             "kind": "constructor",
             "modifiers": [],
             "name": "",
             "nodeType": "FunctionDefinition",
             "parameters": {
-              "id": 5185,
+              "id": 5192,
               "nodeType": "ParameterList",
               "parameters": [],
               "src": "1099:2:11"
             },
             "returnParameters": {
-              "id": 5186,
+              "id": 5193,
               "nodeType": "ParameterList",
               "parameters": [],
               "src": "1109:0:11"
             },
-            "scope": 5231,
+            "scope": 5238,
             "src": "1088:23:11",
             "stateMutability": "nonpayable",
             "superFunction": null,
@@ -743,7 +743,7 @@
           },
           {
             "body": {
-              "id": 5208,
+              "id": 5215,
               "nodeType": "Block",
               "src": "1550:131:11",
               "statements": [
@@ -753,11 +753,11 @@
                     "arguments": [
                       {
                         "argumentTypes": null,
-                        "id": 5201,
+                        "id": 5208,
                         "name": "dataToken",
                         "nodeType": "Identifier",
                         "overloadedDeclarations": [],
-                        "referencedDeclaration": 5190,
+                        "referencedDeclaration": 5197,
                         "src": "1594:9:11",
                         "typeDescriptions": {
                           "typeIdentifier": "t_address",
@@ -768,18 +768,18 @@
                         "argumentTypes": null,
                         "expression": {
                           "argumentTypes": null,
-                          "id": 5202,
+                          "id": 5209,
                           "name": "msg",
                           "nodeType": "Identifier",
                           "overloadedDeclarations": [],
-                          "referencedDeclaration": 6706,
+                          "referencedDeclaration": 6851,
                           "src": "1617:3:11",
                           "typeDescriptions": {
                             "typeIdentifier": "t_magic_message",
                             "typeString": "msg"
                           }
                         },
-                        "id": 5203,
+                        "id": 5210,
                         "isConstant": false,
                         "isLValue": false,
                         "isPure": false,
@@ -795,11 +795,11 @@
                       },
                       {
                         "argumentTypes": null,
-                        "id": 5204,
+                        "id": 5211,
                         "name": "flags",
                         "nodeType": "Identifier",
                         "overloadedDeclarations": [],
-                        "referencedDeclaration": 5192,
+                        "referencedDeclaration": 5199,
                         "src": "1641:5:11",
                         "typeDescriptions": {
                           "typeIdentifier": "t_bytes_calldata_ptr",
@@ -808,11 +808,11 @@
                       },
                       {
                         "argumentTypes": null,
-                        "id": 5205,
+                        "id": 5212,
                         "name": "data",
                         "nodeType": "Identifier",
                         "overloadedDeclarations": [],
-                        "referencedDeclaration": 5194,
+                        "referencedDeclaration": 5201,
                         "src": "1660:4:11",
                         "typeDescriptions": {
                           "typeIdentifier": "t_bytes_calldata_ptr",
@@ -839,18 +839,18 @@
                           "typeString": "bytes calldata"
                         }
                       ],
-                      "id": 5200,
+                      "id": 5207,
                       "name": "MetadataCreated",
                       "nodeType": "Identifier",
                       "overloadedDeclarations": [],
-                      "referencedDeclaration": 5152,
+                      "referencedDeclaration": 5159,
                       "src": "1565:15:11",
                       "typeDescriptions": {
                         "typeIdentifier": "t_function_event_nonpayable$_t_address_$_t_address_$_t_bytes_memory_ptr_$_t_bytes_memory_ptr_$returns$__$",
                         "typeString": "function (address,address,bytes memory,bytes memory)"
                       }
                     },
-                    "id": 5206,
+                    "id": 5213,
                     "isConstant": false,
                     "isLValue": false,
                     "isPure": false,
@@ -864,14 +864,14 @@
                       "typeString": "tuple()"
                     }
                   },
-                  "id": 5207,
+                  "id": 5214,
                   "nodeType": "EmitStatement",
                   "src": "1560:114:11"
                 }
               ]
             },
             "documentation": "@dev create\n     creates/publishes new metadata/DDO document on-chain. \n@param dataToken refers to data token address\n@param flags special flags associated with metadata\n@param data referes to the actual metadata",
-            "id": 5209,
+            "id": 5216,
             "implemented": true,
             "kind": "function",
             "modifiers": [
@@ -879,11 +879,11 @@
                 "arguments": [
                   {
                     "argumentTypes": null,
-                    "id": 5197,
+                    "id": 5204,
                     "name": "dataToken",
                     "nodeType": "Identifier",
                     "overloadedDeclarations": [],
-                    "referencedDeclaration": 5190,
+                    "referencedDeclaration": 5197,
                     "src": "1535:9:11",
                     "typeDescriptions": {
                       "typeIdentifier": "t_address",
@@ -891,14 +891,14 @@
                     }
                   }
                 ],
-                "id": 5198,
+                "id": 5205,
                 "modifierName": {
                   "argumentTypes": null,
-                  "id": 5196,
+                  "id": 5203,
                   "name": "onlyDataTokenMinter",
                   "nodeType": "Identifier",
                   "overloadedDeclarations": [],
-                  "referencedDeclaration": 5184,
+                  "referencedDeclaration": 5191,
                   "src": "1515:19:11",
                   "typeDescriptions": {
                     "typeIdentifier": "t_modifier$_t_address_$",
@@ -912,15 +912,15 @@
             "name": "create",
             "nodeType": "FunctionDefinition",
             "parameters": {
-              "id": 5195,
+              "id": 5202,
               "nodeType": "ParameterList",
               "parameters": [
                 {
                   "constant": false,
-                  "id": 5190,
+                  "id": 5197,
                   "name": "dataToken",
                   "nodeType": "VariableDeclaration",
-                  "scope": 5209,
+                  "scope": 5216,
                   "src": "1406:17:11",
                   "stateVariable": false,
                   "storageLocation": "default",
@@ -929,7 +929,7 @@
                     "typeString": "address"
                   },
                   "typeName": {
-                    "id": 5189,
+                    "id": 5196,
                     "name": "address",
                     "nodeType": "ElementaryTypeName",
                     "src": "1406:7:11",
@@ -944,10 +944,10 @@
                 },
                 {
                   "constant": false,
-                  "id": 5192,
+                  "id": 5199,
                   "name": "flags",
                   "nodeType": "VariableDeclaration",
-                  "scope": 5209,
+                  "scope": 5216,
                   "src": "1433:20:11",
                   "stateVariable": false,
                   "storageLocation": "calldata",
@@ -956,7 +956,7 @@
                     "typeString": "bytes"
                   },
                   "typeName": {
-                    "id": 5191,
+                    "id": 5198,
                     "name": "bytes",
                     "nodeType": "ElementaryTypeName",
                     "src": "1433:5:11",
@@ -970,10 +970,10 @@
                 },
                 {
                   "constant": false,
-                  "id": 5194,
+                  "id": 5201,
                   "name": "data",
                   "nodeType": "VariableDeclaration",
-                  "scope": 5209,
+                  "scope": 5216,
                   "src": "1463:19:11",
                   "stateVariable": false,
                   "storageLocation": "calldata",
@@ -982,7 +982,7 @@
                     "typeString": "bytes"
                   },
                   "typeName": {
-                    "id": 5193,
+                    "id": 5200,
                     "name": "bytes",
                     "nodeType": "ElementaryTypeName",
                     "src": "1463:5:11",
@@ -998,12 +998,12 @@
               "src": "1396:92:11"
             },
             "returnParameters": {
-              "id": 5199,
+              "id": 5206,
               "nodeType": "ParameterList",
               "parameters": [],
               "src": "1550:0:11"
             },
-            "scope": 5231,
+            "scope": 5238,
             "src": "1381:300:11",
             "stateMutability": "nonpayable",
             "superFunction": null,
@@ -1011,7 +1011,7 @@
           },
           {
             "body": {
-              "id": 5229,
+              "id": 5236,
               "nodeType": "Block",
               "src": "2132:131:11",
               "statements": [
@@ -1021,11 +1021,11 @@
                     "arguments": [
                       {
                         "argumentTypes": null,
-                        "id": 5222,
+                        "id": 5229,
                         "name": "dataToken",
                         "nodeType": "Identifier",
                         "overloadedDeclarations": [],
-                        "referencedDeclaration": 5211,
+                        "referencedDeclaration": 5218,
                         "src": "2176:9:11",
                         "typeDescriptions": {
                           "typeIdentifier": "t_address",
@@ -1036,18 +1036,18 @@
                         "argumentTypes": null,
                         "expression": {
                           "argumentTypes": null,
-                          "id": 5223,
+                          "id": 5230,
                           "name": "msg",
                           "nodeType": "Identifier",
                           "overloadedDeclarations": [],
-                          "referencedDeclaration": 6706,
+                          "referencedDeclaration": 6851,
                           "src": "2199:3:11",
                           "typeDescriptions": {
                             "typeIdentifier": "t_magic_message",
                             "typeString": "msg"
                           }
                         },
-                        "id": 5224,
+                        "id": 5231,
                         "isConstant": false,
                         "isLValue": false,
                         "isPure": false,
@@ -1063,11 +1063,11 @@
                       },
                       {
                         "argumentTypes": null,
-                        "id": 5225,
+                        "id": 5232,
                         "name": "flags",
                         "nodeType": "Identifier",
                         "overloadedDeclarations": [],
-                        "referencedDeclaration": 5213,
+                        "referencedDeclaration": 5220,
                         "src": "2223:5:11",
                         "typeDescriptions": {
                           "typeIdentifier": "t_bytes_calldata_ptr",
@@ -1076,11 +1076,11 @@
                       },
                       {
                         "argumentTypes": null,
-                        "id": 5226,
+                        "id": 5233,
                         "name": "data",
                         "nodeType": "Identifier",
                         "overloadedDeclarations": [],
-                        "referencedDeclaration": 5215,
+                        "referencedDeclaration": 5222,
                         "src": "2242:4:11",
                         "typeDescriptions": {
                           "typeIdentifier": "t_bytes_calldata_ptr",
@@ -1107,18 +1107,18 @@
                           "typeString": "bytes calldata"
                         }
                       ],
-                      "id": 5221,
+                      "id": 5228,
                       "name": "MetadataUpdated",
                       "nodeType": "Identifier",
                       "overloadedDeclarations": [],
-                      "referencedDeclaration": 5162,
+                      "referencedDeclaration": 5169,
                       "src": "2147:15:11",
                       "typeDescriptions": {
                         "typeIdentifier": "t_function_event_nonpayable$_t_address_$_t_address_$_t_bytes_memory_ptr_$_t_bytes_memory_ptr_$returns$__$",
                         "typeString": "function (address,address,bytes memory,bytes memory)"
                       }
                     },
-                    "id": 5227,
+                    "id": 5234,
                     "isConstant": false,
                     "isLValue": false,
                     "isPure": false,
@@ -1132,14 +1132,14 @@
                       "typeString": "tuple()"
                     }
                   },
-                  "id": 5228,
+                  "id": 5235,
                   "nodeType": "EmitStatement",
                   "src": "2142:114:11"
                 }
               ]
             },
             "documentation": "@dev update\n     allows only datatoken minter(s) to update the DDO/metadata content\n@param dataToken refers to data token address\n@param flags special flags associated with metadata\n@param data referes to the actual metadata",
-            "id": 5230,
+            "id": 5237,
             "implemented": true,
             "kind": "function",
             "modifiers": [
@@ -1147,11 +1147,11 @@
                 "arguments": [
                   {
                     "argumentTypes": null,
-                    "id": 5218,
+                    "id": 5225,
                     "name": "dataToken",
                     "nodeType": "Identifier",
                     "overloadedDeclarations": [],
-                    "referencedDeclaration": 5211,
+                    "referencedDeclaration": 5218,
                     "src": "2117:9:11",
                     "typeDescriptions": {
                       "typeIdentifier": "t_address",
@@ -1159,14 +1159,14 @@
                     }
                   }
                 ],
-                "id": 5219,
+                "id": 5226,
                 "modifierName": {
                   "argumentTypes": null,
-                  "id": 5217,
+                  "id": 5224,
                   "name": "onlyDataTokenMinter",
                   "nodeType": "Identifier",
                   "overloadedDeclarations": [],
-                  "referencedDeclaration": 5184,
+                  "referencedDeclaration": 5191,
                   "src": "2097:19:11",
                   "typeDescriptions": {
                     "typeIdentifier": "t_modifier$_t_address_$",
@@ -1180,15 +1180,15 @@
             "name": "update",
             "nodeType": "FunctionDefinition",
             "parameters": {
-              "id": 5216,
+              "id": 5223,
               "nodeType": "ParameterList",
               "parameters": [
                 {
                   "constant": false,
-                  "id": 5211,
+                  "id": 5218,
                   "name": "dataToken",
                   "nodeType": "VariableDeclaration",
-                  "scope": 5230,
+                  "scope": 5237,
                   "src": "1988:17:11",
                   "stateVariable": false,
                   "storageLocation": "default",
@@ -1197,7 +1197,7 @@
                     "typeString": "address"
                   },
                   "typeName": {
-                    "id": 5210,
+                    "id": 5217,
                     "name": "address",
                     "nodeType": "ElementaryTypeName",
                     "src": "1988:7:11",
@@ -1212,10 +1212,10 @@
                 },
                 {
                   "constant": false,
-                  "id": 5213,
+                  "id": 5220,
                   "name": "flags",
                   "nodeType": "VariableDeclaration",
-                  "scope": 5230,
+                  "scope": 5237,
                   "src": "2015:20:11",
                   "stateVariable": false,
                   "storageLocation": "calldata",
@@ -1224,7 +1224,7 @@
                     "typeString": "bytes"
                   },
                   "typeName": {
-                    "id": 5212,
+                    "id": 5219,
                     "name": "bytes",
                     "nodeType": "ElementaryTypeName",
                     "src": "2015:5:11",
@@ -1238,10 +1238,10 @@
                 },
                 {
                   "constant": false,
-                  "id": 5215,
+                  "id": 5222,
                   "name": "data",
                   "nodeType": "VariableDeclaration",
-                  "scope": 5230,
+                  "scope": 5237,
                   "src": "2045:19:11",
                   "stateVariable": false,
                   "storageLocation": "calldata",
@@ -1250,7 +1250,7 @@
                     "typeString": "bytes"
                   },
                   "typeName": {
-                    "id": 5214,
+                    "id": 5221,
                     "name": "bytes",
                     "nodeType": "ElementaryTypeName",
                     "src": "2045:5:11",
@@ -1266,36 +1266,36 @@
               "src": "1978:92:11"
             },
             "returnParameters": {
-              "id": 5220,
+              "id": 5227,
               "nodeType": "ParameterList",
               "parameters": [],
               "src": "2132:0:11"
             },
-            "scope": 5231,
+            "scope": 5238,
             "src": "1963:300:11",
             "stateMutability": "nonpayable",
             "superFunction": null,
             "visibility": "external"
           }
         ],
-        "scope": 5232,
+        "scope": 5239,
         "src": "521:1744:11"
       }
     ],
     "src": "0:2265:11"
   },
   "legacyAST": {
-    "absolutePath": "/home/ssallam/pycharm_projects/ocean-contracts/contracts/metadata/Metadata.sol",
+    "absolutePath": "/Users/ahmedali/Desktop/work/ocean-contracts/contracts/metadata/Metadata.sol",
     "exportedSymbols": {
       "Metadata": [
-        5231
+        5238
       ]
     },
-    "id": 5232,
+    "id": 5239,
     "nodeType": "SourceUnit",
     "nodes": [
       {
-        "id": 5141,
+        "id": 5148,
         "literals": [
           "solidity",
           "^",
@@ -1306,12 +1306,12 @@
         "src": "0:23:11"
       },
       {
-        "absolutePath": "/home/ssallam/pycharm_projects/ocean-contracts/contracts/interfaces/IERC20Template.sol",
+        "absolutePath": "/Users/ahmedali/Desktop/work/ocean-contracts/contracts/interfaces/IERC20Template.sol",
         "file": "../interfaces/IERC20Template.sol",
-        "id": 5142,
+        "id": 5149,
         "nodeType": "ImportDirective",
-        "scope": 5232,
-        "sourceUnit": 5140,
+        "scope": 5239,
+        "sourceUnit": 5147,
         "src": "186:42:11",
         "symbolAliases": [],
         "unitAlias": ""
@@ -1322,9 +1322,9 @@
         "contractKind": "contract",
         "documentation": "@title Metadata\n \n@dev Metadata stands for Decentralized Document. It allows publishers\n     to publish their dataset metadata in decentralized way.\n     It follows the Ocean DID Document standard: \n     https://github.com/oceanprotocol/OEPs/blob/master/7/v0.2/README.md",
         "fullyImplemented": true,
-        "id": 5231,
+        "id": 5238,
         "linearizedBaseContracts": [
-          5231
+          5238
         ],
         "name": "Metadata",
         "nodeType": "ContractDefinition",
@@ -1332,20 +1332,20 @@
           {
             "anonymous": false,
             "documentation": null,
-            "id": 5152,
+            "id": 5159,
             "name": "MetadataCreated",
             "nodeType": "EventDefinition",
             "parameters": {
-              "id": 5151,
+              "id": 5158,
               "nodeType": "ParameterList",
               "parameters": [
                 {
                   "constant": false,
-                  "id": 5144,
+                  "id": 5151,
                   "indexed": true,
                   "name": "dataToken",
                   "nodeType": "VariableDeclaration",
-                  "scope": 5152,
+                  "scope": 5159,
                   "src": "577:25:11",
                   "stateVariable": false,
                   "storageLocation": "default",
@@ -1354,7 +1354,7 @@
                     "typeString": "address"
                   },
                   "typeName": {
-                    "id": 5143,
+                    "id": 5150,
                     "name": "address",
                     "nodeType": "ElementaryTypeName",
                     "src": "577:7:11",
@@ -1369,11 +1369,11 @@
                 },
                 {
                   "constant": false,
-                  "id": 5146,
+                  "id": 5153,
                   "indexed": true,
                   "name": "createdBy",
                   "nodeType": "VariableDeclaration",
-                  "scope": 5152,
+                  "scope": 5159,
                   "src": "612:25:11",
                   "stateVariable": false,
                   "storageLocation": "default",
@@ -1382,7 +1382,7 @@
                     "typeString": "address"
                   },
                   "typeName": {
-                    "id": 5145,
+                    "id": 5152,
                     "name": "address",
                     "nodeType": "ElementaryTypeName",
                     "src": "612:7:11",
@@ -1397,11 +1397,11 @@
                 },
                 {
                   "constant": false,
-                  "id": 5148,
+                  "id": 5155,
                   "indexed": false,
                   "name": "flags",
                   "nodeType": "VariableDeclaration",
-                  "scope": 5152,
+                  "scope": 5159,
                   "src": "647:11:11",
                   "stateVariable": false,
                   "storageLocation": "default",
@@ -1410,7 +1410,7 @@
                     "typeString": "bytes"
                   },
                   "typeName": {
-                    "id": 5147,
+                    "id": 5154,
                     "name": "bytes",
                     "nodeType": "ElementaryTypeName",
                     "src": "647:5:11",
@@ -1424,11 +1424,11 @@
                 },
                 {
                   "constant": false,
-                  "id": 5150,
+                  "id": 5157,
                   "indexed": false,
                   "name": "data",
                   "nodeType": "VariableDeclaration",
-                  "scope": 5152,
+                  "scope": 5159,
                   "src": "668:10:11",
                   "stateVariable": false,
                   "storageLocation": "default",
@@ -1437,7 +1437,7 @@
                     "typeString": "bytes"
                   },
                   "typeName": {
-                    "id": 5149,
+                    "id": 5156,
                     "name": "bytes",
                     "nodeType": "ElementaryTypeName",
                     "src": "668:5:11",
@@ -1457,20 +1457,20 @@
           {
             "anonymous": false,
             "documentation": null,
-            "id": 5162,
+            "id": 5169,
             "name": "MetadataUpdated",
             "nodeType": "EventDefinition",
             "parameters": {
-              "id": 5161,
+              "id": 5168,
               "nodeType": "ParameterList",
               "parameters": [
                 {
                   "constant": false,
-                  "id": 5154,
+                  "id": 5161,
                   "indexed": true,
                   "name": "dataToken",
                   "nodeType": "VariableDeclaration",
-                  "scope": 5162,
+                  "scope": 5169,
                   "src": "721:25:11",
                   "stateVariable": false,
                   "storageLocation": "default",
@@ -1479,7 +1479,7 @@
                     "typeString": "address"
                   },
                   "typeName": {
-                    "id": 5153,
+                    "id": 5160,
                     "name": "address",
                     "nodeType": "ElementaryTypeName",
                     "src": "721:7:11",
@@ -1494,11 +1494,11 @@
                 },
                 {
                   "constant": false,
-                  "id": 5156,
+                  "id": 5163,
                   "indexed": true,
                   "name": "updatedBy",
                   "nodeType": "VariableDeclaration",
-                  "scope": 5162,
+                  "scope": 5169,
                   "src": "756:25:11",
                   "stateVariable": false,
                   "storageLocation": "default",
@@ -1507,7 +1507,7 @@
                     "typeString": "address"
                   },
                   "typeName": {
-                    "id": 5155,
+                    "id": 5162,
                     "name": "address",
                     "nodeType": "ElementaryTypeName",
                     "src": "756:7:11",
@@ -1522,11 +1522,11 @@
                 },
                 {
                   "constant": false,
-                  "id": 5158,
+                  "id": 5165,
                   "indexed": false,
                   "name": "flags",
                   "nodeType": "VariableDeclaration",
-                  "scope": 5162,
+                  "scope": 5169,
                   "src": "791:11:11",
                   "stateVariable": false,
                   "storageLocation": "default",
@@ -1535,7 +1535,7 @@
                     "typeString": "bytes"
                   },
                   "typeName": {
-                    "id": 5157,
+                    "id": 5164,
                     "name": "bytes",
                     "nodeType": "ElementaryTypeName",
                     "src": "791:5:11",
@@ -1549,11 +1549,11 @@
                 },
                 {
                   "constant": false,
-                  "id": 5160,
+                  "id": 5167,
                   "indexed": false,
                   "name": "data",
                   "nodeType": "VariableDeclaration",
-                  "scope": 5162,
+                  "scope": 5169,
                   "src": "812:10:11",
                   "stateVariable": false,
                   "storageLocation": "default",
@@ -1562,7 +1562,7 @@
                     "typeString": "bytes"
                   },
                   "typeName": {
-                    "id": 5159,
+                    "id": 5166,
                     "name": "bytes",
                     "nodeType": "ElementaryTypeName",
                     "src": "812:5:11",
@@ -1581,37 +1581,37 @@
           },
           {
             "body": {
-              "id": 5183,
+              "id": 5190,
               "nodeType": "Block",
               "src": "887:195:11",
               "statements": [
                 {
                   "assignments": [
-                    5167
+                    5174
                   ],
                   "declarations": [
                     {
                       "constant": false,
-                      "id": 5167,
+                      "id": 5174,
                       "name": "token",
                       "nodeType": "VariableDeclaration",
-                      "scope": 5183,
+                      "scope": 5190,
                       "src": "897:20:11",
                       "stateVariable": false,
                       "storageLocation": "default",
                       "typeDescriptions": {
-                        "typeIdentifier": "t_contract$_IERC20Template_$5139",
+                        "typeIdentifier": "t_contract$_IERC20Template_$5146",
                         "typeString": "contract IERC20Template"
                       },
                       "typeName": {
                         "contractScope": null,
-                        "id": 5166,
+                        "id": 5173,
                         "name": "IERC20Template",
                         "nodeType": "UserDefinedTypeName",
-                        "referencedDeclaration": 5139,
+                        "referencedDeclaration": 5146,
                         "src": "897:14:11",
                         "typeDescriptions": {
-                          "typeIdentifier": "t_contract$_IERC20Template_$5139",
+                          "typeIdentifier": "t_contract$_IERC20Template_$5146",
                           "typeString": "contract IERC20Template"
                         }
                       },
@@ -1619,17 +1619,17 @@
                       "visibility": "internal"
                     }
                   ],
-                  "id": 5171,
+                  "id": 5178,
                   "initialValue": {
                     "argumentTypes": null,
                     "arguments": [
                       {
                         "argumentTypes": null,
-                        "id": 5169,
+                        "id": 5176,
                         "name": "dataToken",
                         "nodeType": "Identifier",
                         "overloadedDeclarations": [],
-                        "referencedDeclaration": 5164,
+                        "referencedDeclaration": 5171,
                         "src": "935:9:11",
                         "typeDescriptions": {
                           "typeIdentifier": "t_address",
@@ -1644,18 +1644,18 @@
                           "typeString": "address"
                         }
                       ],
-                      "id": 5168,
+                      "id": 5175,
                       "name": "IERC20Template",
                       "nodeType": "Identifier",
                       "overloadedDeclarations": [],
-                      "referencedDeclaration": 5139,
+                      "referencedDeclaration": 5146,
                       "src": "920:14:11",
                       "typeDescriptions": {
-                        "typeIdentifier": "t_type$_t_contract$_IERC20Template_$5139_$",
+                        "typeIdentifier": "t_type$_t_contract$_IERC20Template_$5146_$",
                         "typeString": "type(contract IERC20Template)"
                       }
                     },
-                    "id": 5170,
+                    "id": 5177,
                     "isConstant": false,
                     "isLValue": false,
                     "isPure": false,
@@ -1665,7 +1665,7 @@
                     "nodeType": "FunctionCall",
                     "src": "920:25:11",
                     "typeDescriptions": {
-                      "typeIdentifier": "t_contract$_IERC20Template_$5139",
+                      "typeIdentifier": "t_contract$_IERC20Template_$5146",
                       "typeString": "contract IERC20Template"
                     }
                   },
@@ -1682,7 +1682,7 @@
                           "typeIdentifier": "t_address",
                           "typeString": "address"
                         },
-                        "id": 5178,
+                        "id": 5185,
                         "isConstant": false,
                         "isLValue": false,
                         "isPure": false,
@@ -1694,18 +1694,18 @@
                             "argumentTypes": [],
                             "expression": {
                               "argumentTypes": null,
-                              "id": 5173,
+                              "id": 5180,
                               "name": "token",
                               "nodeType": "Identifier",
                               "overloadedDeclarations": [],
-                              "referencedDeclaration": 5167,
+                              "referencedDeclaration": 5174,
                               "src": "976:5:11",
                               "typeDescriptions": {
-                                "typeIdentifier": "t_contract$_IERC20Template_$5139",
+                                "typeIdentifier": "t_contract$_IERC20Template_$5146",
                                 "typeString": "contract IERC20Template"
                               }
                             },
-                            "id": 5174,
+                            "id": 5181,
                             "isConstant": false,
                             "isLValue": false,
                             "isPure": false,
@@ -1719,7 +1719,7 @@
                               "typeString": "function () view external returns (address)"
                             }
                           },
-                          "id": 5175,
+                          "id": 5182,
                           "isConstant": false,
                           "isLValue": false,
                           "isPure": false,
@@ -1739,18 +1739,18 @@
                           "argumentTypes": null,
                           "expression": {
                             "argumentTypes": null,
-                            "id": 5176,
+                            "id": 5183,
                             "name": "msg",
                             "nodeType": "Identifier",
                             "overloadedDeclarations": [],
-                            "referencedDeclaration": 6706,
+                            "referencedDeclaration": 6851,
                             "src": "994:3:11",
                             "typeDescriptions": {
                               "typeIdentifier": "t_magic_message",
                               "typeString": "msg"
                             }
                           },
-                          "id": 5177,
+                          "id": 5184,
                           "isConstant": false,
                           "isLValue": false,
                           "isPure": false,
@@ -1773,7 +1773,7 @@
                       {
                         "argumentTypes": null,
                         "hexValue": "4d657461646174613a20496e76616c69642044617461546f6b656e204d696e746572",
-                        "id": 5179,
+                        "id": 5186,
                         "isConstant": false,
                         "isLValue": false,
                         "isPure": true,
@@ -1800,21 +1800,21 @@
                           "typeString": "literal_string \"Metadata: Invalid DataToken Minter\""
                         }
                       ],
-                      "id": 5172,
+                      "id": 5179,
                       "name": "require",
                       "nodeType": "Identifier",
                       "overloadedDeclarations": [
-                        6709,
-                        6710
+                        6854,
+                        6855
                       ],
-                      "referencedDeclaration": 6710,
+                      "referencedDeclaration": 6855,
                       "src": "955:7:11",
                       "typeDescriptions": {
                         "typeIdentifier": "t_function_require_pure$_t_bool_$_t_string_memory_ptr_$returns$__$",
                         "typeString": "function (bool,string memory) pure"
                       }
                     },
-                    "id": 5180,
+                    "id": 5187,
                     "isConstant": false,
                     "isLValue": false,
                     "isPure": false,
@@ -1828,31 +1828,31 @@
                       "typeString": "tuple()"
                     }
                   },
-                  "id": 5181,
+                  "id": 5188,
                   "nodeType": "ExpressionStatement",
                   "src": "955:109:11"
                 },
                 {
-                  "id": 5182,
+                  "id": 5189,
                   "nodeType": "PlaceholderStatement",
                   "src": "1074:1:11"
                 }
               ]
             },
             "documentation": null,
-            "id": 5184,
+            "id": 5191,
             "name": "onlyDataTokenMinter",
             "nodeType": "ModifierDefinition",
             "parameters": {
-              "id": 5165,
+              "id": 5172,
               "nodeType": "ParameterList",
               "parameters": [
                 {
                   "constant": false,
-                  "id": 5164,
+                  "id": 5171,
                   "name": "dataToken",
                   "nodeType": "VariableDeclaration",
-                  "scope": 5184,
+                  "scope": 5191,
                   "src": "864:17:11",
                   "stateVariable": false,
                   "storageLocation": "default",
@@ -1861,7 +1861,7 @@
                     "typeString": "address"
                   },
                   "typeName": {
-                    "id": 5163,
+                    "id": 5170,
                     "name": "address",
                     "nodeType": "ElementaryTypeName",
                     "src": "864:7:11",
@@ -1882,31 +1882,31 @@
           },
           {
             "body": {
-              "id": 5187,
+              "id": 5194,
               "nodeType": "Block",
               "src": "1109:2:11",
               "statements": []
             },
             "documentation": null,
-            "id": 5188,
+            "id": 5195,
             "implemented": true,
             "kind": "constructor",
             "modifiers": [],
             "name": "",
             "nodeType": "FunctionDefinition",
             "parameters": {
-              "id": 5185,
+              "id": 5192,
               "nodeType": "ParameterList",
               "parameters": [],
               "src": "1099:2:11"
             },
             "returnParameters": {
-              "id": 5186,
+              "id": 5193,
               "nodeType": "ParameterList",
               "parameters": [],
               "src": "1109:0:11"
             },
-            "scope": 5231,
+            "scope": 5238,
             "src": "1088:23:11",
             "stateMutability": "nonpayable",
             "superFunction": null,
@@ -1914,7 +1914,7 @@
           },
           {
             "body": {
-              "id": 5208,
+              "id": 5215,
               "nodeType": "Block",
               "src": "1550:131:11",
               "statements": [
@@ -1924,11 +1924,11 @@
                     "arguments": [
                       {
                         "argumentTypes": null,
-                        "id": 5201,
+                        "id": 5208,
                         "name": "dataToken",
                         "nodeType": "Identifier",
                         "overloadedDeclarations": [],
-                        "referencedDeclaration": 5190,
+                        "referencedDeclaration": 5197,
                         "src": "1594:9:11",
                         "typeDescriptions": {
                           "typeIdentifier": "t_address",
@@ -1939,18 +1939,18 @@
                         "argumentTypes": null,
                         "expression": {
                           "argumentTypes": null,
-                          "id": 5202,
+                          "id": 5209,
                           "name": "msg",
                           "nodeType": "Identifier",
                           "overloadedDeclarations": [],
-                          "referencedDeclaration": 6706,
+                          "referencedDeclaration": 6851,
                           "src": "1617:3:11",
                           "typeDescriptions": {
                             "typeIdentifier": "t_magic_message",
                             "typeString": "msg"
                           }
                         },
-                        "id": 5203,
+                        "id": 5210,
                         "isConstant": false,
                         "isLValue": false,
                         "isPure": false,
@@ -1966,11 +1966,11 @@
                       },
                       {
                         "argumentTypes": null,
-                        "id": 5204,
+                        "id": 5211,
                         "name": "flags",
                         "nodeType": "Identifier",
                         "overloadedDeclarations": [],
-                        "referencedDeclaration": 5192,
+                        "referencedDeclaration": 5199,
                         "src": "1641:5:11",
                         "typeDescriptions": {
                           "typeIdentifier": "t_bytes_calldata_ptr",
@@ -1979,11 +1979,11 @@
                       },
                       {
                         "argumentTypes": null,
-                        "id": 5205,
+                        "id": 5212,
                         "name": "data",
                         "nodeType": "Identifier",
                         "overloadedDeclarations": [],
-                        "referencedDeclaration": 5194,
+                        "referencedDeclaration": 5201,
                         "src": "1660:4:11",
                         "typeDescriptions": {
                           "typeIdentifier": "t_bytes_calldata_ptr",
@@ -2010,18 +2010,18 @@
                           "typeString": "bytes calldata"
                         }
                       ],
-                      "id": 5200,
+                      "id": 5207,
                       "name": "MetadataCreated",
                       "nodeType": "Identifier",
                       "overloadedDeclarations": [],
-                      "referencedDeclaration": 5152,
+                      "referencedDeclaration": 5159,
                       "src": "1565:15:11",
                       "typeDescriptions": {
                         "typeIdentifier": "t_function_event_nonpayable$_t_address_$_t_address_$_t_bytes_memory_ptr_$_t_bytes_memory_ptr_$returns$__$",
                         "typeString": "function (address,address,bytes memory,bytes memory)"
                       }
                     },
-                    "id": 5206,
+                    "id": 5213,
                     "isConstant": false,
                     "isLValue": false,
                     "isPure": false,
@@ -2035,14 +2035,14 @@
                       "typeString": "tuple()"
                     }
                   },
-                  "id": 5207,
+                  "id": 5214,
                   "nodeType": "EmitStatement",
                   "src": "1560:114:11"
                 }
               ]
             },
             "documentation": "@dev create\n     creates/publishes new metadata/DDO document on-chain. \n@param dataToken refers to data token address\n@param flags special flags associated with metadata\n@param data referes to the actual metadata",
-            "id": 5209,
+            "id": 5216,
             "implemented": true,
             "kind": "function",
             "modifiers": [
@@ -2050,11 +2050,11 @@
                 "arguments": [
                   {
                     "argumentTypes": null,
-                    "id": 5197,
+                    "id": 5204,
                     "name": "dataToken",
                     "nodeType": "Identifier",
                     "overloadedDeclarations": [],
-                    "referencedDeclaration": 5190,
+                    "referencedDeclaration": 5197,
                     "src": "1535:9:11",
                     "typeDescriptions": {
                       "typeIdentifier": "t_address",
@@ -2062,14 +2062,14 @@
                     }
                   }
                 ],
-                "id": 5198,
+                "id": 5205,
                 "modifierName": {
                   "argumentTypes": null,
-                  "id": 5196,
+                  "id": 5203,
                   "name": "onlyDataTokenMinter",
                   "nodeType": "Identifier",
                   "overloadedDeclarations": [],
-                  "referencedDeclaration": 5184,
+                  "referencedDeclaration": 5191,
                   "src": "1515:19:11",
                   "typeDescriptions": {
                     "typeIdentifier": "t_modifier$_t_address_$",
@@ -2083,15 +2083,15 @@
             "name": "create",
             "nodeType": "FunctionDefinition",
             "parameters": {
-              "id": 5195,
+              "id": 5202,
               "nodeType": "ParameterList",
               "parameters": [
                 {
                   "constant": false,
-                  "id": 5190,
+                  "id": 5197,
                   "name": "dataToken",
                   "nodeType": "VariableDeclaration",
-                  "scope": 5209,
+                  "scope": 5216,
                   "src": "1406:17:11",
                   "stateVariable": false,
                   "storageLocation": "default",
@@ -2100,7 +2100,7 @@
                     "typeString": "address"
                   },
                   "typeName": {
-                    "id": 5189,
+                    "id": 5196,
                     "name": "address",
                     "nodeType": "ElementaryTypeName",
                     "src": "1406:7:11",
@@ -2115,10 +2115,10 @@
                 },
                 {
                   "constant": false,
-                  "id": 5192,
+                  "id": 5199,
                   "name": "flags",
                   "nodeType": "VariableDeclaration",
-                  "scope": 5209,
+                  "scope": 5216,
                   "src": "1433:20:11",
                   "stateVariable": false,
                   "storageLocation": "calldata",
@@ -2127,7 +2127,7 @@
                     "typeString": "bytes"
                   },
                   "typeName": {
-                    "id": 5191,
+                    "id": 5198,
                     "name": "bytes",
                     "nodeType": "ElementaryTypeName",
                     "src": "1433:5:11",
@@ -2141,10 +2141,10 @@
                 },
                 {
                   "constant": false,
-                  "id": 5194,
+                  "id": 5201,
                   "name": "data",
                   "nodeType": "VariableDeclaration",
-                  "scope": 5209,
+                  "scope": 5216,
                   "src": "1463:19:11",
                   "stateVariable": false,
                   "storageLocation": "calldata",
@@ -2153,7 +2153,7 @@
                     "typeString": "bytes"
                   },
                   "typeName": {
-                    "id": 5193,
+                    "id": 5200,
                     "name": "bytes",
                     "nodeType": "ElementaryTypeName",
                     "src": "1463:5:11",
@@ -2169,12 +2169,12 @@
               "src": "1396:92:11"
             },
             "returnParameters": {
-              "id": 5199,
+              "id": 5206,
               "nodeType": "ParameterList",
               "parameters": [],
               "src": "1550:0:11"
             },
-            "scope": 5231,
+            "scope": 5238,
             "src": "1381:300:11",
             "stateMutability": "nonpayable",
             "superFunction": null,
@@ -2182,7 +2182,7 @@
           },
           {
             "body": {
-              "id": 5229,
+              "id": 5236,
               "nodeType": "Block",
               "src": "2132:131:11",
               "statements": [
@@ -2192,11 +2192,11 @@
                     "arguments": [
                       {
                         "argumentTypes": null,
-                        "id": 5222,
+                        "id": 5229,
                         "name": "dataToken",
                         "nodeType": "Identifier",
                         "overloadedDeclarations": [],
-                        "referencedDeclaration": 5211,
+                        "referencedDeclaration": 5218,
                         "src": "2176:9:11",
                         "typeDescriptions": {
                           "typeIdentifier": "t_address",
@@ -2207,18 +2207,18 @@
                         "argumentTypes": null,
                         "expression": {
                           "argumentTypes": null,
-                          "id": 5223,
+                          "id": 5230,
                           "name": "msg",
                           "nodeType": "Identifier",
                           "overloadedDeclarations": [],
-                          "referencedDeclaration": 6706,
+                          "referencedDeclaration": 6851,
                           "src": "2199:3:11",
                           "typeDescriptions": {
                             "typeIdentifier": "t_magic_message",
                             "typeString": "msg"
                           }
                         },
-                        "id": 5224,
+                        "id": 5231,
                         "isConstant": false,
                         "isLValue": false,
                         "isPure": false,
@@ -2234,11 +2234,11 @@
                       },
                       {
                         "argumentTypes": null,
-                        "id": 5225,
+                        "id": 5232,
                         "name": "flags",
                         "nodeType": "Identifier",
                         "overloadedDeclarations": [],
-                        "referencedDeclaration": 5213,
+                        "referencedDeclaration": 5220,
                         "src": "2223:5:11",
                         "typeDescriptions": {
                           "typeIdentifier": "t_bytes_calldata_ptr",
@@ -2247,11 +2247,11 @@
                       },
                       {
                         "argumentTypes": null,
-                        "id": 5226,
+                        "id": 5233,
                         "name": "data",
                         "nodeType": "Identifier",
                         "overloadedDeclarations": [],
-                        "referencedDeclaration": 5215,
+                        "referencedDeclaration": 5222,
                         "src": "2242:4:11",
                         "typeDescriptions": {
                           "typeIdentifier": "t_bytes_calldata_ptr",
@@ -2278,18 +2278,18 @@
                           "typeString": "bytes calldata"
                         }
                       ],
-                      "id": 5221,
+                      "id": 5228,
                       "name": "MetadataUpdated",
                       "nodeType": "Identifier",
                       "overloadedDeclarations": [],
-                      "referencedDeclaration": 5162,
+                      "referencedDeclaration": 5169,
                       "src": "2147:15:11",
                       "typeDescriptions": {
                         "typeIdentifier": "t_function_event_nonpayable$_t_address_$_t_address_$_t_bytes_memory_ptr_$_t_bytes_memory_ptr_$returns$__$",
                         "typeString": "function (address,address,bytes memory,bytes memory)"
                       }
                     },
-                    "id": 5227,
+                    "id": 5234,
                     "isConstant": false,
                     "isLValue": false,
                     "isPure": false,
@@ -2303,14 +2303,14 @@
                       "typeString": "tuple()"
                     }
                   },
-                  "id": 5228,
+                  "id": 5235,
                   "nodeType": "EmitStatement",
                   "src": "2142:114:11"
                 }
               ]
             },
             "documentation": "@dev update\n     allows only datatoken minter(s) to update the DDO/metadata content\n@param dataToken refers to data token address\n@param flags special flags associated with metadata\n@param data referes to the actual metadata",
-            "id": 5230,
+            "id": 5237,
             "implemented": true,
             "kind": "function",
             "modifiers": [
@@ -2318,11 +2318,11 @@
                 "arguments": [
                   {
                     "argumentTypes": null,
-                    "id": 5218,
+                    "id": 5225,
                     "name": "dataToken",
                     "nodeType": "Identifier",
                     "overloadedDeclarations": [],
-                    "referencedDeclaration": 5211,
+                    "referencedDeclaration": 5218,
                     "src": "2117:9:11",
                     "typeDescriptions": {
                       "typeIdentifier": "t_address",
@@ -2330,14 +2330,14 @@
                     }
                   }
                 ],
-                "id": 5219,
+                "id": 5226,
                 "modifierName": {
                   "argumentTypes": null,
-                  "id": 5217,
+                  "id": 5224,
                   "name": "onlyDataTokenMinter",
                   "nodeType": "Identifier",
                   "overloadedDeclarations": [],
-                  "referencedDeclaration": 5184,
+                  "referencedDeclaration": 5191,
                   "src": "2097:19:11",
                   "typeDescriptions": {
                     "typeIdentifier": "t_modifier$_t_address_$",
@@ -2351,15 +2351,15 @@
             "name": "update",
             "nodeType": "FunctionDefinition",
             "parameters": {
-              "id": 5216,
+              "id": 5223,
               "nodeType": "ParameterList",
               "parameters": [
                 {
                   "constant": false,
-                  "id": 5211,
+                  "id": 5218,
                   "name": "dataToken",
                   "nodeType": "VariableDeclaration",
-                  "scope": 5230,
+                  "scope": 5237,
                   "src": "1988:17:11",
                   "stateVariable": false,
                   "storageLocation": "default",
@@ -2368,7 +2368,7 @@
                     "typeString": "address"
                   },
                   "typeName": {
-                    "id": 5210,
+                    "id": 5217,
                     "name": "address",
                     "nodeType": "ElementaryTypeName",
                     "src": "1988:7:11",
@@ -2383,10 +2383,10 @@
                 },
                 {
                   "constant": false,
-                  "id": 5213,
+                  "id": 5220,
                   "name": "flags",
                   "nodeType": "VariableDeclaration",
-                  "scope": 5230,
+                  "scope": 5237,
                   "src": "2015:20:11",
                   "stateVariable": false,
                   "storageLocation": "calldata",
@@ -2395,7 +2395,7 @@
                     "typeString": "bytes"
                   },
                   "typeName": {
-                    "id": 5212,
+                    "id": 5219,
                     "name": "bytes",
                     "nodeType": "ElementaryTypeName",
                     "src": "2015:5:11",
@@ -2409,10 +2409,10 @@
                 },
                 {
                   "constant": false,
-                  "id": 5215,
+                  "id": 5222,
                   "name": "data",
                   "nodeType": "VariableDeclaration",
-                  "scope": 5230,
+                  "scope": 5237,
                   "src": "2045:19:11",
                   "stateVariable": false,
                   "storageLocation": "calldata",
@@ -2421,7 +2421,7 @@
                     "typeString": "bytes"
                   },
                   "typeName": {
-                    "id": 5214,
+                    "id": 5221,
                     "name": "bytes",
                     "nodeType": "ElementaryTypeName",
                     "src": "2045:5:11",
@@ -2437,19 +2437,19 @@
               "src": "1978:92:11"
             },
             "returnParameters": {
-              "id": 5220,
+              "id": 5227,
               "nodeType": "ParameterList",
               "parameters": [],
               "src": "2132:0:11"
             },
-            "scope": 5231,
+            "scope": 5238,
             "src": "1963:300:11",
             "stateMutability": "nonpayable",
             "superFunction": null,
             "visibility": "external"
           }
         ],
-        "scope": 5232,
+        "scope": 5239,
         "src": "521:1744:11"
       }
     ],
@@ -2461,7 +2461,7 @@
   },
   "networks": {},
   "schemaVersion": "3.2.4",
-  "updatedAt": "2020-09-23T08:50:38.801Z",
+  "updatedAt": "2020-09-25T11:46:41.073Z",
   "devdoc": {
     "details": "Metadata stands for Decentralized Document. It allows publishers     to publish their dataset metadata in decentralized way.     It follows the Ocean DID Document standard:      https://github.com/oceanprotocol/OEPs/blob/master/7/v0.2/README.md",
     "methods": {
