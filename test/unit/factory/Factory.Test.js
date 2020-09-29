@@ -54,8 +54,8 @@ contract('Factory test', async accounts => {
     })
 
     it('should get the token count', async () => {
-        const currentTokenIndex = await factory.getCurrentTokenIndex()
-        assert.equal(currentTokenIndex.toNumber(), 1)
+        const currentTokenCount = await factory.getCurrentTokenCount()
+        assert.equal(currentTokenCount.toNumber(), 1)
     })
 
     it('should get the token template', async () => {
