@@ -55,13 +55,7 @@ contract DataTokenTemplate is IERC20Template, ERC20Pausable {
         address currentMinter,
         address newMinter
     );
-
-    event DATA(
-        address newMinter,
-        bytes32 message,
-        bytes signature
-    );
-
+    
     modifier onlyNotInitialized() {
         require(
             !initialized,
@@ -335,11 +329,6 @@ contract DataTokenTemplate is IERC20Template, ERC20Pausable {
             ECDSA.recover(_message, _signature) == _proposedMinter,
             'DataToken: Invalid new minter signature'
         );
-        // emit DATA (
-        //     __minter,
-        //     _message,
-        //     _signature
-        // );
         emit MinterApproved(
             _minter,
             _proposedMinter
