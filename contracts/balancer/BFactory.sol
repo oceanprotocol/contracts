@@ -1,4 +1,4 @@
-pragma solidity ^0.5.7;
+pragma solidity 0.5.7;
 // Copyright BigchainDB GmbH and Ocean Protocol contributors
 // SPDX-License-Identifier: (Apache-2.0 AND CC-BY-4.0)
 // Code is Apache-2.0 and docs are CC-BY-4.0
@@ -19,7 +19,7 @@ import '../utils/Deployer.sol';
 */
 contract BFactory is BConst, Deployer {
 
-    address private _bpoolTemplate;
+    address public bpoolTemplate;
 
     event BPoolCreated(
         address indexed newBPoolAddress,
@@ -28,17 +28,19 @@ contract BFactory is BConst, Deployer {
     
     event BPoolRegistered(
         address bpoolAddress,
-        address indexed registeredBy,
-        uint256 indexed registeredAt
+        address indexed registeredBy
     );
     
     /* @dev Called on contract deployment. Cannot be called with zero address.
        @param _bpoolTemplate -- address of a deployed BPool contract. */
-    constructor(address bpoolTemplate)
+    constructor(address _bpoolTemplate)
         public 
     {
-        require(bpoolTemplate != address(0), 'ERR_ADDRESS_0');
-        _bpoolTemplate = bpoolTemplate;
+        require(
+            _bpoolTemplate != address(0), 
+            'BFactory: invalid bpool template zero address'
+        );
+        bpoolTemplate = _bpoolTemplate;
     }
 
     /* @dev Deploys new BPool proxy contract.
@@ -48,8 +50,11 @@ contract BFactory is BConst, Deployer {
         external
         returns (address bpool)
     {
-        bpool = deploy(_bpoolTemplate);
-        require(bpool != address(0), 'ERR_ADDRESS_0');
+        bpool = deploy(bpoolTemplate);
+        require(
+            bpool != address(0), 
+            'BFactory: invalid bpool zero address'
+        );
         BPool bpoolInstance = BPool(bpool);	
         require(
             bpoolInstance.initialize(
@@ -61,18 +66,7 @@ contract BFactory is BConst, Deployer {
             ),
             'ERR_INITIALIZE_BPOOL'
         );
-        emit BPoolCreated(bpool, _bpoolTemplate);
-        emit BPoolRegistered(bpool, msg.sender, block.number);
-    }
-
-
-    /* @dev get the bpool template address
-       @return the template address */
-    function getBPool()
-        external
-        view
-        returns (address)
-    {
-        return _bpoolTemplate;
+        emit BPoolCreated(bpool, bpoolTemplate);
+        emit BPoolRegistered(bpool, msg.sender);
     }
 }

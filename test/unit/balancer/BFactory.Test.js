@@ -21,8 +21,8 @@ contract('BFactory', async (accounts) => {
         })
 
         it('should get BPool', async () => {
-            const sPoolTemplate = await factory.getBPool()
-            assert(poolTemplate, sPoolTemplate)
+            const bPoolTemplate = await factory.bpoolTemplate()
+            assert(poolTemplate, bPoolTemplate)
         })
     })
 })
