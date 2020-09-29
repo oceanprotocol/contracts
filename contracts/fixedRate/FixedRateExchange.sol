@@ -281,11 +281,11 @@ contract FixedRateExchange {
     }
 
      /**
-     * @dev toggle
+     * @dev toggleExchangeState
      *      toggles the active state of an existing exchange
      * @param exchangeId a unique exchange idnetifier
      */
-    function toggle(
+    function toggleExchangeState(
         bytes32 exchangeId
     )
         external

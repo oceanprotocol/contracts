@@ -146,14 +146,14 @@ contract('FixedRateExchange', async (accounts) => {
         const isActive = await fixedRateExchange.isActive(ExchangeCreatedEventArgs.exchangeId)
         if (isActive === false) {
             // change it to true (deactivate)
-            await fixedRateExchange.toggle(
+            await fixedRateExchange.toggleExchangeState(
                 ExchangeCreatedEventArgs.exchangeId,
                 {
                     from: exchangeOwner
                 }
             )
         }
-        await fixedRateExchange.toggle(
+        await fixedRateExchange.toggleExchangeState(
             ExchangeCreatedEventArgs.exchangeId,
             {
                 from: exchangeOwner
@@ -170,14 +170,14 @@ contract('FixedRateExchange', async (accounts) => {
         const isActive = await fixedRateExchange.isActive(ExchangeCreatedEventArgs.exchangeId)
         if (isActive) {
             // change it to false (deactivate)
-            await fixedRateExchange.toggle(
+            await fixedRateExchange.toggleExchangeState(
                 ExchangeCreatedEventArgs.exchangeId,
                 {
                     from: exchangeOwner
                 }
             )
         }
-        await fixedRateExchange.toggle(
+        await fixedRateExchange.toggleExchangeState(
             ExchangeCreatedEventArgs.exchangeId,
             {
                 from: exchangeOwner
