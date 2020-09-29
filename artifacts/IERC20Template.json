@@ -301,16 +301,7 @@
     },
     {
       "constant": false,
-      "inputs": [
-        {
-          "name": "_message",
-          "type": "bytes32"
-        },
-        {
-          "name": "_signature",
-          "type": "bytes"
-        }
-      ],
+      "inputs": [],
       "name": "approveMinter",
       "outputs": [],
       "payable": false,
@@ -318,21 +309,21 @@
       "type": "function"
     }
   ],
-  "metadata": "{\"compiler\":{\"version\":\"0.5.7+commit.6da8b019\"},\"language\":\"Solidity\",\"output\":{\"abi\":[{\"constant\":true,\"inputs\":[],\"name\":\"name\",\"outputs\":[{\"name\":\"\",\"type\":\"string\"}],\"payable\":false,\"stateMutability\":\"view\",\"type\":\"function\"},{\"constant\":true,\"inputs\":[],\"name\":\"minter\",\"outputs\":[{\"name\":\"\",\"type\":\"address\"}],\"payable\":false,\"stateMutability\":\"view\",\"type\":\"function\"},{\"constant\":false,\"inputs\":[{\"name\":\"from\",\"type\":\"address\"},{\"name\":\"to\",\"type\":\"address\"},{\"name\":\"value\",\"type\":\"uint256\"}],\"name\":\"transferFrom\",\"outputs\":[{\"name\":\"\",\"type\":\"bool\"}],\"payable\":false,\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"constant\":true,\"inputs\":[],\"name\":\"decimals\",\"outputs\":[{\"name\":\"\",\"type\":\"uint8\"}],\"payable\":false,\"stateMutability\":\"view\",\"type\":\"function\"},{\"constant\":true,\"inputs\":[],\"name\":\"cap\",\"outputs\":[{\"name\":\"\",\"type\":\"uint256\"}],\"payable\":false,\"stateMutability\":\"view\",\"type\":\"function\"},{\"constant\":true,\"inputs\":[],\"name\":\"isInitialized\",\"outputs\":[{\"name\":\"\",\"type\":\"bool\"}],\"payable\":false,\"stateMutability\":\"view\",\"type\":\"function\"},{\"constant\":false,\"inputs\":[],\"name\":\"unpause\",\"outputs\":[],\"payable\":false,\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"constant\":false,\"inputs\":[{\"name\":\"account\",\"type\":\"address\"},{\"name\":\"value\",\"type\":\"uint256\"}],\"name\":\"mint\",\"outputs\":[],\"payable\":false,\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"constant\":false,\"inputs\":[{\"name\":\"newMinter\",\"type\":\"address\"}],\"name\":\"proposeMinter\",\"outputs\":[],\"payable\":false,\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"constant\":true,\"inputs\":[{\"name\":\"account\",\"type\":\"address\"}],\"name\":\"balanceOf\",\"outputs\":[{\"name\":\"\",\"type\":\"uint256\"}],\"payable\":false,\"stateMutability\":\"view\",\"type\":\"function\"},{\"constant\":false,\"inputs\":[],\"name\":\"pause\",\"outputs\":[],\"payable\":false,\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"constant\":false,\"inputs\":[{\"name\":\"name\",\"type\":\"string\"},{\"name\":\"symbol\",\"type\":\"string\"},{\"name\":\"minter\",\"type\":\"address\"},{\"name\":\"cap\",\"type\":\"uint256\"},{\"name\":\"blob\",\"type\":\"string\"},{\"name\":\"collector\",\"type\":\"address\"}],\"name\":\"initialize\",\"outputs\":[{\"name\":\"\",\"type\":\"bool\"}],\"payable\":false,\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"constant\":true,\"inputs\":[],\"name\":\"symbol\",\"outputs\":[{\"name\":\"\",\"type\":\"string\"}],\"payable\":false,\"stateMutability\":\"view\",\"type\":\"function\"},{\"constant\":false,\"inputs\":[{\"name\":\"_message\",\"type\":\"bytes32\"},{\"name\":\"_signature\",\"type\":\"bytes\"}],\"name\":\"approveMinter\",\"outputs\":[],\"payable\":false,\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"constant\":false,\"inputs\":[{\"name\":\"to\",\"type\":\"address\"},{\"name\":\"value\",\"type\":\"uint256\"}],\"name\":\"transfer\",\"outputs\":[{\"name\":\"\",\"type\":\"bool\"}],\"payable\":false,\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"constant\":true,\"inputs\":[{\"name\":\"account\",\"type\":\"address\"}],\"name\":\"isMinter\",\"outputs\":[{\"name\":\"\",\"type\":\"bool\"}],\"payable\":false,\"stateMutability\":\"view\",\"type\":\"function\"},{\"constant\":true,\"inputs\":[],\"name\":\"isPaused\",\"outputs\":[{\"name\":\"\",\"type\":\"bool\"}],\"payable\":false,\"stateMutability\":\"view\",\"type\":\"function\"},{\"constant\":true,\"inputs\":[{\"name\":\"owner\",\"type\":\"address\"},{\"name\":\"spender\",\"type\":\"address\"}],\"name\":\"allowance\",\"outputs\":[{\"name\":\"\",\"type\":\"uint256\"}],\"payable\":false,\"stateMutability\":\"view\",\"type\":\"function\"}],\"devdoc\":{\"methods\":{}},\"userdoc\":{\"methods\":{}}},\"settings\":{\"compilationTarget\":{\"/Users/ahmedali/Desktop/work/ocean-contracts/contracts/interfaces/IERC20Template.sol\":\"IERC20Template\"},\"evmVersion\":\"byzantium\",\"libraries\":{},\"optimizer\":{\"enabled\":true,\"runs\":200},\"remappings\":[]},\"sources\":{\"/Users/ahmedali/Desktop/work/ocean-contracts/contracts/interfaces/IERC20Template.sol\":{\"keccak256\":\"0x28aa2bc67c6a5b21f30dae2ab415202dbc3673fc9f46f1cc757dabf9109a2bce\",\"urls\":[\"bzzr://7c63c27b4a4b5a101be7929678d19ed6d295172b246dd491886a03e4a6ce3407\"]}},\"version\":1}",
+  "metadata": "{\"compiler\":{\"version\":\"0.5.7+commit.6da8b019\"},\"language\":\"Solidity\",\"output\":{\"abi\":[{\"constant\":true,\"inputs\":[],\"name\":\"name\",\"outputs\":[{\"name\":\"\",\"type\":\"string\"}],\"payable\":false,\"stateMutability\":\"view\",\"type\":\"function\"},{\"constant\":true,\"inputs\":[],\"name\":\"minter\",\"outputs\":[{\"name\":\"\",\"type\":\"address\"}],\"payable\":false,\"stateMutability\":\"view\",\"type\":\"function\"},{\"constant\":false,\"inputs\":[{\"name\":\"from\",\"type\":\"address\"},{\"name\":\"to\",\"type\":\"address\"},{\"name\":\"value\",\"type\":\"uint256\"}],\"name\":\"transferFrom\",\"outputs\":[{\"name\":\"\",\"type\":\"bool\"}],\"payable\":false,\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"constant\":true,\"inputs\":[],\"name\":\"decimals\",\"outputs\":[{\"name\":\"\",\"type\":\"uint8\"}],\"payable\":false,\"stateMutability\":\"view\",\"type\":\"function\"},{\"constant\":true,\"inputs\":[],\"name\":\"cap\",\"outputs\":[{\"name\":\"\",\"type\":\"uint256\"}],\"payable\":false,\"stateMutability\":\"view\",\"type\":\"function\"},{\"constant\":true,\"inputs\":[],\"name\":\"isInitialized\",\"outputs\":[{\"name\":\"\",\"type\":\"bool\"}],\"payable\":false,\"stateMutability\":\"view\",\"type\":\"function\"},{\"constant\":false,\"inputs\":[],\"name\":\"unpause\",\"outputs\":[],\"payable\":false,\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"constant\":false,\"inputs\":[{\"name\":\"account\",\"type\":\"address\"},{\"name\":\"value\",\"type\":\"uint256\"}],\"name\":\"mint\",\"outputs\":[],\"payable\":false,\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"constant\":false,\"inputs\":[{\"name\":\"newMinter\",\"type\":\"address\"}],\"name\":\"proposeMinter\",\"outputs\":[],\"payable\":false,\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"constant\":true,\"inputs\":[{\"name\":\"account\",\"type\":\"address\"}],\"name\":\"balanceOf\",\"outputs\":[{\"name\":\"\",\"type\":\"uint256\"}],\"payable\":false,\"stateMutability\":\"view\",\"type\":\"function\"},{\"constant\":false,\"inputs\":[],\"name\":\"pause\",\"outputs\":[],\"payable\":false,\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"constant\":false,\"inputs\":[{\"name\":\"name\",\"type\":\"string\"},{\"name\":\"symbol\",\"type\":\"string\"},{\"name\":\"minter\",\"type\":\"address\"},{\"name\":\"cap\",\"type\":\"uint256\"},{\"name\":\"blob\",\"type\":\"string\"},{\"name\":\"collector\",\"type\":\"address\"}],\"name\":\"initialize\",\"outputs\":[{\"name\":\"\",\"type\":\"bool\"}],\"payable\":false,\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"constant\":true,\"inputs\":[],\"name\":\"symbol\",\"outputs\":[{\"name\":\"\",\"type\":\"string\"}],\"payable\":false,\"stateMutability\":\"view\",\"type\":\"function\"},{\"constant\":false,\"inputs\":[{\"name\":\"to\",\"type\":\"address\"},{\"name\":\"value\",\"type\":\"uint256\"}],\"name\":\"transfer\",\"outputs\":[{\"name\":\"\",\"type\":\"bool\"}],\"payable\":false,\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"constant\":true,\"inputs\":[{\"name\":\"account\",\"type\":\"address\"}],\"name\":\"isMinter\",\"outputs\":[{\"name\":\"\",\"type\":\"bool\"}],\"payable\":false,\"stateMutability\":\"view\",\"type\":\"function\"},{\"constant\":true,\"inputs\":[],\"name\":\"isPaused\",\"outputs\":[{\"name\":\"\",\"type\":\"bool\"}],\"payable\":false,\"stateMutability\":\"view\",\"type\":\"function\"},{\"constant\":true,\"inputs\":[{\"name\":\"owner\",\"type\":\"address\"},{\"name\":\"spender\",\"type\":\"address\"}],\"name\":\"allowance\",\"outputs\":[{\"name\":\"\",\"type\":\"uint256\"}],\"payable\":false,\"stateMutability\":\"view\",\"type\":\"function\"},{\"constant\":false,\"inputs\":[],\"name\":\"approveMinter\",\"outputs\":[],\"payable\":false,\"stateMutability\":\"nonpayable\",\"type\":\"function\"}],\"devdoc\":{\"methods\":{}},\"userdoc\":{\"methods\":{}}},\"settings\":{\"compilationTarget\":{\"/Users/ahmedali/Desktop/work/ocean-contracts/contracts/interfaces/IERC20Template.sol\":\"IERC20Template\"},\"evmVersion\":\"byzantium\",\"libraries\":{},\"optimizer\":{\"enabled\":true,\"runs\":200},\"remappings\":[]},\"sources\":{\"/Users/ahmedali/Desktop/work/ocean-contracts/contracts/interfaces/IERC20Template.sol\":{\"keccak256\":\"0x198abbc1430ce1fed19d11ca7988066c9dff721a8e1490861c092f2857369416\",\"urls\":[\"bzzr://c9f273c04a6277a20e65b9020cf905ca78a29bdc646c66d590031fd5e4537c34\"]}},\"version\":1}",
   "bytecode": "0x",
   "deployedBytecode": "0x",
   "sourceMap": "",
   "deployedSourceMap": "",
-  "source": "pragma solidity >=0.5.0;\n\ninterface IERC20Template {\n    function initialize(\n        string calldata name,\n        string calldata symbol,\n        address minter,\n        uint256 cap,\n        string calldata blob,\n        address collector\n    ) external returns (bool);\n\n    function mint(address account, uint256 value) external;\n    function minter() external view returns(address);\n    function pause() external;\n\n    function unpause() external;\n    \n    function name() external view returns (string memory);\n\n    function symbol() external view returns (string memory);\n\n    function decimals() external view returns (uint8);\n\n    function cap() external view returns (uint256);\n\n    function isMinter(address account) external view returns (bool);\n\n    function isInitialized() external view returns (bool);\n\n    function isPaused() external view returns (bool);\n\n    function allowance(address owner, address spender)\n        external\n        view\n        returns (uint256);\n\n    function transferFrom(\n        address from,\n        address to,\n        uint256 value\n    ) external returns (bool);\n\n    function balanceOf(address account) external view returns (uint256);\n\n    function transfer(address to, uint256 value) external returns (bool);\n    function proposeMinter(address newMinter) external;\n    function approveMinter(bytes32 _message, bytes calldata _signature) external;\n}\n",
+  "source": "pragma solidity >=0.5.0;\n\ninterface IERC20Template {\n    function initialize(\n        string calldata name,\n        string calldata symbol,\n        address minter,\n        uint256 cap,\n        string calldata blob,\n        address collector\n    ) external returns (bool);\n\n    function mint(address account, uint256 value) external;\n    function minter() external view returns(address);\n    function pause() external;\n\n    function unpause() external;\n    \n    function name() external view returns (string memory);\n\n    function symbol() external view returns (string memory);\n\n    function decimals() external view returns (uint8);\n\n    function cap() external view returns (uint256);\n\n    function isMinter(address account) external view returns (bool);\n\n    function isInitialized() external view returns (bool);\n\n    function isPaused() external view returns (bool);\n\n    function allowance(address owner, address spender)\n        external\n        view\n        returns (uint256);\n\n    function transferFrom(\n        address from,\n        address to,\n        uint256 value\n    ) external returns (bool);\n\n    function balanceOf(address account) external view returns (uint256);\n\n    function transfer(address to, uint256 value) external returns (bool);\n    function proposeMinter(address newMinter) external;\n    function approveMinter() external;\n}\n",
   "sourcePath": "/Users/ahmedali/Desktop/work/ocean-contracts/contracts/interfaces/IERC20Template.sol",
   "ast": {
     "absolutePath": "/Users/ahmedali/Desktop/work/ocean-contracts/contracts/interfaces/IERC20Template.sol",
     "exportedSymbols": {
       "IERC20Template": [
-        5146
+        5142
       ]
     },
-    "id": 5147,
+    "id": 5143,
     "nodeType": "SourceUnit",
     "nodes": [
       {
@@ -352,9 +343,9 @@
         "contractKind": "interface",
         "documentation": null,
         "fullyImplemented": false,
-        "id": 5146,
+        "id": 5142,
         "linearizedBaseContracts": [
-          5146
+          5142
         ],
         "name": "IERC20Template",
         "nodeType": "ContractDefinition",
@@ -566,7 +557,7 @@
               ],
               "src": "264:6:10"
             },
-            "scope": 5146,
+            "scope": 5142,
             "src": "57:214:10",
             "stateMutability": "nonpayable",
             "superFunction": null,
@@ -647,7 +638,7 @@
               "parameters": [],
               "src": "331:0:10"
             },
-            "scope": 5146,
+            "scope": 5142,
             "src": "277:55:10",
             "stateMutability": "nonpayable",
             "superFunction": null,
@@ -702,7 +693,7 @@
               ],
               "src": "376:9:10"
             },
-            "scope": 5146,
+            "scope": 5142,
             "src": "337:49:10",
             "stateMutability": "view",
             "superFunction": null,
@@ -729,7 +720,7 @@
               "parameters": [],
               "src": "416:0:10"
             },
-            "scope": 5146,
+            "scope": 5142,
             "src": "391:26:10",
             "stateMutability": "nonpayable",
             "superFunction": null,
@@ -756,7 +747,7 @@
               "parameters": [],
               "src": "450:0:10"
             },
-            "scope": 5146,
+            "scope": 5142,
             "src": "423:28:10",
             "stateMutability": "nonpayable",
             "superFunction": null,
@@ -810,7 +801,7 @@
               ],
               "src": "499:15:10"
             },
-            "scope": 5146,
+            "scope": 5142,
             "src": "461:54:10",
             "stateMutability": "view",
             "superFunction": null,
@@ -864,7 +855,7 @@
               ],
               "src": "561:15:10"
             },
-            "scope": 5146,
+            "scope": 5142,
             "src": "521:56:10",
             "stateMutability": "view",
             "superFunction": null,
@@ -918,7 +909,7 @@
               ],
               "src": "625:7:10"
             },
-            "scope": 5146,
+            "scope": 5142,
             "src": "583:50:10",
             "stateMutability": "view",
             "superFunction": null,
@@ -972,7 +963,7 @@
               ],
               "src": "676:9:10"
             },
-            "scope": 5146,
+            "scope": 5142,
             "src": "639:47:10",
             "stateMutability": "view",
             "superFunction": null,
@@ -1054,7 +1045,7 @@
               ],
               "src": "749:6:10"
             },
-            "scope": 5146,
+            "scope": 5142,
             "src": "692:64:10",
             "stateMutability": "view",
             "superFunction": null,
@@ -1108,7 +1099,7 @@
               ],
               "src": "809:6:10"
             },
-            "scope": 5146,
+            "scope": 5142,
             "src": "762:54:10",
             "stateMutability": "view",
             "superFunction": null,
@@ -1162,7 +1153,7 @@
               ],
               "src": "864:6:10"
             },
-            "scope": 5146,
+            "scope": 5142,
             "src": "822:49:10",
             "stateMutability": "view",
             "superFunction": null,
@@ -1271,7 +1262,7 @@
               ],
               "src": "974:9:10"
             },
-            "scope": 5146,
+            "scope": 5142,
             "src": "877:107:10",
             "stateMutability": "view",
             "superFunction": null,
@@ -1406,7 +1397,7 @@
               ],
               "src": "1100:6:10"
             },
-            "scope": 5146,
+            "scope": 5142,
             "src": "990:117:10",
             "stateMutability": "nonpayable",
             "superFunction": null,
@@ -1488,7 +1479,7 @@
               ],
               "src": "1171:9:10"
             },
-            "scope": 5146,
+            "scope": 5142,
             "src": "1113:68:10",
             "stateMutability": "view",
             "superFunction": null,
@@ -1596,7 +1587,7 @@
               ],
               "src": "1249:6:10"
             },
-            "scope": 5146,
+            "scope": 5142,
             "src": "1187:69:10",
             "stateMutability": "nonpayable",
             "superFunction": null,
@@ -1651,7 +1642,7 @@
               "parameters": [],
               "src": "1311:0:10"
             },
-            "scope": 5146,
+            "scope": 5142,
             "src": "1261:51:10",
             "stateMutability": "nonpayable",
             "superFunction": null,
@@ -1660,98 +1651,45 @@
           {
             "body": null,
             "documentation": null,
-            "id": 5145,
+            "id": 5141,
             "implemented": false,
             "kind": "function",
             "modifiers": [],
             "name": "approveMinter",
             "nodeType": "FunctionDefinition",
             "parameters": {
-              "id": 5143,
-              "nodeType": "ParameterList",
-              "parameters": [
-                {
-                  "constant": false,
-                  "id": 5140,
-                  "name": "_message",
-                  "nodeType": "VariableDeclaration",
-                  "scope": 5145,
-                  "src": "1340:16:10",
-                  "stateVariable": false,
-                  "storageLocation": "default",
-                  "typeDescriptions": {
-                    "typeIdentifier": "t_bytes32",
-                    "typeString": "bytes32"
-                  },
-                  "typeName": {
-                    "id": 5139,
-                    "name": "bytes32",
-                    "nodeType": "ElementaryTypeName",
-                    "src": "1340:7:10",
-                    "typeDescriptions": {
-                      "typeIdentifier": "t_bytes32",
-                      "typeString": "bytes32"
-                    }
-                  },
-                  "value": null,
-                  "visibility": "internal"
-                },
-                {
-                  "constant": false,
-                  "id": 5142,
-                  "name": "_signature",
-                  "nodeType": "VariableDeclaration",
-                  "scope": 5145,
-                  "src": "1358:25:10",
-                  "stateVariable": false,
-                  "storageLocation": "calldata",
-                  "typeDescriptions": {
-                    "typeIdentifier": "t_bytes_calldata_ptr",
-                    "typeString": "bytes"
-                  },
-                  "typeName": {
-                    "id": 5141,
-                    "name": "bytes",
-                    "nodeType": "ElementaryTypeName",
-                    "src": "1358:5:10",
-                    "typeDescriptions": {
-                      "typeIdentifier": "t_bytes_storage_ptr",
-                      "typeString": "bytes"
-                    }
-                  },
-                  "value": null,
-                  "visibility": "internal"
-                }
-              ],
-              "src": "1339:45:10"
-            },
-            "returnParameters": {
-              "id": 5144,
+              "id": 5139,
               "nodeType": "ParameterList",
               "parameters": [],
-              "src": "1393:0:10"
+              "src": "1339:2:10"
             },
-            "scope": 5146,
-            "src": "1317:77:10",
+            "returnParameters": {
+              "id": 5140,
+              "nodeType": "ParameterList",
+              "parameters": [],
+              "src": "1350:0:10"
+            },
+            "scope": 5142,
+            "src": "1317:34:10",
             "stateMutability": "nonpayable",
             "superFunction": null,
             "visibility": "external"
           }
         ],
-        "scope": 5147,
-        "src": "26:1370:10"
+        "scope": 5143,
+        "src": "26:1327:10"
       }
     ],
-    "src": "0:1397:10"
+    "src": "0:1354:10"
   },
   "legacyAST": {
     "absolutePath": "/Users/ahmedali/Desktop/work/ocean-contracts/contracts/interfaces/IERC20Template.sol",
     "exportedSymbols": {
       "IERC20Template": [
-        5146
+        5142
       ]
     },
-    "id": 5147,
+    "id": 5143,
     "nodeType": "SourceUnit",
     "nodes": [
       {
@@ -1771,9 +1709,9 @@
         "contractKind": "interface",
         "documentation": null,
         "fullyImplemented": false,
-        "id": 5146,
+        "id": 5142,
         "linearizedBaseContracts": [
-          5146
+          5142
         ],
         "name": "IERC20Template",
         "nodeType": "ContractDefinition",
@@ -1985,7 +1923,7 @@
               ],
               "src": "264:6:10"
             },
-            "scope": 5146,
+            "scope": 5142,
             "src": "57:214:10",
             "stateMutability": "nonpayable",
             "superFunction": null,
@@ -2066,7 +2004,7 @@
               "parameters": [],
               "src": "331:0:10"
             },
-            "scope": 5146,
+            "scope": 5142,
             "src": "277:55:10",
             "stateMutability": "nonpayable",
             "superFunction": null,
@@ -2121,7 +2059,7 @@
               ],
               "src": "376:9:10"
             },
-            "scope": 5146,
+            "scope": 5142,
             "src": "337:49:10",
             "stateMutability": "view",
             "superFunction": null,
@@ -2148,7 +2086,7 @@
               "parameters": [],
               "src": "416:0:10"
             },
-            "scope": 5146,
+            "scope": 5142,
             "src": "391:26:10",
             "stateMutability": "nonpayable",
             "superFunction": null,
@@ -2175,7 +2113,7 @@
               "parameters": [],
               "src": "450:0:10"
             },
-            "scope": 5146,
+            "scope": 5142,
             "src": "423:28:10",
             "stateMutability": "nonpayable",
             "superFunction": null,
@@ -2229,7 +2167,7 @@
               ],
               "src": "499:15:10"
             },
-            "scope": 5146,
+            "scope": 5142,
             "src": "461:54:10",
             "stateMutability": "view",
             "superFunction": null,
@@ -2283,7 +2221,7 @@
               ],
               "src": "561:15:10"
             },
-            "scope": 5146,
+            "scope": 5142,
             "src": "521:56:10",
             "stateMutability": "view",
             "superFunction": null,
@@ -2337,7 +2275,7 @@
               ],
               "src": "625:7:10"
             },
-            "scope": 5146,
+            "scope": 5142,
             "src": "583:50:10",
             "stateMutability": "view",
             "superFunction": null,
@@ -2391,7 +2329,7 @@
               ],
               "src": "676:9:10"
             },
-            "scope": 5146,
+            "scope": 5142,
             "src": "639:47:10",
             "stateMutability": "view",
             "superFunction": null,
@@ -2473,7 +2411,7 @@
               ],
               "src": "749:6:10"
             },
-            "scope": 5146,
+            "scope": 5142,
             "src": "692:64:10",
             "stateMutability": "view",
             "superFunction": null,
@@ -2527,7 +2465,7 @@
               ],
               "src": "809:6:10"
             },
-            "scope": 5146,
+            "scope": 5142,
             "src": "762:54:10",
             "stateMutability": "view",
             "superFunction": null,
@@ -2581,7 +2519,7 @@
               ],
               "src": "864:6:10"
             },
-            "scope": 5146,
+            "scope": 5142,
             "src": "822:49:10",
             "stateMutability": "view",
             "superFunction": null,
@@ -2690,7 +2628,7 @@
               ],
               "src": "974:9:10"
             },
-            "scope": 5146,
+            "scope": 5142,
             "src": "877:107:10",
             "stateMutability": "view",
             "superFunction": null,
@@ -2825,7 +2763,7 @@
               ],
               "src": "1100:6:10"
             },
-            "scope": 5146,
+            "scope": 5142,
             "src": "990:117:10",
             "stateMutability": "nonpayable",
             "superFunction": null,
@@ -2907,7 +2845,7 @@
               ],
               "src": "1171:9:10"
             },
-            "scope": 5146,
+            "scope": 5142,
             "src": "1113:68:10",
             "stateMutability": "view",
             "superFunction": null,
@@ -3015,7 +2953,7 @@
               ],
               "src": "1249:6:10"
             },
-            "scope": 5146,
+            "scope": 5142,
             "src": "1187:69:10",
             "stateMutability": "nonpayable",
             "superFunction": null,
@@ -3070,7 +3008,7 @@
               "parameters": [],
               "src": "1311:0:10"
             },
-            "scope": 5146,
+            "scope": 5142,
             "src": "1261:51:10",
             "stateMutability": "nonpayable",
             "superFunction": null,
@@ -3079,89 +3017,36 @@
           {
             "body": null,
             "documentation": null,
-            "id": 5145,
+            "id": 5141,
             "implemented": false,
             "kind": "function",
             "modifiers": [],
             "name": "approveMinter",
             "nodeType": "FunctionDefinition",
             "parameters": {
-              "id": 5143,
-              "nodeType": "ParameterList",
-              "parameters": [
-                {
-                  "constant": false,
-                  "id": 5140,
-                  "name": "_message",
-                  "nodeType": "VariableDeclaration",
-                  "scope": 5145,
-                  "src": "1340:16:10",
-                  "stateVariable": false,
-                  "storageLocation": "default",
-                  "typeDescriptions": {
-                    "typeIdentifier": "t_bytes32",
-                    "typeString": "bytes32"
-                  },
-                  "typeName": {
-                    "id": 5139,
-                    "name": "bytes32",
-                    "nodeType": "ElementaryTypeName",
-                    "src": "1340:7:10",
-                    "typeDescriptions": {
-                      "typeIdentifier": "t_bytes32",
-                      "typeString": "bytes32"
-                    }
-                  },
-                  "value": null,
-                  "visibility": "internal"
-                },
-                {
-                  "constant": false,
-                  "id": 5142,
-                  "name": "_signature",
-                  "nodeType": "VariableDeclaration",
-                  "scope": 5145,
-                  "src": "1358:25:10",
-                  "stateVariable": false,
-                  "storageLocation": "calldata",
-                  "typeDescriptions": {
-                    "typeIdentifier": "t_bytes_calldata_ptr",
-                    "typeString": "bytes"
-                  },
-                  "typeName": {
-                    "id": 5141,
-                    "name": "bytes",
-                    "nodeType": "ElementaryTypeName",
-                    "src": "1358:5:10",
-                    "typeDescriptions": {
-                      "typeIdentifier": "t_bytes_storage_ptr",
-                      "typeString": "bytes"
-                    }
-                  },
-                  "value": null,
-                  "visibility": "internal"
-                }
-              ],
-              "src": "1339:45:10"
-            },
-            "returnParameters": {
-              "id": 5144,
+              "id": 5139,
               "nodeType": "ParameterList",
               "parameters": [],
-              "src": "1393:0:10"
+              "src": "1339:2:10"
             },
-            "scope": 5146,
-            "src": "1317:77:10",
+            "returnParameters": {
+              "id": 5140,
+              "nodeType": "ParameterList",
+              "parameters": [],
+              "src": "1350:0:10"
+            },
+            "scope": 5142,
+            "src": "1317:34:10",
             "stateMutability": "nonpayable",
             "superFunction": null,
             "visibility": "external"
           }
         ],
-        "scope": 5147,
-        "src": "26:1370:10"
+        "scope": 5143,
+        "src": "26:1327:10"
       }
     ],
-    "src": "0:1397:10"
+    "src": "0:1354:10"
   },
   "compiler": {
     "name": "solc",
@@ -3169,7 +3054,7 @@
   },
   "networks": {},
   "schemaVersion": "3.2.4",
-  "updatedAt": "2020-09-25T11:46:41.072Z",
+  "updatedAt": "2020-09-29T10:29:25.679Z",
   "devdoc": {
     "methods": {}
   },

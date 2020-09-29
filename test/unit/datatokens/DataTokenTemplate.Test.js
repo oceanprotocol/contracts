@@ -89,9 +89,10 @@ contract('DataTokenTemplate', async (accounts) => {
     })
 
     it('should change minter to a new minter address', async () => {
-        await token.proposeMinter(constants.sign.bytes32.publicKey, { from: minter })
-        await token.approveMinter(constants.sign.bytes32.message, constants.sign.bytes32.signature)
-        const isMinter = await token.isMinter(constants.sign.bytes32.publicKey)
+        const proposedMinter = accounts[9]
+        await token.proposeMinter(proposedMinter, { from: minter })
+        await token.approveMinter({ from: proposedMinter })
+        const isMinter = await token.isMinter(proposedMinter)
         assert(isMinter)
     })
 

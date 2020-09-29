@@ -45,6 +45,5 @@ interface IERC20Template {
 
     function transfer(address to, uint256 value) external returns (bool);
     function proposeMinter(address newMinter) external;
-    function approveMinter(bytes32 _message, bytes calldata _signature) 
-    external;
+    function approveMinter() external;
 }

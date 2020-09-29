@@ -5,7 +5,6 @@ pragma solidity 0.5.7;
 
 import './token/ERC20Pausable.sol';
 import '../interfaces/IERC20Template.sol';
-import 'openzeppelin-solidity/contracts/cryptography/ECDSA.sol';
 
 /**
 * @title DataTokenTemplate
@@ -55,7 +54,7 @@ contract DataTokenTemplate is IERC20Template, ERC20Pausable {
         address currentMinter,
         address newMinter
     );
-    
+
     modifier onlyNotInitialized() {
         require(
             !initialized,
@@ -300,8 +299,8 @@ contract DataTokenTemplate is IERC20Template, ERC20Pausable {
     }
 
     /**
-     * @dev setMinter
-     *      It sets a new token minter address.
+     * @dev proposeMinter
+     *      It proposes a new token minter address.
      *      Only called be called if the contract is not paused.
      *      Only the current minter can call it.
      * @param newMinter refers to a new token minter address.
@@ -318,23 +317,26 @@ contract DataTokenTemplate is IERC20Template, ERC20Pausable {
         );
     }
 
-    function approveMinter(
-        bytes32 _message,
-        bytes calldata _signature
-    )
+    /**
+     * @dev approveMinter
+     *      It approves a new token minter address.
+     *      Only called be called if the contract is not paused.
+     *      Only the current minter can call it.
+     */
+    function approveMinter()
         external
         onlyNotPaused
     {
         require(
-            ECDSA.recover(_message, _signature) == _proposedMinter,
-            'DataToken: Invalid new minter signature'
+            msg.sender == _proposedMinter,
+            'DataTokenTemplate: invalid proposed minter address'
         );
         emit MinterApproved(
             _minter,
             _proposedMinter
         );
         _minter = _proposedMinter;
-        _proposedMinter = address(0);   
+        _proposedMinter = address(0);
     }
 
     /**
