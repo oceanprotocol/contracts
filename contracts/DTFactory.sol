@@ -1,4 +1,4 @@
-pragma solidity ^0.5.7;
+pragma solidity 0.5.7;
 // Copyright BigchainDB GmbH and Ocean Protocol contributors
 // SPDX-License-Identifier: (Apache-2.0 AND CC-BY-4.0)
 // Code is Apache-2.0 and docs are CC-BY-4.0
@@ -33,7 +33,6 @@ contract DTFactory is Deployer {
         string tokenSymbol,
         uint256 tokenCap,
         address indexed registeredBy,
-        uint256 registeredAt,
         string indexed blob
     );
 
@@ -75,7 +74,7 @@ contract DTFactory is Deployer {
         returns (address token)
     {
         require(
-            cap > 0,
+            cap != 0,
             'DTFactory: zero cap is not allowed'
         );
 
@@ -104,17 +103,16 @@ contract DTFactory is Deployer {
             symbol,
             cap,
             msg.sender,
-            block.number,
             blob
         );
         currentTokenCount += 1;
     }
 
     /**
-     * @dev get the current token index.
+     * @dev get the current token count.
      * @return the current token count
      */
-    function getCurrentTokenIndex() external view returns (uint256) {
+    function getCurrentTokenCount() external view returns (uint256) {
         return currentTokenCount;
     }
 

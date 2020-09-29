@@ -1,4 +1,4 @@
-pragma solidity ^0.5.7;
+pragma solidity 0.5.7;
 // Copyright BigchainDB GmbH and Ocean Protocol contributors
 // SPDX-License-Identifier: (Apache-2.0 AND CC-BY-4.0)
 // Code is Apache-2.0 and docs are CC-BY-4.0
@@ -31,6 +31,8 @@ contract Deployer {
       returns (address instance) 
     {
         bytes20 targetBytes = bytes20(_logic);
+        // Follows OpenZeppelin Implementation https://github.com/OpenZeppelin/openzeppelin-sdk/blob/71c9ad77e0326db079e6a643eca8568ab316d4a9/packages/lib/contracts/upgradeability/ProxyFactory.sol
+        // Adapted from https://github.com/optionality/clone-factory/blob/32782f82dfc5a00d103a7e61a17a5dedbd1e8e9d/contracts/CloneFactory.sol
         /* solium-disable-next-line security/no-inline-assembly */
         assembly {
           let clone := mload(0x40)
