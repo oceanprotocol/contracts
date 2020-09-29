@@ -18,10 +18,10 @@ contract FixedRateExchange {
     uint256 private constant BASE = 10 ** 18;
     struct Exchange {
         bool active;
-        uint256 fixedRate;
         address exchangeOwner;
         address dataToken;
         address baseToken;
+        uint256 fixedRate;
     }
 
     // maps an exchangeId to an exchange
