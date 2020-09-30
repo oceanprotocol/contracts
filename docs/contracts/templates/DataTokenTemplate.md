@@ -62,33 +62,22 @@ called by provider prior completing service delivery only
 if there is a partial or full refund.
 
 
-### `pause()` (external)
+### `proposeMinter(address newMinter)` (external)
 
 
 
-pause
-It pauses the contract functionalities (transfer, mint, etc)
-Only could be called if the contract is not already paused.
-Only called by the minter address.
-
-### `unpause()` (external)
-
-
-
-unpause
-It unpauses the contract.
-Only called if the contract is paused.
-Only minter can call it.
-
-### `setMinter(address minterAddress)` (external)
-
-
-
-setMinter
-It sets a new token minter address.
-Only called be called if the contract is not paused.
+proposeMinter
+It proposes a new token minter address.
 Only the current minter can call it.
 
+
+### `approveMinter()` (external)
+
+
+
+approveMinter
+It approves a new token minter address.
+Only the current minter can call it.
 
 ### `name() → string` (external)
 
@@ -114,7 +103,7 @@ blob
 It returns the blob (e.g https://123.com).
 
 
-### `decimals() → uint256` (external)
+### `decimals() → uint8` (external)
 
 
 
@@ -154,14 +143,6 @@ isInitialized
 It checks whether the contract is initialized.
 
 
-### `isPaused() → bool` (external)
-
-
-
-isPaused
-Function checks if the contract is paused.
-
-
 ### `calculateFee(uint256 amount, uint256 feePercentage) → uint256` (public)
 
 
@@ -178,6 +159,18 @@ giving a fee percentage, and amount it calculates the actual fee
 
 
 ### `OrderFinished(bytes32 orderTxId, address consumer, uint256 amount, uint256 serviceId, address provider)`
+
+
+
+
+
+### `MinterProposed(address currentMinter, address newMinter)`
+
+
+
+
+
+### `MinterApproved(address currentMinter, address newMinter)`
 
 
 

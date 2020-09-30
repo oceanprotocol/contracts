@@ -23,24 +23,6 @@
 
 
 
-### `pause()` (external)
-
-
-
-
-
-### `unpause()` (external)
-
-
-
-
-
-### `setMinter(address _minter)` (external)
-
-
-
-
-
 ### `name() → string` (external)
 
 
@@ -53,7 +35,7 @@
 
 
 
-### `decimals() → uint256` (external)
+### `decimals() → uint8` (external)
 
 
 
@@ -72,12 +54,6 @@
 
 
 ### `isInitialized() → bool` (external)
-
-
-
-
-
-### `isPaused() → bool` (external)
 
 
 
@@ -102,6 +78,18 @@
 
 
 ### `transfer(address to, uint256 value) → bool` (external)
+
+
+
+
+
+### `proposeMinter(address newMinter)` (external)
+
+
+
+
+
+### `approveMinter()` (external)
 
 
 

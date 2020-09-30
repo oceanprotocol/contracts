@@ -281,7 +281,6 @@ contract DataTokenTemplate is IERC20Template, ERC20 {
     /**
      * @dev proposeMinter
      *      It proposes a new token minter address.
-     *      Only called be called if the contract is not paused.
      *      Only the current minter can call it.
      * @param newMinter refers to a new token minter address.
      */
@@ -299,7 +298,6 @@ contract DataTokenTemplate is IERC20Template, ERC20 {
     /**
      * @dev approveMinter
      *      It approves a new token minter address.
-     *      Only called be called if the contract is not paused.
      *      Only the current minter can call it.
      */
     function approveMinter()
