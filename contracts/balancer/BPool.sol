@@ -185,14 +185,14 @@ contract BPool is BToken, BMath {
             dataTokenAmount,
             dataTokenWeight
         );
-	emit LOG_JOIN(msg.sender, dataTokenAaddress, dataTokenAmount);
+        emit LOG_JOIN(msg.sender, dataTokenAaddress, dataTokenAmount);
         // bind base token
         bind(
             baseTokenAddress,
             baseTokenAmount,
             baseTokenWeight
         );
-	emit LOG_JOIN(msg.sender, baseTokenAddress, baseTokenAmount);
+        emit LOG_JOIN(msg.sender, baseTokenAddress, baseTokenAmount);
         setSwapFee(swapFee);
         // finalize
         finalize();
