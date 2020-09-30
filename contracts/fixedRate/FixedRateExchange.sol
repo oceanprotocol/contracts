@@ -1,4 +1,4 @@
-pragma solidity ^0.5.7;
+pragma solidity 0.5.7;
 // Copyright BigchainDB GmbH and Ocean Protocol contributors
 // SPDX-License-Identifier: (Apache-2.0 AND CC-BY-4.0)
 // Code is Apache-2.0 and docs are CC-BY-4.0
@@ -17,16 +17,16 @@ contract FixedRateExchange {
     using SafeMath for uint256;
     uint256 private constant BASE = 10 ** 18;
     struct Exchange {
+        bool active;
         address exchangeOwner;
         address dataToken;
         address baseToken;
         uint256 fixedRate;
-        bool active;
     }
 
     // maps an exchangeId to an exchange
-    mapping(bytes32 => Exchange) exchanges;
-    bytes32[] exchangeIds;
+    mapping(bytes32 => Exchange) private exchanges;
+    bytes32[] private exchangeIds;
 
     modifier onlyActiveExchange(
         bytes32 exchangeId
@@ -67,14 +67,12 @@ contract FixedRateExchange {
 
     event ExchangeActivated(
         bytes32 indexed exchangeId,
-        address indexed exchangeOwner,
-        uint256 timestamp
+        address indexed exchangeOwner
     );
 
     event ExchangeDeactivated(
         bytes32 indexed exchangeId,
-        address indexed exchangeOwner,
-        uint256 timestamp
+        address indexed exchangeOwner
     );
 
     event Swapped(
@@ -83,9 +81,6 @@ contract FixedRateExchange {
         uint256 baseTokenSwappedAmount,
         uint256 dataTokenSwappedAmount
     );
-
-
-    constructor () public {}
 
     /**
      * @dev create
@@ -115,12 +110,12 @@ contract FixedRateExchange {
             'FixedRateExchange: Invalid datatoken,  equals basetoken'
         );
         require(
-            fixedRate > 0, 
+            fixedRate != 0, 
             'FixedRateExchange: Invalid exchange rate value'
         );
         require(
-            IERC20Template(baseToken).cap() > 0 &&
-            IERC20Template(dataToken).cap() > 0,
+            IERC20Template(baseToken).cap() != 0 &&
+            IERC20Template(dataToken).cap() != 0,
             'FixedRateExchange: ERC20 compatibility error'
         );
         bytes32 exchangeId = generateExchangeId(
@@ -133,11 +128,11 @@ contract FixedRateExchange {
             'FixedRateExchange: Exchange already exists!'
         );
         exchanges[exchangeId] = Exchange({
+            active: true,
             exchangeOwner: msg.sender,
             dataToken: dataToken,
             baseToken: baseToken,
-            fixedRate: fixedRate,
-            active: true
+            fixedRate: fixedRate
         });
         exchangeIds.push(exchangeId);
 
@@ -151,8 +146,7 @@ contract FixedRateExchange {
 
         emit ExchangeActivated(
             exchangeId,
-            msg.sender,
-            block.number
+            msg.sender
         );
     }
 
@@ -173,7 +167,7 @@ contract FixedRateExchange {
         returns (bytes32)
     {
         return keccak256(
-            abi.encodePacked(
+            abi.encode(
                 baseToken,
                 dataToken,
                 exchangeOwner
@@ -218,7 +212,7 @@ contract FixedRateExchange {
         )
     {
         require(
-            dataTokenAmount > 0,
+            dataTokenAmount != 0,
             'FixedRateExchange: zero data token amount'
         );
         uint256 baseTokenAmount = CalcInGivenOut(exchangeId,dataTokenAmount);
@@ -274,7 +268,7 @@ contract FixedRateExchange {
         onlyExchangeOwner(exchangeId)
     {
         require(
-            newRate >0,
+            newRate != 0,
             'FixedRateExchange: Ratio must be >0'
         );
 
@@ -287,53 +281,29 @@ contract FixedRateExchange {
     }
 
      /**
-     * @dev activate
-     *      sets exchange status to active to true (only called by exchagne owner)
+     * @dev toggleExchangeState
+     *      toggles the active state of an existing exchange
      * @param exchangeId a unique exchange idnetifier
      */
-    function activate(
+    function toggleExchangeState(
         bytes32 exchangeId
     )
         external
         onlyExchangeOwner(exchangeId)
     {
-        require(
-            exchanges[exchangeId].active == false,
-            'FixedRateExchange: Exchange is already activated'
-        );
-
-        exchanges[exchangeId].active = true;
-
-        emit ExchangeActivated(
-            exchangeId,
-            msg.sender,
-            block.number
-        );
-    }
-
-    /**
-     * @dev deactivate
-     *      sets exchange status to active to false (only called by exchagne owner)
-     * @param exchangeId a unique exchange idnetifier
-     */
-    function deactivate(
-        bytes32 exchangeId
-    )
-        external
-        onlyExchangeOwner(exchangeId)
-    {
-        require(
-            exchanges[exchangeId].active == true,
-            'FixedRateExchange: Exchange is already deactivated'
-        );
-
-        exchanges[exchangeId].active = false;
-
-        emit ExchangeDeactivated(
-            exchangeId,
-            msg.sender,
-            block.number
-        );
+        if(exchanges[exchangeId].active){
+            exchanges[exchangeId].active = false;
+            emit ExchangeDeactivated(
+                exchangeId,
+                msg.sender
+            );
+        } else {
+            exchanges[exchangeId].active = true;
+            emit ExchangeActivated(
+                exchangeId,
+                msg.sender
+            );
+        }
     }
 
     /**
@@ -401,11 +371,12 @@ contract FixedRateExchange {
             uint256 supply
         )
     {
-        exchangeOwner = exchanges[exchangeId].exchangeOwner;
-        dataToken = exchanges[exchangeId].dataToken;
-        baseToken = exchanges[exchangeId].baseToken;
-        fixedRate = exchanges[exchangeId].fixedRate;
-        active = exchanges[exchangeId].active;
+        Exchange memory exchange = exchanges[exchangeId];
+        exchangeOwner = exchange.exchangeOwner;
+        dataToken = exchange.dataToken;
+        baseToken = exchange.baseToken;
+        fixedRate = exchange.fixedRate;
+        active = exchange.active;
         supply = getSupply(exchangeId);
     }
 
