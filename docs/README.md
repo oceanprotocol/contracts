@@ -3,7 +3,6 @@
 ## Contracts
 - [DataTokenFactory](contracts/DTFactory.md)
 - [DataTokenTemplate](contracts/templates/DataTokenTemplate.md)
-- [ERC20Pausable](contracts/templates/token/ERC20Pausable.md)
 - [ContractDeployer](contracts/utils/Deployer.md)
 - [MetadataDDO](contracts/metadata/DDO.md)
 - [IERC20Template](contracts/interfaces/IERC20Template.md)

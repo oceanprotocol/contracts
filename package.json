@@ -1,6 +1,6 @@
 {
   "name": "@oceanprotocol/contracts",
-  "version": "0.4.4",
+  "version": "0.5.0",
   "description": "Ocean Protocol L1 - DataTokens",
   "bugs": {
     "url": "https://github.com/oceanprotocol/contracts/issues"
