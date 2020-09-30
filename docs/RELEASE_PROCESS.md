@@ -58,4 +58,4 @@ git push --tags
 ```
 - Make a pull request from the just-pushed branch to develop branch.
 - Wait for all the tests to pass!
-- Merge the pull request into the develop branch.
+- Merge the pull request into the `master` branch.
