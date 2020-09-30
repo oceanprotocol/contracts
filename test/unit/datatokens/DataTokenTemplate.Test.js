@@ -24,7 +24,6 @@ contract('DataTokenTemplate', async (accounts) => {
         tokenAddress,
         ethValue,
         minter,
-        newMinter,
         reciever,
         blob,
         orderTxId
@@ -34,7 +33,6 @@ contract('DataTokenTemplate', async (accounts) => {
         decimals = 18
         minter = accounts[0]
         reciever = accounts[1]
-        newMinter = accounts[2]
         cap = new BigNumber('1400000000')
         template = await Template.new('Template', 'TEMPLATE', minter, cap, blob, communityFeeCollector)
         factory = await DTFactory.new(
@@ -90,10 +88,12 @@ contract('DataTokenTemplate', async (accounts) => {
         assert(isPausedFalse === false)
     })
 
-    it('should set a new minter', async () => {
-        await token.setMinter(newMinter)
-        const isMinter = await token.isMinter(newMinter)
-        assert(isMinter === true)
+    it('should change minter to a new minter address', async () => {
+        const proposedMinter = accounts[9]
+        await token.proposeMinter(proposedMinter, { from: minter })
+        await token.approveMinter({ from: proposedMinter })
+        const isMinter = await token.isMinter(proposedMinter)
+        assert(isMinter)
     })
 
     it('should not mint the tokens because of the paused contract', async () => {

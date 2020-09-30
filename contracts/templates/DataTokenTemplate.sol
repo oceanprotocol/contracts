@@ -1,4 +1,4 @@
-pragma solidity ^0.5.7;
+pragma solidity 0.5.7;
 // Copyright BigchainDB GmbH and Ocean Protocol contributors
 // SPDX-License-Identifier: (Apache-2.0 AND CC-BY-4.0)
 // Code is Apache-2.0 and docs are CC-BY-4.0
@@ -15,15 +15,16 @@ import '../interfaces/IERC20Template.sol';
 */
 contract DataTokenTemplate is IERC20Template, ERC20Pausable {
     using SafeMath for uint256;
-    
-    bool    private initialized = false;
+
     string  private _name;
     string  private _symbol;
     string  private _blob;
     uint256 private _cap;
-    uint256 private _decimals;
+    uint8 private constant _decimals = 18;
     address private _communityFeeCollector;
+    bool    private initialized = false;
     address private _minter;
+    address private _proposedMinter;
     uint256 public constant BASE = 10**18;
     uint256 public constant BASE_COMMUNITY_FEE_PERCENTAGE = BASE / 1000;
     uint256 public constant BASE_MARKET_FEE_PERCENTAGE = BASE / 1000;
@@ -32,16 +33,26 @@ contract DataTokenTemplate is IERC20Template, ERC20Pausable {
             uint256 amount, 
             uint256 serviceId, 
             uint256 startedAt,
-            address mrktFeeCollector,
+            address indexed mrktFeeCollector,
             uint256 marketFee
     );
 
     event OrderFinished(
             bytes32 orderTxId, 
-            address consumer, 
+            address indexed consumer, 
             uint256 amount, 
             uint256 serviceId, 
-            address provider
+            address indexed provider
+    );
+
+    event MinterProposed(
+        address currentMinter,
+        address newMinter
+    );
+
+    event MinterApproved(
+        address currentMinter,
+        address newMinter
     );
 
     modifier onlyNotInitialized() {
@@ -67,7 +78,7 @@ contract DataTokenTemplate is IERC20Template, ERC20Pausable {
      * @param symbol refers to a template DataToken symbol
      * @param minterAddress refers to an address that has minter role
      * @param cap the total ERC20 cap
-     * @param blob data string refering to the resolver for the DID
+     * @param blob data string refering to the resolver for the metadata
      * @param feeCollector it is the community fee collector address
      */
     constructor(
@@ -98,7 +109,7 @@ contract DataTokenTemplate is IERC20Template, ERC20Pausable {
      * @param symbol refers to a nea DataToken symbol
      * @param minterAddress refers to an address that has minter rights
      * @param cap the total ERC20 cap
-     * @param blob data string refering to the resolver for the DID
+     * @param blob data string refering to the resolver for the metadata
      * @param feeCollector it is the community fee collector address
      */
     function initialize(
@@ -130,7 +141,7 @@ contract DataTokenTemplate is IERC20Template, ERC20Pausable {
      * @param symbol refers to a nea DataToken symbol
      * @param minterAddress refers to an address that has minter rights
      * @param cap the total ERC20 cap
-     * @param blob data string refering to the resolver for the DID
+     * @param blob data string refering to the resolver for the metadata
      * @param feeCollector it is the community fee collector address
      */
     function _initialize(
@@ -160,11 +171,9 @@ contract DataTokenTemplate is IERC20Template, ERC20Pausable {
         );
 
         require(
-            cap > 0,
+            cap != 0,
             'DataTokenTemplate: Invalid cap value'
         );
-        
-        _decimals = 18;
         _cap = cap;
         _name = name;
         _blob = blob;
@@ -201,7 +210,7 @@ contract DataTokenTemplate is IERC20Template, ERC20Pausable {
      * @dev startOrder
      *      called by consumer prior ordering a service consume on a marketplace
      * @param amount refers to amount of tokens that is going to be transfered.
-     * @param serviceId service index in the DID
+     * @param serviceId service index in the metadata
      * @param mrktFeeCollector marketplace fee collector
      */
     function startOrder(
@@ -244,7 +253,7 @@ contract DataTokenTemplate is IERC20Template, ERC20Pausable {
      *                  as a payment reference.
      * @param consumer refers to an address that has consumed that service.
      * @param amount refers to amount of tokens that is going to be transfered.
-     * @param serviceId service index in the DID.
+     * @param serviceId service index in the metadata.
      */
     function finishOrder(
         bytes32 orderTxId, 
@@ -254,7 +263,7 @@ contract DataTokenTemplate is IERC20Template, ERC20Pausable {
     )
         external
     {
-        if ( amount > 0 )  
+        if ( amount != 0 )  
             require(
                 transfer(consumer, amount),
                 'DataTokenTemplate: failed to finish order'
@@ -290,18 +299,44 @@ contract DataTokenTemplate is IERC20Template, ERC20Pausable {
     }
 
     /**
-     * @dev setMinter
-     *      It sets a new token minter address.
+     * @dev proposeMinter
+     *      It proposes a new token minter address.
      *      Only called be called if the contract is not paused.
      *      Only the current minter can call it.
-     * @param minterAddress refers to a new token minter address.
+     * @param newMinter refers to a new token minter address.
      */
-    function setMinter(address minterAddress) 
+    function proposeMinter(address newMinter) 
         external 
         onlyNotPaused 
         onlyMinter 
     {
-        _minter = minterAddress;
+        _proposedMinter = newMinter;
+        emit MinterProposed(
+            msg.sender,
+            _proposedMinter
+        );
+    }
+
+    /**
+     * @dev approveMinter
+     *      It approves a new token minter address.
+     *      Only called be called if the contract is not paused.
+     *      Only the current minter can call it.
+     */
+    function approveMinter()
+        external
+        onlyNotPaused
+    {
+        require(
+            msg.sender == _proposedMinter,
+            'DataTokenTemplate: invalid proposed minter address'
+        );
+        emit MinterApproved(
+            _minter,
+            _proposedMinter
+        );
+        _minter = _proposedMinter;
+        _proposedMinter = address(0);
     }
 
     /**
@@ -337,7 +372,7 @@ contract DataTokenTemplate is IERC20Template, ERC20Pausable {
      *      how many supported decimal points
      * @return DataToken decimals.
      */
-    function decimals() external view returns(uint256) {
+    function decimals() external view returns(uint8) {
         return _decimals;
     }
 
