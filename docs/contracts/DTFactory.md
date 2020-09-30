@@ -25,11 +25,11 @@ Deploys new DataToken proxy contract.
 Template contract address could not be a zero address.
 
 
-### `getCurrentTokenIndex() → uint256` (external)
+### `getCurrentTokenCount() → uint256` (external)
 
 
 
-get the current token index.
+get the current token count.
 
 
 ### `getTokenTemplate() → address` (external)
@@ -46,7 +46,7 @@ get the token template address
 
 
 
-### `TokenRegistered(address tokenAddress, string tokenName, string tokenSymbol, uint256 tokenCap, address registeredBy, uint256 registeredAt, string blob)`
+### `TokenRegistered(address tokenAddress, string tokenName, string tokenSymbol, uint256 tokenCap, address registeredBy, string blob)`
 
 
 

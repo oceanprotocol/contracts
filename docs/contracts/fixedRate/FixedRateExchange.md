@@ -69,20 +69,12 @@ setRate
 changes the fixed rate for an exchange with a new rate
 
 
-### `activate(bytes32 exchangeId)` (external)
+### `toggleExchangeState(bytes32 exchangeId)` (external)
 
 
 
-activate
-sets exchange status to active to true (only called by exchagne owner)
-
-
-### `deactivate(bytes32 exchangeId)` (external)
-
-
-
-deactivate
-sets exchange status to active to false (only called by exchagne owner)
+toggleExchangeState
+toggles the active state of an existing exchange
 
 
 ### `getRate(bytes32 exchangeId) → uint256` (external)
@@ -139,13 +131,13 @@ checks whether exchange is active
 
 
 
-### `ExchangeActivated(bytes32 exchangeId, address exchangeOwner, uint256 timestamp)`
+### `ExchangeActivated(bytes32 exchangeId, address exchangeOwner)`
 
 
 
 
 
-### `ExchangeDeactivated(bytes32 exchangeId, address exchangeOwner, uint256 timestamp)`
+### `ExchangeDeactivated(bytes32 exchangeId, address exchangeOwner)`
 
 
 

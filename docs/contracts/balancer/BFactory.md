@@ -5,19 +5,13 @@
 
 
 
-### `constructor(address bpoolTemplate)` (public)
+### `constructor(address _bpoolTemplate)` (public)
 
 
 
 
 
 ### `newBPool() → address bpool` (external)
-
-
-
-
-
-### `getBPool() → address` (external)
 
 
 
@@ -30,7 +24,7 @@
 
 
 
-### `BPoolRegistered(address bpoolAddress, address registeredBy, uint256 registeredAt)`
+### `BPoolRegistered(address bpoolAddress, address registeredBy)`
 
 
 
