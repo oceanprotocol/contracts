@@ -129,10 +129,10 @@ contract FixedRateExchange {
         );
         exchanges[exchangeId] = Exchange({
             active: true,
-            fixedRate: fixedRate,
             exchangeOwner: msg.sender,
             dataToken: dataToken,
-            baseToken: baseToken
+            baseToken: baseToken,
+            fixedRate: fixedRate
         });
         exchangeIds.push(exchangeId);
 
