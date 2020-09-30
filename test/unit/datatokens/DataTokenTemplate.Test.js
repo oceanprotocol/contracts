@@ -22,7 +22,6 @@ contract('DataTokenTemplate', async (accounts) => {
         template,
         token,
         tokenAddress,
-        ethValue,
         minter,
         reciever,
         blob,
@@ -47,7 +46,6 @@ contract('DataTokenTemplate', async (accounts) => {
         symbol = await token.symbol()
         name = await token.name()
         cap = await token.cap()
-        ethValue = new BigNumber('100000000000000000')
     })
 
     it('should check that the token contract is initialized', async () => {
@@ -64,42 +62,12 @@ contract('DataTokenTemplate', async (accounts) => {
             'DataTokenTemplate: token instance already initialized')
     })
 
-    it('should check that the token is not paused', async () => {
-        const isPaused = await token.isPaused()
-        assert(isPaused === false)
-    })
-
-    it('should pause the contract', async () => {
-        await token.pause({ from: minter })
-        const isPaused = await token.isPaused()
-        assert(isPaused === true)
-    })
-
-    it('should fail to unpause the contract', async () => {
-        truffleAssert.fails(token.unpause({ from: minter }))
-    })
-
-    it('should unpause the contract', async () => {
-        await token.pause({ from: minter })
-        const isPausedTrue = await token.isPaused()
-        assert(isPausedTrue === true)
-        await token.unpause({ from: minter })
-        const isPausedFalse = await token.isPaused()
-        assert(isPausedFalse === false)
-    })
-
     it('should change minter to a new minter address', async () => {
         const proposedMinter = accounts[9]
         await token.proposeMinter(proposedMinter, { from: minter })
         await token.approveMinter({ from: proposedMinter })
         const isMinter = await token.isMinter(proposedMinter)
         assert(isMinter)
-    })
-
-    it('should not mint the tokens because of the paused contract', async () => {
-        await token.pause({ from: minter })
-        truffleAssert.fails(token.mint(reciever, 10, { value: ethValue, from: minter }))
-        await token.unpause({ from: minter })
     })
 
     it('should mint the tokens', async () => {

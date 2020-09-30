@@ -3,8 +3,9 @@ pragma solidity 0.5.7;
 // SPDX-License-Identifier: (Apache-2.0 AND CC-BY-4.0)
 // Code is Apache-2.0 and docs are CC-BY-4.0
 
-import './token/ERC20Pausable.sol';
 import '../interfaces/IERC20Template.sol';
+import 'openzeppelin-solidity/contracts/token/ERC20/ERC20.sol';
+
 
 /**
 * @title DataTokenTemplate
@@ -13,7 +14,7 @@ import '../interfaces/IERC20Template.sol';
 *      Used by the factory contract as a bytecode reference to 
 *      deploy new DataTokens.
 */
-contract DataTokenTemplate is IERC20Template, ERC20Pausable {
+contract DataTokenTemplate is IERC20Template, ERC20 {
     using SafeMath for uint256;
 
     string  private _name;
@@ -195,8 +196,7 @@ contract DataTokenTemplate is IERC20Template, ERC20Pausable {
         address account,
         uint256 value
     ) 
-        external 
-        onlyNotPaused 
+        external  
         onlyMinter 
     {
         require(
@@ -219,7 +219,6 @@ contract DataTokenTemplate is IERC20Template, ERC20Pausable {
         address mrktFeeCollector
     )
         external
-        onlyNotPaused
     {
         uint256 marketFee = 0;
         uint256 communityFee = calculateFee(
@@ -263,7 +262,6 @@ contract DataTokenTemplate is IERC20Template, ERC20Pausable {
         uint256 serviceId
     )
         external
-        onlyNotPaused
     {
         if ( amount != 0 )  
             require(
@@ -281,26 +279,6 @@ contract DataTokenTemplate is IERC20Template, ERC20Pausable {
     }
 
     /**
-     * @dev pause
-     *      It pauses the contract functionalities (transfer, mint, etc)
-     *      Only could be called if the contract is not already paused.
-     *      Only called by the minter address.
-     */
-    function pause() external onlyNotPaused onlyMinter {
-        paused = true;
-    }
-
-    /**
-     * @dev unpause
-     *      It unpauses the contract.
-     *      Only called if the contract is paused.
-     *      Only minter can call it.
-     */
-    function unpause() external onlyPaused onlyMinter {
-        paused = false;
-    }
-
-    /**
      * @dev proposeMinter
      *      It proposes a new token minter address.
      *      Only called be called if the contract is not paused.
@@ -309,7 +287,6 @@ contract DataTokenTemplate is IERC20Template, ERC20Pausable {
      */
     function proposeMinter(address newMinter) 
         external 
-        onlyNotPaused 
         onlyMinter 
     {
         _proposedMinter = newMinter;
@@ -327,7 +304,6 @@ contract DataTokenTemplate is IERC20Template, ERC20Pausable {
      */
     function approveMinter()
         external
-        onlyNotPaused
     {
         require(
             msg.sender == _proposedMinter,
@@ -416,15 +392,6 @@ contract DataTokenTemplate is IERC20Template, ERC20Pausable {
      */ 
     function isInitialized() external view returns(bool) {
         return initialized;
-    }
-
-    /**
-     * @dev isPaused
-     *      Function checks if the contract is paused.
-     * @return true if the contract is paused.
-     */ 
-    function isPaused() external view returns(bool) {
-        return paused;
     }
 
     /**
