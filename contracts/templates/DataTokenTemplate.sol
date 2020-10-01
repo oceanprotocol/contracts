@@ -31,6 +31,7 @@ contract DataTokenTemplate is IERC20Template, ERC20 {
     uint256 public constant BASE_MARKET_FEE_PERCENTAGE = BASE / 1000;
 
     event OrderStarted(
+            address indexed consumer, 
             uint256 amount, 
             uint256 serviceId, 
             uint256 startedAt,
@@ -237,6 +238,7 @@ contract DataTokenTemplate is IERC20Template, ERC20 {
         transfer(_minter, amount.sub(totalFee));
 
         emit OrderStarted(
+            msg.sender,
             amount,
             serviceId,
             block.number,
