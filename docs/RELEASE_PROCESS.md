@@ -59,3 +59,9 @@ git push --tags
 - Make a pull request from the just-pushed branch to develop branch.
 - Wait for all the tests to pass!
 - Merge the pull request into the `master` branch.
+
+Finally, draft the new release on github as follows:
+- Go to [tags](https://github.com/oceanprotocol/ocean-contracts/tags), then select the new version tag.
+- Click on `Edit release` button
+- The naming convension for the release should be `Release vx.x.x`.
+- Copy and paste the release related PRs from [CHANGELOG.md](../CHANGELOG.md) 
