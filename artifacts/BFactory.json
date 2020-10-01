@@ -366,7 +366,7 @@
         "id": 285,
         "nodeType": "ImportDirective",
         "scope": 377,
-        "sourceUnit": 5719,
+        "sourceUnit": 5723,
         "src": "230:31:3",
         "symbolAliases": [],
         "unitAlias": ""
@@ -398,10 +398,10 @@
               "id": 288,
               "name": "Deployer",
               "nodeType": "UserDefinedTypeName",
-              "referencedDeclaration": 5718,
+              "referencedDeclaration": 5722,
               "src": "679:8:3",
               "typeDescriptions": {
-                "typeIdentifier": "t_contract$_Deployer_$5718",
+                "typeIdentifier": "t_contract$_Deployer_$5722",
                 "typeString": "contract Deployer"
               }
             },
@@ -412,7 +412,7 @@
         ],
         "contractDependencies": [
           280,
-          5718
+          5722
         ],
         "contractKind": "contract",
         "documentation": null,
@@ -420,7 +420,7 @@
         "id": 376,
         "linearizedBaseContracts": [
           376,
-          5718,
+          5722,
           280
         ],
         "name": "BFactory",
@@ -727,10 +727,10 @@
                       "name": "require",
                       "nodeType": "Identifier",
                       "overloadedDeclarations": [
-                        6542,
-                        6543
+                        6546,
+                        6547
                       ],
-                      "referencedDeclaration": 6543,
+                      "referencedDeclaration": 6547,
                       "src": "1176:7:3",
                       "typeDescriptions": {
                         "typeIdentifier": "t_function_require_pure$_t_bool_$_t_string_memory_ptr_$returns$__$",
@@ -913,7 +913,7 @@
                         "name": "deploy",
                         "nodeType": "Identifier",
                         "overloadedDeclarations": [],
-                        "referencedDeclaration": 5717,
+                        "referencedDeclaration": 5721,
                         "src": "1606:6:3",
                         "typeDescriptions": {
                           "typeIdentifier": "t_function_internal_nonpayable$_t_address_$returns$_t_address_$",
@@ -1070,10 +1070,10 @@
                       "name": "require",
                       "nodeType": "Identifier",
                       "overloadedDeclarations": [
-                        6542,
-                        6543
+                        6546,
+                        6547
                       ],
-                      "referencedDeclaration": 6543,
+                      "referencedDeclaration": 6547,
                       "src": "1637:7:3",
                       "typeDescriptions": {
                         "typeIdentifier": "t_function_require_pure$_t_bool_$_t_string_memory_ptr_$returns$__$",
@@ -1200,7 +1200,7 @@
                               "name": "msg",
                               "nodeType": "Identifier",
                               "overloadedDeclarations": [],
-                              "referencedDeclaration": 6539,
+                              "referencedDeclaration": 6543,
                               "src": "1858:3:3",
                               "typeDescriptions": {
                                 "typeIdentifier": "t_magic_message",
@@ -1230,7 +1230,7 @@
                                 "name": "this",
                                 "nodeType": "Identifier",
                                 "overloadedDeclarations": [],
-                                "referencedDeclaration": 6575,
+                                "referencedDeclaration": 6579,
                                 "src": "1894:4:3",
                                 "typeDescriptions": {
                                   "typeIdentifier": "t_contract$_BFactory_$376",
@@ -1420,10 +1420,10 @@
                       "name": "require",
                       "nodeType": "Identifier",
                       "overloadedDeclarations": [
-                        6542,
-                        6543
+                        6546,
+                        6547
                       ],
-                      "referencedDeclaration": 6543,
+                      "referencedDeclaration": 6547,
                       "src": "1795:7:3",
                       "typeDescriptions": {
                         "typeIdentifier": "t_function_require_pure$_t_bool_$_t_string_memory_ptr_$returns$__$",
@@ -1544,7 +1544,7 @@
                           "name": "msg",
                           "nodeType": "Identifier",
                           "overloadedDeclarations": [],
-                          "referencedDeclaration": 6539,
+                          "referencedDeclaration": 6543,
                           "src": "2119:3:3",
                           "typeDescriptions": {
                             "typeIdentifier": "t_magic_message",
@@ -1716,7 +1716,7 @@
         "id": 285,
         "nodeType": "ImportDirective",
         "scope": 377,
-        "sourceUnit": 5719,
+        "sourceUnit": 5723,
         "src": "230:31:3",
         "symbolAliases": [],
         "unitAlias": ""
@@ -1748,10 +1748,10 @@
               "id": 288,
               "name": "Deployer",
               "nodeType": "UserDefinedTypeName",
-              "referencedDeclaration": 5718,
+              "referencedDeclaration": 5722,
               "src": "679:8:3",
               "typeDescriptions": {
-                "typeIdentifier": "t_contract$_Deployer_$5718",
+                "typeIdentifier": "t_contract$_Deployer_$5722",
                 "typeString": "contract Deployer"
               }
             },
@@ -1762,7 +1762,7 @@
         ],
         "contractDependencies": [
           280,
-          5718
+          5722
         ],
         "contractKind": "contract",
         "documentation": null,
@@ -1770,7 +1770,7 @@
         "id": 376,
         "linearizedBaseContracts": [
           376,
-          5718,
+          5722,
           280
         ],
         "name": "BFactory",
@@ -2077,10 +2077,10 @@
                       "name": "require",
                       "nodeType": "Identifier",
                       "overloadedDeclarations": [
-                        6542,
-                        6543
+                        6546,
+                        6547
                       ],
-                      "referencedDeclaration": 6543,
+                      "referencedDeclaration": 6547,
                       "src": "1176:7:3",
                       "typeDescriptions": {
                         "typeIdentifier": "t_function_require_pure$_t_bool_$_t_string_memory_ptr_$returns$__$",
@@ -2263,7 +2263,7 @@
                         "name": "deploy",
                         "nodeType": "Identifier",
                         "overloadedDeclarations": [],
-                        "referencedDeclaration": 5717,
+                        "referencedDeclaration": 5721,
                         "src": "1606:6:3",
                         "typeDescriptions": {
                           "typeIdentifier": "t_function_internal_nonpayable$_t_address_$returns$_t_address_$",
@@ -2420,10 +2420,10 @@
                       "name": "require",
                       "nodeType": "Identifier",
                       "overloadedDeclarations": [
-                        6542,
-                        6543
+                        6546,
+                        6547
                       ],
-                      "referencedDeclaration": 6543,
+                      "referencedDeclaration": 6547,
                       "src": "1637:7:3",
                       "typeDescriptions": {
                         "typeIdentifier": "t_function_require_pure$_t_bool_$_t_string_memory_ptr_$returns$__$",
@@ -2550,7 +2550,7 @@
                               "name": "msg",
                               "nodeType": "Identifier",
                               "overloadedDeclarations": [],
-                              "referencedDeclaration": 6539,
+                              "referencedDeclaration": 6543,
                               "src": "1858:3:3",
                               "typeDescriptions": {
                                 "typeIdentifier": "t_magic_message",
@@ -2580,7 +2580,7 @@
                                 "name": "this",
                                 "nodeType": "Identifier",
                                 "overloadedDeclarations": [],
-                                "referencedDeclaration": 6575,
+                                "referencedDeclaration": 6579,
                                 "src": "1894:4:3",
                                 "typeDescriptions": {
                                   "typeIdentifier": "t_contract$_BFactory_$376",
@@ -2770,10 +2770,10 @@
                       "name": "require",
                       "nodeType": "Identifier",
                       "overloadedDeclarations": [
-                        6542,
-                        6543
+                        6546,
+                        6547
                       ],
-                      "referencedDeclaration": 6543,
+                      "referencedDeclaration": 6547,
                       "src": "1795:7:3",
                       "typeDescriptions": {
                         "typeIdentifier": "t_function_require_pure$_t_bool_$_t_string_memory_ptr_$returns$__$",
@@ -2894,7 +2894,7 @@
                           "name": "msg",
                           "nodeType": "Identifier",
                           "overloadedDeclarations": [],
-                          "referencedDeclaration": 6539,
+                          "referencedDeclaration": 6543,
                           "src": "2119:3:3",
                           "typeDescriptions": {
                             "typeIdentifier": "t_magic_message",
@@ -3024,7 +3024,7 @@
   },
   "networks": {},
   "schemaVersion": "3.2.4",
-  "updatedAt": "2020-09-30T13:26:15.105Z",
+  "updatedAt": "2020-10-01T09:28:54.408Z",
   "devdoc": {
     "methods": {}
   },
