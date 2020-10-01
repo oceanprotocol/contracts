@@ -152,7 +152,7 @@ giving a fee percentage, and amount it calculates the actual fee
 
 
 
-### `OrderStarted(uint256 amount, uint256 serviceId, uint256 startedAt, address mrktFeeCollector, uint256 marketFee)`
+### `OrderStarted(address consumer, uint256 amount, uint256 serviceId, uint256 startedAt, address mrktFeeCollector, uint256 marketFee)`
 
 
 
