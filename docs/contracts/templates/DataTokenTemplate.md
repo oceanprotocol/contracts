@@ -152,13 +152,13 @@ giving a fee percentage, and amount it calculates the actual fee
 
 
 
-### `OrderStarted(address consumer, uint256 amount, uint256 serviceId, uint256 startedAt, address mrktFeeCollector, uint256 marketFee)`
+### `OrderStarted(address consumer, uint256 amount, uint256 serviceId, uint256 timestamp, address mrktFeeCollector, uint256 marketFee)`
 
 
 
 
 
-### `OrderFinished(bytes32 orderTxId, address consumer, uint256 amount, uint256 serviceId, address provider)`
+### `OrderFinished(bytes32 orderTxId, address consumer, uint256 amount, uint256 serviceId, address provider, uint256 timestamp)`
 
 
 
