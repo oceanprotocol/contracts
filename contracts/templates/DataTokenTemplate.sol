@@ -34,7 +34,7 @@ contract DataTokenTemplate is IERC20Template, ERC20 {
             address indexed consumer, 
             uint256 amount, 
             uint256 serviceId, 
-            uint256 startedAt,
+            uint256 timestamp,
             address indexed mrktFeeCollector,
             uint256 marketFee
     );
@@ -45,7 +45,7 @@ contract DataTokenTemplate is IERC20Template, ERC20 {
             uint256 amount, 
             uint256 serviceId, 
             address indexed provider,
-            uint256 stoppedAt
+            uint256 timestamp
     );
 
     event MinterProposed(
