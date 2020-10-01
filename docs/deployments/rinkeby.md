@@ -1,6 +1,43 @@
 # Deployments
 
 ## Rinkeby 
+### V0.5.1
+
+The contracts addresses for the latest deployment:
+
+Find [here](https://github.com/oceanprotocol/atlantic/blob/master/logs/Rinkeby-datatokens-deployment-01102020.txt) more deployment details
+
+```bash
+   Deploying 'OPFCommunityFeeCollector'
+   -----------------------------
+   > contract address:    0xA5F0E68620a6A05E430BeA7ff0912366C0DbB508
+
+   Deploying 'DataTokenTemplate'
+   -----------------------------
+   > contract address:    0x1F31a431CBb253dad7c740f8e5E2cff15035545e
+
+   Deploying 'DTFactory'
+   ---------------------
+   > contract address:    0x241D0f315d2bfe32b90282e6863AC22A309EbFa0
+
+   Deploying 'BPool'
+   -----------------
+   > contract address:    0x1f0cE8373a4faF3CBf5bbdf34b6741085c2bFc1c
+
+   Deploying 'BFactory'
+   --------------------
+   > contract address:    0xf32E0784F5D127471883aF938c50349A97aF7085
+
+   Deploying 'FixedRateExchange'
+   --------------------
+   > contract address:    0x223B65841d5BAE99c615D0Da7980b2Fc0aFF1dB2
+   
+   Deploying 'Metadata'
+   --------------------
+   > contract address:    0x0220D0b4FfCC4A14C7601215aA23da06d5b1c921
+
+```
+
 ### V0.4.3
 
 The contracts addresses for the latest deployment:
