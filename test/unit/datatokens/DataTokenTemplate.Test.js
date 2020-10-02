@@ -135,6 +135,7 @@ contract('DataTokenTemplate', async (accounts) => {
         const serviceId = 1
         await token.mint(consumer, 20, { from: minter })
         await token.startOrder(
+            consumer,
             orderDTTokensAmount,
             serviceId,
             marketAddress,
@@ -151,6 +152,7 @@ contract('DataTokenTemplate', async (accounts) => {
         const minterBalanceBefore = (await token.balanceOf(minter)).toNumber()
         truffleAssert.passes(await token.mint(consumer, orderDTTokensAmount, { from: minter }))
         orderTxId = await token.startOrder(
+            consumer,
             orderDTTokensAmount,
             serviceId,
             marketAddress,
