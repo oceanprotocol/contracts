@@ -31,7 +31,8 @@ contract DataTokenTemplate is IERC20Template, ERC20 {
     uint256 public constant BASE_MARKET_FEE_PERCENTAGE = BASE / 1000;
 
     event OrderStarted(
-            address indexed consumer, 
+            address indexed consumer,
+            address indexed payer,
             uint256 amount, 
             uint256 serviceId, 
             uint256 timestamp,
@@ -41,7 +42,7 @@ contract DataTokenTemplate is IERC20Template, ERC20 {
 
     event OrderFinished(
             bytes32 orderTxId, 
-            address indexed consumer, 
+            address indexed consumer,
             uint256 amount, 
             uint256 serviceId, 
             address indexed provider,
@@ -216,6 +217,7 @@ contract DataTokenTemplate is IERC20Template, ERC20 {
      * @param mrktFeeCollector marketplace fee collector
      */
     function startOrder(
+        address consumer,
         uint256 amount,
         uint256 serviceId,
         address mrktFeeCollector
@@ -239,6 +241,7 @@ contract DataTokenTemplate is IERC20Template, ERC20 {
         transfer(_minter, amount.sub(totalFee));
 
         emit OrderStarted(
+            consumer,
             msg.sender,
             amount,
             serviceId,
