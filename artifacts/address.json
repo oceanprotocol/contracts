@@ -1,1 +1,20 @@
-{"ganache":{"DTFactory":"0x3fd7A00106038Fb5c802c6d63fa7147Fe429E83a","BFactory":"0x53eDF9289B0898e1652Ce009AACf8D25fA9A42F8","FixedRateExchange":"0xeD1DfC5F3a589CfC4E8B91C1fbfC18FC6699Fbde","Metadata":"0xFD8a7b6297153397B7eb4356C47dbd381d58bFF4"}}
+{
+  "ganache": {
+    "DTFactory": "0x3fd7A00106038Fb5c802c6d63fa7147Fe429E83a",
+    "BFactory": "0x53eDF9289B0898e1652Ce009AACf8D25fA9A42F8",
+    "FixedRateExchange": "0xeD1DfC5F3a589CfC4E8B91C1fbfC18FC6699Fbde",
+    "Metadata": "0xFD8a7b6297153397B7eb4356C47dbd381d58bFF4"
+  },
+  "development": {
+    "DTFactory": "0xDdc4D0900becF362dcC8ebF5912Bc7593BAB53cb",
+    "BFactory": "0x37355D2019f767EaeCeA6e96170DfF2294294847",
+    "FixedRateExchange": "0x15819B2FF6e7bCB37b5f5d0ED98Db31d3facBdE7",
+    "Metadata": "0xef2cbd03a8044d6Ed7654b9Dd653Ea96e4D1B41f"
+  },
+  "rinkeby": {
+    "DTFactory": "0x20a1f258CAe4Dd0d417EA54D9fa5601A4cc6fdBf",
+    "BFactory": "0x835eE90eAe18996b5595039376D748a7524ced24",
+    "FixedRateExchange": "0xb5641A3501CC2013FD5A083Bf82AFfa85CB65903",
+    "Metadata": "0xBF6D9B451b7769e5f031Fd5Ba768af61183c1e58"
+  }
+}

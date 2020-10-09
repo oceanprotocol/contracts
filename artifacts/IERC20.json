@@ -1853,8 +1853,8 @@
     "version": "0.5.7+commit.6da8b019.Emscripten.clang"
   },
   "networks": {},
-  "schemaVersion": "3.2.0",
-  "updatedAt": "2020-10-02T11:33:45.806Z",
+  "schemaVersion": "3.2.4",
+  "updatedAt": "2020-10-09T14:13:22.944Z",
   "devdoc": {
     "details": "Interface of the ERC20 standard as defined in the EIP. Does not include the optional functions; to access them see {ERC20Detailed}.",
     "methods": {
