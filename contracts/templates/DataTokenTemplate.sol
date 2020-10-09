@@ -211,7 +211,8 @@ contract DataTokenTemplate is IERC20Template, ERC20 {
 
     /**
      * @dev startOrder
-     *      called by consumer prior ordering a service consume on a marketplace
+     *      called by payer or consumer prior ordering a service consume on a marketplace.
+     * @param consumer is the consumer address (payer could be different address)
      * @param amount refers to amount of tokens that is going to be transfered.
      * @param serviceId service index in the metadata
      * @param mrktFeeCollector marketplace fee collector
