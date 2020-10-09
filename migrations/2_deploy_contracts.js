@@ -51,10 +51,10 @@ module.exports = function(deployer, network, accounts) {
         )
         addresses.Metadata = Metadata.address
         const addressFile = './artifacts/address.json'
-        let old_addresses = JSON.parse(fs.readFileSync(addressFile))
-        const network_name = process.env.NETWORK
-        old_addresses[network_name] = addresses
-        console.info('writing address.json file: ' + network + JSON.stringify(old_addresses, null, 2))
-        fs.writeFileSync(addressFile, JSON.stringify(old_addresses, null, 2))
+        const oldAddresses = JSON.parse(fs.readFileSync(addressFile))
+        const networkName = process.env.NETWORK
+        oldAddresses[networkName] = addresses
+        console.info('writing address.json file: ' + network + JSON.stringify(oldAddresses, null, 2))
+        fs.writeFileSync(addressFile, JSON.stringify(oldAddresses, null, 2))
     })
 }

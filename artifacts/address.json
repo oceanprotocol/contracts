@@ -6,10 +6,10 @@
     "Metadata": "0xFD8a7b6297153397B7eb4356C47dbd381d58bFF4"
   },
   "development": {
-    "DTFactory": "0xDdc4D0900becF362dcC8ebF5912Bc7593BAB53cb",
-    "BFactory": "0x37355D2019f767EaeCeA6e96170DfF2294294847",
-    "FixedRateExchange": "0x15819B2FF6e7bCB37b5f5d0ED98Db31d3facBdE7",
-    "Metadata": "0xef2cbd03a8044d6Ed7654b9Dd653Ea96e4D1B41f"
+    "DTFactory": "0x39E9F9840e6Ab8FAfD0dcBE114B77a2667914af7",
+    "BFactory": "0x821a9435e8486Cd30b69233c78deea0689f12cf3",
+    "FixedRateExchange": "0x8B87E85e737F10A2a9ab334ae4EB6042718150Bd",
+    "Metadata": "0x35AdA5449C7aB9E8D998cD6bF3521b649422580B"
   },
   "rinkeby": {
     "DTFactory": "0x20a1f258CAe4Dd0d417EA54D9fa5601A4cc6fdBf",
