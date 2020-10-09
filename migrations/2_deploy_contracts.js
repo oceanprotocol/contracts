@@ -17,6 +17,9 @@ module.exports = function(deployer, network, accounts) {
         const addressFile = './artifacts/address.json'
         const oldAddresses = JSON.parse(fs.readFileSync(addressFile))
         const networkName = process.env.NETWORK
+        if (!oldAddresses[networkName]) {
+            oldAddresses[networkName] = {}
+        }
         let addresses = oldAddresses[networkName]
 
         await deployer.deploy(
