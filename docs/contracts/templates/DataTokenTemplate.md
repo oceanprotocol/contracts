@@ -50,7 +50,7 @@ msg.value should be higher than zero and gt or eq minting fee
 
 
 startOrder
-called by consumer prior ordering a service consume on a marketplace
+called by payer or consumer prior ordering a service consume on a marketplace.
 
 
 ### `finishOrder(bytes32 orderTxId, address consumer, uint256 amount, uint256 serviceId)` (external)
