@@ -2389,7 +2389,7 @@
   },
   "networks": {},
   "schemaVersion": "3.2.4",
-  "updatedAt": "2020-10-09T19:13:54.349Z",
+  "updatedAt": "2020-10-09T20:18:27.117Z",
   "devdoc": {
     "details": "Metadata stands for Decentralized Document. It allows publishers     to publish their dataset metadata in decentralized way.     It follows the Ocean DID Document standard:      https://github.com/oceanprotocol/OEPs/blob/master/7/v0.2/README.md",
     "methods": {
