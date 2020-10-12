@@ -58,7 +58,10 @@ module.exports = function(deployer, network, accounts) {
         )
         addresses.Metadata = Metadata.address
 
-        console.info('writing address.json file: ' + network + JSON.stringify(oldAddresses, null, 2))
+        if (networkName === 'development' || networkName === 'ganache') {
+            addresses.Ocean = DataTokenTemplate.address
+        }
+        console.info('writing address.json file: ' + networkName + JSON.stringify(oldAddresses, null, 2))
         fs.writeFileSync(addressFile, JSON.stringify(oldAddresses, null, 2))
     })
 }
