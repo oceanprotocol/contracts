@@ -48,6 +48,8 @@ git add .
 git commit -m 'v0.2.5'
 git push
 ```
+`Important`: the commit above with the version number in the message will trigger publishing the release in travis.
+
 - Tag the last commit with the new version number ie. v0.2.5
 ```bash
 git tag -a v0.2.5
