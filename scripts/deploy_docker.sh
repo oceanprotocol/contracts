@@ -9,7 +9,7 @@ if [ "${DEPLOY_CONTRACTS}" = "true" ]
 then
     # remove ready flag if we deploy contracts
     rm -f /ocean-contracts/artifacts/ready
-
+    cd ..
     export NETWORK="${NETWORK_NAME:-development}"
     npm run deploy:${NETWORK}
 
