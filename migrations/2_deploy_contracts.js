@@ -13,7 +13,7 @@ const communityCollector = '0xeE9300b7961e0a01d9f0adb863C7A227A07AaD75'
 const OPFOwner = '0xeE9300b7961e0a01d9f0adb863C7A227A07AaD75'
 module.exports = function(deployer, network, accounts) {
     deployer.then(async () => {
-        const addressFile = './artifacts/address.json'
+        const addressFile = '/ocean-contracts/artifacts/address.json'
         const oldAddresses = JSON.parse(fs.readFileSync(addressFile))
         const networkName = process.env.NETWORK
         if (!oldAddresses[networkName]) {
