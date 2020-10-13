@@ -1,6 +1,7 @@
 /* eslint-env mocha */
-/* global artifacts */
+/* global artifacts, web3 */
 const fs = require('fs')
+const BigNumber = require('bn.js')
 var DataTokenTemplate = artifacts.require('./DataTokenTemplate.sol')
 var DTFactory = artifacts.require('./DTFactory.sol')
 var BPool = artifacts.require('./BPool.sol')
@@ -29,12 +30,18 @@ module.exports = function(deployer, network, accounts) {
             communityCollector,
             OPFOwner
         )
+
+        let cap = 10000000
+        if (networkName === 'development' || networkName === 'ganache') {
+            cap = web3.utils.toWei('100000')
+        }
+
         await deployer.deploy(
             DataTokenTemplate,
             'DataTokenTemplate',
             'DTT',
             accounts[0],
-            10000000,
+            cap,
             'http://oceanprotocol.com',
             OPFCommunityFeeCollector.address
         )
