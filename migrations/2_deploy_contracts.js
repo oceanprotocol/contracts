@@ -14,7 +14,10 @@ const OPFOwner = '0xeE9300b7961e0a01d9f0adb863C7A227A07AaD75'
 module.exports = function(deployer, network, accounts) {
     deployer.then(async () => {
         const addressFile = './artifacts/address.json'
-        const oldAddresses = JSON.parse(fs.readFileSync(addressFile))
+        let oldAddresses
+        try {
+            oldAddresses = JSON.parse(fs.readFileSync(addressFile))
+        } catch (e) { oldAddresses = {} }
         const networkName = process.env.NETWORK
         if (!oldAddresses[networkName]) {
             oldAddresses[networkName] = {}
