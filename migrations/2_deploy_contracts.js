@@ -1,7 +1,6 @@
 /* eslint-env mocha */
 /* global artifacts, web3 */
 const fs = require('fs')
-const BigNumber = require('bn.js')
 var DataTokenTemplate = artifacts.require('./DataTokenTemplate.sol')
 var DTFactory = artifacts.require('./DTFactory.sol')
 var BPool = artifacts.require('./BPool.sol')
