@@ -1,6 +1,6 @@
 {
   "name": "@oceanprotocol/contracts",
-  "version": "0.5.5",
+  "version": "0.5.6",
   "description": "Ocean Protocol L1 - DataTokens",
   "bugs": {
     "url": "https://github.com/oceanprotocol/contracts/issues"
@@ -80,7 +80,7 @@
     "release-it": "^13.6.2",
     "solc": "^0.5.7",
     "solidity-coverage": "0.7.5",
-    "solidity-docgen": "^0.5.5",
+    "solidity-docgen": "^0.5.6",
     "solium": "^1.2.5",
     "solium-plugin-security": "^0.1.1",
     "truffle": "^5.1.43",
