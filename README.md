@@ -98,6 +98,16 @@ For local development, start a local testnet using `ganache-cli`, then run:
 ```bash
 npm run deploy
 ```
+
+Or depoly ocean-contracts on `rinkeby` network as follows:
+```
+export MNEMONIC='YOUR MNEMONIC SHOULD BE HERE'
+# If you are using remote test or main net using Infura
+export INFURA_TOKEN='GET INFURA_TOKEN FROM INFURA PLATFORM' 
+npm run deploy:rinkeby
+```
+After the deployment, check out the [address.json]() file containing the deployed contracts addresses.
+
 Checkout the supported deployment(s) on these [networks](docs/README.md#deployments).
 
 ## Documentation
