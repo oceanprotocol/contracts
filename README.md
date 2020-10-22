@@ -106,7 +106,7 @@ export MNEMONIC='YOUR MNEMONIC SHOULD BE HERE'
 export INFURA_TOKEN='GET INFURA_TOKEN FROM INFURA PLATFORM' 
 npm run deploy:rinkeby
 ```
-After the deployment, check out the [address.json]() file containing the deployed contracts addresses.
+After the deployment, check out the [address.json](artifacts/address.json) file containing the deployed contracts addresses.
 
 Checkout the supported deployment(s) on these [networks](docs/README.md#deployments).
 
