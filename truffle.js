@@ -93,15 +93,15 @@ module.exports = {
         mainnet: {
             provider: () => setupWallet(`https://mainnet.infura.io/v3/${process.env.INFURA_TOKEN}`),
             network_id: 0x1, // 1
-            from: '0x3f3c526f3A8623b11aAD5c30d6De88E45e385FaD',
+            from: '0x614E188acBB597C2b2BF0CB39819975b05217C33',
             gas: 7 * 1000000,
-            gasPrice: utils.toWei('8', 'gwei')
+            gasPrice: utils.toWei('60', 'gwei')
         },
         // mainnet the ethereum mainnet
         rinkeby: {
             provider: () => setupWallet(`https://rinkeby.infura.io/v3/${process.env.INFURA_TOKEN}`),
             network_id: 0x4,
-            from: '0x2c63bf697f74c72cfb727fb5eb8e6266ce341e13',
+            from: '0xD6e0F938323A9D9d52b26700716E2e8E027f3795',
             gas: 7 * 1000000,
             gasPrice: utils.toWei('8', 'gwei')
         },
