@@ -70,7 +70,7 @@ module.exports = function(deployer, network, accounts) {
         if (networkName === 'development' || networkName === 'ganache') {
             addresses.Ocean = DataTokenTemplate.address
         }
-        if(networkName === 'mainnet') {
+        if (networkName === 'mainnet') {
             addresses.Ocean = '0x967da4048cD07aB37855c090aAF366e4ce1b9F48'
         }
         console.info('writing address.json file: ' + networkName + JSON.stringify(oldAddresses, null, 2))
