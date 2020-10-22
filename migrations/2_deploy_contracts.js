@@ -9,8 +9,8 @@ var Metadata = artifacts.require('./Metadata.sol')
 var FixedRateExchange = artifacts.require('./FixedRateExchange.sol')
 var OPFCommunityFeeCollector = artifacts.require('./OPFCommunityFeeCollector.sol')
 // dummy communityFeeCollector, replace with real wallet/owner
-const communityCollector = '0xeE9300b7961e0a01d9f0adb863C7A227A07AaD75'
-const OPFOwner = '0xeE9300b7961e0a01d9f0adb863C7A227A07AaD75'
+const communityCollector = '0x7DF5273aD9A6fCce64D45c64c1E43cfb6F861725'
+const OPFOwner = '0x7DF5273aD9A6fCce64D45c64c1E43cfb6F861725'
 module.exports = function(deployer, network, accounts) {
     deployer.then(async () => {
         const addressFile = './artifacts/address.json'
@@ -69,6 +69,9 @@ module.exports = function(deployer, network, accounts) {
 
         if (networkName === 'development' || networkName === 'ganache') {
             addresses.Ocean = DataTokenTemplate.address
+        }
+        if(networkName === 'mainnet') {
+            addresses.Ocean = '0x967da4048cD07aB37855c090aAF366e4ce1b9F48'
         }
         console.info('writing address.json file: ' + networkName + JSON.stringify(oldAddresses, null, 2))
         fs.writeFileSync(addressFile, JSON.stringify(oldAddresses, null, 2))
