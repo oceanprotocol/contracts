@@ -94,7 +94,8 @@ contract('BPool', async (accounts) => {
 
     before(async () => {
         const poolTemplate = await BPool.new()
-        factory = await BFactory.new(poolTemplate.address)
+        const oldPools = [accounts[9], accounts[8]]
+        factory = await BFactory.new(poolTemplate.address, oldPools)
 
         POOL = await factory.newBPool.call() // this works fine in clean room
         await factory.newBPool({ from: admin })
