@@ -114,7 +114,14 @@ module.exports = {
             gasPrice: utils.toWei('10', 'mwei')
         }
     },
-    plugins: ['solidity-coverage'],
+    plugins: [
+        'solidity-coverage',
+        'truffle-plugin-verify'
+    ],
+    api_keys: {
+        // etherscan: 'MY_API_KEY'
+        etherscan: 'J1SN5WMPSRK2M7VSI29H1DDAWRCWG4E5AD'
+    },
     // Set default mocha options here, use special reporters etc.
     mocha: {
     // timeout: 100000
