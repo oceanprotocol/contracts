@@ -88,7 +88,7 @@ contract BToken is BTokenBase, IERC20 {
         return _symbol;
     }
 
-    function decimals() public view returns(uint8) {
+    function decimals() public pure returns(uint8) {
         return _decimals;
     }
 
