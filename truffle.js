@@ -120,7 +120,6 @@ module.exports = {
     ],
     api_keys: {
         // etherscan: 'MY_API_KEY'
-        etherscan: 'J1SN5WMPSRK2M7VSI29H1DDAWRCWG4E5AD'
     },
     // Set default mocha options here, use special reporters etc.
     mocha: {
