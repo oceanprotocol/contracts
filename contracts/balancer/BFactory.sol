@@ -38,7 +38,7 @@ contract BFactory is BConst, Deployer {
     */
     constructor(
         address _bpoolTemplate,
-        address [] memory _preCreatedPools
+        address[] memory _preCreatedPools
     )
         public 
     {
