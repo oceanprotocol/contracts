@@ -23,13 +23,13 @@ contract BFactory is BConst, Deployer {
 
     event BPoolCreated(
         address indexed newBPoolAddress,
-        address indexed bpoolTemplateAddress
+        address indexed registeredBy,
+        address indexed datatokenAddress,
+        address basetokenAddress,
+        address bpoolTemplateAddress,
+        address ssAddress
     );
     
-    event BPoolRegistered(
-        address bpoolAddress,
-        address indexed registeredBy
-    );
     
     /* @dev Called on contract deployment. Cannot be called with zero address.
        @param _bpoolTemplate -- address of a deployed BPool contract. */
@@ -46,7 +46,7 @@ contract BFactory is BConst, Deployer {
     /* @dev Deploys new BPool proxy contract.
        Template contract address could not be a zero address. 
        @return address of a new proxy BPool contract */
-    function newBPool()
+    function newBPool(address datatokenAddress,address basetokenAddress, address ssAddress,uint256 burnInEndBlock)
         external
         returns (address bpool)
     {
@@ -58,15 +58,18 @@ contract BFactory is BConst, Deployer {
         BPool bpoolInstance = BPool(bpool);	
         require(
             bpoolInstance.initialize(
-                msg.sender,
+                ssAddress,  // ss is the pool controller
                 address(this), 
                 MIN_FEE, 
                 false,
-                false
+                false,
+                datatokenAddress,
+                basetokenAddress,
+                burnInEndBlock
             ),
             'ERR_INITIALIZE_BPOOL'
         );
-        emit BPoolCreated(bpool, bpoolTemplate);
-        emit BPoolRegistered(bpool, msg.sender);
+        
+        emit BPoolCreated(bpool, msg.sender,datatokenAddress,basetokenAddress,bpoolTemplate,ssAddress);
     }
 }

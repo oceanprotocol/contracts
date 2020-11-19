@@ -68,6 +68,8 @@ npm run compile
 
 ## Testing
 
+** WIP: no tests are configured as now, old tests are going to fail **
+
 Run tests with 
 
 ```bash

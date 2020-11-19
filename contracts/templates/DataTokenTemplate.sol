@@ -3,7 +3,6 @@ pragma solidity 0.5.7;
 // SPDX-License-Identifier: (Apache-2.0 AND CC-BY-4.0)
 // Code is Apache-2.0 and docs are CC-BY-4.0
 
-import '../interfaces/IERC20Template.sol';
 import 'openzeppelin-solidity/contracts/token/ERC20/ERC20.sol';
 
 
@@ -14,7 +13,7 @@ import 'openzeppelin-solidity/contracts/token/ERC20/ERC20.sol';
 *      Used by the factory contract as a bytecode reference to 
 *      deploy new DataTokens.
 */
-contract DataTokenTemplate is IERC20Template, ERC20 {
+contract DataTokenTemplate is ERC20 {
     using SafeMath for uint256;
 
     string  private _name;
@@ -25,7 +24,11 @@ contract DataTokenTemplate is IERC20Template, ERC20 {
     address private _communityFeeCollector;
     bool    private initialized = false;
     address private _minter;
-    address private _proposedMinter;
+    address private _publisher;
+    address private _proposedPublisher;
+    uint private _totalConsumes7Days;  //total consumes in 7 days = total consumes in last 7 * 24 * 60 * 60 / 13.2 blocks
+    uint private _totalConsumes30Days; //total consumes in 30 days = total consumes in last 30 * 24 * 60 * 60 / 13.2 blocks
+    uint private _totalConsumes;
     uint256 public constant BASE = 10**18;
     uint256 public constant BASE_COMMUNITY_FEE_PERCENTAGE = BASE / 1000;
     uint256 public constant BASE_MARKET_FEE_PERCENTAGE = BASE / 1000;
@@ -49,12 +52,12 @@ contract DataTokenTemplate is IERC20Template, ERC20 {
             uint256 timestamp
     );
 
-    event MinterProposed(
-        address currentMinter,
-        address newMinter
+    event PublisherChanged(
+        address currentPublisher,
+        address newPublisher
     );
 
-    event MinterApproved(
+    event MinterChanged(
         address currentMinter,
         address newMinter
     );
@@ -75,12 +78,21 @@ contract DataTokenTemplate is IERC20Template, ERC20 {
         _;
     }
 
+    modifier onlyPublisher() {
+        require(
+            msg.sender == _publisher,
+            'DataTokenTemplate: invalid publisher' 
+        );
+        _;
+    }
+
     /**
      * @dev constructor
      *      Called prior contract deployment
      * @param name refers to a template DataToken name
      * @param symbol refers to a template DataToken symbol
-     * @param minterAddress refers to an address that has minter role
+     * @param minterAddress refers to an address that has minter role (the 1ss contract)
+     * @param publisherAddress refers to an address that has publisher role (will receive DT)
      * @param cap the total ERC20 cap
      * @param blob data string refering to the resolver for the metadata
      * @param feeCollector it is the community fee collector address
@@ -89,6 +101,7 @@ contract DataTokenTemplate is IERC20Template, ERC20 {
         string memory name,
         string memory symbol,
         address minterAddress,
+        address publisherAddress,
         uint256 cap,
         string memory blob,
         address feeCollector
@@ -99,6 +112,7 @@ contract DataTokenTemplate is IERC20Template, ERC20 {
             name,
             symbol,
             minterAddress,
+            publisherAddress,
             cap,
             blob,
             feeCollector
@@ -112,6 +126,7 @@ contract DataTokenTemplate is IERC20Template, ERC20 {
      * @param name refers to a new DataToken name
      * @param symbol refers to a nea DataToken symbol
      * @param minterAddress refers to an address that has minter rights
+     * @param publisherAddress refers to an address that has publisher role (will receive DT)
      * @param cap the total ERC20 cap
      * @param blob data string refering to the resolver for the metadata
      * @param feeCollector it is the community fee collector address
@@ -120,6 +135,7 @@ contract DataTokenTemplate is IERC20Template, ERC20 {
         string calldata name,
         string calldata symbol,
         address minterAddress,
+        address publisherAddress,
         uint256 cap,
         string calldata blob,
         address feeCollector
@@ -132,6 +148,7 @@ contract DataTokenTemplate is IERC20Template, ERC20 {
             name,
             symbol,
             minterAddress,
+            publisherAddress,
             cap,
             blob,
             feeCollector
@@ -144,6 +161,7 @@ contract DataTokenTemplate is IERC20Template, ERC20 {
      * @param name refers to a new DataToken name
      * @param symbol refers to a nea DataToken symbol
      * @param minterAddress refers to an address that has minter rights
+     * @param publisherAddress refers to an address that has minter rights
      * @param cap the total ERC20 cap
      * @param blob data string refering to the resolver for the metadata
      * @param feeCollector it is the community fee collector address
@@ -152,6 +170,7 @@ contract DataTokenTemplate is IERC20Template, ERC20 {
         string memory name,
         string memory symbol,
         address minterAddress,
+        address publisherAddress,
         uint256 cap,
         string memory blob,
         address feeCollector
@@ -165,8 +184,8 @@ contract DataTokenTemplate is IERC20Template, ERC20 {
         );
 
         require(
-            _minter == address(0), 
-            'DataTokenTemplate: Invalid minter, zero address'
+            publisherAddress == address(0), 
+            'DataTokenTemplate: Invalid publisher, zero address'
         );
 
         require(
@@ -183,7 +202,11 @@ contract DataTokenTemplate is IERC20Template, ERC20 {
         _blob = blob;
         _symbol = symbol;
         _minter = minterAddress;
+        _publisher = publisherAddress;
         _communityFeeCollector = feeCollector;
+        _totalConsumes7Days=0;
+        _totalConsumes30Days=0;
+        _totalConsumes=0;
         initialized = true;
         return initialized;
     }
@@ -200,7 +223,7 @@ contract DataTokenTemplate is IERC20Template, ERC20 {
         uint256 value
     ) 
         external  
-        onlyMinter 
+        onlyPublisher 
     {
         require(
             totalSupply().add(value) <= _cap, 
@@ -250,8 +273,16 @@ contract DataTokenTemplate is IERC20Template, ERC20 {
             mrktFeeCollector,
             marketFee
         );
+        updateTotalConsumes();
+        
     }
 
+    /**  Update  Avg Consumes*/
+    function updateTotalConsumes() private {
+        _totalConsumes++;
+        //TO DO
+        
+    }
     /**
      * @dev finishOrder
      *      called by provider prior completing service delivery only
@@ -284,43 +315,6 @@ contract DataTokenTemplate is IERC20Template, ERC20 {
             msg.sender,
             block.timestamp
         );
-    }
-
-    /**
-     * @dev proposeMinter
-     *      It proposes a new token minter address.
-     *      Only the current minter can call it.
-     * @param newMinter refers to a new token minter address.
-     */
-    function proposeMinter(address newMinter) 
-        external 
-        onlyMinter 
-    {
-        _proposedMinter = newMinter;
-        emit MinterProposed(
-            msg.sender,
-            _proposedMinter
-        );
-    }
-
-    /**
-     * @dev approveMinter
-     *      It approves a new token minter address.
-     *      Only the current minter can call it.
-     */
-    function approveMinter()
-        external
-    {
-        require(
-            msg.sender == _proposedMinter,
-            'DataTokenTemplate: invalid proposed minter address'
-        );
-        emit MinterApproved(
-            _minter,
-            _proposedMinter
-        );
-        _minter = _proposedMinter;
-        _proposedMinter = address(0);
     }
 
     /**
@@ -369,16 +363,43 @@ contract DataTokenTemplate is IERC20Template, ERC20 {
         return _cap;
     }
 
+    
     /**
-     * @dev isMinter
-     *      It takes the address and checks whether it has a minter role.
-     * @param account refers to the address.
-     * @return true if account has a minter role.
+     * @dev publisher
+     * @return publisher's address.
      */
-    function isMinter(address account) external view returns(bool) {
-        return (_minter == account);
-    } 
+    function publisher()
+        external
+        view 
+        returns(address)
+    {
+        return _publisher;
+    }
 
+    /**
+     * @dev isPublisher
+     *      It takes the address and checks whether it has a publisher role.
+     * @param account refers to the address.
+     * @return true if account has a publisher role.
+     */
+    function isPublisher(address account) external view returns(bool) {
+        return (_publisher == account);
+    } 
+    
+    /**
+     * @dev changePublisher
+     *      Only the current publisher can call it.
+     * @param newPublisher refers to a new token minter address.
+     */
+    function changePublisher(address newPublisher) 
+        external 
+        onlyPublisher
+    {
+        address currentPublisher=_publisher;
+        _publisher=newPublisher;
+        
+        emit PublisherChanged(currentPublisher,newPublisher);
+    }
     /**
      * @dev minter
      * @return minter's address.
@@ -389,6 +410,65 @@ contract DataTokenTemplate is IERC20Template, ERC20 {
         returns(address)
     {
         return _minter;
+    }
+
+    /**
+     * @dev isMinter
+     *      It takes the address and checks whether it has a minter role.
+     * @param account refers to the address.
+     * @return true if account has a minter role.
+     */
+    function isMinter(address account) external view returns(bool) {
+        return (_minter == account);
+    }
+
+    /**
+     * @dev changeMinter
+     *      Only the current minter can call it.
+     * @param newMinter refers to a new token minter address.
+     */
+    function changeMinter(address newMinter) 
+        external 
+        onlyMinter 
+    {
+        address currentMinter=_minter;
+        _minter=newMinter;
+        emit MinterChanged(currentMinter,newMinter);
+    }
+
+    /**
+     * @dev getTotalConsumes7Days
+     * @return _totalConsumes7Days
+     */
+    function getTotalConsumes7Days()
+        external
+        view 
+        returns(uint)
+    {
+        return _totalConsumes7Days;
+    }
+
+    /**
+     * @dev getTotalConsumes30Days
+     * @return _totalConsumes30Days
+     */
+    function getTotalConsumes30Days()
+        external
+        view 
+        returns(uint)
+    {
+        return _totalConsumes30Days;
+    }
+    /**
+     * @dev getTotalConsumes
+     * @return _totalConsumes
+     */
+    function getTotalConsumes()
+        external
+        view 
+        returns(uint)
+    {
+        return _totalConsumes;
     }
 
     /**

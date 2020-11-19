@@ -3,8 +3,10 @@ pragma solidity 0.5.7;
 // SPDX-License-Identifier: (Apache-2.0 AND CC-BY-4.0)
 // Code is Apache-2.0 and docs are CC-BY-4.0
 
-import './utils/Deployer.sol';
-import './interfaces/IERC20Template.sol';
+import "./utils/Deployer.sol";
+import "./interfaces/DataToken.sol";
+import "./interfaces/ssCompatible.sol";
+import "./balancer/BFactory.sol";
 
 /**
  * @title DTFactory contract
@@ -18,6 +20,7 @@ import './interfaces/IERC20Template.sol';
  */
 contract DTFactory is Deployer {
     address private tokenTemplate;
+    address private BFactoryAddress;
     address private communityFeeCollector;
     uint256 private currentTokenCount = 1;
 
@@ -44,15 +47,18 @@ contract DTFactory is Deployer {
      */
     constructor(
         address _template,
-        address _collector
+        address _collector,
+        address _bfactory
     ) public {
         require(
             _template != address(0) &&
-            _collector != address(0),
-            'DTFactory: Invalid template token/community fee collector address'
+                _collector != address(0) &&
+                _bfactory != address(0),
+            "DTFactory: Invalid constructor arguments"
         );
         tokenTemplate = _template;
         communityFeeCollector = _collector;
+        BFactoryAddress = _bfactory;
     }
 
     /**
@@ -62,50 +68,65 @@ contract DTFactory is Deployer {
      * @param name token name
      * @param symbol token symbol
      * @param cap the maximum total supply
+     * @param basetokenAddress basetoken for the pool
+     * @param ssAddress ssCompatible contract
+     * @param basetokenAddress basetoken for the pool
+     * @param burnInEndBlock end block for the burnin period, to be passed to ssContract
+     * @param ssParams trade parameters, to be passed to ssContract
      * @return address of a new proxy DataToken contract
      */
     function createToken(
         string memory blob,
         string memory name,
         string memory symbol,
-        uint256 cap
-    )
-        public
-        returns (address token)
-    {
-        require(
-            cap != 0,
-            'DTFactory: zero cap is not allowed'
-        );
+        uint256 cap,
+        address basetokenAddress,
+        address ssAddress,
+        uint256 burnInEndBlock,
+        uint256[] memory ssParams
+    ) public returns (address token) {
+        require(cap != 0, "DTFactory: zero cap is not allowed");
 
         token = deploy(tokenTemplate);
 
         require(
             token != address(0),
-            'DTFactory: Failed to perform minimal deploy of a new token'
+            "DTFactory: Failed to perform minimal deploy of a new token"
         );
-        IERC20Template tokenInstance = IERC20Template(token);
+        DataToken tokenInstance = DataToken(token);
         require(
             tokenInstance.initialize(
                 name,
                 symbol,
+                ssAddress,
                 msg.sender,
                 cap,
-                blob,
+                '', //TO DO.  Using blob here gives me stack too deep
                 communityFeeCollector
             ),
-            'DTFactory: Unable to initialize token instance'
+            "DTFactory: Unable to initialize token instance"
         );
         emit TokenCreated(token, tokenTemplate, name);
-        emit TokenRegistered(
-            token,
-            name,
-            symbol,
-            cap,
-            msg.sender,
-            blob
-        );
+        emit TokenRegistered(token, name, symbol, cap, msg.sender, blob);
         currentTokenCount += 1;
+        //create the pool
+        BFactory bpoolFactory = BFactory(BFactoryAddress);
+        address poolAddress = bpoolFactory.newBPool(
+            token,
+            basetokenAddress,
+            ssAddress,
+            burnInEndBlock
+        );
+        //call ssContract
+        ssCompatible ssContract = ssCompatible(ssAddress);
+        ssContract.newDataTokenCreated(
+            token,
+            basetokenAddress,
+            poolAddress,
+            msg.sender,
+            burnInEndBlock,
+            ssParams
+        );
     }
 
     /**

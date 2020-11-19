@@ -6,11 +6,19 @@ var DTFactory = artifacts.require('./DTFactory.sol')
 var BPool = artifacts.require('./BPool.sol')
 var BFactory = artifacts.require('./BFactory.sol')
 var Metadata = artifacts.require('./Metadata.sol')
-var FixedRateExchange = artifacts.require('./FixedRateExchange.sol')
+var ssFixedRate = artifacts.require('./ssFixedRate.sol')
 var OPFCommunityFeeCollector = artifacts.require('./OPFCommunityFeeCollector.sol')
 // dummy communityFeeCollector, replace with real wallet/owner
 const communityCollector = '0x7DF5273aD9A6fCce64D45c64c1E43cfb6F861725'
 const OPFOwner = '0x7DF5273aD9A6fCce64D45c64c1E43cfb6F861725'
+const shouldDeploy = { // choose what to deploy. if false, will keep the previous deployment from addresses. if that not exists, it will deploy the contract anyway
+    OPFCommunityFeeCollector: true,
+    DataTokenTemplate: true,
+    DTFactory: true,
+    BPool: true,
+    BFactory: true,
+    Metadata: true
+}
 module.exports = function(deployer, network, accounts) {
     deployer.then(async () => {
         const addressFile = './artifacts/address.json'
@@ -24,49 +32,63 @@ module.exports = function(deployer, network, accounts) {
         }
         const addresses = oldAddresses[networkName]
 
-        await deployer.deploy(
-            OPFCommunityFeeCollector,
-            communityCollector,
-            OPFOwner
-        )
-
-        let cap = 10000000
-        if (networkName === 'development' || networkName === 'ganache') {
-            cap = web3.utils.toWei('100000')
+        if (!addresses.OPFCommunityFeeCollector || shouldDeploy.OPFCommunityFeeCollector) {
+            await deployer.deploy(
+                OPFCommunityFeeCollector,
+                communityCollector,
+                OPFOwner
+            )
+            addresses.OPFCommunityFeeCollector = OPFCommunityFeeCollector.address
+        }
+        if (!addresses.ssFixedRate || shouldDeploy.ssFixedRate) {
+            await deployer.deploy(ssFixedRate)
+            addresses.ssFixedRate = ssFixedRate.address
         }
 
-        await deployer.deploy(
-            DataTokenTemplate,
-            'DataTokenTemplate',
-            'DTT',
-            accounts[0],
-            cap,
-            'http://oceanprotocol.com',
-            OPFCommunityFeeCollector.address
-        )
-        await deployer.deploy(
-            DTFactory,
-            DataTokenTemplate.address,
-            OPFCommunityFeeCollector.address
-        )
-        addresses.DTFactory = DTFactory.address
-        await deployer.deploy(
-            BPool
-        )
-        await deployer.deploy(
-            BFactory,
-            BPool.address
-        )
-        addresses.BFactory = BFactory.address
-        await deployer.deploy(
-            FixedRateExchange
-        )
-        addresses.FixedRateExchange = FixedRateExchange.address
-        await deployer.deploy(
-            Metadata
-        )
-        addresses.Metadata = Metadata.address
-
+        if (!addresses.DataTokenTemplate || shouldDeploy.DataTokenTemplate) {
+            let cap = 10000000
+            if (networkName === 'development' || networkName === 'ganache') {
+                cap = web3.utils.toWei('100000')
+            }
+            await deployer.deploy(
+                DataTokenTemplate,
+                'DataTokenTemplate',
+                'DTT',
+                accounts[0],
+                accounts[0],
+                cap,
+                'http://oceanprotocol.com',
+                addresses.OPFCommunityFeeCollector
+            )
+            addresses.DataTokenTemplate = DataTokenTemplate.address
+        }
+        if (!addresses.DTFactory || shouldDeploy.DTFactory) {
+            await deployer.deploy(
+                DTFactory,
+                addresses.DataTokenTemplate,
+                addresses.OPFCommunityFeeCollector
+            )
+            addresses.DTFactory = DTFactory.address
+        }
+        if (!addresses.BPool || shouldDeploy.BPool) {
+            await deployer.deploy(
+                BPool
+            )
+            addresses.BPool = BPool.address
+        }
+        if (!addresses.BFactory || shouldDeploy.BFactory) {
+            await deployer.deploy(
+                BFactory,
+                addresses.BPool
+            )
+            addresses.BFactory = BFactory.address
+        }
+        if (!addresses.Metadata || shouldDeploy.Metadata) {
+            await deployer.deploy(
+                Metadata
+            )
+            addresses.Metadata = Metadata.address
+        }
         if (networkName === 'development' || networkName === 'ganache') {
             addresses.Ocean = DataTokenTemplate.address
         }
