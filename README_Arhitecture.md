@@ -19,7 +19,7 @@ BPool calls functions from 1SSx.sol (where many possible x). Bot is owned by the
 
 Roles:
  - has role of the owner of DT (publisher gets nothing, he only gets DT for data consumption)
- - during the burn-in period, is called by the pool to replace the buyDT/sellDT(if allowed) calls. Thus, buying/selling DT using a pre-defined schema 
+ - during the burn-in period, is called by the pool to replace the buyDT/sellDT(if allowed) calls. Thus, buying/selling DT using a pre-defined schema(fixed rate, bonding curve, dutch)
  - after the burn-in period, acts as a staker bot, compensating pool liquidity adds in basetoken (keeping the *price unchanged*). 
  - can have a vest function, to distribute a specified amount of DT to publisher over a period of X blocks
  - all trading calls(buy/sell/stake,etc) can be called only by the pool
@@ -35,19 +35,21 @@ When deploing a new DT, you can choose a 1ss based on type (FRE,Bonding,Dutch)  
 Example :
 
 First phase: publishing
-* Publisher choose burn-in approach: (a) fixed price (b) Dutch.  Note: there will always be one-sided DT staking after burn-in period. 
+* Publisher choose burn-in approach: (a) fixed price (b) Dutch (c) Bonding curve.  Note: there will always be one-sided DT staking after burn-in period. 
 * Publisher chooses length of burn-in period (1 hour - 1 wk). It will auto-compute the burn-in end block block # upon publishing.
 * Publisher chooses % going to publisher (max 5%), and vesting time (6 mos - 24 mos)
 * Publisher A creates DT with a total cap, default 100M. But instead of minting them to his address, all DT are sent to 1SS contract that does burn-in, one-sided staking, and vesting.
 * Publisher deploys new pool by calling BFactory with 1SS address. 
 
 New phase: Burn-in period.
-* Pool defers buy/sell to the 1SS contact. Disabled: sell DT, add liquidity, remove liquidity. Allowed: buy (according to bot rule), consume.
+* Pool defers buy/sell to the 1SS contact. Disabled: add liquidity, remove liquidity. Allowed: buy (according to bot rule), consume. If sellDT is allowed is decided by the 1SS
 * Publisher A buys DT from pool  (which defers internally to 1SS)
 * User A buys DT from pool (which defers internally to 1SS)
+* Publisher A sells DT to the pool  (which defers internally to 1SS) - Only if allowed by 1SS
+* User A sells DT to the pool  (which defers internally to 1SS) - Only if allowed by 1SS
 
 New phase: Early open market.
-* 1SS will add its OCEAN reserve(DT sells in burn period) for this pool and corresponding DT into the pool. Price is set from burn-in period result (set by fixed price or Dutch auction final price).
+* 1SS will add its OCEAN reserve(DT sells in burn period) for this pool and corresponding DT into the pool. Price is set from burn-in period result (set by fixed price or Dutch auction final price, etc).
 * User C stakes 100 OCEAN to the pool. 1SS auto-stakes DT to the pool to preserve price (keep ratio of # DT : # OCEAN constant)
 * User C unstakes his OCEAN tokens. 1SS auto-unstakes removes DT from the pool (compute how many DT for shares = # shares spent by user D)
 * User D buys DT from pool (price of DT goes up). (Equivalent: user D sells OCEAN to the pool). 1SS has no action.
@@ -75,6 +77,11 @@ New phase: fully open market.
 
 3. DTFactory calls 1ss to mint all DT and set the rates and vesting
 
+**There is no more FixedRate Contract**
+
+In order to achive the same functionality, we deploy ssFixedRate.sol with sellDT allowed and a very long burn-in period (50 years). 
+
+Conclusion:  add/remove liquidity is disabled, buy/sell DT from pool is deffered to ssFixedRate.sol
 
 
 
