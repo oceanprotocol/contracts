@@ -32,8 +32,10 @@ contract BFactory is BConst, Deployer {
     
     
     /* @dev Called on contract deployment. Cannot be called with zero address.
-       @param _bpoolTemplate -- address of a deployed BPool contract. */
-    constructor(address _bpoolTemplate)
+       @param _bpoolTemplate -- address of a deployed BPool contract. 
+       @param _preCreatedPools list of pre-created pools. It can be only used in case of migration from an old factory contract.
+    */
+    constructor(address _bpoolTemplate, address[] memory _preCreatedPools)
         public 
     {
         require(
@@ -41,6 +43,11 @@ contract BFactory is BConst, Deployer {
             'BFactory: invalid bpool template zero address'
         );
         bpoolTemplate = _bpoolTemplate;
+        if(_preCreatedPools.length > 0){
+            for(uint256 i = 0; i < _preCreatedPools.length; i++){
+                emit BPoolCreated(_preCreatedPools[i], msg.sender,address(0),address(0),address(0),address(0));
+            }
+        }
     }
 
     /* @dev Deploys new BPool proxy contract.

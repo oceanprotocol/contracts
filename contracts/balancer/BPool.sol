@@ -1143,7 +1143,7 @@ contract BPool is BNum, BToken {
             poolAmountIn,
             _swapFee
         );
-        if(ssContract.canStake(_datatokenAddress,ssStakeToken,ssAmountOut)==true){
+        if(ssContract.canUnStake(_datatokenAddress,ssStakeToken,ssAmountOut)==true){
                 ssOutRecord.balance = bsub(ssOutRecord.balance, ssAmountOut);
                 exitFee = bmul(poolAmountIn, EXIT_FEE);
                 emit LOG_EXIT(_controller, ssStakeToken, ssAmountOut, block.timestamp);

@@ -29,6 +29,7 @@ contract ssFixedRate {
         uint256 datatokenBalance; //current dt balance
         uint256 datatokenCap; //dt cap
         uint256 basetokenBalance; //current basetoken balance
+        uint256 lastPrice; //used for creating the pool
         // rate options
         uint256 burnInEndBlock; //block to end burn-in
         uint256 rate; // rate to exchange DT<->BaseToken
@@ -108,6 +109,7 @@ contract ssFixedRate {
             datatokenBalance: dt.totalSupply(),
             datatokenCap:dt.cap(),
             basetokenBalance: 0,
+            lastPrice: 0,
             burnInEndBlock: burnInEndBlock,
             rate: rate,
             allowDtSale: allowSell,
@@ -259,7 +261,12 @@ contract ssFixedRate {
         require(msg.sender == _datatokens[datatokenAddress].poolAddress,'ERR: Only pool can call this');
         
         if (_datatokens[datatokenAddress].bound != true) return (false);
-        //TO DO check balances, etc and issue true or false
+        if (_datatokens[datatokenAddress].basetokenAddress == stakeToken) return (false);
+        //check balances
+        DataToken dt = DataToken(datatokenAddress);
+        uint256 balance = dt.balanceOf(address(this));
+        if (_datatokens[datatokenAddress].datatokenBalance >=amount && balance>= amount) return (true);
+        return(false);
     }
     //called by pool so 1ss will stake a token (add pool liquidty). Function only needs to approve the amount to be spent by the pool, pool will do the rest
     function Stake(address datatokenAddress,address stakeToken,uint256 amount) public {
@@ -267,9 +274,9 @@ contract ssFixedRate {
         require(msg.sender == _datatokens[datatokenAddress].poolAddress,'ERR: Only pool can call this');
         bool ok=canStake(datatokenAddress,stakeToken,amount);
         if (ok != true) return;
-        
-        //TO DO
-        //aprove then the pool will do transferFrom
+        DataToken dt = DataToken(datatokenAddress);
+        dt.approve(_datatokens[datatokenAddress].poolAddress,amount);
+        _datatokens[datatokenAddress].datatokenBalance-=amount;
     }
     //called by pool to confirm that we can stake a token (add pool liquidty). If true, pool will call Unstake function
     function canUnStake(address datatokenAddress,address stakeToken,uint256 amount) public view returns (bool){
@@ -277,6 +284,8 @@ contract ssFixedRate {
         if (_datatokens[datatokenAddress].bound != true) return (false);
         require(msg.sender == _datatokens[datatokenAddress].poolAddress,'ERR: Only pool can call this');
         //check balances, etc and issue true or false
+        if (_datatokens[datatokenAddress].basetokenAddress == stakeToken) return (false);
+        return true;
     }
     //called by pool so 1ss will unstake a token (remove pool liquidty). In our case the balancer pool will handle all, this is just a notifier so 1ss can handle internal kitchen
     function UnStake(address datatokenAddress,address stakeToken,uint256 amount) public {
@@ -284,8 +293,7 @@ contract ssFixedRate {
         require(msg.sender == _datatokens[datatokenAddress].poolAddress,'ERR: Only pool can call this');
         bool ok=canUnStake(datatokenAddress,stakeToken,amount);
         if (ok != true) return;
-        //TO DO
-        //reduce cirtulatingSupply ?
+        _datatokens[datatokenAddress].datatokenBalance+=amount;
     }
     //called by the pool (or by us) when we should finalize the pool
     function notifyFinalize(address datatokenAddress) public {
@@ -293,9 +301,23 @@ contract ssFixedRate {
         require(msg.sender == _datatokens[datatokenAddress].poolAddress,'ERR: Only pool can call this');
         if(_datatokens[datatokenAddress].poolFinalized==true) return;
         _datatokens[datatokenAddress].poolFinalized=true;
+        uint baseTokenWeight=5*BASE; //pool weight: 50-50
+        uint dataTokenWeight=5*BASE; //pool weight: 50-50
+        uint baseTokenAmount=_datatokens[datatokenAddress].basetokenBalance;
+        //given the price, compute dataTokenAmount
+        uint dataTokenAmount=_datatokens[datatokenAddress].rate * (baseTokenAmount/baseTokenWeight) * dataTokenWeight;
         //approve the tokens and amounts
+        DataToken dt = DataToken(datatokenAddress);
+        dt.approve(_datatokens[datatokenAddress].poolAddress,dataTokenAmount);
+        DataToken dtBase = DataToken(_datatokens[datatokenAddress].basetokenAddress);
+        dtBase.approve(_datatokens[datatokenAddress].basetokenAddress,baseTokenAmount);
         // call the pool, bind the tokens, set the price, finalize pool
-        // TO DO 
+        BPoolInterface pool=BPoolInterface(_datatokens[datatokenAddress].poolAddress);
+        pool.setup(datatokenAddress,dataTokenAmount,dataTokenWeight,_datatokens[datatokenAddress].basetokenAddress,baseTokenAmount,baseTokenWeight);
+        //substract
+        _datatokens[datatokenAddress].basetokenBalance-=baseTokenAmount;
+        _datatokens[datatokenAddress].datatokenBalance-=dataTokenAmount;
+
     }
     function allowStake(address datatokenAddress,address basetoken,uint datatokenAmount,uint basetokenAmount,address userAddress) public view returns (bool){
         if (_datatokens[datatokenAddress].bound != true) return false;
@@ -321,7 +343,15 @@ contract ssFixedRate {
         //pull tokenIn from the pool (pool will approve)
         DataToken dtIn = DataToken(tokenIn);
         dtIn.transferFrom(_datatokens[datatokenAddress].poolAddress,address(this), tokenAmountIn);
-        //update our balances - TODO
+        //update our balances
+        if(tokenIn==datatokenAddress){
+            _datatokens[datatokenAddress].basetokenBalance+=tokenAmountOut;
+            _datatokens[datatokenAddress].datatokenBalance+=tokenAmountIn;
+        }
+        else{
+            _datatokens[datatokenAddress].datatokenBalance+=tokenAmountOut;
+            _datatokens[datatokenAddress].basetokenBalance+=tokenAmountIn;
+        }
         //send tokens to the user  
         DataToken dtOut = DataToken(tokenOut);
         dtOut.transfer(userAddress, tokenAmountOut);
@@ -336,7 +366,15 @@ contract ssFixedRate {
         //pull tokenIn from the pool (pool will approve)
         DataToken dtIn = DataToken(tokenIn);
         dtIn.transferFrom(_datatokens[datatokenAddress].poolAddress,address(this), tokenAmountIn);
-        //update our balances - TODO
+        //update our balances
+        if(tokenIn==datatokenAddress){
+            _datatokens[datatokenAddress].basetokenBalance+=amountOut;
+            _datatokens[datatokenAddress].datatokenBalance+=tokenAmountIn;
+        }
+        else{
+            _datatokens[datatokenAddress].datatokenBalance+=amountOut;
+            _datatokens[datatokenAddress].basetokenBalance+=tokenAmountIn;
+        }
         //send tokens to the user  
         DataToken dtOut = DataToken(tokenOut);
         dtOut.transfer(userAddress, amountOut);

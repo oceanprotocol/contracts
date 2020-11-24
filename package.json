@@ -32,7 +32,8 @@
     "deploy:pacific": "npm run clean && npm run compile && export NETWORK='pacific' && truffle migrate --network pacific && npm run export:artifacts",
     "deploy:mainnet": "npm run clean && npm run compile && export NETWORK='mainnet' && truffle migrate --network mainnet && npm run export:artifacts",
     "deploy:rinkeby": "npm run clean && npm run compile && export NETWORK='rinkeby' && truffle migrate --network rinkeby && npm run export:artifacts",
-    "security:slither": "slither . 2>&1 | tee slitherReport.txt"
+    "security:slither": "slither . 2>&1 | tee slitherReport.txt",
+    "build-contracts": "sol-merger \"./contracts/balancer/*.sol\" ./build"
   },
   "files": [
     "docs/**/*",
@@ -78,6 +79,7 @@
     "eslint-config-oceanprotocol": "^1.5.0",
     "openzeppelin-solidity": "^2.5.0",
     "release-it": "^13.6.2",
+    "sol-merger": "^3.1.0",
     "solc": "^0.5.7",
     "solidity-coverage": "0.7.5",
     "solidity-docgen": "^0.5.7",
@@ -89,5 +91,8 @@
     "truffle-hdwallet-provider": "^1.0.17",
     "web3": "^1.2.9",
     "web3-provider-engine": "~15.0.12"
+  },
+  "dependencies": {
+    "truffle-plugin-verify": "^0.5.1"
   }
 }
