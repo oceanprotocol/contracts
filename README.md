@@ -22,12 +22,11 @@ Overview:
 **Table of Contents**
 
 - [Get Started](#get-started)
-- [Usage](#usage)
-  - [Local development](#local-development)
+- [Usage via Ocean Libraries](#usage-via-ocean-libraries)
+- [Network Deployments](#network-deployments)
+- [Local Development](#local-development)
 - [Testing](#testing)
 - [Code Linting](#code-linting)
-- [Networks](#networks)
-  - [Testnets](#testnets)
 - [Documentation](#documentation)
 - [Contributing](#contributing)
 - [Prior Art](#prior-art)
@@ -41,15 +40,36 @@ For quick installation of the contract `ABIs`:
 npm i @oceanprotocol/contracts
 ```
 
-### Usage
+### Usage via Ocean Libraries
 
-[ocean.js](https://github.com/oceanprotocol/ocean.js) and [ocean.py](https://github.com/oceanprotocol/ocean.py) wrap `contracts` in JavaScript and Python respectively. They each have quickstart guides.
+The [ocean.js](https://github.com/oceanprotocol/ocean.js) and [ocean.py](https://github.com/oceanprotocol/ocean.py) libraries wrap `contracts` in JavaScript and Python respectively. They each have quickstart guides.
 
-### Local development
+## Network Deployments
+
+To deploy to a local testnet:
+* In a separate terminal, start the testnet: `ganache-cli`
+* In your main terminal, run: `npm run deploy'
+
+Alternatively, to deploy to rinkeby testnet:
+* In your main terminal:
+```
+export MNEMONIC='YOUR MNEMONIC SHOULD BE HERE'
+
+# If you are using remote test or Etherejm mainnet using Infura
+export INFURA_TOKEN='GET INFURA_TOKEN FROM INFURA PLATFORM' 
+
+npm run deploy:rinkeby
+```
+
+After the deployment, check out the [address.json](artifacts/address.json) file. It contains the addresses of the deployed contracts.
+
+[Here's](docs/README.md#deployments) the list of supported deployments.
+
+### Local Development
 
 For local development of `contracts`, set up the development environment on your machine as follows.
 
-As a pre-requisite, you need:
+As a prerequisite, you need:
 
 - Node.js v12+
 - npm
@@ -90,30 +110,9 @@ npm run lint
 
 Code style is enforced through the CI test process, builds will fail if there're any linting errors.
 
-## Networks
-
-### Testnets
-
-For local development, start a local testnet using `ganache-cli`, then run:
-
-```bash
-npm run deploy
-```
-
-Or deploy to `rinkeby` network as follows:
-```
-export MNEMONIC='YOUR MNEMONIC SHOULD BE HERE'
-# If you are using remote test or main net using Infura
-export INFURA_TOKEN='GET INFURA_TOKEN FROM INFURA PLATFORM' 
-npm run deploy:rinkeby
-```
-After the deployment, check out the [address.json](artifacts/address.json) file containing the deployed contracts addresses.
-
-Checkout the supported deployment(s) on these [networks](docs/README.md#deployments).
-
 ## Documentation
 
-To use generate documentation via `solidity-docgen` please run:
+You can generate documentation using `solidity-docgen`. Here's how:
 
 ```bash
 npm run doc:generate
