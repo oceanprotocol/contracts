@@ -29,7 +29,6 @@ Overview:
 - [Code Linting](#code-linting)
 - [Documentation](#documentation)
 - [Contributing](#contributing)
-- [Prior Art](#prior-art)
 - [License](#license)
 
 ## Get Started
