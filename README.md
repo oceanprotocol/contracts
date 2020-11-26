@@ -1,19 +1,19 @@
 [![banner](https://raw.githubusercontent.com/oceanprotocol/art/master/github/repo-banner%402x.png)](https://oceanprotocol.com)
 
-<h1 align="center">Ocean Protocol Contracts</h1>
+<h1 align="center">Ocean Contracts</h1>
 
-> 🐙 Smart contracts for Ocean Protocol v3
+> 🐙 Smart contracts for Ocean Protocol v3. https://oceanprotocol.com
 
 [![Build Status](https://travis-ci.com/oceanprotocol/ocean-contracts.svg?token=soMi2nNfCZq19zS1Rx4i&branch=master)](https://travis-ci.com/oceanprotocol/ocean-contracts)
  [![codecov](https://codecov.io/gh/oceanprotocol/contracts/branch/master/graph/badge.svg?token=31SZX1V4ZJ)](https://codecov.io/gh/oceanprotocol/contracts)
 
 ---
 
-**This is in alpha state and you can expect running into problems. If you run into them, please open up a [new issue](/issues).**
+**If you run into problems, please open up a [new issue](/issues).**
 
 ---
 
-A high level overview of OceanProtocol contracts:
+Overview:
 
 ![image](https://user-images.githubusercontent.com/5428661/92893688-31cbfa80-f41a-11ea-845c-2c94ecc978f1.png)
 
@@ -42,11 +42,12 @@ npm i @oceanprotocol/contracts
 ```
 
 ### Usage
-For more details about how to use ocean contracts, please refer to the quick start section in [ocean-lib-js](https://github.com/oceanprotocol/ocean-lib-js#-quick-start) and [ocean-lib-py](https://github.com/oceanprotocol/ocean-lib-py#quickstart).
+
+[ocean.js](https://github.com/oceanprotocol/ocean.js) and [ocean.py](https://github.com/oceanprotocol/ocean.py) wrap `contracts` in JavaScript and Python respectively. They each have quickstart guides.
 
 ### Local development
 
-For local development of the `contracts` setup the development environment on your machine as follows:
+For local development of `contracts`, set up the development environment on your machine as follows.
 
 As a pre-requisite, you need:
 
@@ -123,13 +124,8 @@ npm run doc:generate
 
 ## Contributing
 
-See the page titled "[Ways to Contribute](https://docs.oceanprotocol.com/concepts/contributing/)" in the Ocean Protocol documentation.
+More info [here](https://docs.oceanprotocol.com/concepts/contributing/).
 
-
-## Prior Art
-
-This project builds on top of the work done in open source projects:
-- [OpenZeppelin/openzeppelin-contracts](https://github.com/OpenZeppelin/openzeppelin-contracts)
 
 ## License
 
