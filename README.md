@@ -61,7 +61,7 @@ export INFURA_TOKEN='GET INFURA_TOKEN FROM INFURA PLATFORM'
 npm run deploy:rinkeby
 ```
 
-After the deployment, check out the [address.json](artifacts/address.json) file. It contains the addresses of the deployed contracts.
+After deployment, check out the `./artifacts/address.json` file. It contains the addresses of the deployed contracts. It will have been updated for the network you deployed to (e.g. `development`).
 
 [Here's](docs/README.md#deployments) the list of supported deployments.
 
