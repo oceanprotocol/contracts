@@ -99,7 +99,7 @@ For local development, start a local testnet using `ganache-cli`, then run:
 npm run deploy
 ```
 
-Or depoly ocean-contracts on `rinkeby` network as follows:
+Or deploy to `rinkeby` network as follows:
 ```
 export MNEMONIC='YOUR MNEMONIC SHOULD BE HERE'
 # If you are using remote test or main net using Infura
