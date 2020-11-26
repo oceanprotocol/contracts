@@ -48,11 +48,11 @@ The [ocean.js](https://github.com/oceanprotocol/ocean.js) and [ocean.py](https:/
 
 You can use an existing deployment of Ocean contracts, or do your own deployment for testing. Let's review each.
 
-### Use existing deployments
+#### Use existing deployments
 
 Ocean contracts are deployed to Rinkeby, Ethereum mainnet, and maybe more. [Here are details](docs/README.md#deployments).
 
-### Do your own deployment
+#### Do your own deployment
 
 To deploy to a local testnet:
 * In a separate terminal, start the testnet: `ganache-cli`
