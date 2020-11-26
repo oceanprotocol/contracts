@@ -55,7 +55,7 @@ Ocean contracts are deployed to Rinkeby, Ethereum mainnet, and maybe more. [Here
 
 To deploy to a local testnet:
 * In a separate terminal, start the testnet: `ganache-cli`
-* In your main terminal, run: `npm run deploy'
+* In your main terminal, run: `npm run deploy`
 
 Alternatively, to deploy to rinkeby testnet:
 * In your main terminal:
