@@ -20,5 +20,5 @@
 The full release process documentation is found [here](RELEASE_PROCESS.md)
 
 ## Deployments
-- For Ethereum mainnet deployment contract addresses are [here](deployments/mainnet.md)
-- For rinkeby deployment contracts addresses are [here](deployments/rinkeby.md)
+- Addresses of contracts deployed to **Ethereum mainnet**: [here](deployments/mainnet.md)
+- Addresses of contracts deployed to **Rinkeby testnet**: [here](deployments/rinkeby.md)
