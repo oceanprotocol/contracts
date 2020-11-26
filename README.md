@@ -40,7 +40,7 @@ For quick installation of the contract `ABIs`:
 npm i @oceanprotocol/contracts
 ```
 
-### Usage via Ocean Libraries
+## Usage via Ocean Libraries
 
 The [ocean.js](https://github.com/oceanprotocol/ocean.js) and [ocean.py](https://github.com/oceanprotocol/ocean.py) libraries wrap `contracts` in JavaScript and Python respectively. They each have quickstart guides.
 
