@@ -11,7 +11,7 @@ contract('BFactory', async (accounts) => {
         const admin = accounts[0]
         before(async () => {
             poolTemplate = await BPool.new()
-            factory = await BFactory.new(poolTemplate.address)
+            factory = await BFactory.new(poolTemplate.address, [])
         })
 
         it('should create new BPool', async () => {

@@ -55,7 +55,8 @@ module.exports = function(deployer, network, accounts) {
         )
         await deployer.deploy(
             BFactory,
-            BPool.address
+            BPool.address,
+            []
         )
         addresses.BFactory = BFactory.address
         await deployer.deploy(

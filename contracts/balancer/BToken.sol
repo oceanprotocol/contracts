@@ -78,7 +78,7 @@ contract BToken is BTokenBase, IERC20 {
 
     string  private _name     = 'Balancer Pool Token';
     string  private _symbol   = 'BPT';
-    uint8   private _decimals = 18;
+    uint8   private constant _decimals = 18;
 
     function name() public view returns (string memory) {
         return _name;
@@ -88,7 +88,7 @@ contract BToken is BTokenBase, IERC20 {
         return _symbol;
     }
 
-    function decimals() public view returns(uint8) {
+    function decimals() public pure returns(uint8) {
         return _decimals;
     }
 
