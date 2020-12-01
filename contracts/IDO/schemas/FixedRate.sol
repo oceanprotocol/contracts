@@ -3,14 +3,15 @@ pragma solidity 0.5.7;
 // SPDX-License-Identifier: (Apache-2.0 AND CC-BY-4.0)
 // Code is Apache-2.0 and docs are CC-BY-4.0
 
-import "../interfaces/DataToken.sol";
-import "../interfaces/IERC20Template.sol";
-import "../interfaces/BPoolInterface.sol";
+import "../../interfaces/IBPool.sol";
+import "../../interfaces/IDataToken.sol";
+import "../../interfaces/IERC20Template.sol";
 import 'openzeppelin-solidity/contracts/math/SafeMath.sol';
+
 /**
- * @title ssFixedRate
+ * @title FixedRate
  *
- * @dev ssFixedRate is a contract that during the burn-in period handles DT trades and after that monitors stakings in pools
+ * @dev FixedRate is a contract that during the burn-in period handles DT trades and after that monitors stakings in pools
  *      Called by the pool contract
  *      Every ss newDataTokenCreated function has a ssParams array, which for this contract has the following structure:
  *               - [0] - fixed rate between DT and basetoken
@@ -19,7 +20,7 @@ import 'openzeppelin-solidity/contracts/math/SafeMath.sol';
  *               - [3] - vestingBlocks - how long is the vesting period (in blocks)
  *
  */
-contract ssFixedRate {
+contract FixedRate {
     using SafeMath for uint256;
     struct Record {
         bool bound; //datatoken bounded
@@ -73,7 +74,7 @@ contract ssFixedRate {
     ) public returns (bool) {
         //check if we are the controller of the pool
         require(poolAddress != address(0), "Invalid poolAddress");
-        BPoolInterface bpool = BPoolInterface(poolAddress);
+        IBPool bpool = IBPool(poolAddress);
         require(
             bpool.getController() == address(this),
             "We are not the pool controller"
@@ -88,7 +89,7 @@ contract ssFixedRate {
             "BaseToken address missmatch"
         );
         // check if we are the minter of DT
-        DataToken dt = DataToken(datatokenAddress);
+        IDataToken dt = IDataToken(datatokenAddress);
         require(dt.minter() == address(this), "BaseToken address missmatch");
         // get cap and mint it..
         dt.mint(address(this), dt.totalSupply());
@@ -263,7 +264,7 @@ contract ssFixedRate {
         if (_datatokens[datatokenAddress].bound != true) return (false);
         if (_datatokens[datatokenAddress].basetokenAddress == stakeToken) return (false);
         //check balances
-        DataToken dt = DataToken(datatokenAddress);
+        IDataToken dt = IDataToken(datatokenAddress);
         uint256 balance = dt.balanceOf(address(this));
         if (_datatokens[datatokenAddress].datatokenBalance >=amount && balance>= amount) return (true);
         return(false);
@@ -274,7 +275,7 @@ contract ssFixedRate {
         require(msg.sender == _datatokens[datatokenAddress].poolAddress,'ERR: Only pool can call this');
         bool ok=canStake(datatokenAddress,stakeToken,amount);
         if (ok != true) return;
-        DataToken dt = DataToken(datatokenAddress);
+        IDataToken dt = IDataToken(datatokenAddress);
         dt.approve(_datatokens[datatokenAddress].poolAddress,amount);
         _datatokens[datatokenAddress].datatokenBalance-=amount;
     }
@@ -307,12 +308,12 @@ contract ssFixedRate {
         //given the price, compute dataTokenAmount
         uint dataTokenAmount=_datatokens[datatokenAddress].rate * (baseTokenAmount/baseTokenWeight) * dataTokenWeight;
         //approve the tokens and amounts
-        DataToken dt = DataToken(datatokenAddress);
+        IDataToken dt = IDataToken(datatokenAddress);
         dt.approve(_datatokens[datatokenAddress].poolAddress,dataTokenAmount);
-        DataToken dtBase = DataToken(_datatokens[datatokenAddress].basetokenAddress);
+        IDataToken dtBase = IDataToken(_datatokens[datatokenAddress].basetokenAddress);
         dtBase.approve(_datatokens[datatokenAddress].basetokenAddress,baseTokenAmount);
         // call the pool, bind the tokens, set the price, finalize pool
-        BPoolInterface pool=BPoolInterface(_datatokens[datatokenAddress].poolAddress);
+        IBPool pool= IBPool(_datatokens[datatokenAddress].poolAddress);
         pool.setup(datatokenAddress,dataTokenAmount,dataTokenWeight,_datatokens[datatokenAddress].basetokenAddress,baseTokenAmount,baseTokenWeight);
         //substract
         _datatokens[datatokenAddress].basetokenBalance-=baseTokenAmount;
@@ -341,7 +342,7 @@ contract ssFixedRate {
         tokenAmountOut=calcOutGivenIn(datatokenAddress,tokenIn,tokenOut,tokenAmountIn);
         require(tokenAmountOut>=minAmountOut,'ERR:minAmountOut not meet'); //revert if minAmountOut is not met
         //pull tokenIn from the pool (pool will approve)
-        DataToken dtIn = DataToken(tokenIn);
+        IDataToken dtIn = IDataToken(tokenIn);
         dtIn.transferFrom(_datatokens[datatokenAddress].poolAddress,address(this), tokenAmountIn);
         //update our balances
         if(tokenIn==datatokenAddress){
@@ -353,7 +354,7 @@ contract ssFixedRate {
             _datatokens[datatokenAddress].basetokenBalance+=tokenAmountIn;
         }
         //send tokens to the user  
-        DataToken dtOut = DataToken(tokenOut);
+        IDataToken dtOut = IDataToken(tokenOut);
         dtOut.transfer(userAddress, tokenAmountOut);
         return(tokenAmountOut);
     }
@@ -364,7 +365,7 @@ contract ssFixedRate {
         tokenAmountIn=calcInGivenOut(datatokenAddress,tokenIn,tokenOut,amountOut);
         require(tokenAmountIn<=maxTokenAmountIn,'ERR:maxTokenAmountIn not meet'); //revert if minAmountOut is not met
         //pull tokenIn from the pool (pool will approve)
-        DataToken dtIn = DataToken(tokenIn);
+        IDataToken dtIn = IDataToken(tokenIn);
         dtIn.transferFrom(_datatokens[datatokenAddress].poolAddress,address(this), tokenAmountIn);
         //update our balances
         if(tokenIn==datatokenAddress){
@@ -376,7 +377,7 @@ contract ssFixedRate {
             _datatokens[datatokenAddress].basetokenBalance+=tokenAmountIn;
         }
         //send tokens to the user  
-        DataToken dtOut = DataToken(tokenOut);
+        IDataToken dtOut = IDataToken(tokenOut);
         dtOut.transfer(userAddress, amountOut);
         return(tokenAmountIn);
     }
@@ -391,7 +392,7 @@ contract ssFixedRate {
         if(vestPerBlock==0) return;
         uint amount=blocksPassed.mul(vestPerBlock);
         if(amount>0 && _datatokens[datatokenAddress].datatokenBalance >= amount){
-            DataToken dt = DataToken(datatokenAddress);
+            IDataToken dt = IDataToken(datatokenAddress);
             _datatokens[datatokenAddress].vestingAmount+=amount;
             _datatokens[datatokenAddress].vestingLastBlock=block.number;
             dt.transfer(_datatokens[datatokenAddress].publisherAddress, amount);

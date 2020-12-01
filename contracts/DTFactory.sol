@@ -4,8 +4,8 @@ pragma solidity 0.5.7;
 // Code is Apache-2.0 and docs are CC-BY-4.0
 
 import "./utils/Deployer.sol";
-import "./interfaces/DataToken.sol";
-import "./interfaces/ssCompatible.sol";
+import "./interfaces/IDataToken.sol";
+import "./interfaces/ido/IOneSidedStake.sol";
 import "./balancer/BFactory.sol";
 
 /**
@@ -69,7 +69,7 @@ contract DTFactory is Deployer {
      * @param symbol token symbol
      * @param cap the maximum total supply
      * @param basetokenAddress basetoken for the pool
-     * @param ssAddress ssCompatible contract
+     * @param ssAddress One Sided-Stake contract
      * @param basetokenAddress basetoken for the pool
      * @param burnInEndBlock end block for the burnin period, to be passed to ssContract
      * @param ssParams trade parameters, to be passed to ssContract
@@ -93,7 +93,7 @@ contract DTFactory is Deployer {
             token != address(0),
             "DTFactory: Failed to perform minimal deploy of a new token"
         );
-        DataToken tokenInstance = DataToken(token);
+        IDataToken tokenInstance = IDataToken(token);
         require(
             tokenInstance.initialize(
                 name,
@@ -118,7 +118,7 @@ contract DTFactory is Deployer {
             burnInEndBlock
         );
         //call ssContract
-        ssCompatible ssContract = ssCompatible(ssAddress);
+        IOneSidedStake ssContract = IOneSidedStake(ssAddress);
         ssContract.newDataTokenCreated(
             token,
             basetokenAddress,

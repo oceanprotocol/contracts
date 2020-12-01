@@ -5,7 +5,7 @@ pragma solidity ^0.5.7;
 
 import "./BToken.sol";
 import "./BNum.sol";
-import "./../interfaces/ssCompatible.sol";
+import "./../interfaces/ido/IOneSidedStake.sol";
 
 /**
  * @title BPool
@@ -93,7 +93,7 @@ contract BPool is BNum, BToken {
     address[] private _tokens;
     mapping(address => Record) private _records;
     uint256 private _totalWeight;
-    ssCompatible ssContract;
+    IOneSidedStake ssContract;
 
     //-----------------------------------------------------------------------
     //Proxy contract functionality: begin
@@ -170,7 +170,7 @@ contract BPool is BNum, BToken {
         _basetokenAddress = basetokenAddress;
         initialized = true;
         _burnInEndBlock = burnInEndBlock;
-        ssContract = ssCompatible(_controller);
+        ssContract = IOneSidedStake(_controller);
         return initialized;
     }
 
