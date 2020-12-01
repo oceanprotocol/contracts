@@ -119,7 +119,7 @@ contract DTFactory is Deployer {
         );
         //call ssContract
         IOneSidedStake ssContract = IOneSidedStake(ssAddress);
-        ssContract.newDataTokenCreated(
+        ssContract.createDataToken(
             token,
             basetokenAddress,
             poolAddress,
