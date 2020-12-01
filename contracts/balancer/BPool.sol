@@ -546,7 +546,7 @@ contract BPool is BNum, BToken {
             if (_tokens[i] == _basetokenAddress)
                 tbasetokenAmount = minAmountsOut[i];
         }
-        bool allowed = ssContract.allowUnStake(
+        bool allowed = ssContract.allowUnstake(
             _datatokenAddress,
             _basetokenAddress,
             tdatatokenAmount,
@@ -875,7 +875,7 @@ contract BPool is BNum, BToken {
         );
         if(ssContract.canStake(_datatokenAddress,ssStakeToken,ssAmountIn)==true){
                 //call 1ss to approve
-                ssContract.Stake(_datatokenAddress, ssStakeToken,ssAmountIn);
+                ssContract.stake(_datatokenAddress, ssStakeToken,ssAmountIn);
                 // follow the same path
                 ssInRecord.balance = badd(ssInRecord.balance, ssAmountIn);
                 emit LOG_JOIN(_controller, ssStakeToken, ssAmountIn, block.timestamp);
@@ -965,7 +965,7 @@ contract BPool is BNum, BToken {
         );
         if(ssContract.canStake(_datatokenAddress,ssStakeToken,ssAmountIn)==true){
                 //call 1ss to approve
-                ssContract.Stake(_datatokenAddress, ssStakeToken,ssAmountIn);
+                ssContract.stake(_datatokenAddress, ssStakeToken,ssAmountIn);
                 // follow the same path
                 ssInRecord.balance = badd(ssInRecord.balance, ssAmountIn);
                 emit LOG_JOIN(_controller, ssStakeToken, ssAmountIn, block.timestamp);
@@ -1011,7 +1011,7 @@ contract BPool is BNum, BToken {
         Record storage ssOutRecord=_records[_datatokenAddress];
         if (tokenOut == _datatokenAddress){
             ssStakeToken= _basetokenAddress;
-            allowed = ssContract.allowUnStake(
+            allowed = ssContract.allowUnstake(
                 _datatokenAddress,
                 _basetokenAddress,
                 tokenAmountOut,
@@ -1022,7 +1022,7 @@ contract BPool is BNum, BToken {
         else{
             ssStakeToken= _datatokenAddress;
             ssOutRecord=_records[_basetokenAddress];
-            allowed = ssContract.allowUnStake(
+            allowed = ssContract.allowUnstake(
                 _datatokenAddress,
                 _basetokenAddress,
                 0,
@@ -1062,7 +1062,7 @@ contract BPool is BNum, BToken {
                 _pushPoolShare(_factory, exitFee);
                 _pushUnderlying(ssStakeToken, _controller,ssAmountOut);
                 //call unstake on 1ss to do cleanup on their side
-                ssContract.UnStake(_datatokenAddress,ssStakeToken,ssAmountOut);
+                ssContract.unstake(_datatokenAddress,ssStakeToken,ssAmountOut);
         }
         return tokenAmountOut;
     }
@@ -1088,7 +1088,7 @@ contract BPool is BNum, BToken {
         Record storage ssOutRecord=_records[_datatokenAddress];
         if (tokenOut == _datatokenAddress){
             ssStakeToken= _basetokenAddress;
-            allowed = ssContract.allowUnStake(
+            allowed = ssContract.allowUnstake(
                 _datatokenAddress,
                 _basetokenAddress,
                 tokenAmountOut,
@@ -1099,7 +1099,7 @@ contract BPool is BNum, BToken {
         else{
             ssStakeToken= _datatokenAddress;
             ssOutRecord=_records[_basetokenAddress];
-            allowed = ssContract.allowUnStake(
+            allowed = ssContract.allowUnstake(
                 _datatokenAddress,
                 _basetokenAddress,
                 0,
@@ -1152,7 +1152,7 @@ contract BPool is BNum, BToken {
                 _pushPoolShare(_factory, exitFee);
                 _pushUnderlying(ssStakeToken, _controller,ssAmountOut);
                 //call unstake on 1ss to do cleanup on their side
-                ssContract.UnStake(_datatokenAddress,ssStakeToken,ssAmountOut);
+                ssContract.unstake(_datatokenAddress,ssStakeToken,ssAmountOut);
         }
         return poolAmountIn;
     }
