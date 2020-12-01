@@ -1,6 +1,6 @@
 pragma solidity >=0.5.0;
 //interface that all 1SS compatible contracts should expose
-interface ssCompatible {
+interface IOneSidedStake {
     function newDataTokenCreated(
         address datatokenAddress,
         address basetokenAddress,

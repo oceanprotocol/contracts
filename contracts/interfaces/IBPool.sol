@@ -1,6 +1,6 @@
 pragma solidity >=0.5.0;
 //reduced no of functions for BPool
-interface BPoolInterface {
+interface IBPool {
     function getDataTokenAddress() external view returns (address);
     function getBaseTokenAddress() external view returns (address);
     function getController() external view returns (address);

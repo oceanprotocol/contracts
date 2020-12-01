@@ -1,6 +1,6 @@
 pragma solidity >=0.5.0;
 
-interface DataToken {
+interface IDataToken {
     function initialize(
         string calldata name,
         string calldata symbol,
