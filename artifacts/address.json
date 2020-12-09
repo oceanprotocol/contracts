@@ -6,6 +6,13 @@
     "Metadata": "0xFD8a7b6297153397B7eb4356C47dbd381d58bFF4",
     "Ocean": "0x8967BCF84170c91B0d24D4302C2376283b0B3a07"
   },
+  "ropsten": {
+    "DTFactory": "0x6ebcCa6df2CAba986FCF44E64Ee82251c1455Dcc",
+    "BFactory": "0x75be6e18c80A487C8b49663bf14f80A6495045B2",
+    "FixedRateExchange": "0xA7a711A09396DF82D9be46A26B48BafdB9BB4fA6",
+    "Metadata": "0x3cd7Ef1F207E1a46AAd7D5d7F5f0A5cF081Fc726",
+    "Ocean": "0x5e8DCB2AfA23844bcc311B00Ad1A0C30025aADE9"
+  },
   "development": {
     "DTFactory": "0x626aD26c7Ea494b11DbFd5dD487fA98BA32CaA42",
     "BFactory": "0x5eb4bcA8C86Cba7176eCc014A6D7B44c31aC9460",
