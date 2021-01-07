@@ -1,5 +1,8 @@
 # Ocean-Contracts Core Documentation
 
+## Deployments
+- [Here are addresses](../artifacts/address.json) of contracts deployed to Ethereum mainnet and more.
+
 ## Contracts
 - [DataTokenFactory](contracts/DTFactory.md)
 - [DataTokenTemplate](contracts/templates/DataTokenTemplate.md)
@@ -19,6 +22,3 @@
 
 The full release process documentation is found [here](RELEASE_PROCESS.md)
 
-## Deployments
-- Addresses of contracts deployed to **Ethereum mainnet**: [here](deployments/mainnet.md)
-- Addresses of contracts deployed to **Rinkeby testnet**: [here](deployments/rinkeby.md)
