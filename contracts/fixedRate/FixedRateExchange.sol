@@ -113,11 +113,6 @@ contract FixedRateExchange {
             fixedRate != 0, 
             'FixedRateExchange: Invalid exchange rate value'
         );
-        require(
-            IERC20Template(baseToken).cap() != 0 &&
-            IERC20Template(dataToken).cap() != 0,
-            'FixedRateExchange: ERC20 compatibility error'
-        );
         bytes32 exchangeId = generateExchangeId(
             baseToken,
             dataToken,

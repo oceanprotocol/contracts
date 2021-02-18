@@ -26,7 +26,7 @@ const MNEMONIC = process.env.MNEMONIC || process.env.NMEMORIC
 const rpcHost = process.env.NETWORK_RPC_HOST
 const rpcPort = process.env.NETWORK_RPC_PORT
 const hdWalletStartIndex = 0
-const hdWalletAccounts = 5
+const hdWalletAccounts = 1
 let hdWalletProvider
 
 const setupWallet = (
@@ -112,6 +112,13 @@ module.exports = {
             from: '0xba3e0ec852dc24ca7f454ea545d40b1462501711',
             gas: 6 * 1000000,
             gasPrice: utils.toWei('10', 'mwei')
+        },
+        polygon: {
+            provider: () => setupWallet('https://rpc-mainnet.maticvigil.com'),
+            network_id: 0x89, // 137
+            from: '0xC7EC1970B09224B317c52d92f37F5e1E4fF6B687',
+            gas: 7 * 1000000,
+            gasPrice: utils.toWei('100', 'gwei')
         }
     },
     plugins: ['solidity-coverage'],

@@ -277,12 +277,7 @@ contract('FixedRateExchange', async (accounts) => {
             (await fixedRateExchange.getExchanges()).length === 1
         )
     })
-    it('should fail to create exchange with non-ERC20 compatiable token', async () => {
-        const invalidERC20Token = accounts[4]
-        await assert.isRejected(
-            fixedRateExchange.create(basetoken.address, invalidERC20Token, rate, { from: exchangeOwner })
-        )
-    })
+
     it('should fail to create the same exchange by the same user', async () => {
         await assert.isRejected(
             fixedRateExchange.create(basetoken.address, datatoken.address, rate, { from: exchangeOwner })
