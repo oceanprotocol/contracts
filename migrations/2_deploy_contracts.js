@@ -73,7 +73,7 @@ module.exports = function(deployer, network, accounts) {
         if (networkName === 'mainnet') {
             addresses.Ocean = '0x967da4048cD07aB37855c090aAF366e4ce1b9F48'
         }
-	if (networkName === 'polygon') {
+        if (networkName === 'polygon') {
             addresses.Ocean = '0x282d8efCe846A88B159800bd4130ad77443Fa1A1'
         }
         console.info('writing address.json file: ' + networkName + JSON.stringify(oldAddresses, null, 2))

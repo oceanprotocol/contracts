@@ -113,13 +113,13 @@ module.exports = {
             gas: 6 * 1000000,
             gasPrice: utils.toWei('10', 'mwei')
         },
-	polygon: {
-            provider: () => setupWallet(`https://rpc-mainnet.maticvigil.com`),
+        polygon: {
+            provider: () => setupWallet('https://rpc-mainnet.maticvigil.com'),
             network_id: 0x89, // 137
             from: '0xC7EC1970B09224B317c52d92f37F5e1E4fF6B687',
             gas: 7 * 1000000,
             gasPrice: utils.toWei('100', 'gwei')
-        },
+        }
     },
     plugins: ['solidity-coverage'],
     // Set default mocha options here, use special reporters etc.
