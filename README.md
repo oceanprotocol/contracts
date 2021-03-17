@@ -21,17 +21,16 @@ Overview:
 
 **Table of Contents**
 
-- [Get Started](#get-started)
-- [Usage via Ocean Libraries](#usage-via-ocean-libraries)
-- [Network Deployments](#network-deployments)
-- [Local Development](#local-development)
-- [Testing](#testing)
-- [Code Linting](#code-linting)
-- [Documentation](#documentation)
-- [Contributing](#contributing)
-- [License](#license)
+- [🏗 Installation](#-installation)
+- [🏄 Quickstart](#-quickstart)
+- [🛳 Network Deployments](#-network-deployments)
+- [🦑 Local Development](#-local-development)
+- [✨ Code Style](#-code-style)
+- [👩‍🔬 Testing](#-testing)
+- [⬆️ Releases](#️-releases)
+- [🏛 License](#-license)
 
-## Get Started
+## 🏗 Installation
 
 For quick installation of the contract `ABIs`:
 
@@ -39,11 +38,12 @@ For quick installation of the contract `ABIs`:
 npm i @oceanprotocol/contracts
 ```
 
-## Usage via Ocean Libraries
+## 🏄 Quickstart
 
 The [ocean.js](https://github.com/oceanprotocol/ocean.js) and [ocean.py](https://github.com/oceanprotocol/ocean.py) libraries wrap `contracts` in JavaScript and Python respectively. They each have quickstart guides.
 
-## Network Deployments
+
+## 🛳 Network Deployments
 
 You can use an existing deployment of Ocean contracts, or do your own deployment for testing. Let's review each.
 
@@ -70,7 +70,7 @@ npm run deploy:rinkeby
 
 After deployment, check out the `./artifacts/address.json` file. It contains the addresses of the deployed contracts. It will have been updated for the network you deployed to (e.g. `development`).
 
-## Local Development
+## 🦑 Local Development
 
 For local development of `contracts`, set up the development environment on your machine as follows.
 
@@ -92,7 +92,16 @@ npm i
 npm run compile
 ```
 
-## Testing
+## ✨ Code Style
+
+Linting is setup for `JavaScript` with [ESLint](https://eslint.org) & Solidity with [Ethlint](https://github.com/duaraghav8/Ethlint).
+
+```bash
+# to check lint issues
+npm run lint
+```
+
+## 👩‍🔬 Testing
 
 Run tests with 
 
@@ -104,34 +113,23 @@ npm run test:unit
 npm run test:cover
 ```
 
-## Code Linting
-
-Linting is setup for `JavaScript` with [ESLint](https://eslint.org) & Solidity with [Ethlint](https://github.com/duaraghav8/Ethlint).
-
-```bash
-# to check lint issues
-npm run lint
-```
 
 Code style is enforced through the CI test process, builds will fail if there're any linting errors.
 
-## Documentation
+## ⬆️ Releases
 
-You can generate documentation using `solidity-docgen`. Here's how:
+[Submit contributions with this workflow](https://docs.oceanprotocol.com/concepts/contributing/#fix-or-improve-core-software).
+
+Generate documentation using `solidity-docgen`:
 
 ```bash
 npm run doc:generate
 ```
 
-* [Release Process](docs/RELEASE_PROCESS.md)
-* [Core Documentation](docs/contracts)
-
-## Contributing
-
-[Contribute following this process](https://docs.oceanprotocol.com/concepts/contributing/).
+[Do a release using this process](docs/RELEASE_PROCESS.md).
 
 
-## License
+## 🏛 License
 
 ```
 Copyright 2021 Ocean Protocol Foundation
