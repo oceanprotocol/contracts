@@ -128,7 +128,7 @@ npm run doc:generate
 
 ## Contributing
 
-More info [here](https://docs.oceanprotocol.com/concepts/contributing/).
+[Contribute following this process](https://docs.oceanprotocol.com/concepts/contributing/).
 
 
 ## License
