@@ -43,7 +43,7 @@ You can use an existing deployment of Ocean contracts, or do your own deployment
 
 #### Use existing deployments
 
-Ocean contracts are deployed to Rinkeby, Ethereum mainnet, and maybe more. [Here are details](docs/README.md#deployments).
+Ocean contracts are deployed to Rinkeby, Ethereum mainnet, and more. [Here are details](docs/README.md#deployments).
 
 #### Do your own deployment
 
