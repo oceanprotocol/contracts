@@ -9,10 +9,6 @@
 
 ---
 
-**If you run into problems, please open up a [new issue](/issues).**
-
----
-
 Overview:
 
 ![image](https://user-images.githubusercontent.com/5428661/92893688-31cbfa80-f41a-11ea-845c-2c94ecc978f1.png)
