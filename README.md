@@ -114,13 +114,7 @@ Code style is enforced through the CI test process, builds will fail if there're
 
 [Submit contributions with this workflow](https://docs.oceanprotocol.com/concepts/contributing/#fix-or-improve-core-software).
 
-Generate documentation using `solidity-docgen`:
-
-```bash
-npm run doc:generate
-```
-
-[Do a release using this process](docs/RELEASE_PROCESS.md).
+[Finally, do a release using this process](docs/RELEASE_PROCESS.md).
 
 
 ## 🏛 License
