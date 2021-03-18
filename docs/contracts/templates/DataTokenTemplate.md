@@ -3,8 +3,8 @@
 
 
 DataTokenTemplate is an ERC20 compliant token template
-Used by the factory contract as a bytecode reference to 
-deploy new DataTokens.
+    Used by the factory contract as a bytecode reference to 
+    deploy new DataTokens.
 
 ### `onlyNotInitialized()`
 
@@ -24,7 +24,7 @@ deploy new DataTokens.
 
 
 constructor
-Called prior contract deployment
+    Called prior contract deployment
 
 
 ### `initialize(string name, string symbol, address minterAddress, uint256 cap, string blob, address feeCollector) → bool` (external)
@@ -32,8 +32,8 @@ Called prior contract deployment
 
 
 initialize
-Called prior contract initialization (e.g creating new DataToken instance)
-Calls private _initialize function. Only if contract is not initialized.
+    Called prior contract initialization (e.g creating new DataToken instance)
+    Calls private _initialize function. Only if contract is not initialized.
 
 
 ### `mint(address account, uint256 value)` (external)
@@ -41,8 +41,8 @@ Calls private _initialize function. Only if contract is not initialized.
 
 
 mint
-Only the minter address can call it.
-msg.value should be higher than zero and gt or eq minting fee
+    Only the minter address can call it.
+    msg.value should be higher than zero and gt or eq minting fee
 
 
 ### `startOrder(address consumer, uint256 amount, uint256 serviceId, address mrktFeeCollector)` (external)
@@ -50,7 +50,7 @@ msg.value should be higher than zero and gt or eq minting fee
 
 
 startOrder
-called by payer or consumer prior ordering a service consume on a marketplace.
+    called by payer or consumer prior ordering a service consume on a marketplace.
 
 
 ### `finishOrder(bytes32 orderTxId, address consumer, uint256 amount, uint256 serviceId)` (external)
@@ -58,8 +58,8 @@ called by payer or consumer prior ordering a service consume on a marketplace.
 
 
 finishOrder
-called by provider prior completing service delivery only
-if there is a partial or full refund.
+    called by provider prior completing service delivery only
+    if there is a partial or full refund.
 
 
 ### `proposeMinter(address newMinter)` (external)
@@ -67,8 +67,8 @@ if there is a partial or full refund.
 
 
 proposeMinter
-It proposes a new token minter address.
-Only the current minter can call it.
+    It proposes a new token minter address.
+    Only the current minter can call it.
 
 
 ### `approveMinter()` (external)
@@ -76,15 +76,15 @@ Only the current minter can call it.
 
 
 approveMinter
-It approves a new token minter address.
-Only the current minter can call it.
+    It approves a new token minter address.
+    Only the current minter can call it.
 
 ### `name() → string` (external)
 
 
 
 name
-It returns the token name.
+    It returns the token name.
 
 
 ### `symbol() → string` (external)
@@ -92,7 +92,7 @@ It returns the token name.
 
 
 symbol
-It returns the token symbol.
+    It returns the token symbol.
 
 
 ### `blob() → string` (external)
@@ -100,7 +100,7 @@ It returns the token symbol.
 
 
 blob
-It returns the blob (e.g https://123.com).
+    It returns the blob (e.g https://123.com).
 
 
 ### `decimals() → uint8` (external)
@@ -108,8 +108,8 @@ It returns the blob (e.g https://123.com).
 
 
 decimals
-It returns the token decimals.
-how many supported decimal points
+    It returns the token decimals.
+    how many supported decimal points
 
 
 ### `cap() → uint256` (external)
@@ -117,7 +117,7 @@ how many supported decimal points
 
 
 cap
-it returns the capital.
+    it returns the capital.
 
 
 ### `isMinter(address account) → bool` (external)
@@ -125,7 +125,7 @@ it returns the capital.
 
 
 isMinter
-It takes the address and checks whether it has a minter role.
+    It takes the address and checks whether it has a minter role.
 
 
 ### `minter() → address` (external)
@@ -140,7 +140,7 @@ minter
 
 
 isInitialized
-It checks whether the contract is initialized.
+    It checks whether the contract is initialized.
 
 
 ### `calculateFee(uint256 amount, uint256 feePercentage) → uint256` (public)
@@ -148,7 +148,7 @@ It checks whether the contract is initialized.
 
 
 calculateFee
-giving a fee percentage, and amount it calculates the actual fee
+    giving a fee percentage, and amount it calculates the actual fee
 
 
 
