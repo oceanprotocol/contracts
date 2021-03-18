@@ -80,7 +80,6 @@
     "openzeppelin-solidity": "^2.5.0",
     "release-it": "^13.6.2",
     "solc": "^0.5.7",
-    "solc-0.6": "npm:solc@^0.6.10",
     "solidity-coverage": "0.7.5",
     "solidity-docgen": "^0.5.7",
     "solium": "^1.2.5",
