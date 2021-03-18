@@ -76,8 +76,8 @@ As a prerequisite, you need:
 Clone the project and install all dependencies:
 
 ```bash
-git clone git@github.com:oceanprotocol/ocean-contracts.git
-cd ocean-contracts/
+git clone git@github.com:oceanprotocol/contracts.git
+cd contracts/
 
 # install packages
 npm i
