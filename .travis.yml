@@ -28,6 +28,9 @@ before_install:
         echo "Release version: $release_version"
       fi
 
+install:
+  - yarn
+
 before_script:
     - ganache-cli > ganache-cli.log &
 
