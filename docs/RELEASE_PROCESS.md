@@ -28,7 +28,10 @@ Use the `bumpversion.sh` script to bump the project version. You can execute the
 
 assuming we are on version `v0.2.4` and the desired version is `v0.2.5`. `./bumpversion.sh` patch has to be run.
 
-- run `npm i` to update the version in `package-lock.json`
+- run 
+```bash
+npm i # to update the version in `package-lock.json`
+```
 
 
 ```bash

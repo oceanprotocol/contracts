@@ -3,9 +3,9 @@
 
 
 FixedRateExchange is a fixed rate exchange Contract
-Marketplaces uses this contract to allow consumers 
-exchanging datatokens with ocean token using a fixed 
-exchange rate.
+    Marketplaces uses this contract to allow consumers 
+    exchanging datatokens with ocean token using a fixed 
+    exchange rate.
 
 ### `onlyActiveExchange(bytes32 exchangeId)`
 
@@ -25,8 +25,8 @@ exchange rate.
 
 
 create
-creates new exchange pairs between base token
-(ocean token) and data tokens.
+    creates new exchange pairs between base token
+    (ocean token) and data tokens.
 
 
 ### `generateExchangeId(address baseToken, address dataToken, address exchangeOwner) → bytes32` (public)
@@ -34,7 +34,7 @@ creates new exchange pairs between base token
 
 
 generateExchangeId
-creates unique exchange identifier for two token pairs.
+    creates unique exchange identifier for two token pairs.
 
 
 ### `CalcInGivenOut(bytes32 exchangeId, uint256 dataTokenAmount) → uint256 baseTokenAmount` (public)
@@ -42,7 +42,7 @@ creates unique exchange identifier for two token pairs.
 
 
 CalcInGivenOut
-Calculates how many basetokens are needed to get specifyed amount of datatokens
+    Calculates how many basetokens are needed to get specifyed amount of datatokens
 
 
 ### `swap(bytes32 exchangeId, uint256 dataTokenAmount)` (external)
@@ -50,7 +50,7 @@ Calculates how many basetokens are needed to get specifyed amount of datatokens
 
 
 swap
-atomic swap between two registered fixed rate exchange.
+    atomic swap between two registered fixed rate exchange.
 
 
 ### `getNumberOfExchanges() → uint256` (external)
@@ -58,7 +58,7 @@ atomic swap between two registered fixed rate exchange.
 
 
 getNumberOfExchanges
-gets the total number of registered exchanges
+    gets the total number of registered exchanges
 
 
 ### `setRate(bytes32 exchangeId, uint256 newRate)` (external)
@@ -66,7 +66,7 @@ gets the total number of registered exchanges
 
 
 setRate
-changes the fixed rate for an exchange with a new rate
+    changes the fixed rate for an exchange with a new rate
 
 
 ### `toggleExchangeState(bytes32 exchangeId)` (external)
@@ -74,7 +74,7 @@ changes the fixed rate for an exchange with a new rate
 
 
 toggleExchangeState
-toggles the active state of an existing exchange
+    toggles the active state of an existing exchange
 
 
 ### `getRate(bytes32 exchangeId) → uint256` (external)
@@ -82,7 +82,7 @@ toggles the active state of an existing exchange
 
 
 getRate
-gets the current fixed rate for an exchange
+    gets the current fixed rate for an exchange
 
 
 ### `getSupply(bytes32 exchangeId) → uint256 supply` (public)
@@ -90,8 +90,8 @@ gets the current fixed rate for an exchange
 
 
 getSupply
-gets the current supply of datatokens in an fixed
-rate exchagne
+    gets the current supply of datatokens in an fixed
+    rate exchagne
 
 
 ### `getExchange(bytes32 exchangeId) → address exchangeOwner, address dataToken, address baseToken, uint256 fixedRate, bool active, uint256 supply` (external)
@@ -99,7 +99,7 @@ rate exchagne
 
 
 getExchange
-gets all the exchange details
+    gets all the exchange details
 
 
 ### `getExchanges() → bytes32[]` (external)
@@ -107,7 +107,7 @@ gets all the exchange details
 
 
 getExchanges
-gets all the exchanges list
+    gets all the exchanges list
 
 
 ### `isActive(bytes32 exchangeId) → bool` (external)
@@ -115,7 +115,7 @@ gets all the exchanges list
 
 
 isActive
-checks whether exchange is active
+    checks whether exchange is active
 
 
 

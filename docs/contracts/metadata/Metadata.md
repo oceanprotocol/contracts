@@ -3,9 +3,9 @@
 
 
 Metadata stands for Decentralized Document. It allows publishers
-to publish their dataset metadata in decentralized way.
-It follows the Ocean DID Document standard: 
-https://github.com/oceanprotocol/OEPs/blob/master/7/v0.2/README.md
+    to publish their dataset metadata in decentralized way.
+    It follows the Ocean DID Document standard: 
+    https://github.com/oceanprotocol/OEPs/blob/master/7/v0.2/README.md
 
 ### `onlyDataTokenMinter(address dataToken)`
 
@@ -19,7 +19,7 @@ https://github.com/oceanprotocol/OEPs/blob/master/7/v0.2/README.md
 
 
 create
-creates/publishes new metadata/DDO document on-chain. 
+    creates/publishes new metadata/DDO document on-chain. 
 
 
 ### `update(address dataToken, bytes flags, bytes data)` (external)
@@ -27,7 +27,7 @@ creates/publishes new metadata/DDO document on-chain.
 
 
 update
-allows only datatoken minter(s) to update the DDO/metadata content
+    allows only datatoken minter(s) to update the DDO/metadata content
 
 
 

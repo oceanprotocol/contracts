@@ -3,7 +3,7 @@
 
 
 Used by the (Ocean version) BFactory contract as a bytecode reference to
-deploy new BPools.
+    deploy new BPools.
 
 This contract is is nearly identical to the BPool.sol contract at [1]
 The only difference is the "Proxy contract functionality" section 
@@ -12,7 +12,7 @@ But we can't, because the proxy section needs to access private
 variables declared in BPool, and Solidity disallows this. Therefore
 the best we can do for now is clearly demarcate the proxy section. 
 
-[1] https://github.com/balancer-labs/balancer-core/contracts/.
+ [1] https://github.com/balancer-labs/balancer-core/contracts/.
 
 ### `_logs_()`
 
