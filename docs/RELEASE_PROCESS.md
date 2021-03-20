@@ -5,7 +5,6 @@ Releases are managed manually. They are always manually triggered from a develop
 ## Production
 
 - Create a new local feature branch, e.g. `git checkout -b release/v0.2.5`
-- Give it an upstream branch, e.g. `git push --set-upstream origin release/v0.2.5`
 - Generate artifacts:
 ```bash
 npm run compile
