@@ -39,19 +39,20 @@ The [ocean.js](https://github.com/oceanprotocol/ocean.js) and [ocean.py](https:/
 
 ## 🛳 Network Deployments
 
-You can use an existing deployment of Ocean contracts, or do your own deployment for testing. Let's review each.
+You can use an existing deployment of Ocean contracts, deploy locally, or deploy to a remote network. Let's review each.
 
 #### Use existing deployments
 
 Ocean contracts are deployed to Rinkeby, Ethereum mainnet, and more. [Here are details](docs/README.md#deployments).
 
-#### Do your own deployment
+#### Deploy Locally (Ganache)
 
-To deploy to a local testnet:
 * In a separate terminal, start the testnet: `ganache-cli`
 * In your main terminal, run: `npm run deploy`
+* Confirm: are `"development"` entries updated in addresses file `./artifacts/address.json`?
 
-Alternatively, to deploy to rinkeby testnet:
+#### Deploy to Remote (e.g. Rinkeby)
+
 * In your main terminal:
 ```
 export MNEMONIC='YOUR MNEMONIC SHOULD BE HERE'
@@ -62,7 +63,8 @@ export INFURA_TOKEN='GET INFURA_TOKEN FROM INFURA PLATFORM'
 npm run deploy:rinkeby
 ```
 
-After deployment, check out the `./artifacts/address.json` file. It contains the addresses of the deployed contracts. It will have been updated for the network you deployed to (e.g. `development`).
+* Confirm: are `"rinkeby"` entries updated in addresses file `./artifacts/address.json`?
+
 
 ## 🦑 Local Development
 
