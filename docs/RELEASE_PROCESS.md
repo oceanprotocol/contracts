@@ -5,6 +5,7 @@ Releases are managed manually. They are always manually triggered from a develop
 ## Production
 
 - Create a new local feature branch, e.g. `git checkout -b release/v0.2.5`
+- Give it an upstream branch, e.g. `git push --set-upstream origin release/v0.2.5`
 - Generate artifacts:
 ```bash
 npm run compile
@@ -18,42 +19,36 @@ git add .
 git commit -m 'prepare for a new release'
 ```
 
-- install bumpversion `pip install bumpversion` (if you don't have it installed on your machine)
+- Install bumpversion, if not done prior: `pip install bumpversion` 
+- Use the `bumpversion.sh` script to bump the project version:
+  - To bump the patch version: `./bumpversion.sh patch`
+  - To bump the minor version: `./bumpversion.sh minor`
+  - To bump the major version: `./bumpversion.sh major`
+  - Example: if we're on version `v0.2.4` and new version is `v0.2.5`, then run `./bumpversion.sh patch`
 
-Use the `bumpversion.sh` script to bump the project version. You can execute the script using {major|minor|patch} as first argument to bump the version accordingly:
-
-- To bump the patch version: ./bumpversion.sh patch
-- To bump the minor version: ./bumpversion.sh minor
-- To bump the major version: ./bumpversion.sh major
-
-assuming we are on version `v0.2.4` and the desired version is `v0.2.5`. `./bumpversion.sh` patch has to be run.
-
-- run 
+- Run:
 ```bash
-npm i # to update the version in `package-lock.json`
-```
+# Update the version in package-lock.json
+npm i
 
-
-```bash
 export MNEMONIC='YOUR MNEMONIC SHOULD BE HERE'
 # If you are using remote test or main net using Infura
 export INFURA_TOKEN='GET INFURA_TOKEN FROM INFURA PLATFORM' 
 npm run deploy:rinkeby
 ```
-- Update the changelog using [auto-changelog](https://github.com/CookPete/auto-changelog)
-```bash
-auto-changelog -v v0.2.5
-```
-- Commit the missing changes to the feature branch:
+
+- Install [auto-changelog](https://github.com/CookPete/auto-changelog, if not done prior: `npm install -g auto-changelog`
+- Update the changelog: `auto-changelog -v v0.2.5`
+
+- Commit the missing changes to the feature branch. **Important**: these steps will trigger publishing the release in travis!
 
 ```bash
 git add .
 git commit -m 'v0.2.5'
 git push
 ```
-`Important`: the commit above with the version number in the message will trigger publishing the release in travis.
 
-- Tag the last commit with the new version number ie. v0.2.5
+- Tag that commit with the new version number, e.g. v0.2.5
 ```bash
 git tag -a v0.2.5
 ```
