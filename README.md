@@ -99,8 +99,12 @@ npm run lint
 
 ## 👩‍🔬 Testing
 
-Run tests with 
+In a separate console:
+```console
+ganache-cli
+```
 
+In main console:
 ```bash
 # for unit tests
 npm run test:unit
@@ -109,8 +113,7 @@ npm run test:unit
 npm run test:cover
 ```
 
-
-Code style is enforced through the CI test process, builds will fail if there're any linting errors.
+Code style is enforced through the CI test process. Builds will fail if there are linting errors.
 
 ## ⬆️ Releases
 
