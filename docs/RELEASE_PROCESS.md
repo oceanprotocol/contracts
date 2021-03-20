@@ -55,9 +55,9 @@ git tag -a v0.2.5
 ```
 git push --tags
 ```
-- Make a pull request from the just-pushed branch to develop branch.
+- Make a pull request from the just-pushed branch (release/v0.2.5) to `master` branch.
 - Wait for all the tests to pass!
-- Merge the pull request into the `master` branch.
+- Merge the pull request
 
 Finally, draft the new release on github as follows:
 - Go to [tags](https://github.com/oceanprotocol/ocean-contracts/tags), then select the new version tag.
