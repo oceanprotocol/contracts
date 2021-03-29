@@ -29,7 +29,7 @@ Overview:
 For quick installation of the contract `ABIs`:
 
 ```bash
-npm i @oceanprotocol/contracts
+yarn add @oceanprotocol/contracts
 ```
 
 ## 🏄 Quickstart
@@ -48,19 +48,19 @@ Ocean contracts are deployed to Rinkeby, Ethereum mainnet, and more. [Here are d
 #### Deploy Locally (Ganache)
 
 * In a separate terminal, start the testnet: `ganache-cli`
-* In your main terminal, run: `npm run deploy`
+* In your main terminal, run: `yarn deploy`
 * Confirm: are `"development"` entries updated in addresses file `./artifacts/address.json`?
 
 #### Deploy to Remote (e.g. Rinkeby)
 
 * In your main terminal:
-```
+```bash
 export MNEMONIC='YOUR MNEMONIC SHOULD BE HERE'
 
 # If you are using remote test or Etherejm mainnet using Infura
 export INFURA_TOKEN='GET INFURA_TOKEN FROM INFURA PLATFORM' 
 
-npm run deploy:rinkeby
+yarn deploy:rinkeby
 ```
 
 * Confirm: are `"rinkeby"` entries updated in addresses file `./artifacts/address.json`?
@@ -73,7 +73,7 @@ For local development of `contracts`, set up the development environment on your
 As a prerequisite, you need:
 
 - Node.js v12+
-- npm
+- yarn
 
 Clone the project and install all dependencies:
 
@@ -82,10 +82,10 @@ git clone git@github.com:oceanprotocol/contracts.git
 cd contracts/
 
 # install packages
-npm i
+yarn
 
 # to compile contracts
-npm run compile
+yarn compile
 ```
 
 ## ✨ Code Style
@@ -94,7 +94,7 @@ Linting is setup for `JavaScript` with [ESLint](https://eslint.org) & Solidity w
 
 ```bash
 # to check lint issues
-npm run lint
+yarn lint
 ```
 
 ## 👩‍🔬 Testing
@@ -107,10 +107,10 @@ ganache-cli
 In main console:
 ```bash
 # for unit tests
-npm run test:unit
+yarn test:unit
 
 # for test coverage
-npm run test:cover
+yarn test:cover
 ```
 
 Code style is enforced through the CI test process. Builds will fail if there are linting errors.
