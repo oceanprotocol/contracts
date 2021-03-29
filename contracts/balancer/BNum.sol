@@ -113,7 +113,7 @@ contract BNum is BConst {
         require(base >= MIN_BPOW_BASE, 'ERR_BPOW_BASE_TOO_LOW');
         require(base <= MAX_BPOW_BASE, 'ERR_BPOW_BASE_TOO_HIGH');
 
-        uint whole  = bfloor(exp);   
+        uint whole = bfloor(exp);
         uint remain = bsub(exp, whole);
 
         uint wholePow = bpowi(base, btoi(whole));
@@ -131,10 +131,10 @@ contract BNum is BConst {
         returns (uint)
     {
         // term 0:
-        uint a     = exp;
-        (uint x, bool xneg)  = bsubSign(base, BONE);
+        uint a = exp;
+        (uint x, bool xneg) = bsubSign(base, BONE);
         uint term = BONE;
-        uint sum   = term;
+        uint sum = term;
         bool negative = false;
 
 
