@@ -7,13 +7,13 @@ Releases are managed manually. They are always manually triggered from a develop
 - Create a new local feature branch, e.g. `git checkout -b release/v0.2.5`
 - Generate artifacts:
 ```bash
-npm run compile
+yarn compile
 rm ./artifacts/*
 cp ./build/contracts/* ./artifacts/
 ```
 - Update contracts documentation
 ```bash
-npm run doc:generate
+yarn doc:generate
 git add .
 git commit -m 'prepare for a new release'
 ```
@@ -28,15 +28,15 @@ git commit -m 'prepare for a new release'
 - Run:
 ```bash
 # Update the version in package-lock.json
-npm i
+yarn
 
 export MNEMONIC='YOUR MNEMONIC SHOULD BE HERE'
 # If you are using remote test or main net using Infura
 export INFURA_TOKEN='GET INFURA_TOKEN FROM INFURA PLATFORM' 
-npm run deploy:rinkeby
+yarn deploy:rinkeby
 ```
 
-- Install [auto-changelog](https://github.com/CookPete/auto-changelog, if not done prior: `npm install -g auto-changelog`
+- Install [auto-changelog](https://github.com/CookPete/auto-changelog, if not done prior: `yarn global add auto-changelog`
 - Update the changelog: `auto-changelog -v v0.2.5`
 
 - Commit the missing changes to the feature branch. **Important**: these steps will trigger publishing the release in travis!
