@@ -240,12 +240,12 @@ contract DataTokenTemplate is IERC20Template, ERC20 {
         }
         uint256 totalFee = communityFee.add(marketFee);
         transfer(_minter, amount.sub(totalFee));
-
         emit OrderStarted(
             consumer,
             msg.sender,
             amount,
             serviceId,
+            /* solium-disable-next-line */
             block.timestamp,
             mrktFeeCollector,
             marketFee
@@ -275,13 +275,14 @@ contract DataTokenTemplate is IERC20Template, ERC20 {
                 transfer(consumer, amount),
                 'DataTokenTemplate: failed to finish order'
             );
-
+        
         emit OrderFinished(
             orderTxId, 
             consumer, 
             amount, 
             serviceId, 
             msg.sender,
+            /* solium-disable-next-line */
             block.timestamp
         );
     }
