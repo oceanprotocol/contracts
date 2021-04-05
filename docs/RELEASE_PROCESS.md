@@ -43,7 +43,7 @@ yarn deploy:rinkeby
 ```bash
 git add .
 git commit -m 'v0.2.5'
-git push
+git push --set-upstream origin release/v0.2.5  # change it to the new release
 ```
 
 - Tag that commit with the new version number, e.g. v0.2.5
