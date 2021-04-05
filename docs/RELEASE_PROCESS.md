@@ -8,7 +8,6 @@ Releases are managed manually. They are always manually triggered from a develop
 - Generate artifacts:
 ```bash
 yarn compile
-rm ./artifacts/*
 cp ./build/contracts/* ./artifacts/
 ```
 - Update contracts documentation
