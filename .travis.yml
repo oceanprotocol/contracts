@@ -17,7 +17,7 @@ before_install:
     - npm i
     - |
       if [ "${DEPLOY_PACKAGE}" = "true" ] && [ ! -z "${TRAVIS_TAG}" ]; then
-        sudo apt-get -y install gnupg-agent python3-setuptools
+        sudo apt-get -y install python3-pip gnupg-agent python3-setuptools
         gpg-agent --daemon --no-grab --write-env-file $HOME/.gpg-agent-info
         pip3 install --upgrade --user twine six==1.10.0 wheel==0.31.0 setuptools
         echo $GPG_SECRET_KEYS | base64 --decode | $GPG_EXECUTABLE --import

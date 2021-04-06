@@ -7,4 +7,4 @@ shopt -s nullglob
 abifiles=( ./artifacts/* )
 [ "${#abifiles[@]}" -lt "1" ] && echo "ABI Files for development environment not found" && exit 1
 python setup.py sdist bdist_wheel
-python3 -m twine upload dist/*
+twine upload dist/*
