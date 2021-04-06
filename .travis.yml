@@ -49,7 +49,7 @@ deploy:
       tags: true
 
   - provider: script
-    script: bash -x ./scripts/deploy_pypi.sh
+    script: sudo bash -x ./scripts/deploy_pypi.sh
     skip_cleanup: true
     on:
       tags: true
