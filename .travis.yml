@@ -19,7 +19,7 @@ before_install:
       if [ "${DEPLOY_PACKAGE}" = "true" ] && [ ! -z "${TRAVIS_TAG}" ]; then
         sudo apt-get -y install gnupg-agent python3-setuptools
         gpg-agent --daemon --no-grab --write-env-file $HOME/.gpg-agent-info
-        pip install --upgrade --user twine six==1.10.0 wheel==0.31.0 setuptools
+        pip3 install --upgrade --user twine six==1.10.0 wheel==0.31.0 setuptools
         echo $GPG_SECRET_KEYS | base64 --decode | $GPG_EXECUTABLE --import
         echo $GPG_OWNERTRUST | base64 --decode | $GPG_EXECUTABLE --import-ownertrust
         version_line=$(cat .bumpversion.cfg | grep current_version)
@@ -27,10 +27,6 @@ before_install:
         export release_version
         echo "Release version: $release_version"
       fi
-
-install:
-  - yarn
-
 before_script:
     - ganache-cli > ganache-cli.log &
 
@@ -49,7 +45,7 @@ deploy:
       tags: true
 
   - provider: script
-    script: sudo bash -x ./scripts/deploy_pypi.sh
+    script: bash -x ./scripts/deploy_pypi.sh
     skip_cleanup: true
     on:
       tags: true
