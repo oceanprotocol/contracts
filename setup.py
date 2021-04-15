@@ -3,7 +3,7 @@
 
 """The setup script."""
 from glob import glob
-from setuptools import setup,find_packages
+from setuptools import setup, find_packages
 
 with open('README.md') as readme_file:
     readme = readme_file.read()
@@ -37,6 +37,6 @@ setup(
     test_suite='tests',
     tests_require=test_requirements,
     url='https://github.com/oceanprotocol/ocean-contracts',
-    version='0.5.12',
+    version='0.5.13',
     zip_safe=False,
 )
