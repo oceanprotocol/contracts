@@ -82,7 +82,6 @@ module.exports = function(deployer, network, accounts) {
         if (networkName === 'moonbeamalpha') {
             addresses.Ocean = '0xd8992Ed72C445c35Cb4A2be468568Ed1079357c8'
         }
-        0xd8992Ed72C445c35Cb4A2be468568Ed1079357c8
         console.info('writing address.json file: ' + networkName + JSON.stringify(oldAddresses, null, 2))
         fs.writeFileSync(addressFile, JSON.stringify(oldAddresses, null, 2))
     })
