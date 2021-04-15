@@ -9,8 +9,8 @@ var Metadata = artifacts.require('./Metadata.sol')
 var FixedRateExchange = artifacts.require('./FixedRateExchange.sol')
 var OPFCommunityFeeCollector = artifacts.require('./OPFCommunityFeeCollector.sol')
 // dummy communityFeeCollector, replace with real wallet/owner
-const communityCollector = '0x7DF5273aD9A6fCce64D45c64c1E43cfb6F861725'
-const OPFOwner = '0x7DF5273aD9A6fCce64D45c64c1E43cfb6F861725'
+let communityCollector = '0x7DF5273aD9A6fCce64D45c64c1E43cfb6F861725'
+let OPFOwner = '0x7DF5273aD9A6fCce64D45c64c1E43cfb6F861725'
 module.exports = function(deployer, network, accounts) {
     deployer.then(async () => {
         const addressFile = './artifacts/address.json'
@@ -23,7 +23,10 @@ module.exports = function(deployer, network, accounts) {
             oldAddresses[networkName] = {}
         }
         const addresses = oldAddresses[networkName]
-
+        if (networkName === 'moonbeamalpha') {
+            communityCollector = '0x06100AB868206861a4D7936166A91668c2Ce1312'
+            OPFOwner = '0x06100AB868206861a4D7936166A91668c2Ce1312'
+        }
         await deployer.deploy(
             OPFCommunityFeeCollector,
             communityCollector,
@@ -76,6 +79,10 @@ module.exports = function(deployer, network, accounts) {
         if (networkName === 'polygon') {
             addresses.Ocean = '0x282d8efCe846A88B159800bd4130ad77443Fa1A1'
         }
+        if (networkName === 'moonbeamalpha') {
+            addresses.Ocean = '0xd8992Ed72C445c35Cb4A2be468568Ed1079357c8'
+        }
+        0xd8992Ed72C445c35Cb4A2be468568Ed1079357c8
         console.info('writing address.json file: ' + networkName + JSON.stringify(oldAddresses, null, 2))
         fs.writeFileSync(addressFile, JSON.stringify(oldAddresses, null, 2))
     })
