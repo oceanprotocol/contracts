@@ -32,13 +32,13 @@
     "BFactory": "0x69B6E54Ad2b3c2801d11d8Ad56ea1d892555b776",
     "FixedRateExchange": "0x2112Eb973af1DBf83a4f11eda82f7a7527D7Fde5",
     "Metadata": "0x80E63f73cAc60c1662f27D2DFd2EA834acddBaa8",
-    "Ocean": "0x3c21a90599b5B7f37014cA5Bf30d3f1b73d7e391"
+    "Ocean": "0x282d8efCe846A88B159800bd4130ad77443Fa1A1"
   },
   "moonbeamalpha": {
     "DTFactory": "0x80E63f73cAc60c1662f27D2DFd2EA834acddBaa8",
     "BFactory": "0x30E4CC2C7A9c6aA2b2Ce93586E3Df24a3A00bcDD",
     "FixedRateExchange": "0xDEfD0018969cd2d4E648209F876ADe184815f038",
     "Metadata": "0x9C9eE07b8Ce907D2f9244F8317C1Ed29A3193bAe",
-    "Ocean": "0xd8992Ed72C445c35Cb4A2be468568Ed1079357c8"
+    "Ocean": "0x3c21a90599b5B7f37014cA5Bf30d3f1b73d7e391"
   }
 }
