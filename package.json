@@ -33,6 +33,7 @@
     "deploy:mainnet": "npm run clean && npm run compile && export NETWORK='mainnet' && truffle migrate --network mainnet && npm run export:artifacts",
     "deploy:rinkeby": "npm run clean && npm run compile && export NETWORK='rinkeby' && truffle migrate --network rinkeby && npm run export:artifacts",
     "deploy:polygon": "npm run clean && npm run compile && export NETWORK='polygon' && truffle migrate --network polygon && npm run export:artifacts",
+    "deploy:moonbeamalpha": "npm run clean && npm run compile && export NETWORK='moonbeamalpha' && truffle migrate --network moonbeamalpha && npm run export:artifacts",
     "security:slither": "slither . 2>&1 | tee slitherReport.txt"
   },
   "files": [

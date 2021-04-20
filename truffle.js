@@ -119,6 +119,12 @@ module.exports = {
             from: '0xC7EC1970B09224B317c52d92f37F5e1E4fF6B687',
             gas: 7 * 1000000,
             gasPrice: utils.toWei('100', 'gwei')
+        },
+        moonbeamalpha: {
+            provider: () => setupWallet('https://rpc.testnet.moonbeam.network/'),
+            network_id: 0x507, // 4
+            gas: 10000000,
+            from: '0xC7EC1970B09224B317c52d92f37F5e1E4fF6B687'
         }
     },
     plugins: ['solidity-coverage'],
