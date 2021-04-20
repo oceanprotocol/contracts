@@ -228,7 +228,7 @@ contract Dispenser {
         );
         require(
             datatokens[datatoken].owner == msg.sender,
-            'DataToken already activated'
+            'Invalid owner'
         );
         IERC20Template tokenInstance = IERC20Template(datatoken);
         uint256 ourBalance = tokenInstance.balanceOf(address(this));

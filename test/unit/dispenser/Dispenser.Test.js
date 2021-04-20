@@ -135,6 +135,11 @@ contract('Dispenser', async (accounts) => {
         assert(tx,
             'Bob failed to get 1DT')
     })
+    it('Bob tries to withdraw all datatokens', async () => {
+        truffleAssert.fails(dispenser.ownerWithdraw(datatoken2, {
+            from: bob
+        }), truffleAssert.ErrorType.REVERT, 'Invalid owner')
+    })
     it('Alice withdraws all datatokens', async () => {
         const tx = await dispenser.ownerWithdraw(datatoken2, {
             from: alice
