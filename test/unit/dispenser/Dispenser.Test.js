@@ -124,4 +124,15 @@ contract('Dispenser', async (accounts) => {
         assert(tx,
             'Bob failed to get 1DT')
     })
+    it('Alice withdraws all datatokens', async () => {
+        const tx = await dispenser.ownerWithdraw(datatoken2, {
+            from: alice
+        })
+        assert(tx,
+            'ALice failed to withdraw all datatokens')
+        const status = await dispenser.status(datatoken2)
+        const contractBalance = web3.utils.fromWei(status.balance)
+        console.log(contractBalance)
+        assert(contractBalance === '0', 'Balance > 0')
+    })
 })
