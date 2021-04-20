@@ -105,6 +105,11 @@ contract('Dispenser', async (accounts) => {
         const isMinter = await dt.isMinter(alice)
         assert(isMinter === true, 'ALice is not the minter')
     })
+    it('Bob should fail to activate a dispenser for a token for he is not a mineter', async () => {
+        truffleAssert.fails(dispenser.activate(datatoken3, web3.utils.toWei('1'), web3.utils.toWei('1'), {
+            from: bob
+        }), truffleAssert.ErrorType.REVERT, 'Sender does not have the minter role')
+    })
     it('Alice creates a dispenser without minter role', async () => {
         const tx = await dispenser.activate(datatoken2, web3.utils.toWei('1'), web3.utils.toWei('1'))
         assert(tx,
@@ -139,10 +144,5 @@ contract('Dispenser', async (accounts) => {
         const status = await dispenser.status(datatoken2)
         const contractBalance = web3.utils.fromWei(status.balance)
         assert(contractBalance === '0', 'Balance > 0')
-    })
-    it('Charlie should fail to activate a dispenser for a token for he is not a mineter', async () => {
-        truffleAssert.fails(dispenser.activate(datatoken3, web3.utils.toWei('1'), web3.utils.toWei('1'), {
-            from: charlie
-        }), truffleAssert.ErrorType.REVERT, 'Sender does not have the minter role')
     })
 })
