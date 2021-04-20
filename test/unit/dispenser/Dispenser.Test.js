@@ -20,6 +20,7 @@ contract('Dispenser', async (accounts) => {
         charlie,
         datatoken1,
         datatoken2,
+        datatoken3,
         dispenser
 
     before('Alice creates datatokens', async () => {
@@ -44,6 +45,11 @@ contract('Dispenser', async (accounts) => {
         })
         TokenCreatedEventArgs = testUtils.getEventArgsFromTx(trxReceipt, 'TokenCreated')
         datatoken2 = TokenCreatedEventArgs.newTokenAddress
+        trxReceipt = await factory.createToken(blob, 'DT3', 'DT3', web3.utils.toWei('1000000'), {
+            from: alice
+        })
+        TokenCreatedEventArgs = testUtils.getEventArgsFromTx(trxReceipt, 'TokenCreated')
+        datatoken3 = TokenCreatedEventArgs.newTokenAddress
     })
     it('Alice creates a dispenser with minter role', async () => {
         let tx = await dispenser.activate(datatoken1, web3.utils.toWei('1'), web3.utils.toWei('1'))
@@ -133,5 +139,10 @@ contract('Dispenser', async (accounts) => {
         const status = await dispenser.status(datatoken2)
         const contractBalance = web3.utils.fromWei(status.balance)
         assert(contractBalance === '0', 'Balance > 0')
+    })
+    it('Charlie should fail to activate a dispenser for a token for he is not a mineter', async () => {
+        truffleAssert.fails(dispenser.activate(datatoken3, web3.utils.toWei('1'), web3.utils.toWei('1'), {
+            from: charlie
+        }), truffleAssert.ErrorType.REVERT, 'Sender does not have the minter role')
     })
 })

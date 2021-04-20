@@ -98,6 +98,11 @@ contract Dispenser {
             datatokens[datatoken].owner == address(0) || datatokens[datatoken].owner == msg.sender,
             'DataToken already activated'
         );
+        IERC20Template tokenInstance = IERC20Template(datatoken);
+        require(
+            tokenInstance.isMinter(msg.sender),
+            'Sender does not have the minter role'
+        );
         datatokens[datatoken].active = true;
         datatokens[datatoken].owner = msg.sender;
         datatokens[datatoken].maxTokens = maxTokens;
