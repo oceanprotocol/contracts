@@ -8,6 +8,7 @@ import "./utils/Deployer.sol";
 import "./interfaces/IERC20Template.sol";
 import "./interfaces/IERC721Template.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
+
 /**
  * @title DTFactory contract
  * @author Ocean Protocol Team
@@ -24,23 +25,22 @@ contract ERC20Factory is Deployer, Ownable {
     uint256 private currentTokenCount = 1;
     bytes32 public constant MINTER_ROLE = keccak256("MINTER_ROLE");
     address public erc721Factory;
-    
-    uint public templateCount;
-    
+
+    uint256 public templateCount;
+
     struct Template {
         address templateAddress;
         bool isActive;
     }
 
-    mapping(uint => Template) public templateList;
+    mapping(uint256 => Template) public templateList;
 
-    mapping(address => address ) public erc721List;
+    mapping(address => address) public erc721List;
 
-    modifier onlyERC721Factory {   
-        require(erc721Factory == msg.sender, 'ONLY ERC721FACTORY CONTRACT');
+    modifier onlyERC721Factory {
+        require(erc721Factory == msg.sender, "ONLY ERC721FACTORY CONTRACT");
         _;
     }
-
 
     event TokenCreated(
         address indexed newTokenAddress,
@@ -69,7 +69,7 @@ contract ERC20Factory is Deployer, Ownable {
             "DTFactory: Invalid template token/community fee collector address"
         );
         addTokenTemplate(_template);
-        
+
         //tokenTemplate = _template;
         communityFeeCollector = _collector;
     }
@@ -93,10 +93,16 @@ contract ERC20Factory is Deployer, Ownable {
     ) public returns (address token) {
         require(_isContract(msg.sender), "NOT CONTRACT");
         require(cap != 0, "DTFactory: zero cap is not allowed");
-        require(_templateIndex <= templateCount && _templateIndex != 0,'Template index doesnt exist');
+        require(
+            _templateIndex <= templateCount && _templateIndex != 0,
+            "Template index doesnt exist"
+        );
         Template memory tokenTemplate = templateList[_templateIndex];
 
-        require(tokenTemplate.isActive == true, 'ERC721Token Template disabled');
+        require(
+            tokenTemplate.isActive == true,
+            "ERC721Token Template disabled"
+        );
 
         token = deploy(tokenTemplate.templateAddress);
 
@@ -105,9 +111,12 @@ contract ERC20Factory is Deployer, Ownable {
             "DTFactory: Failed to perform minimal deploy of a new token"
         );
         IERC20Template tokenInstance = IERC20Template(token);
-        
-        require(erc721List[msg.sender] == msg.sender, 'ONLY ERC721 INSTANCE FROM ERC721FACTORY');
-        
+
+        require(
+            erc721List[msg.sender] == msg.sender,
+            "ONLY ERC721 INSTANCE FROM ERC721FACTORY"
+        );
+
         IERC721Template erc721Instance = IERC721Template(msg.sender);
 
         require(
@@ -134,28 +143,40 @@ contract ERC20Factory is Deployer, Ownable {
         return currentTokenCount;
     }
 
-    function getTokenTemplate(uint _index) external view returns (Template memory) {
+    function getTokenTemplate(uint256 _index)
+        external
+        view
+        returns (Template memory)
+    {
         Template memory template = templateList[_index];
         return template;
     }
 
-
-    function addTokenTemplate(address _templateAddress) public onlyOwner returns (uint){
-           require(_templateAddress != address(0), 'ERC721 template address(0) NOT ALLOWED');
-           templateCount += 1;
-           Template memory template = Template(_templateAddress,true);
-           templateList[templateCount] = template;
-           return templateCount;
+    function addTokenTemplate(address _templateAddress)
+        public
+        onlyOwner
+        returns (uint256)
+    {
+        require(
+            _templateAddress != address(0),
+            "ERC721 template address(0) NOT ALLOWED"
+        );
+        templateCount += 1;
+        Template memory template = Template(_templateAddress, true);
+        templateList[templateCount] = template;
+        return templateCount;
     }
 
-    function disableTokenTemplate(uint _index) external onlyOwner {
+    function disableTokenTemplate(uint256 _index) external onlyOwner {
         Template storage template = templateList[_index];
         template.isActive = false;
     }
+
     // if templateCount is public we could remove it, or set templateCount to private
     function getCurrentTemplateCount() external view returns (uint256) {
         return templateCount;
     }
+
     /**
      * @dev Internal function if address is contract
      */
@@ -167,14 +188,15 @@ contract ERC20Factory is Deployer, Ownable {
         return size > 0;
     }
 
-
-    function addToERC721Registry(address ERC721address) external onlyERC721Factory {
+    function addToERC721Registry(address ERC721address)
+        external
+        onlyERC721Factory
+    {
         erc721List[ERC721address] = ERC721address;
     }
 
-
     // MISSING ONLYOWNER OR SOME KIND OF RESTRICION, COULD BE REMOVED IF WE DON"T WANT TO UPDATE IT(HARDCODED IN THE CONTRACT)
-    function setERC721Factory(address _erc721FactoryAddress ) public {
-            erc721Factory = _erc721FactoryAddress;
+    function setERC721Factory(address _erc721FactoryAddress) public {
+        erc721Factory = _erc721FactoryAddress;
     }
 }

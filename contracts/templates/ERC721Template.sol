@@ -11,14 +11,13 @@ contract ERC721Template is ERC721, AccessControl {
     bytes32 public constant MINTER_ROLE = keccak256("MINTER_ROLE");
     bytes32 public constant METADATA_ROLE = keccak256("METADATA_ROLE");
 
-   
     string private _name;
     string private _symbol;
     uint256 private tokenId = 1;
     bool private initialized;
     address public _metadata;
     address private _erc20Factory;
-    
+
     event ERC20Created(address indexed erc20Address);
 
     modifier onlyNotInitialized() {
@@ -40,9 +39,8 @@ contract ERC721Template is ERC721, AccessControl {
     ) public ERC721(name, symbol) {
         _setupRole(DEFAULT_ADMIN_ROLE, admin);
         _setupRole(MINTER_ROLE, admin);
-      //  _metadata = metadata;
-      // _initialize(admin, name, symbol,metadata,erc20Factory,_data,flags);
-        
+        //  _metadata = metadata;
+        // _initialize(admin, name, symbol,metadata,erc20Factory,_data,flags);
     }
 
     function initialize(
@@ -54,7 +52,16 @@ contract ERC721Template is ERC721, AccessControl {
         bytes calldata _data,
         bytes calldata flags
     ) external onlyNotInitialized returns (bool) {
-        return _initialize(admin, name, symbol,metadata,erc20Factory,_data,flags);
+        return
+            _initialize(
+                admin,
+                name,
+                symbol,
+                metadata,
+                erc20Factory,
+                _data,
+                flags
+            );
     }
 
     function _initialize(
@@ -83,7 +90,6 @@ contract ERC721Template is ERC721, AccessControl {
         initialized = true;
         _createMetadata(flags, _data);
         return initialized;
-        
     }
 
     function mint(address account) external {
@@ -93,30 +99,48 @@ contract ERC721Template is ERC721, AccessControl {
     }
 
     function _createMetadata(bytes memory flags, bytes memory data) internal {
-       // require(hasRole(METADATA_ROLE, msg.sender), "NOT METADATA_ROLE");
+        // require(hasRole(METADATA_ROLE, msg.sender), "NOT METADATA_ROLE");
         require(_metadata != address(0), "Invalid Metadata address");
-        require(IERC20Factory(_erc20Factory).erc721List(address(this)) == address(this),'NOT ORIGINAL TEMPLATE');
+        require(
+            IERC20Factory(_erc20Factory).erc721List(address(this)) ==
+                address(this),
+            "NOT ORIGINAL TEMPLATE"
+        );
         IMetadata(_metadata).create(address(this), flags, data);
     }
 
-    function updateMetadata(bytes calldata flags, bytes calldata data) external {
+    function updateMetadata(bytes calldata flags, bytes calldata data)
+        external
+    {
         require(hasRole(METADATA_ROLE, msg.sender), "NOT METADATA_ROLE");
         IMetadata(_metadata).update(address(this), flags, data);
     }
 
-    function createERC20( string calldata blob, string calldata name, string calldata symbol, uint256 cap,uint256 templateIndex) external returns (address) {
+    function createERC20(
+        string calldata blob,
+        string calldata name,
+        string calldata symbol,
+        uint256 cap,
+        uint256 templateIndex
+    ) external returns (address) {
         require(hasRole(MINTER_ROLE, msg.sender), "NOT MINTER_ROLE");
-     
-        
-        address token = IERC20Factory(_erc20Factory).createToken(blob,name,symbol,cap,msg.sender,templateIndex); // already checked when creating a new ERC20 in ERC20Factory, could be removerd
-      
 
+        address token =
+            IERC20Factory(_erc20Factory).createToken(
+                blob,
+                name,
+                symbol,
+                cap,
+                msg.sender,
+                templateIndex
+            ); // already checked when creating a new ERC20 in ERC20Factory, could be removerd
 
         //FOR TEST PURPOSE BUT COULD BE COMPLETED OR REMOVED
         emit ERC20Created(token);
 
         return token;
     }
+
     /**
      * @dev name
      *      It returns the token name.
@@ -138,9 +162,7 @@ contract ERC721Template is ERC721, AccessControl {
     function isInitialized() public view returns (bool) {
         return initialized;
     }
-    
-      // NEEDED FOR IMPERSONATING THIS CONTRACT(need eth to send txs). WILL BE REMOVED
-    receive() external payable {
 
-    }
+    // NEEDED FOR IMPERSONATING THIS CONTRACT(need eth to send txs). WILL BE REMOVED
+    receive() external payable {}
 }

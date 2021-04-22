@@ -325,157 +325,143 @@ describe("ERC721Template", () => {
   });
 
   it("should get templateCount from ERC20Factory", async () => {
-    assert(
-      await factoryERC20.templateCount() == 1
-    );
+    assert((await factoryERC20.templateCount()) == 1);
   });
-
 
   it("should add a new ERC20 Template from owner(admin)", async () => {
-    await factoryERC20.addTokenTemplate(user2.address)
-    assert(await factoryERC20.templateCount() == 2);
+    await factoryERC20.addTokenTemplate(user2.address);
+    assert((await factoryERC20.templateCount()) == 2);
   });
   it("should fail to add a new ERC20 Template from NO-owner", async () => {
-    await expectRevert(factoryERC20.connect(user2).addTokenTemplate(user2.address), 'Ownable: caller is not the owner')
-    assert(await factoryERC20.templateCount() == 1);
+    await expectRevert(
+      factoryERC20.connect(user2).addTokenTemplate(user2.address),
+      "Ownable: caller is not the owner"
+    );
+    assert((await factoryERC20.templateCount()) == 1);
   });
   it("should disable a specific ERC20 Template from owner", async () => {
-    let templateStruct = await factoryERC20.templateList(1)
-    assert(templateStruct.isActive == true)
-    await factoryERC20.disableTokenTemplate(1)
-    templateStruct = await factoryERC20.templateList(1)
-    assert(templateStruct.isActive == false)
-  
+    let templateStruct = await factoryERC20.templateList(1);
+    assert(templateStruct.isActive == true);
+    await factoryERC20.disableTokenTemplate(1);
+    templateStruct = await factoryERC20.templateList(1);
+    assert(templateStruct.isActive == false);
   });
   it("should fail to disable a specific ERC20 Template from NOT owner", async () => {
-    let templateStruct = await factoryERC20.templateList(1)
-    assert(templateStruct.isActive == true)
-    await expectRevert(factoryERC20.connect(user2).disableTokenTemplate(1),'Ownable: caller is not the owner')
-    templateStruct = await factoryERC20.templateList(1)
-    assert(templateStruct.isActive == true)
-    
+    let templateStruct = await factoryERC20.templateList(1);
+    assert(templateStruct.isActive == true);
+    await expectRevert(
+      factoryERC20.connect(user2).disableTokenTemplate(1),
+      "Ownable: caller is not the owner"
+    );
+    templateStruct = await factoryERC20.templateList(1);
+    assert(templateStruct.isActive == true);
   });
   it("should fail to create a specific ERC20 Template if the template is disabled", async () => {
-    await factoryERC20.disableTokenTemplate(1)
-    
-    await expectRevert(token.createERC20(
-      blob,
-      "ERC20DT1",
-      "ERC20DT1Symbol",
-      web3.utils.toWei("10"),
-      1
-    ),'ERC721Token Template disabled')
-    templateStruct = await factoryERC20.templateList(1)
-    assert(templateStruct.isActive == false)
-    
+    await factoryERC20.disableTokenTemplate(1);
+
+    await expectRevert(
+      token.createERC20(
+        blob,
+        "ERC20DT1",
+        "ERC20DT1Symbol",
+        web3.utils.toWei("10"),
+        1
+      ),
+      "ERC721Token Template disabled"
+    );
+    templateStruct = await factoryERC20.templateList(1);
+    assert(templateStruct.isActive == false);
   });
 
   it("should fail to create a specific ERC20 Template if the index is ZERO", async () => {
-
-    
-    await expectRevert(token.createERC20(
-      blob,
-      "ERC20DT1",
-      "ERC20DT1Symbol",
-      web3.utils.toWei("10"),
-      0
-    ),'Template index doesnt exist')
-  
-    
+    await expectRevert(
+      token.createERC20(
+        blob,
+        "ERC20DT1",
+        "ERC20DT1Symbol",
+        web3.utils.toWei("10"),
+        0
+      ),
+      "Template index doesnt exist"
+    );
   });
 
   it("should fail to create a specific ERC20 Template if the index doesn't exist", async () => {
-
-    
-    await expectRevert(token.createERC20(
-      blob,
-      "ERC20DT1",
-      "ERC20DT1Symbol",
-      web3.utils.toWei("10"),
-      3
-    ),'Template index doesnt exist')
-  
-    
+    await expectRevert(
+      token.createERC20(
+        blob,
+        "ERC20DT1",
+        "ERC20DT1Symbol",
+        web3.utils.toWei("10"),
+        3
+      ),
+      "Template index doesnt exist"
+    );
   });
 
-
-
-  // it("should add a new template address", async () => {
-  //   await factoryERC20.addTokenTemplate(user2.address);
-  //   assert((await factoryERC20.getTokenTemplateAddress(1)) == user2.address);
-  // });
-
-  // it("should get template index by passing address", async () => {
-  //   await factoryERC20.addTokenTemplate(user2.address);
-
-  //   assert((await factoryERC20.getTokenTemplateIndex(user2.address)) == 1);
-  // });
-
-  // it("should throw 999999 if template address doesn't exist", async () => {
-  //   assert(
-  //     (await factoryERC20.getTokenTemplateIndex(reciever.address)) == 999999
-  //   );
-  // });
-
   it("should get the templateCount from ERC721Factory", async () => {
-    assert(await factoryERC721.templateCount() == 1);
+    assert((await factoryERC721.templateCount()) == 1);
   });
 
   it("should add a new ERC721 Template from owner(admin)", async () => {
-    await factoryERC721.addTokenTemplate(user2.address)
-    assert(await factoryERC721.templateCount() == 2);
+    await factoryERC721.addTokenTemplate(user2.address);
+    assert((await factoryERC721.templateCount()) == 2);
   });
   it("should fail to add a new ERC721 Template from NO-owner", async () => {
-    await expectRevert(factoryERC721.connect(user2).addTokenTemplate(user2.address), 'Ownable: caller is not the owner')
-    assert(await factoryERC721.templateCount() == 1);
+    await expectRevert(
+      factoryERC721.connect(user2).addTokenTemplate(user2.address),
+      "Ownable: caller is not the owner"
+    );
+    assert((await factoryERC721.templateCount()) == 1);
   });
   it("should disable a specific ERC721 Template from owner", async () => {
-    let templateStruct = await factoryERC721.templateList(1)
-    assert(templateStruct.isActive == true)
-    await factoryERC721.disableTokenTemplate(1)
-    templateStruct = await factoryERC721.templateList(1)
-    assert(templateStruct.isActive == false)
-  
+    let templateStruct = await factoryERC721.templateList(1);
+    assert(templateStruct.isActive == true);
+    await factoryERC721.disableTokenTemplate(1);
+    templateStruct = await factoryERC721.templateList(1);
+    assert(templateStruct.isActive == false);
   });
   it("should fail to disable a specific ERC721 Template from NOT owner", async () => {
-    let templateStruct = await factoryERC721.templateList(1)
-    assert(templateStruct.isActive == true)
-    await expectRevert(factoryERC721.connect(user2).disableTokenTemplate(1),'Ownable: caller is not the owner')
-    templateStruct = await factoryERC721.templateList(1)
-    assert(templateStruct.isActive == true)
-    
+    let templateStruct = await factoryERC721.templateList(1);
+    assert(templateStruct.isActive == true);
+    await expectRevert(
+      factoryERC721.connect(user2).disableTokenTemplate(1),
+      "Ownable: caller is not the owner"
+    );
+    templateStruct = await factoryERC721.templateList(1);
+    assert(templateStruct.isActive == true);
   });
   it("should fail to create a specific ERC721 Template if the template is disabled", async () => {
-    await factoryERC721.disableTokenTemplate(1)
-    
-    await expectRevert(factoryERC721.createERC721Token(
-      "DT1",
-      "DTSYMBOL",
-      admin.address,
-      metadata.address,
-      blob,
-      blob,
-      1
-    ),'ERC721Token Template disabled')
-    templateStruct = await factoryERC721.templateList(1)
-    assert(templateStruct.isActive == false)
-    
+    await factoryERC721.disableTokenTemplate(1);
+
+    await expectRevert(
+      factoryERC721.createERC721Token(
+        "DT1",
+        "DTSYMBOL",
+        admin.address,
+        metadata.address,
+        blob,
+        blob,
+        1
+      ),
+      "ERC721Token Template disabled"
+    );
+    templateStruct = await factoryERC721.templateList(1);
+    assert(templateStruct.isActive == false);
   });
 
   it("should fail to create a specific ERC721 Template if the index doesn't exist", async () => {
-
-    
-    await expectRevert(factoryERC721.createERC721Token(
-      "DT1",
-      "DTSYMBOL",
-      admin.address,
-      metadata.address,
-      blob,
-      blob,
-      3
-    ),'Template index doesnt exist')
-  
-    
+    await expectRevert(
+      factoryERC721.createERC721Token(
+        "DT1",
+        "DTSYMBOL",
+        admin.address,
+        metadata.address,
+        blob,
+        blob,
+        3
+      ),
+      "Template index doesnt exist"
+    );
   });
-
 });
