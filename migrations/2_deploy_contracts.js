@@ -6,6 +6,7 @@ var DTFactory = artifacts.require('./DTFactory.sol')
 var BPool = artifacts.require('./BPool.sol')
 var BFactory = artifacts.require('./BFactory.sol')
 var Metadata = artifacts.require('./Metadata.sol')
+var Dispenser = artifacts.require('./Dispenser.sol')
 var FixedRateExchange = artifacts.require('./FixedRateExchange.sol')
 var OPFCommunityFeeCollector = artifacts.require('./OPFCommunityFeeCollector.sol')
 // dummy communityFeeCollector, replace with real wallet/owner
@@ -69,7 +70,10 @@ module.exports = function(deployer, network, accounts) {
             Metadata
         )
         addresses.Metadata = Metadata.address
-
+        await deployer.deploy(
+            Dispenser
+        )
+        addresses.Dispenser = Dispenser.address
         if (networkName === 'development' || networkName === 'ganache') {
             addresses.Ocean = DataTokenTemplate.address
         }
