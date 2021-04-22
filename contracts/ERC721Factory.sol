@@ -67,7 +67,7 @@ contract ERC721Factory is Deployer, Ownable {
             _collector != address(0) && _erc20Factory != address(0),
             'ERC721DTFactory: Invalid template token/community fee collector address'
         );
-        tokenTemplate = _template;
+        addTokenTemplate(_template);
         communityFeeCollector = _collector;
         erc20Factory = _erc20Factory;
     }
@@ -79,7 +79,8 @@ contract ERC721Factory is Deployer, Ownable {
         address admin,
         address metadata,
         bytes memory _data,
-        bytes memory flags
+        bytes memory flags,
+        uint256 _templateIndex
     )
         public
         returns (address token)
@@ -88,8 +89,12 @@ contract ERC721Factory is Deployer, Ownable {
             admin != address(0),
             'ERC721DTFactory: zero address admin not allowed'
         );
+        require(_templateIndex <= templateCount && _templateIndex != 0,'Template index doesnt exist');
+        Template memory tokenTemplate = templateList[_templateIndex];
 
-        token = deploy(tokenTemplate);
+        require(tokenTemplate.isActive == true, 'ERC721Token Template disabled');
+
+        token = deploy(tokenTemplate.templateAddress);
 
         require(
             token != address(0),
@@ -111,7 +116,7 @@ contract ERC721Factory is Deployer, Ownable {
             'DTFactory: Unable to initialize token instance'
         );
         
-        emit TokenCreated(token, tokenTemplate, name,admin);
+        emit TokenCreated(token, tokenTemplate.templateAddress, name,admin);
         // emit TokenRegistered(
         //     token,
         //     name,
@@ -140,7 +145,8 @@ contract ERC721Factory is Deployer, Ownable {
     }
 
 
-    function addTokenTemplate(address _templateAddress) external onlyOwner returns (uint){
+    function addTokenTemplate(address _templateAddress) public onlyOwner returns (uint){
+           require(_templateAddress != address(0), 'ERC721 template address(0) NOT ALLOWED');
            templateCount += 1;
            Template memory template = Template(_templateAddress,true);
            templateList[templateCount] = template;
@@ -151,10 +157,12 @@ contract ERC721Factory is Deployer, Ownable {
         Template storage template = templateList[_index];
         template.isActive = false;
     }
-
+    // if templateCount is public we could remove it, or set templateCount to private
     function getCurrentTemplateCount() external view returns (uint256) {
         return templateCount;
     }
+
+    // NEEDED FOR IMPERSONATING THIS CONTRACT(need eth to send txs). WILL BE REMOVED
     receive() external payable{
 
     }

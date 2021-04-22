@@ -138,7 +138,8 @@ contract ERC721Template is ERC721, AccessControl {
     function isInitialized() public view returns (bool) {
         return initialized;
     }
-
+    
+      // NEEDED FOR IMPERSONATING THIS CONTRACT(need eth to send txs). WILL BE REMOVED
     receive() external payable {
 
     }
