@@ -20,7 +20,7 @@ import "@openzeppelin/contracts/access/Ownable.sol";
  *      Proxy contract functionality is based on Ocean Protocol custom implementation of ERC1167 standard.
  */
 contract ERC20Factory is Deployer, Ownable {
-    address[] public tokenTemplate;
+   
     address private communityFeeCollector;
     uint256 private currentTokenCount = 1;
     bytes32 public constant MINTER_ROLE = keccak256("MINTER_ROLE");
@@ -91,30 +91,30 @@ contract ERC20Factory is Deployer, Ownable {
         address from,
         uint256 _templateIndex
     ) public returns (address token) {
-        require(_isContract(msg.sender), "NOT CONTRACT");
-        require(cap != 0, "DTFactory: zero cap is not allowed");
+    
+        require(cap != 0, "ERC20Factory: zero cap is not allowed");
         require(
             _templateIndex <= templateCount && _templateIndex != 0,
-            "Template index doesnt exist"
+            "ERC20Factory: Template index doesnt exist"
         );
         Template memory tokenTemplate = templateList[_templateIndex];
 
         require(
             tokenTemplate.isActive == true,
-            "ERC721Token Template disabled"
+            "ERC20Factory: ERC721Token Template disabled"
         );
 
         token = deploy(tokenTemplate.templateAddress);
 
         require(
             token != address(0),
-            "DTFactory: Failed to perform minimal deploy of a new token"
+            "ERC20Factory: Failed to perform minimal deploy of a new token"
         );
         IERC20Template tokenInstance = IERC20Template(token);
 
         require(
             erc721List[msg.sender] == msg.sender,
-            "ONLY ERC721 INSTANCE FROM ERC721FACTORY"
+            "ERC20Factory: ONLY ERC721 INSTANCE FROM ERC721FACTORY"
         );
 
         IERC721Template erc721Instance = IERC721Template(msg.sender);
@@ -128,7 +128,7 @@ contract ERC20Factory is Deployer, Ownable {
                 blob,
                 communityFeeCollector
             ),
-            "DTFactory: Unable to initialize token instance"
+            "ERC20Factory: Unable to initialize token instance"
         );
         emit TokenCreated(token, tokenTemplate.templateAddress, name);
         emit TokenRegistered(token, name, symbol, cap, from, blob);
@@ -159,7 +159,7 @@ contract ERC20Factory is Deployer, Ownable {
     {
         require(
             _templateAddress != address(0),
-            "ERC721 template address(0) NOT ALLOWED"
+            "ERC20Factory: ERC721 template address(0) NOT ALLOWED"
         );
         templateCount += 1;
         Template memory template = Template(_templateAddress, true);
@@ -177,16 +177,6 @@ contract ERC20Factory is Deployer, Ownable {
         return templateCount;
     }
 
-    /**
-     * @dev Internal function if address is contract
-     */
-    function _isContract(address address_) internal view returns (bool) {
-        uint256 size;
-        assembly {
-            size := extcodesize(address_)
-        }
-        return size > 0;
-    }
 
     function addToERC721Registry(address ERC721address)
         external

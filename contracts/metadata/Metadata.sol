@@ -15,6 +15,10 @@ import "../interfaces/IERC20Factory.sol";
  *      https://github.com/oceanprotocol/OEPs/blob/master/7/v0.2/README.md
  */
 contract Metadata {
+
+
+    address public erc20Factory;
+    
     event MetadataCreated(
         address indexed dataToken,
         address indexed createdBy,
@@ -29,9 +33,6 @@ contract Metadata {
     );
 
     modifier onlyDataTokenMinter(address dataToken) {
-        require(_isContract(dataToken), "NOT CONTRACT");
-
-        IERC721Template token = IERC721Template(dataToken);
         require(
             IERC20Factory(erc20Factory).erc721List(msg.sender) == msg.sender,
             "Metadata:NOT ORIGINAL TEMPLATE"
@@ -69,18 +70,7 @@ contract Metadata {
         emit MetadataUpdated(dataToken, msg.sender, flags, data);
     }
 
-    /**
-     * @dev Internal function if address is contract
-     */
-    function _isContract(address address_) internal view returns (bool) {
-        uint256 size;
-        assembly {
-            size := extcodesize(address_)
-        }
-        return size > 0;
-    }
 
-    address public erc20Factory;
 
     // MISSING ONLYOWNER OR SOME KIND OF RESTRICION, COULD BE REMOVED IF WE DON"T WANT TO UPDATE IT(HARDCODED IN THE CONTRACT)
     function setERC20Factory(address _erc20Factory) public {

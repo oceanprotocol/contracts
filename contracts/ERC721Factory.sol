@@ -20,7 +20,6 @@ import "@openzeppelin/contracts/access/Ownable.sol";
  *      Proxy contract functionality is based on Ocean Protocol custom implementation of ERC1167 standard.
  */
 contract ERC721Factory is Deployer, Ownable {
-    address private tokenTemplate;
     address private communityFeeCollector;
     uint256 private currentTokenCount = 1;
     address private erc20Factory;
@@ -86,13 +85,13 @@ contract ERC721Factory is Deployer, Ownable {
         );
         require(
             _templateIndex <= templateCount && _templateIndex != 0,
-            "Template index doesnt exist"
+            "ERC721DTFactory: Template index doesnt exist"
         );
         Template memory tokenTemplate = templateList[_templateIndex];
 
         require(
             tokenTemplate.isActive == true,
-            "ERC721Token Template disabled"
+            "ERC721DTFactory: ERC721Token Template disabled"
         );
 
         token = deploy(tokenTemplate.templateAddress);
@@ -101,7 +100,7 @@ contract ERC721Factory is Deployer, Ownable {
             token != address(0),
             "ERC721DTFactory: Failed to perform minimal deploy of a new token"
         );
-        IERC20Factory(erc20Factory).addToERC721Registry(token);
+       IERC20Factory(erc20Factory).addToERC721Registry(token);
 
         IERC721Template tokenInstance = IERC721Template(token);
         require(
@@ -114,7 +113,7 @@ contract ERC721Factory is Deployer, Ownable {
                 _data,
                 flags
             ),
-            "DTFactory: Unable to initialize token instance"
+            "ERC721DTFactory: Unable to initialize token instance"
         );
 
         emit TokenCreated(token, tokenTemplate.templateAddress, name, admin);
@@ -156,7 +155,7 @@ contract ERC721Factory is Deployer, Ownable {
     {
         require(
             _templateAddress != address(0),
-            "ERC721 template address(0) NOT ALLOWED"
+            "ERC721DTFactory: ERC721 template address(0) NOT ALLOWED"
         );
         templateCount += 1;
         Template memory template = Template(_templateAddress, true);

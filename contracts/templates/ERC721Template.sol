@@ -75,9 +75,9 @@ contract ERC721Template is ERC721, AccessControl {
     ) private returns (bool) {
         require(
             admin != address(0),
-            "DataTokenTemplate: Invalid minter,  zero address"
+            "ERC721Template:: Invalid minter,  zero address"
         );
-        require(metadata != address(0), "Metadata address cannot be zero");
+        require(metadata != address(0), "ERC721Template:: Metadata address cannot be zero");
         _metadata = metadata;
         _setupRole(DEFAULT_ADMIN_ROLE, admin);
         _setupRole(MINTER_ROLE, admin);
@@ -93,7 +93,7 @@ contract ERC721Template is ERC721, AccessControl {
     }
 
     function mint(address account) external {
-        require(hasRole(MINTER_ROLE, msg.sender), "NOT MINTER_ROLE");
+        require(hasRole(MINTER_ROLE, msg.sender), "ERC721Template NOT MINTER_ROLE");
         tokenId += 1;
         _mint(account, tokenId);
     }
@@ -104,7 +104,7 @@ contract ERC721Template is ERC721, AccessControl {
         require(
             IERC20Factory(_erc20Factory).erc721List(address(this)) ==
                 address(this),
-            "NOT ORIGINAL TEMPLATE"
+            "ERC721Template: NOT ORIGINAL TEMPLATE"
         );
         IMetadata(_metadata).create(address(this), flags, data);
     }
@@ -112,7 +112,7 @@ contract ERC721Template is ERC721, AccessControl {
     function updateMetadata(bytes calldata flags, bytes calldata data)
         external
     {
-        require(hasRole(METADATA_ROLE, msg.sender), "NOT METADATA_ROLE");
+        require(hasRole(METADATA_ROLE, msg.sender), "ERC721Template: NOT METADATA_ROLE");
         IMetadata(_metadata).update(address(this), flags, data);
     }
 
@@ -123,7 +123,7 @@ contract ERC721Template is ERC721, AccessControl {
         uint256 cap,
         uint256 templateIndex
     ) external returns (address) {
-        require(hasRole(MINTER_ROLE, msg.sender), "NOT MINTER_ROLE");
+        require(hasRole(MINTER_ROLE, msg.sender), "ERC721Template: NOT MINTER_ROLE");
 
         address token =
             IERC20Factory(_erc20Factory).createToken(

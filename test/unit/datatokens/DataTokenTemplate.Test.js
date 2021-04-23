@@ -8,7 +8,6 @@ const { impersonate } = require("../../helpers/impersonate");
 const constants = require("../../helpers/constants");
 const { web3 } = require("@openzeppelin/test-helpers/src/setup");
 const ethers = hre.ethers;
-//const console = require('node:console')
 
 describe("ERC721Template", () => {
   let name,
@@ -193,7 +192,6 @@ describe("ERC721Template", () => {
       "NOT MINTER_ROLE"
     );
   });
-  // STILL TO ADD ANOTHER TEST WHEN WE IMPERSONATE A CONTRACT
   it("should not allow to create a new ERC20Token directly from the ERC20Factory", async () => {
     await expectRevert(
       factoryERC20
@@ -206,7 +204,7 @@ describe("ERC721Template", () => {
           admin.address,
           1
         ),
-      "NOT CONTRACT"
+      "ERC20Factory: ONLY ERC721 INSTANCE FROM ERC721FACTORY"
     );
   });
 
@@ -382,7 +380,7 @@ describe("ERC721Template", () => {
         web3.utils.toWei("10"),
         0
       ),
-      "Template index doesnt exist"
+      "ERC20Factory: Template index doesnt exist"
     );
   });
 
