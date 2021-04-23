@@ -15,10 +15,8 @@ import "../interfaces/IERC20Factory.sol";
  *      https://github.com/oceanprotocol/OEPs/blob/master/7/v0.2/README.md
  */
 contract Metadata {
-
-
     address public erc20Factory;
-    
+
     event MetadataCreated(
         address indexed dataToken,
         address indexed createdBy,
@@ -69,8 +67,6 @@ contract Metadata {
     ) external onlyDataTokenMinter(dataToken) {
         emit MetadataUpdated(dataToken, msg.sender, flags, data);
     }
-
-
 
     // MISSING ONLYOWNER OR SOME KIND OF RESTRICION, COULD BE REMOVED IF WE DON"T WANT TO UPDATE IT(HARDCODED IN THE CONTRACT)
     function setERC20Factory(address _erc20Factory) public {

@@ -20,7 +20,6 @@ import "@openzeppelin/contracts/access/Ownable.sol";
  *      Proxy contract functionality is based on Ocean Protocol custom implementation of ERC1167 standard.
  */
 contract ERC20Factory is Deployer, Ownable {
-   
     address private communityFeeCollector;
     uint256 private currentTokenCount = 1;
     bytes32 public constant MINTER_ROLE = keccak256("MINTER_ROLE");
@@ -53,8 +52,7 @@ contract ERC20Factory is Deployer, Ownable {
         string tokenName,
         string tokenSymbol,
         uint256 tokenCap,
-        address indexed registeredBy,
-        string indexed blob
+        address indexed registeredBy
     );
 
     /**
@@ -77,21 +75,19 @@ contract ERC20Factory is Deployer, Ownable {
     /**
      * @dev Deploys new DataToken proxy contract.
      *      Template contract address could not be a zero address.
-     * @param blob any string that hold data/metadata for the new token
+
      * @param name token name
      * @param symbol token symbol
      * @param cap the maximum total supply
      * @return token address of a new proxy DataToken contract
      */
     function createToken(
-        string memory blob,
         string memory name,
         string memory symbol,
         uint256 cap,
         address from,
         uint256 _templateIndex
     ) public returns (address token) {
-    
         require(cap != 0, "ERC20Factory: zero cap is not allowed");
         require(
             _templateIndex <= templateCount && _templateIndex != 0,
@@ -117,21 +113,18 @@ contract ERC20Factory is Deployer, Ownable {
             "ERC20Factory: ONLY ERC721 INSTANCE FROM ERC721FACTORY"
         );
 
-        IERC721Template erc721Instance = IERC721Template(msg.sender);
-
         require(
             tokenInstance.initialize(
                 name,
                 symbol,
                 from,
                 cap,
-                blob,
                 communityFeeCollector
             ),
             "ERC20Factory: Unable to initialize token instance"
         );
         emit TokenCreated(token, tokenTemplate.templateAddress, name);
-        emit TokenRegistered(token, name, symbol, cap, from, blob);
+        emit TokenRegistered(token, name, symbol, cap, from);
         currentTokenCount += 1;
     }
 
@@ -176,7 +169,6 @@ contract ERC20Factory is Deployer, Ownable {
     function getCurrentTemplateCount() external view returns (uint256) {
         return templateCount;
     }
-
 
     function addToERC721Registry(address ERC721address)
         external

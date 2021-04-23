@@ -6,9 +6,6 @@ interface IERC20Template {
         string calldata symbol,
         address minterAddress,
         uint256 capERC20,
-        string calldata blob,
         address collector
     ) external returns (bool);
-
-   
 }

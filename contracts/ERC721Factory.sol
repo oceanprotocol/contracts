@@ -100,7 +100,7 @@ contract ERC721Factory is Deployer, Ownable {
             token != address(0),
             "ERC721DTFactory: Failed to perform minimal deploy of a new token"
         );
-       IERC20Factory(erc20Factory).addToERC721Registry(token);
+        IERC20Factory(erc20Factory).addToERC721Registry(token);
 
         IERC721Template tokenInstance = IERC721Template(token);
         require(

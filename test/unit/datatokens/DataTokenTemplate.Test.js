@@ -20,7 +20,8 @@ describe("ERC721Template", () => {
     token,
     tokenAddress,
     minter,
-    blob;
+    data,
+    flags;
 
   const communityFeeCollector = "0xeE9300b7961e0a01d9f0adb863C7A227A07AaD75";
   beforeEach("init contracts for each test", async () => {
@@ -36,7 +37,8 @@ describe("ERC721Template", () => {
     [admin, reciever, user2] = await ethers.getSigners();
 
     // cap = new BigNumber('1400000000')
-    blob = web3.utils.asciiToHex(constants.blob[0]);
+    data = web3.utils.asciiToHex(constants.blob[0]);
+    flags = web3.utils.asciiToHex(constants.blob[0]);
     metadata = await Metadata.deploy();
     //console.log(metadata.address)
 
@@ -45,7 +47,6 @@ describe("ERC721Template", () => {
       "TEMPLATE20",
       user2.address,
       web3.utils.toWei("22"),
-      blob,
       communityFeeCollector
     );
     factoryERC20 = await ERC20Factory.deploy(
@@ -58,8 +59,8 @@ describe("ERC721Template", () => {
       admin.address,
       metadata.address,
       factoryERC20.address,
-      blob,
-      blob
+      data,
+      flags
     );
     factoryERC721 = await ERC721Factory.deploy(
       templateERC721.address,
@@ -74,8 +75,8 @@ describe("ERC721Template", () => {
       "DTSYMBOL",
       admin.address,
       metadata.address,
-      blob,
-      blob,
+      data,
+      flags,
       1
     );
     const txReceipt = await tx.wait();
@@ -101,8 +102,8 @@ describe("ERC721Template", () => {
         "NN",
         metadata.address,
         factoryERC20.address,
-        blob,
-        blob
+        data,
+        flags
       ),
       "ERC721Template: token instance already initialized"
     );
@@ -130,18 +131,18 @@ describe("ERC721Template", () => {
 
   it("should not be able to call create directly in Metadata", async () => {
     await expectRevert(
-      metadata.create(tokenAddress, blob, blob),
+      metadata.create(tokenAddress, data, flags),
       "Metadata:NOT ORIGINAL TEMPLATE"
     );
   });
 
   it("should update the metadata", async () => {
-    await token.updateMetadata(blob, blob);
+    await token.updateMetadata(data, flags);
   });
 
   it("should not be able to call update directly in Metadata", async () => {
     await expectRevert(
-      metadata.update(tokenAddress, blob, blob),
+      metadata.update(tokenAddress, data, flags),
       "Metadata:NOT ORIGINAL TEMPLATE"
     );
   });
@@ -156,21 +157,20 @@ describe("ERC721Template", () => {
     const signer = await ethers.provider.getSigner(templateERC721.address);
 
     await expectRevert(
-      metadata.connect(signer).update(templateERC721.address, blob, blob),
+      metadata.connect(signer).update(templateERC721.address, data, flags),
       "Metadata:NOT ORIGINAL TEMPLATE"
     );
   });
 
   it("should not be allowed to update the metadata if not METADATA_ROLE", async () => {
     await expectRevert(
-      token.connect(user2).updateMetadata(blob, blob),
+      token.connect(user2).updateMetadata(data, flags),
       "NOT METADATA_ROLE"
     );
   });
 
   it("should create a new ERC20Token", async () => {
     await token.createERC20(
-      blob,
       "ERC20DT1",
       "ERC20DT1Symbol",
       web3.utils.toWei("10"),
@@ -182,13 +182,7 @@ describe("ERC721Template", () => {
     await expectRevert(
       token
         .connect(user2)
-        .createERC20(
-          blob,
-          "ERC20DT1",
-          "ERC20DT1Symbol",
-          web3.utils.toWei("10"),
-          1
-        ),
+        .createERC20("ERC20DT1", "ERC20DT1Symbol", web3.utils.toWei("10"), 1),
       "NOT MINTER_ROLE"
     );
   });
@@ -197,7 +191,6 @@ describe("ERC721Template", () => {
       factoryERC20
         .connect(user2)
         .createToken(
-          blob,
           "ERC20DT1",
           "ERC20DT1Symbol",
           web3.utils.toWei("10"),
@@ -224,7 +217,6 @@ describe("ERC721Template", () => {
       factoryERC20
         .connect(signer)
         .createToken(
-          blob,
           "ERC20DT1",
           "ERC20DT1Symbol",
           web3.utils.toWei("10"),
@@ -254,7 +246,6 @@ describe("ERC721Template", () => {
       factoryERC20
         .connect(signer)
         .createToken(
-          blob,
           "ERC20DT1",
           "ERC20DT1Symbol",
           web3.utils.toWei("10"),
@@ -267,7 +258,6 @@ describe("ERC721Template", () => {
 
   it("should mint new ERC20Tokens from minter", async () => {
     const trxERC20 = await token.createERC20(
-      blob,
       "ERC20DT1",
       "ERC20DT1Symbol",
       web3.utils.toWei("10"),
@@ -286,7 +276,6 @@ describe("ERC721Template", () => {
 
   it("should not allow to mint new ERC20Tokens if not ERC721 minter", async () => {
     const trxERC20 = await token.createERC20(
-      blob,
       "ERC20DT1",
       "ERC20DT1Symbol",
       web3.utils.toWei("10"),
@@ -306,7 +295,6 @@ describe("ERC721Template", () => {
 
   it("should allow to create multiple ERC20Token", async () => {
     await token.createERC20(
-      blob,
       "ERC20DT1",
       "ERC20DT1Symbol",
       web3.utils.toWei("10"),
@@ -314,7 +302,6 @@ describe("ERC721Template", () => {
     );
 
     await token.createERC20(
-      blob,
       "ERC20DT2",
       "ERC20DT2Symbol",
       web3.utils.toWei("10"),
@@ -359,7 +346,6 @@ describe("ERC721Template", () => {
 
     await expectRevert(
       token.createERC20(
-        blob,
         "ERC20DT1",
         "ERC20DT1Symbol",
         web3.utils.toWei("10"),
@@ -374,7 +360,6 @@ describe("ERC721Template", () => {
   it("should fail to create a specific ERC20 Template if the index is ZERO", async () => {
     await expectRevert(
       token.createERC20(
-        blob,
         "ERC20DT1",
         "ERC20DT1Symbol",
         web3.utils.toWei("10"),
@@ -387,7 +372,6 @@ describe("ERC721Template", () => {
   it("should fail to create a specific ERC20 Template if the index doesn't exist", async () => {
     await expectRevert(
       token.createERC20(
-        blob,
         "ERC20DT1",
         "ERC20DT1Symbol",
         web3.utils.toWei("10"),
@@ -438,8 +422,8 @@ describe("ERC721Template", () => {
         "DTSYMBOL",
         admin.address,
         metadata.address,
-        blob,
-        blob,
+        data,
+        flags,
         1
       ),
       "ERC721Token Template disabled"
@@ -455,8 +439,8 @@ describe("ERC721Template", () => {
         "DTSYMBOL",
         admin.address,
         metadata.address,
-        blob,
-        blob,
+        data,
+        flags,
         3
       ),
       "Template index doesnt exist"
