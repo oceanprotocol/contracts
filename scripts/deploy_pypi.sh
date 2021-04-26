@@ -4,7 +4,7 @@ pip install --upgrade --user travis pip
 pip install --upgrade --user travis twine six==1.10.0 wheel==0.31.0 setuptools
 pip list
 shopt -s nullglob
-mkdir -p ocean_contracts/artifacts
+mkdir ocean_contracts/
 touch ocean_contracts/__init__.py
 mv ./artifacts ocean_contracts/artifacts
 abifiles=( ./ocean_contracts/artifacts/* )
