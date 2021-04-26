@@ -6,10 +6,8 @@ pip list
 shopt -s nullglob
 mkdir -p ocean_contracts/artifacts
 touch ocean_contracts/__init__.py
-cp ./artifacts/* ocean_contracts/artifacts/
-mv ./artifacts/__init__.py __init__.cached
+mv ./artifacts ocean_contracts/artifacts
 abifiles=( ./ocean_contracts/artifacts/* )
 [ "${#abifiles[@]}" -lt "1" ] && echo "ABI Files for development environment not found" && exit 1
 python setup.py sdist bdist_wheel
 twine upload dist/*
-mv __init__.cached ./artifacts/__init__.py
