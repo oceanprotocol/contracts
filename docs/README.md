@@ -1,7 +1,7 @@
 # Ocean-Contracts Core Documentation
 
 ## Deployments
-- [Here are addresses](../artifacts/address.json) of contracts deployed to Ethereum mainnet and more.
+- [Here are addresses](../ocean_abis/address.json) of contracts deployed to Ethereum mainnet and more.
 
 ## Contracts
 - [DataTokenFactory](contracts/DTFactory.md)

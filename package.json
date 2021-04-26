@@ -24,7 +24,7 @@
     "doc:generate": "npx solidity-docgen --solc-module ./node_modules/solc -o docs/contracts",
     "release": "release-it --non-interactive",
     "changelog": "auto-changelog -p",
-    "export:artifacts": "npm run clean && npm run compile && cp ./build/contracts/*.json ./artifacts",
+    "export:artifacts": "npm run clean && npm run compile && cp ./build/contracts/*.json ./ocean_abis",
     "deploy": "npm run deploy:development",
     "deploy:ganache": "npm run deploy:development",
     "deploy:development": "npm run clean && npm run compile && export NETWORK='development' && truffle migrate && npm run export:artifacts",
@@ -38,7 +38,7 @@
   },
   "files": [
     "docs/**/*",
-    "artifacts/*",
+    "ocean_abis/*",
     "README.md"
   ],
   "repository": {

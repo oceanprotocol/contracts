@@ -8,13 +8,13 @@ echo "deploy contracts is ${DEPLOY_CONTRACTS}"
 if [ "${DEPLOY_CONTRACTS}" = "true" ]
 then
     # remove ready flag if we deploy contracts
-    rm -f /ocean-contracts/artifacts/ready
+    rm -f /ocean-contracts/ocean_abis/ready
 
     export NETWORK="${NETWORK_NAME:-development}"
     npm run deploy:${NETWORK}
 
     # set flag to indicate contracts are ready
-    touch /ocean-contracts/artifacts/ready
+    touch /ocean-contracts/ocean_abis/ready
 fi
 
 # Fix file permissions
