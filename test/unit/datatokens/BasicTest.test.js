@@ -201,7 +201,6 @@ describe("ERC721Template", () => {
           "ERC20DT1",
           "ERC20DT1Symbol",
           web3.utils.toWei("10"),
-          owner.address,
           1
         ),
       "ERC20Factory: ONLY ERC721 INSTANCE FROM ERC721FACTORY"
@@ -227,7 +226,6 @@ describe("ERC721Template", () => {
           "ERC20DT1",
           "ERC20DT1Symbol",
           web3.utils.toWei("10"),
-          owner.address,
           1
         ),
       "ONLY ERC721 INSTANCE"
@@ -255,7 +253,6 @@ describe("ERC721Template", () => {
           "ERC20DT1",
           "ERC20DT1Symbol",
           web3.utils.toWei("10"),
-          owner.address,
           1
         ),
       "ONLY ERC721 INSTANCE"

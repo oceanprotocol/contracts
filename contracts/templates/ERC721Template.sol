@@ -151,7 +151,6 @@ contract ERC721Template is ERC721 {
                 name,
                 symbol,
                 cap,
-                address(this),
                 templateIndex
             ); 
 

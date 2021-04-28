@@ -49,7 +49,6 @@ interface IERC20Factory {
         string calldata nameERC20,
         string calldata symbolERC20,
         uint256 capERC20,
-        address from,
         uint256 templateIndex
     ) external returns (address token);
 

@@ -105,7 +105,7 @@ contract ERC20Template is ERC20("test", "testSymbol") {
      *      Calls private _initialize function. Only if contract is not initialized.
      * @param name refers to a new DataToken name
      * @param symbol refers to a nea DataToken symbol
-     * @param erc721Address refers to the erc721 address (used for onlyNFTOwner modifier)
+     * @param erc721Address refers to the erc721 address (used for onlyNFTOwner modifier) 
      * @param cap the total ERC20 cap
      * @param feeCollector it is the community fee collector address
      */
