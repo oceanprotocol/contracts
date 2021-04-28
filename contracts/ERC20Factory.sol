@@ -85,7 +85,7 @@ contract ERC20Factory is Deployer, Ownable {
         string memory name,
         string memory symbol,
         uint256 cap,
-        address from,
+        address erc721address,
         uint256 _templateIndex
     ) public returns (address token) {
         require(cap != 0, "ERC20Factory: zero cap is not allowed");
@@ -117,14 +117,14 @@ contract ERC20Factory is Deployer, Ownable {
             tokenInstance.initialize(
                 name,
                 symbol,
-                from,
+                erc721address,
                 cap,
                 communityFeeCollector
             ),
             "ERC20Factory: Unable to initialize token instance"
         );
         emit TokenCreated(token, tokenTemplate.templateAddress, name);
-        emit TokenRegistered(token, name, symbol, cap, from);
+        emit TokenRegistered(token, name, symbol, cap, erc721address);
         currentTokenCount += 1;
     }
 
@@ -154,6 +154,7 @@ contract ERC20Factory is Deployer, Ownable {
             _templateAddress != address(0),
             "ERC20Factory: ERC721 template address(0) NOT ALLOWED"
         );
+        require(isContract(_templateAddress),'ERC20Factory: NOT CONTRACT');
         templateCount += 1;
         Template memory template = Template(_templateAddress, true);
         templateList[templateCount] = template;
@@ -177,6 +178,33 @@ contract ERC20Factory is Deployer, Ownable {
         erc721List[ERC721address] = ERC721address;
     }
 
+      /**
+     * @dev Returns true if `account` is a contract.
+     *
+     * [IMPORTANT]
+     * ====
+     * It is unsafe to assume that an address for which this function returns
+     * false is an externally-owned account (EOA) and not a contract.
+     *
+     * Among others, `isContract` will return false for the following
+     * types of addresses:
+     *
+     *  - an externally-owned account
+     *  - a contract in construction
+     *  - an address where a contract will be created
+     *  - an address where a contract lived, but was destroyed
+     * ====
+     */
+    function isContract(address account) internal view returns (bool) {
+        // This method relies on extcodesize, which returns 0 for contracts in
+        // construction, since the code is only stored at the end of the
+        // constructor execution.
+
+        uint256 size;
+        // solhint-disable-next-line no-inline-assembly
+        assembly { size := extcodesize(account) }
+        return size > 0;
+    }
     // MISSING ONLYOWNER OR SOME KIND OF RESTRICION, COULD BE REMOVED IF WE DON"T WANT TO UPDATE IT(HARDCODED IN THE CONTRACT)
     function setERC721Factory(address _erc721FactoryAddress) public {
         erc721Factory = _erc721FactoryAddress;

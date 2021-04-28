@@ -70,19 +70,18 @@ contract ERC721Factory is Deployer, Ownable {
         erc20Factory = _erc20Factory;
     }
 
-    function createERC721Token(
+    function deployERC721Contract(
         string memory name,
         string memory symbol,
-        address admin,
-        address metadata,
+        address metadata, // hardcoded in the future
         bytes memory _data,
-        bytes memory flags,
+        bytes memory _flags,
         uint256 _templateIndex
     ) public returns (address token) {
-        require(
-            admin != address(0),
-            "ERC721DTFactory: zero address admin not allowed"
-        );
+        // require(
+        //     admin != address(0),
+        //     "ERC721DTFactory: zero address admin not allowed"
+        // );
         require(
             _templateIndex <= templateCount && _templateIndex != 0,
             "ERC721DTFactory: Template index doesnt exist"
@@ -105,18 +104,18 @@ contract ERC721Factory is Deployer, Ownable {
         IERC721Template tokenInstance = IERC721Template(token);
         require(
             tokenInstance.initialize(
-                admin,
+                msg.sender,
                 name,
                 symbol,
                 metadata,
                 erc20Factory,
                 _data,
-                flags
+                _flags
             ),
             "ERC721DTFactory: Unable to initialize token instance"
         );
 
-        emit TokenCreated(token, tokenTemplate.templateAddress, name, admin);
+        emit TokenCreated(token, tokenTemplate.templateAddress, name, msg.sender);
         // emit TokenRegistered(
         //     token,
         //     name,
@@ -147,7 +146,7 @@ contract ERC721Factory is Deployer, Ownable {
         Template memory template = templateList[_index];
         return template;
     }
-
+    // when we add a new token template is going to be activated by default (we could restrict that or give an option to choose)
     function addTokenTemplate(address _templateAddress)
         public
         onlyOwner
@@ -157,13 +156,28 @@ contract ERC721Factory is Deployer, Ownable {
             _templateAddress != address(0),
             "ERC721DTFactory: ERC721 template address(0) NOT ALLOWED"
         );
+        require(isContract(_templateAddress),'ERC721Factory: NOT CONTRACT');
         templateCount += 1;
         Template memory template = Template(_templateAddress, true);
         templateList[templateCount] = template;
         return templateCount;
     }
 
+    // function to activate a disabled token.
+    function reactivateTokenTemplate(uint256 _index) external onlyOwner {
+        require(
+            _index <= templateCount && _index != 0,
+            "ERC721DTFactory: Template index doesnt exist"
+        );
+        Template storage template = templateList[_index];
+        template.isActive = true;
+    }
+
     function disableTokenTemplate(uint256 _index) external onlyOwner {
+        require(
+            _index <= templateCount && _index != 0,
+            "ERC721DTFactory: Template index doesnt exist"
+        );
         Template storage template = templateList[_index];
         template.isActive = false;
     }
@@ -172,6 +186,35 @@ contract ERC721Factory is Deployer, Ownable {
     function getCurrentTemplateCount() external view returns (uint256) {
         return templateCount;
     }
+
+      /**
+     * @dev Returns true if `account` is a contract.
+     *
+     * [IMPORTANT]
+     * ====
+     * It is unsafe to assume that an address for which this function returns
+     * false is an externally-owned account (EOA) and not a contract.
+     *
+     * Among others, `isContract` will return false for the following
+     * types of addresses:
+     *
+     *  - an externally-owned account
+     *  - a contract in construction
+     *  - an address where a contract will be created
+     *  - an address where a contract lived, but was destroyed
+     * ====
+     */
+    function isContract(address account) internal view returns (bool) {
+        // This method relies on extcodesize, which returns 0 for contracts in
+        // construction, since the code is only stored at the end of the
+        // constructor execution.
+
+        uint256 size;
+        // solhint-disable-next-line no-inline-assembly
+        assembly { size := extcodesize(account) }
+        return size > 0;
+    }
+
 
     // NEEDED FOR IMPERSONATING THIS CONTRACT(need eth to send txs). WILL BE REMOVED
     receive() external payable {}

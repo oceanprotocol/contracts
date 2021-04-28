@@ -1,13 +1,14 @@
 pragma solidity >=0.6.0;
 
-import "@openzeppelin/contracts/token/ERC721/ERC721.sol";
-import "@openzeppelin/contracts/access/AccessControl.sol";
+//import "@openzeppelin/contracts/token/ERC721/ERC721.sol";
+import "../FlattenERC721.sol";
+//import "@openzeppelin/contracts/access/AccessControl.sol";
 import "../interfaces/IMetadata.sol";
 import "../interfaces/IERC20Factory.sol";
 
-contract ERC721Template is ERC721, AccessControl {
+contract ERC721Template is ERC721 {
     address private paymentCollector;
-    address private ipHolder;
+   // address private ipHolder;
     bytes32 public constant MINTER_ROLE = keccak256("MINTER_ROLE");
     bytes32 public constant METADATA_ROLE = keccak256("METADATA_ROLE");
 
@@ -28,80 +29,89 @@ contract ERC721Template is ERC721, AccessControl {
         _;
     }
 
+    modifier onlyNFTOwner() {
+        require(
+            msg.sender == ownerOf(1),
+            "ERC721Template: not NFTOwner"
+        );
+        _;
+    }
+
     constructor(
         string memory name,
         string memory symbol,
-        address admin,
+        address owner,
         address metadata,
-        address erc20Factory,
-        bytes memory _data,
-        bytes memory flags
+        address erc20Factory
     ) public ERC721(name, symbol) {
-        _setupRole(DEFAULT_ADMIN_ROLE, admin);
-        _setupRole(MINTER_ROLE, admin);
+        //  _setupRole(DEFAULT_ADMIN_ROLE, admin);
+         // _setupRole(MINTER_ROLE, admin);
         //  _metadata = metadata;
         // _initialize(admin, name, symbol,metadata,erc20Factory,_data,flags);
     }
 
     function initialize(
-        address admin,
+        address owner,
         string calldata name,
         string calldata symbol,
         address metadata,
         address erc20Factory,
         bytes calldata _data,
-        bytes calldata flags
+        bytes calldata _flags
     ) external onlyNotInitialized returns (bool) {
         return
             _initialize(
-                admin,
+                owner,
                 name,
                 symbol,
                 metadata,
                 erc20Factory,
                 _data,
-                flags
+                _flags
             );
     }
 
     function _initialize(
-        address admin,
+        address owner,
         string memory name,
         string memory symbol,
         address metadata,
         address erc20Factory,
         bytes memory _data,
-        bytes memory flags
+        bytes memory _flags
     ) private returns (bool) {
         require(
-            admin != address(0),
+            owner != address(0),
             "ERC721Template:: Invalid minter,  zero address"
         );
         require(
             metadata != address(0),
             "ERC721Template:: Metadata address cannot be zero"
         );
+        
         _metadata = metadata;
-        _setupRole(DEFAULT_ADMIN_ROLE, admin);
-        _setupRole(MINTER_ROLE, admin);
-        _setupRole(METADATA_ROLE, admin);
-        paymentCollector = admin;
-        ipHolder = admin;
+        // _setupRole(DEFAULT_ADMIN_ROLE, admin);
+        // _setupRole(MINTER_ROLE, admin);
+        // _setupRole(METADATA_ROLE, admin);
+        paymentCollector = owner;
+      //  ipHolder = admin;
         _name = name;
         _symbol = symbol;
         _erc20Factory = erc20Factory;
         initialized = true;
-        _createMetadata(flags, _data);
+        _createMetadata(_flags, _data);
+        _safeMint(owner, 1);
         return initialized;
     }
 
+    // FOR TEST PURPOSE
     function mint(address account) external {
-        require(
-            hasRole(MINTER_ROLE, msg.sender),
-            "ERC721Template NOT MINTER_ROLE"
-        );
-        tokenId += 1;
-        _mint(account, tokenId);
+        // require(
+        //     hasRole(MINTER_ROLE, msg.sender),
+        //     "ERC721Template NOT MINTER_ROLE"
+        // );
+       // tokenId += 1;
+        _safeMint(account, 2);
     }
 
     function _createMetadata(bytes memory flags, bytes memory data) internal {
@@ -116,12 +126,12 @@ contract ERC721Template is ERC721, AccessControl {
     }
 
     function updateMetadata(bytes calldata flags, bytes calldata data)
-        external
+        external onlyNFTOwner
     {
-        require(
-            hasRole(METADATA_ROLE, msg.sender),
-            "ERC721Template: NOT METADATA_ROLE"
-        );
+        // require(
+        //     hasRole(METADATA_ROLE, msg.sender),
+        //     "ERC721Template: NOT METADATA_ROLE"
+        // );
         IMetadata(_metadata).update(address(this), flags, data);
     }
 
@@ -130,20 +140,20 @@ contract ERC721Template is ERC721, AccessControl {
         string calldata symbol,
         uint256 cap,
         uint256 templateIndex
-    ) external returns (address) {
-        require(
-            hasRole(MINTER_ROLE, msg.sender),
-            "ERC721Template: NOT MINTER_ROLE"
-        );
+    ) external onlyNFTOwner returns (address) {
+        // require(
+        //     hasRole(MINTER_ROLE, msg.sender),
+        //     "ERC721Template: NOT MINTER_ROLE"
+        // );
 
         address token =
             IERC20Factory(_erc20Factory).createToken(
                 name,
                 symbol,
                 cap,
-                msg.sender,
+                address(this),
                 templateIndex
-            ); // already checked when creating a new ERC20 in ERC20Factory, could be removerd
+            ); 
 
         //FOR TEST PURPOSE BUT COULD BE COMPLETED OR REMOVED
         emit ERC20Created(token);

@@ -4,6 +4,7 @@ pragma solidity >=0.6.0;
 // Code is Apache-2.0 and docs are CC-BY-4.0
 
 import "../interfaces/IERC20Template.sol";
+import "../interfaces/IERC721Template.sol";
 import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
 
 /**
@@ -22,6 +23,7 @@ contract ERC20Template is ERC20("test", "testSymbol") {
     uint8 private constant _decimals = 18;
     address private _communityFeeCollector;
     bool private initialized = false;
+    address private _erc721Address;
     address private _minter;
     address private _proposedMinter;
     uint256 public constant BASE = 10**18;
@@ -55,6 +57,13 @@ contract ERC20Template is ERC20("test", "testSymbol") {
         require(
             !initialized,
             "DataTokenTemplate: token instance already initialized"
+        );
+        _;
+    }
+     modifier onlyNFTOwner() {
+        require(
+            msg.sender == IERC721Template(_erc721Address).ownerOf(1),
+            "ERC20Template: not NFTOwner"
         );
         _;
     }
@@ -96,18 +105,18 @@ contract ERC20Template is ERC20("test", "testSymbol") {
      *      Calls private _initialize function. Only if contract is not initialized.
      * @param name refers to a new DataToken name
      * @param symbol refers to a nea DataToken symbol
-     * @param minterAddress refers to an address that has minter rights
+     * @param erc721Address refers to the erc721 address (used for onlyNFTOwner modifier)
      * @param cap the total ERC20 cap
      * @param feeCollector it is the community fee collector address
      */
     function initialize(
         string calldata name,
         string calldata symbol,
-        address minterAddress,
+        address erc721Address,
         uint256 cap,
         address feeCollector
     ) external onlyNotInitialized returns (bool) {
-        return _initialize(name, symbol, minterAddress, cap, feeCollector);
+        return _initialize(name, symbol, erc721Address, cap, feeCollector);
     }
 
     /**
@@ -115,19 +124,19 @@ contract ERC20Template is ERC20("test", "testSymbol") {
      *      Private function called on contract initialization.
      * @param name refers to a new DataToken name
      * @param symbol refers to a nea DataToken symbol
-     * @param minterAddress refers to an address that has minter rights
+     * @param erc721Address refers to an address that has minter rights
      * @param cap the total ERC20 cap
      * @param feeCollector it is the community fee collector address
      */
     function _initialize(
         string memory name,
         string memory symbol,
-        address minterAddress,
+        address erc721Address,
         uint256 cap,
         address feeCollector
     ) private returns (bool) {
         require(
-            minterAddress != address(0),
+            erc721Address != address(0),
             "DataTokenTemplate: Invalid minter,  zero address"
         );
 
@@ -145,7 +154,7 @@ contract ERC20Template is ERC20("test", "testSymbol") {
         _cap = cap;
         _name = name;
         _symbol = symbol;
-        _minter = minterAddress;
+        _erc721Address = erc721Address;
         _communityFeeCollector = feeCollector;
         initialized = true;
         return initialized;
@@ -158,7 +167,7 @@ contract ERC20Template is ERC20("test", "testSymbol") {
      * @param account refers to an address that token is going to be minted to.
      * @param value refers to amount of tokens that is going to be minted.
      */
-    function mint(address account, uint256 value) external onlyMinter {
+    function mint(address account, uint256 value) external onlyNFTOwner {
         require(
             totalSupply().add(value) <= _cap,
             "DataTokenTemplate: cap exceeded"
