@@ -16,6 +16,7 @@ Overview:
 **Table of Contents**
 
 - [🏗 Installation](#-installation)
+- [⚙️ Usage](#-usage)
 - [🏄 Quickstart](#-quickstart)
 - [🛳 Network Deployments](#-network-deployments)
 - [🦑 Local Development](#-local-development)
@@ -28,8 +29,25 @@ Overview:
 
 For quick installation of the contract `ABIs`:
 
+### Javascript/Typescript
 ```bash
 yarn add @oceanprotocol/contracts
+```
+### Python
+```bash
+pip3 install ocean-contracts
+```
+## ⚙️ Usage
+By default, Python does not support importing `json` files directly, so it is recommended to use `json-sempai` package in order to automatically importing `ABIs/json` artifacts.
+```
+pip3 install json-sempai
+# install the ocean-contracts package.
+```
+```python
+from jsonsempai import magic
+from ocean_abis import address
+address.mainnet
+{'DTFactory': '0x57317f97E9EA49eBd19f7c9bB7c180b8cDcbDeB9', 'BFactory': '0xbe0083053744ECb871510C88dC0f6b77Da162706', 'FixedRateExchange': '0x608d05214E42722B94a54cF6114d4840FCfF84e1', 'Metadata': '0x1a4b70d8c9DcA47cD6D0Fb3c52BB8634CA1C0Fdf', 'Ocean': '0x967da4048cD07aB37855c090aAF366e4ce1b9F48'}
 ```
 
 ## 🏄 Quickstart
