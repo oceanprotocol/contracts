@@ -37,6 +37,6 @@ setup(
     test_suite='tests',
     tests_require=test_requirements,
     url='https://github.com/oceanprotocol/ocean-contracts',
-    version='0.5.19',
+    version='0.5.20',
     zip_safe=False,
 )
