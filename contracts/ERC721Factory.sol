@@ -78,10 +78,7 @@ contract ERC721Factory is Deployer, Ownable {
         bytes memory _flags,
         uint256 _templateIndex
     ) public returns (address token) {
-        // require(
-        //     admin != address(0),
-        //     "ERC721DTFactory: zero address admin not allowed"
-        // );
+   
         require(
             _templateIndex <= templateCount && _templateIndex != 0,
             "ERC721DTFactory: Template index doesnt exist"

@@ -5,10 +5,12 @@ import "../FlattenERC721.sol";
 //import "@openzeppelin/contracts/access/AccessControl.sol";
 import "../interfaces/IMetadata.sol";
 import "../interfaces/IERC20Factory.sol";
+import "../utils/ERC721Roles.sol";
+import "hardhat/console.sol";
 
-contract ERC721Template is ERC721 {
+contract ERC721Template is ERC721, ERC721Roles {
     address private paymentCollector;
-   // address private ipHolder;
+    // address private ipHolder;
     bytes32 public constant MINTER_ROLE = keccak256("MINTER_ROLE");
     bytes32 public constant METADATA_ROLE = keccak256("METADATA_ROLE");
 
@@ -30,10 +32,7 @@ contract ERC721Template is ERC721 {
     }
 
     modifier onlyNFTOwner() {
-        require(
-            msg.sender == ownerOf(1),
-            "ERC721Template: not NFTOwner"
-        );
+        require(msg.sender == ownerOf(1), "ERC721Template: not NFTOwner");
         _;
     }
 
@@ -43,12 +42,7 @@ contract ERC721Template is ERC721 {
         address owner,
         address metadata,
         address erc20Factory
-    ) public ERC721(name, symbol) {
-        //  _setupRole(DEFAULT_ADMIN_ROLE, admin);
-         // _setupRole(MINTER_ROLE, admin);
-        //  _metadata = metadata;
-        // _initialize(admin, name, symbol,metadata,erc20Factory,_data,flags);
-    }
+    ) public ERC721(name, symbol) {}
 
     function initialize(
         address owner,
@@ -88,30 +82,17 @@ contract ERC721Template is ERC721 {
             metadata != address(0),
             "ERC721Template:: Metadata address cannot be zero"
         );
-        
+
         _metadata = metadata;
-        // _setupRole(DEFAULT_ADMIN_ROLE, admin);
-        // _setupRole(MINTER_ROLE, admin);
-        // _setupRole(METADATA_ROLE, admin);
-        paymentCollector = owner;
-      //  ipHolder = admin;
+       
         _name = name;
         _symbol = symbol;
         _erc20Factory = erc20Factory;
         initialized = true;
         _createMetadata(_flags, _data);
         _safeMint(owner, 1);
+      
         return initialized;
-    }
-
-    // FOR TEST PURPOSE
-    function mint(address account) external {
-        // require(
-        //     hasRole(MINTER_ROLE, msg.sender),
-        //     "ERC721Template NOT MINTER_ROLE"
-        // );
-       // tokenId += 1;
-        _safeMint(account, 2);
     }
 
     function _createMetadata(bytes memory flags, bytes memory data) internal {
@@ -126,12 +107,12 @@ contract ERC721Template is ERC721 {
     }
 
     function updateMetadata(bytes calldata flags, bytes calldata data)
-        external onlyNFTOwner
+        external
     {
-        // require(
-        //     hasRole(METADATA_ROLE, msg.sender),
-        //     "ERC721Template: NOT METADATA_ROLE"
-        // );
+        require(
+            isAllowedToUpdateMetadata[msg.sender] == true,
+            "ERC721Template: NOT METADATA_ROLE"
+        );
         IMetadata(_metadata).update(address(this), flags, data);
     }
 
@@ -140,11 +121,11 @@ contract ERC721Template is ERC721 {
         string calldata symbol,
         uint256 cap,
         uint256 templateIndex
-    ) external onlyNFTOwner returns (address) {
-        // require(
-        //     hasRole(MINTER_ROLE, msg.sender),
-        //     "ERC721Template: NOT MINTER_ROLE"
-        // );
+    ) external returns (address) {
+        require(
+            isAllowedToCreateERC20[msg.sender] == true,
+            "ERC721Template: NOT MINTER_ROLE"
+        );
 
         address token =
             IERC20Factory(_erc20Factory).createToken(
@@ -152,7 +133,7 @@ contract ERC721Template is ERC721 {
                 symbol,
                 cap,
                 templateIndex
-            ); 
+            );
 
         //FOR TEST PURPOSE BUT COULD BE COMPLETED OR REMOVED
         emit ERC20Created(token);
@@ -182,6 +163,33 @@ contract ERC721Template is ERC721 {
         return initialized;
     }
 
+    function addManager( address _managerAddress) external onlyNFTOwner {
+       require(isManager[_managerAddress] == false, 'ERC721Template: ALREADY MANAGER');
+        _addManager(_managerAddress);
+    }
+
+    function removeManager(address _managerAddress) external onlyNFTOwner {
+        require(isManager[_managerAddress] == true, 'ERC721Template: MANAGER DOES NOT EXIST');
+        _removeManager(_managerAddress);
+    }
+
+
+    // Useful when trasferring the NFT, we can remove it if not required.
+
+     function cleanLists() external onlyNFTOwner {
+        _cleanLists();
+    }
+
     // NEEDED FOR IMPERSONATING THIS CONTRACT(need eth to send txs). WILL BE REMOVED
     receive() external payable {}
+
+    // FOR TEST PURPOSE TOGETHER WITH FlattenERC721.sol, both will be removed
+    function mint(address account) external {
+        // require(
+        //     hasRole(MINTER_ROLE, msg.sender),
+        //     "ERC721Template NOT MINTER_ROLE"
+        // );
+        // tokenId += 1;
+        _safeMint(account, 2);
+    }
 }
