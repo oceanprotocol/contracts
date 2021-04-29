@@ -170,6 +170,7 @@ contract ERC721Template is ERC721, ERC721Roles {
 
     function removeManager(address _managerAddress) external onlyNFTOwner {
         require(isManager[_managerAddress] == true, 'ERC721Template: MANAGER DOES NOT EXIST');
+        // TODO: remove it from managerList
         _removeManager(_managerAddress);
     }
 
