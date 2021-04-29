@@ -8,11 +8,8 @@ import "../interfaces/IERC20Factory.sol";
 import "../utils/ERC721Roles.sol";
 import "hardhat/console.sol";
 
-contract ERC721Template is ERC721, ERC721Roles {
-    address private paymentCollector;
-    // address private ipHolder;
-    bytes32 public constant MINTER_ROLE = keccak256("MINTER_ROLE");
-    bytes32 public constant METADATA_ROLE = keccak256("METADATA_ROLE");
+contract ERC721Template is ERC721('Template','TemplateSymbol'), ERC721Roles {
+
 
     string private _name;
     string private _symbol;
@@ -36,13 +33,10 @@ contract ERC721Template is ERC721, ERC721Roles {
         _;
     }
 
-    constructor(
-        string memory name,
-        string memory symbol,
-        address owner,
-        address metadata,
-        address erc20Factory
-    ) public ERC721(name, symbol) {}
+    // constructor(
+    //     string memory name,
+    //     string memory symbol
+    // ) public ERC721(name, symbol) {}
 
     function initialize(
         address owner,
@@ -96,7 +90,6 @@ contract ERC721Template is ERC721, ERC721Roles {
     }
 
     function _createMetadata(bytes memory flags, bytes memory data) internal {
-        // require(hasRole(METADATA_ROLE, msg.sender), "NOT METADATA_ROLE");
         require(_metadata != address(0), "Invalid Metadata address");
         require(
             IERC20Factory(_erc20Factory).erc721List(address(this)) ==
@@ -170,7 +163,6 @@ contract ERC721Template is ERC721, ERC721Roles {
 
     function removeManager(address _managerAddress) external onlyNFTOwner {
         require(isManager[_managerAddress] == true, 'ERC721Template: MANAGER DOES NOT EXIST');
-        // TODO: remove it from managerList
         _removeManager(_managerAddress);
     }
 

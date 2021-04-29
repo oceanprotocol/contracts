@@ -54,11 +54,8 @@ describe("ERC721Template", () => {
       communityFeeCollector
     );
     templateERC721 = await ERC721Template.deploy(
-      "TemplateERC721",
-      "TEMPLATE721",
-      owner.address,
-      metadata.address,
-      factoryERC20.address
+      // "TemplateERC721",
+      // "TEMPLATE721"
     );
     factoryERC721 = await ERC721Factory.deploy(
       templateERC721.address,
@@ -67,11 +64,8 @@ describe("ERC721Template", () => {
     );
 
     newERC721Template = await ERC721Template.deploy(
-      "TemplateERC721",
-      "TEMPLATE721",
-      owner.address,
-      metadata.address,
-      factoryERC20.address
+      // "TemplateERC721",
+      // "TEMPLATE721"
     );
 
     await metadata.setERC20Factory(factoryERC20.address);
