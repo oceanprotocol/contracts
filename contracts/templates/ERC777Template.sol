@@ -5,7 +5,7 @@ pragma solidity >=0.6.0;
 
 import "../interfaces/IERC20Template.sol";
 import "../interfaces/IERC721Template.sol";
-import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
+import "@openzeppelin/contracts/token/ERC777/ERC777.sol";
 
 /**
  * @title DataTokenTemplate
@@ -14,9 +14,10 @@ import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
  *      Used by the factory contract as a bytecode reference to
  *      deploy new DataTokens.
  */
-contract ERC20Template is ERC20("test", "testSymbol") {
+contract ERC777Template is ERC777 {
     using SafeMath for uint256;
 
+    address[] public test;
     string private _name;
     string private _symbol;
     uint256 private _cap;
@@ -73,6 +74,10 @@ contract ERC20Template is ERC20("test", "testSymbol") {
         _;
     }
 
+    constructor() ERC777("test", "testSymbol",test) public{
+       
+       
+    }
 
     /**
      * @dev initialize
@@ -142,12 +147,12 @@ contract ERC20Template is ERC20("test", "testSymbol") {
      * @param account refers to an address that token is going to be minted to.
      * @param value refers to amount of tokens that is going to be minted.
      */
-    function mint(address account, uint256 value) external onlyNFTOwner {
+    function mint(address account, uint256 value, bytes calldata userData) external onlyNFTOwner {
         require(
             totalSupply().add(value) <= _cap,
             "DataTokenTemplate: cap exceeded"
         );
-        _mint(account, value);
+        _mint(account, value,userData,"");
     }
 
     /**
@@ -268,7 +273,7 @@ contract ERC20Template is ERC20("test", "testSymbol") {
      *      how many supported decimal points
      * @return DataToken decimals.
      */
-    function decimals() public view override returns (uint8) {
+    function decimals() public pure override returns (uint8) {
         return _decimals;
     }
 

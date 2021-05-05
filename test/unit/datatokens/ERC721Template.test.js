@@ -43,11 +43,11 @@ describe("ERC721Template", () => {
     //console.log(metadata.address)
 
     templateERC20 = await ERC20Template.deploy(
-      "TemplateERC20",
-      "TEMPLATE20",
-      user2.address,
-      web3.utils.toWei("22"),
-      communityFeeCollector
+      // "TemplateERC20",
+      // "TEMPLATE20",
+      // user2.address,
+      // web3.utils.toWei("22"),
+      // communityFeeCollector
     );
     factoryERC20 = await ERC20Factory.deploy(
       templateERC20.address,
