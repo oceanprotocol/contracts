@@ -10,6 +10,7 @@
   },
   "dependencies": {
     "@openzeppelin/contracts": "^3.4.1",
-    "@openzeppelin/test-helpers": "^0.5.10"
+    "@openzeppelin/test-helpers": "^0.5.10",
+    "solidity-bytes-utils": "^0.8.0"
   }
 }

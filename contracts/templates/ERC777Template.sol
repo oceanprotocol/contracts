@@ -5,6 +5,7 @@ pragma solidity >=0.6.0;
 
 import "../interfaces/IERC20Template.sol";
 import "../interfaces/IERC721Template.sol";
+import "../utils/ERC725/ERC725Y.sol";
 import "@openzeppelin/contracts/token/ERC777/ERC777.sol";
 
 /**
@@ -14,7 +15,7 @@ import "@openzeppelin/contracts/token/ERC777/ERC777.sol";
  *      Used by the factory contract as a bytecode reference to
  *      deploy new DataTokens.
  */
-contract ERC777Template is ERC777 {
+contract ERC777Template is ERC777, ERC725Y(address(0)) {
     using SafeMath for uint256;
 
     address[] public test;

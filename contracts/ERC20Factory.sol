@@ -22,7 +22,7 @@ import "@openzeppelin/contracts/access/Ownable.sol";
 contract ERC20Factory is Deployer, Ownable {
     address private communityFeeCollector;
     uint256 private currentTokenCount = 1;
-    bytes32 public constant MINTER_ROLE = keccak256("MINTER_ROLE");
+ 
     address public erc721Factory;
 
     uint256 public templateCount;

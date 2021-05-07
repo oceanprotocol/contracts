@@ -35,7 +35,8 @@ describe("ERC721Template", () => {
     const Metadata = await ethers.getContractFactory("Metadata");
 
     [owner, reciever, user2, user3] = await ethers.getSigners();
-
+    const test = ethers.utils.parseEther('1.055411818181818144')
+    
     // cap = new BigNumber('1400000000')
     data = web3.utils.asciiToHex(constants.blob[0]);
     flags = web3.utils.asciiToHex(constants.blob[0]);
