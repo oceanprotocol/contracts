@@ -14,7 +14,7 @@ let communityCollector = '0x7DF5273aD9A6fCce64D45c64c1E43cfb6F861725'
 let OPFOwner = '0x7DF5273aD9A6fCce64D45c64c1E43cfb6F861725'
 module.exports = function(deployer, network, accounts) {
     deployer.then(async () => {
-        const addressFile = './ocean_abis/address.json'
+        const addressFile = './artifacts/address.json'
         let oldAddresses
         try {
             oldAddresses = JSON.parse(fs.readFileSync(addressFile))
