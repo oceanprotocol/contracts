@@ -8,7 +8,7 @@ Releases are managed manually. They are always manually triggered from a develop
 - Generate artifacts:
 ```bash
 yarn compile
-cp ./build/contracts/* ./ocean_abis/
+cp ./build/contracts/* ./artifacts/
 ```
 - Update contracts documentation
 ```bash

@@ -67,7 +67,7 @@ Ocean contracts are deployed to Rinkeby, Ethereum mainnet, and more. [Here are d
 
 * In a separate terminal, start the testnet: `ganache-cli`
 * In your main terminal, run: `yarn deploy`
-* Confirm: are `"development"` entries updated in addresses file `./ocean_abis/address.json`?
+* Confirm: are `"development"` entries updated in addresses file `./artifacts/address.json`?
 
 #### Deploy to Remote (e.g. Rinkeby)
 
@@ -81,7 +81,7 @@ export INFURA_TOKEN='GET INFURA_TOKEN FROM INFURA PLATFORM'
 yarn deploy:rinkeby
 ```
 
-* Confirm: are `"rinkeby"` entries updated in addresses file `./ocean_abis/address.json`?
+* Confirm: are `"rinkeby"` entries updated in addresses file `./artifacts/address.json`?
 
 
 ## 🦑 Local Development
