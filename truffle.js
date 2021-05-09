@@ -93,15 +93,22 @@ module.exports = {
         mainnet: {
             provider: () => setupWallet(`https://mainnet.infura.io/v3/${process.env.INFURA_TOKEN}`),
             network_id: 0x1, // 1
-            from: '0x614E188acBB597C2b2BF0CB39819975b05217C33',
-            gas: 7 * 1000000,
-            gasPrice: utils.toWei('60', 'gwei')
+            from: '0xC7EC1970B09224B317c52d92f37F5e1E4fF6B687',
+            gas: 2 * 1000000,
+            gasPrice: utils.toWei('105', 'gwei')
         },
         // mainnet the ethereum mainnet
         rinkeby: {
             provider: () => setupWallet(`https://rinkeby.infura.io/v3/${process.env.INFURA_TOKEN}`),
             network_id: 0x4,
-            from: '0xD6e0F938323A9D9d52b26700716E2e8E027f3795',
+            from: '0xC7EC1970B09224B317c52d92f37F5e1E4fF6B687',
+            gas: 7 * 1000000,
+            gasPrice: utils.toWei('8', 'gwei')
+        },
+        ropsten: {
+            provider: () => setupWallet(`https://ropsten.infura.io/v3/${process.env.INFURA_TOKEN}`),
+            network_id: 0x3,
+            from: '0xC7EC1970B09224B317c52d92f37F5e1E4fF6B687',
             gas: 7 * 1000000,
             gasPrice: utils.toWei('8', 'gwei')
         },
@@ -114,7 +121,7 @@ module.exports = {
             gasPrice: utils.toWei('10', 'mwei')
         },
         polygon: {
-            provider: () => setupWallet('https://rpc-mainnet.maticvigil.com'),
+            provider: () => setupWallet('https://rpc.polygon.oceanprotocol.com/'),
             network_id: 0x89, // 137
             from: '0xC7EC1970B09224B317c52d92f37F5e1E4fF6B687',
             gas: 7 * 1000000,
