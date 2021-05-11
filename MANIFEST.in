@@ -1,1 +1,1 @@
-recursive-include ocean_abis *
+recursive-include artifacts *
