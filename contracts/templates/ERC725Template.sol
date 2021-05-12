@@ -1,14 +1,14 @@
 pragma solidity >=0.6.0;
-
-import "@openzeppelin/contracts/token/ERC721/ERC721.sol";
 import "../utils/ERC725/ERC725Account.sol";
-//import "../FlattenERC721.sol";
+import "../utils/ERC721/ERC721.sol";
+//import "@openzeppelin/contracts/token/ERC721/ERC721.sol";
+import "../utils/ERC721Roles.sol";
 //import "@openzeppelin/contracts/access/AccessControl.sol";
 import "../interfaces/IMetadata.sol";
 import "../interfaces/IERC20Factory.sol";
 import "hardhat/console.sol";
 
-contract ERC725Template is ERC725Account(address(0)) , ERC721('test','testSymbol') {
+contract ERC725Template is ERC721('Template','TemplateSymbol') , ERC725Account(address(0)), ERC721Roles {
 
 
     string private _name;
@@ -170,8 +170,6 @@ contract ERC725Template is ERC725Account(address(0)) , ERC721('test','testSymbol
         _cleanLists();
     }
 
-    // NEEDED FOR IMPERSONATING THIS CONTRACT(need eth to send txs). WILL BE REMOVED
-    receive() external payable {}
 
     // FOR TEST PURPOSE TOGETHER WITH FlattenERC721.sol, both will be removed
     function mint(address account) external {

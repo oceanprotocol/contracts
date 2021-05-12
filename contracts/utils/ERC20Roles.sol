@@ -1,6 +1,6 @@
 pragma solidity >=0.6.0;
 
-contract ERC721Roles {
+contract ERC20Roles {
     
     address[] public managerList;
 

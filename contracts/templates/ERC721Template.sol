@@ -7,7 +7,7 @@ import "@openzeppelin/contracts/token/ERC721/ERC721.sol";
 import "../interfaces/IMetadata.sol";
 import "../interfaces/IERC20Factory.sol";
 import "../utils/ERC721Roles.sol";
-import "hardhat/console.sol";
+//import "hardhat/console.sol";
 
 contract ERC721Template is ERC721('Template','TemplateSymbol'), ERC721Roles {
 
