@@ -1,16 +1,16 @@
 // SPDX-License-Identifier: Apache-2.0
-pragma solidity ^0.6.6;
+pragma solidity ^0.8.0;
 
 // interfaces
 import "../../interfaces/IERC725X.sol";
 
 // modules
 import "@openzeppelin/contracts/access/Ownable.sol";
-import "@openzeppelin/contracts/introspection/ERC165.sol";
+import "@openzeppelin/contracts/utils/introspection/ERC165Storage.sol";
 
 // libraries
 import "@openzeppelin/contracts/utils/Create2.sol";
-import "../BytesLib.sol";
+import "solidity-bytes-utils/contracts/BytesLib.sol";
 //import "solidity-bytes-utils/contracts/BytesLib.sol";
 
 /**
@@ -23,7 +23,7 @@ import "../BytesLib.sol";
  *
  *  @author Fabian Vogelsteller <fabian@lukso.network>
  */
-contract ERC725X is ERC165, Ownable, IERC725X  {
+contract ERC725X is ERC165Storage, Ownable, IERC725X  {
 
     bytes4 internal constant _INTERFACE_ID_ERC725X = 0x44c028fe;
 

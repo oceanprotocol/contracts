@@ -6,7 +6,7 @@ pragma solidity >=0.6.0;
 import "../interfaces/IERC20Template.sol";
 import "../interfaces/IERC721Template.sol";
 import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
-
+import "@openzeppelin/contracts/utils/math/SafeMath.sol";
 /**
  * @title DataTokenTemplate
  *

@@ -1,12 +1,12 @@
 // SPDX-License-Identifier: Apache-2.0
-pragma solidity ^0.6.6;
+pragma solidity ^0.8.0;
 
 // modules
 import "./ERC725.sol";
 import "../../interfaces/IERC1271.sol";
 
 // libraries
-import "@openzeppelin/contracts/cryptography/ECDSA.sol";
+import "@openzeppelin/contracts/utils/cryptography/ECDSA.sol";
 import "../UtilsLib.sol";
 
 /**

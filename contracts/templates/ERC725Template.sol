@@ -1,15 +1,14 @@
 pragma solidity >=0.6.0;
 
 import "@openzeppelin/contracts/token/ERC721/ERC721.sol";
-
+import "../utils/ERC725/ERC725Account.sol";
 //import "../FlattenERC721.sol";
 //import "@openzeppelin/contracts/access/AccessControl.sol";
 import "../interfaces/IMetadata.sol";
 import "../interfaces/IERC20Factory.sol";
-import "../utils/ERC721Roles.sol";
 import "hardhat/console.sol";
 
-contract ERC721Template is ERC721('Template','TemplateSymbol'), ERC721Roles {
+contract ERC725Template is ERC725Account(address(0)) , ERC721('test','testSymbol') {
 
 
     string private _name;
@@ -34,11 +33,7 @@ contract ERC721Template is ERC721('Template','TemplateSymbol'), ERC721Roles {
         _;
     }
 
-    // constructor(
-    //     string memory name,
-    //     string memory symbol
-    // ) public ERC721(name, symbol) {}
-
+   
     function initialize(
         address owner,
         string calldata name,
@@ -86,7 +81,8 @@ contract ERC721Template is ERC721('Template','TemplateSymbol'), ERC721Roles {
         initialized = true;
         _createMetadata(_flags, _data);
         _safeMint(owner, 1);
-      
+        ERC725(owner);
+
         return initialized;
     }
 

@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: CC0-1.0
-pragma solidity ^0.6.6;
+pragma solidity ^0.8.0;
 
 // modules
 import "./ERC725X.sol";

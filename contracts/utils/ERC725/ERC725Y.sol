@@ -1,12 +1,12 @@
 // SPDX-License-Identifier: Apache-2.0
-pragma solidity ^0.6.6;
+pragma solidity ^0.8.0;
 
 // interfaces
 import "../../interfaces/IERC725Y.sol";
 
 // modules
 import "@openzeppelin/contracts/access/Ownable.sol";
-import "@openzeppelin/contracts/introspection/ERC165.sol";
+import "@openzeppelin/contracts/utils/introspection/ERC165Storage.sol";
 
 /**
  * @title ERC725 Y data store
@@ -18,7 +18,7 @@ import "@openzeppelin/contracts/introspection/ERC165.sol";
  *
  *  @author Fabian Vogelsteller <fabian@lukso.network>
  */
-contract ERC725Y is ERC165, Ownable, IERC725Y {
+contract ERC725Y is ERC165Storage, Ownable, IERC725Y {
 
     bytes4 internal constant _INTERFACE_ID_ERC725Y = 0x2bd57b73;
 
