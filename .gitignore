@@ -3,3 +3,6 @@
 /coverage
 coverage.json
 /.vscode
+/dist
+/ocean_contracts.egg-info
+/venv

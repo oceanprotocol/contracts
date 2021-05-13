@@ -45,7 +45,7 @@ pip3 install json-sempai
 ```
 ```python
 from jsonsempai import magic
-from ocean_abis import address
+from artifacts import address
 address.mainnet
 {'DTFactory': '0x57317f97E9EA49eBd19f7c9bB7c180b8cDcbDeB9', 'BFactory': '0xbe0083053744ECb871510C88dC0f6b77Da162706', 'FixedRateExchange': '0x608d05214E42722B94a54cF6114d4840FCfF84e1', 'Metadata': '0x1a4b70d8c9DcA47cD6D0Fb3c52BB8634CA1C0Fdf', 'Ocean': '0x967da4048cD07aB37855c090aAF366e4ce1b9F48'}
 ```
@@ -76,7 +76,7 @@ Ocean contracts are deployed to Rinkeby, Ethereum mainnet, and more. [Here are d
 export MNEMONIC='YOUR MNEMONIC SHOULD BE HERE'
 
 # If you are using remote test or Etherejm mainnet using Infura
-export INFURA_TOKEN='GET INFURA_TOKEN FROM INFURA PLATFORM' 
+export INFURA_TOKEN='GET INFURA_TOKEN FROM INFURA PLATFORM'
 
 yarn deploy:rinkeby
 ```
