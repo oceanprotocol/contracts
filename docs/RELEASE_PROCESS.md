@@ -49,7 +49,7 @@ git tag -a v0.2.5
 ```
 git push --tags
 ```
-- Make a pull request from the just-pushed branch (release/v0.2.5) to `master` branch.
+- Make a pull request from the just-pushed branch (release/v0.2.5) to `main` branch.
 - Wait for all the tests to pass!
 - Merge the pull request
 
