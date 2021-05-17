@@ -17,7 +17,7 @@ git add .
 git commit -m 'prepare for a new release'
 ```
 
-- Install bumpversion, if not done prior: `pip install bumpversion` 
+- Install bumpversion, if not done prior: `pip install bumpversion`
 - Use the `bumpversion.sh` script to bump the project version:
   - To bump the patch version: `./bumpversion.sh patch`
   - To bump the minor version: `./bumpversion.sh minor`
@@ -28,11 +28,6 @@ git commit -m 'prepare for a new release'
 ```bash
 # Update the version in package-lock.json
 yarn
-
-export MNEMONIC='YOUR MNEMONIC SHOULD BE HERE'
-# If you are using remote test or main net using Infura
-export INFURA_TOKEN='GET INFURA_TOKEN FROM INFURA PLATFORM' 
-yarn deploy:rinkeby
 ```
 
 - Install [auto-changelog](https://github.com/CookPete/auto-changelog, if not done prior: `yarn global add auto-changelog`
@@ -54,7 +49,7 @@ git tag -a v0.2.5
 ```
 git push --tags
 ```
-- Make a pull request from the just-pushed branch (release/v0.2.5) to `master` branch.
+- Make a pull request from the just-pushed branch (release/v0.2.5) to `main` branch.
 - Wait for all the tests to pass!
 - Merge the pull request
 
@@ -62,4 +57,4 @@ Finally, draft the new release on github as follows:
 - Go to [tags](https://github.com/oceanprotocol/ocean-contracts/tags), then select the new version tag.
 - Click on `Edit release` button
 - The naming convension for the release should be `Release vx.x.x`.
-- Copy and paste the release related PRs from [CHANGELOG.md](../CHANGELOG.md) 
+- Copy and paste the release related PRs from [CHANGELOG.md](../CHANGELOG.md)
