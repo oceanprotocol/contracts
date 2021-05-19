@@ -56,8 +56,6 @@ contract ERC725Ocean is ERC165Storage, IERC725X, IERC725Y  {
      */
     function execute(uint256 _operation, address _to, uint256 _value, bytes calldata _data)
     internal
-    payable
-    override
     {
         // emit event
         emit Executed(_operation, _to, _value, _data);

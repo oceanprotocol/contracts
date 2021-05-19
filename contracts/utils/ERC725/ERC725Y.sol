@@ -24,15 +24,8 @@ contract ERC725Y is ERC165Storage, Ownable, IERC725Y {
 
     mapping(bytes32 => bytes) internal store;
 
-    /**
-     * @notice Sets the owner of the contract
-     * @param _newOwner the owner of the contract.
-     */
     constructor(){
-        // This is necessary to prevent a contract that implements both ERC725X and ERC725Y to call both constructors
-        // if(_newOwner != owner()) {
-        //     transferOwnership(_newOwner);
-        // }
+     
 
         _registerInterface(_INTERFACE_ID_ERC725Y);
     }

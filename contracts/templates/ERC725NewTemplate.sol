@@ -44,8 +44,8 @@ contract ERC725NewTemplate is ERC721('Template','TemplateSymbol'), ERC721Roles, 
 
     function initialize(
         address owner,
-        string calldata name,
-        string calldata symbol,
+        string calldata name_,
+        string calldata symbol_,
         address metadata,
         address erc20Factory,
         bytes calldata _data,
@@ -54,8 +54,8 @@ contract ERC725NewTemplate is ERC721('Template','TemplateSymbol'), ERC721Roles, 
         return
             _initialize(
                 owner,
-                name,
-                symbol,
+                name_,
+                symbol_,
                 metadata,
                 erc20Factory,
                 _data,
@@ -65,8 +65,8 @@ contract ERC725NewTemplate is ERC721('Template','TemplateSymbol'), ERC721Roles, 
 
     function _initialize(
         address owner,
-        string memory name,
-        string memory symbol,
+        string memory name_,
+        string memory symbol_,
         address metadata,
         address erc20Factory,
         bytes memory _data,
@@ -83,8 +83,8 @@ contract ERC725NewTemplate is ERC721('Template','TemplateSymbol'), ERC721Roles, 
 
         _metadata = metadata;
        
-        _name = name;
-        _symbol = symbol;
+        _name = name_;
+        _symbol = symbol_;
         _erc20Factory = erc20Factory;
         initialized = true;
         _createMetadata(_flags, _data);
@@ -114,8 +114,8 @@ contract ERC725NewTemplate is ERC721('Template','TemplateSymbol'), ERC721Roles, 
     }
 
     function createERC20(
-        string calldata name,
-        string calldata symbol,
+        string calldata name_,
+        string calldata symbol_,
         uint256 cap,
         uint256 templateIndex
     ) external returns (address) {
@@ -126,8 +126,8 @@ contract ERC725NewTemplate is ERC721('Template','TemplateSymbol'), ERC721Roles, 
 
         address token =
             IERC20Factory(_erc20Factory).createToken(
-                name,
-                symbol,
+                name_,
+                symbol_,
                 cap,
                 templateIndex
             );
@@ -172,7 +172,7 @@ contract ERC725NewTemplate is ERC721('Template','TemplateSymbol'), ERC721Roles, 
 
 
 
-    function executeCall(uint256 _operation, address _to, uint256 _value, bytes calldata _data) external onlyNFTOwner {
+    function executeCall(uint256 _operation, address _to, uint256 _value, bytes calldata _data) external payable onlyNFTOwner {
         execute(_operation,_to,_value,_data);
     }
 

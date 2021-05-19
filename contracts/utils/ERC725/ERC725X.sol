@@ -32,15 +32,9 @@ contract ERC725X is ERC165Storage, Ownable, IERC725X  {
     uint256 constant OPERATION_CREATE2 = 2;
     uint256 constant OPERATION_CREATE = 3;
 
-    /**
-     * @notice Sets the owner of the contract
-     * @param _newOwner the owner of the contract.
-     */
+    
     constructor() {
-        // This is necessary to prevent a contract that implements both ERC725X and ERC725Y to call both constructors
-        // if(_newOwner != owner()) {
-        //     transferOwnership(_newOwner);
-        // }
+       
 
         _registerInterface(_INTERFACE_ID_ERC725X);
     }
@@ -59,7 +53,6 @@ contract ERC725X is ERC165Storage, Ownable, IERC725X  {
     function execute(uint256 _operation, address _to, uint256 _value, bytes calldata _data)
     external
     payable
-    override
     onlyOwner
     {
         // emit event

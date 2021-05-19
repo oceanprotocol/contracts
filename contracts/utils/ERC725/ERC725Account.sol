@@ -25,10 +25,6 @@ abstract contract ERC725Account is ERC725, IERC1271  {
 
     event ValueReceived(address indexed sender, uint256 indexed value);
 
-    /**
-     * @notice Sets the owner of the contract
-     * @param _newOwner the owner of the contract.
-     */
     constructor()
     {
         // set SupportedStandards > ERC725Account
