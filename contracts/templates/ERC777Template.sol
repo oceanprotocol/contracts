@@ -84,36 +84,36 @@ abstract contract ERC777Template is ERC777, ERC725Y {
      * @dev initialize
      *      Called prior contract initialization (e.g creating new DataToken instance)
      *      Calls private _initialize function. Only if contract is not initialized.
-     * @param name refers to a new DataToken name
-     * @param symbol refers to a nea DataToken symbol
+     * @param name_ refers to a new DataToken name
+     * @param symbol_ refers to a nea DataToken symbol
      * @param erc721Address refers to the erc721 address (used for onlyNFTOwner modifier) 
-     * @param cap the total ERC20 cap
+     * @param cap_ the total ERC20 cap
      * @param feeCollector it is the community fee collector address
      */
     function initialize(
-        string calldata name,
-        string calldata symbol,
+        string calldata name_,
+        string calldata symbol_,
         address erc721Address,
-        uint256 cap,
+        uint256 cap_,
         address feeCollector
     ) external onlyNotInitialized returns (bool) {
-        return _initialize(name, symbol, erc721Address, cap, feeCollector);
+        return _initialize(name_, symbol_, erc721Address, cap_, feeCollector);
     }
 
     /**
      * @dev _initialize
      *      Private function called on contract initialization.
-     * @param name refers to a new DataToken name
-     * @param symbol refers to a nea DataToken symbol
+     * @param name_ refers to a new DataToken name
+     * @param symbol_ refers to a nea DataToken symbol
      * @param erc721Address refers to an address that has minter rights
-     * @param cap the total ERC20 cap
+     * @param cap_ the total ERC20 cap
      * @param feeCollector it is the community fee collector address
      */
     function _initialize(
-        string memory name,
-        string memory symbol,
+        string memory name_,
+        string memory symbol_,
         address erc721Address,
-        uint256 cap,
+        uint256 cap_,
         address feeCollector
     ) private returns (bool) {
         require(
@@ -131,10 +131,10 @@ abstract contract ERC777Template is ERC777, ERC725Y {
             "DataTokenTemplate: Invalid community fee collector, zero address"
         );
 
-        require(cap != 0, "DataTokenTemplate: Invalid cap value");
-        _cap = cap;
-        _name = name;
-        _symbol = symbol;
+        require(cap_ != 0, "DataTokenTemplate: Invalid cap value");
+        _cap = cap_;
+        _name = name_;
+        _symbol = symbol_;
         _erc721Address = erc721Address;
         _communityFeeCollector = feeCollector;
         initialized = true;
