@@ -12,7 +12,7 @@ import "../interfaces/IERC20Factory.sol";
 import "../utils/ERC721Roles.sol";
 //import "hardhat/console.sol";
 
-contract ERC725NewTemplate is ERC721('Template','TemplateSymbol'), ERC721Roles, ERC725Ocean{
+contract ERC725Template is ERC721('Template','TemplateSymbol'), ERC721Roles, ERC725Ocean{
 
 
     string private _name;
@@ -93,6 +93,7 @@ contract ERC725NewTemplate is ERC721('Template','TemplateSymbol'), ERC721Roles, 
         return initialized;
     }
 
+// WE COULD ADD A CALL TO SETDATA TO REGISTER THIS METADATA(BOTH create and update) WITH A SPECIFIC KEY VALUE, FOR CONSISTENCY    
     function _createMetadata(bytes memory flags, bytes memory data) internal {
         require(_metadata != address(0), "Invalid Metadata address");
         require(
@@ -176,6 +177,10 @@ contract ERC725NewTemplate is ERC721('Template','TemplateSymbol'), ERC721Roles, 
         execute(_operation,_to,_value,_data);
     }
 
+    function setNewData(bytes32 _key, bytes calldata _value) external onlyNFTOwner {
+        setData(_key,_value);
+    }
+    
     // Useful when trasferring the NFT, we can remove it if not required.
 
      function cleanLists() external onlyNFTOwner {

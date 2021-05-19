@@ -156,8 +156,7 @@ contract ERC725Ocean is ERC165Storage, IERC725X, IERC725Y  {
      * @param _value the bytes to set.
      */
     function setData(bytes32 _key, bytes calldata _value)
-    external
-    override
+    internal
     virtual
     {
         store[_key] = _value;
