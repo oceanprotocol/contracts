@@ -3,18 +3,17 @@ pragma solidity ^0.8.0;
 
 // interfaces
 import "../../interfaces/IERC725X.sol";
-
+import "../../interfaces/IERC725Y.sol";
 // modules
-import "@openzeppelin/contracts/access/Ownable.sol";
 import "@openzeppelin/contracts/utils/introspection/ERC165Storage.sol";
 
 // libraries
 import "@openzeppelin/contracts/utils/Create2.sol";
 import "solidity-bytes-utils/contracts/BytesLib.sol";
-//import "solidity-bytes-utils/contracts/BytesLib.sol";
+
 
 /**
- * @title ERC725 X executor
+ * @title ERC725 X / ERC725 Y executor
  * @dev Implementation of a contract module which provides the ability to call arbitrary functions at any other smart contract and itself,
  * including using `delegatecall`, as well creating contracts using `create` and `create2`.
  * This is the basis for a smart contract based account system, but could also be used as a proxy account system.
@@ -23,7 +22,7 @@ import "solidity-bytes-utils/contracts/BytesLib.sol";
  *
  *  @author Fabian Vogelsteller <fabian@lukso.network>
  */
-contract ERC725X is ERC165Storage, Ownable, IERC725X  {
+contract ERC725Ocean is ERC165Storage, IERC725X, IERC725Y  {
 
     bytes4 internal constant _INTERFACE_ID_ERC725X = 0x44c028fe;
 
@@ -32,17 +31,16 @@ contract ERC725X is ERC165Storage, Ownable, IERC725X  {
     uint256 constant OPERATION_CREATE2 = 2;
     uint256 constant OPERATION_CREATE = 3;
 
-    /**
-     * @notice Sets the owner of the contract
-     * @param _newOwner the owner of the contract.
-     */
+    bytes4 internal constant _INTERFACE_ID_ERC725Y = 0x2bd57b73;
+
+    mapping(bytes32 => bytes) internal store;
+
+   
     constructor() {
-        // This is necessary to prevent a contract that implements both ERC725X and ERC725Y to call both constructors
-        // if(_newOwner != owner()) {
-        //     transferOwnership(_newOwner);
-        // }
+       
 
         _registerInterface(_INTERFACE_ID_ERC725X);
+        _registerInterface(_INTERFACE_ID_ERC725Y);
     }
 
     /* Public functions */
@@ -57,10 +55,9 @@ contract ERC725X is ERC165Storage, Ownable, IERC725X  {
      * @param _data the call data, or the contract data to deploy
      */
     function execute(uint256 _operation, address _to, uint256 _value, bytes calldata _data)
-    external
+    internal
     payable
     override
-    onlyOwner
     {
         // emit event
         emit Executed(_operation, _to, _value, _data);
@@ -137,6 +134,37 @@ contract ERC725X is ERC165Storage, Ownable, IERC725X  {
         emit ContractCreated(newContract);
     }
 
-    /* Modifiers */
+
+       /* Public functions */
+
+    /**
+     * @notice Gets data at a given `key`
+     * @param _key the key which value to retrieve
+     * @return _value The date stored at the key
+     */
+    function getData(bytes32 _key)
+    public
+    view
+    override
+    virtual
+    returns (bytes memory _value)
+    {
+        return store[_key];
+    }
+
+    /**
+     * @notice Sets data at a given `key`
+     * @param _key the key which value to retrieve
+     * @param _value the bytes to set.
+     */
+    function setData(bytes32 _key, bytes calldata _value)
+    external
+    override
+    virtual
+    {
+        store[_key] = _value;
+        emit DataChanged(_key, _value);
+    }
+
 
 }

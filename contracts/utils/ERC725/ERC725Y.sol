@@ -28,11 +28,11 @@ contract ERC725Y is ERC165Storage, Ownable, IERC725Y {
      * @notice Sets the owner of the contract
      * @param _newOwner the owner of the contract.
      */
-    constructor(address _newOwner)  public{
+    constructor(){
         // This is necessary to prevent a contract that implements both ERC725X and ERC725Y to call both constructors
-        if(_newOwner != owner()) {
-            transferOwnership(_newOwner);
-        }
+        // if(_newOwner != owner()) {
+        //     transferOwnership(_newOwner);
+        // }
 
         _registerInterface(_INTERFACE_ID_ERC725Y);
     }

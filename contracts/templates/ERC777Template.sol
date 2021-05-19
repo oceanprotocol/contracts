@@ -15,7 +15,7 @@ import "@openzeppelin/contracts/utils/math/SafeMath.sol";
  *      Used by the factory contract as a bytecode reference to
  *      deploy new DataTokens.
  */
-contract ERC777Template is ERC777, ERC725Y(address(0)) {
+abstract contract ERC777Template is ERC777, ERC725Y {
     using SafeMath for uint256;
 
     address[] public test;
@@ -75,7 +75,7 @@ contract ERC777Template is ERC777, ERC725Y(address(0)) {
         _;
     }
 
-    constructor() ERC777("test", "testSymbol",test) public{
+    constructor() ERC777("test", "testSymbol",test) {
        
        
     }

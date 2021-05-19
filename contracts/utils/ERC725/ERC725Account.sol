@@ -18,7 +18,7 @@ import "../UtilsLib.sol";
 
 // TODO add ERC777, ERC223, ERC721 functions?
 
-contract ERC725Account is ERC725, IERC1271  {
+abstract contract ERC725Account is ERC725, IERC1271  {
 
     bytes4 internal constant _INTERFACE_ID_ERC1271 = 0x1626ba7e;
     bytes4 internal constant _ERC1271FAILVALUE = 0xffffffff;
@@ -29,8 +29,7 @@ contract ERC725Account is ERC725, IERC1271  {
      * @notice Sets the owner of the contract
      * @param _newOwner the owner of the contract.
      */
-    constructor(address _newOwner) public
-    ERC725(_newOwner)
+    constructor()
     {
         // set SupportedStandards > ERC725Account
         bytes32 key = bytes32(0xeafec4d89fa9619884b6b89135626455000000000000000000000000afdeb5d6); // SupportedStandards > ERC725Account

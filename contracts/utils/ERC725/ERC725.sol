@@ -13,13 +13,11 @@ import "./ERC725Y.sol";
  */
 contract ERC725 is ERC725X, ERC725Y  {
 
-    /**
-     * @notice Sets the owner of the contract
-     * @param _newOwner the owner of the contract.
-     */
-    constructor(address _newOwner) public
-    ERC725X(_newOwner)
-    ERC725Y(_newOwner)
+    // /**
+    //  * @notice Sets the owner of the contract
+    //  * @param _newOwner the owner of the contract.
+    //  */
+    constructor()
     {}
 
     // NOTE this implementation has not by default: receive() external payable {}
