@@ -177,13 +177,13 @@ contract ERC721Template is ERC721('Template','TemplateSymbol'), ERC721Roles {
     // NEEDED FOR IMPERSONATING THIS CONTRACT(need eth to send txs). WILL BE REMOVED
     receive() external payable {}
 
-    // FOR TEST PURPOSE TOGETHER WITH FlattenERC721.sol, both will be removed
-    function mint(address account) external {
-        // require(
-        //     hasRole(MINTER_ROLE, msg.sender),
-        //     "ERC721Template NOT MINTER_ROLE"
-        // );
-        // tokenId += 1;
-        _safeMint(account, 2);
-    }
+    // // FOR TEST PURPOSE TOGETHER WITH FlattenERC721.sol, both will be removed
+    // function mint(address account) external {
+    //     // require(
+    //     //     hasRole(MINTER_ROLE, msg.sender),
+    //     //     "ERC721Template NOT MINTER_ROLE"
+    //     // );
+    //     // tokenId += 1;
+    //     _safeMint(account, 2);
+    // }
 }

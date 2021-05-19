@@ -122,7 +122,7 @@ contract ERC725Template is ERC721('Template','TemplateSymbol'), ERC721Roles, ERC
     ) external returns (address) {
         require(
             isAllowedToCreateERC20[msg.sender] == true,
-            "ERC721Template: NOT MINTER_ROLE"
+            "ERC725Template: NOT MINTER_ROLE"
         );
 
         address token =

@@ -123,12 +123,6 @@ describe("ERC725Template", () => {
     assert((await tokenERC725.balanceOf(owner.address)) == 1);
   });
 
-  it("should revert if caller is not NFTOwner", async () => {
-    await expectRevert(
-      tokenERC725.mint(owner.address),
-      "ERC721: Cannot mint new erc721 tokens"
-    );
-  });
 
   it("should not be allowed to update the metadata if NOT in MetadataList", async () => {
     await expectRevert(
@@ -152,7 +146,7 @@ describe("ERC725Template", () => {
         web3.utils.toWei("10"),
         1
       ),
-      "ERC721Template: NOT MINTER_ROLE"
+      "ERC725Template: NOT MINTER_ROLE"
     );
   });
 
@@ -197,7 +191,8 @@ describe("ERC725Template", () => {
     assert((await tokenERC725.createERC20List(0)) == user3.address);
   });
 
-  xit("should transfer properly the NFT, now the new user is the owner for ERC721Template and ERC20Template", async () => {
+  it("should transfer properly the NFT, now the new user is the owner for ERC721Template and ERC20Template", async () => {
+    await tokenERC725.addToCreateERC20List(owner.address);
     const trxERC20 = await tokenERC725.createERC20(
       "ERC20DT1",
       "ERC20DT1Symbol",
@@ -218,7 +213,9 @@ describe("ERC725Template", () => {
     await tokenERC725.transferFrom(owner.address, user2.address, 1);
     assert((await tokenERC725.balanceOf(owner.address)) == 0);
     assert((await tokenERC725.ownerOf(1)) == user2.address);
-
+    
+   await tokenERC725.removeFromCreateERC20List(owner.address) // WE CAN STILL DO THAT because the owner is still Manager
+  
     await expectRevert(
       tokenERC725.createERC20(
         "ERC20DT2",
@@ -226,9 +223,11 @@ describe("ERC725Template", () => {
         web3.utils.toWei("10"),
         1
       ),
-      "ERC721Template: not NFTOwner"
+      "ERC725Template: NOT MINTER_ROLE"
     );
-
+      
+    await tokenERC725.connect(user2).addManager(user2.address)
+    await tokenERC725.connect(user2).addToCreateERC20List(user2.address)
     await tokenERC725
       .connect(user2)
       .createERC20("ERC20DT2", "ERC20DT2Symbol", web3.utils.toWei("10"), 1);
@@ -237,6 +236,7 @@ describe("ERC725Template", () => {
       erc20Token.mint(user2.address, web3.utils.toWei("1")),
       "ERC20Template: not NFTOwner"
     );
+    
 
     await erc20Token.connect(user2).mint(user2.address, web3.utils.toWei("2"));
 
@@ -246,9 +246,10 @@ describe("ERC725Template", () => {
 
     await expectRevert(
       tokenERC725.updateMetadata(flags, data),
-      "ERC721Template: not NFTOwner"
+      "ERC721Template: NOT METADATA_ROLE"
     );
 
+    await tokenERC725.addToMetadataList(user2.address)
     await tokenERC725.connect(user2).updateMetadata(flags, data);
   });
 });
