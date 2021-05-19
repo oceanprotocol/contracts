@@ -9,10 +9,10 @@ import "solidity-bytes-utils/contracts/BytesLib.sol";
 //import "@openzeppelin/contracts/utils/introspection/ERC165Storage.sol";
 import "../interfaces/IMetadata.sol";
 import "../interfaces/IERC20Factory.sol";
-import "../utils/ERC721Roles.sol";
+import "../utils/ERC721RolesAddress.sol";
 //import "hardhat/console.sol";
 
-contract ERC725Template is ERC721('Template','TemplateSymbol'), ERC721Roles, ERC725Ocean{
+contract ERC725Template is ERC721('Template','TemplateSymbol'), ERC721RolesAddress, ERC725Ocean {
 
 
     string private _name;
@@ -89,7 +89,7 @@ contract ERC725Template is ERC721('Template','TemplateSymbol'), ERC721Roles, ERC
         initialized = true;
         _createMetadata(_flags, _data);
         _safeMint(owner, 1);
-
+        _addManager(owner);
         return initialized;
     }
 
@@ -102,13 +102,15 @@ contract ERC725Template is ERC721('Template','TemplateSymbol'), ERC721Roles, ERC
             "ERC721Template: NOT ORIGINAL TEMPLATE"
         );
         IMetadata(_metadata).create(address(this), flags, data);
+        // TODO Add setData and new key
     }
 
     function updateMetadata(bytes calldata flags, bytes calldata data)
         external
     {
+        Roles memory user = permissions[msg.sender];
         require(
-            isAllowedToUpdateMetadata[msg.sender] == true,
+            user.updateMetadata == true,
             "ERC721Template: NOT METADATA_ROLE"
         );
         IMetadata(_metadata).update(address(this), flags, data);
@@ -120,8 +122,9 @@ contract ERC725Template is ERC721('Template','TemplateSymbol'), ERC721Roles, ERC
         uint256 cap,
         uint256 templateIndex
     ) external returns (address) {
+        Roles memory user = permissions[msg.sender];
         require(
-            isAllowedToCreateERC20[msg.sender] == true,
+            user.deployERC20 == true,
             "ERC725Template: NOT MINTER_ROLE"
         );
 
@@ -162,12 +165,13 @@ contract ERC725Template is ERC721('Template','TemplateSymbol'), ERC721Roles, ERC
     }
 
     function addManager( address _managerAddress) external onlyNFTOwner {
-       require(isManager[_managerAddress] == false, 'ERC721Template: ALREADY MANAGER');
+       
+     //  require(isManager[_managerAddress] == false, 'ERC725Template: ALREADY MANAGER');
         _addManager(_managerAddress);
     }
 
     function removeManager(address _managerAddress) external onlyNFTOwner {
-        require(isManager[_managerAddress] == true, 'ERC721Template: MANAGER DOES NOT EXIST');
+    //    require(isManager[_managerAddress] == true, 'ERC725Template: MANAGER DOES NOT EXIST');
         _removeManager(_managerAddress);
     }
 
@@ -183,8 +187,8 @@ contract ERC725Template is ERC721('Template','TemplateSymbol'), ERC721Roles, ERC
     
     // Useful when trasferring the NFT, we can remove it if not required.
 
-     function cleanLists() external onlyNFTOwner {
-        _cleanLists();
+     function cleanPermissions() external onlyNFTOwner {
+        _cleanPermissions();
     }
 
     // NEEDED FOR IMPERSONATING THIS CONTRACT(need eth to send txs). WILL BE REMOVED

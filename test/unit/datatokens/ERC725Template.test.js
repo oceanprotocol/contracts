@@ -90,7 +90,7 @@ describe("ERC725Template", () => {
     name = await tokenERC725.name();
     assert(name === "DT1");
     assert(symbol === "DTSYMBOL");
-    await tokenERC725.addManager(owner.address);
+    //await tokenERC725.addManager(owner.address);
   });
 
   it("should check that the tokenERC725 contract is initialized", async () => {
@@ -162,7 +162,7 @@ describe("ERC725Template", () => {
 
   it("should fail to clean lists, if not NFT Owner", async () => {
     await expectRevert(
-      tokenERC725.connect(user2).cleanLists(),
+      tokenERC725.connect(user2).cleanPermissions(),
       "ERC721Template: not NFTOwner"
     );
   });
@@ -171,24 +171,25 @@ describe("ERC725Template", () => {
     await tokenERC725.addToCreateERC20List(owner.address);
     await tokenERC725.addToCreateERC20List(user2.address);
 
-    assert((await tokenERC725.isAllowedToCreateERC20(owner.address)) == true);
-    assert((await tokenERC725.isAllowedToCreateERC20(user2.address)) == true);
+    assert(((await tokenERC725.permissions(owner.address))).deployERC20 == true);
+    assert(((await tokenERC725.permissions(user2.address))).deployERC20 == true);
 
     await expectRevert(
-      tokenERC725.connect(user2).cleanLists(),
+      tokenERC725.connect(user2).cleanPermissions(),
       "ERC721Template: not NFTOwner"
     );
 
-    await tokenERC725.cleanLists();
+    await tokenERC725.cleanPermissions();
 
-    assert((await tokenERC725.isAllowedToCreateERC20(owner.address)) == false);
-    assert((await tokenERC725.isAllowedToCreateERC20(user2.address)) == false);
-    assert((await tokenERC725.isAllowedToCreateERC20(user3.address)) == false);
+    assert(((await tokenERC725.permissions(owner.address))).deployERC20 == false);
+    assert(((await tokenERC725.permissions(user2.address))).deployERC20 == false);
+    assert(((await tokenERC725.permissions(user3.address))).deployERC20 == false);
 
     await tokenERC725.addManager(owner.address); // WE CLEANED OURSELF TO FROM ALL LISTS, so we need to re-ADD us.
 
     await tokenERC725.addToCreateERC20List(user3.address);
-    assert((await tokenERC725.createERC20List(0)) == user3.address);
+    assert((await tokenERC725.auth(0)) == owner.address);
+    assert((await tokenERC725.auth(1)) == user3.address);
   });
 
   it("should transfer properly the NFT, now the new user is the owner for ERC721Template and ERC20Template", async () => {
