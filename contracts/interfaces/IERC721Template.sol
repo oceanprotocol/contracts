@@ -172,4 +172,14 @@ interface IERC721Template is IERC165 {
         external
         view
         returns (bool);
+
+     struct Roles {
+        bool manager;
+        bool deployERC20;
+        bool updateMetadata;
+        bool store;
+    }
+
+
+     function getPermissions(address user) external returns (Roles memory);
 }

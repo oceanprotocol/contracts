@@ -7,6 +7,8 @@ import "../interfaces/IERC20Template.sol";
 import "../interfaces/IERC721Template.sol";
 import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
 import "@openzeppelin/contracts/utils/math/SafeMath.sol";
+import "../utils/ERC20Roles.sol";
+
 /**
  * @title DataTokenTemplate
  *
@@ -14,7 +16,7 @@ import "@openzeppelin/contracts/utils/math/SafeMath.sol";
  *      Used by the factory contract as a bytecode reference to
  *      deploy new DataTokens.
  */
-contract ERC20Template is ERC20("test", "testSymbol") {
+contract ERC20Template is ERC20("test", "testSymbol"), ERC20Roles {
     using SafeMath for uint256;
 
     string private _name;
@@ -73,6 +75,11 @@ contract ERC20Template is ERC20("test", "testSymbol") {
         _;
     }
 
+    modifier onlyERC20Deployer() {
+        IERC721Template.Roles memory user = IERC721Template(_erc721Address).getPermissions(msg.sender);
+        require(user.deployERC20 == true, "ERC721Template: NOT DEPLOYER ROLE");
+        _;
+    }
 
     /**
      * @dev initialize
@@ -216,6 +223,16 @@ contract ERC20Template is ERC20("test", "testSymbol") {
             msg.sender,
             block.timestamp
         );
+    }
+
+
+
+    function addMinter(address _minter) external onlyERC20Deployer {
+        _addMinter(_minter);
+    }
+
+    function removeMinter(address _minter) external onlyERC20Deployer {
+        _removeMinter(_minter);
     }
 
     /**

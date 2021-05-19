@@ -3,7 +3,7 @@ pragma solidity >=0.6.0;
 contract ERC721RolesAddress {
     
 
-    mapping(address => Roles) public permissions;
+    mapping(address => Roles) internal permissions;
 
     address[] public auth;
 
@@ -20,6 +20,9 @@ contract ERC721RolesAddress {
         _;
     }
 
+    function getPermissions(address user) external view returns (Roles memory) {
+        return permissions[user];
+    }
 
     function addTo725StoreList(address _allowedAddress) public onlyManager {
         Roles storage user = permissions[_allowedAddress];
@@ -30,7 +33,7 @@ contract ERC721RolesAddress {
     function removeFrom725StoreList(address _allowedAddress) public onlyManager {
         Roles storage user = permissions[_allowedAddress];
         user.store = false;
-        auth.push(_allowedAddress);
+        
     }
 
 
@@ -57,7 +60,7 @@ contract ERC721RolesAddress {
     function removeFromMetadataList(address _allowedAddress) public onlyManager {
         Roles storage user = permissions[_allowedAddress];
         user.updateMetadata = false;
-        auth.push(_allowedAddress);
+    
          // TODO: remove it from createERC20List too.
     }
 
