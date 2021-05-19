@@ -70,10 +70,10 @@ contract ERC20Template is ERC20("test", "testSymbol"), ERC20Roles {
         _;
     }
 
-    modifier onlyMinter() {
-        require(msg.sender == _minter, "DataTokenTemplate: invalid minter");
-        _;
-    }
+    // modifier onlyMinter() {
+    //     require(msg.sender == _minter, "DataTokenTemplate: invalid minter");
+    //     _;
+    // }
 
     modifier onlyERC20Deployer() {
         IERC721Template.Roles memory user = IERC721Template(_erc721Address).getPermissions(msg.sender);
@@ -150,6 +150,8 @@ contract ERC20Template is ERC20("test", "testSymbol"), ERC20Roles {
      * @param value refers to amount of tokens that is going to be minted.
      */
     function mint(address account, uint256 value) external onlyNFTOwner {
+        RolesERC20 memory user = permissions[msg.sender];
+        require(user.minter == true,"ERC20Template: NOT MINTER");
         require(
             totalSupply().add(value) <= _cap,
             "DataTokenTemplate: cap exceeded"
@@ -235,31 +237,7 @@ contract ERC20Template is ERC20("test", "testSymbol"), ERC20Roles {
         _removeMinter(_minter);
     }
 
-    /**
-     * @dev proposeMinter
-     *      It proposes a new token minter address.
-     *      Only the current minter can call it.
-     * @param newMinter refers to a new token minter address.
-     */
-    function proposeMinter(address newMinter) external onlyMinter {
-        _proposedMinter = newMinter;
-        emit MinterProposed(msg.sender, _proposedMinter);
-    }
 
-    /**
-     * @dev approveMinter
-     *      It approves a new token minter address.
-     *      Only the current minter can call it.
-     */
-    function approveMinter() external {
-        require(
-            msg.sender == _proposedMinter,
-            "DataTokenTemplate: invalid proposed minter address"
-        );
-        emit MinterApproved(_minter, _proposedMinter);
-        _minter = _proposedMinter;
-        _proposedMinter = address(0);
-    }
 
     /**
      * @dev name
