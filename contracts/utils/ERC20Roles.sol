@@ -9,6 +9,7 @@ contract ERC20Roles {
 
     struct RolesERC20 {
         bool minter;
+        bool feeManager;
         // TODO
         // role for fee manager or collector
     }

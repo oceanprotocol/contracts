@@ -26,8 +26,9 @@ contract ERC20Template is ERC20("test", "testSymbol"), ERC20Roles {
     address private _communityFeeCollector;
     bool private initialized = false;
     address private _erc721Address;
-    address private _minter;
-    address private _proposedMinter;
+    address private feeManager;
+  //  address private _minter;
+  //  address private _proposedMinter;
     uint256 public constant BASE = 10**18;
     uint256 public constant BASE_COMMUNITY_FEE_PERCENTAGE = BASE / 1000;
     uint256 public constant BASE_MARKET_FEE_PERCENTAGE = BASE / 1000;
@@ -58,7 +59,7 @@ contract ERC20Template is ERC20("test", "testSymbol"), ERC20Roles {
     modifier onlyNotInitialized() {
         require(
             !initialized,
-            "DataTokenTemplate: token instance already initialized"
+            "ERC20Template: token instance already initialized"
         );
         _;
     }
@@ -77,7 +78,7 @@ contract ERC20Template is ERC20("test", "testSymbol"), ERC20Roles {
 
     modifier onlyERC20Deployer() {
         IERC721Template.Roles memory user = IERC721Template(_erc721Address).getPermissions(msg.sender);
-        require(user.deployERC20 == true, "ERC721Template: NOT DEPLOYER ROLE");
+        require(user.deployERC20 == true, "ERC20Template: NOT DEPLOYER ROLE");
         _;
     }
 
@@ -96,9 +97,10 @@ contract ERC20Template is ERC20("test", "testSymbol"), ERC20Roles {
         string calldata symbol,
         address erc721Address,
         uint256 cap,
-        address feeCollector
+        address feeCollector,
+        address feeManager// ENTITY WHO RECEIVES THE PAYMENT 
     ) external onlyNotInitialized returns (bool) {
-        return _initialize(name, symbol, erc721Address, cap, feeCollector);
+        return _initialize(name, symbol, erc721Address, cap, feeCollector, feeManager);
     }
 
     /**
@@ -115,21 +117,22 @@ contract ERC20Template is ERC20("test", "testSymbol"), ERC20Roles {
         string memory symbol,
         address erc721Address,
         uint256 cap,
-        address feeCollector
+        address feeCollector,
+        address feeManager
     ) private returns (bool) {
         require(
             erc721Address != address(0),
-            "DataTokenTemplate: Invalid minter,  zero address"
+            "ERC20Template: Invalid minter,  zero address"
         );
 
-        require(
-            _minter == address(0),
-            "DataTokenTemplate: Invalid minter, zero address"
-        );
+        // require(
+        //     _minter == address(0),
+        //     "DataTokenTemplate: Invalid minter, zero address"
+        // );
 
         require(
             feeCollector != address(0),
-            "DataTokenTemplate: Invalid community fee collector, zero address"
+            "ERC20Template: Invalid community fee collector, zero address"
         );
 
         require(cap != 0, "DataTokenTemplate: Invalid cap value");
@@ -276,23 +279,6 @@ contract ERC20Template is ERC20("test", "testSymbol"), ERC20Roles {
         return _cap;
     }
 
-    /**
-     * @dev isMinter
-     *      It takes the address and checks whether it has a minter role.
-     * @param account refers to the address.
-     * @return true if account has a minter role.
-     */
-    function isMinter(address account) external view returns (bool) {
-        return (_minter == account);
-    }
-
-    /**
-     * @dev minter
-     * @return minter's address.
-     */
-    function minter() external view returns (address) {
-        return _minter;
-    }
 
     /**
      * @dev isInitialized

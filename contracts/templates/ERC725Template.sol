@@ -14,7 +14,7 @@ import "../utils/ERC721RolesAddress.sol";
 
 contract ERC725Template is ERC721('Template','TemplateSymbol'), ERC721RolesAddress, ERC725Ocean {
 
-
+    bytes32 public METADATA_KEY = keccak256("METADATA_KEY");
     string private _name;
     string private _symbol;
     uint256 private tokenId = 1;
@@ -69,16 +69,16 @@ contract ERC725Template is ERC721('Template','TemplateSymbol'), ERC721RolesAddre
         string memory symbol_,
         address metadata,
         address erc20Factory,
-        bytes memory _data,
+        bytes calldata _data,
         bytes memory _flags
     ) private returns (bool) {
         require(
             owner != address(0),
-            "ERC721Template:: Invalid minter,  zero address"
+            "ERC725Template:: Invalid minter,  zero address"
         );
         require(
             metadata != address(0),
-            "ERC721Template:: Metadata address cannot be zero"
+            "ERC725Template:: Metadata address cannot be zero"
         );
 
         _metadata = metadata;
@@ -94,15 +94,16 @@ contract ERC725Template is ERC721('Template','TemplateSymbol'), ERC721RolesAddre
     }
 
 // WE COULD ADD A CALL TO SETDATA TO REGISTER THIS METADATA(BOTH create and update) WITH A SPECIFIC KEY VALUE, FOR CONSISTENCY    
-    function _createMetadata(bytes memory flags, bytes memory data) internal {
+    function _createMetadata(bytes memory flags, bytes calldata data) internal {
         require(_metadata != address(0), "Invalid Metadata address");
         require(
             IERC20Factory(_erc20Factory).erc721List(address(this)) ==
                 address(this),
-            "ERC721Template: NOT ORIGINAL TEMPLATE"
+            "ERC725Template: NOT ORIGINAL TEMPLATE"
         );
         IMetadata(_metadata).create(address(this), flags, data);
-        // TODO Add setData and new key
+        // Add metadata to key store with default key
+        setData(METADATA_KEY, data);
     }
 
     function updateMetadata(bytes calldata flags, bytes calldata data)
@@ -111,7 +112,7 @@ contract ERC725Template is ERC721('Template','TemplateSymbol'), ERC721RolesAddre
         Roles memory user = permissions[msg.sender];
         require(
             user.updateMetadata == true,
-            "ERC721Template: NOT METADATA_ROLE"
+            "ERC725Template: NOT METADATA_ROLE"
         );
         IMetadata(_metadata).update(address(this), flags, data);
     }
@@ -177,11 +178,11 @@ contract ERC725Template is ERC721('Template','TemplateSymbol'), ERC721RolesAddre
 
 
 
-    function executeCall(uint256 _operation, address _to, uint256 _value, bytes calldata _data) external payable onlyNFTOwner {
+    function executeCall(uint256 _operation, address _to, uint256 _value, bytes calldata _data) external payable onlyManager {
         execute(_operation,_to,_value,_data);
     }
 
-    function setNewData(bytes32 _key, bytes calldata _value) external onlyNFTOwner {
+    function setNewData(bytes32 _key, bytes calldata _value) external onlyManager {
         setData(_key,_value);
     }
     
