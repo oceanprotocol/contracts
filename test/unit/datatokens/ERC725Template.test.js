@@ -35,39 +35,41 @@ describe("ERC725Template", () => {
     const Metadata = await ethers.getContractFactory("Metadata");
 
     [owner, reciever, user2, user3] = await ethers.getSigners();
-  
-    
+
     // cap = new BigNumber('1400000000')
     data = web3.utils.asciiToHex(constants.blob[0]);
     flags = web3.utils.asciiToHex(constants.blob[0]);
     metadata = await Metadata.deploy();
     //console.log(metadata.address)
 
-    templateERC20 = await ERC20Template.deploy(
+    templateERC20 = await ERC20Template
+      .deploy
       // "TemplateERC20",
       // "TEMPLATE20",
       // user2.address,
       // web3.utils.toWei("22"),
       // communityFeeCollector
-    );
+      ();
     factoryERC20 = await ERC20Factory.deploy(
       templateERC20.address,
       communityFeeCollector
     );
-    templateERC725 = await ERC725Template.deploy(
+    templateERC725 = await ERC725Template
+      .deploy
       // "TemplateERC721",
       // "TEMPLATE721"
-    );
+      ();
     factoryERC721 = await ERC721Factory.deploy(
       templateERC725.address,
       communityFeeCollector,
       factoryERC20.address
     );
 
-    newERC721Template = await ERC725Template.deploy(
+    newERC721Template = await ERC725Template
+      .deploy
       // "TemplateERC721",
       // "TEMPLATE721"
-    );
+      ();
 
     await metadata.setERC20Factory(factoryERC20.address);
     await factoryERC20.setERC721Factory(factoryERC721.address);
@@ -81,8 +83,8 @@ describe("ERC725Template", () => {
       1
     );
     const txReceipt = await tx.wait();
-   
-  //  console.log(txReceipt.events[3].topics[0])
+
+    //  console.log(txReceipt.events[3].topics[0])
     //console.log(txReceipt.events[3].args[0])
     //  const test = await expectEvent(txReceipt,'TokenCreated')
     //     console.log(test)
@@ -125,7 +127,6 @@ describe("ERC725Template", () => {
     assert((await tokenERC725.balanceOf(owner.address)) == 1);
   });
 
-
   it("should not be allowed to update the metadata if NOT in MetadataList", async () => {
     await expectRevert(
       tokenERC725.updateMetadata(data, flags),
@@ -137,8 +138,6 @@ describe("ERC725Template", () => {
     await tokenERC725.addToMetadataList(owner.address);
     await tokenERC725.updateMetadata(data, flags);
   });
-
- 
 
   it("should not allow to create a new ERC20Token if NOT in CreateERC20List", async () => {
     await expectRevert(
@@ -173,8 +172,12 @@ describe("ERC725Template", () => {
     await tokenERC725.addToCreateERC20List(owner.address);
     await tokenERC725.addToCreateERC20List(user2.address);
 
-    assert(((await tokenERC725.getPermissions(owner.address))).deployERC20 == true);
-    assert(((await tokenERC725.getPermissions(user2.address))).deployERC20 == true);
+    assert(
+      (await tokenERC725.getPermissions(owner.address)).deployERC20 == true
+    );
+    assert(
+      (await tokenERC725.getPermissions(user2.address)).deployERC20 == true
+    );
 
     await expectRevert(
       tokenERC725.connect(user2).cleanPermissions(),
@@ -183,9 +186,15 @@ describe("ERC725Template", () => {
 
     await tokenERC725.cleanPermissions();
 
-    assert(((await tokenERC725.getPermissions(owner.address))).deployERC20 == false);
-    assert(((await tokenERC725.getPermissions(user2.address))).deployERC20 == false);
-    assert(((await tokenERC725.getPermissions(user3.address))).deployERC20 == false);
+    assert(
+      (await tokenERC725.getPermissions(owner.address)).deployERC20 == false
+    );
+    assert(
+      (await tokenERC725.getPermissions(user2.address)).deployERC20 == false
+    );
+    assert(
+      (await tokenERC725.getPermissions(user3.address)).deployERC20 == false
+    );
 
     await tokenERC725.addManager(owner.address); // WE CLEANED OURSELF TO FROM ALL LISTS, so we need to re-ADD us.
 
@@ -206,22 +215,21 @@ describe("ERC725Template", () => {
     erc20Address = trxReceiptERC20.events[3].args.erc20Address;
 
     erc20Token = await ethers.getContractAt("ERC20Template", erc20Address);
-   
-    await erc20Token.addMinter(owner.address)
+
+    await erc20Token.addMinter(owner.address);
     await erc20Token.mint(user2.address, web3.utils.toWei("2"));
 
     assert(
       (await erc20Token.balanceOf(user2.address)) == web3.utils.toWei("2")
     );
 
-    
     assert((await tokenERC725.ownerOf(1)) == owner.address);
     await tokenERC725.transferFrom(owner.address, user2.address, 1);
     assert((await tokenERC725.balanceOf(owner.address)) == 0);
     assert((await tokenERC725.ownerOf(1)) == user2.address);
-    
-   await tokenERC725.removeFromCreateERC20List(owner.address) // WE CAN STILL DO THAT because the owner is still Manager
-  
+
+    await tokenERC725.removeFromCreateERC20List(owner.address); // WE CAN STILL DO THAT because the owner is still Manager
+
     await expectRevert(
       tokenERC725.createERC20(
         "ERC20DT2",
@@ -233,23 +241,22 @@ describe("ERC725Template", () => {
     );
     await tokenERC725.connect(user2).cleanPermissions();
 
-    await tokenERC725.connect(user2).addManager(user2.address)
-    await tokenERC725.connect(user2).addToCreateERC20List(user2.address)
+    await tokenERC725.connect(user2).addManager(user2.address);
+    await tokenERC725.connect(user2).addToCreateERC20List(user2.address);
     await tokenERC725
       .connect(user2)
       .createERC20("ERC20DT2", "ERC20DT2Symbol", web3.utils.toWei("10"), 1);
 
     await erc20Token.connect(user2).cleanPermissions();
-    
+
     // THIS ONE GOES FINE BECAUSE PERMISSIONS HAS NOT BEEN WIPED OUT
-    
-   await expectRevert(
+
+    await expectRevert(
       erc20Token.mint(user2.address, web3.utils.toWei("1")),
       "ERC20Template: NOT MINTER"
     );
-    
-    
-    await erc20Token.connect(user2).addMinter(user2.address)
+
+    await erc20Token.connect(user2).addMinter(user2.address);
     await erc20Token.connect(user2).mint(user2.address, web3.utils.toWei("2"));
 
     assert(
@@ -260,7 +267,7 @@ describe("ERC725Template", () => {
       tokenERC725.updateMetadata(flags, data),
       "ERC725Template: NOT METADATA_ROLE"
     );
-   
+
     await expectRevert(
       tokenERC725.connect(user2).updateMetadata(flags, data),
       "ERC725Template: NOT METADATA_ROLE"
@@ -271,8 +278,7 @@ describe("ERC725Template", () => {
       "ERC721RolesAddress: NOT MANAGER"
     );
 
-
-    await tokenERC725.connect(user2).addToMetadataList(user2.address)
+    await tokenERC725.connect(user2).addToMetadataList(user2.address);
     await tokenERC725.connect(user2).updateMetadata(flags, data);
   });
 });
