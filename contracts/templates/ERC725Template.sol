@@ -22,6 +22,8 @@ contract ERC725Template is ERC721('Template','TemplateSymbol'), ERC721RolesAddre
     address public _metadata;
     address private _erc20Factory;
 
+    mapping (address => bool) private deployedERC20;
+
     event ERC20Created(address indexed erc20Address);
 
     modifier onlyNotInitialized() {
@@ -138,6 +140,8 @@ contract ERC725Template is ERC721('Template','TemplateSymbol'), ERC721RolesAddre
             );
 
         //FOR TEST PURPOSE BUT COULD BE COMPLETED OR REMOVED
+        deployedERC20[token] = true;
+
         emit ERC20Created(token);
 
         return token;
@@ -185,6 +189,11 @@ contract ERC725Template is ERC721('Template','TemplateSymbol'), ERC721RolesAddre
     function setNewData(bytes32 _key, bytes calldata _value) external onlyManager {
         setData(_key,_value);
     }
+
+    function setDataERC20(bytes32 _key, bytes calldata _value) external {
+        require(deployedERC20[msg.sender] == true, 'ERC725Template: NOT ERC20 Contract');
+        setData(_key,_value);
+    }
     
     // Useful when trasferring the NFT, we can remove it if not required.
 
@@ -193,7 +202,7 @@ contract ERC725Template is ERC721('Template','TemplateSymbol'), ERC721RolesAddre
     }
 
     // NEEDED FOR IMPERSONATING THIS CONTRACT(need eth to send txs). WILL BE REMOVED
-    receive() external payable {}
+   // receive() external payable {}
 
     // FOR TEST PURPOSE TOGETHER WITH FlattenERC721.sol, both will be removed
     function mint(address account) external {

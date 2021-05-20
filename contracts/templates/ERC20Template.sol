@@ -5,6 +5,8 @@ pragma solidity >=0.6.0;
 
 import "../interfaces/IERC20Template.sol";
 import "../interfaces/IERC721Template.sol";
+//import "../templates/ERC725Template.sol";
+import "../utils/ERC725/ERC725Ocean.sol";
 import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
 import "@openzeppelin/contracts/utils/math/SafeMath.sol";
 import "../utils/ERC20Roles.sol";
@@ -97,10 +99,9 @@ contract ERC20Template is ERC20("test", "testSymbol"), ERC20Roles {
         string calldata symbol,
         address erc721Address,
         uint256 cap,
-        address feeCollector,
-        address feeManager// ENTITY WHO RECEIVES THE PAYMENT 
+        address feeCollector
     ) external onlyNotInitialized returns (bool) {
-        return _initialize(name, symbol, erc721Address, cap, feeCollector, feeManager);
+        return _initialize(name, symbol, erc721Address, cap, feeCollector);
     }
 
     /**
@@ -117,18 +118,12 @@ contract ERC20Template is ERC20("test", "testSymbol"), ERC20Roles {
         string memory symbol,
         address erc721Address,
         uint256 cap,
-        address feeCollector,
-        address feeManager
+        address feeCollector
     ) private returns (bool) {
         require(
             erc721Address != address(0),
             "ERC20Template: Invalid minter,  zero address"
         );
-
-        // require(
-        //     _minter == address(0),
-        //     "DataTokenTemplate: Invalid minter, zero address"
-        // );
 
         require(
             feeCollector != address(0),
@@ -141,6 +136,7 @@ contract ERC20Template is ERC20("test", "testSymbol"), ERC20Roles {
         _symbol = symbol;
         _erc721Address = erc721Address;
         _communityFeeCollector = feeCollector;
+        feeManager = IERC721Template(_erc721Address).ownerOf(1); // By default the feeManager is the NFTOwner
         initialized = true;
         return initialized;
     }
@@ -185,7 +181,7 @@ contract ERC20Template is ERC20("test", "testSymbol"), ERC20Roles {
             transfer(mrktFeeCollector, marketFee);
         }
         uint256 totalFee = communityFee.add(marketFee);
-        transfer(_minter, amount.sub(totalFee));
+        transfer(feeManager, amount.sub(totalFee));
 
         emit OrderStarted(
             consumer,
@@ -239,11 +235,20 @@ contract ERC20Template is ERC20("test", "testSymbol"), ERC20Roles {
     function removeMinter(address _minter) external onlyERC20Deployer {
         _removeMinter(_minter);
     }
-
-    function setData(bytes32 _key, bytes calldata _value) external onlyERC20Deployer {
-        IERC721Template(_erc721Address).setData(_key,_value);
+   
+    function setData(bytes calldata _value) external onlyERC20Deployer {
+        bytes32 key = keccak256(abi.encodePacked(address(this))); // could be any other key, used a simple configuration
+        IERC721Template(_erc721Address).setDataERC20(key,_value);
     }
 
+
+    function setFeeManager(address _newFeeManager) external onlyNFTOwner {
+        feeManager = _newFeeManager;
+    }
+
+    function cleanPermissions() external onlyNFTOwner {
+        _cleanPermissions();
+    }
     /**
      * @dev name
      *      It returns the token name.

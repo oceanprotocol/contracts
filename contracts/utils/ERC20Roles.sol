@@ -9,7 +9,7 @@ contract ERC20Roles {
 
     struct RolesERC20 {
         bool minter;
-        bool feeManager;
+        bool feeManager; //is it needed right now?
         // TODO
         // role for fee manager or collector
     }
@@ -39,7 +39,7 @@ contract ERC20Roles {
         for (uint256 i = 0; i < authERC20.length; i++) {
             RolesERC20 storage user = permissions[authERC20[i]];
             user.minter = false;
-            
+
 
         }
         

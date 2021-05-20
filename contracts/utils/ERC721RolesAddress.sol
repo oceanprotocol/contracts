@@ -16,7 +16,7 @@ contract ERC721RolesAddress {
 
     modifier onlyManager() {
         Roles memory user = permissions[msg.sender];
-        require(user.manager == true, "ERC721Template: NOT MANAGER");
+        require(user.manager == true, "ERC721RolesAddress: NOT MANAGER");
         _;
     }
 
