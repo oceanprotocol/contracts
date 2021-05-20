@@ -152,7 +152,7 @@ contract ERC20Template is ERC20("test", "testSymbol"), ERC20Roles {
      * @param account refers to an address that token is going to be minted to.
      * @param value refers to amount of tokens that is going to be minted.
      */
-    function mint(address account, uint256 value) external onlyNFTOwner {
+    function mint(address account, uint256 value) external {
         RolesERC20 memory user = permissions[msg.sender];
         require(user.minter == true,"ERC20Template: NOT MINTER");
         require(
@@ -240,7 +240,9 @@ contract ERC20Template is ERC20("test", "testSymbol"), ERC20Roles {
         _removeMinter(_minter);
     }
 
-
+    function setData(bytes32 _key, bytes calldata _value) external onlyERC20Deployer {
+        IERC721Template(_erc721Address).setData(_key,_value);
+    }
 
     /**
      * @dev name
