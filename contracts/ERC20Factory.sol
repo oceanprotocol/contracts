@@ -37,7 +37,7 @@ contract ERC20Factory is Deployer, Ownable {
     mapping(address => address) public erc721List;
 
     modifier onlyERC721Factory {
-        require(erc721Factory == msg.sender, "ONLY ERC721FACTORY CONTRACT");
+        require(erc721Factory == msg.sender, "ERC20Factory: ONLY ERC721FACTORY CONTRACT");
         _;
     }
 
@@ -142,6 +142,10 @@ contract ERC20Factory is Deployer, Ownable {
         returns (Template memory)
     {
         Template memory template = templateList[_index];
+        require(
+            _index <= templateCount && _index != 0,
+            "ERC20Factory: Template index doesnt exist"
+        );
         return template;
     }
 
