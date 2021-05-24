@@ -8,6 +8,7 @@ Managers:
 - can call executeCall (ERC725X implementation), another role?? 
 
 MAIN ROLES:
+
 ERC20Deployers:
 - can assign ERC20 Minter at the ERC20 Contract level.
 - can update ERC725Y key value store from ERC20Contract level to ERC721. Key is a preset value specific to each individual ERC20Contract but stored in the same ERC721 Contract.
