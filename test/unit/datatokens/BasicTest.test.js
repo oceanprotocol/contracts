@@ -384,6 +384,8 @@ describe("ERC721Template", () => {
     );
   });
 
+  // ERC721 Factory
+
   it("should get the templateCount from ERC721Factory", async () => {
     assert((await factoryERC721.templateCount()) == 1);
   });

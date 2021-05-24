@@ -117,6 +117,7 @@ contract ERC725Template is ERC721('Template','TemplateSymbol'), ERC721RolesAddre
             "ERC725Template: NOT METADATA_ROLE"
         );
         IMetadata(_metadata).update(address(this), flags, data);
+        setData(METADATA_KEY, data);
     }
 
     function createERC20(
@@ -186,7 +187,9 @@ contract ERC725Template is ERC721('Template','TemplateSymbol'), ERC721RolesAddre
         execute(_operation,_to,_value,_data);
     }
 
-    function setNewData(bytes32 _key, bytes calldata _value) external onlyManager {
+    function setNewData(bytes32 _key, bytes calldata _value) external {
+        Roles memory user = permissions[msg.sender];
+        require(user.store == true, "ERC725Template: NOT STORE UPDATER");
         setData(_key,_value);
     }
 
@@ -202,7 +205,7 @@ contract ERC725Template is ERC721('Template','TemplateSymbol'), ERC721RolesAddre
     }
 
     // NEEDED FOR IMPERSONATING THIS CONTRACT(need eth to send txs). WILL BE REMOVED
-   // receive() external payable {}
+    receive() external payable {}
 
     // FOR TEST PURPOSE TOGETHER WITH FlattenERC721.sol, both will be removed
     function mint(address account) external {

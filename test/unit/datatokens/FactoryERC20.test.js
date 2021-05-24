@@ -94,6 +94,7 @@ describe("ERC725Template", () => {
     name = await tokenERC725.name();
     assert(name === "DT1");
     assert(symbol === "DTSYMBOL");
+    assert((await tokenERC725.balanceOf(owner.address)) == 1);
     //await tokenERC725.addManager(owner.address);
   });
 
@@ -101,43 +102,6 @@ describe("ERC725Template", () => {
     expect(await tokenERC725.isInitialized()).to.equal(true);
   });
 
-  it("should fail to re-initialize the contracts", async () => {
-    await expectRevert(
-      tokenERC725.initialize(
-        owner.address,
-        "NewName",
-        "NN",
-        metadata.address,
-        factoryERC20.address,
-        data,
-        flags
-      ),
-      "ERC721Template: token instance already initialized"
-    );
-  });
-
-  it("should mint 1 ERC721 to owner", async () => {
-    // let totalSupply = await tokenERC725.totalSupply();
-    // assert(totalSupply == 1);
-    // // await tokenERC725.mint(owner.address);
-
-    // totalSupply = await tokenERC725.totalSupply();
-    // assert(totalSupply == 1);
-
-    assert((await tokenERC725.balanceOf(owner.address)) == 1);
-  });
-
-  it("should not be allowed to update the metadata if NOT in MetadataList", async () => {
-    await expectRevert(
-      tokenERC725.updateMetadata(data, flags),
-      "ERC725Template: NOT METADATA_ROLE"
-    );
-  });
-
-  it("should update the metadata, after adding address to MetadataList", async () => {
-    await tokenERC725.addToMetadataList(owner.address);
-    await tokenERC725.updateMetadata(data, flags);
-  });
 
   it("should not allow to create a new ERC20Token if NOT in CreateERC20List", async () => {
     await expectRevert(
@@ -161,49 +125,135 @@ describe("ERC725Template", () => {
     );
   });
 
-  it("should fail to clean lists, if not NFT Owner", async () => {
+  it("should fail to create an ERC20 calling the factory directly", async()=> {
+    await expectRevert(factoryERC20.createToken( "ERC20DT1",
+    "ERC20DT1Symbol",
+    web3.utils.toWei("10"),
+    1), "ERC20Factory: ONLY ERC721 INSTANCE FROM ERC721FACTORY")
+  })
+
+  it("should not allow to create a new ERC20Token directly if ERC721 contract is not on the list", async () => {
+    //console.log(owner)
+    // console.log(templateERC721.address)
+    await owner.sendTransaction({
+      to: templateERC725.address,
+      value: ethers.utils.parseEther("1"),
+    });
+
+    await impersonate(templateERC725.address);
+
+    const signer = await ethers.provider.getSigner(templateERC725.address);
+
     await expectRevert(
-      tokenERC725.connect(user2).cleanPermissions(),
-      "ERC721Template: not NFTOwner"
+      factoryERC20
+        .connect(signer)
+        .createToken(
+          "ERC20DT1",
+          "ERC20DT1Symbol",
+          web3.utils.toWei("10"),
+          1
+        ),
+      "ERC20Factory: ONLY ERC721 INSTANCE FROM ERC721FACTORY"
     );
   });
 
-  it("should clean lists, only NFT Owner", async () => {
+  it("should not allow to create a new ERC20Token directly from the ERC20Factory even if is a contract", async () => {
+
+    const tx = await owner.sendTransaction({
+      to: factoryERC721.address,
+      value: ethers.utils.parseEther("1"),
+    });
+    await impersonate(factoryERC721.address);
+    const signer = await ethers.provider.getSigner(factoryERC721.address);
+
+    await signer.sendTransaction({
+      to: owner.address,
+      value: ethers.utils.parseEther("0.01"),
+    });
+
+    await expectRevert(
+      factoryERC20
+        .connect(signer)
+        .createToken(
+          "ERC20DT1",
+          "ERC20DT1Symbol",
+          web3.utils.toWei("10"),
+          1
+        ),
+      "ERC20Factory: ONLY ERC721 INSTANCE FROM ERC721FACTORY"
+    );
+  });
+  it("should get templateCount from ERC20Factory", async () => {
+    assert((await factoryERC20.templateCount()) == 1);
+  });
+
+  it("should add a new ERC20 Template from owner(owner)", async () => {
+    await factoryERC20.addTokenTemplate(newERC721Template.address);
+    assert((await factoryERC20.templateCount()) == 2);
+  });
+ 
+  it("should disable a specific ERC20 Template from owner", async () => {
+    let templateStruct = await factoryERC20.templateList(1);
+    assert(templateStruct.isActive == true);
+    await factoryERC20.disableTokenTemplate(1);
+    templateStruct = await factoryERC20.templateList(1);
+    assert(templateStruct.isActive == false);
+  });
+  it("should fail to disable a specific ERC20 Template from NOT owner", async () => {
+    let templateStruct = await factoryERC20.templateList(1);
+    assert(templateStruct.isActive == true);
+    await expectRevert(
+      factoryERC20.connect(user2).disableTokenTemplate(1),
+      "Ownable: caller is not the owner"
+    );
+    templateStruct = await factoryERC20.templateList(1);
+    assert(templateStruct.isActive == true);
+  });
+  it("should fail to create a specific ERC20 Template if the template is disabled", async () => {
+    await factoryERC20.disableTokenTemplate(1);
     await tokenERC725.addToCreateERC20List(owner.address);
-    await tokenERC725.addToCreateERC20List(user2.address);
-
-    assert(
-      (await tokenERC725.getPermissions(owner.address)).deployERC20 == true
-    );
-    assert(
-      (await tokenERC725.getPermissions(user2.address)).deployERC20 == true
-    );
-
     await expectRevert(
-      tokenERC725.connect(user2).cleanPermissions(),
-      "ERC721Template: not NFTOwner"
+      tokenERC725.createERC20(
+        "ERC20DT1",
+        "ERC20DT1Symbol",
+        web3.utils.toWei("10"),
+        1
+      ),
+      "ERC721Token Template disabled"
     );
-
-    await tokenERC725.cleanPermissions();
-
-    assert(
-      (await tokenERC725.getPermissions(owner.address)).deployERC20 == false
-    );
-    assert(
-      (await tokenERC725.getPermissions(user2.address)).deployERC20 == false
-    );
-    assert(
-      (await tokenERC725.getPermissions(user3.address)).deployERC20 == false
-    );
-
-    await tokenERC725.addManager(owner.address); // WE CLEANED OURSELF TO FROM ALL LISTS, so we need to re-ADD us.
-
-    await tokenERC725.addToCreateERC20List(user3.address);
-    assert((await tokenERC725.auth(0)) == owner.address);
-    assert((await tokenERC725.auth(1)) == user3.address);
+    templateStruct = await factoryERC20.templateList(1);
+    assert(templateStruct.isActive == false);
   });
 
-  it("should transfer properly the NFT, now the new user is the owner for ERC721Template and ERC20Template", async () => {
+  it("should fail to create a specific ERC20 Template if the index is ZERO", async () => {
+    await tokenERC725.addToCreateERC20List(owner.address);
+    await expectRevert(
+      tokenERC725.createERC20(
+        "ERC20DT1",
+        "ERC20DT1Symbol",
+        web3.utils.toWei("10"),
+        0
+      ),
+      "ERC20Factory: Template index doesnt exist"
+    );
+  });
+
+  it("should fail to create a specific ERC20 Template if the index doesn't exist", async () => {
+    await tokenERC725.addToCreateERC20List(owner.address);
+    await expectRevert(
+      tokenERC725.createERC20(
+        "ERC20DT1",
+        "ERC20DT1Symbol",
+        web3.utils.toWei("10"),
+        3
+      ),
+      "Template index doesnt exist"
+    );
+  });
+
+
+  
+  xit("should transfer properly the NFT, now the new user is the owner for ERC721Template and ERC20Template", async () => {
     await tokenERC725.addToCreateERC20List(owner.address);
     const trxERC20 = await tokenERC725.createERC20(
       "ERC20DT1",
