@@ -151,6 +151,7 @@ describe("ERC20Factory", () => {
       "ERC20Factory: ONLY ERC721 INSTANCE FROM ERC721FACTORY"
     );
   });
+
   it("#createToken - should fail to create a specific ERC20 Template if the index is ZERO", async () => {
     await tokenERC725.addToCreateERC20List(owner.address);
     await expectRevert(
@@ -193,6 +194,7 @@ describe("ERC20Factory", () => {
     templateStruct = await factoryERC20.templateList(1);
     assert(templateStruct.isActive == false);
   });
+
   it("#disableTokenTemplate - should fail to disable a specific ERC20 Template from NOT owner", async () => {
     let templateStruct = await factoryERC20.templateList(1);
     assert(templateStruct.isActive == true);
@@ -203,6 +205,7 @@ describe("ERC20Factory", () => {
     templateStruct = await factoryERC20.templateList(1);
     assert(templateStruct.isActive == true);
   });
+  
   it("#disableTokenTemplate - should fail to create a specific ERC20 Template if the template is disabled", async () => {
     await factoryERC20.disableTokenTemplate(1);
     await tokenERC725.addToCreateERC20List(owner.address);
@@ -218,7 +221,6 @@ describe("ERC20Factory", () => {
     templateStruct = await factoryERC20.templateList(1);
     assert(templateStruct.isActive == false);
   });
-
 
   it("#getCurrentTokenCount - should get the current token count (deployed ERC20)", async () => {
     assert((await factoryERC20.getCurrentTokenCount()) == 1);
@@ -258,13 +260,18 @@ describe("ERC20Factory", () => {
     });
     await impersonate(factoryERC721.address);
     const signer = await ethers.provider.getSigner(factoryERC721.address);
-    
-    assert(await factoryERC20.erc721List(newERC721Template.address) == ZERO_ADDRESS)
-    
-    await factoryERC20.connect(signer).addToERC721Registry(newERC721Template.address)
 
-    assert(await factoryERC20.erc721List(newERC721Template.address) == newERC721Template.address)
+    assert(
+      (await factoryERC20.erc721List(newERC721Template.address)) == ZERO_ADDRESS
+    );
+
+    await factoryERC20
+      .connect(signer)
+      .addToERC721Registry(newERC721Template.address);
+
+    assert(
+      (await factoryERC20.erc721List(newERC721Template.address)) ==
+        newERC721Template.address
+    );
   });
-
-  
 });
