@@ -172,7 +172,7 @@ contract ERC20Template is ERC20("test", "testSymbol"), ERC20Roles {
         uint256 amount,
         uint256 serviceId,
         address mrktFeeCollector
-    ) public {
+    ) external {
         uint256 marketFee = 0;
         uint256 communityFee =
             calculateFee(amount, BASE_COMMUNITY_FEE_PERCENTAGE);
@@ -252,7 +252,7 @@ contract ERC20Template is ERC20("test", "testSymbol"), ERC20Roles {
         address consumer,
         uint256 amount,
         uint256 serviceId
-    ) public {
+    ) external {
         if (amount != 0)
             require(
                 transfer(consumer, amount),

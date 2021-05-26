@@ -191,6 +191,12 @@ contract ERC20Factory is Deployer, Ownable {
         require(erc20List[datatoken] == true, 'ERC20Factory: WRONG DATATOKEN');
     }
 
+    // FOR V3 DATATOKEN SUPPORT, can be added by the owner to createPool directly from here. is it useful?
+    function addV3Datatoken(address datatoken) external {
+        require(Ownable(datatoken).owner() == msg.sender, 'ERC20Factory: NOT ERC20 V3 datatoken owner');
+        erc20List[datatoken] = true;
+    }
+
 
       /**
      * @dev Returns true if `account` is a contract.
