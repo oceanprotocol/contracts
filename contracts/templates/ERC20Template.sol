@@ -195,8 +195,6 @@ contract ERC20Template is ERC20("test", "testSymbol"), ERC20Roles {
         );
     }
 
-   
-
     function startMultipleOrder(
         address[] calldata consumers,
         uint256[] calldata amounts,
@@ -204,21 +202,41 @@ contract ERC20Template is ERC20("test", "testSymbol"), ERC20Roles {
         address[] calldata mrktFeeCollectors
     ) external {
         uint256 ids = serviceIds.length;
-       // uint256 test = mrktFeeCollectors.lentgh;
-       
-        // TODO: fix array lentgh reading issue, add more checks on the others arrays.
-        require(ids == consumers.length, 'WRONG ARRAYS FORMAT');
-       
-         
-        
-        for (uint i = 0; i < ids; i++) {
-            startOrder(consumers[i], amounts[i], serviceIds[i], mrktFeeCollectors[i]);
-        }
+        // uint256 test = mrktFeeCollectors.lentgh;
 
+        // TODO: fix array lentgh reading issue, add more checks on the others arrays.
+
+        require(ids == consumers.length, "WRONG ARRAYS FORMAT");
+
+
+        // TODO: test the msg.sender
+        for (uint256 i = 0; i < ids; i++) {
+            uint256 marketFee = 0;
+            uint256 communityFee =
+                calculateFee(amounts[i], BASE_COMMUNITY_FEE_PERCENTAGE);
+            transfer(_communityFeeCollector, communityFee);
+            if (mrktFeeCollectors[i] != address(0)) {
+                marketFee = calculateFee(
+                    amounts[i],
+                    BASE_MARKET_FEE_PERCENTAGE
+                );
+                transfer(mrktFeeCollectors[i], marketFee);
+            }
+            uint256 totalFee = communityFee.add(marketFee);
+            transfer(feeManager, amounts[i].sub(totalFee));
+
+            emit OrderStarted(
+                consumers[i],
+                msg.sender,
+                amounts[i],
+                serviceIds[i],
+                block.timestamp,
+                mrktFeeCollectors[i],
+                marketFee
+            );
+        }
     }
 
-
-    // TODO: Adapt it to work in this contract.
     /**
      * @dev finishOrder
      *      called by provider prior completing service delivery only
@@ -251,7 +269,6 @@ contract ERC20Template is ERC20("test", "testSymbol"), ERC20Roles {
         );
     }
 
-
     function finishMultipleOrder(
         bytes32[] calldata orderTxIds,
         address[] calldata consumers,
@@ -259,19 +276,28 @@ contract ERC20Template is ERC20("test", "testSymbol"), ERC20Roles {
         uint256[] calldata serviceIds
     ) external {
         uint256 ids = serviceIds.length;
-      
-       
+
         // TODO: fix array lentgh reading issue, add more checks on the others arrays.
-        require(ids == consumers.length, 'WRONG ARRAYS FORMAT');
-      
-         
-        
-        for (uint i = 0; i < ids; i++) {
-            finishOrder(orderTxIds[i], consumers[i], amounts[i], serviceIds[i]);
+        require(ids == consumers.length, "WRONG ARRAYS FORMAT");
+
+        // TODO: test the msg.sender
+        for (uint256 i = 0; i < ids; i++) {
+            if (amounts[i] != 0)
+                require(
+                    transfer(consumers[i], amounts[i]),
+                    "DataTokenTemplate: failed to finish order"
+                );
+
+            emit OrderFinished(
+                orderTxIds[i],
+                consumers[i],
+                amounts[i],
+                serviceIds[i],
+                msg.sender,
+                block.timestamp
+            );
         }
-
     }
-
 
     function addMinter(address _minter) external onlyERC20Deployer {
         _addMinter(_minter);
