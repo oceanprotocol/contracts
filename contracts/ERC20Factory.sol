@@ -36,6 +36,8 @@ contract ERC20Factory is Deployer, Ownable {
 
     mapping(address => address) public erc721List;
 
+    mapping(address => bool) public erc20List;
+
     modifier onlyERC721Factory {
         require(erc721Factory == msg.sender, "ERC20Factory: ONLY ERC721FACTORY CONTRACT");
         _;
@@ -55,6 +57,7 @@ contract ERC20Factory is Deployer, Ownable {
         address indexed registeredBy
     );
 
+   
     /**
      * @dev constructor
      *      Called on contract deployment. Could not be called with zero address parameters.
@@ -101,6 +104,8 @@ contract ERC20Factory is Deployer, Ownable {
         );
 
         token = deploy(tokenTemplate.templateAddress);
+
+        erc20List[token] = true;
 
         require(
             token != address(0),
@@ -181,6 +186,12 @@ contract ERC20Factory is Deployer, Ownable {
         erc721List[ERC721address] = ERC721address;
     }
 
+    // TODO: Complete createPool
+    function createPool(address datatoken ) external {
+        require(erc20List[datatoken] == true, 'ERC20Factory: WRONG DATATOKEN');
+    }
+
+
       /**
      * @dev Returns true if `account` is a contract.
      *
@@ -208,8 +219,12 @@ contract ERC20Factory is Deployer, Ownable {
         assembly { size := extcodesize(account) }
         return size > 0;
     }
+
+
     // MISSING ONLYOWNER OR SOME KIND OF RESTRICION, COULD BE REMOVED IF WE DON"T WANT TO UPDATE IT(HARDCODED IN THE CONTRACT)
     function setERC721Factory(address _erc721FactoryAddress) public {
         erc721Factory = _erc721FactoryAddress;
     }
+
+
 }

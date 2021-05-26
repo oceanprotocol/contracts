@@ -29,8 +29,8 @@ contract ERC20Template is ERC20("test", "testSymbol"), ERC20Roles {
     bool private initialized = false;
     address private _erc721Address;
     address private feeManager;
-  //  address private _minter;
-  //  address private _proposedMinter;
+    //  address private _minter;
+    //  address private _proposedMinter;
     uint256 public constant BASE = 10**18;
     uint256 public constant BASE_COMMUNITY_FEE_PERCENTAGE = BASE / 1000;
     uint256 public constant BASE_MARKET_FEE_PERCENTAGE = BASE / 1000;
@@ -65,7 +65,7 @@ contract ERC20Template is ERC20("test", "testSymbol"), ERC20Roles {
         );
         _;
     }
-     modifier onlyNFTOwner() {
+    modifier onlyNFTOwner() {
         require(
             msg.sender == IERC721Template(_erc721Address).ownerOf(1),
             "ERC20Template: not NFTOwner"
@@ -79,7 +79,8 @@ contract ERC20Template is ERC20("test", "testSymbol"), ERC20Roles {
     // }
 
     modifier onlyERC20Deployer() {
-        IERC721Template.Roles memory user = IERC721Template(_erc721Address).getPermissions(msg.sender);
+        IERC721Template.Roles memory user =
+            IERC721Template(_erc721Address).getPermissions(msg.sender);
         require(user.deployERC20 == true, "ERC20Template: NOT DEPLOYER ROLE");
         _;
     }
@@ -90,7 +91,7 @@ contract ERC20Template is ERC20("test", "testSymbol"), ERC20Roles {
      *      Calls private _initialize function. Only if contract is not initialized.
      * @param name refers to a new DataToken name
      * @param symbol refers to a nea DataToken symbol
-     * @param erc721Address refers to the erc721 address (used for onlyNFTOwner modifier) 
+     * @param erc721Address refers to the erc721 address (used for onlyNFTOwner modifier)
      * @param cap the total ERC20 cap
      * @param feeCollector it is the community fee collector address
      */
@@ -150,7 +151,7 @@ contract ERC20Template is ERC20("test", "testSymbol"), ERC20Roles {
      */
     function mint(address account, uint256 value) external {
         RolesERC20 memory user = permissions[msg.sender];
-        require(user.minter == true,"ERC20Template: NOT MINTER");
+        require(user.minter == true, "ERC20Template: NOT MINTER");
         require(
             totalSupply().add(value) <= _cap,
             "DataTokenTemplate: cap exceeded"
@@ -171,7 +172,7 @@ contract ERC20Template is ERC20("test", "testSymbol"), ERC20Roles {
         uint256 amount,
         uint256 serviceId,
         address mrktFeeCollector
-    ) external {
+    ) public {
         uint256 marketFee = 0;
         uint256 communityFee =
             calculateFee(amount, BASE_COMMUNITY_FEE_PERCENTAGE);
@@ -194,6 +195,30 @@ contract ERC20Template is ERC20("test", "testSymbol"), ERC20Roles {
         );
     }
 
+   
+
+    function startMultipleOrder(
+        address[] calldata consumers,
+        uint256[] calldata amounts,
+        uint256[] calldata serviceIds,
+        address[] calldata mrktFeeCollectors
+    ) external {
+        uint256 ids = serviceIds.length;
+       // uint256 test = mrktFeeCollectors.lentgh;
+       
+        // TODO: fix array lentgh reading issue, add more checks on the others arrays.
+        require(ids == consumers.length, 'WRONG ARRAYS FORMAT');
+       
+         
+        
+        for (uint i = 0; i < ids; i++) {
+            startOrder(consumers[i], amounts[i], serviceIds[i], mrktFeeCollectors[i]);
+        }
+
+    }
+
+
+    // TODO: Adapt it to work in this contract.
     /**
      * @dev finishOrder
      *      called by provider prior completing service delivery only
@@ -209,7 +234,7 @@ contract ERC20Template is ERC20("test", "testSymbol"), ERC20Roles {
         address consumer,
         uint256 amount,
         uint256 serviceId
-    ) external {
+    ) public {
         if (amount != 0)
             require(
                 transfer(consumer, amount),
@@ -227,6 +252,26 @@ contract ERC20Template is ERC20("test", "testSymbol"), ERC20Roles {
     }
 
 
+    function finishMultipleOrder(
+        bytes32[] calldata orderTxIds,
+        address[] calldata consumers,
+        uint256[] calldata amounts,
+        uint256[] calldata serviceIds
+    ) external {
+        uint256 ids = serviceIds.length;
+      
+       
+        // TODO: fix array lentgh reading issue, add more checks on the others arrays.
+        require(ids == consumers.length, 'WRONG ARRAYS FORMAT');
+      
+         
+        
+        for (uint i = 0; i < ids; i++) {
+            finishOrder(orderTxIds[i], consumers[i], amounts[i], serviceIds[i]);
+        }
+
+    }
+
 
     function addMinter(address _minter) external onlyERC20Deployer {
         _addMinter(_minter);
@@ -235,12 +280,11 @@ contract ERC20Template is ERC20("test", "testSymbol"), ERC20Roles {
     function removeMinter(address _minter) external onlyERC20Deployer {
         _removeMinter(_minter);
     }
-   
+
     function setData(bytes calldata _value) external onlyERC20Deployer {
         bytes32 key = keccak256(abi.encodePacked(address(this))); // could be any other key, used a simple configuration
-        IERC721Template(_erc721Address).setDataERC20(key,_value);
+        IERC721Template(_erc721Address).setDataERC20(key, _value);
     }
-
 
     function setFeeManager(address _newFeeManager) external onlyNFTOwner {
         feeManager = _newFeeManager;
@@ -249,6 +293,7 @@ contract ERC20Template is ERC20("test", "testSymbol"), ERC20Roles {
     function cleanPermissions() external onlyNFTOwner {
         _cleanPermissions();
     }
+
     /**
      * @dev name
      *      It returns the token name.
@@ -285,7 +330,6 @@ contract ERC20Template is ERC20("test", "testSymbol"), ERC20Roles {
     function cap() external view returns (uint256) {
         return _cap;
     }
-
 
     /**
      * @dev isInitialized
