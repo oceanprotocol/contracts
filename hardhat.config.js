@@ -17,12 +17,17 @@ task("accounts", "Prints the list of accounts", async () => {
  * @type import('hardhat/config').HardhatUserConfig
  */
 module.exports = {
-  solidity: "0.8.0", 
+  solidity: {
+    compilers: [{version: "0.8.0",settings: {}}],
+    overrides: {
+      
+    }
+  }, 
   networks: {
     hardhat: {
       forking: {
         url: "https://eth-mainnet.alchemyapi.io/v2/eOqKsGAdsiNLCVm846Vgb-6yY3jlcNEo",
-        blockNumber: 11095000
+        blockNumber: 12515000
       }
     }
   },

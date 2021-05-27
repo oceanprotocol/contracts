@@ -58,6 +58,9 @@ contract ERC20Factory is Deployer, Ownable {
         address indexed registeredBy
     );
 
+    event PoolCreated(
+        address indexed newPoolAddress
+    );
    
     /**
      * @dev constructor
@@ -204,6 +207,8 @@ contract ERC20Factory is Deployer, Ownable {
         weights,
         swapFeePercentage,
         owner);
+
+        emit PoolCreated(newPoolAddress);
 
         return newPoolAddress;
     }
