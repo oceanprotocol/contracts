@@ -8,6 +8,7 @@ import "./utils/Deployer.sol";
 import "./interfaces/IERC20Template.sol";
 import "./interfaces/IERC721Template.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
+import "./interfaces/IWeightedPoolFactory.sol";
 
 /**
  * @title DTFactory contract
@@ -24,7 +25,7 @@ contract ERC20Factory is Deployer, Ownable {
     uint256 private currentTokenCount = 1;
  
     address public erc721Factory;
-
+    address public balPoolFactory = 0x8E9aa87E45e92bad84D5F8DD1bff34Fb92637dE9;
     uint256 public templateCount;
 
     struct Template {
@@ -186,9 +187,25 @@ contract ERC20Factory is Deployer, Ownable {
         erc721List[ERC721address] = ERC721address;
     }
 
-    // TODO: Complete createPool
-    function createPool(address datatoken ) external {
-        require(erc20List[datatoken] == true, 'ERC20Factory: WRONG DATATOKEN');
+    // Generic pool creation from Balancer V2 contracts
+    // TODO: create custom pools depending if 1 of the tokens is OCEAN.
+    function createPool( 
+        string memory name,
+        string memory symbol,
+        IERC20[] memory tokens,
+        uint256[] memory weights,
+        uint256 swapFeePercentage,
+        address owner) external returns (address)
+        {
+    // TODO ADD REQUIRE TO CHECK IF datatoken is on the erc20List => erc20List[datatoken] == true
+      
+        address newPoolAddress = IWeightedPoolFactory(balPoolFactory).create(name,symbol,
+        tokens,
+        weights,
+        swapFeePercentage,
+        owner);
+
+        return newPoolAddress;
     }
 
     // FOR V3 DATATOKEN SUPPORT, can be added by the owner to createPool directly from here. is it useful?
