@@ -212,24 +212,44 @@ contract ERC725Template is ERC721('Template','TemplateSymbol'), ERC721RolesAddre
     function wrapV3DT(address datatoken, address newMinter) external onlyNFTOwner{
         require(IV3ERC20(datatoken).minter() == msg.sender, 'ERC725Template: NOT ERC20 V3 datatoken owner');
         v3DT[datatoken] = true;
-        (bool success, bytes memory result) = datatoken.delegatecall(abi.encodeWithSignature("proposeMinter(address)", address(this) ));
+        (bool success, ) = datatoken.delegatecall(abi.encodeWithSignature("proposeMinter(address)", address(this) ));
         require(success == true, 'ERC725Template: PROPOSE MINTER FAILED');
         IV3ERC20(datatoken).approveMinter();
-        IV3ERC20(datatoken).proposeMinter(newMinter);
+        _addV3Minter(newMinter);
+        
+        // move minter() to this contract, add newMinter which is the only one who can trigger mintV3DT
+     
+        // PROS: 
+        // easy migration v3, 
+        // now the minter is this contract, which is controlled by the NFT owner, which consequently is the owner of the V3 DT
+        // newMinter is set in the same function, allowing newMinter to mint on any registered datatoken in wrapV3DT. 
+        // 
+        // if the NFT is transferred, cleaning permission would be sufficient, since the minter() in the datatoken is this contract.
 
-        // TODO: NOW THE Propose minter has to accept 
+        // CONS: won't have roles at the v4 ERC20 datatoken. Only the minter.
+        // v3Minter right now is able to mint any datatoken registered, could be restricted if needed.
+        // TODO: CHECK METADATA SIDE, some cons here
+
     }
 
-    // function setV3Minter(address datatoken, address newMinter) external onlyNFTOwner {
-    //     require(v3DT[datatoken] == true, "ERC725Template: V3 DATATOKEN NOT WRAPPED");
-    //     IV3ERC20(datatoken).proposeMinter(newMinter);
-    // }
+    function mintV3DT(address datatoken, address to, uint256 value) external {
+        Roles memory user = permissions[msg.sender];
+        require(user.v3Minter == true, "ERC725Template: NOT v3 MINTER");
+        require(v3DT[datatoken] == true, 'NOT V3 datatoken');
+        IV3ERC20(datatoken).mint(to,value);
+        
+    }
 
-    // function addValuesWithDelegateCall(address calculator, uint256 a, uint256 b) public returns (uint256) {
-    //     (bool success, bytes memory result) = calculator.delegatecall(abi.encodeWithSignature("add(uint256,uint256)", a, b));
-    //     emit AddedValuesByDelegateCall(a, b, success);
-    //     return abi.decode(result, (uint256));
-    // }
+    function addV3Minter(address newMinter) external onlyManager {
+        _addV3Minter(newMinter);
+        
+    }
+
+    function removeV3Minter(address minter) external onlyManager {
+        _removeV3Minter(minter);
+    }
+
+    
     // NEEDED FOR IMPERSONATING THIS CONTRACT(need eth to send txs). WILL BE REMOVED
     receive() external payable {}
 

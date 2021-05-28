@@ -12,6 +12,7 @@ contract ERC721RolesAddress {
         bool deployERC20;
         bool updateMetadata;
         bool store;
+        bool v3Minter;
     }
 
     modifier onlyManager() {
@@ -78,6 +79,16 @@ contract ERC721RolesAddress {
         
     }
 
+    function _addV3Minter(address _minter) internal {
+        Roles storage user = permissions[_minter];
+        user.v3Minter = true;
+        auth.push(_minter);
+    }
+
+    function _removeV3Minter(address _minter) internal {
+        Roles storage user = permissions[_minter];
+        user.v3Minter = false;
+    }
     
     function _cleanPermissions() internal {
         
