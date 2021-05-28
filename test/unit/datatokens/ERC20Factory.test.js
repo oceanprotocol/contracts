@@ -29,7 +29,7 @@ describe("ERC20Factory", () => {
     oceanContract;
 
   const oceanAddress = "0x967da4048cd07ab37855c090aaf366e4ce1b9f48";
-  const vaultAddress = "0xBA12222222228d8Ba445958a75a0704d566BF2C8"
+  const vaultAddress = "0xBA12222222228d8Ba445958a75a0704d566BF2C8";
   const communityFeeCollector = "0xeE9300b7961e0a01d9f0adb863C7A227A07AaD75";
   beforeEach("init contracts for each test", async () => {
     const ERC725Template = await ethers.getContractFactory("ERC725Template");
@@ -98,7 +98,7 @@ describe("ERC20Factory", () => {
         ethers.utils.parseEther("10000")
     );
 
-    // const oceanContract= IERC20(oceanAddress)
+    
   });
 
   xit("#isInitialized - should check that the tokenERC725 contract is initialized", async () => {
@@ -308,10 +308,13 @@ describe("ERC20Factory", () => {
       )
     ).wait();
     const newERC20DT = receipt.events[3].args.erc20Address;
-    
-    const erc20DTContract = await ethers.getContractAt('ERC20Template',newERC20DT)
-      
-    await erc20DTContract.addMinter(owner.address)
+
+    const erc20DTContract = await ethers.getContractAt(
+      "ERC20Template",
+      newERC20DT
+    );
+
+    await erc20DTContract.addMinter(owner.address);
     await erc20DTContract.mint(owner.address, web3.utils.toWei("100"));
 
     const tokens = [newERC20DT, oceanAddress];
@@ -341,10 +344,13 @@ describe("ERC20Factory", () => {
     const pool = await ethers.getContractAt(WeightedPoolABI, poolAddress);
     const poolID = await pool.getPoolId();
     console.log(poolID);
-    const initialBalances = [ethers.utils.parseEther("10"), ethers.utils.parseEther("1000")];
+    const initialBalances = [
+      ethers.utils.parseEther("10"),
+      ethers.utils.parseEther("1000"),
+    ];
     const JOIN_KIND_INIT = 0;
 
-    const vault = await ethers.getContractAt('IVault', vaultAddress)
+    const vault = await ethers.getContractAt("IVault", vaultAddress);
     // Construct magic userData
     const initUserData = ethers.utils.defaultAbiCoder.encode(
       ["uint256", "uint256[]"],
@@ -357,16 +363,25 @@ describe("ERC20Factory", () => {
       fromInternalBalance: false,
     };
 
-   
-    
-    await oceanContract.approve(vaultAddress, ethers.utils.parseEther('1000000000'));
-   
-    await erc20DTContract.approve(vaultAddress,ethers.utils.parseEther('1000000000') )
-    
-    const tx = await vault.joinPool(poolID, owner.address, owner.address, joinPoolRequest);
-    // You can wait for it like this, or just print the tx hash and monitor
+    await oceanContract.approve(
+      vaultAddress,
+      ethers.utils.parseEther("1000000000")
+    );
+
+    await erc20DTContract.approve(
+      vaultAddress,
+      ethers.utils.parseEther("1000000000")
+    );
+
+    const tx = await vault.joinPool(
+      poolID,
+      owner.address,
+      owner.address,
+      joinPoolRequest
+    );
+
     receipt = await tx.wait();
-    console.log(receipt)
+    console.log(receipt);
   });
 });
 

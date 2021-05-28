@@ -7,6 +7,7 @@ pragma experimental ABIEncoderV2;
 import "./utils/Deployer.sol";
 import "./interfaces/IERC20Template.sol";
 import "./interfaces/IERC721Template.sol";
+import "./interfaces/IV3ERC20.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
 import "./interfaces/IWeightedPoolFactory.sol";
 
@@ -215,8 +216,12 @@ contract ERC20Factory is Deployer, Ownable {
 
     // FOR V3 DATATOKEN SUPPORT, can be added by the owner to createPool directly from here. is it useful?
     function addV3Datatoken(address datatoken) external {
-        require(Ownable(datatoken).owner() == msg.sender, 'ERC20Factory: NOT ERC20 V3 datatoken owner');
+      
+        require(IV3ERC20(datatoken).minter() == msg.sender, 'ERC20Factory: NOT ERC20 V3 datatoken owner');
+        require(erc20List[datatoken] == false, "ERC20Factory: V3 Token already migrated");
         erc20List[datatoken] = true;
+        
+        // TODO: COMPLETE MIGRATION
     }
 
 

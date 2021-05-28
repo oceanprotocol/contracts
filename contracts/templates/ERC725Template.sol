@@ -6,6 +6,7 @@ import "../utils/ERC725/ERC725Ocean.sol";
 //import "../FlattenERC721.sol";
 import "@openzeppelin/contracts/utils/Create2.sol";
 import "solidity-bytes-utils/contracts/BytesLib.sol";
+import "../interfaces/IV3ERC20.sol";
 //import "@openzeppelin/contracts/utils/introspection/ERC165Storage.sol";
 import "../interfaces/IMetadata.sol";
 import "../interfaces/IERC20Factory.sol";
@@ -23,6 +24,8 @@ contract ERC725Template is ERC721('Template','TemplateSymbol'), ERC721RolesAddre
     address private _erc20Factory;
 
     mapping (address => bool) private deployedERC20;
+
+    mapping(address => bool ) private v3DT;
 
     event ERC20Created(address indexed erc20Address);
 
@@ -204,6 +207,29 @@ contract ERC725Template is ERC721('Template','TemplateSymbol'), ERC721RolesAddre
         _cleanPermissions();
     }
 
+    // V3 MIGRATION
+
+    function wrapV3DT(address datatoken, address newMinter) external onlyNFTOwner{
+        require(IV3ERC20(datatoken).minter() == msg.sender, 'ERC725Template: NOT ERC20 V3 datatoken owner');
+        v3DT[datatoken] = true;
+        (bool success, bytes memory result) = datatoken.delegatecall(abi.encodeWithSignature("proposeMinter(address)", address(this) ));
+        require(success == true, 'ERC725Template: PROPOSE MINTER FAILED');
+        IV3ERC20(datatoken).approveMinter();
+        IV3ERC20(datatoken).proposeMinter(newMinter);
+
+        // TODO: NOW THE Propose minter has to accept 
+    }
+
+    // function setV3Minter(address datatoken, address newMinter) external onlyNFTOwner {
+    //     require(v3DT[datatoken] == true, "ERC725Template: V3 DATATOKEN NOT WRAPPED");
+    //     IV3ERC20(datatoken).proposeMinter(newMinter);
+    // }
+
+    // function addValuesWithDelegateCall(address calculator, uint256 a, uint256 b) public returns (uint256) {
+    //     (bool success, bytes memory result) = calculator.delegatecall(abi.encodeWithSignature("add(uint256,uint256)", a, b));
+    //     emit AddedValuesByDelegateCall(a, b, success);
+    //     return abi.decode(result, (uint256));
+    // }
     // NEEDED FOR IMPERSONATING THIS CONTRACT(need eth to send txs). WILL BE REMOVED
     receive() external payable {}
 
@@ -216,4 +242,6 @@ contract ERC725Template is ERC721('Template','TemplateSymbol'), ERC721RolesAddre
         // tokenId += 1;
         _safeMint(account, 2);
     }
+
+    
 }
