@@ -196,11 +196,20 @@ contract ERC725Template is ERC721('Template','TemplateSymbol'), ERC721RolesAddre
         setData(_key,_value);
     }
 
-    function setDataERC20(bytes32 _key, bytes calldata _value) external {
+    function setDataERC20(bytes32 _key, bytes calldata _value) public {
         require(deployedERC20[msg.sender] == true, 'ERC725Template: NOT ERC20 Contract');
         setData(_key,_value);
     }
     
+    function setDataV3(address datatoken, bytes calldata _value, bytes calldata flags,
+        bytes calldata data) external  {
+        Roles memory user = permissions[msg.sender];
+        require(user.v3Minter == true, "ERC725Template: NOT v3 MINTER");
+        require(v3DT[datatoken] == true, 'NOT V3 datatoken');
+        bytes32 key = keccak256(abi.encodePacked(address(this))); // could be any other key, used a simple configuration
+        setDataERC20(key, _value); // into the new standard 725Y
+        IMetadata(_metadata).update(datatoken, flags, data); // Metadata standard for Aqua 
+    }
     // Useful when trasferring the NFT, we can remove it if not required.
 
      function cleanPermissions() external onlyNFTOwner {
