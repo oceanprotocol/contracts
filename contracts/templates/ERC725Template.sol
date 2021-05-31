@@ -204,11 +204,13 @@ contract ERC725Template is ERC721('Template','TemplateSymbol'), ERC721RolesAddre
     function setDataV3(address datatoken, bytes calldata _value, bytes calldata flags,
         bytes calldata data) external  {
         Roles memory user = permissions[msg.sender];
-        require(user.v3Minter == true, "ERC725Template: NOT v3 MINTER");
+        require(user.deployERC20 == true, "ERC725Template: NOT erc20 deployer");
         require(v3DT[datatoken] == true, 'NOT V3 datatoken');
         bytes32 key = keccak256(abi.encodePacked(address(this))); // could be any other key, used a simple configuration
         setDataERC20(key, _value); // into the new standard 725Y
-        IMetadata(_metadata).update(datatoken, flags, data); // Metadata standard for Aqua 
+        IMetadata(_metadata).update(datatoken, flags, data); // Metadata standard for Aqua (V4 Metadata)
+        // IMetadata(_metadataV3).update(datatoken, flags, data); // Old Metadata for Aqua (V3 Metadata). We should deprecate this and not support it anymore
+        // instead we should force V3 migration to start using the new V4 Metadata contract.
     }
     // Useful when trasferring the NFT, we can remove it if not required.
 
