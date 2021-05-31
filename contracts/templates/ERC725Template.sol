@@ -206,7 +206,7 @@ contract ERC725Template is ERC721('Template','TemplateSymbol'), ERC721RolesAddre
         Roles memory user = permissions[msg.sender];
         require(user.deployERC20 == true, "ERC725Template: NOT erc20 deployer");
         require(v3DT[datatoken] == true, 'NOT V3 datatoken');
-        bytes32 key = keccak256(abi.encodePacked(address(this))); // could be any other key, used a simple configuration
+        bytes32 key = keccak256(abi.encodePacked(address(datatoken))); // could be any other key, used a simple configuration
         setDataERC20(key, _value); // into the new standard 725Y
         IMetadata(_metadata).update(datatoken, flags, data); // Metadata standard for Aqua (V4 Metadata)
         // IMetadata(_metadataV3).update(datatoken, flags, data); // Old Metadata for Aqua (V3 Metadata). We should deprecate this and not support it anymore
@@ -239,8 +239,7 @@ contract ERC725Template is ERC721('Template','TemplateSymbol'), ERC721RolesAddre
 
         // CONS: won't have roles at the v4 ERC20 datatoken. Only the minter.
         // v3Minter right now is able to mint any datatoken registered, could be restricted if needed.
-        // TODO: CHECK METADATA SIDE, some cons here
-
+        
     }
 
     function mintV3DT(address datatoken, address to, uint256 value) external {
