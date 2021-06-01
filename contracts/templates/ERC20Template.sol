@@ -80,7 +80,7 @@ contract ERC20Template is ERC20("test", "testSymbol"), ERC20Roles {
 
     modifier onlyERC20Deployer() {
         IERC721Template.Roles memory user =
-            IERC721Template(_erc721Address).getPermissions(msg.sender);
+            IERC721Template(_erc721Address)._getPermissions(msg.sender);
         require(user.deployERC20 == true, "ERC20Template: NOT DEPLOYER ROLE");
         _;
     }
@@ -208,8 +208,6 @@ contract ERC20Template is ERC20("test", "testSymbol"), ERC20Roles {
 
         require(ids == consumers.length, "WRONG ARRAYS FORMAT");
 
-
-        // TODO: test the msg.sender
         for (uint256 i = 0; i < ids; i++) {
             uint256 marketFee = 0;
             uint256 communityFee =

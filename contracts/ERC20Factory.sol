@@ -196,13 +196,17 @@ contract ERC20Factory is Deployer, Ownable {
     function createPool( 
         string memory name,
         string memory symbol,
-        IERC20[] memory tokens,
+        IERC20[] calldata tokens,
         uint256[] memory weights,
         uint256 swapFeePercentage,
         address owner) external returns (address)
         {
+        
+       // uint256 totalTokens = tokens.lentgh;
     // TODO ADD REQUIRE TO CHECK IF datatoken is on the erc20List => erc20List[datatoken] == true
-      
+        // for (uint i = 0; i < totalTokens; i++) {
+
+        // }
         address newPoolAddress = IWeightedPoolFactory(balPoolFactory).create(name,symbol,
         tokens,
         weights,
@@ -245,7 +249,7 @@ contract ERC20Factory is Deployer, Ownable {
 
 
     // MISSING ONLYOWNER OR SOME KIND OF RESTRICION, COULD BE REMOVED IF WE DON"T WANT TO UPDATE IT(HARDCODED IN THE CONTRACT)
-    function setERC721Factory(address _erc721FactoryAddress) public {
+    function setERC721Factory(address _erc721FactoryAddress) public onlyOwner {
         erc721Factory = _erc721FactoryAddress;
     }
 

@@ -15,19 +15,19 @@ describe("ERC721Factory", () => {
     owner,
     reciever,
     metadata,
-    tokenERC725,
+    tokenERC721,
     tokenAddress,
     data,
     flags,
     factoryERC721,
     factoryERC20,
-    templateERC725,
+    templateERC721,
     templateERC20,
     newERC721Template;
 
   const communityFeeCollector = "0xeE9300b7961e0a01d9f0adb863C7A227A07AaD75";
   beforeEach("init contracts for each test", async () => {
-    const ERC725Template = await ethers.getContractFactory("ERC725Template");
+    const ERC721Template = await ethers.getContractFactory("ERC721Template");
     const ERC20Template = await ethers.getContractFactory("ERC20Template");
     const ERC721Factory = await ethers.getContractFactory("ERC721Factory");
     const ERC20Factory = await ethers.getContractFactory("ERC20Factory");
@@ -47,14 +47,14 @@ describe("ERC721Factory", () => {
       templateERC20.address,
       communityFeeCollector
     );
-    templateERC725 = await ERC725Template.deploy();
+    templateERC721 = await ERC721Template.deploy();
     factoryERC721 = await ERC721Factory.deploy(
-      templateERC725.address,
+      templateERC721.address,
       communityFeeCollector,
       factoryERC20.address
     );
 
-    newERC721Template = await ERC725Template.deploy();
+    newERC721Template = await ERC721Template.deploy();
 
     await metadata.setERC20Factory(factoryERC20.address);
     await factoryERC20.setERC721Factory(factoryERC721.address);
@@ -70,9 +70,9 @@ describe("ERC721Factory", () => {
     // const txReceipt = await tx.wait();
 
     // tokenAddress = txReceipt.events[4].args[0];
-    // tokenERC725 = await ethers.getContractAt("ERC725Template", tokenAddress);
-    // symbol = await tokenERC725.symbol();
-    // name = await tokenERC725.name();
+    // tokenERC721 = await ethers.getContractAt("ERC721Template", tokenAddress);
+    // symbol = await tokenERC721.symbol();
+    // name = await tokenERC721.name();
     // assert(name === "DT1");
     // assert(symbol === "DTSYMBOL");
   });
@@ -89,14 +89,14 @@ describe("ERC721Factory", () => {
     const txReceipt = await tx.wait();
 
     tokenAddress = txReceipt.events[4].args[0];
-    tokenERC725 = await ethers.getContractAt("ERC725Template", tokenAddress);
-    symbol = await tokenERC725.symbol();
-    name = await tokenERC725.name();
+    tokenERC721 = await ethers.getContractAt("ERC721Template", tokenAddress);
+    symbol = await tokenERC721.symbol();
+    name = await tokenERC721.name();
 
     assert(name === "DT1");
     assert(symbol === "DTSYMBOL");
 
-    assert((await tokenERC725.balanceOf(owner.address)) == 1);
+    assert((await tokenERC721.balanceOf(owner.address)) == 1);
   });
 
   it("#deployERC721Contract - should deploy a new erc721 contract and emit TokenCreated event", async () => {
@@ -112,7 +112,7 @@ describe("ERC721Factory", () => {
     tokenAddress = txReceipt.events[4].args[0];
 
     assert(txReceipt.events[4].event == "TokenCreated");
-    assert(txReceipt.events[4].args[1] == templateERC725.address);
+    assert(txReceipt.events[4].args[1] == templateERC721.address);
     assert(txReceipt.events[4].args[3] == owner.address);
   });
 

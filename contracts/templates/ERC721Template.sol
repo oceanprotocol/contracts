@@ -11,9 +11,10 @@ import "../interfaces/IV3ERC20.sol";
 import "../interfaces/IMetadata.sol";
 import "../interfaces/IERC20Factory.sol";
 import "../utils/ERC721RolesAddress.sol";
+import "../utils/V3Integration.sol";
 //import "hardhat/console.sol";
 
-contract ERC725Template is ERC721('Template','TemplateSymbol'), ERC721RolesAddress, ERC725Ocean {
+contract ERC721Template is ERC721('Template','TemplateSymbol'), ERC721RolesAddress, ERC725Ocean, V3Integration {
 
     bytes32 public METADATA_KEY = keccak256("METADATA_KEY");
     string private _name;
@@ -25,27 +26,13 @@ contract ERC725Template is ERC721('Template','TemplateSymbol'), ERC721RolesAddre
 
     mapping (address => bool) private deployedERC20;
 
-    mapping(address => bool ) private v3DT;
+    //mapping(address => bool ) public v3DT;
 
     event ERC20Created(address indexed erc20Address);
 
-    modifier onlyNotInitialized() {
-        require(
-            !initialized,
-            "ERC721Template: token instance already initialized"
-        );
-        _;
+    function _checkNFTOwner(address sender) view internal {
+        require(sender == ownerOf(1), "ERC721Template: not NFTOwner");
     }
-
-    modifier onlyNFTOwner() {
-        require(msg.sender == ownerOf(1), "ERC721Template: not NFTOwner");
-        _;
-    }
-
-    // constructor(
-    //     string memory name,
-    //     string memory symbol
-    // ) public ERC721(name, symbol) {}
 
     function initialize(
         address owner,
@@ -55,7 +42,11 @@ contract ERC725Template is ERC721('Template','TemplateSymbol'), ERC721RolesAddre
         address erc20Factory,
         bytes calldata _data,
         bytes calldata _flags
-    ) external onlyNotInitialized returns (bool) {
+    ) external returns (bool) {
+        require(
+            !initialized,
+            "ERC721Template: token instance already initialized"
+        );
         return
             _initialize(
                 owner,
@@ -76,14 +67,14 @@ contract ERC725Template is ERC721('Template','TemplateSymbol'), ERC721RolesAddre
         address erc20Factory,
         bytes calldata _data,
         bytes memory _flags
-    ) private returns (bool) {
+    ) internal returns (bool) {
         require(
             owner != address(0),
-            "ERC725Template:: Invalid minter,  zero address"
+            "ERC721Template:: Invalid minter,  zero address"
         );
         require(
             metadata != address(0),
-            "ERC725Template:: Metadata address cannot be zero"
+            "ERC721Template:: Metadata address cannot be zero"
         );
 
         _metadata = metadata;
@@ -98,13 +89,13 @@ contract ERC725Template is ERC721('Template','TemplateSymbol'), ERC721RolesAddre
         return initialized;
     }
 
-// WE COULD ADD A CALL TO SETDATA TO REGISTER THIS METADATA(BOTH create and update) WITH A SPECIFIC KEY VALUE, FOR CONSISTENCY    
+ 
     function _createMetadata(bytes memory flags, bytes calldata data) internal {
-        require(_metadata != address(0), "Invalid Metadata address");
+        // require(_metadata != address(0), "Invalid Metadata address");
         require(
             IERC20Factory(_erc20Factory).erc721List(address(this)) ==
                 address(this),
-            "ERC725Template: NOT ORIGINAL TEMPLATE"
+            "ERC721Template: NOT ORIGINAL TEMPLATE"
         );
         IMetadata(_metadata).create(address(this), flags, data);
         // Add metadata to key store with default key
@@ -114,10 +105,10 @@ contract ERC725Template is ERC721('Template','TemplateSymbol'), ERC721RolesAddre
     function updateMetadata(bytes calldata flags, bytes calldata data)
         external
     {
-        Roles memory user = permissions[msg.sender];
+        Roles memory user =  _getPermissions(msg.sender);
         require(
             user.updateMetadata == true,
-            "ERC725Template: NOT METADATA_ROLE"
+            "ERC721Template: NOT METADATA_ROLE"
         );
         IMetadata(_metadata).update(address(this), flags, data);
         setData(METADATA_KEY, data);
@@ -129,10 +120,10 @@ contract ERC725Template is ERC721('Template','TemplateSymbol'), ERC721RolesAddre
         uint256 cap,
         uint256 templateIndex
     ) external returns (address) {
-        Roles memory user = permissions[msg.sender];
+        Roles memory user = _getPermissions(msg.sender);
         require(
             user.deployERC20 == true,
-            "ERC725Template: NOT MINTER_ROLE"
+            "ERC721Template: NOT MINTER_ROLE"
         );
 
         address token =
@@ -143,9 +134,10 @@ contract ERC725Template is ERC721('Template','TemplateSymbol'), ERC721RolesAddre
                 templateIndex
             );
 
-        //FOR TEST PURPOSE BUT COULD BE COMPLETED OR REMOVED
+        
         deployedERC20[token] = true;
 
+        //FOR TEST PURPOSE BUT COULD BE COMPLETED OR REMOVED
         emit ERC20Created(token);
 
         return token;
@@ -173,89 +165,79 @@ contract ERC725Template is ERC721('Template','TemplateSymbol'), ERC721RolesAddre
         return initialized;
     }
 
-    function addManager( address _managerAddress) external onlyNFTOwner {
-       
-     //  require(isManager[_managerAddress] == false, 'ERC725Template: ALREADY MANAGER');
+    function addManager( address _managerAddress) external {
+        _checkNFTOwner(msg.sender);
         _addManager(_managerAddress);
     }
 
-    function removeManager(address _managerAddress) external onlyNFTOwner {
-    //    require(isManager[_managerAddress] == true, 'ERC725Template: MANAGER DOES NOT EXIST');
+    function removeManager(address _managerAddress) external {
+        _checkNFTOwner(msg.sender);
         _removeManager(_managerAddress);
     }
 
-
-
-    function executeCall(uint256 _operation, address _to, uint256 _value, bytes calldata _data) external payable onlyManager {
+    function executeCall(uint256 _operation, address _to, uint256 _value, bytes calldata _data) external payable {
+        _checkManager(msg.sender);
         execute(_operation,_to,_value,_data);
     }
 
     function setNewData(bytes32 _key, bytes calldata _value) external {
-        Roles memory user = permissions[msg.sender];
-        require(user.store == true, "ERC725Template: NOT STORE UPDATER");
+        Roles memory user = _getPermissions(msg.sender);
+        require(user.store == true, "ERC721Template: NOT STORE UPDATER");
         setData(_key,_value);
     }
 
     function setDataERC20(bytes32 _key, bytes calldata _value) public {
-        require(deployedERC20[msg.sender] == true, 'ERC725Template: NOT ERC20 Contract');
+        require(deployedERC20[msg.sender] == true, 'ERC721Template: NOT ERC20 Contract');
         setData(_key,_value);
     }
     
     function setDataV3(address datatoken, bytes calldata _value, bytes calldata flags,
         bytes calldata data) external  {
-        Roles memory user = permissions[msg.sender];
-        require(user.deployERC20 == true, "ERC725Template: NOT erc20 deployer");
-        require(v3DT[datatoken] == true, 'NOT V3 datatoken');
+        Roles memory user = _getPermissions(msg.sender);
+        require(user.deployERC20 == true, "ERC721Template: NOT erc20 deployer");
+        _checkV3DT(datatoken);
+        
         bytes32 key = keccak256(abi.encodePacked(address(datatoken))); // could be any other key, used a simple configuration
         setDataERC20(key, _value); // into the new standard 725Y
         IMetadata(_metadata).update(datatoken, flags, data); // Metadata standard for Aqua (V4 Metadata)
         // IMetadata(_metadataV3).update(datatoken, flags, data); // Old Metadata for Aqua (V3 Metadata). We should deprecate this and not support it anymore
         // instead we should force V3 migration to start using the new V4 Metadata contract.
     }
+
     // Useful when trasferring the NFT, we can remove it if not required.
 
-     function cleanPermissions() external onlyNFTOwner {
+     function cleanPermissions() external {
+        _checkNFTOwner(msg.sender);
         _cleanPermissions();
     }
 
-    // V3 MIGRATION
+    // // V3 MIGRATION
 
-    function wrapV3DT(address datatoken, address newMinter) external onlyNFTOwner{
-        require(IV3ERC20(datatoken).minter() == msg.sender, 'ERC725Template: NOT ERC20 V3 datatoken owner');
-        v3DT[datatoken] = true;
-        (bool success, ) = datatoken.delegatecall(abi.encodeWithSignature("proposeMinter(address)", address(this) ));
-        require(success == true, 'ERC725Template: PROPOSE MINTER FAILED');
-        IV3ERC20(datatoken).approveMinter();
-        _addV3Minter(newMinter);
+    function wrapV3DT(address datatoken, address newMinter) external{
+      _checkNFTOwner(msg.sender);
+        _wrap(datatoken);
+       _addV3Minter(newMinter);
         
-        // move minter() to this contract, add newMinter which is the only one who can trigger mintV3DT
      
-        // PROS: 
-        // easy migration v3, 
-        // now the minter is this contract, which is controlled by the NFT owner, which consequently is the owner of the V3 DT
-        // newMinter is set in the same function, allowing newMinter to mint on any registered datatoken in wrapV3DT. 
-        // 
-        // if the NFT is transferred, cleaning permission would be sufficient, since the minter() in the datatoken is this contract.
-
-        // CONS: won't have roles at the v4 ERC20 datatoken. Only the minter.
-        // v3Minter right now is able to mint any datatoken registered, could be restricted if needed.
         
     }
 
     function mintV3DT(address datatoken, address to, uint256 value) external {
-        Roles memory user = permissions[msg.sender];
-        require(user.v3Minter == true, "ERC725Template: NOT v3 MINTER");
-        require(v3DT[datatoken] == true, 'NOT V3 datatoken');
+       Roles memory user = permissions[msg.sender];
+       require(user.v3Minter == true, "ERC721Template: NOT v3 MINTER");
+       _checkV3DT(datatoken);
         IV3ERC20(datatoken).mint(to,value);
         
     }
 
-    function addV3Minter(address newMinter) external onlyManager {
+    function addV3Minter(address newMinter) external {
+        _checkManager(msg.sender);
         _addV3Minter(newMinter);
         
     }
 
-    function removeV3Minter(address minter) external onlyManager {
+    function removeV3Minter(address minter) external {
+        _checkManager(msg.sender);
         _removeV3Minter(minter);
     }
 
@@ -264,14 +246,14 @@ contract ERC725Template is ERC721('Template','TemplateSymbol'), ERC721RolesAddre
     receive() external payable {}
 
     // FOR TEST PURPOSE TOGETHER WITH FlattenERC721.sol, both will be removed
-    function mint(address account) external {
-        // require(
-        //     hasRole(MINTER_ROLE, msg.sender),
-        //     "ERC721Template NOT MINTER_ROLE"
-        // );
-        // tokenId += 1;
-        _safeMint(account, 2);
-    }
+    // function mint(address account) external {
+    //     // require(
+    //     //     hasRole(MINTER_ROLE, msg.sender),
+    //     //     "ERC721Template NOT MINTER_ROLE"
+    //     // );
+    //     // tokenId += 1;
+    //     _safeMint(account, 2);
+    // }
 
     
 }

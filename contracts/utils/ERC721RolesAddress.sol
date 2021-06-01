@@ -15,50 +15,59 @@ contract ERC721RolesAddress {
         bool v3Minter;
     }
 
-    modifier onlyManager() {
-        Roles memory user = permissions[msg.sender];
+    
+    function _checkManager(address manager) view internal{
+        Roles memory user = _getPermissions(manager);
         require(user.manager == true, "ERC721RolesAddress: NOT MANAGER");
-        _;
     }
 
-    function getPermissions(address user) external view returns (Roles memory) {
-        return permissions[user];
+    function _getPermissions(address account) view public returns (Roles memory){
+        return permissions[account];
     }
+    // function getPermissions(address user) external view returns (Roles memory) {
+    //     return permissions[user];
+    // }
 
-    function addTo725StoreList(address _allowedAddress) public onlyManager {
+    function addTo725StoreList(address _allowedAddress) public {
+        _checkManager(msg.sender);
         Roles storage user = permissions[_allowedAddress];
         user.store = true;
         auth.push(_allowedAddress);
     }
 
-    function removeFrom725StoreList(address _allowedAddress) public onlyManager {
+    function removeFrom725StoreList(address _allowedAddress) public  {
+        _checkManager(msg.sender);
         Roles storage user = permissions[_allowedAddress];
         user.store = false;
         
     }
 
 
-    function addToCreateERC20List(address _allowedAddress) public onlyManager {
+    function addToCreateERC20List(address _allowedAddress) public {
+        _checkManager(msg.sender);
         Roles storage user = permissions[_allowedAddress];
         user.deployERC20 = true;
         auth.push(_allowedAddress);
         
     }
 
-    function removeFromCreateERC20List(address _allowedAddress) public onlyManager {
+    function removeFromCreateERC20List(address _allowedAddress) public {
+        _checkManager(msg.sender);
         Roles storage user = permissions[_allowedAddress];
         user.deployERC20 = false;
         // TODO: remove it from createERC20List too.
    
     }
-    function addToMetadataList(address _allowedAddress) public onlyManager {
+    function addToMetadataList(address _allowedAddress) public {
+        _checkManager(msg.sender);
         Roles storage user = permissions[_allowedAddress];
         user.updateMetadata = true;
         auth.push(_allowedAddress);
         
     }
 
-    function removeFromMetadataList(address _allowedAddress) public onlyManager {
+    function removeFromMetadataList(address _allowedAddress) public {
+        _checkManager(msg.sender);
         Roles storage user = permissions[_allowedAddress];
         user.updateMetadata = false;
     

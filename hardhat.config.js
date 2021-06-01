@@ -1,5 +1,5 @@
 require("@nomiclabs/hardhat-waffle");
-
+require('hardhat-contract-sizer');
 // This is a sample Hardhat task. To learn how to create your own go to
 // https://hardhat.org/guides/create-task.html
 task("accounts", "Prints the list of accounts", async () => {
@@ -27,7 +27,11 @@ module.exports = {
     hardhat: {
       forking: {
         url: "https://eth-mainnet.alchemyapi.io/v2/eOqKsGAdsiNLCVm846Vgb-6yY3jlcNEo",
-        blockNumber: 12515000
+        blockNumber: 12515000,
+        // gas: 2000000000000000000000,
+        // gasLimit: 2000000000000000000000,
+        // blockGasLimit: 0x1fffffffffffff,
+        // allowUnlimitedContractSize: true
       }
     }
   },
@@ -36,6 +40,11 @@ module.exports = {
       enabled: true,
       runs: 200
     }
+  },
+  contractSizer: {
+    alphaSort: true,
+    runOnCompile: true,
+    disambiguatePaths: false,
   }
 };
 
