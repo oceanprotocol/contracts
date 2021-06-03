@@ -9,6 +9,7 @@
     "hardhat": "^2.2.0"
   },
   "dependencies": {
+    "@balancer-labs/v2-pool-utils": "^1.0.0",
     "@openzeppelin/contracts": "^4.0.0",
     "@openzeppelin/test-helpers": "^0.5.10",
     "hardhat-contract-sizer": "^2.0.3",
