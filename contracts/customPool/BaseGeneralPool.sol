@@ -24,6 +24,9 @@ import "@balancer-labs/v2-vault/contracts/interfaces/IGeneralPool.sol";
  * Derived contracts must implement `_onSwapGivenIn` and `_onSwapGivenOut` along with `BasePool`'s virtual functions.
  */
 abstract contract BaseGeneralPool is IGeneralPool, BasePool {
+    
+    
+    
     constructor(
         IVault vault,
         string memory name,
@@ -61,7 +64,8 @@ abstract contract BaseGeneralPool is IGeneralPool, BasePool {
     ) external view virtual override returns (uint256) {
         _validateIndexes(indexIn, indexOut, _getTotalTokens());
         uint256[] memory scalingFactors = _scalingFactors();
-
+        swapRequest.amount = _subtractOceanFeeAmount(swapRequest.amount);
+        
         return
             swapRequest.kind == IVault.SwapKind.GIVEN_IN
                 ? _swapGivenIn(swapRequest, balances, indexIn, indexOut, scalingFactors)
@@ -77,6 +81,7 @@ abstract contract BaseGeneralPool is IGeneralPool, BasePool {
     ) internal view returns (uint256) {
         // Fees are subtracted before scaling, to reduce the complexity of the rounding direction analysis.
         swapRequest.amount = _subtractSwapFeeAmount(swapRequest.amount);
+        
 
         _upscaleArray(balances, scalingFactors);
         swapRequest.amount = _upscale(swapRequest.amount, scalingFactors[indexIn]);
@@ -148,4 +153,6 @@ abstract contract BaseGeneralPool is IGeneralPool, BasePool {
     ) private pure {
         _require(indexIn < limit && indexOut < limit, Errors.OUT_OF_BOUNDS);
     }
+
+    
 }

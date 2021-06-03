@@ -24,7 +24,7 @@ import "./interfaces/IWeightedPoolFactory.sol";
 contract ERC20Factory is Deployer, Ownable {
     address private communityFeeCollector;
     uint256 private currentTokenCount = 1;
- 
+
     address public erc721Factory;
     address public balPoolFactory = 0x8E9aa87E45e92bad84D5F8DD1bff34Fb92637dE9;
     uint256 public templateCount;
@@ -40,8 +40,13 @@ contract ERC20Factory is Deployer, Ownable {
 
     mapping(address => bool) public erc20List;
 
+    mapping(address => bool) public oceanTokens;
+
     modifier onlyERC721Factory {
-        require(erc721Factory == msg.sender, "ERC20Factory: ONLY ERC721FACTORY CONTRACT");
+        require(
+            erc721Factory == msg.sender,
+            "ERC20Factory: ONLY ERC721FACTORY CONTRACT"
+        );
         _;
     }
 
@@ -59,10 +64,8 @@ contract ERC20Factory is Deployer, Ownable {
         address indexed registeredBy
     );
 
-    event PoolCreated(
-        address indexed newPoolAddress
-    );
-   
+    event PoolCreated(address indexed newPoolAddress);
+
     /**
      * @dev constructor
      *      Called on contract deployment. Could not be called with zero address parameters.
@@ -93,7 +96,7 @@ contract ERC20Factory is Deployer, Ownable {
         string memory name,
         string memory symbol,
         uint256 cap,
-      //  address erc721address,
+        //  address erc721address,
         uint256 _templateIndex
     ) public returns (address token) {
         require(cap != 0, "ERC20Factory: zero cap is not allowed");
@@ -167,7 +170,7 @@ contract ERC20Factory is Deployer, Ownable {
             _templateAddress != address(0),
             "ERC20Factory: ERC721 template address(0) NOT ALLOWED"
         );
-        require(isContract(_templateAddress),'ERC20Factory: NOT CONTRACT');
+        require(isContract(_templateAddress), "ERC20Factory: NOT CONTRACT");
         templateCount += 1;
         Template memory template = Template(_templateAddress, true);
         templateList[templateCount] = template;
@@ -191,35 +194,50 @@ contract ERC20Factory is Deployer, Ownable {
         erc721List[ERC721address] = ERC721address;
     }
 
+    function addOceanToken(address oceanTokenAddress) external onlyOwner {
+        oceanTokens[oceanTokenAddress] = true;
+    }
+
     // Generic pool creation from Balancer V2 contracts
     // TODO: create custom pools depending if 1 of the tokens is OCEAN.
-    function createPool( 
+    function createPool(
         string memory name,
         string memory symbol,
-        IERC20[] calldata tokens,
+        IERC20[] memory tokens,
         uint256[] memory weights,
         uint256 swapFeePercentage,
-        address owner) external returns (address)
-        {
+        address owner
+    ) external returns (address) {
+        uint256 totalTokens = tokens.lentgh;
+        address newPoolAddress;
+        // TODO ADD REQUIRE TO CHECK IF datatoken is on the erc20List => erc20List[datatoken] == true
         
-       // uint256 totalTokens = tokens.lentgh;
-    // TODO ADD REQUIRE TO CHECK IF datatoken is on the erc20List => erc20List[datatoken] == true
-        // for (uint i = 0; i < totalTokens; i++) {
+        for (uint256 i = 0; i < totalTokens; i++) {
+            if (oceanTokens[tokens[i]] == true) {
+                break;
+            } else {
+                newPoolAddress =
+                    IWeightedPoolFactory(balPoolFactory).create(
+                        name,
+                        symbol,
+                        tokens,
+                        weights,
+                        swapFeePercentage,
+                        owner
+                    );
+                require(newPoolAddress != address(0),'FAILED TO DEPLOY STANDARD POOL');
+                
+            }
+        }
 
-        // }
-        address newPoolAddress = IWeightedPoolFactory(balPoolFactory).create(name,symbol,
-        tokens,
-        weights,
-        swapFeePercentage,
-        owner);
-
+        // TODO ADD FUNCTION TO CREATE A CUSTOM POOL WITH EXTRA 0.1% fee
         emit PoolCreated(newPoolAddress);
 
+        
         return newPoolAddress;
     }
 
-
-      /**
+    /**
      * @dev Returns true if `account` is a contract.
      *
      * [IMPORTANT]
@@ -243,15 +261,14 @@ contract ERC20Factory is Deployer, Ownable {
 
         uint256 size;
         // solhint-disable-next-line no-inline-assembly
-        assembly { size := extcodesize(account) }
+        assembly {
+            size := extcodesize(account)
+        }
         return size > 0;
     }
-
 
     // MISSING ONLYOWNER OR SOME KIND OF RESTRICION, COULD BE REMOVED IF WE DON"T WANT TO UPDATE IT(HARDCODED IN THE CONTRACT)
     function setERC721Factory(address _erc721FactoryAddress) public onlyOwner {
         erc721Factory = _erc721FactoryAddress;
     }
-
-
 }
