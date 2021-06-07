@@ -5,7 +5,7 @@ pragma experimental ABIEncoderV2;
 
 import "../interfaces/IERC20.sol";
 import '../interfaces/IVault.sol';
-import "../interfaces/IWeightedPool.sol";
+import "../interfaces/IBaseGeneralPool.sol";
 //import "./BaseGeneralPool.sol";
 
 contract OceanManager {
@@ -36,7 +36,7 @@ contract OceanManager {
 
     function _managePoolBalanceOcean( bytes32 poolId,
         IVault.AssetManagerTransfer[] memory transfers) internal {
-        // USE TOKEN LENTGH FROM POOL ID
+        // USE TOKEN LENTGH FROM POOL ID or use lentgh from collectFee and pass it as argument
             
         for (uint i = 0; i < getLength(transfers); i++) {
             IVault.PoolBalanceOp memory transfer = IVault.PoolBalanceOp(

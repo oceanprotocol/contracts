@@ -9,7 +9,7 @@ import "@balancer-labs/v2-vault/contracts/interfaces/IVault.sol";
 import "@balancer-labs/v2-pool-utils/contracts/factories/BasePoolFactory.sol";
 import "@balancer-labs/v2-pool-utils/contracts/factories/FactoryWidePauseWindow.sol";
 
-import "../WeightedPool.sol";
+import "../BaseGeneralPool.sol";
 
 contract OceanPoolFactory is BasePoolFactory, FactoryWidePauseWindow {
     constructor(IVault vault) BasePoolFactory(vault) {
@@ -17,7 +17,7 @@ contract OceanPoolFactory is BasePoolFactory, FactoryWidePauseWindow {
     }
 
     /**
-     * @dev Deploys a new `WeightedPool`. In our case is a pool where we add 0.1% fee when swapping if there's no Ocean Token or Ocean backed stablecoin
+     * @dev Deploys a new `GeneralPool`. In our case is a pool where we add 0.1% fee when swapping if there's no Ocean Token or Ocean backed stablecoin
      */
     function create(
         string memory name,
@@ -31,7 +31,7 @@ contract OceanPoolFactory is BasePoolFactory, FactoryWidePauseWindow {
         (uint256 pauseWindowDuration, uint256 bufferPeriodDuration) = getPauseConfiguration();
 
         address pool = address(
-            new WeightedPool(
+            new BaseGeneralPool(
                 getVault(),
                 name,
                 symbol,

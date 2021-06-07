@@ -9,7 +9,7 @@ import "./interfaces/IERC20Template.sol";
 import "./interfaces/IERC721Template.sol";
 import "./interfaces/IV3ERC20.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
-import "./interfaces/IWeightedPoolFactory.sol";
+
 
 /**
  * @title DTFactory contract
