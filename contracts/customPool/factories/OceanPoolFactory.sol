@@ -49,12 +49,12 @@ contract OceanPoolFactory is BasePoolFactory, FactoryWidePauseWindow {
         // solhint-disable-previous-line no-empty-blocks
     }
 
-    function getLength(IERC20[] memory test)
+    function getLength(IERC20[] memory array)
         public
         view
         returns (uint256)
     {
-        return test.length;
+        return array.length;
     }
 
 
@@ -95,7 +95,7 @@ contract OceanPoolFactory is BasePoolFactory, FactoryWidePauseWindow {
             }
         }
 
-        // TODO: CANNOT CREATE A NEW FUNCTION ON THIS CONTRACT. TOO BIG. MOVE IT TO A NEW CONTRACT
+        // TODO: CANNOT CREATE A NEW POOL ON THIS CONTRACT. TOO BIG. MOVE IT TO A NEW CONTRACT
        
        (uint256 pauseWindowDuration, uint256 bufferPeriodDuration) = getPauseConfiguration();
        

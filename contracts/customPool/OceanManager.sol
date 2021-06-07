@@ -23,12 +23,12 @@ contract OceanManager {
         _;
     }
 
-    function getLength(IVault.AssetManagerTransfer[] memory test)
+    function getLength(IVault.AssetManagerTransfer[] memory array)
         public
         view
         returns (uint256)
     {
-        return test.length;
+        return array.length;
     }
 
     IVault.PoolBalanceOp[] public withdraws;
