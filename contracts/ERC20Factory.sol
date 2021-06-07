@@ -198,44 +198,44 @@ contract ERC20Factory is Deployer, Ownable {
         oceanTokens[oceanTokenAddress] = true;
     }
 
-    // Generic pool creation from Balancer V2 contracts
-    // TODO: create custom pools depending if 1 of the tokens is OCEAN.
-    function createPool(
-        string memory name,
-        string memory symbol,
-        IERC20[] memory tokens,
-        uint256[] memory weights,
-        uint256 swapFeePercentage,
-        address owner
-    ) external returns (address) {
-        uint256 totalTokens = tokens.lentgh;
-        address newPoolAddress;
-        // TODO ADD REQUIRE TO CHECK IF datatoken is on the erc20List => erc20List[datatoken] == true
+    // // Generic pool creation from Balancer V2 contracts
+    // // TODO: create custom pools depending if 1 of the tokens is OCEAN.
+    // function createPool(
+    //     string memory name,
+    //     string memory symbol,
+    //     IERC20[] memory tokens,
+    //     uint256[] memory weights,
+    //     uint256 swapFeePercentage,
+    //     address owner
+    // ) external returns (address) {
+    //     uint256 totalTokens = tokens.lentgh;
+    //     address newPoolAddress;
+    //     // TODO ADD REQUIRE TO CHECK IF datatoken is on the erc20List => erc20List[datatoken] == true
         
-        for (uint256 i = 0; i < totalTokens; i++) {
-            if (oceanTokens[tokens[i]] == true) {
-                break;
-            } else {
-                newPoolAddress =
-                    IWeightedPoolFactory(balPoolFactory).create(
-                        name,
-                        symbol,
-                        tokens,
-                        weights,
-                        swapFeePercentage,
-                        owner
-                    );
-                require(newPoolAddress != address(0),'FAILED TO DEPLOY STANDARD POOL');
+    //     for (uint256 i = 0; i < totalTokens; i++) {
+    //         if (oceanTokens[tokens[i]] == true) {
+    //             break;
+    //         } else {
+    //             newPoolAddress =
+    //                 IWeightedPoolFactory(balPoolFactory).create(
+    //                     name,
+    //                     symbol,
+    //                     tokens,
+    //                     weights,
+    //                     swapFeePercentage,
+    //                     owner
+    //                 );
+    //             require(newPoolAddress != address(0),'FAILED TO DEPLOY STANDARD POOL');
                 
-            }
-        }
+    //         }
+    //     }
 
-        // TODO ADD FUNCTION TO CREATE A CUSTOM POOL WITH EXTRA 0.1% fee
-        emit PoolCreated(newPoolAddress);
+    //     // TODO ADD FUNCTION TO CREATE A CUSTOM POOL WITH EXTRA 0.1% fee
+    //     emit PoolCreated(newPoolAddress);
 
         
-        return newPoolAddress;
-    }
+    //     return newPoolAddress;
+    // }
 
     /**
      * @dev Returns true if `account` is a contract.

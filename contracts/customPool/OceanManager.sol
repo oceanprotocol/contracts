@@ -5,7 +5,7 @@ pragma experimental ABIEncoderV2;
 
 import "../interfaces/IERC20.sol";
 import '../interfaces/IVault.sol';
-import "../interfaces/IBaseGeneralPool.sol";
+import "../interfaces/IWeightedPool.sol";
 //import "./BaseGeneralPool.sol";
 
 contract OceanManager {
@@ -26,7 +26,6 @@ contract OceanManager {
         _;
     }
 
-    IVault.AssetManagerTransfer[] public test;
 
     function getLength(IVault.AssetManagerTransfer[] memory test) public view returns (uint)
     {
@@ -36,15 +35,10 @@ contract OceanManager {
     IVault.PoolBalanceOp[] public withdraws;
 
     function _managePoolBalanceOcean( bytes32 poolId,
-        IVault.AssetManagerOpKind kind,
         IVault.AssetManagerTransfer[] memory transfers) internal {
-        
-        
-        uint lentgh = getLength(transfers);
-        
-         
-        
-        for (uint i = 0; i < lentgh; i++) {
+        // USE TOKEN LENTGH FROM POOL ID
+            
+        for (uint i = 0; i < getLength(transfers); i++) {
             IVault.PoolBalanceOp memory transfer = IVault.PoolBalanceOp(
             IVault.PoolBalanceOpKind.WITHDRAW,
             poolId,
@@ -61,18 +55,17 @@ contract OceanManager {
     }
 
 
-    function collectFee(bytes32 poolId, IVault.AssetManagerOpKind kind,IVault.AssetManagerTransfer[] memory transfers) external onlyOwner {
-     
-        uint lentgh = getLength(transfers);
+    function collectFee(bytes32 poolId, IVault.AssetManagerTransfer[] memory transfers) external onlyOwner {
+        // TODO: GET NUMBER OF TOKEN FROM POOL ID and create the transfers(IVault.AssetManagerTransfer[]) during the loop
 
-        for (uint i = 0; i < lentgh; i++) {
+        for (uint i = 0; i < getLength(transfers); i++) {
 
             uint totalFee = IBaseGeneralPool(pool).communityFees(address(transfers[i].token));
             uint actualFee = totalFee - feesCollected[address(transfers[i].token)];
             feesCollected[address(transfers[i].token)] = feesCollected[address(transfers[i].token)] + actualFee;
             transfers[i].amount = actualFee;
 
-            _managePoolBalanceOcean(poolId, kind ,transfers);
+            _managePoolBalanceOcean(poolId,transfers);
              // TODO
             // UPDATE BALANCES
 
