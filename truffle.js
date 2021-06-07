@@ -18,7 +18,7 @@
  *
  */
 
-const HDWalletProvider = require('truffle-hdwallet-provider')
+const HDWalletProvider = require('@truffle/hdwallet-provider')
 const NonceTrackerSubprovider = require('web3-provider-engine/subproviders/nonce-tracker')
 const utils = require('web3-utils')
 
@@ -132,6 +132,20 @@ module.exports = {
             network_id: 0x507, // 4
             gas: 10000000,
             from: '0xC7EC1970B09224B317c52d92f37F5e1E4fF6B687'
+        },
+        gaiaxtestnet: {
+            provider: () => setupWallet('YOUR-RPC-PROVIDER'),
+            network_id: 2021000, // 4
+            gas: 6666666,
+            from: '0xC7EC1970B09224B317c52d92f37F5e1E4fF6B687'
+        },
+        mumbai: {
+            provider: () => setupWallet(`https://polygon-mumbai.infura.io/v3/${process.env.INFURA_TOKEN}`),
+            network_id: 80001, // 4
+            gas: 6666666,
+            networkCheckTimeout: 1000,
+            from: '0xC7EC1970B09224B317c52d92f37F5e1E4fF6B687',
+            gasPrice: utils.toWei('4', 'gwei')
         }
     },
     plugins: ['solidity-coverage'],
