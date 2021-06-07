@@ -58,7 +58,7 @@ abstract contract BasePool is IBasePool, BasePoolAuthorization, BalancerPoolToke
     uint256 private constant _MIN_SWAP_FEE_PERCENTAGE = 1e12; // 0.0001%
     uint256 private constant _MAX_SWAP_FEE_PERCENTAGE = 1e17; // 10%
 
-    uint256 private constant swapFeeOcean = 1e15; // 0.1% 
+    uint256 public constant swapFeeOcean = 1e15; // 0.1% 
 
     address public constant oceanCommunityCollector = address(0); // update with the actual community fee collector
     uint256 private constant _MINIMUM_BPT = 1e6;
@@ -492,7 +492,7 @@ abstract contract BasePool is IBasePool, BasePoolAuthorization, BalancerPoolToke
 
     mapping(address => uint256) public commmunityFees;
 
-    function _subtractOceanFeeAmount(IERC20 tokenIn, uint256 amount) internal view returns (uint256) {
+    function _subtractOceanFeeAmount(IERC20 tokenIn, uint256 amount) internal returns (uint256) {
         // This returns amount - fee amount, so we round up (favoring a higher fee amount).
         uint256 feeAmount = amount.mulUp(swapFeeOcean);
         communityFees[address(tokenIn)] = communityFees[address(tokenIn)].add(feeAmount);

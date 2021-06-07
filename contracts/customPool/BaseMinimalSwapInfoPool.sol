@@ -24,6 +24,14 @@ import "@balancer-labs/v2-vault/contracts/interfaces/IMinimalSwapInfoPool.sol";
  * Derived contracts must implement `_onSwapGivenIn` and `_onSwapGivenOut` along with `BasePool`'s virtual functions.
  */
 abstract contract BaseMinimalSwapInfoPool is IMinimalSwapInfoPool, BasePool {
+    // uint256 private constant swapFeeOcean = 1e15; // 0.1% 
+
+    // address public constant oceanCommunityCollector = address(0); // update with the actual community fee collector
+
+   
+    // mapping(address => uint) public communityFees;
+    
+    
     constructor(
         IVault vault,
         string memory name,
@@ -57,14 +65,14 @@ abstract contract BaseMinimalSwapInfoPool is IMinimalSwapInfoPool, BasePool {
         SwapRequest memory request,
         uint256 balanceTokenIn,
         uint256 balanceTokenOut
-    ) external view virtual override returns (uint256) {
+    ) external virtual override returns (uint256) {
         uint256 scalingFactorTokenIn = _scalingFactor(request.tokenIn);
         uint256 scalingFactorTokenOut = _scalingFactor(request.tokenOut);
 
         if (request.kind == IVault.SwapKind.GIVEN_IN) {
             // Fees are subtracted before scaling, to reduce the complexity of the rounding direction analysis.
             request.amount = _subtractSwapFeeAmount(request.amount);
-
+            request.amount = _subtractOceanFeeAmount(request.tokenIn, request.amount);
             // All token amounts are upscaled.
             balanceTokenIn = _upscale(balanceTokenIn, scalingFactorTokenIn);
             balanceTokenOut = _upscale(balanceTokenOut, scalingFactorTokenOut);
@@ -122,4 +130,8 @@ abstract contract BaseMinimalSwapInfoPool is IMinimalSwapInfoPool, BasePool {
         uint256 balanceTokenIn,
         uint256 balanceTokenOut
     ) internal view virtual returns (uint256);
+
+
+
+  
 }

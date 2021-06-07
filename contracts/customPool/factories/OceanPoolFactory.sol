@@ -9,15 +9,60 @@ import "@balancer-labs/v2-vault/contracts/interfaces/IVault.sol";
 import "@balancer-labs/v2-pool-utils/contracts/factories/BasePoolFactory.sol";
 import "@balancer-labs/v2-pool-utils/contracts/factories/FactoryWidePauseWindow.sol";
 
-import "../BaseGeneralPool.sol";
+import "../WeightedPool.sol";
+//import "../../interfaces/IWeightedPoolFactory.sol";
+
+interface IWeightedPoolFactory {
+
+
+
+   function create(
+        string memory name,
+        string memory symbol,
+        IERC20[] memory tokens,
+        uint256[] memory weights,
+        uint256 swapFeePercentage,
+        address owner
+    ) external returns (address);
+
+
+
+
+
+}
 
 contract OceanPoolFactory is BasePoolFactory, FactoryWidePauseWindow {
-    constructor(IVault vault) BasePoolFactory(vault) {
+    
+    address public owner;
+    address public balPoolFactory = 0x8E9aa87E45e92bad84D5F8DD1bff34Fb92637dE9;
+
+    mapping(address => bool) public oceanTokens;
+
+
+    modifier onlyOwner {
+        require(owner == msg.sender, "NOT OWNER");
+        _;
+    }
+
+    constructor(IVault vault, address _owner) BasePoolFactory(vault) {
+        owner = _owner;
         // solhint-disable-previous-line no-empty-blocks
     }
 
+    function getLength(IERC20[] memory test)
+        public
+        view
+        returns (uint256)
+    {
+        return test.length;
+    }
+
+
+    function addOceanToken(address oceanTokenAddress) external onlyOwner {
+        oceanTokens[oceanTokenAddress] = true;
+    }
     /**
-     * @dev Deploys a new `GeneralPool`. In our case is a pool where we add 0.1% fee when swapping if there's no Ocean Token or Ocean backed stablecoin
+     * @dev Deploys a new `WeightedPool`. 
      */
     function create(
         string memory name,
@@ -28,10 +73,34 @@ contract OceanPoolFactory is BasePoolFactory, FactoryWidePauseWindow {
         uint256 swapFeePercentage,
         address owner
     ) external returns (address) {
-        (uint256 pauseWindowDuration, uint256 bufferPeriodDuration) = getPauseConfiguration();
+          
+        address pool;
+        // TODO ADD REQUIRE TO CHECK IF datatoken is on the erc20List => erc20List[datatoken] == true
+        
+        for (uint256 i = 0; i < getLength(tokens); i++) {
+            if (oceanTokens[address(tokens[i])] == true) {
+                break;
+            } else {
+                pool =
+                    IWeightedPoolFactory(balPoolFactory).create(
+                        name,
+                        symbol,
+                        tokens,
+                        weights,
+                        swapFeePercentage,
+                        owner
+                    );
+                require(pool != address(0),'FAILED TO DEPLOY STANDARD POOL');
+                return pool;
+            }
+        }
 
-        address pool = address(
-            new BaseGeneralPool(
+        // TODO: CANNOT CREATE A NEW FUNCTION ON THIS CONTRACT. TOO BIG. MOVE IT TO A NEW CONTRACT
+       
+       (uint256 pauseWindowDuration, uint256 bufferPeriodDuration) = getPauseConfiguration();
+       
+        pool = address(
+            new WeightedPool(
                 getVault(),
                 name,
                 symbol,
@@ -44,6 +113,18 @@ contract OceanPoolFactory is BasePoolFactory, FactoryWidePauseWindow {
                 owner
             )
         );
+       
+       
+       
+       
+       
+       
+       
+       
+       
+       
+        emit PoolCreated(pool);
+        
         _register(pool);
         return pool;
     }
