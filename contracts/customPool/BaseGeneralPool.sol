@@ -64,7 +64,7 @@ abstract contract BaseGeneralPool is IGeneralPool, BasePool {
     ) external view virtual override returns (uint256) {
         _validateIndexes(indexIn, indexOut, _getTotalTokens());
         uint256[] memory scalingFactors = _scalingFactors();
-        swapRequest.amount = _subtractOceanFeeAmount(swapRequest.amount);
+        swapRequest.amount = _subtractOceanFeeAmount(swapRequest.tokenIn, swapRequest.amount);
         
         return
             swapRequest.kind == IVault.SwapKind.GIVEN_IN

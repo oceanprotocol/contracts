@@ -64,6 +64,8 @@ abstract contract BasePool is IBasePool, BasePoolAuthorization, BalancerPoolToke
     uint256 private constant _MINIMUM_BPT = 1e6;
 
     uint256 internal _swapFeePercentage;
+   
+    mapping(address => uint) public communityFees;
 
     IVault private immutable _vault;
     bytes32 private immutable _poolId;
@@ -488,9 +490,12 @@ abstract contract BasePool is IBasePool, BasePoolAuthorization, BalancerPoolToke
         return amount.sub(feeAmount);
     }
 
-    function _subtractOceanFeeAmount(uint256 amount) internal view returns (uint256) {
+    mapping(address => uint256) public commmunityFees;
+
+    function _subtractOceanFeeAmount(IERC20 tokenIn, uint256 amount) internal view returns (uint256) {
         // This returns amount - fee amount, so we round up (favoring a higher fee amount).
         uint256 feeAmount = amount.mulUp(swapFeeOcean);
+        communityFees[address(tokenIn)] = communityFees[address(tokenIn)].add(feeAmount);
         return amount.sub(feeAmount);
     }
 

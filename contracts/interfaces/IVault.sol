@@ -15,14 +15,14 @@
 pragma experimental ABIEncoderV2;
 
 
-import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
+import "./IERC20.sol";
 
 import "./IAsset.sol";
 import "./IAuthorizer.sol";
 
 
 
-pragma solidity ^0.8.0;
+pragma solidity >=0.7.0;
 
 /**
  * @dev Full external interface for the Vault core contract - no external or public methods exist in the contract that
@@ -718,5 +718,11 @@ interface IVault {
      */
     function setPaused(bool paused) external;
 
-    
+    enum AssetManagerOpKind { DEPOSIT, WITHDRAW, UPDATE }
+
+      struct AssetManagerTransfer {
+        IERC20 token;
+        uint256 amount;
+    }
+
 }
