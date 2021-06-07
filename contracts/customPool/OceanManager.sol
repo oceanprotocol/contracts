@@ -2,7 +2,7 @@
 pragma solidity ^0.7.0;
 pragma experimental ABIEncoderV2;
 
-//import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
+
 import "../interfaces/IERC20.sol";
 import '../interfaces/IVault.sol';
 import "../interfaces/IBaseGeneralPool.sol";
@@ -22,31 +22,50 @@ contract OceanManager {
 
     
     modifier onlyOwner {
-        require(owner == msg.sender, 'NOT MANAGER');
+        require(owner == msg.sender, 'NOT OWNER');
         _;
     }
+
+    IVault.AssetManagerTransfer[] public test;
+
+    function getLength(IVault.AssetManagerTransfer[] memory test) public view returns (uint)
+    {
+        return test.length;
+    }
+
+    IVault.PoolBalanceOp[] public withdraws;
 
     function _managePoolBalanceOcean( bytes32 poolId,
         IVault.AssetManagerOpKind kind,
         IVault.AssetManagerTransfer[] memory transfers) internal {
         
-        for (uint i = 0; i < transfers.lentgh; i++) {
+        
+        uint lentgh = getLength(transfers);
+        
+         
+        
+        for (uint i = 0; i < lentgh; i++) {
             IVault.PoolBalanceOp memory transfer = IVault.PoolBalanceOp(
-            kind,
+            IVault.PoolBalanceOpKind.WITHDRAW,
             poolId,
             transfers[i].token,
             transfers[i].amount
         );   
-            IVault(vault).managePoolBalance(transfer);
+
+           withdraws.push(transfer);
 
 
         }
-       
+        IVault(vault).managePoolBalance(withdraws);
+        delete withdraws;
     }
 
+
     function collectFee(bytes32 poolId, IVault.AssetManagerOpKind kind,IVault.AssetManagerTransfer[] memory transfers) external onlyOwner {
-    
-        for (uint i = 0; i < transfers.lentgh; i++) {
+     
+        uint lentgh = getLength(transfers);
+
+        for (uint i = 0; i < lentgh; i++) {
 
             uint totalFee = IBaseGeneralPool(pool).communityFees(address(transfers[i].token));
             uint actualFee = totalFee - feesCollected[address(transfers[i].token)];
