@@ -75,11 +75,27 @@ contract OceanPoolFactory is BasePoolFactory, FactoryWidePauseWindow {
     ) external returns (address) {
           
         address pool;
-        // TODO ADD REQUIRE TO CHECK IF datatoken is on the erc20List => erc20List[datatoken] == true
+        // TODO? ADD REQUIRE TO CHECK IF datatoken is on the erc20List => erc20List[datatoken] == true
         
         for (uint256 i = 0; i < getLength(tokens); i++) {
             if (oceanTokens[address(tokens[i])] == true) {
-                break;
+        
+            (uint256 pauseWindowDuration, uint256 bufferPeriodDuration) = getPauseConfiguration();
+       
+             pool = address(
+                 new WeightedPool(
+                     getVault(),
+                     name,
+                     symbol,
+                     tokens,
+                     weights,
+                     assetManagers,
+                     swapFeePercentage,
+                     pauseWindowDuration,
+                     bufferPeriodDuration,
+                     owner
+                 )
+             );
             } else {
                 pool =
                     IWeightedPoolFactory(balPoolFactory).create(
@@ -90,43 +106,14 @@ contract OceanPoolFactory is BasePoolFactory, FactoryWidePauseWindow {
                         swapFeePercentage,
                         owner
                     );
-                require(pool != address(0),'FAILED TO DEPLOY STANDARD POOL');
-                _register(pool);
-                emit PoolCreated(pool);
-                return pool;
+                
             }
+            
         }
-
-        // TODO: CANNOT CREATE A NEW POOL ON THIS CONTRACT. TOO BIG. MOVE IT TO A NEW CONTRACT
+ 
        
-       (uint256 pauseWindowDuration, uint256 bufferPeriodDuration) = getPauseConfiguration();
-       
-        pool = address(
-            new WeightedPool(
-                getVault(),
-                name,
-                symbol,
-                tokens,
-                weights,
-                assetManagers,
-                swapFeePercentage,
-                pauseWindowDuration,
-                bufferPeriodDuration,
-                owner
-            )
-        );
-       
-       
-       
-       
-       
-       
-       
-       
-       
-       
+        require(pool != address(0),'FAILED TO DEPLOY STANDARD POOL');
         emit PoolCreated(pool);
-        
         _register(pool);
         return pool;
     }

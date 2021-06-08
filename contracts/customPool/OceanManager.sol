@@ -32,10 +32,7 @@ contract OceanManager {
         return array.length;
     }
 
-    function getTokensLength(address[] memory array) public view returns(uint256) {
-        return array.lentgh;
-    }
-
+  
     IVault.PoolBalanceOp[] public withdraws;
     IVault.PoolBalanceOp[] public updates;
 
@@ -76,7 +73,7 @@ contract OceanManager {
         // We should then add a function to transfer them to the OPF Community Collector
     }
 
-    // SHOULD WE CREATE A BATCH FUNCTION FOR COLLECTING FEES FROM MULTIPLE POOLS?
+    // TODO? SHOULD WE CREATE A BATCH FUNCTION FOR COLLECTING FEES FROM MULTIPLE POOLS?
     function collectFee(
         bytes32 poolId,
         IVault.AssetManagerTransfer[] memory transfers
@@ -104,13 +101,20 @@ contract OceanManager {
         _manageAndUpdatePoolBalanceOcean(poolId, transfers);
     }
 
+    function getTokensLength(IERC20[] memory array)
+        internal
+        view
+        returns (uint256)
+    {
+        return array.length;
+    }
     // We could do it this way or deciding to batch swap into a single token(OCEAN? Stablecoin?) and then send it to the community collector
-    function transferToOPFCollector(address[] memory tokens) external onlyOwner {
+    function transferToOPFCollector(IERC20[] memory tokens) external onlyOwner {
 
         for (uint256 i = 0; i < getTokensLength(tokens); i++) {
-            IERC20(tokens[i]).transfer(communityFC, IERC20(tokens[i]).balanceOf(address(this)));
+            tokens[i].transfer(communityFC, tokens[i].balanceOf(address(this)));
         }
     }
 
-    
+   
 }
