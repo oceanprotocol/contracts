@@ -32,8 +32,9 @@ contract OceanManager {
     }
 
     IVault.PoolBalanceOp[] public withdraws;
+    IVault.PoolBalanceOp[] public updates;
 
-    function _managePoolBalanceOcean(
+    function _manageAndUpdatePoolBalanceOcean(
         bytes32 poolId,
         IVault.AssetManagerTransfer[] memory transfers
     ) internal {
@@ -52,6 +53,22 @@ contract OceanManager {
         }
         IVault(vault).managePoolBalance(withdraws);
         delete withdraws;
+        
+        for (uint256 i = 0; i < getLength(transfers); i++) {
+            IVault.PoolBalanceOp memory update =
+                IVault.PoolBalanceOp(
+                    IVault.PoolBalanceOpKind.UPDATE,
+                    poolId,
+                    transfers[i].token,
+                    0 // We report it as 'full losses'
+                );
+
+            updates.push(update);
+        }
+        IVault(vault).managePoolBalance(updates);
+        delete updates;
+        // At this stage all balances are still in the vault but corresponding to the Asset Manager
+        // We should then add a function to transfer them to the OPF Community Collector
     }
 
     function collectFee(
@@ -72,9 +89,8 @@ contract OceanManager {
                 actualFee;
             transfers[i].amount = actualFee;
 
-            _managePoolBalanceOcean(poolId, transfers);
-            // TODO
-            // UPDATE BALANCES
+            _manageAndUpdatePoolBalanceOcean(poolId, transfers);
+            
         }
     }
 }
