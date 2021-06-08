@@ -36,6 +36,9 @@
     "deploy:polygon": "npm run clean && npm run compile && export NETWORK='polygon' && truffle migrate --network polygon && npm run export:artifacts",
     "deploy:aurora": "npm run clean && npm run compile && export NETWORK='aurora' && truffle migrate --network aurora", 
     "deploy:moonbeamalpha": "npm run clean && npm run compile && export NETWORK='moonbeamalpha' && truffle migrate --network moonbeamalpha && npm run export:artifacts",
+    "deploy:gaiaxtestnet": "npm run clean && npm run compile && export NETWORK='gaiaxtestnet' && truffle migrate --network gaiaxtestnet && npm run export:artifacts",
+    "deploy:mumbai": "npm run clean && npm run compile && export NETWORK='mumbai' && truffle migrate --network mumbai && npm run export:artifacts",
+    "deploy:bsc": "npm run clean && npm run compile && export NETWORK='bsc' && truffle migrate --network bsc && npm run export:artifacts",
     "security:slither": "slither . 2>&1 | tee slitherReport.txt"
   },
   "files": [
@@ -90,11 +93,13 @@
     "solidity-docgen": "^0.5.7",
     "solium": "^1.2.5",
     "solium-plugin-security": "^0.1.1",
-    "truffle": "^5.1.43",
-    "truffle-assertions": "^0.9.2",
-    "truffle-contract": "~4.0.31",
-    "truffle-hdwallet-provider": "^1.0.17",
     "web3": "^1.2.9",
     "web3-provider-engine": "~15.0.12"
+  },
+  "dependencies": {
+    "@truffle/contract": "^4.3.19",
+    "@truffle/hdwallet-provider": "^1.4.0",
+    "truffle": "^5.3.9",
+    "truffle-assertions": "^0.9.2"
   }
 }

@@ -5,7 +5,9 @@
     "FixedRateExchange": "0xeD1DfC5F3a589CfC4E8B91C1fbfC18FC6699Fbde",
     "Metadata": "0xFD8a7b6297153397B7eb4356C47dbd381d58bFF4",
     "Ocean": "0x8967BCF84170c91B0d24D4302C2376283b0B3a07",
-    "Dispenser": "0x623744Cd25Ed553d3b4722667697F926cf99658B"
+    "Dispenser": "0x623744Cd25Ed553d3b4722667697F926cf99658B",
+    "chainId": 4,
+    "startBlock": 7294090
   },
   "ropsten": {
     "DTFactory": "0x6ebcCa6df2CAba986FCF44E64Ee82251c1455Dcc",
@@ -13,14 +15,18 @@
     "FixedRateExchange": "0xA7a711A09396DF82D9be46A26B48BafdB9BB4fA6",
     "Metadata": "0x3cd7Ef1F207E1a46AAd7D5d7F5f0A5cF081Fc726",
     "Ocean": "0x5e8DCB2AfA23844bcc311B00Ad1A0C30025aADE9",
-    "Dispenser": "0xc37F8341Ac6e4a94538302bCd4d49Cf0852D30C0"
+    "Dispenser": "0xc37F8341Ac6e4a94538302bCd4d49Cf0852D30C0",
+    "chainId": 3,
+    "startBlock": 9227563
   },
   "development": {
     "DTFactory": "0x626aD26c7Ea494b11DbFd5dD487fA98BA32CaA42",
     "BFactory": "0x5eb4bcA8C86Cba7176eCc014A6D7B44c31aC9460",
     "FixedRateExchange": "0x879a308bD4b73425a03cd63ae1Fe03F3EF93BaF1",
     "Metadata": "0xb49cE3689D956417BEDc9F7d848885F8085B1064",
-    "Ocean": "0x10345ffBE11e8724b67ee4bB4d70dD4f8a940D84"
+    "Ocean": "0x10345ffBE11e8724b67ee4bB4d70dD4f8a940D84",
+    "chainId": 8996,
+    "startBlock": 0
   },
   "mainnet": {
     "DTFactory": "0x57317f97E9EA49eBd19f7c9bB7c180b8cDcbDeB9",
@@ -28,7 +34,9 @@
     "FixedRateExchange": "0x608d05214E42722B94a54cF6114d4840FCfF84e1",
     "Metadata": "0x1a4b70d8c9DcA47cD6D0Fb3c52BB8634CA1C0Fdf",
     "Ocean": "0x967da4048cD07aB37855c090aAF366e4ce1b9F48",
-    "Dispenser": "0xDEfD0018969cd2d4E648209F876ADe184815f038"
+    "Dispenser": "0xDEfD0018969cd2d4E648209F876ADe184815f038",
+    "chainId": 1,
+    "startBlock": 11005222
   },
   "polygon": {
     "DTFactory": "0xF6410bf5d773C7a41ebFf972f38e7463FA242477",
@@ -36,7 +44,9 @@
     "FixedRateExchange": "0x2112Eb973af1DBf83a4f11eda82f7a7527D7Fde5",
     "Metadata": "0x80E63f73cAc60c1662f27D2DFd2EA834acddBaa8",
     "Ocean": "0x282d8efCe846A88B159800bd4130ad77443Fa1A1",
-    "Dispenser": "0x30E4CC2C7A9c6aA2b2Ce93586E3Df24a3A00bcDD"
+    "Dispenser": "0x30E4CC2C7A9c6aA2b2Ce93586E3Df24a3A00bcDD",
+    "chainId": 137,
+    "startBlock": 11005222
   },
   "moonbeamalpha": {
     "DTFactory": "0x80E63f73cAc60c1662f27D2DFd2EA834acddBaa8",
@@ -44,13 +54,56 @@
     "FixedRateExchange": "0xDEfD0018969cd2d4E648209F876ADe184815f038",
     "Metadata": "0x9C9eE07b8Ce907D2f9244F8317C1Ed29A3193bAe",
     "Ocean": "0x3c21a90599b5B7f37014cA5Bf30d3f1b73d7e391",
-    "Dispenser": "0x042D709b72B437d7d387F2679bD4ac060e561c9f"
+    "Dispenser": "0x042D709b72B437d7d387F2679bD4ac060e561c9f",
+    "chainId": 1287,
+    "startBlock": 90707
   },
   "aurora": {
     "DTFactory": "0x079B62430541aa87EF5657FC6C5D8992B21131F8",
     "BFactory": "0x0b65Df3b271A047a09AD4e03D9FA3d2774a02f91",
     "FixedRateExchange": "0xa0c5bE6E58706Fc3b6Aeb069FeAad93d0184D296",
     "Metadata": "0x1ed19511194ba3886EdC573CBfdc3028f27a958F",
-    "Dispenser": "0xa12E1a09373534EeFc49BBEd46E0059658b1D0bD"
+    "Dispenser": "0xa12E1a09373534EeFc49BBEd46E0059658b1D0bD",
+    "chainId": 1313161555,
+    "startBlock": 0
+  },
+  "undefined": {
+    "DTFactory": "0xC54b688d81b6B3bab9834D9D7afd8655641EEdA7",
+    "BFactory": "0x082DD8b8A6eD335364739004280bD4eF41cB6Bd9",
+    "FixedRateExchange": "0x19dcb303B4b56e7983b7F441696B326264c9008c",
+    "Metadata": "0x5F71F2ffF1639D927d43e4965C2EC6cCe9505222",
+    "Dispenser": "0xA4eD47bCAAe977fB1AE39A5DF905AC7420a5e095",
+    "chainId": 0,
+    "startBlock": 0
+  },
+  "gaiaxtestnet": {
+    "DTFactory": "0x2720d405ef7cDC8a2E2e5AeBC8883C99611d893C",
+    "BFactory": "0xc37F8341Ac6e4a94538302bCd4d49Cf0852D30C0",
+    "FixedRateExchange": "0x3c21a90599b5B7f37014cA5Bf30d3f1b73d7e391",
+    "Metadata": "0xCfDdA22C9837aE76E0faA845354f33C62E03653a",
+    "Dispenser": "0x4E6058dC00e90C0DCA47A5d0D3346F409939A5ab",
+    "Ocean": "0x80E63f73cAc60c1662f27D2DFd2EA834acddBaa8",
+    "chainId": 2021000,
+    "startBlock": 177644
+  },
+  "mumbai": {
+    "DTFactory": "0x4E6058dC00e90C0DCA47A5d0D3346F409939A5ab",
+    "BFactory": "0x159924ca0F47D6F704B97E29099b89e518A17B5E",
+    "FixedRateExchange": "0xc313e19146Fc9a04470689C9d41a4D3054693531",
+    "Metadata": "0x98679D582AB3398C03D3308dEB9c7AeC50B52ded",
+    "Dispenser": "0x1d535147a97bd87c8443125376E6671B60556E07",
+    "Ocean": "0xd8992Ed72C445c35Cb4A2be468568Ed1079357c8",
+    "chainId": 80001,
+    "startBlock": 14791845
+  },
+  "bsc": {
+    "DTFactory": "0xE9397625Df9B63f0C152f975234b7988b54710B8",
+    "BFactory": "0xc313e19146Fc9a04470689C9d41a4D3054693531",
+    "FixedRateExchange": "0x98679D582AB3398C03D3308dEB9c7AeC50B52ded",
+    "Metadata": "0x1d535147a97bd87c8443125376E6671B60556E07",
+    "Dispenser": "0xFe7967A5176fDAFa8DE109b3507016B885a82D6e",
+    "Ocean": "0xdce07662ca8ebc241316a15b611c89711414dd1a",
+    "chainId": 56,
+    "startBlock": 8114772
   }
 }
