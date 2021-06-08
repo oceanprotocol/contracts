@@ -37,6 +37,10 @@ module.exports = function(deployer, network, accounts) {
                 communityCollector = '0x06100AB868206861a4D7936166A91668c2Ce1312'
                 OPFOwner = '0x06100AB868206861a4D7936166A91668c2Ce1312'
                 break
+            case 'bsc':
+                communityCollector = '0x30E4CC2C7A9c6aA2b2Ce93586E3Df24a3A00bcDD'
+                OPFOwner = '0x30E4CC2C7A9c6aA2b2Ce93586E3Df24a3A00bcDD'
+                break
         }
         await deployer.deploy(
             OPFCommunityFeeCollector,
@@ -105,6 +109,9 @@ module.exports = function(deployer, network, accounts) {
                 break
             case 'mumbai':
                 addresses.Ocean = '0xd8992Ed72C445c35Cb4A2be468568Ed1079357c8'
+                break
+            case 'bsc':
+                addresses.Ocean = '0xdce07662ca8ebc241316a15b611c89711414dd1a'
                 break
         }
         console.info('writing address.json file: ' + networkName + JSON.stringify(oldAddresses, null, 2))
