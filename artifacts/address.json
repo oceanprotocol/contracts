@@ -86,5 +86,15 @@
     "Ocean": "0xd8992Ed72C445c35Cb4A2be468568Ed1079357c8",
     "chainId": 80001,
     "startBlock": 14791845
+  },
+  "bsc": {
+    "DTFactory": "0xE9397625Df9B63f0C152f975234b7988b54710B8",
+    "BFactory": "0xc313e19146Fc9a04470689C9d41a4D3054693531",
+    "FixedRateExchange": "0x98679D582AB3398C03D3308dEB9c7AeC50B52ded",
+    "Metadata": "0x1d535147a97bd87c8443125376E6671B60556E07",
+    "Dispenser": "0xFe7967A5176fDAFa8DE109b3507016B885a82D6e",
+    "Ocean": "0xdce07662ca8ebc241316a15b611c89711414dd1a",
+    "chainId": 56,
+    "startBlock": 8114772
   }
 }

@@ -146,6 +146,14 @@ module.exports = {
             networkCheckTimeout: 1000,
             from: '0xC7EC1970B09224B317c52d92f37F5e1E4fF6B687',
             gasPrice: utils.toWei('4', 'gwei')
+        },
+        bsc: {
+            provider: () => setupWallet('https://bsc-dataseed.binance.org/'),
+            network_id: 0x38, // 4
+            gas: 6666666,
+            networkCheckTimeout: 400000000,
+            from: '0xC7EC1970B09224B317c52d92f37F5e1E4fF6B687',
+            gasPrice: utils.toWei('5', 'gwei')
         }
     },
     plugins: ['solidity-coverage'],
