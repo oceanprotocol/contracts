@@ -67,7 +67,7 @@ contract OceanManager {
         }
         IVault(vault).managePoolBalance(updates);
         delete updates;
-        // At this stage all balances are still in the vault but corresponding to the Asset Manager
+        // At this stage all balances are in the Asset Manager
         // We should then add a function to transfer them to the OPF Community Collector
     }
 
