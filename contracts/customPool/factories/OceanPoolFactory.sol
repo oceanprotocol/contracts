@@ -91,6 +91,8 @@ contract OceanPoolFactory is BasePoolFactory, FactoryWidePauseWindow {
                         owner
                     );
                 require(pool != address(0),'FAILED TO DEPLOY STANDARD POOL');
+                _register(pool);
+                emit PoolCreated(pool);
                 return pool;
             }
         }
