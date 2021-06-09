@@ -89,7 +89,7 @@ contract OceanPoolFactory is BasePoolFactory, FactoryWidePauseWindow {
             }
         }
            
-        if(flag = true){
+        if(flag === true){
                pool =
                     IWeightedPoolFactory(balPoolFactory).create(
                         name,
@@ -131,7 +131,7 @@ contract OceanPoolFactory is BasePoolFactory, FactoryWidePauseWindow {
         
  
        
-        require(pool != address(0),'FAILED TO DEPLOY STANDARD POOL');
+        require(pool != address(0),'FAILED TO DEPLOY POOL');
         emit PoolCreated(pool);
         _register(pool);
         return pool;
