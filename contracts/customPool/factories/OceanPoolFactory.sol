@@ -89,7 +89,7 @@ contract OceanPoolFactory is BasePoolFactory, FactoryWidePauseWindow {
             }
         }
            
-        if(flag === true){
+        if(flag == true){
                pool =
                     IWeightedPoolFactory(balPoolFactory).create(
                         name,
