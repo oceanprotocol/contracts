@@ -72,25 +72,45 @@ contract OceanPoolFactory is BasePoolFactory, FactoryWidePauseWindow {
         string memory symbol,
         IERC20[] memory tokens,
         uint256[] memory weights,
+       
         uint256 swapFeePercentage,
         address owner
     ) external returns (address) {
-          
+        bool flag;
         address pool;
         // TODO? ADD REQUIRE TO CHECK IF datatoken is on the erc20List => erc20List[datatoken] == true
         
+
         for (uint256 i = 0; i < getLength(tokens); i++) {
             if (oceanTokens[address(tokens[i])] == true) {
-        
-            (uint256 pauseWindowDuration, uint256 bufferPeriodDuration) = getPauseConfiguration();
-
+                flag = true;
+                break;
+                
+            }
+        }
+           
+        if(flag = true){
+               pool =
+                    IWeightedPoolFactory(balPoolFactory).create(
+                        name,
+                        symbol,
+                        tokens,
+                        weights,
+                        swapFeePercentage,
+                        owner
+                    );
+           }
+             
+             else {
             
-
-            for (uint256 i = 0; i < getLength(tokens); i++) {
+             for (uint256 i = 0; i < getLength(tokens); i++) {
                     assetManagers.push(assetManager);
             }
 
-             pool = address(
+            (uint256 pauseWindowDuration, uint256 bufferPeriodDuration) = getPauseConfiguration();
+
+
+              pool = address(
                  new WeightedPool(
                      getVault(),
                      name,
@@ -106,21 +126,9 @@ contract OceanPoolFactory is BasePoolFactory, FactoryWidePauseWindow {
              );
 
              delete assetManagers;
-
-            } else {
-                pool =
-                    IWeightedPoolFactory(balPoolFactory).create(
-                        name,
-                        symbol,
-                        tokens,
-                        weights,
-                        swapFeePercentage,
-                        owner
-                    );
-                
             }
-            
-        }
+        
+        
  
        
         require(pool != address(0),'FAILED TO DEPLOY STANDARD POOL');

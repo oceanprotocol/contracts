@@ -7,6 +7,7 @@ const { expectRevert, expectEvent } = require("@openzeppelin/test-helpers");
 const { impersonate } = require("../../helpers/impersonate");
 const constants = require("../../helpers/constants");
 const { web3 } = require("@openzeppelin/test-helpers/src/setup");
+const { keccak256 } = require("@ethersproject/keccak256");
 const ethers = hre.ethers;
 
 describe("ERC721Template", () => {
@@ -284,7 +285,7 @@ describe("ERC721Template", () => {
     const operation = 0
     const to = user2.address
     const value = 10
-    const data = '0x00'
+    const data = web3.utils.asciiToHex('SomeData');
 
     assert(
       (await tokenERC721._getPermissions(user2.address)).manager == false
@@ -302,7 +303,7 @@ describe("ERC721Template", () => {
     const operation = 0
     const to = user2.address
     const value = 10
-    const data = '0x00'
+    const data = web3.utils.asciiToHex('SomeData');
 
     assert(
       (await tokenERC721._getPermissions(owner.address)).manager == true
@@ -313,6 +314,52 @@ describe("ERC721Template", () => {
     
   });
 
+  it("#setNewData - should fail to set new Data(725Y)(ARBITRARY KEY), if NOT store updater", async () => {
+    const key = web3.utils.keccak256('ARBITRARY_KEY');
+    const value = web3.utils.asciiToHex('SomeData')
+
+    assert(
+      (await tokenERC721._getPermissions(user2.address)).store == false
+    );
+    
+    await expectRevert(
+      tokenERC721.connect(user2).setNewData(key,value),
+      "ERC721Template: NOT STORE UPDATER"
+    );
+
+    
+  });
+
+  it("#setNewData - should succed to set new Data(725Y)(ARBITRARY KEY), if store updater", async () => {
+    const key = web3.utils.keccak256('ARBITRARY_KEY');
+    const value = web3.utils.asciiToHex('SomeData')
+    await tokenERC721.addTo725StoreList(user2.address)
+
+    assert(
+      (await tokenERC721._getPermissions(user2.address)).store == true
+    );
+    
+    await tokenERC721.connect(user2).setNewData(key,value)
+
+    assert(await tokenERC721.getData(key) == value)
+    
+  });
+
+  it("#setDataERC20 - should fail to call setDataERC20(725Y), even if user has store updater permssion", async () => {
+    const key = web3.utils.keccak256('ARBITRARY_KEY');
+    const value = web3.utils.asciiToHex('SomeData')
+    await tokenERC721.addTo725StoreList(user2.address)
+
+    assert(
+      (await tokenERC721._getPermissions(user2.address)).store == true
+    );
+    // ONLY CALLS from ERC20 contract are allowed
+    await expectRevert(tokenERC721.connect(user2).setDataERC20(key,value),"ERC721Template: NOT ERC20 Contract" )
+    result = await tokenERC721.getData(key)
+    console.log(result)
+    assert(await tokenERC721.getData(key) == '0x00')
+    
+  });
 
   xit("#transferNFT - should transfer properly the NFT, now the new user is the owner for ERC721Template and ERC20Template", async () => {
     await tokenERC721.addToCreateERC20List(owner.address);
