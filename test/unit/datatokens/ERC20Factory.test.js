@@ -47,6 +47,12 @@ describe("ERC20Factory", () => {
     const ERC721Factory = await ethers.getContractFactory("ERC721Factory");
     const ERC20Factory = await ethers.getContractFactory("ERC20Factory");
 
+
+    const OceanFactory = await ethers.getContractFactory('OceanPoolFactory')
+    const oceanFactory = await OceanFactory.deploy(
+      '0xBA12222222228d8Ba445958a75a0704d566BF2C8',
+      '0xBA12222222228d8Ba445958a75a0704d566BF2C8'
+    )
     const Metadata = await ethers.getContractFactory("Metadata");
 
     [owner, reciever, user2, user3] = await ethers.getSigners();
@@ -97,7 +103,7 @@ describe("ERC20Factory", () => {
     const userWithOcean = "0x53aB4a93B31F480d17D3440a6329bDa86869458A";
     await impersonate(userWithOcean);
 
-    oceanContract = await ethers.getContractAt("IERC20", oceanAddress);
+    oceanContract = await ethers.getContractAt("contracts/interfaces/IERC20.sol:IERC20", oceanAddress);
     const signer = await ethers.provider.getSigner(userWithOcean);
     await oceanContract
       .connect(signer)
@@ -219,6 +225,11 @@ describe("ERC20Factory", () => {
     assert((await factoryERC20.templateCount()) == 2);
   });
 
+  it("#addTokenTemplate - should fail to add a new ERC20 Template if not owner", async () => {
+    await expectRevert(factoryERC20.connect(user2).addTokenTemplate(newERC721Template.address), 'Ownable: caller is not the owner')
+    
+  });
+
   it("#disableTokenTemplate - should disable a specific ERC20 Template from owner", async () => {
     let templateStruct = await factoryERC20.templateList(1);
     assert(templateStruct.isActive == true);
@@ -307,7 +318,11 @@ describe("ERC20Factory", () => {
     );
   });
 
-  it("#createPool - should succeed to create a new Pool on Balancer V2", async () => {
+  it("#getCurrentTemplateCount - should succeed to get Template count", async () => {
+    assert(await factoryERC20.getCurrentTemplateCount() == 1)
+  });
+
+  xit("#createPool - should succeed to create a new Pool on Balancer V2", async () => {
   
     
     // CREATE A NEW ERC20DATATOKEN

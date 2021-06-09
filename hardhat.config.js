@@ -30,6 +30,7 @@ module.exports = {
   },
   networks: {
     hardhat: {
+      allowUnlimitedContractSize: true,
       forking: {
         url:
           "https://eth-mainnet.alchemyapi.io/v2/eOqKsGAdsiNLCVm846Vgb-6yY3jlcNEo",
@@ -37,7 +38,7 @@ module.exports = {
         // gas: 2000000000000000000000,
         // gasLimit: 2000000000000000000000,
         // blockGasLimit: 0x1fffffffffffff,
-        // allowUnlimitedContractSize: true
+        // 
       },
     },
   },

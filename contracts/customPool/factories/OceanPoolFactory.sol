@@ -35,6 +35,8 @@ contract OceanPoolFactory is BasePoolFactory, FactoryWidePauseWindow {
     
     address public owner;
     address public balPoolFactory = 0x8E9aa87E45e92bad84D5F8DD1bff34Fb92637dE9;
+    address public assetManager;
+    address[] assetManagers;
 
     mapping(address => bool) public oceanTokens;
 
@@ -44,8 +46,9 @@ contract OceanPoolFactory is BasePoolFactory, FactoryWidePauseWindow {
         _;
     }
 
-    constructor(IVault vault, address _owner) BasePoolFactory(vault) {
+    constructor(IVault vault, address _owner, address _assetManager) BasePoolFactory(vault) {
         owner = _owner;
+        assetManager = _assetManager;
         // solhint-disable-previous-line no-empty-blocks
     }
 
@@ -69,7 +72,6 @@ contract OceanPoolFactory is BasePoolFactory, FactoryWidePauseWindow {
         string memory symbol,
         IERC20[] memory tokens,
         uint256[] memory weights,
-        address[] memory assetManagers,
         uint256 swapFeePercentage,
         address owner
     ) external returns (address) {
@@ -81,7 +83,13 @@ contract OceanPoolFactory is BasePoolFactory, FactoryWidePauseWindow {
             if (oceanTokens[address(tokens[i])] == true) {
         
             (uint256 pauseWindowDuration, uint256 bufferPeriodDuration) = getPauseConfiguration();
-       
+
+            
+
+            for (uint256 i = 0; i < getLength(tokens); i++) {
+                    assetManagers.push(assetManager);
+            }
+
              pool = address(
                  new WeightedPool(
                      getVault(),
@@ -96,6 +104,9 @@ contract OceanPoolFactory is BasePoolFactory, FactoryWidePauseWindow {
                      owner
                  )
              );
+
+             delete assetManagers;
+
             } else {
                 pool =
                     IWeightedPoolFactory(balPoolFactory).create(

@@ -161,7 +161,7 @@ contract ERC20Factory is Deployer, Ownable {
     }
 
     function addTokenTemplate(address _templateAddress)
-        public
+        public onlyOwner
         returns (uint256)
     {
         require(

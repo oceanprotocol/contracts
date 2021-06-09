@@ -109,7 +109,7 @@ contract OceanManager {
         return array.length;
     }
     // We could do it this way or deciding to batch swap into a single token(OCEAN? Stablecoin?) and then send it to the community collector
-    function transferToOPFCollector(IERC20[] memory tokens) external onlyOwner {
+    function transferToOPFCollector(IERC20[] memory tokens) external {
 
         for (uint256 i = 0; i < getTokensLength(tokens); i++) {
             tokens[i].transfer(communityFC, tokens[i].balanceOf(address(this)));
