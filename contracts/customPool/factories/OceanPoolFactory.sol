@@ -63,7 +63,7 @@ contract OceanPoolFactory is BasePoolFactory, FactoryWidePauseWindow {
         string memory symbol,
         IERC20[] memory tokens,
         uint256[] memory weights,
-        uint256 swapFeePercentage,
+        uint256 swapFeePercentage, 
         address owner
     ) external returns (address) {
         bool flag;
@@ -87,7 +87,7 @@ contract OceanPoolFactory is BasePoolFactory, FactoryWidePauseWindow {
                 owner
             );
         } else {
-            for (uint256 i = 0; i < getLength(tokens); i++) {
+            for (uint256 j = 0; j < getLength(tokens); j++) {
                 assetManagers.push(assetManager);
             }
 
