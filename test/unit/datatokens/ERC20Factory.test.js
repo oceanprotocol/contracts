@@ -48,11 +48,11 @@ describe("ERC20Factory", () => {
     const ERC20Factory = await ethers.getContractFactory("ERC20Factory");
 
 
-    const OceanFactory = await ethers.getContractFactory('OceanPoolFactory')
-    const oceanFactory = await OceanFactory.deploy(
-      '0xBA12222222228d8Ba445958a75a0704d566BF2C8',
-      '0xBA12222222228d8Ba445958a75a0704d566BF2C8'
-    )
+    // const OceanFactory = await ethers.getContractFactory('OceanPoolFactory')
+    // const oceanFactory = await OceanFactory.deploy(
+    //   '0xBA12222222228d8Ba445958a75a0704d566BF2C8',
+    //   '0xBA12222222228d8Ba445958a75a0704d566BF2C8'
+    // )
     const Metadata = await ethers.getContractFactory("Metadata");
 
     [owner, reciever, user2, user3] = await ethers.getSigners();
