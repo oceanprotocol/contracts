@@ -105,6 +105,8 @@ contract OceanFactoryRouter is BasePoolFactory, FactoryWidePauseWindow {
                 weights,
                 assetManagers,
                 swapFeePercentage,
+                pauseWindowDuration,
+                bufferPeriodDuration,
                 owner
             );
              

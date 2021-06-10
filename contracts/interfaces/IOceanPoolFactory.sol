@@ -15,6 +15,8 @@ interface IOceanPoolFactory {
         uint256[] memory weights,
         address[] memory assetManagers,
         uint256 swapFeePercentage,
+        uint256 pauseWindowDuration, 
+        uint256 bufferPeriodDuration, 
         address owner
     ) external returns (address);
 
