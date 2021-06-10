@@ -21,12 +21,24 @@ module.exports = {
     compilers: [
       {
         version: "0.7.1",
+        settings: {
+          optimizer: {
+            enabled: true,
+            runs: 100,
+          },
+        },
       },
-      { version: "0.8.0", settings: {} },
+      {
+        version: "0.8.0",
+        settings: {
+          optimizer: {
+            enabled: true,
+            runs: 200,
+          },
+        },
+      },
     ],
-    overrides: {
-     
-    },
+    overrides: {},
   },
   networks: {
     hardhat: {
@@ -38,16 +50,11 @@ module.exports = {
         // gas: 2000000000000000000000,
         // gasLimit: 2000000000000000000000,
         // blockGasLimit: 0x1fffffffffffff,
-        // 
+        //
       },
     },
   },
-  settings: {
-    optimizer: {
-      enabled: true,
-      runs: 800,
-    },
-  },
+
   contractSizer: {
     alphaSort: true,
     runOnCompile: true,

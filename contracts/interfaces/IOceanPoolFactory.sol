@@ -2,9 +2,9 @@ pragma solidity >= 0.7.0;
 
 
 
-import "./IERC20.sol";
+import "@balancer-labs/v2-solidity-utils/contracts/openzeppelin/IERC20.sol";
 
-interface IWeightedPoolFactory {
+interface IOceanPoolFactory {
 
 
 
@@ -13,6 +13,7 @@ interface IWeightedPoolFactory {
         string memory symbol,
         IERC20[] memory tokens,
         uint256[] memory weights,
+        address[] memory assetManagers,
         uint256 swapFeePercentage,
         address owner
     ) external returns (address);
