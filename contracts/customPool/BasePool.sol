@@ -75,13 +75,21 @@ abstract contract BasePool is IBasePool, BasePoolAuthorization, BalancerPoolToke
     uint256 internal _swapFeePercentage;
 
     // OCEAN FEE MODIFICATION
-     uint256 public constant swapFeeOcean = 1e15; // 0.1% 
+    uint256 public constant swapFeeOcean = 1e15; // 0.1% 
+
+    uint256 public swapFeeMarket = 1e15; // 0.1%
 
     address public constant oceanCommunityCollector = address(0); // update with the actual community fee collector
 
+    address public marketFeeCollector = address(0);
+
     mapping(uint => uint) public communityFees;
 
-    mapping(uint => uint256) public feesCollectedOPF;
+    mapping(uint => uint) public feesCollectedOPF;
+
+    mapping(uint => uint) public marketFees;
+
+    mapping(uint => uint) public feesCollectedMarket;
 
     IVault private immutable _vault;
     bytes32 private immutable _poolId;
@@ -482,6 +490,35 @@ abstract contract BasePool is IBasePool, BasePoolAuthorization, BalancerPoolToke
         return amount.divUp(_swapFeePercentage.complement());
     }
 
+    function _addOceanFeeAmount(IERC20 tokenIn, uint256 amount) internal returns(uint256) {
+         
+        uint256 newAmount = amount.divUp(swapFeeOcean.complement());
+        
+        uint256 feeAmount = newAmount - amount;
+        
+        uint index =  _getIndex(tokenIn);
+        
+        communityFees[index] = communityFees[index].add(feeAmount);
+        
+        return newAmount;
+
+    }   
+
+    function _addMarketFeeAmount(IERC20 tokenIn, uint256 amount) internal returns(uint256) {
+         
+        uint256 newAmount = amount.divUp(swapFeeMarket.complement());
+        
+        uint256 feeAmount = newAmount - amount;
+        
+        uint index =  _getIndex(tokenIn);
+        
+        marketFees[index] = marketFees[index].add(feeAmount);
+        
+        return newAmount;
+
+    }   
+
+    
     /**
      * @dev Subtracts swap fee amount from `amount`, returning a lower value.
      */
@@ -491,12 +528,21 @@ abstract contract BasePool is IBasePool, BasePoolAuthorization, BalancerPoolToke
         return amount.sub(feeAmount);
     }
 
-     function _subtractOceanFeeAmount(IERC20 tokenIn, uint256 amount) internal returns (uint256) {
+    function _subtractOceanFeeAmount(IERC20 tokenIn, uint256 amount) internal returns (uint256) {
         // This returns amount - fee amount, so we round up (favoring a higher fee amount).
         uint index =  _getIndex(tokenIn);
         
         uint256 feeAmount = amount.mulUp(swapFeeOcean);
         communityFees[index] = communityFees[index].add(feeAmount);
+        return amount.sub(feeAmount);
+    }
+    
+    function _subtractMarketFeeAmount(IERC20 tokenIn, uint256 amount) internal returns (uint256) {
+        // This returns amount - fee amount, so we round up (favoring a higher fee amount).
+        uint index =  _getIndex(tokenIn);
+        
+        uint256 feeAmount = amount.mulUp(swapFeeOcean);
+        marketFees[index] = marketFees[index].add(feeAmount);
         return amount.sub(feeAmount);
     }
 
@@ -514,6 +560,20 @@ abstract contract BasePool is IBasePool, BasePoolAuthorization, BalancerPoolToke
         }
     }
 
+
+    function updateMarketFee(uint _newFee) external {
+        require(getOwner() == msg.sender, 'NOT OWNER');
+        // TODO: should we add a limit for this fee?
+        swapFeeMarket = _newFee;
+    }
+
+
+    function updateMarketCollector(address _newMarketFeeCollector) external {
+        require(getOwner() == msg.sender, 'NOT OWNER');
+        marketFeeCollector = _newMarketFeeCollector;
+
+    }
+   
     // Scaling
 
     /**
