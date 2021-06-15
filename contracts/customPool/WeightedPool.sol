@@ -50,7 +50,7 @@ contract WeightedPool is BaseMinimalSwapInfoPool, WeightedMath {
 
 
     enum JoinKind { INIT, EXACT_TOKENS_IN_FOR_BPT_OUT, TOKEN_IN_FOR_EXACT_BPT_OUT }
-    enum ExitKind { EXACT_BPT_IN_FOR_ONE_TOKEN_OUT, EXACT_BPT_IN_FOR_TOKENS_OUT, BPT_IN_FOR_EXACT_TOKENS_OUT }
+    enum ExitKind { EXACT_BPT_IN_FOR_ONE_TOKEN_OUT, EXACT_BPT_IN_FOR_TOKENS_OUT, BPT_IN_FOR_EXACT_TOKENS_OUT, OPF_FEE_WITHDRAWL, MP_FEE_WITHDRAWL }
 
     constructor(
         IVault vault,
@@ -404,18 +404,43 @@ contract WeightedPool is BaseMinimalSwapInfoPool, WeightedMath {
         uint256[] memory balances,
         uint256[] memory normalizedWeights,
         bytes memory userData
-    ) private view returns (uint256, uint256[] memory) {
+    ) private returns (uint256, uint256[] memory) {
         ExitKind kind = userData.exitKind();
 
         if (kind == ExitKind.EXACT_BPT_IN_FOR_ONE_TOKEN_OUT) {
             return _exitExactBPTInForTokenOut(balances, normalizedWeights, userData);
         } else if (kind == ExitKind.EXACT_BPT_IN_FOR_TOKENS_OUT) {
             return _exitExactBPTInForTokensOut(balances, userData);
-        } else {
+        } else if(kind == ExitKind.OPF_FEE_WITHDRAWL) {
+             _exitOPFCommunityFee();
+        }
+        else {
             // ExitKind.BPT_IN_FOR_EXACT_TOKENS_OUT
             return _exitBPTInForExactTokensOut(balances, normalizedWeights, userData);
         }
     }
+
+    function _exitOPFCommunityFee() private whenNotPaused returns (uint256, uint256[] memory) {
+      
+
+         uint256[] memory amountsOut = new uint256[](_getTotalTokens());
+
+         for (uint256 i = 0; i < _getTotalTokens(); i++) {
+                uint256 totalFee =
+                    communityFees[i];
+                uint256 actualFee =
+                    totalFee - feesCollectedOPF[i];
+
+                feesCollectedOPF[i] =
+                    feesCollectedOPF[i] +
+                    actualFee;
+
+                amountsOut[i] = actualFee;
+            }
+
+        return(0,amountsOut);
+    }
+
 
     function _exitExactBPTInForTokenOut(
         uint256[] memory balances,

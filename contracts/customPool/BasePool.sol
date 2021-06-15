@@ -74,6 +74,15 @@ abstract contract BasePool is IBasePool, BasePoolAuthorization, BalancerPoolToke
 
     uint256 internal _swapFeePercentage;
 
+    // OCEAN FEE MODIFICATION
+     uint256 public constant swapFeeOcean = 1e15; // 0.1% 
+
+    address public constant oceanCommunityCollector = address(0); // update with the actual community fee collector
+
+    mapping(uint => uint) public communityFees;
+
+    mapping(uint => uint256) public feesCollectedOPF;
+
     IVault private immutable _vault;
     bytes32 private immutable _poolId;
     bytes32 public _poolIdReg;
@@ -480,6 +489,29 @@ abstract contract BasePool is IBasePool, BasePoolAuthorization, BalancerPoolToke
         // This returns amount - fee amount, so we round up (favoring a higher fee amount).
         uint256 feeAmount = amount.mulUp(_swapFeePercentage);
         return amount.sub(feeAmount);
+    }
+
+     function _subtractOceanFeeAmount(IERC20 tokenIn, uint256 amount) internal returns (uint256) {
+        // This returns amount - fee amount, so we round up (favoring a higher fee amount).
+        uint index =  _getIndex(tokenIn);
+        
+        uint256 feeAmount = amount.mulUp(swapFeeOcean);
+        communityFees[index] = communityFees[index].add(feeAmount);
+        return amount.sub(feeAmount);
+    }
+
+    function _getIndex(IERC20 token) internal view returns (uint256) {
+            if (token == _token0) { return 0; }
+        else if (token == _token1) { return 1; }
+        else if (token == _token2) { return 2; }
+        else if (token == _token3) { return 3; }
+        else if (token == _token4) { return 4; }
+        else if (token == _token5) { return 5; }
+        else if (token == _token6) { return 6; }
+        else if (token == _token7) { return 7; }
+        else {
+            _revert(Errors.INVALID_TOKEN);
+        }
     }
 
     // Scaling

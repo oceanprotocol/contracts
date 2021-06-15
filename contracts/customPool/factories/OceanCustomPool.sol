@@ -24,7 +24,7 @@ contract OceanCustomPool {
         uint256 pauseWindowDuration, 
         uint256 bufferPeriodDuration, 
         address owner) external returns (address) {
-        require(oceanRouter == msg.sender, 'NOT OCEAN FACTORY');
+        require(oceanRouter == msg.sender, 'NOT OCEAN ROUTER');
 
              address pool = address(
                 new WeightedPool(
