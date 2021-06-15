@@ -9,42 +9,27 @@ import "@balancer-labs/v2-vault/contracts/interfaces/IVault.sol";
 import "@balancer-labs/v2-pool-utils/contracts/factories/BasePoolFactory.sol";
 import "@balancer-labs/v2-pool-utils/contracts/factories/FactoryWidePauseWindow.sol";
 
-
-
 import "../../interfaces/IOceanPoolFactory.sol";
 
-interface IWeightedPoolFactory {
-    function create(
-        string memory name,
-        string memory symbol,
-        IERC20[] memory tokens,
-        uint256[] memory weights,
-        uint256 swapFeePercentage,
-        address owner
-    ) external returns (address);
-}
-
 contract OceanFactoryRouter is BasePoolFactory, FactoryWidePauseWindow {
-    address public owner;
-    address public balPoolFactory = 0x8E9aa87E45e92bad84D5F8DD1bff34Fb92637dE9;
+    address public routerOwner;
     address public oceanPoolFactory;
     address public assetManager;
-    address[] assetManagers;
 
     mapping(address => bool) public oceanTokens;
 
-    modifier onlyOwner {
-        require(owner == msg.sender, "NOT OWNER");
+    modifier onlyRouterOwner {
+        require(routerOwner == msg.sender, "NOT OWNER");
         _;
     }
 
     constructor(
         IVault vault,
-        address _owner,
+        address _routerOwner,
         address _assetManager,
         address _oceanPoolFactory
     ) BasePoolFactory(vault) {
-        owner = _owner;
+        routerOwner = _routerOwner;
         assetManager = _assetManager;
         oceanPoolFactory = _oceanPoolFactory;
         // solhint-disable-previous-line no-empty-blocks
@@ -54,7 +39,7 @@ contract OceanFactoryRouter is BasePoolFactory, FactoryWidePauseWindow {
         return array.length;
     }
 
-    function addOceanToken(address oceanTokenAddress) external onlyOwner {
+    function addOceanToken(address oceanTokenAddress) external onlyRouterOwner {
         oceanTokens[oceanTokenAddress] = true;
     }
 
@@ -66,13 +51,14 @@ contract OceanFactoryRouter is BasePoolFactory, FactoryWidePauseWindow {
         string memory symbol,
         IERC20[] memory tokens,
         uint256[] memory weights,
-        uint256 swapFeePercentage, 
+        uint256 swapFeePercentage,
         address owner
     ) external returns (address) {
         bool flag;
         address pool;
         // TODO? ADD REQUIRE TO CHECK IF datatoken is on the erc20List => erc20List[datatoken] == true
-        
+
+        address[] memory assetManagers = new address[](getLength(tokens));
 
         for (uint256 i = 0; i < getLength(tokens); i++) {
             if (oceanTokens[address(tokens[i])] == true) {
@@ -81,24 +67,11 @@ contract OceanFactoryRouter is BasePoolFactory, FactoryWidePauseWindow {
             }
         }
 
-        if (flag == true) {
-            pool = IWeightedPoolFactory(balPoolFactory).create(
-                name,
-                symbol,
-                tokens,
-                weights,
-                swapFeePercentage,
-                owner
-            );
-        } else {
-            for (uint256 j = 0; j < getLength(tokens); j++) {
-                assetManagers.push(assetManager);
-            }
+        (uint256 pauseWindowDuration, uint256 bufferPeriodDuration) =
+            getPauseConfiguration();
 
-            (uint256 pauseWindowDuration, uint256 bufferPeriodDuration) =
-                getPauseConfiguration();
-            // CHANGE FOR OCEANCUSTOMPOOL INTERFACE, UPDATE ARGUMENTS
-             pool = IOceanPoolFactory(oceanPoolFactory).create(
+        if (flag == true) {
+            _createPool(
                 name,
                 symbol,
                 tokens,
@@ -109,12 +82,53 @@ contract OceanFactoryRouter is BasePoolFactory, FactoryWidePauseWindow {
                 bufferPeriodDuration,
                 owner
             );
-             
-            delete assetManagers;
+        } else {
+            for (uint256 j = 0; j < getLength(tokens); j++) {
+                assetManagers[j] = assetManager;
+            }
+
+            _createPool(
+                name,
+                symbol,
+                tokens,
+                weights,
+                assetManagers,
+                swapFeePercentage,
+                pauseWindowDuration,
+                bufferPeriodDuration,
+                owner
+            );
         }
 
         require(pool != address(0), "FAILED TO DEPLOY POOL");
         _register(pool);
+        return pool;
+    }
+
+    function _createPool(
+        string memory name,
+        string memory symbol,
+        IERC20[] memory tokens,
+        uint256[] memory weights,
+        address[] memory assetManagers,
+        uint256 swapFeePercentage,
+        uint256 pauseWindowDuration,
+        uint256 bufferPeriodDuration,
+        address owner
+    ) internal returns (address) {
+        address pool =
+            IOceanPoolFactory(oceanPoolFactory).create(
+                name,
+                symbol,
+                tokens,
+                weights,
+                assetManagers,
+                swapFeePercentage,
+                pauseWindowDuration,
+                bufferPeriodDuration,
+                owner
+            );
+
         return pool;
     }
 }
