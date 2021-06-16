@@ -137,7 +137,7 @@ contract WeightedPool is BaseMinimalSwapInfoPool, WeightedMath {
             : 0;
 
         //  bytes32 poolId = IWeightedPool(pool)._poolId();
-        vault.registerTokens(_poolIdReg, tokens, assetManagers);
+       vault.registerTokens(_poolIdReg, tokens, assetManagers);
     }
 
     function _normalizedWeight(IERC20 token)

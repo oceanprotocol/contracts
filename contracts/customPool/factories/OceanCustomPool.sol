@@ -2,13 +2,16 @@ pragma solidity ^0.7.0;
 
 import "@balancer-labs/v2-vault/contracts/interfaces/IVault.sol";
 import "../WeightedPool.sol";
+import "./BasePoolSplitCodeFactory.sol";
 
-contract OceanCustomPool {
+contract OceanCustomPool is BasePoolSplitCodeFactory {
 
     address private oceanRouter; 
 
-   constructor(address _oceanRouter){
+   constructor(IVault vault, address _oceanRouter) BasePoolSplitCodeFactory(vault,type(WeightedPool).creationCode) {
         oceanRouter = _oceanRouter;
+        
+        
     }
 
 

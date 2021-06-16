@@ -44,7 +44,7 @@ contract OceanFactoryRouter is BasePoolFactory, FactoryWidePauseWindow {
     }
 
     /**
-     * @dev Deploys a new `WeightedPool`.
+     * @dev Deploys a new `OceanPool`.
      */
     function create(
         string memory name,
