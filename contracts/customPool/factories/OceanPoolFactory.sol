@@ -1,19 +1,19 @@
 pragma solidity ^0.7.0;
 
 import "@balancer-labs/v2-vault/contracts/interfaces/IVault.sol";
+import "@balancer-labs/v2-pool-utils/contracts/factories/FactoryWidePauseWindow.sol";
 import "../WeightedPool.sol";
 import "./BasePoolSplitCodeFactory.sol";
 
-contract OceanCustomPool is BasePoolSplitCodeFactory {
+contract OceanPoolFactory is BasePoolSplitCodeFactory, FactoryWidePauseWindow {
 
     address private oceanRouter; 
 
-   constructor(IVault vault, address _oceanRouter) BasePoolSplitCodeFactory(vault,type(WeightedPool).creationCode) {
+   constructor(IVault vault, address _oceanRouter) BasePoolSplitCodeFactory(vault, type(WeightedPool).creationCode) {
         oceanRouter = _oceanRouter;
         
         
     }
-
 
    
     function create(
@@ -24,13 +24,13 @@ contract OceanCustomPool is BasePoolSplitCodeFactory {
         uint256[] memory weights,
         address[] memory assetManagers,
         uint256 swapFeePercentage,
-        uint256 pauseWindowDuration, 
-        uint256 bufferPeriodDuration, 
         address owner) external returns (address) {
         require(oceanRouter == msg.sender, 'NOT OCEAN ROUTER');
 
-             address pool = address(
-                new WeightedPool(
+             (uint256 pauseWindowDuration, uint256 bufferPeriodDuration) =
+            getPauseConfiguration();
+
+             address pool = _create(abi.encode(
                     vault,
                     name,
                     symbol,
@@ -41,8 +41,8 @@ contract OceanCustomPool is BasePoolSplitCodeFactory {
                     pauseWindowDuration,
                     bufferPeriodDuration,
                     owner
-                )
-            );
+                ));
+            
 
             return pool;
     }

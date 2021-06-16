@@ -7,11 +7,11 @@ pragma experimental ABIEncoderV2;
 import "@balancer-labs/v2-vault/contracts/interfaces/IVault.sol";
 
 import "@balancer-labs/v2-pool-utils/contracts/factories/BasePoolFactory.sol";
-import "@balancer-labs/v2-pool-utils/contracts/factories/FactoryWidePauseWindow.sol";
+
 
 import "../../interfaces/IOceanPoolFactory.sol";
 
-contract OceanFactoryRouter is BasePoolFactory, FactoryWidePauseWindow {
+contract OceanFactoryRouter {
     address public routerOwner;
     address public oceanPoolFactory;
     address public assetManager;
@@ -24,11 +24,11 @@ contract OceanFactoryRouter is BasePoolFactory, FactoryWidePauseWindow {
     }
 
     constructor(
-        IVault vault,
+      //  IVault vault,
         address _routerOwner,
         address _assetManager,
         address _oceanPoolFactory
-    ) BasePoolFactory(vault) {
+    ) {
         routerOwner = _routerOwner;
         assetManager = _assetManager;
         oceanPoolFactory = _oceanPoolFactory;
@@ -67,8 +67,7 @@ contract OceanFactoryRouter is BasePoolFactory, FactoryWidePauseWindow {
             }
         }
 
-        (uint256 pauseWindowDuration, uint256 bufferPeriodDuration) =
-            getPauseConfiguration();
+       
 
         if (flag == true) {
             _createPool(
@@ -78,8 +77,6 @@ contract OceanFactoryRouter is BasePoolFactory, FactoryWidePauseWindow {
                 weights,
                 assetManagers,
                 swapFeePercentage,
-                pauseWindowDuration,
-                bufferPeriodDuration,
                 owner
             );
         } else {
@@ -94,14 +91,12 @@ contract OceanFactoryRouter is BasePoolFactory, FactoryWidePauseWindow {
                 weights,
                 assetManagers,
                 swapFeePercentage,
-                pauseWindowDuration,
-                bufferPeriodDuration,
                 owner
             );
         }
 
         require(pool != address(0), "FAILED TO DEPLOY POOL");
-        _register(pool);
+       // _register(pool);
         return pool;
     }
 
@@ -112,8 +107,6 @@ contract OceanFactoryRouter is BasePoolFactory, FactoryWidePauseWindow {
         uint256[] memory weights,
         address[] memory assetManagers,
         uint256 swapFeePercentage,
-        uint256 pauseWindowDuration,
-        uint256 bufferPeriodDuration,
         address owner
     ) internal returns (address) {
         address pool =
@@ -124,8 +117,6 @@ contract OceanFactoryRouter is BasePoolFactory, FactoryWidePauseWindow {
                 weights,
                 assetManagers,
                 swapFeePercentage,
-                pauseWindowDuration,
-                bufferPeriodDuration,
                 owner
             );
 
