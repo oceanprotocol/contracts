@@ -34,6 +34,12 @@ contract ERC20Template is ERC20("test", "testSymbol"), ERC20Roles {
     uint256 public constant BASE = 10**18;
     uint256 public constant BASE_COMMUNITY_FEE_PERCENTAGE = BASE / 1000;
     uint256 public constant BASE_MARKET_FEE_PERCENTAGE = BASE / 1000;
+    
+    // EIP 2612 SUPPORT
+    bytes32 public DOMAIN_SEPARATOR;
+    // keccak256("Permit(address owner,address spender,uint256 value,uint256 nonce,uint256 deadline)");
+    bytes32 public constant PERMIT_TYPEHASH = 0x6e71edae12b1b97f4d1f60370fef10105fa2faae0126114a169c64845d6126c9;
+    mapping(address => uint) public nonces;
 
     event OrderStarted(
         address indexed consumer,
@@ -139,6 +145,20 @@ contract ERC20Template is ERC20("test", "testSymbol"), ERC20Roles {
         _communityFeeCollector = feeCollector;
         feeManager = IERC721Template(_erc721Address).ownerOf(1); // By default the feeManager is the NFTOwner
         initialized = true;
+        
+        uint chainId;
+        assembly {
+            chainId := chainid()
+        }
+        DOMAIN_SEPARATOR = keccak256(
+            abi.encode(
+                keccak256('EIP712Domain(string name,string version,uint256 chainId,address verifyingContract)'),
+                keccak256(bytes(_name)),
+                keccak256(bytes('1')), // version, could be any other value
+                chainId,
+                address(this)
+            )
+        );
         return initialized;
     }
 
@@ -381,5 +401,19 @@ contract ERC20Template is ERC20("test", "testSymbol"), ERC20Roles {
         if (amount == 0) return 0;
         if (feePercentage == 0) return 0;
         return amount.mul(feePercentage).div(BASE);
+    }
+
+    function permit(address owner, address spender, uint value, uint deadline, uint8 v, bytes32 r, bytes32 s) external {
+        require(deadline >= block.timestamp, 'ERC20DT: EXPIRED');
+        bytes32 digest = keccak256(
+            abi.encodePacked(
+                '\x19\x01',
+                DOMAIN_SEPARATOR,
+                keccak256(abi.encode(PERMIT_TYPEHASH, owner, spender, value, nonces[owner]++, deadline))
+            )
+        );
+        address recoveredAddress = ecrecover(digest, v, r, s);
+        require(recoveredAddress != address(0) && recoveredAddress == owner, 'ERC20DT: INVALID_SIGNATURE');
+        _approve(owner, spender, value);
     }
 }
