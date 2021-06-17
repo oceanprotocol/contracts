@@ -24,7 +24,8 @@ contract OceanPoolFactory is BasePoolSplitCodeFactory, FactoryWidePauseWindow {
         uint256[] memory weights,
         address[] memory assetManagers,
         uint256 swapFeePercentage,
-        address owner) external returns (address) {
+        address owner,
+        uint256 marketFee) external returns (address) {
         require(oceanRouter == msg.sender, 'NOT OCEAN ROUTER');
 
              (uint256 pauseWindowDuration, uint256 bufferPeriodDuration) =
@@ -43,7 +44,7 @@ contract OceanPoolFactory is BasePoolSplitCodeFactory, FactoryWidePauseWindow {
                     owner
                 ));
             
-
+            
             return pool;
     }
 }

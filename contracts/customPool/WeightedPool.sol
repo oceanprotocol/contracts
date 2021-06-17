@@ -67,8 +67,10 @@ contract WeightedPool is BaseMinimalSwapInfoPool, WeightedMath {
         string memory symbol,
         IERC20[] memory tokens,
         uint256[] memory normalizedWeights,
-        address[] memory assetManagers,
+       // address[] memory assetManagers,
         uint256 swapFeePercentage,
+        uint256 oceanFee,
+        uint256 marketFee,
         uint256 pauseWindowDuration,
         uint256 bufferPeriodDuration,
         address owner
@@ -79,6 +81,8 @@ contract WeightedPool is BaseMinimalSwapInfoPool, WeightedMath {
             symbol,
             tokens,
             swapFeePercentage,
+            oceanFee,
+            marketFee,
             pauseWindowDuration,
             bufferPeriodDuration,
             owner
@@ -137,7 +141,8 @@ contract WeightedPool is BaseMinimalSwapInfoPool, WeightedMath {
             : 0;
 
         //  bytes32 poolId = IWeightedPool(pool)._poolId();
-       vault.registerTokens(_poolIdReg, tokens, assetManagers);
+
+      // vault.registerTokens(_poolIdReg, tokens, assetManagers);
     }
 
     function _normalizedWeight(IERC20 token)

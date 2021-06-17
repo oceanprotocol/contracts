@@ -14,7 +14,8 @@ import "../../interfaces/IOceanPoolFactory.sol";
 contract OceanPoolFactoryRouter {
     address public routerOwner;
     address public oceanPoolFactory;
-    address public assetManager;
+   // address public assetManager;
+    uint256 public constant swapFeeOcean = 1e15;
 
     mapping(address => bool) public oceanTokens;
 
@@ -25,12 +26,12 @@ contract OceanPoolFactoryRouter {
 
     constructor(
       //  IVault vault,
-        address _routerOwner,
-        address _assetManager
+        address _routerOwner
+      //  address _assetManager
        // address _oceanPoolFactory
     ) {
         routerOwner = _routerOwner;
-        assetManager = _assetManager;
+      //  assetManager = _assetManager;
      //   oceanPoolFactory = _oceanPoolFactory;
         // solhint-disable-previous-line no-empty-blocks
     }
@@ -55,13 +56,14 @@ contract OceanPoolFactoryRouter {
         IERC20[] memory tokens,
         uint256[] memory weights,
         uint256 swapFeePercentage,
+        uint256 marketFee,
         address owner
     ) external returns (address) {
         bool flag;
         address pool;
         // TODO? ADD REQUIRE TO CHECK IF datatoken is on the erc20List => erc20List[datatoken] == true
 
-        address[] memory assetManagers = new address[](getLength(tokens));
+       // address[] memory assetManagers = new address[](getLength(tokens));
 
         for (uint256 i = 0; i < getLength(tokens); i++) {
             if (oceanTokens[address(tokens[i])] == true) {
@@ -78,22 +80,24 @@ contract OceanPoolFactoryRouter {
                 symbol,
                 tokens,
                 weights,
-                assetManagers,
                 swapFeePercentage,
+                0,
+                marketFee,
                 owner
             );
         } else {
-            for (uint256 j = 0; j < getLength(tokens); j++) {
-                assetManagers[j] = assetManager;
-            }
+            // for (uint256 j = 0; j < getLength(tokens); j++) {
+            //     assetManagers[j] = assetManager;
+            // }
 
             _createPool(
                 name,
                 symbol,
                 tokens,
                 weights,
-                assetManagers,
                 swapFeePercentage,
+                swapFeeOcean,
+                marketFee,
                 owner
             );
         }
@@ -108,8 +112,10 @@ contract OceanPoolFactoryRouter {
         string memory symbol,
         IERC20[] memory tokens,
         uint256[] memory weights,
-        address[] memory assetManagers,
+       // address[] memory assetManagers,
         uint256 swapFeePercentage,
+        uint256 oceanFee,
+        uint256 marketFee,
         address owner
     ) internal returns (address) {
         address pool =
@@ -118,8 +124,10 @@ contract OceanPoolFactoryRouter {
                 symbol,
                 tokens,
                 weights,
-                assetManagers,
+                //assetManagers,
                 swapFeePercentage,
+                oceanFee,
+                marketFee,
                 owner
             );
 

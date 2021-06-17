@@ -26,12 +26,16 @@ import "@balancer-labs/v2-vault/contracts/interfaces/IMinimalSwapInfoPool.sol";
  * Derived contracts must implement `_onSwapGivenIn` and `_onSwapGivenOut` along with `BasePool`'s virtual functions.
  */
 abstract contract BaseMinimalSwapInfoPool is IMinimalSwapInfoPool, BasePool {
+    using FixedPoint for uint256;
+
     constructor(
         IVault vault,
         string memory name,
         string memory symbol,
         IERC20[] memory tokens,
         uint256 swapFeePercentage,
+        uint256 oceanFee,
+        uint256 marketFee,
         uint256 pauseWindowDuration,
         uint256 bufferPeriodDuration,
         address owner
@@ -43,6 +47,8 @@ abstract contract BaseMinimalSwapInfoPool is IMinimalSwapInfoPool, BasePool {
             symbol,
             tokens,
             swapFeePercentage,
+            oceanFee,
+            marketFee,
             pauseWindowDuration,
             bufferPeriodDuration,
             owner
@@ -64,9 +70,11 @@ abstract contract BaseMinimalSwapInfoPool is IMinimalSwapInfoPool, BasePool {
 
         if (request.kind == IVault.SwapKind.GIVEN_IN) {
             // Fees are subtracted before scaling, to reduce the complexity of the rounding direction analysis.
-            request.amount = _subtractSwapFeeAmount(request.amount);
-            request.amount = _subtractOceanFeeAmount(request.tokenIn, request.amount);
-            request.amount =  _subtractMarketFeeAmount(request.tokenIn, request.amount);
+            uint256 initialAmount = request.amount;
+            request.amount = _subtractSwapFeeAmount(initialAmount);
+            uint256 oceanFee = _calculateOceanFeeAmount(request.tokenIn, initialAmount);
+            uint256 marketFee =  _calculateMarketFeeAmount(request.tokenIn, initialAmount);
+            request.amount = request.amount.sub(oceanFee).sub(marketFee);
             // All token amounts are upscaled.
             balanceTokenIn = _upscale(balanceTokenIn, scalingFactorTokenIn);
             balanceTokenOut = _upscale(balanceTokenOut, scalingFactorTokenOut);
@@ -88,10 +96,10 @@ abstract contract BaseMinimalSwapInfoPool is IMinimalSwapInfoPool, BasePool {
             amountIn = _downscaleUp(amountIn, scalingFactorTokenIn);
 
             // Fees are added after scaling happens, to reduce the complexity of the rounding direction analysis.
-            // TODO: review this part because when we add the fee we are cumulating also on top of the previous addition. which leads to bigger fee
-            amountIn = _addOceanFeeAmount(request.tokenIn, amountIn);
-            amountIn = _addMarketFeeAmount(request.tokenIn, amountIn);
-            return _addSwapFeeAmount(amountIn);
+            
+            uint256 oceanFee = _addOceanFeeAmount(request.tokenIn, amountIn);
+            uint256 marketFee = _addMarketFeeAmount(request.tokenIn, amountIn);
+            return _addSwapFeeAmount(amountIn).add(oceanFee).add(marketFee);
         }
     }
 

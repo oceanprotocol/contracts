@@ -75,9 +75,9 @@ abstract contract BasePool is IBasePool, BasePoolAuthorization, BalancerPoolToke
     uint256 internal _swapFeePercentage;
 
     // OCEAN FEE MODIFICATION
-    uint256 public constant swapFeeOcean = 1e15; // 0.1% 
+    uint256 public swapFeeOcean; // 1e15 0.1% 
 
-    uint256 public swapFeeMarket = 1e15; // 0.1%
+    uint256 public swapFeeMarket; // 0.1%
 
     address public constant oceanCommunityCollector = address(0); // update with the actual community fee collector
 
@@ -93,7 +93,7 @@ abstract contract BasePool is IBasePool, BasePoolAuthorization, BalancerPoolToke
 
     IVault private immutable _vault;
     bytes32 private immutable _poolId;
-    bytes32 public _poolIdReg;
+   // bytes32 public _poolIdReg;
     uint256 private immutable _totalTokens;
 
     IERC20 internal immutable _token0;
@@ -127,6 +127,8 @@ abstract contract BasePool is IBasePool, BasePoolAuthorization, BalancerPoolToke
         string memory symbol,
         IERC20[] memory tokens,
         uint256 swapFeePercentage,
+        uint256 oceanFee,
+        uint256 marketFee,
         uint256 pauseWindowDuration,
         uint256 bufferPeriodDuration,
         address owner
@@ -152,12 +154,13 @@ abstract contract BasePool is IBasePool, BasePoolAuthorization, BalancerPoolToke
         InputHelpers.ensureArrayIsSorted(tokens);
 
         _setSwapFeePercentage(swapFeePercentage);
-
+        _setOceanFee(oceanFee);
+        _setMarketFee(marketFee);
         bytes32 poolId = vault.registerPool(specialization);
-        _poolIdReg = poolId;
+        //_poolIdReg = poolId;
         // Pass in zero addresses for Asset Managers
-        // Moved into WeightedPool
-        //vault.registerTokens(poolId, tokens, new address[](tokens.length));
+       
+        vault.registerTokens(poolId, tokens, new address[](tokens.length));
 
         // Set immutable state variables - these cannot be read from during construction
         _vault = vault;
@@ -492,29 +495,31 @@ abstract contract BasePool is IBasePool, BasePoolAuthorization, BalancerPoolToke
 
     function _addOceanFeeAmount(IERC20 tokenIn, uint256 amount) internal returns(uint256) {
          
-        uint256 newAmount = amount.divUp(swapFeeOcean.complement());
+        uint256 feeAmount = amount.mulUp(swapFeeOcean);
         
-        uint256 feeAmount = newAmount - amount;
+       // uint256 feeAmount = newAmount - amount;
         
         uint index =  _getIndex(tokenIn);
         
         communityFees[index] = communityFees[index].add(feeAmount);
+
+
         
-        return newAmount;
+        return feeAmount;
 
     }   
 
     function _addMarketFeeAmount(IERC20 tokenIn, uint256 amount) internal returns(uint256) {
          
-        uint256 newAmount = amount.divUp(swapFeeMarket.complement());
+        uint256 feeAmount = amount.mulUp(swapFeeMarket);
         
-        uint256 feeAmount = newAmount - amount;
+        //uint256 feeAmount = newAmount - amount;
         
         uint index =  _getIndex(tokenIn);
         
         marketFees[index] = marketFees[index].add(feeAmount);
         
-        return newAmount;
+        return feeAmount;
 
     }   
 
@@ -528,22 +533,22 @@ abstract contract BasePool is IBasePool, BasePoolAuthorization, BalancerPoolToke
         return amount.sub(feeAmount);
     }
 
-    function _subtractOceanFeeAmount(IERC20 tokenIn, uint256 amount) internal returns (uint256) {
+    function _calculateOceanFeeAmount(IERC20 tokenIn, uint256 amount) internal returns (uint256) {
         // This returns amount - fee amount, so we round up (favoring a higher fee amount).
         uint index =  _getIndex(tokenIn);
         
         uint256 feeAmount = amount.mulUp(swapFeeOcean);
         communityFees[index] = communityFees[index].add(feeAmount);
-        return amount.sub(feeAmount);
+        return feeAmount;
     }
     
-    function _subtractMarketFeeAmount(IERC20 tokenIn, uint256 amount) internal returns (uint256) {
+    function _calculateMarketFeeAmount(IERC20 tokenIn, uint256 amount) internal returns (uint256) {
         // This returns amount - fee amount, so we round up (favoring a higher fee amount).
         uint index =  _getIndex(tokenIn);
         
         uint256 feeAmount = amount.mulUp(swapFeeOcean);
         marketFees[index] = marketFees[index].add(feeAmount);
-        return amount.sub(feeAmount);
+        return feeAmount;
     }
 
     function _getIndex(IERC20 token) internal view returns (uint256) {
@@ -563,11 +568,18 @@ abstract contract BasePool is IBasePool, BasePoolAuthorization, BalancerPoolToke
 
     function updateMarketFee(uint _newFee) external {
         require(getOwner() == msg.sender, 'NOT OWNER');
-        // TODO: should we add a limit for this fee?
-        swapFeeMarket = _newFee;
+        _setMarketFee(_newFee); 
     }
 
 
+    function _setMarketFee(uint _newMarketFee) internal {
+         // TODO: should we add a limit for this fee?
+        swapFeeMarket = _newMarketFee;
+    }
+
+    function _setOceanFee(uint _newOceanFee) internal {
+        swapFeeOcean = _newOceanFee;
+    }
     function updateMarketCollector(address _newMarketFeeCollector) external {
         require(getOwner() == msg.sender, 'NOT OWNER');
         marketFeeCollector = _newMarketFeeCollector;
