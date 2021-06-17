@@ -107,23 +107,6 @@ describe("OceanFactoryRouter", () => {
     assert(symbol === "DTSYMBOL");
     assert((await tokenERC721.balanceOf(owner.address)) == 1);
     
-
-    // GET SOME OCEAN TOKEN FROM OUR MAINNET FORK
-    const userWithOcean = "0x53aB4a93B31F480d17D3440a6329bDa86869458A";
-    await impersonate(userWithOcean);
-
-    oceanContract = await ethers.getContractAt("contracts/interfaces/IERC20.sol:IERC20", oceanAddress);
-    const signer = await ethers.provider.getSigner(userWithOcean);
-    await oceanContract
-      .connect(signer)
-      .transfer(owner.address, ethers.utils.parseEther("10000"));
-
-    assert(
-      (await oceanContract.balanceOf(owner.address)).toString() ==
-        ethers.utils.parseEther("10000")
-    );
-
-    
     // INITIAL SET UP, THE MANAGER ADDS A NEW ROLE FOR ITSELF (erc20Deployer role)
     await tokenERC721.addToCreateERC20List(owner.address);
     
@@ -147,8 +130,6 @@ describe("OceanFactoryRouter", () => {
     await erc20DTContract.addMinter(owner.address);
     await erc20DTContract.mint(owner.address, web3.utils.toWei("100"));
     assert(await erc20DTContract.balanceOf(owner.address) == web3.utils.toWei("100"))
-    
-
 
 
   });
@@ -213,7 +194,7 @@ describe("OceanFactoryRouter", () => {
     const events = receipt.events.filter((e) => e.event === "NewPool");
     const poolAddress = events[0].args.poolAddress;
    
-    // WE CHECK IT THE POOL WAS DEPLOYED WITH OCEAN TOKEN (ZERO OCEAN FEE)
+    // WE CHECK IF THE POOL WAS DEPLOYED WITH OCEAN TOKEN (ZERO OCEAN FEE)
     assert(events[0].args.isOcean == true)
    
     const pool = await ethers.getContractAt('WeightedPool', poolAddress);
