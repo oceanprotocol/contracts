@@ -11,7 +11,7 @@ import "@balancer-labs/v2-pool-utils/contracts/factories/BasePoolFactory.sol";
 
 import "../../interfaces/IOceanPoolFactory.sol";
 
-contract OceanFactoryRouter {
+contract OceanPoolFactoryRouter {
     address public routerOwner;
     address public oceanPoolFactory;
     address public assetManager;
@@ -26,12 +26,12 @@ contract OceanFactoryRouter {
     constructor(
       //  IVault vault,
         address _routerOwner,
-        address _assetManager,
-        address _oceanPoolFactory
+        address _assetManager
+       // address _oceanPoolFactory
     ) {
         routerOwner = _routerOwner;
         assetManager = _assetManager;
-        oceanPoolFactory = _oceanPoolFactory;
+     //   oceanPoolFactory = _oceanPoolFactory;
         // solhint-disable-previous-line no-empty-blocks
     }
 
@@ -43,6 +43,9 @@ contract OceanFactoryRouter {
         oceanTokens[oceanTokenAddress] = true;
     }
 
+    function addOceanPoolFactory (address _oceanPoolFactory) external onlyRouterOwner {
+        oceanPoolFactory = _oceanPoolFactory;
+    }
     /**
      * @dev Deploys a new `OceanPool`.
      */
