@@ -8,7 +8,7 @@ interface IOceanPoolFactory {
 
 
 
-   function create(
+   function createPool(
         string memory name,
         string memory symbol,
         IERC20[] memory tokens,

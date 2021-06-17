@@ -47,10 +47,6 @@ module.exports = {
         url:
           "https://eth-mainnet.alchemyapi.io/v2/eOqKsGAdsiNLCVm846Vgb-6yY3jlcNEo",
         blockNumber: 12515000,
-        // gas: 2000000000000000000000,
-        // gasLimit: 2000000000000000000000,
-        // blockGasLimit: 0x1fffffffffffff,
-        //
       },
     },
   },

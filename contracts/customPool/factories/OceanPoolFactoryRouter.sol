@@ -14,33 +14,27 @@ import "../../interfaces/IOceanPoolFactory.sol";
 contract OceanPoolFactoryRouter {
     address public routerOwner;
     address public oceanPoolFactory;
-   // address public assetManager;
-    uint256 public constant swapFeeOcean = 1e15;
+   
+    uint256 public constant swapFeeOcean = 1e15; // 0.1%
 
     mapping(address => bool) public oceanTokens;
 
+    event NewPool(address indexed poolAddress, bool isOcean);
+
     modifier onlyRouterOwner {
-        require(routerOwner == msg.sender, "NOT OWNER");
+        require(routerOwner == msg.sender, "OceanRouter: NOT OWNER");
         _;
     }
 
     constructor(
-      //  IVault vault,
-        address _routerOwner
-      //  address _assetManager
-       // address _oceanPoolFactory
+        address _routerOwner,
+        address _oceanToken
     ) {
         routerOwner = _routerOwner;
-      //  assetManager = _assetManager;
-     //   oceanPoolFactory = _oceanPoolFactory;
-        // solhint-disable-previous-line no-empty-blocks
+        addOceanToken(_oceanToken);
     }
 
-    function getLength(IERC20[] memory array) public view returns (uint256) {
-        return array.length;
-    }
-
-    function addOceanToken(address oceanTokenAddress) external onlyRouterOwner {
+    function addOceanToken(address oceanTokenAddress) public onlyRouterOwner {
         oceanTokens[oceanTokenAddress] = true;
     }
 
@@ -50,7 +44,7 @@ contract OceanPoolFactoryRouter {
     /**
      * @dev Deploys a new `OceanPool`.
      */
-    function create(
+    function deployPool(
         string memory name,
         string memory symbol,
         IERC20[] memory tokens,
@@ -63,7 +57,7 @@ contract OceanPoolFactoryRouter {
         address pool;
         // TODO? ADD REQUIRE TO CHECK IF datatoken is on the erc20List => erc20List[datatoken] == true
 
-       // address[] memory assetManagers = new address[](getLength(tokens));
+     
 
         for (uint256 i = 0; i < getLength(tokens); i++) {
             if (oceanTokens[address(tokens[i])] == true) {
@@ -75,7 +69,7 @@ contract OceanPoolFactoryRouter {
        
 
         if (flag == true) {
-            _createPool(
+        pool =  _createPool(
                 name,
                 symbol,
                 tokens,
@@ -85,12 +79,10 @@ contract OceanPoolFactoryRouter {
                 marketFee,
                 owner
             );
+            emit NewPool(pool,flag);
         } else {
-            // for (uint256 j = 0; j < getLength(tokens); j++) {
-            //     assetManagers[j] = assetManager;
-            // }
-
-            _createPool(
+      
+         pool = _createPool(
                 name,
                 symbol,
                 tokens,
@@ -103,7 +95,8 @@ contract OceanPoolFactoryRouter {
         }
 
         require(pool != address(0), "FAILED TO DEPLOY POOL");
-       // _register(pool);
+     
+        emit NewPool(pool,flag);
         return pool;
     }
 
@@ -117,9 +110,9 @@ contract OceanPoolFactoryRouter {
         uint256 oceanFee,
         uint256 marketFee,
         address owner
-    ) internal returns (address) {
+    ) private returns (address) {
         address pool =
-            IOceanPoolFactory(oceanPoolFactory).create(
+            IOceanPoolFactory(oceanPoolFactory).createPool(
                 name,
                 symbol,
                 tokens,
@@ -132,5 +125,10 @@ contract OceanPoolFactoryRouter {
             );
 
         return pool;
+    }
+
+
+    function getLength(IERC20[] memory array) private view returns (uint256) {
+        return array.length;
     }
 }

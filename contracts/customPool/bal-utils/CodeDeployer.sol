@@ -14,7 +14,7 @@
 
 pragma solidity ^0.7.0;
 
-
+//import "./BalancerErrors.sol";
 
 /**
  * @dev Library used to deploy contracts with specific code. This can be used for long-term storage of immutable data as
@@ -81,6 +81,6 @@ library CodeDeployer {
         }
 
         // The create opcode returns the zero address when contract creation fails, so we revert if this happens.
-        require(destination != address(0),'CODE DEPLOYMETN FAILED');
+        require(destination != address(0), 'CODE_DEPLOYMENT_FAILED');
     }
 }

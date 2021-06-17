@@ -6,39 +6,42 @@ import "../WeightedPool.sol";
 import "./BasePoolSplitCodeFactory.sol";
 
 contract OceanPoolFactory is BasePoolSplitCodeFactory, FactoryWidePauseWindow {
-
+    IVault private vault_;
     address private oceanRouter; 
 
    constructor(IVault vault, address _oceanRouter) BasePoolSplitCodeFactory(vault, type(WeightedPool).creationCode) {
         oceanRouter = _oceanRouter;
-        
+        vault_ = vault;
         
     }
 
    
-    function create(
-        IVault vault,
+    function createPool(
+       // IVault getVault(),
         string memory name,
         string memory symbol,
         IERC20[] memory tokens,
         uint256[] memory weights,
-        address[] memory assetManagers,
+       // address[] memory assetManagers,
         uint256 swapFeePercentage,
-        address owner,
-        uint256 marketFee) external returns (address) {
-        require(oceanRouter == msg.sender, 'NOT OCEAN ROUTER');
+        uint256 oceanFee,
+        uint256 marketFee,
+        address owner
+        ) external returns (address) {
+        require(oceanRouter == msg.sender, 'OceanPoolFactory: NOT OCEAN ROUTER');
 
              (uint256 pauseWindowDuration, uint256 bufferPeriodDuration) =
             getPauseConfiguration();
 
              address pool = _create(abi.encode(
-                    vault,
+                    vault_,
                     name,
                     symbol,
                     tokens,
                     weights,
-                    assetManagers,
                     swapFeePercentage,
+                    oceanFee,
+                    marketFee,
                     pauseWindowDuration,
                     bufferPeriodDuration,
                     owner

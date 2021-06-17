@@ -26,7 +26,6 @@ contract ERC20Factory is Deployer, Ownable {
     uint256 private currentTokenCount = 1;
 
     address public erc721Factory;
-    address public balPoolFactory = 0x8E9aa87E45e92bad84D5F8DD1bff34Fb92637dE9;
     uint256 public templateCount;
 
     struct Template {
