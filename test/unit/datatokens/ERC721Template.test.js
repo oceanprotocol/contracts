@@ -27,6 +27,8 @@ describe("ERC721Template", () => {
     newERC721Template;
 
   const communityFeeCollector = "0xeE9300b7961e0a01d9f0adb863C7A227A07AaD75";
+  const v3Datatoken = "0xa2B8b3aC4207CFCCbDe4Ac7fa40214fd00A2BA71"
+  const v3DTOwner = "0x12BD31628075C20919BA838b89F414241b8c4869"
   beforeEach("init contracts for each test", async () => {
     await network.provider.request({
       method: "hardhat_reset",
@@ -54,22 +56,13 @@ describe("ERC721Template", () => {
     //console.log(metadata.address)
 
     templateERC20 = await ERC20Template
-      .deploy
-      // "TemplateERC20",
-      // "TEMPLATE20",
-      // user2.address,
-      // web3.utils.toWei("22"),
-      // communityFeeCollector
-      ();
+      .deploy();
     factoryERC20 = await ERC20Factory.deploy(
       templateERC20.address,
       communityFeeCollector
     );
     templateERC721 = await ERC721Template
-      .deploy
-      // "TemplateERC721",
-      // "TEMPLATE721"
-      ();
+      .deploy();
     factoryERC721 = await ERC721Factory.deploy(
       templateERC721.address,
       communityFeeCollector,
@@ -77,10 +70,7 @@ describe("ERC721Template", () => {
     );
 
     newERC721Template = await ERC721Template
-      .deploy
-      // "TemplateERC721",
-      // "TEMPLATE721"
-      ();
+      .deploy();
 
     await metadata.setERC20Factory(factoryERC20.address);
     await factoryERC20.setERC721Factory(factoryERC721.address);
@@ -95,10 +85,6 @@ describe("ERC721Template", () => {
     );
     const txReceipt = await tx.wait();
 
-    //  console.log(txReceipt.events[3].topics[0])
-    //console.log(txReceipt.events[3].args[0])
-    //  const test = await expectEvent(txReceipt,'TokenCreated')
-    //     console.log(test)
     tokenAddress = txReceipt.events[4].args[0];
     tokenERC721 = await ethers.getContractAt("ERC721Template", tokenAddress);
     symbol = await tokenERC721.symbol();
@@ -356,11 +342,47 @@ describe("ERC721Template", () => {
     // ONLY CALLS from ERC20 contract are allowed
     await expectRevert(tokenERC721.connect(user2).setDataERC20(key,value),"ERC721Template: NOT ERC20 Contract" )
     result = await tokenERC721.getData(key)
-    console.log(result)
-    assert(await tokenERC721.getData(key) == '0x00')
+   // console.log(result)
+    assert(await tokenERC721.getData(key) == '0x')
     
   });
 
+  xit("#wrapV3DT - should fail to call wrapV3DT, if NOT NFT owner", async () => {
+   
+    await expectRevert(tokenERC721.connect(user2).wrapV3DT(v3Datatoken,owner.address),"ERC721Template: not NFTOwner" )
+    
+  });
+
+  xit("#wrapV3DT - should fail to call wrapV3DT, if caller is NOT ERC20 minter(v3 minter/owner as dt.minter())", async () => {
+    // NOW CALLER IS NFT OWNER BUT IS NOT DT MINTER(V3) / OWNER
+    await expectRevert(tokenERC721.wrapV3DT(v3Datatoken,owner.address),"ERC721Template: NOT ERC20 V3 datatoken owner" )
+    
+  });
+
+  it("#wrapV3DT - should succed to wrapV3DT, if caller is  v3 minter/owner as dt.minter())", async () => {
+    
+    await impersonate(v3DTOwner)
+    signer = ethers.provider.getSigner(v3DTOwner);
+    const tx = await factoryERC721.connect(signer).deployERC721Contract(
+      "NFT2",
+      "NFTSYMBOL",
+      metadata.address,
+      data,
+      flags,
+      1
+    );
+    const txReceipt = await tx.wait();
+
+    tokenAddress = txReceipt.events[4].args[0];
+    tokenERC721 = await ethers.getContractAt("ERC721Template", tokenAddress);
+    symbol = await tokenERC721.symbol();
+    name = await tokenERC721.name();
+    assert(await tokenERC721.v3DT(v3Datatoken) == false)
+    await tokenERC721.connect(signer).wrapV3DT(v3Datatoken,v3DTOwner)
+    assert(await tokenERC721.v3DT(v3Datatoken) == true)
+  });
+
+  
   xit("#transferNFT - should transfer properly the NFT, now the new user is the owner for ERC721Template and ERC20Template", async () => {
     await tokenERC721.addToCreateERC20List(owner.address);
     const trxERC20 = await tokenERC721.createERC20(

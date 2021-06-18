@@ -39,14 +39,14 @@ contract ERC721Factory is Deployer, Ownable {
         address admin
     );
 
-    event TokenRegistered(
-        address indexed tokenAddress,
-        string tokenName,
-        string tokenSymbol,
-        uint256 tokenCap,
-        address indexed registeredBy,
-        string indexed blob
-    );
+    // event TokenRegistered(
+    //     address indexed tokenAddress,
+    //     string tokenName,
+    //     string tokenSymbol,
+    //     uint256 tokenCap,
+    //     address indexed registeredBy,
+    //     string indexed blob
+    // );
 
     /**
      * @dev constructor

@@ -222,11 +222,11 @@ contract ERC20Template is ERC20("test", "testSymbol"), ERC20Roles {
         address[] calldata mrktFeeCollectors
     ) external {
         uint256 ids = serviceIds.length;
-        // uint256 test = mrktFeeCollectors.lentgh;
-
-        // TODO: fix array lentgh reading issue, add more checks on the others arrays.
-
-        require(ids == consumers.length, "WRONG ARRAYS FORMAT");
+       
+        
+        require(getAddressLength(consumers) == ids, "WRONG ARRAYS FORMAT");
+        require(getUintLength(amounts) == ids, "WRONG ARRAYS FORMAT");
+        require(getAddressLength(mrktFeeCollectors)== ids, "WRONG ARRAYS FORMAT");
 
         for (uint256 i = 0; i < ids; i++) {
             uint256 marketFee = 0;
@@ -295,10 +295,11 @@ contract ERC20Template is ERC20("test", "testSymbol"), ERC20Roles {
     ) external {
         uint256 ids = serviceIds.length;
 
-        // TODO: fix array lentgh reading issue, add more checks on the others arrays.
-        require(ids == consumers.length, "WRONG ARRAYS FORMAT");
+        
+        require(getAddressLength(consumers) == ids, "WRONG ARRAYS FORMAT");
+        require(getUintLength(amounts) == ids, "WRONG ARRAYS FORMAT");
+        require(getBytesLength(orderTxIds)== ids, "WRONG ARRAYS FORMAT");
 
-        // TODO: test the msg.sender
         for (uint256 i = 0; i < ids; i++) {
             if (amounts[i] != 0)
                 require(
@@ -415,5 +416,17 @@ contract ERC20Template is ERC20("test", "testSymbol"), ERC20Roles {
         address recoveredAddress = ecrecover(digest, v, r, s);
         require(recoveredAddress != address(0) && recoveredAddress == owner, 'ERC20DT: INVALID_SIGNATURE');
         _approve(owner, spender, value);
+    }
+
+    function getAddressLength(address[] memory array) private pure returns (uint256) {
+        return array.length;
+    }
+
+    function getUintLength(uint[] memory array) private pure returns (uint256) {
+        return array.length;
+    }
+
+    function getBytesLength(bytes32[] memory array) private pure returns (uint256) {
+        return array.length;
     }
 }

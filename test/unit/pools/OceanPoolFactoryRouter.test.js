@@ -11,7 +11,7 @@ const { ZERO_ADDRESS } = require("@openzeppelin/test-helpers/src/constants");
 const { getContractFactory } = require("@nomiclabs/hardhat-ethers/types");
 const ethers = hre.ethers;
 
-describe("OceanFactoryRouter", () => {
+describe("OceanPoolFactoryRouter", () => {
   let name,
     symbol,
     owner,

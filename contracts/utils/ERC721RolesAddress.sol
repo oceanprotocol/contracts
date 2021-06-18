@@ -107,6 +107,7 @@ contract ERC721RolesAddress {
             user.deployERC20 = false;
             user.updateMetadata = false;
             user.store = false;
+            user.v3Minter = false;
 
         }
         
