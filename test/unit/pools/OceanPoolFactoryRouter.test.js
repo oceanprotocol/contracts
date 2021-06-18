@@ -63,7 +63,7 @@ describe("OceanFactoryRouter", () => {
     // DEPLOY ROUTER, SETTING OWNER
     router = await Router.deploy(owner.address,oceanAddress)
     // DEPLOY OUR POOL FACTORY
-    poolFactory = await OceanPoolFactory.deploy(vaultAddress,router.address)
+    poolFactory = await OceanPoolFactory.deploy(vaultAddress,router.address,owner.address)
     // ADD THE FACTORY ADDRESS TO THE ROUTER
     await router.addOceanPoolFactory(poolFactory.address);
 

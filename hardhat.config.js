@@ -48,6 +48,7 @@ module.exports = {
           "https://eth-mainnet.alchemyapi.io/v2/eOqKsGAdsiNLCVm846Vgb-6yY3jlcNEo",
         blockNumber: 12515000,
       },
+      gasPrice:0
     },
   },
 

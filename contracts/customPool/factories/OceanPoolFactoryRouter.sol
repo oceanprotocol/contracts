@@ -12,7 +12,7 @@ import "@balancer-labs/v2-pool-utils/contracts/factories/BasePoolFactory.sol";
 import "../../interfaces/IOceanPoolFactory.sol";
 
 contract OceanPoolFactoryRouter {
-    address public routerOwner;
+    address private routerOwner;
     address public oceanPoolFactory;
    
     uint256 public constant swapFeeOcean = 1e15; // 0.1%

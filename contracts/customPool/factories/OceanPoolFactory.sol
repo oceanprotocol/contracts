@@ -6,15 +6,25 @@ import "../WeightedPool.sol";
 import "./BasePoolSplitCodeFactory.sol";
 
 contract OceanPoolFactory is BasePoolSplitCodeFactory, FactoryWidePauseWindow {
-    IVault private vault_;
-    address private oceanRouter; 
+    IVault public vault_;
+    address public oceanRouter; 
+    bool public balV2;
+    address private owner;
 
-   constructor(IVault vault, address _oceanRouter) BasePoolSplitCodeFactory(vault, type(WeightedPool).creationCode) {
+   
+
+   constructor(IVault vault, address _oceanRouter, address _owner) BasePoolSplitCodeFactory(vault, type(WeightedPool).creationCode) {
         oceanRouter = _oceanRouter;
+        owner = _owner;
         vault_ = vault;
+        balV2 = true;
         
     }
-
+    
+    modifier onlyRouter {
+         require(oceanRouter == msg.sender, 'OceanPoolFactory: NOT OCEAN ROUTER');
+         _;
+    }
    
     function createPool(
        // IVault getVault(),
@@ -27,8 +37,9 @@ contract OceanPoolFactory is BasePoolSplitCodeFactory, FactoryWidePauseWindow {
         uint256 oceanFee,
         uint256 marketFee,
         address owner
-        ) external returns (address) {
-        require(oceanRouter == msg.sender, 'OceanPoolFactory: NOT OCEAN ROUTER');
+        ) external onlyRouter returns (address) {
+        require(balV2 == true, "OceanPoolFactory: Bal V2 not available on this network");
+       
 
              (uint256 pauseWindowDuration, uint256 bufferPeriodDuration) =
             getPauseConfiguration();
@@ -49,5 +60,18 @@ contract OceanPoolFactory is BasePoolSplitCodeFactory, FactoryWidePauseWindow {
             
             
             return pool;
+    }
+
+
+    function createPoolFork() onlyRouter external {
+        require(balV2 == false, 'OceanPoolFactory: BalV2 available on this network');
+        // TODO: Add Ocean friendly fork of Balancer (in case there's no BAL v2)
+      
+       
+    }
+
+    function updateBalV2Status(bool _isAvailable) external {
+        require(owner == msg.sender, "OceanPoolFactory: NOT OWNER");
+        balV2 = _isAvailable;
     }
 }
