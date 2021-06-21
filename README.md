@@ -28,6 +28,7 @@ ERC725: clean all permissions: Manager, ERC20Deployer, MetadataUpdate,Store Upda
 ERC20: clean Minter Permissions. 
 
 V3 Integration:
+UPDATE: v3DT Owner has to proposeMinter() with the ERC721Contract address as argument, BEFORE calling wrapV3DT
 The current V3 has only ERC20 which are controlled by the ‘minter’. Minter is also the only one who can update metadata in Metadata.sol
 1 Way of supporting V3 could be to leave it as standalone, so that there would be 2 separate dapps running.
 
@@ -35,15 +36,12 @@ If we want to integrate already deployed ERC20 datatokens, one possible solution
 At 721 contract level, Function wrapV3DT receives 2 arguments: the ERC20 datatoken you want to wrap and the newMinter address.
 We first check if the msg.sender is the minter of the datatoken (if is the owner as per V3 specs).
 Then we register it into a mapping.
-Then we make a delegate call to the datatoken and propose a new Minter(the ERC725/721 Template) at the ERC20 datatoken level. 
 Next line we accept the minter role.
 The last line adds the newMinter to the Roles struct at 721 level.
 
 function wrapV3DT(address datatoken, address newMinter) external onlyNFTOwner{
 require(IV3ERC20(datatoken).minter() == msg.sender, 'ERC725Template: NOT ERC20 V3 datatoken owner');
 v3DT[datatoken] = true;
-(bool success, ) = datatoken.delegatecall(abi.encodeWithSignature("proposeMinter(address)", address(this) ));
-require(success == true, 'ERC725Template: PROPOSE MINTER FAILED');
 IV3ERC20(datatoken).approveMinter();
 _addV3Minter(newMinter);
 
@@ -72,6 +70,7 @@ Some notes I left in the code:
 // newMinter is set in the same function, allowing newMinter to mint on any registered datatoken in wrapV3DT. 
 // 
 // if the NFT is transferred, cleaning permissions will be sufficient, since the minter() in the datatoken is this contract.
+// of course the new owner will have to re-add roles (including v3Minter role)
 
 // CONS: won't have full roles at the v4 ERC20 datatoken( missing FeeManager which rignt now is only a role but we haven't assigned yet what it can do(split fee etc))
 // v3Minter right now is able to mint any datatoken registered, could be restricted if needed.

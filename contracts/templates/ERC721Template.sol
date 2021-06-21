@@ -243,7 +243,7 @@ contract ERC721Template is ERC721('Template','TemplateSymbol'), ERC721RolesAddre
 
     
     // NEEDED FOR IMPERSONATING THIS CONTRACT(need eth to send txs). WILL BE REMOVED
-    receive() external payable {}
+    //receive() external payable {}
 
     // FOR TEST PURPOSE TOGETHER WITH FlattenERC721.sol, both will be removed
     // function mint(address account) external {
