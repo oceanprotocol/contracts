@@ -194,11 +194,11 @@ contract ERC721Template is ERC721('Template','TemplateSymbol'), ERC721RolesAddre
     function setDataV3(address datatoken, bytes calldata _value, bytes calldata flags,
         bytes calldata data) external  {
         Roles memory user = _getPermissions(msg.sender);
-        require(user.deployERC20 == true, "ERC721Template: NOT erc20 deployer");
+        require(user.v3Minter == true, "ERC721Template: NOT v3Minter");
         _checkV3DT(datatoken);
         
         bytes32 key = keccak256(abi.encodePacked(address(datatoken))); // could be any other key, used a simple configuration
-        setDataERC20(key, _value); // into the new standard 725Y
+        setData(key, _value); // into the new standard 725Y
         IMetadata(_metadata).update(datatoken, flags, data); // Metadata standard for Aqua (V4 Metadata)
         // IMetadata(_metadataV3).update(datatoken, flags, data); // Old Metadata for Aqua (V3 Metadata). We should deprecate this and not support it anymore
         // instead we should force V3 migration to start using the new V4 Metadata contract.
@@ -242,18 +242,6 @@ contract ERC721Template is ERC721('Template','TemplateSymbol'), ERC721RolesAddre
     }
 
     
-    // NEEDED FOR IMPERSONATING THIS CONTRACT(need eth to send txs). WILL BE REMOVED
-    //receive() external payable {}
-
-    // FOR TEST PURPOSE TOGETHER WITH FlattenERC721.sol, both will be removed
-    // function mint(address account) external {
-    //     // require(
-    //     //     hasRole(MINTER_ROLE, msg.sender),
-    //     //     "ERC721Template NOT MINTER_ROLE"
-    //     // );
-    //     // tokenId += 1;
-    //     _safeMint(account, 2);
-    // }
 
     
 }

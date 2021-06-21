@@ -10,6 +10,9 @@ const { web3 } = require("@openzeppelin/test-helpers/src/setup");
 const { keccak256 } = require("@ethersproject/keccak256");
 const ethers = hre.ethers;
 
+
+
+
 describe("ERC721Template", () => {
   let name,
     symbol,
@@ -29,6 +32,39 @@ describe("ERC721Template", () => {
   const communityFeeCollector = "0xeE9300b7961e0a01d9f0adb863C7A227A07AaD75";
   const v3Datatoken = "0xa2B8b3aC4207CFCCbDe4Ac7fa40214fd00A2BA71"
   const v3DTOwner = "0x12BD31628075C20919BA838b89F414241b8c4869"
+  
+  const migrateFromV3 = async (v3DTOwner,v3Datatoken) => {
+    // WE IMPERSONATE THE ACTUAL v3DT OWNER and create a new ERC721 Contract, from which we are going to wrap the v3 datatoken
+    
+    await impersonate(v3DTOwner)
+    signer = ethers.provider.getSigner(v3DTOwner);
+    const tx = await factoryERC721.connect(signer).deployERC721Contract(
+      "NFT2",
+      "NFTSYMBOL",
+      metadata.address,
+      data,
+      flags,
+      1
+    );
+    const txReceipt = await tx.wait();
+  
+    tokenAddress = txReceipt.events[4].args[0];
+    tokenERC721 = await ethers.getContractAt("ERC721Template", tokenAddress);
+    assert(await tokenERC721.v3DT(v3Datatoken) == false)
+   
+    // WE then have to Propose a new minter for the v3Datatoken
+  
+    v3DTContract = await ethers.getContractAt("IV3ERC20", v3Datatoken);
+    await v3DTContract.connect(signer).proposeMinter(tokenAddress)
+  
+    // ONLY V3DTOwner can now call wrapV3DT() to transfer minter permission to the erc721Contract
+    await tokenERC721.connect(signer).wrapV3DT(v3Datatoken,v3DTOwner)
+    assert(await tokenERC721.v3DT(v3Datatoken) == true)
+    assert((await tokenERC721._getPermissions(v3DTOwner)).v3Minter == true);
+    
+    return tokenERC721;
+  }
+
   beforeEach("init contracts for each test", async () => {
     await network.provider.request({
       method: "hardhat_reset",
@@ -391,35 +427,9 @@ describe("ERC721Template", () => {
     assert((await tokenERC721._getPermissions(v3DTOwner)).v3Minter == true);
   });
 
-  it("#mintV3DT - should succed to mintV3DT, if caller has v3Minter permission", async () => {
-    // v3DTOwner has to deploy a new ERC721Contract which will be the new minter
-    await impersonate(v3DTOwner)
-    signer = ethers.provider.getSigner(v3DTOwner);
-    const tx = await factoryERC721.connect(signer).deployERC721Contract(
-      "NFT2",
-      "NFTSYMBOL",
-      metadata.address,
-      data,
-      flags,
-      1
-    );
-    const txReceipt = await tx.wait();
-
-    tokenAddress = txReceipt.events[4].args[0];
-    tokenERC721 = await ethers.getContractAt("ERC721Template", tokenAddress);
-    symbol = await tokenERC721.symbol();
-    name = await tokenERC721.name();
-    assert(await tokenERC721.v3DT(v3Datatoken) == false)
-   
-    // WE NEED TO PROPOSE MINTER in a different step
-
-    v3DTContract = await ethers.getContractAt("IV3ERC20", v3Datatoken);
-    await v3DTContract.connect(signer).proposeMinter(tokenAddress)
-
-    // V3DTOwner can now call wrapV3DT() to transfer minter permission to the erc721Contract
-    await tokenERC721.connect(signer).wrapV3DT(v3Datatoken,v3DTOwner)
-    assert(await tokenERC721.v3DT(v3Datatoken) == true)
-    assert((await tokenERC721._getPermissions(v3DTOwner)).v3Minter == true);
+  it("#mintV3DT - should succeed to mintV3DT, if caller has v3Minter permission", async () => {
+    
+    tokenERC721 = await migrateFromV3(v3DTOwner,v3Datatoken)
 
     assert(await v3DTContract.balanceOf(user2.address) == 0)
     await tokenERC721.connect(signer).mintV3DT(v3Datatoken, user2.address,  web3.utils.toWei("10"))
@@ -427,34 +437,9 @@ describe("ERC721Template", () => {
   });
 
   it("#mintV3DT - should fail to mintV3DT, if caller has NO v3Minter permission", async () => {
-    // v3DTOwner has to deploy a new ERC721Contract which will be the new minter
-    await impersonate(v3DTOwner)
-    signer = ethers.provider.getSigner(v3DTOwner);
-    const tx = await factoryERC721.connect(signer).deployERC721Contract(
-      "NFT2",
-      "NFTSYMBOL",
-      metadata.address,
-      data,
-      flags,
-      1
-    );
-    const txReceipt = await tx.wait();
+    tokenERC721 = await migrateFromV3(v3DTOwner,v3Datatoken)
 
-    tokenAddress = txReceipt.events[4].args[0];
-    tokenERC721 = await ethers.getContractAt("ERC721Template", tokenAddress);
-    symbol = await tokenERC721.symbol();
-    name = await tokenERC721.name();
-    assert(await tokenERC721.v3DT(v3Datatoken) == false)
-   
-    // WE NEED TO PROPOSE MINTER in a different step
-
-    v3DTContract = await ethers.getContractAt("IV3ERC20", v3Datatoken);
-    await v3DTContract.connect(signer).proposeMinter(tokenAddress)
-
-    // V3DTOwner can now call wrapV3DT() to transfer minter permission to the erc721Contract
-    await tokenERC721.connect(signer).wrapV3DT(v3Datatoken,v3DTOwner)
-    assert(await tokenERC721.v3DT(v3Datatoken) == true)
-    assert((await tokenERC721._getPermissions(v3DTOwner)).v3Minter == true);
+    assert((await tokenERC721._getPermissions(user2.address)).v3Minter == false);
 
     assert(await v3DTContract.balanceOf(user2.address) == 0)
     await expectRevert(tokenERC721.connect(user2).mintV3DT(v3Datatoken, user2.address,  web3.utils.toWei("10")),"ERC721Template: NOT v3 MINTER")
@@ -471,6 +456,38 @@ describe("ERC721Template", () => {
     await expectRevert(tokenERC721.mintV3DT(v3Datatoken, user2.address,  web3.utils.toWei("10")),"ERC721Template: v3Datatoken not WRAPPED")
     assert(await v3DTContract.balanceOf(user2.address) == 0)
   });
+
+  it("#setDataV3 - should fail to call setDataV3, if it's not v3Minter", async () => {
+    const value = web3.utils.asciiToHex('SomeData')
+    assert((await tokenERC721._getPermissions(owner.address)).v3Minter == false);
+    
+    await expectRevert(tokenERC721.setDataV3(v3Datatoken, value,flags,data),"ERC721Template: NOT v3Minter")
+    
+  });
+
+  it("#setDataV3 - should fail to call setDataV3, if it's not v3Datatoken is not wrapped", async () => {
+    const value = web3.utils.asciiToHex('SomeData')
+    await tokenERC721.addV3Minter(owner.address)
+    await expectRevert(tokenERC721.setDataV3(v3Datatoken, value,flags,data),"ERC721Template: v3Datatoken not WRAPPED")
+    
+  });
+
+  it("#setDataV3 - TEST", async () => {
+      result = await migrateFromV3(v3DTOwner,v3Datatoken)
+      console.log(result.address)
+  });
+
+
+  it("#setDataV3 - should succeed to call setDataV3, if token is wrapped and caller has minter role", async () => {
+    tokenERC721 = await migrateFromV3(v3DTOwner,v3Datatoken)
+
+    const value = web3.utils.asciiToHex('SomeData')
+ 
+    await tokenERC721.connect(signer).setDataV3(v3Datatoken, value,flags,data)  
+    
+  });
+
+
 
   it("#addV3Minter - should fail to addV3Minter, if caller has NOT MANAGER", async () => {
     
