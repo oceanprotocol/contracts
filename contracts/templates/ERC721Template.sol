@@ -13,7 +13,7 @@ import "../interfaces/IERC20Factory.sol";
 import "../utils/ERC721RolesAddress.sol";
 import "../utils/V3Integration.sol";
 
-//import "hardhat/console.sol";
+import "hardhat/console.sol";
 
 contract ERC721Template is
     ERC721("Template", "TemplateSymbol"),
@@ -21,7 +21,8 @@ contract ERC721Template is
     ERC725Ocean,
     V3Integration
 {
-    bytes32 public METADATA_KEY = keccak256("METADATA_KEY");
+    bytes32 public constant METADATA_KEY = keccak256("METADATA_KEY");
+   
     string private _name;
     string private _symbol;
     uint256 private tokenId = 1;
@@ -82,6 +83,7 @@ contract ERC721Template is
             "ERC721Template:: Metadata address cannot be zero"
         );
         _metadata = metadata;
+        
         _name = name_;
         _symbol = symbol_;
         _erc20Factory = erc20Factory;

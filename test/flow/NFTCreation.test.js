@@ -37,7 +37,7 @@ describe("NFT Creation, roles and erc20 deployments", () => {
 
     [owner, reciever, user2, user3, user4, newOwner] = await ethers.getSigners();
 
-    data = web3.utils.asciiToHex(constants.blob[0]);
+    data = web3.utils.asciiToHex('SomeData');
     flags = web3.utils.asciiToHex(constants.blob[0]);
     metadata = await Metadata.deploy();
  
@@ -157,20 +157,34 @@ describe("NFT Creation, roles and erc20 deployments", () => {
   });
 
   it("#8 - user3 updates the metadata for Aqua", async () => {
-    await tokenERC721.connect(user3).updateMetadata(data, flags);
-
+    const keyMetadata = web3.utils.keccak256("METADATA_KEY");
+    assert(await tokenERC721.getData(keyMetadata) == data)
+    let newData = web3.utils.asciiToHex('SomeNewData');
+    await tokenERC721.connect(user3).updateMetadata(flags, newData);
+    
+    assert(await tokenERC721.getData(keyMetadata) == newData)
   });
 
-  it("#9 - user3 updates the metadata (725Y) with arbitrary keys", async () => {
+  it("#9 - user3 (has erc20 deployer permission) updates ERC20 data (fix key)", async () => {
+    const key = web3.utils.keccak256(erc20Token.address);
+    const value = web3.utils.asciiToHex('SomeData')
+    assert(await tokenERC721.getData(key) == '0x')
+    await erc20Token.connect(user3).setData(value);
+    assert(await tokenERC721.getData(key) == value)
+  });
+
+  it("#10 - user3 updates the metadata (725Y) with arbitrary keys", async () => {
     const key = web3.utils.keccak256('ARBITRARY_KEY');
     const value = web3.utils.asciiToHex('SomeData')
     
+    assert(await tokenERC721.getData(key) == '0x')
+
     await tokenERC721.connect(user3).setNewData(key,value)
 
     assert(await tokenERC721.getData(key) == value)
   });
 
-  it("#10 - owner now decides to sell and transfer the NFT, he first calls cleanPermissions, then transfer the NFT", async () => {
+  it("#11 - owner now decides to sell and transfer the NFT, he first calls cleanPermissions, then transfer the NFT", async () => {
     // NOTE: calling cleanPermissions will remove all permissions granted to any user, even the NFT Owner which is manager by default when deploying,
     // he'll have to re-add himself as manager.
     // cleanPermissions is not a required step for transfering but highly recommended.
@@ -196,7 +210,7 @@ describe("NFT Creation, roles and erc20 deployments", () => {
     assert((await tokenERC721.ownerOf(1)) == newOwner.address);
   });
 
-  it("#10 - owner is not NFT owner anymore, nor has any other role, neither older users", async () => {
+  it("#12 - owner is not NFT owner anymore, nor has any other role, neither older users", async () => {
     await expectRevert(
       tokenERC721
         .connect(user2)
@@ -210,7 +224,7 @@ describe("NFT Creation, roles and erc20 deployments", () => {
     );
   });
 
-  it("#11 - newOwner now owns the NFT but still has no roles, so transactions revert", async () => {
+  it("#13 - newOwner now owns the NFT but still has no roles, so transactions revert", async () => {
     await expectRevert(
       tokenERC721
         .connect(newOwner)

@@ -147,7 +147,7 @@ contract ERC20Template is ERC20("test", "testSymbol"), ERC20Roles {
         _communityFeeCollector = feeCollector;
         feeManager = IERC721Template(_erc721Address).ownerOf(1); // By default the feeManager is the NFTOwner
         initialized = true;
-        // add a default minter, similar to what happens as manager
+        // add a default minter, similar to what happens with manager in the 721 contract
         _addMinter(minter);
 
         uint chainId;
