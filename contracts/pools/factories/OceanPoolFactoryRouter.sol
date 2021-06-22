@@ -8,13 +8,13 @@ import "@balancer-labs/v2-vault/contracts/interfaces/IVault.sol";
 
 import "@balancer-labs/v2-pool-utils/contracts/factories/BasePoolFactory.sol";
 
-
 import "../../interfaces/IOceanPoolFactory.sol";
 
 contract OceanPoolFactoryRouter {
     address private routerOwner;
     address public oceanPoolFactory;
-   
+    bool public balV2;
+
     uint256 public constant swapFeeOcean = 1e15; // 0.1%
 
     mapping(address => bool) public oceanTokens;
@@ -26,21 +26,24 @@ contract OceanPoolFactoryRouter {
         _;
     }
 
-    constructor(
-        address _routerOwner,
-        address _oceanToken
-    ) {
+    constructor(address _routerOwner, address _oceanToken) {
         routerOwner = _routerOwner;
+
         addOceanToken(_oceanToken);
+        balV2 = true;
     }
 
     function addOceanToken(address oceanTokenAddress) public onlyRouterOwner {
         oceanTokens[oceanTokenAddress] = true;
     }
 
-    function addOceanPoolFactory (address _oceanPoolFactory) external onlyRouterOwner {
+    function addOceanPoolFactory(address _oceanPoolFactory)
+        external
+        onlyRouterOwner
+    {
         oceanPoolFactory = _oceanPoolFactory;
     }
+
     /**
      * @dev Deploys a new `OceanPool`.
      */
@@ -53,11 +56,13 @@ contract OceanPoolFactoryRouter {
         uint256 marketFee,
         address owner
     ) external returns (address) {
+        require(
+            balV2 == true,
+            "OceanPoolFactoryRouter: Bal V2 not available on this network"
+        );
         bool flag;
         address pool;
         // TODO? ADD REQUIRE TO CHECK IF datatoken is on the erc20List => erc20List[datatoken] == true
-
-     
 
         for (uint256 i = 0; i < getLength(tokens); i++) {
             if (oceanTokens[address(tokens[i])] == true) {
@@ -66,10 +71,8 @@ contract OceanPoolFactoryRouter {
             }
         }
 
-       
-
         if (flag == true) {
-        pool =  _createPool(
+            pool = _createPool(
                 name,
                 symbol,
                 tokens,
@@ -79,10 +82,9 @@ contract OceanPoolFactoryRouter {
                 marketFee,
                 owner
             );
-            emit NewPool(pool,flag);
+            emit NewPool(pool, flag);
         } else {
-      
-         pool = _createPool(
+            pool = _createPool(
                 name,
                 symbol,
                 tokens,
@@ -95,8 +97,8 @@ contract OceanPoolFactoryRouter {
         }
 
         require(pool != address(0), "FAILED TO DEPLOY POOL");
-     
-        emit NewPool(pool,flag);
+
+        emit NewPool(pool, flag);
         return pool;
     }
 
@@ -105,7 +107,6 @@ contract OceanPoolFactoryRouter {
         string memory symbol,
         IERC20[] memory tokens,
         uint256[] memory weights,
-       // address[] memory assetManagers,
         uint256 swapFeePercentage,
         uint256 oceanFee,
         uint256 marketFee,
@@ -117,7 +118,6 @@ contract OceanPoolFactoryRouter {
                 symbol,
                 tokens,
                 weights,
-                //assetManagers,
                 swapFeePercentage,
                 oceanFee,
                 marketFee,
@@ -127,8 +127,24 @@ contract OceanPoolFactoryRouter {
         return pool;
     }
 
-
     function getLength(IERC20[] memory array) private view returns (uint256) {
         return array.length;
+    }
+
+    function deployPoolWithFork(address controller) external returns (address) {
+        require(controller != address(0), "OceanPoolFactoryRouter: Invalid address");
+        require(
+            balV2 == false,
+            "OceanPoolFactoryRouter: BalV2 available on this network"
+        );
+   
+        address pool =
+            IOceanPoolFactory(oceanPoolFactory).createPoolWithFork(controller);
+        
+        return pool;
+    }
+
+    function updateBalV2Status(bool _isAvailable) external onlyRouterOwner {
+        balV2 = _isAvailable;
     }
 }

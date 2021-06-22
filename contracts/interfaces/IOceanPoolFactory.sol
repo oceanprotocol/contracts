@@ -21,7 +21,7 @@ interface IOceanPoolFactory {
     ) external returns (address);
 
 
-
+   function createPoolWithFork(address controller) external returns(address);
 
 
 }

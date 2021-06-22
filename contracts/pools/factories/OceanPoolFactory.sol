@@ -4,20 +4,21 @@ import "@balancer-labs/v2-vault/contracts/interfaces/IVault.sol";
 import "@balancer-labs/v2-pool-utils/contracts/factories/FactoryWidePauseWindow.sol";
 import "../WeightedPool.sol";
 import "./BasePoolSplitCodeFactory.sol";
+import "../../interfaces/IFriendlyFactory.sol";
 
 contract OceanPoolFactory is BasePoolSplitCodeFactory, FactoryWidePauseWindow {
     IVault public vault_;
     address public oceanRouter; 
-    bool public balV2;
+    
     address private owner;
-
+    address public factoryFork;
    
 
    constructor(IVault vault, address _oceanRouter, address _owner) BasePoolSplitCodeFactory(vault, type(WeightedPool).creationCode) {
         oceanRouter = _oceanRouter;
         owner = _owner;
         vault_ = vault;
-        balV2 = true;
+        
         
     }
     
@@ -27,18 +28,16 @@ contract OceanPoolFactory is BasePoolSplitCodeFactory, FactoryWidePauseWindow {
     }
    
     function createPool(
-       // IVault getVault(),
         string memory name,
         string memory symbol,
         IERC20[] memory tokens,
         uint256[] memory weights,
-       // address[] memory assetManagers,
         uint256 swapFeePercentage,
         uint256 oceanFee,
         uint256 marketFee,
         address owner
         ) external onlyRouter returns (address) {
-        require(balV2 == true, "OceanPoolFactory: Bal V2 not available on this network");
+       
        
 
              (uint256 pauseWindowDuration, uint256 bufferPeriodDuration) =
@@ -63,15 +62,10 @@ contract OceanPoolFactory is BasePoolSplitCodeFactory, FactoryWidePauseWindow {
     }
 
 
-    function createPoolFork() onlyRouter external {
-        require(balV2 == false, 'OceanPoolFactory: BalV2 available on this network');
-        // TODO: Add Ocean friendly fork of Balancer (in case there's no BAL v2)
-      
-       
+    function createPoolWithFork(address controller) external onlyRouter returns (address){
+        address pool = IFriendlyFactory(factoryFork).newBPool(controller);
+
+        return pool;
     }
 
-    function updateBalV2Status(bool _isAvailable) external {
-        require(owner == msg.sender, "OceanPoolFactory: NOT OWNER");
-        balV2 = _isAvailable;
-    }
 }
