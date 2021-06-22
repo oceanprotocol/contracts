@@ -473,11 +473,6 @@ describe("ERC721Template", () => {
     
   });
 
-  it("#setDataV3 - TEST", async () => {
-      result = await migrateFromV3(v3DTOwner,v3Datatoken)
-      console.log(result.address)
-  });
-
 
   it("#setDataV3 - should succeed to call setDataV3, if token is wrapped and caller has minter role", async () => {
     tokenERC721 = await migrateFromV3(v3DTOwner,v3Datatoken)

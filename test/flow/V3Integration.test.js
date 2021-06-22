@@ -55,7 +55,6 @@ describe("V3 Integration flow", () => {
       factoryERC20.address
     );
 
-    newERC721Template = await ERC721Template.deploy();
 
     await metadata.setERC20Factory(factoryERC20.address);
     await factoryERC20.setERC721Factory(factoryERC721.address);
@@ -119,7 +118,16 @@ describe("V3 Integration flow", () => {
     );
   });
 
-  it("#6 - v3DTOwner  is the NFT Owner, he can assign or revoke roles just as any other NFT Owner", async () => {
+  it("#6 - user2 updates metadata for V3 calling setDataV3, if token is wrapped and caller has minter role", async () => {
+    const key = web3.utils.keccak256(v3Datatoken);
+    const value = web3.utils.asciiToHex('SomeData')
+ 
+    await tokenERC721.connect(user2).setDataV3(v3Datatoken, value,flags,data)  
+    
+    assert(await tokenERC721.getData(key) == value)
+  });
+
+  it("#7 - v3DTOwner  is the NFT Owner, he can assign or revoke roles just as any other NFT Owner", async () => {
     assert((await tokenERC721._getPermissions(user2.address)).store == false);
     assert(
       (await tokenERC721._getPermissions(user2.address)).deployERC20 == false
@@ -146,18 +154,19 @@ describe("V3 Integration flow", () => {
     );
   });
 
-  it("#7 - user2 (now with erc20 deployment permission), deploys a new ERC20 contract (v4 type)", async () => {
+  it("#8 - user2 (now with erc20 deployment permission), deploys a new ERC20 contract (v4 type)", async () => {
+    // the last argument is the minter for the erc20(v4)
     const trxERC20 = await tokenERC721
       .connect(user2)
-      .createERC20("ERC20DT1", "ERC20DT1Symbol", web3.utils.toWei("10"), 1);
+      .createERC20("ERC20DT1", "ERC20DT1Symbol", web3.utils.toWei("10"), 1, user2.address);
     const trxReceiptERC20 = await trxERC20.wait();
     erc20Address = trxReceiptERC20.events[3].args.erc20Address;
 
     erc20Token = await ethers.getContractAt("ERC20Template", erc20Address);
   });
 
-  it("#8 - user2 (erc20 deployment permission), add himself as minter on the newly erc20 contract(v4), then mints some ERC20DT tokens", async () => {
-    await erc20Token.connect(user2).addMinter(user2.address);
+  it("#9 - user2 (erc20 deployment permission), add himself as minter on the newly erc20 contract(v4), then mints some ERC20DT tokens", async () => {
+   // user2 already has minting permission because was set as default minter when deploying a new erc20
     await erc20Token.connect(user2).mint(user2.address, web3.utils.toWei("2"));
 
     assert(
@@ -165,7 +174,7 @@ describe("V3 Integration flow", () => {
     );
   });
 
-  it("#9 - v3DTOwnerAddress now decides to sell and transfer the NFT, he first calls cleanPermissions, then transfer the NFT", async () => {
+  it("#10 - v3DTOwnerAddress now decides to sell and transfer the NFT, he first calls cleanPermissions, then transfer the NFT", async () => {
     // NOTE: calling cleanPermissions will remove all permissions granted to any user, even the NFT Owner which is manager by default when deploying,
     // he'll have to re-add himself as manager.
     // cleanPermissions is not a required step for transfering but highly recommended,  by the new NFT owner asap.
@@ -186,11 +195,20 @@ describe("V3 Integration flow", () => {
     assert((await tokenERC721.ownerOf(1)) == newOwner.address);
   });
 
-  it("#10 - v3DTOwnerAddress is not NFT owner anymore, nor has any other role, neither older users", async () => {
+  it("#11 - v3DTOwnerAddress is not NFT owner anymore, nor has any other role, neither older users", async () => {
+    
+    await expectRevert(
+      tokenERC721
+        .connect(v3Owner)
+        .createERC20("ERC20DT2", "ERC20DT2Symbol", web3.utils.toWei("10"), 1, v3DTOwnerAddress),
+      "ERC721Template: NOT MINTER_ROLE"
+    );
+    
+    
     await expectRevert(
       tokenERC721
         .connect(user2)
-        .createERC20("ERC20DT2", "ERC20DT2Symbol", web3.utils.toWei("10"), 1),
+        .createERC20("ERC20DT2", "ERC20DT2Symbol", web3.utils.toWei("10"), 1, user2.address),
       "ERC721Template: NOT MINTER_ROLE"
     );
 
@@ -200,11 +218,11 @@ describe("V3 Integration flow", () => {
     );
   });
 
-  it("#11 - newOwner now owns the NFT but still has no roles, so transactions revert", async () => {
+  it("#12 - newOwner now owns the NFT but still has no roles, so transactions revert", async () => {
     await expectRevert(
       tokenERC721
         .connect(newOwner)
-        .createERC20("ERC20DT2", "ERC20DT2Symbol", web3.utils.toWei("10"), 1),
+        .createERC20("ERC20DT2", "ERC20DT2Symbol", web3.utils.toWei("10"), 1,newOwner.address),
       "ERC721Template: NOT MINTER_ROLE"
     );
 
@@ -214,7 +232,7 @@ describe("V3 Integration flow", () => {
     );
   });
 
-  it("#12 - newOwner FIRST add himself as manager, then start assigning roles", async () => {
+  it("#13 - newOwner FIRST add himself as manager, then start assigning roles", async () => {
     // we don't need to connect(newOwner) since it's the first user when getSigners() so it goes by default
     await tokenERC721.addManager(newOwner.address);
 
@@ -227,7 +245,7 @@ describe("V3 Integration flow", () => {
     await tokenERC721.addV3Minter(user2.address); // Minting on wrapped v3 DT
   });
 
-  it("#13 - user2 mints on v3 wrapped token to a new user ", async () => {
+  it("#14 - user2 mints on v3 wrapped token to a new user ", async () => {
     await tokenERC721
       .connect(user2)
       .mintV3DT(v3Datatoken, user4.address, web3.utils.toWei("5"));
@@ -236,7 +254,7 @@ describe("V3 Integration flow", () => {
     );
   });
 
-  it("#14 - user2 mints on an already existing v4 erc20 contract, after being added as minter at erc20 level ", async () => {
+  it("#15 - user2 mints on an already existing v4 erc20 contract, after being added as minter at erc20 level ", async () => {
     await erc20Token.connect(user2).addMinter(user2.address) // whoever has deployer erc20 roles can add minters (see #12, addToCreateERC20List)
     await erc20Token.connect(user2).mint(user4.address, web3.utils.toWei("2"));
 
@@ -245,17 +263,17 @@ describe("V3 Integration flow", () => {
     );
   });
 
-  it("#15 - user2 deploys a new erc20 contract(v4), then mints some tokens ", async () => {
+  it("#16 - user2 deploys a new erc20 contract(v4), then mints some tokens ", async () => {
     const trxERC20 = await tokenERC721
       .connect(user2)
-      .createERC20("ERC20DT1", "ERC20DT1Symbol", web3.utils.toWei("10"), 1);
+      .createERC20("ERC20DT1", "ERC20DT1Symbol", web3.utils.toWei("10"), 1,user2.address);
     const trxReceiptERC20 = await trxERC20.wait();
     newERC20Address = trxReceiptERC20.events[3].args.erc20Address;
 
     newERC20Token = await ethers.getContractAt("ERC20Template", newERC20Address);
 
-    // user2 still need to add himself or another user as minter on the newly created contract
-    await newERC20Token.connect(user2).addMinter(user2.address) 
+    // // user2 still need to add himself or another user as minter on the newly created contract
+    // await newERC20Token.connect(user2).addMinter(user2.address) 
 
     // Now it can mint
     await newERC20Token.connect(user2).mint(user4.address, web3.utils.toWei("2"));

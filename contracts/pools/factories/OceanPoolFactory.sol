@@ -11,7 +11,7 @@ contract OceanPoolFactory is BasePoolSplitCodeFactory, FactoryWidePauseWindow {
     address public oceanRouter; 
     
     address private owner;
-    address public factoryFork;
+    address public factoryFork; // we can decide if hardcoding or set it in the constructor
    
 
    constructor(IVault vault, address _oceanRouter, address _owner) BasePoolSplitCodeFactory(vault, type(WeightedPool).creationCode) {
