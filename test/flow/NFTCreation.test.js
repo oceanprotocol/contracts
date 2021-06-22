@@ -157,6 +157,9 @@ describe("NFT Creation, roles and erc20 deployments", () => {
   });
 
   it("#8 - user3 updates the metadata for Aqua", async () => {
+    // When updating metadata for Aqua (calling the Metadata.sol contract and emitting the event)
+    // we also set the same value into the 725Y standard with a predefined key (keccak256("METADATA_KEY"))
+
     const keyMetadata = web3.utils.keccak256("METADATA_KEY");
     assert(await tokenERC721.getData(keyMetadata) == data)
     let newData = web3.utils.asciiToHex('SomeNewData');
@@ -166,6 +169,9 @@ describe("NFT Creation, roles and erc20 deployments", () => {
   });
 
   it("#9 - user3 (has erc20 deployer permission) updates ERC20 data (fix key)", async () => {
+    // This is a special metadata, it's callable only from the erc20Token contract and 
+    // can be done only by who has deployERC20 rights(rights to create new erc20 token contract)
+    // the value is stored into the 725Y standard with a predefined key which is the erc20Token address
     const key = web3.utils.keccak256(erc20Token.address);
     const value = web3.utils.asciiToHex('SomeData')
     assert(await tokenERC721.getData(key) == '0x')
@@ -174,6 +180,9 @@ describe("NFT Creation, roles and erc20 deployments", () => {
   });
 
   it("#10 - user3 updates the metadata (725Y) with arbitrary keys", async () => {
+    // This one is the generic version of updating data into the key-value story.
+    // Only users with 'store' permission can do that.
+    // NOTE: in this function the key is chosen by the caller.
     const key = web3.utils.keccak256('ARBITRARY_KEY');
     const value = web3.utils.asciiToHex('SomeData')
     
