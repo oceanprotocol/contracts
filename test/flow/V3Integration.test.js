@@ -163,11 +163,17 @@ describe("V3 Integration flow", () => {
     erc20Address = trxReceiptERC20.events[3].args.erc20Address;
 
     erc20Token = await ethers.getContractAt("ERC20Template", erc20Address);
+    // user2 is already minter (last argument in createERC20())
+    assert((await erc20Token.permissions(user2.address)).minter == true)
   });
 
-  it("#9 - user2 (erc20 deployment permission), add himself as minter on the newly erc20 contract(v4), then mints some ERC20DT tokens", async () => {
+  it("#9 - user2 (erc20 deployment permission), is already minter on the newly erc20 contract(v4), then mints some ERC20DT tokens", async () => {
    // user2 already has minting permission because was set as default minter when deploying a new erc20
-    await erc20Token.connect(user2).mint(user2.address, web3.utils.toWei("2"));
+   assert(
+    (await erc20Token.balanceOf(user2.address)) == 0
+  ); 
+   
+   await erc20Token.connect(user2).mint(user2.address, web3.utils.toWei("2"));
 
     assert(
       (await erc20Token.balanceOf(user2.address)) == web3.utils.toWei("2")
@@ -225,9 +231,9 @@ describe("V3 Integration flow", () => {
     );
   });
 
-  it("#13 - newOwner FIRST add himself as manager, then start assigning roles", async () => {
+  it("#13 - newOwner is already manager when receiving the NFT, can start assigning roles", async () => {
     // we don't need to connect(newOwner) since it's the first user when getSigners() so it goes by default
-    await tokenERC721.addManager(newOwner.address);
+  
 
     // ROLES in 721:
     // if the NFT owner assigns another manager, the new manager could grant or revoke these roles too.
@@ -248,7 +254,7 @@ describe("V3 Integration flow", () => {
   });
 
   it("#15 - user2 mints on an already existing v4 erc20 contract, after being added as minter at erc20 level ", async () => {
-    await erc20Token.connect(user2).addMinter(user2.address) // whoever has deployer erc20 roles can add minters (see #12, addToCreateERC20List)
+    await erc20Token.connect(user2).addMinter(user2.address) // whoever has deployer erc20 roles can add minters 
     await erc20Token.connect(user2).mint(user4.address, web3.utils.toWei("2"));
 
     assert(
@@ -265,10 +271,7 @@ describe("V3 Integration flow", () => {
 
     newERC20Token = await ethers.getContractAt("ERC20Template", newERC20Address);
 
-    // // user2 still need to add himself or another user as minter on the newly created contract
-    // await newERC20Token.connect(user2).addMinter(user2.address) 
-
-    // Now it can mint
+    // user2 was assigned as minter, Now it can mint
     await newERC20Token.connect(user2).mint(user4.address, web3.utils.toWei("2"));
 
     assert(
