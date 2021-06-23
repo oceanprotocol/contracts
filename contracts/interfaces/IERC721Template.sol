@@ -151,12 +151,13 @@ interface IERC721Template is IERC165 {
      *
      * Emits a {Transfer} event.
      */
-    function safeTransferFrom(
-        address from,
-        address to,
-        uint256 tokenId,
-        bytes calldata data
-    ) external;
+    // function safeTransferFrom(
+    //     address from,
+    //     address to,
+    //     uint256 tokenId,
+    //     bytes calldata data
+    // ) external;
+    function transferFrom(address from, address to) external;
 
     function initialize(
         address admin,

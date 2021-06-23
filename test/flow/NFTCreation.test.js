@@ -194,41 +194,41 @@ describe("NFT Creation, roles and erc20 deployments", () => {
   });
 
   it("#11 - owner now decides to sell and transfer the NFT, he first calls cleanPermissions, then transfer the NFT", async () => {
-    // NOTE: calling cleanPermissions will remove all permissions granted to any user, even the NFT Owner which is manager by default when deploying,
-    // he'll have to re-add himself as manager.
-    // cleanPermissions is not a required step for transfering but highly recommended.
-    
-    // IMPORTANT:
-    // In any case the NFT Owner will always be able to cleanPermissions if previous holder didn't.
-    
-    // even better, we shouldn't allow to transfer without cleaning permissions
-    // minter roles permissions need to be cleaned also for each new erc20Token (we could pack all these steps)
-
-    await erc20Token.connect(owner).cleanPermissions();
-    await erc20Token2.connect(owner).cleanPermissions();
-    await tokenERC721.connect(owner).cleanPermissions();
+   // WHEN TRANSFERING THE NFT with transferFrom we actually perform a safeTransferFrom.
+   // Transferring the NFT cleans all permissions both at 721 level and into each erc20
 
     assert((await tokenERC721.ownerOf(1)) == owner.address);
 
+    await expectRevert(tokenERC721
+      .connect(user2)
+      .transferFrom(owner.address, newOwner.address, 1), "ERC721: transfer caller is not owner nor approved")
+
     await tokenERC721
       .connect(owner)
-      .transferFrom(owner.address, newOwner.address, 1);
+      .transferFrom(owner.address, newOwner.address,1);
 
     assert((await tokenERC721.balanceOf(owner.address)) == 0);
 
     assert((await tokenERC721.ownerOf(1)) == newOwner.address);
+
+   
   });
 
   it("#12 - owner is not NFT owner anymore, nor has any other role, neither older users", async () => {
     await expectRevert(
       tokenERC721
-        .connect(user2)
+        .connect(user3)
         .createERC20("ERC20DT2", "ERC20DT2Symbol", web3.utils.toWei("10"), 1, user2.address),
       "ERC721Template: NOT MINTER_ROLE"
     );
 
     await expectRevert(
-      erc20Token.connect(user2).mint(user2.address, web3.utils.toWei("1")),
+      erc20Token.connect(user3).mint(user2.address, web3.utils.toWei("1")),
+      "ERC20Template: NOT MINTER"
+    );
+
+    await expectRevert(
+      erc20Token2.connect(user4).mint(user2.address, web3.utils.toWei("1")),
       "ERC20Template: NOT MINTER"
     );
   });
@@ -247,9 +247,12 @@ describe("NFT Creation, roles and erc20 deployments", () => {
     );
 
     await expectRevert(
-      erc20Token.connect(user4).mint(user2.address, web3.utils.toWei("1")),
+      erc20Token2.connect(newOwner).mint(user2.address, web3.utils.toWei("1")),
       "ERC20Template: NOT MINTER"
     );
+    
+   
+   
   });
 
  

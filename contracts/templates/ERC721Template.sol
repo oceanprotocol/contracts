@@ -10,6 +10,7 @@ import "../interfaces/IV3ERC20.sol";
 //import "@openzeppelin/contracts/utils/introspection/ERC165Storage.sol";
 import "../interfaces/IMetadata.sol";
 import "../interfaces/IERC20Factory.sol";
+import "../interfaces/IERC20Template.sol";
 import "../utils/ERC721RolesAddress.sol";
 import "../utils/V3Integration.sol";
 
@@ -29,8 +30,10 @@ contract ERC721Template is
     bool private initialized;
     address public _metadata;
     address private _erc20Factory;
+    address[] private deployedERC20List;
 
     mapping(address => bool) private deployedERC20;
+
 
     //mapping(address => bool ) public v3DT;
 
@@ -139,6 +142,8 @@ contract ERC721Template is
 
         deployedERC20[token] = true;
 
+        // TODO: add array for newly created erc20 so that we can clean permissions later when transferring
+        deployedERC20List.push(token);
         //FOR TEST PURPOSE BUT COULD BE COMPLETED OR REMOVED
         emit ERC20Created(token);
 
@@ -252,5 +257,25 @@ contract ERC721Template is
     function removeV3Minter(address minter) external {
         _checkManager(msg.sender);
         _removeV3Minter(minter);
+    }
+    // TODO: we now need to clean also permissions at the erc20 contract levels
+    // TODO: test this function and adapt the others flow/unit tests
+    function transferFrom(address from, address to, uint256 tokenId) external {
+        require(tokenId == 1, "ERC721Template: Cannot transfer this tokenId");
+        _cleanERC20Permissions(getAddressLength(deployedERC20List));
+        _cleanPermissions();
+        _transferFrom(from,to,tokenId);
+    }
+
+    function getAddressLength(address[] memory array) private pure returns (uint256) {
+        return array.length;
+    }
+
+     // TODO: test this function and adapt the others flow/unit tests
+    function _cleanERC20Permissions(uint lentgh) internal {
+        for (uint i = 0; i < lentgh; i++) {
+          
+           IERC20Template(deployedERC20List[i]).cleanFrom721();
+        }
     }
 }

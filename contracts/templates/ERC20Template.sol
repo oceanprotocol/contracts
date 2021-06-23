@@ -341,8 +341,15 @@ contract ERC20Template is ERC20("test", "testSymbol"), ERC20Roles {
 
     function cleanPermissions() external onlyNFTOwner {
         _cleanPermissions();
+       
     }
 
+    function cleanFrom721() external {
+        require(msg.sender == _erc721Address, "ERC20Template: NOT 721 Contract");
+         _cleanPermissions();
+    }
+
+    
     /**
      * @dev name
      *      It returns the token name.
