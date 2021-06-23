@@ -26,7 +26,7 @@ contract ERC721Template is
    
     string private _name;
     string private _symbol;
-    uint256 private tokenId = 1;
+    //uint256 private tokenId = 1;
     bool private initialized;
     address public _metadata;
     address private _erc20Factory;
@@ -142,8 +142,8 @@ contract ERC721Template is
 
         deployedERC20[token] = true;
 
-        // TODO: add array for newly created erc20 so that we can clean permissions later when transferring
-        deployedERC20List.push(token);
+        deployedERC20List.push(token); 
+
         //FOR TEST PURPOSE BUT COULD BE COMPLETED OR REMOVED
         emit ERC20Created(token);
 
@@ -250,7 +250,7 @@ contract ERC721Template is
     }
 
     function addV3Minter(address newMinter) external {
-        _checkManager(msg.sender);
+        _checkManager(msg.sender); // could be a different role that is allowed to change this. in v4 erc20 is the erc20Deployer role(721 level)
         _addV3Minter(newMinter);
     }
 
@@ -258,7 +258,7 @@ contract ERC721Template is
         _checkManager(msg.sender);
         _removeV3Minter(minter);
     }
-    // TODO: we now need to clean also permissions at the erc20 contract levels
+    
     // TODO: test this function and adapt the others flow/unit tests
     function transferFrom(address from, address to, uint256 tokenId) external {
         require(tokenId == 1, "ERC721Template: Cannot transfer this tokenId");

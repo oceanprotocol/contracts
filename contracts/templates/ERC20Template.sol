@@ -28,6 +28,7 @@ contract ERC20Template is ERC20("test", "testSymbol"), ERC20Roles {
     address private _communityFeeCollector;
     bool private initialized = false;
     address private _erc721Address;
+    address private feeCollector;
     //  address private _minter;
     //  address private _proposedMinter;
     uint256 public constant BASE = 10**18;
@@ -98,17 +99,18 @@ contract ERC20Template is ERC20("test", "testSymbol"), ERC20Roles {
      * @param symbol refers to a nea DataToken symbol
      * @param erc721Address refers to the erc721 address (used for onlyNFTOwner modifier)
      * @param cap the total ERC20 cap
-     * @param feeCollector it is the community fee collector address
+     * @param communityFeeCollector it is the community fee collector address
+       @param minter account who can mint datatokens (can have multiple minters)
      */
     function initialize(
         string calldata name,
         string calldata symbol,
         address erc721Address,
         uint256 cap,
-        address feeCollector,
+        address communityFeeCollector,
         address minter
     ) external onlyNotInitialized returns (bool) {
-        return _initialize(name, symbol, erc721Address, cap, feeCollector, minter);
+        return _initialize(name, symbol, erc721Address, cap, communityFeeCollector, minter);
     }
 
     /**
@@ -118,14 +120,14 @@ contract ERC20Template is ERC20("test", "testSymbol"), ERC20Roles {
      * @param symbol refers to a nea DataToken symbol
      * @param erc721Address refers to an address that has minter rights
      * @param cap the total ERC20 cap
-     * @param feeCollector it is the community fee collector address
+     * @param communityFeeCollector it is the community fee collector address
      */
     function _initialize(
         string memory name,
         string memory symbol,
         address erc721Address,
         uint256 cap,
-        address feeCollector,
+        address communityFeeCollector,
         address minter
     ) private returns (bool) {
         require(
@@ -143,7 +145,7 @@ contract ERC20Template is ERC20("test", "testSymbol"), ERC20Roles {
         _name = name;
         _symbol = symbol;
         _erc721Address = erc721Address;
-        _communityFeeCollector = feeCollector;
+        _communityFeeCollector = communityFeeCollector;
         initialized = true;
         // add a default minter, similar to what happens with manager in the 721 contract
         _addMinter(minter);
@@ -204,7 +206,7 @@ contract ERC20Template is ERC20("test", "testSymbol"), ERC20Roles {
             transfer(mrktFeeCollector, marketFee);
         }
         uint256 totalFee = communityFee.add(marketFee);
-        transfer(getFeeManager(), amount.sub(totalFee));
+        transfer(getFeeCollector(), amount.sub(totalFee));
 
         emit OrderStarted(
             consumer,
@@ -243,7 +245,7 @@ contract ERC20Template is ERC20("test", "testSymbol"), ERC20Roles {
                 transfer(mrktFeeCollectors[i], marketFee);
             }
             uint256 totalFee = communityFee.add(marketFee);
-            transfer(getFeeManager(), amounts[i].sub(totalFee));
+            transfer(getFeeCollector(), amounts[i].sub(totalFee));
 
             emit OrderStarted(
                 consumers[i],
@@ -335,12 +337,18 @@ contract ERC20Template is ERC20("test", "testSymbol"), ERC20Roles {
     
     function cleanPermissions() external onlyNFTOwner {
         _cleanPermissions();
+        feeCollector = address(0);
        
     }
 
     function cleanFrom721() external {
         require(msg.sender == _erc721Address, "ERC20Template: NOT 721 Contract");
          _cleanPermissions();
+         feeCollector = address(0);
+    }
+
+    function setFeeCollector(address _newFeeCollector) external onlyNFTOwner {
+        feeCollector = _newFeeCollector;
     }
 
     
@@ -435,7 +443,12 @@ contract ERC20Template is ERC20("test", "testSymbol"), ERC20Roles {
         return array.length;
     }
 
-    function getFeeManager() private view returns (address) {
-        return IERC721Template(_erc721Address).ownerOf(1);
+    function getFeeCollector() private view returns (address) {
+        if (feeCollector == address(0)) {
+            return IERC721Template(_erc721Address).ownerOf(1);
+        } else {
+            return feeCollector;
+        }
+        
     }
 }

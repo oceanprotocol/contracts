@@ -233,7 +233,12 @@ describe("NFT Creation, roles and erc20 deployments", () => {
     );
   });
 
-  it("#13 - newOwner now owns the NFT but still has no roles, so transactions revert", async () => {
+  it("#13 - newOwner now owns the NFT, is already Manager by default but still has no roles, so transactions revert", async () => {
+    assert(
+      (await tokenERC721._getPermissions(newOwner.address)).manager == true
+    );
+    
+    
     await expectRevert(
       tokenERC721
         .connect(newOwner)
