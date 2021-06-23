@@ -223,7 +223,7 @@ contract ERC721Template is
         // instead we should force V3 migration to start using the new V4 Metadata contract.
     }
 
-    // Useful when trasferring the NFT, we can remove it if not required.
+    
 
     function cleanPermissions() external {
         _checkNFTOwner(msg.sender);
@@ -265,6 +265,7 @@ contract ERC721Template is
         _cleanERC20Permissions(getAddressLength(deployedERC20List));
         _cleanPermissions();
         _transferFrom(from,to,tokenId);
+        _addManager(to);
     }
 
     function getAddressLength(address[] memory array) private pure returns (uint256) {

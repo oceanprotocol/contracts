@@ -175,14 +175,7 @@ describe("V3 Integration flow", () => {
   });
 
   it("#10 - v3DTOwnerAddress now decides to sell and transfer the NFT, he first calls cleanPermissions, then transfer the NFT", async () => {
-    // NOTE: calling cleanPermissions will remove all permissions granted to any user, even the NFT Owner which is manager by default when deploying,
-    // he'll have to re-add himself as manager.
-    // cleanPermissions is not a required step for transfering but highly recommended,  by the new NFT owner asap.
-    // even better, we shouldn't allow to transfer without cleaning permissions
-    // minter roles permissions need to be cleaned also for each new erc20Token (we could pack all these steps)
-
-    await erc20Token.connect(v3Owner).cleanPermissions();
-    await tokenERC721.connect(v3Owner).cleanPermissions();
+    
 
     assert((await tokenERC721.ownerOf(1)) == v3DTOwnerAddress);
 

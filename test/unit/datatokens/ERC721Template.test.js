@@ -163,7 +163,16 @@ describe("ERC721Template", () => {
 
   it("#updateMetadata - should update the metadata, after adding address to MetadataList", async () => {
     await tokenERC721.addToMetadataList(owner.address);
-    await tokenERC721.updateMetadata(data, flags);
+
+    const keyMetadata = web3.utils.keccak256("METADATA_KEY");
+    assert(await tokenERC721.getData(keyMetadata) == data)
+
+    let newData = web3.utils.asciiToHex('SomeNewData');
+    await tokenERC721.updateMetadata(flags, newData);
+    
+    assert(await tokenERC721.getData(keyMetadata) == newData)
+    
+   
   });
 
   it("#createERC20 - should not allow to create a new ERC20Token if NOT in CreateERC20List", async () => {
@@ -172,7 +181,8 @@ describe("ERC721Template", () => {
         "ERC20DT1",
         "ERC20DT1Symbol",
         web3.utils.toWei("10"),
-        1
+        1,
+        owner.address
       ),
       "ERC721Template: NOT MINTER_ROLE"
     );
@@ -184,7 +194,8 @@ describe("ERC721Template", () => {
       "ERC20DT1",
       "ERC20DT1Symbol",
       web3.utils.toWei("10"),
-      1
+      1,
+      owner.address
     );
   });
 
@@ -478,8 +489,16 @@ describe("ERC721Template", () => {
     tokenERC721 = await migrateFromV3(v3DTOwner,v3Datatoken)
 
     const value = web3.utils.asciiToHex('SomeData')
- 
-    await tokenERC721.connect(signer).setDataV3(v3Datatoken, value,flags,data)  
+    let newData = web3.utils.asciiToHex('SomeNewData');
+
+    await tokenERC721.connect(signer).setDataV3(v3Datatoken, value,flags,newData)  
+
+    const key = web3.utils.keccak256(v3Datatoken);
+    assert(await tokenERC721.getData(key) == value)
+    
+    // check events on Metadata.sol
+    
+    
     
   });
 
@@ -521,14 +540,15 @@ describe("ERC721Template", () => {
       "ERC20DT1",
       "ERC20DT1Symbol",
       web3.utils.toWei("10"),
-      1
+      1,
+      owner.address
     );
     const trxReceiptERC20 = await trxERC20.wait();
     erc20Address = trxReceiptERC20.events[3].args.erc20Address;
 
     erc20Token = await ethers.getContractAt("ERC20Template", erc20Address);
 
-    await erc20Token.addMinter(owner.address);
+    // OWNER is already minter, because it was set when deploying a new ERC20. Could be any other account(set as argument into createERC20())
     await erc20Token.mint(user2.address, web3.utils.toWei("2"));
 
     assert(
@@ -540,26 +560,25 @@ describe("ERC721Template", () => {
     assert((await tokenERC721.balanceOf(owner.address)) == 0);
     assert((await tokenERC721.ownerOf(1)) == user2.address);
 
-    await tokenERC721.removeFromCreateERC20List(owner.address); // WE CAN STILL DO THAT because the owner is still Manager
-
     await expectRevert(
       tokenERC721.createERC20(
         "ERC20DT2",
         "ERC20DT2Symbol",
         web3.utils.toWei("10"),
-        1
+        1,
+        owner.address
       ),
       "ERC721Template: NOT MINTER_ROLE"
     );
-    await tokenERC721.connect(user2).cleanPermissions();
+  
 
-    await tokenERC721.connect(user2).addManager(user2.address);
+  
     await tokenERC721.connect(user2).addToCreateERC20List(user2.address);
     await tokenERC721
       .connect(user2)
-      .createERC20("ERC20DT2", "ERC20DT2Symbol", web3.utils.toWei("10"), 1);
+      .createERC20("ERC20DT2", "ERC20DT2Symbol", web3.utils.toWei("10"), 1,owner.address)
 
-    await erc20Token.connect(user2).cleanPermissions();
+  
 
     await expectRevert(
       erc20Token.mint(user2.address, web3.utils.toWei("1")),
@@ -589,6 +608,13 @@ describe("ERC721Template", () => {
     );
 
     await tokenERC721.connect(user2).addToMetadataList(user2.address);
-    await tokenERC721.connect(user2).updateMetadata(flags, data);
+   // await tokenERC721.connect(user2).updateMetadata(flags, data);
+
+    const keyMetadata = web3.utils.keccak256("METADATA_KEY");
+    assert(await tokenERC721.getData(keyMetadata) == data)
+    let newData = web3.utils.asciiToHex('SomeNewData');
+    await tokenERC721.connect(user2).updateMetadata(flags, newData);
+    
+    assert(await tokenERC721.getData(keyMetadata) == newData)
   });
 });

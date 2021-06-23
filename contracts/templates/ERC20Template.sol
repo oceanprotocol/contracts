@@ -28,7 +28,6 @@ contract ERC20Template is ERC20("test", "testSymbol"), ERC20Roles {
     address private _communityFeeCollector;
     bool private initialized = false;
     address private _erc721Address;
-    address private feeManager;
     //  address private _minter;
     //  address private _proposedMinter;
     uint256 public constant BASE = 10**18;
@@ -145,7 +144,6 @@ contract ERC20Template is ERC20("test", "testSymbol"), ERC20Roles {
         _symbol = symbol;
         _erc721Address = erc721Address;
         _communityFeeCollector = feeCollector;
-        feeManager = IERC721Template(_erc721Address).ownerOf(1); // By default the feeManager is the NFTOwner
         initialized = true;
         // add a default minter, similar to what happens with manager in the 721 contract
         _addMinter(minter);
@@ -206,7 +204,7 @@ contract ERC20Template is ERC20("test", "testSymbol"), ERC20Roles {
             transfer(mrktFeeCollector, marketFee);
         }
         uint256 totalFee = communityFee.add(marketFee);
-        transfer(feeManager, amount.sub(totalFee));
+        transfer(getFeeManager(), amount.sub(totalFee));
 
         emit OrderStarted(
             consumer,
@@ -245,7 +243,7 @@ contract ERC20Template is ERC20("test", "testSymbol"), ERC20Roles {
                 transfer(mrktFeeCollectors[i], marketFee);
             }
             uint256 totalFee = communityFee.add(marketFee);
-            transfer(feeManager, amounts[i].sub(totalFee));
+            transfer(getFeeManager(), amounts[i].sub(totalFee));
 
             emit OrderStarted(
                 consumers[i],
@@ -334,11 +332,7 @@ contract ERC20Template is ERC20("test", "testSymbol"), ERC20Roles {
         bytes32 key = keccak256(abi.encodePacked(address(this))); // could be any other key, used a simple configuration
         IERC721Template(_erc721Address).setDataERC20(key, _value);
     }
-    // TODO: we still need a behaviour for this fee management because breaks when nft is transferred
-    function setFeeManager(address _newFeeManager) external onlyNFTOwner {
-        feeManager = _newFeeManager;
-    }
-
+    
     function cleanPermissions() external onlyNFTOwner {
         _cleanPermissions();
        
@@ -439,5 +433,9 @@ contract ERC20Template is ERC20("test", "testSymbol"), ERC20Roles {
 
     function getBytesLength(bytes32[] memory array) private pure returns (uint256) {
         return array.length;
+    }
+
+    function getFeeManager() private view returns (address) {
+        return IERC721Template(_erc721Address).ownerOf(1);
     }
 }

@@ -55,7 +55,7 @@ contract ERC721RolesAddress {
         _checkManager(msg.sender);
         Roles storage user = permissions[_allowedAddress];
         user.deployERC20 = false;
-        // TODO: remove it from createERC20List too.
+        
    
     }
     function addToMetadataList(address _allowedAddress) public {
