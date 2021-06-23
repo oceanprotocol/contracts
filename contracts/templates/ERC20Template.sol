@@ -136,7 +136,7 @@ contract ERC20Template is ERC20("test", "testSymbol"), ERC20Roles {
         );
 
         require(
-            feeCollector != address(0),
+            communityFeeCollector != address(0),
             "ERC20Template: Invalid community fee collector, zero address"
         );
 

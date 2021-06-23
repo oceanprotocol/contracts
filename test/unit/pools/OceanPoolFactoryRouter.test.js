@@ -116,7 +116,8 @@ describe("OceanPoolFactoryRouter", () => {
         "ERC20DT1",
         "ERC20DT1Symbol",
         web3.utils.toWei("1000"),
-        1
+        1,
+        owner.address
       )
     ).wait();
     const newERC20DT = receipt.events[3].args.erc20Address;
@@ -127,7 +128,7 @@ describe("OceanPoolFactoryRouter", () => {
     );
 
     // WE ADD OURSELF AS MINTER AND THEN MINT SOME ERC20 DATATOKEN.
-    await erc20DTContract.addMinter(owner.address);
+    //await erc20DTContract.addMinter(owner.address);
     await erc20DTContract.mint(owner.address, web3.utils.toWei("100"));
     assert(await erc20DTContract.balanceOf(owner.address) == web3.utils.toWei("100"))
 
@@ -163,7 +164,42 @@ describe("OceanPoolFactoryRouter", () => {
    
   })
 
+  it("#balV2 - should be true at the beginnning", async () => {
+    assert((await router.balV2()) == true);
+  });
 
+  it("#updateBalV2status - should fail to update balV2 boolean if NOT Owner", async () => {
+    await expectRevert(
+      router.connect(user2).updateBalV2Status(false),
+      "OceanRouter: NOT OWNER"
+    );
+    assert((await router.balV2()) == true);
+  });
+
+  it("#updateBalV2status - should succeed to update balV2 boolean if Owner", async () => {
+    await router.updateBalV2Status(false);
+    assert((await router.balV2()) == false);
+  });
+
+  it("#createPoolFork - should fail to create new Pool if BalV2 == false", async () => {
+   
+
+    // CREATE BALANCER POOL THROUGH THE ROUTER
+    await expectRevert(
+      router.deployPoolWithFork(owner.address),
+      "OceanPoolFactoryRouter: BalV2 available on this network"
+    );
+  });
+
+  it("#createPoolFork - should succeed to create new Pool from Router if BalV2 == false", async () => {
+    // SET BALV2 to False (meaning there's no BALV2 on the current network)
+    await router.updateBalV2Status(false)
+   
+
+    // CREATE BALANCER POOL THROUGH THE ROUTER
+    await router.deployPoolWithFork(owner.address)
+
+  });
 
   it("#deployPool - should succeed to deploy a new 2 token Pool WITH OceanToken from our Custom Factory on Balancer V2", async () => {
   

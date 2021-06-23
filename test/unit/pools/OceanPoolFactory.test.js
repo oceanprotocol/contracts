@@ -185,15 +185,16 @@ describe("OceanPoolFactory", () => {
         "ERC20DT1",
         "ERC20DT1Symbol",
         web3.utils.toWei("1000"),
-        1
+        1,
+        owner.address
       )
     ).wait();
     const newERC20DT = receipt.events[3].args.erc20Address;
 
     erc20DTContract = await ethers.getContractAt("ERC20Template", newERC20DT);
 
-    // WE ADD OURSELF AS MINTER AND THEN MINT SOME ERC20 DATATOKEN.
-    await erc20DTContract.addMinter(owner.address);
+    // // WE ADD OURSELF AS MINTER AND THEN MINT SOME ERC20 DATATOKEN.
+    // await erc20DTContract.addMinter(owner.address);
     await erc20DTContract.mint(owner.address, web3.utils.toWei("100"));
     assert(
       (await erc20DTContract.balanceOf(owner.address)) ==
@@ -207,23 +208,6 @@ describe("OceanPoolFactory", () => {
 
   it("#oceanRouter - should confirm Ocean router address", async () => {
     assert((await poolFactory.oceanRouter()) == router.address);
-  });
-
-  it("#balV2 - should be true at the beginnning", async () => {
-    assert((await poolFactory.balV2()) == true);
-  });
-
-  it("#updateBalV2status - should fail to update balV2 boolean if NOT Owner", async () => {
-    await expectRevert(
-      poolFactory.connect(user2).updateBalV2Status(false),
-      "OceanPoolFactory: NOT OWNER"
-    );
-    assert((await poolFactory.balV2()) == true);
-  });
-
-  it("#updateBalV2status - should succeed to update balV2 boolean if Owner", async () => {
-    await poolFactory.updateBalV2Status(false);
-    assert((await poolFactory.balV2()) == false);
   });
 
   it("#createPool - should fail to create new Pool if NOT OCEAN ROUTER", async () => {
