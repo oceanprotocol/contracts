@@ -79,7 +79,7 @@ abstract contract BasePool is IBasePool, BasePoolAuthorization, BalancerPoolToke
 
     uint256 public swapFeeMarket; // 0.1%
 
-    address public constant oceanCommunityCollector = address(0); // update with the actual community fee collector
+    address public constant oceanCommunityCollector = 0xeE9300b7961e0a01d9f0adb863C7A227A07AaD75; // updated with the actual community fee collector
 
     address public marketFeeCollector = address(0);
 

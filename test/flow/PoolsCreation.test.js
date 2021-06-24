@@ -24,7 +24,9 @@ describe("Pools Creation Flow", () => {
     erc20Token,
     erc20Token2,
     oceanContract,
+    daiContract,
     vault,
+    signer,
     pool,
     poolID,
     poolAddress;
@@ -50,16 +52,18 @@ describe("Pools Creation Flow", () => {
     );
 
     [
-      owner,
+      owner, // nft owner, 721 deployer
       reciever,
-      user2,
-      user3,
-      user4,
-      user5,
+      user2, // 721 contract manager
+      user3, // pool creator and liquidity provider
+      user4, // user that swaps with amountIn fixed
+      user5, // user that swaps with amountOut fixed
       user6,
-      marketFeeCollector,
-      newMarketFeeCollector
+      marketFeeCollector, // POOL1
+      newMarketFeeCollector, // POOL1
+      pool2MarketFeeCollector
     ] = await ethers.getSigners();
+    
     // DEPLOY ROUTER, SETTING OWNER
     router = await Router.deploy(owner.address, oceanAddress);
     // DEPLOY OUR POOL FACTORY
@@ -93,6 +97,27 @@ describe("Pools Creation Flow", () => {
       (await oceanContract.balanceOf(user3.address)).toString() ==
         ethers.utils.parseEther("10000")
     );
+
+     // GET SOME DAI (A NEW TOKEN different from OCEAN)
+     const userWithDAI = "0xB09cD60ad551cE7fF6bc97458B483A8D50489Ee7";
+
+     await impersonate(userWithDAI);
+ 
+     daiContract = await ethers.getContractAt(
+       "contracts/interfaces/IERC20.sol:IERC20",
+       daiAddress
+     );
+     signer = ethers.provider.getSigner(userWithDAI);
+     await daiContract
+       .connect(signer)
+       .transfer(user3.address, ethers.utils.parseEther("10000"));
+     
+       console.log((await daiContract.balanceOf(user3.address)).toString());
+     
+      assert(
+       (await daiContract.balanceOf(user3.address)).toString() ==
+         ethers.utils.parseEther("10005")
+     );
 
     data = web3.utils.asciiToHex("SomeData");
     flags = web3.utils.asciiToHex(constants.blob[0]);
@@ -414,7 +439,7 @@ describe("Pools Creation Flow", () => {
       // user3 sends some dt token to user4
       await erc20Token
         .connect(user3)
-        .transfer(user4.address, web3.utils.toWei("100"));
+        .transfer(user4.address, web3.utils.toWei("1000"));
       // assert((await erc20Token.balanceOf(user4.address)).toString() >= ethers.utils.parseEther('100').toString())
 
       // user4 approves the vault to manage datatoken
@@ -546,7 +571,7 @@ describe("Pools Creation Flow", () => {
         .swap(swapStructOceanDT, fundManagement, limit, deadline);
     });
 
-    it("#7 - user2(could be any user as long as recipient is marketFeeCollector) triggers exitPool() and collects fees for marketPlace (Ocean and DT)", async () => {
+    it("#9 - user2(could be any user as long as recipient is marketFeeCollector) triggers exitPool() and collects fees for marketPlace (Ocean and DT)", async () => {
       // In this pool dt is index 0 and ocean is 1
       const dtIndex = 0;
       const oceanIndex = 1;
@@ -583,7 +608,7 @@ describe("Pools Creation Flow", () => {
         .connect(user3)
         .updateMarketCollector(newMarketFeeCollector.address);
 
-      // if we know attemp to call with the older marketFeeCollector it reverts
+      // if we now attemp to call with the older marketFeeCollector it reverts
       await expectRevert(vault
         .connect(user2)
         .exitPool(
@@ -626,5 +651,281 @@ describe("Pools Creation Flow", () => {
           (await pool.marketFees(oceanIndex)).toString()
       );
     });
+  });
+  describe("POOL #2: 2 Token pool without OCEAN token and market Fee at 0.1%, AmountIn only test", async () => {
+    it("#1 - user3 succeed to deploy a new 2 token Pool WITH OceanToken from our Custom Factory on Balancer V2", async () => {
+      const tokens = [daiAddress,erc20Token.address];
+      const weights = [
+        ethers.utils.parseEther("0.5"),
+        ethers.utils.parseEther("0.5"),
+      ];
+
+      const NAME = "Two-token Pool NO Ocean";
+      const SYMBOL = "DAI-DT-50-50";
+      const swapFeePercentage = 3e15; // 0.3%
+      const marketFee = 1e15;
+      const swapFeeOcean = 1e15;
+
+      // DEPLOY A BALANCER POOL THROUGH THE ROUTER, FROM OCEAN CUSTOM FACTORY
+      receipt = await (
+        await router
+          .connect(user3)
+          .deployPool(
+            NAME,
+            SYMBOL,
+            tokens,
+            weights,
+            swapFeePercentage,
+            marketFee,
+            user3.address
+          )
+      ).wait();
+
+      const events = receipt.events.filter((e) => e.event === "NewPool");
+      poolAddress = events[0].args.poolAddress;
+
+      // WE CHECK IF THE POOL WAS DEPLOYED WITH OCEAN TOKEN (ZERO OCEAN FEE)
+      assert(events[0].args.isOcean == false);
+
+      pool = await ethers.getContractAt("WeightedPool", poolAddress);
+      poolID = await pool.getPoolId();
+
+      // WE CHECK THAT swapFeeOcean is 1e15 (set automatically)
+      assert((await pool.swapFeeOcean()) == swapFeeOcean);
+      // CHECK THAT swapFeeMarket is correct (arbitrary value)
+      assert((await pool.swapFeeMarket()) == marketFee);
+      // WE CHECK IF THE POOL HAS BEEN REGISTERED INTO BALANCER VAULT
+      result = await vault.getPool(poolID);
+      assert(result[0] == poolAddress);
+    });
+
+    it("#2 - user3 add initial liquidity to the pool he just created", async () => {
+      const tokens = [daiAddress, erc20Token.address];
+      // 1 DT = 10 DAI
+      const initialBalances = [
+        ethers.utils.parseEther("1000"),
+        ethers.utils.parseEther("100"),
+      ];
+      const JOIN_KIND_INIT = 0;
+
+      // Construct magic userData
+      const initUserData = ethers.utils.defaultAbiCoder.encode(
+        ["uint256", "uint256[]"],
+        [JOIN_KIND_INIT, initialBalances]
+      );
+      const joinPoolRequest = {
+        assets: tokens,
+        maxAmountsIn: initialBalances,
+        userData: initUserData,
+        fromInternalBalance: false,
+      };
+
+      // APPROVE VAULT FOR OCEAN AND ERC20DT
+      await daiContract
+        .connect(user3)
+        .approve(vaultAddress, ethers.utils.parseEther("1000000000"));
+
+      await erc20Token
+        .connect(user3)
+        .approve(vaultAddress, ethers.utils.parseEther("1000000000"));
+
+      // JOIN POOL (ADD LIQUIDITY)
+      const tx = await vault
+        .connect(user3)
+        .joinPool(poolID, user3.address, user3.address, joinPoolRequest);
+
+      receipt = await tx.wait();
+
+      // WE CHECK IF THE POOL HAS BEEN REGISTERED INTO BALANCER VAULT
+      result = await vault.getPool(poolID);
+      assert(result[0] == poolAddress);
+    });
+
+    it("#3 - user5 performs a swap from dai to datatoken", async () => {
+      // user3 sends some dai token to user5
+
+      await daiContract
+        .connect(user3)
+        .transfer(user5.address, ethers.utils.parseEther("100"));
+      
+        assert(
+        (await daiContract.balanceOf(user5.address)).toString() ==
+          ethers.utils.parseEther("100").toString()
+      );
+
+      // user4 approves the vault to manage dai tokens
+      await daiContract
+        .connect(user5)
+        .approve(vaultAddress, ethers.utils.parseEther("1000000000"));
+
+      const swapStruct = {
+        poolId: poolID,
+        kind: 0,
+        assetIn: daiAddress,
+        assetOut: erc20Token.address,
+        amount: ethers.utils.parseEther("10"),
+        userData: "0x",
+      };
+      const fundManagement = {
+        sender: user5.address,
+        fromInternalBalance: false,
+        recipient: user5.address,
+        toInternalBalance: false,
+      };
+      const limit = ethers.utils.parseEther("0.5");
+      const deadline = Math.round(new Date().getTime() / 1000 + 600000); // 10 minutes
+
+      result = await vault
+        .connect(user5)
+        .swap(swapStruct, fundManagement, limit, deadline);
+      receipt = await result.wait();
+      const events = receipt.events.filter((e) => e.event === "Swap");
+
+      //console.log(events)
+
+      const amountIn = events[0].args.amountIn;
+      const amountOut = events[0].args.amountOut;
+      console.log(ethers.utils.formatEther(amountOut));
+      console.log((await erc20Token.balanceOf(user5.address)).toString());
+      // assert((await erc20Token.balanceOf(user4.address)).toString() == amountOut.toString())
+    });
+
+    it("#4 - user4 performs a second swap from dai to datatoken", async () => {
+      const swapStruct = {
+        poolId: poolID,
+        kind: 0,
+        assetIn: daiAddress,
+        assetOut: erc20Token.address,
+        amount: ethers.utils.parseEther("10"),
+        userData: "0x",
+      };
+      const fundManagement = {
+        sender: user5.address,
+        fromInternalBalance: false,
+        recipient: user5.address,
+        toInternalBalance: false,
+      };
+      const limit = ethers.utils.parseEther("0.5");
+      const deadline = Math.round(new Date().getTime() / 1000 + 3600000);
+
+      result = await vault
+        .connect(user5)
+        .swap(swapStruct, fundManagement, limit, deadline);
+      receipt = await result.wait();
+      const events = receipt.events.filter((e) => e.event === "Swap");
+
+      // console.log(events)
+
+      const amountIn = events[0].args.amountIn;
+      const amountOut = events[0].args.amountOut;
+      console.log(ethers.utils.formatEther(amountOut));
+      console.log((await erc20Token.balanceOf(user5.address)).toString());
+    });
+
+    it("#5 - user3 triggers function to exit pools and collecting fees for marketPlace and Ocean", async () => {
+      // THIS POOL HAS OCEAN TOKEN SO OCEAN COMMUNITY WON'T GET ANY FEES
+      // In this pool dt is index 1 and dai is 0
+      const dtIndex = 1;
+      const daiIndex = 0;
+
+      assert((await pool.communityFees(dtIndex)) == 0);
+      // fees in DAI have been collected so balance cannot be ZERO
+      assert((await pool.communityFees(daiIndex)) != 0);
+
+      // AT this point we only have fees in DAI because we only used DAI as TokenIn
+      assert((await pool.marketFees(daiIndex)) != 0);
+      assert((await pool.marketFees(dtIndex)) == 0);
+      // current design as marketFeeCollector as address(0). it has to be updated
+      await pool
+        .connect(user3)
+        .updateMarketCollector(pool2MarketFeeCollector.address);
+      assert((await pool.marketFeeCollector()) == pool2MarketFeeCollector.address);
+
+      // First we check the total fees in DAI both for market and ocean
+      const totalMarketFeeInDAI = await pool.marketFees(daiIndex);
+      const totalOceanFeeInDAI = await pool.communityFees(daiIndex);
+     
+
+      // Creating the arguments for exitPool()
+      const tokens = [daiAddress, erc20Token.address];
+      const exitKindMarket = MP_FEE_WITHDRAWAL;
+      const exitKindOcean = OPF_FEE_WITHDRAWAL;
+      const userData = ethers.utils.defaultAbiCoder.encode(
+        ["uint256"],
+        [exitKindMarket]
+      );
+      const userDataOcean = ethers.utils.defaultAbiCoder.encode(
+        ["uint256"],
+        [exitKindOcean]
+      );
+      const ExitPoolRequestMarket = {
+        assets: tokens,
+        minAmountsOut: [0, 0],
+        userData: userData,
+        toInternalBalance: false,
+      };
+
+      const ExitPoolRequestOcean = {
+        assets: tokens,
+        minAmountsOut: [0, 0],
+        userData: userDataOcean,
+        toInternalBalance: false,
+      };
+
+      // DAI balance in marketFeeCollector
+      result = await daiContract.balanceOf(pool2MarketFeeCollector.address);
+      assert(result == 0);
+
+      result = await daiContract.balanceOf(communityFeeCollector)
+      assert(result == 0)
+      // Market fees collected in DAI until now, since it's the first time is going to be zero
+      assert((await pool.feesCollectedMarket(daiIndex)) == 0);
+      assert((await pool.feesCollectedOPF(daiIndex)) == 0);
+      // We now EXIT the pool (any user can do it, as long as recipient is marketFeeCollector address or oceanCommunity fee respectively)
+      await vault
+        .connect(user3)
+        .exitPool(
+          poolID,
+          user3.address,
+          pool2MarketFeeCollector.address,
+          ExitPoolRequestMarket
+        );
+
+        await vault
+        .connect(user3)
+        .exitPool(
+          poolID,
+          user3.address,
+          communityFeeCollector,
+          ExitPoolRequestOcean
+        );
+
+      // we check all fees in DAI for the market were collected
+     
+      assert(
+        (
+          await daiContract.balanceOf(pool2MarketFeeCollector.address)
+        ).toString() == (totalMarketFeeInDAI).toString()
+      );
+
+      // we now check all fees in DAI for Ocean Community were collected
+      assert(
+        (
+          await daiContract.balanceOf(communityFeeCollector)
+        ).toString() == (totalOceanFeeInDAI).toString()
+      );
+
+      // Since we withdraw the market fee in Ocean, marketFees in Ocean and already collected fees are the same amount
+      assert(
+        (await pool.feesCollectedMarket(daiIndex)).toString() ==
+          (await pool.marketFees(daiIndex)).toString()
+      );
+
+      assert(
+        (await pool.feesCollectedOPF(daiIndex)).toString() ==
+          (await pool.communityFees(daiIndex)).toString()
+      );
+    });
+
   });
 });
