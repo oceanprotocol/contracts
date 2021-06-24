@@ -56,9 +56,9 @@ describe("Pools Creation Flow", () => {
       user3,
       user4,
       user5,
+      user6,
       marketFeeCollector,
-      newMarketFeeCollector,
-      newOwner,
+      newMarketFeeCollector
     ] = await ethers.getSigners();
     // DEPLOY ROUTER, SETTING OWNER
     router = await Router.deploy(owner.address, oceanAddress);
@@ -157,7 +157,7 @@ describe("Pools Creation Flow", () => {
       .createERC20(
         "ERC20DT1",
         "ERC20DT1Symbol",
-        web3.utils.toWei("10000"),
+        web3.utils.toWei("100000"),
         1,
         user3.address
       );
@@ -171,10 +171,10 @@ describe("Pools Creation Flow", () => {
   it("#4 - user3 mints new erc20 tokens to himself", async () => {
     await erc20Token
       .connect(user3)
-      .mint(user3.address, web3.utils.toWei("1000"));
+      .mint(user3.address, web3.utils.toWei("10000"));
 
     assert(
-      (await erc20Token.balanceOf(user3.address)) == web3.utils.toWei("1000")
+      (await erc20Token.balanceOf(user3.address)) == web3.utils.toWei("10000")
     );
   });
 

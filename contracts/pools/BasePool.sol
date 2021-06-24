@@ -549,8 +549,9 @@ abstract contract BasePool is IBasePool, BasePoolAuthorization, BalancerPoolToke
     function _calculateMarketFeeAmount(IERC20 tokenIn, uint256 amount) internal returns (uint256) {
         // This returns amount - fee amount, so we round up (favoring a higher fee amount).
         uint index =  _getIndex(tokenIn);
-        
+        console.log(swapFeeMarket,'swapFeeMarket');
         uint256 feeAmount = amount.mulUp(swapFeeMarket);
+         console.log(feeAmount,'feeAmount in calculateMarkterFee');
         marketFees[index] = marketFees[index].add(feeAmount);
         return feeAmount;
     }

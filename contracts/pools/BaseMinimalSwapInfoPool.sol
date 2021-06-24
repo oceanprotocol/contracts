@@ -73,12 +73,13 @@ abstract contract BaseMinimalSwapInfoPool is IMinimalSwapInfoPool, BasePool {
             uint256 initialAmount = request.amount;
             console.log(initialAmount,'InitialAmount in swap');
             request.amount = _subtractSwapFeeAmount(initialAmount);
-            console.log(request.amount,'amount after subracting fee');
+            console.log(request.amount,'amount after subracting swap fee before ocean and market cut');
             uint256 oceanFee = _calculateOceanFeeAmount(request.tokenIn, initialAmount);
             console.log(oceanFee,'oceanFee on swap');
             uint256 marketFee =  _calculateMarketFeeAmount(request.tokenIn, initialAmount);
             console.log(marketFee, 'marketFee on swap');
             request.amount = request.amount.sub(oceanFee).sub(marketFee);
+            console.log(request.amount,'actual Amount swapped after all cuts');
             // All token amounts are upscaled.
             balanceTokenIn = _upscale(balanceTokenIn, scalingFactorTokenIn);
             balanceTokenOut = _upscale(balanceTokenOut, scalingFactorTokenOut);
