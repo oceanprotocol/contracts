@@ -8,6 +8,7 @@ const { impersonate } = require("../helpers/impersonate");
 const constants = require("../helpers/constants");
 const { web3 } = require("@openzeppelin/test-helpers/src/setup");
 const { keccak256 } = require("@ethersproject/keccak256");
+const { ZERO_ADDRESS } = require("@openzeppelin/test-helpers/src/constants");
 const ethers = hre.ethers;
 
 describe("Pools Creation Flow", () => {
@@ -33,7 +34,8 @@ describe("Pools Creation Flow", () => {
     const balAddress = "0xba100000625a3754423978a60c9317c58a424e3D";
     const vaultAddress = "0xBA12222222228d8Ba445958a75a0704d566BF2C8";
     const communityFeeCollector = "0xeE9300b7961e0a01d9f0adb863C7A227A07AaD75";
-
+    const OPF_FEE_WITHDRAWAL = 3 // corresponding enum index for ocean community exitKind
+    const MP_FEE_WITHDRAWAL = 4 // corresponding enum index for market fee exitKind
 
   before("init contracts for each test", async () => {
     const ERC721Template = await ethers.getContractFactory("ERC721Template");
@@ -45,7 +47,7 @@ describe("Pools Creation Flow", () => {
     const Router = await ethers.getContractFactory("OceanPoolFactoryRouter");
     const OceanPoolFactory = await ethers.getContractFactory("OceanPoolFactory");
 
-    [owner, reciever, user2, user3, user4, newOwner] = await ethers.getSigners();
+    [owner, reciever, user2, user3, user4, marketFeeCollector, newOwner] = await ethers.getSigners();
     // DEPLOY ROUTER, SETTING OWNER
     router = await Router.deploy(owner.address,oceanAddress)
     // DEPLOY OUR POOL FACTORY
@@ -268,35 +270,26 @@ describe("Pools Creation Flow", () => {
     const swapStruct= { poolId: poolID, kind:0, assetIn: oceanAddress, assetOut: erc20Token.address, amount: ethers.utils.parseEther("10"), userData: '0x' }
     const fundManagement = { sender: user4.address, fromInternalBalance: false, recipient:  user4.address, toInternalBalance: false}
     const limit = ethers.utils.parseEther("0.5")
-    const deadline = Math.round(((new Date()).getTime() / 1000)+3600000);
+    const deadline = Math.round(((new Date()).getTime() / 1000)+600000); // 10 minutes
 
    
     result = await vault.connect(user4).swap(swapStruct,fundManagement,limit,deadline)
     receipt = await result.wait()
     const events = receipt.events.filter((e) => e.event === "Swap");
    
-    console.log(events)
+    //console.log(events)
 
     const amountIn = events[0].args.amountIn
     const amountOut = events[0].args.amountOut
     console.log(ethers.utils.formatEther(amountOut))
     console.log((await erc20Token.balanceOf(user4.address)).toString())
-    assert((await erc20Token.balanceOf(user4.address)).toString() == amountOut.toString())
+   // assert((await erc20Token.balanceOf(user4.address)).toString() == amountOut.toString())
 
 
   })
 
-  it("#8 - user4 performs a swap from ocean to datatoken", async()=> {
-    // user3 sends some ocean token to user4
-
-    await oceanContract.connect(user3).transfer(user4.address, ethers.utils.parseEther('100'))
-    assert((await oceanContract.balanceOf(user4.address)).toString() == ethers.utils.parseEther('100').toString())
-
-    // user4 approves the vault to manage ocean tokens
-    await oceanContract.connect(user4).approve(
-      vaultAddress,
-      ethers.utils.parseEther("1000000000")
-    );
+  it("#8 - user4 performs a second swap from ocean to datatoken", async()=> {
+    
 
     const swapStruct= { poolId: poolID, kind:0, assetIn: oceanAddress, assetOut: erc20Token.address, amount: ethers.utils.parseEther("10"), userData: '0x' }
     const fundManagement = { sender: user4.address, fromInternalBalance: false, recipient:  user4.address, toInternalBalance: false}
@@ -308,15 +301,61 @@ describe("Pools Creation Flow", () => {
     receipt = await result.wait()
     const events = receipt.events.filter((e) => e.event === "Swap");
    
-    console.log(events)
+   // console.log(events)
 
     const amountIn = events[0].args.amountIn
     const amountOut = events[0].args.amountOut
     console.log(ethers.utils.formatEther(amountOut))
     console.log((await erc20Token.balanceOf(user4.address)).toString())
-    assert((await erc20Token.balanceOf(user4.address)).toString() == amountOut.toString())
+  
 
 
+  })
+
+  it("#9 - user3 triggers function to exit pools and collecting fees for marketPlace", async()=> {
+    // THIS POOL HAS OCEAN TOKEN SO OCEAN COMMUNITY WON'T GET ANY FEES
+    // In this pool dt is index 0 and ocean is 1
+    const dtIndex = 0
+    const oceanIndex = 1
+
+    assert(await pool.communityFees(dtIndex) == 0)  
+    assert(await pool.communityFees(oceanIndex) == 0) 
+    
+    // AT this point we only have fees in Ocean because we only used Ocean as TokenIn
+    assert(await pool.marketFees(dtIndex) == 0)
+    // current design as marketFeeCollector as address(0). it has to be updated
+    await pool.connect(user3).updateMarketCollector(marketFeeCollector.address)
+    assert(await pool.marketFeeCollector() == marketFeeCollector.address)
+    
+    // First we check the total fees in Ocean 
+    const totalMarketFeeInOcean = await pool.marketFees(oceanIndex)  
+   
+    // Creating the arguments for exitPool()
+    const tokens = [erc20Token.address, oceanAddress];
+    const exitKind = MP_FEE_WITHDRAWAL
+      const userData = ethers.utils.defaultAbiCoder.encode(
+        ["uint256"],
+        [exitKind]
+      );
+      const ExitPoolRequest = {assets: tokens,
+        minAmountsOut:[0,0],
+        userData: userData,
+        toInternalBalance: false}
+
+      // OCEAN balance in marketFeeCollector
+      result = await oceanContract.balanceOf(marketFeeCollector.address)
+      assert(result == 0)
+
+      // Market fees collected in Ocean until now, since it's the first time is going to be zero
+      assert(await pool.feesCollectedMarket(oceanIndex) == 0)
+     // We now EXIT the pool (any user can do it, as long as recipient is marketFeeCollector address)
+      await vault.connect(user3).exitPool(poolID,user3.address, marketFeeCollector.address, ExitPoolRequest )
+     
+      // we check all fees in Ocean for the market where collected 
+      assert((await oceanContract.balanceOf(marketFeeCollector.address)).toString() == totalMarketFeeInOcean.toString())
+        
+      // Since we withdraw the market fee in Ocean, marketFees in Ocean and already collected fees are the same amount
+      assert((await pool.feesCollectedMarket(oceanIndex)).toString() == (await pool.marketFees(oceanIndex)).toString())
   })
 
 });

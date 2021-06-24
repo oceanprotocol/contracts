@@ -39,7 +39,7 @@ import "./BasePoolAuthorization.sol";
 import "@balancer-labs/v2-vault/contracts/interfaces/IVault.sol";
 import "@balancer-labs/v2-vault/contracts/interfaces/IBasePool.sol";
 //import "./IBasePool.sol";
-
+import "hardhat/console.sol";
 // This contract relies on tons of immutable state variables to perform efficient lookup, without resorting to storage
 // reads. Because immutable arrays are not supported, we instead declare a fixed set of state variables plus a total
 // count, resulting in a large number of state variables.
@@ -154,8 +154,10 @@ abstract contract BasePool is IBasePool, BasePoolAuthorization, BalancerPoolToke
         InputHelpers.ensureArrayIsSorted(tokens);
 
         _setSwapFeePercentage(swapFeePercentage);
+        console.log(oceanFee, 'oceanfee in constructor');
         _setOceanFee(oceanFee);
         _setMarketFee(marketFee);
+        console.log(marketFee, 'marktefee in constructor');
         bytes32 poolId = vault.registerPool(specialization);
         //_poolIdReg = poolId;
         // Pass in zero addresses for Asset Managers
@@ -530,14 +532,16 @@ abstract contract BasePool is IBasePool, BasePoolAuthorization, BalancerPoolToke
     function _subtractSwapFeeAmount(uint256 amount) internal view returns (uint256) {
         // This returns amount - fee amount, so we round up (favoring a higher fee amount).
         uint256 feeAmount = amount.mulUp(_swapFeePercentage);
+        console.log(feeAmount,'feeAmount swap');
         return amount.sub(feeAmount);
     }
 
     function _calculateOceanFeeAmount(IERC20 tokenIn, uint256 amount) internal returns (uint256) {
         // This returns amount - fee amount, so we round up (favoring a higher fee amount).
         uint index =  _getIndex(tokenIn);
-        
+        console.log(swapFeeOcean,'swapFeeOcean');
         uint256 feeAmount = amount.mulUp(swapFeeOcean);
+        console.log(feeAmount,'feeAmount in calculateOceanFee');
         communityFees[index] = communityFees[index].add(feeAmount);
         return feeAmount;
     }
@@ -546,7 +550,7 @@ abstract contract BasePool is IBasePool, BasePoolAuthorization, BalancerPoolToke
         // This returns amount - fee amount, so we round up (favoring a higher fee amount).
         uint index =  _getIndex(tokenIn);
         
-        uint256 feeAmount = amount.mulUp(swapFeeOcean);
+        uint256 feeAmount = amount.mulUp(swapFeeMarket);
         marketFees[index] = marketFees[index].add(feeAmount);
         return feeAmount;
     }
