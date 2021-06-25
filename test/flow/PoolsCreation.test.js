@@ -54,10 +54,10 @@ describe("Pools Creation Flow", () => {
     [
       owner, // nft owner, 721 deployer
       reciever,
-      user2, // 721 contract manager
+      user2, // 721Contract manager
       user3, // pool creator and liquidity provider
-      user4, // user that swaps with amountIn fixed in POOL1
-      user5, // user that swaps with amountIn fixed in POOL2
+      user4, // user that swaps in POOL1
+      user5, // user that swaps in POOL2
       user6,
       marketFeeCollector, // POOL1
       newMarketFeeCollector, // POOL1
@@ -1021,20 +1021,12 @@ describe("Pools Creation Flow", () => {
       const dtIndex = 1;
       const daiIndex = 0;
 
-      // assert((await pool.communityFees(dtIndex)) == 0);
-      // // fees in DAI have been collected so balance cannot be ZERO
-      // assert((await pool.communityFees(daiIndex)) != 0);
-
-      // // AT this point we only have fees in DAI because we only used DAI as TokenIn
-      // assert((await pool.marketFees(daiIndex)) != 0);
-      // assert((await pool.marketFees(dtIndex)) == 0);
-      // // current design as marketFeeCollector as address(0). it has to be updated
-
+      // confirm marketFeeCollector
       assert(
         (await pool.marketFeeCollector()) == pool2MarketFeeCollector.address
       );
 
-      // First we check the total fees in DAI both for market and ocean
+      // First we check the total fees in DAI and DT both for market and ocean, calculating how much we should receive for each of those
       const totalMarketFeeInDAI = await pool.marketFees(daiIndex);
       const totalOceanFeeInDAI = await pool.communityFees(daiIndex);
       const totalMarketFeeInDT = await pool.marketFees(dtIndex);
@@ -1093,7 +1085,7 @@ describe("Pools Creation Flow", () => {
       const initDTBalanceInOceanCollector = await erc20Token.balanceOf(
         communityFeeCollector
       );
-      // we haven't collect any DT yet so balance is ZERO both for OPF and MFC
+      // we haven't collected any DT yet so balance is ZERO both for OPF and MFC
       assert(initDTBalanceInMarketCollector == 0);
       assert(initDTBalanceInOceanCollector == 0);
 
