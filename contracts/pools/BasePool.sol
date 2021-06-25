@@ -494,37 +494,6 @@ abstract contract BasePool is IBasePool, BasePoolAuthorization, BalancerPoolToke
         // This returns amount + fee amount, so we round up (favoring a higher fee amount).
         return amount.divUp(_swapFeePercentage.complement());
     }
-
-    function _addOceanFeeAmount(IERC20 tokenIn, uint256 amount) internal returns(uint256) {
-         
-        uint256 feeAmount = amount.mulUp(swapFeeOcean);
-        
-       // uint256 feeAmount = newAmount - amount;
-        
-        uint index =  _getIndex(tokenIn);
-        
-        communityFees[index] = communityFees[index].add(feeAmount);
-
-
-        
-        return feeAmount;
-
-    }   
-
-    function _addMarketFeeAmount(IERC20 tokenIn, uint256 amount) internal returns(uint256) {
-         
-        uint256 feeAmount = amount.mulUp(swapFeeMarket);
-        
-        //uint256 feeAmount = newAmount - amount;
-        
-        uint index =  _getIndex(tokenIn);
-        
-        marketFees[index] = marketFees[index].add(feeAmount);
-        
-        return feeAmount;
-
-    }   
-
     
     /**
      * @dev Subtracts swap fee amount from `amount`, returning a lower value.

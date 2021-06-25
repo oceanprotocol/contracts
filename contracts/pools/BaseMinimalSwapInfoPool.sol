@@ -101,10 +101,16 @@ abstract contract BaseMinimalSwapInfoPool is IMinimalSwapInfoPool, BasePool {
             amountIn = _downscaleUp(amountIn, scalingFactorTokenIn);
 
             // Fees are added after scaling happens, to reduce the complexity of the rounding direction analysis.
-            
-            uint256 oceanFee = _addOceanFeeAmount(request.tokenIn, amountIn);
-            uint256 marketFee = _addMarketFeeAmount(request.tokenIn, amountIn);
-            return _addSwapFeeAmount(amountIn).add(oceanFee).add(marketFee);
+            console.log(amountIn,'InitialAmount in swap');
+            uint256 oceanFee = _calculateOceanFeeAmount(request.tokenIn, amountIn);
+            console.log(oceanFee,'oceanFee in swap');
+            uint256 marketFee = _calculateMarketFeeAmount(request.tokenIn, amountIn);
+            console.log(oceanFee,'markteFee in swap');
+            uint256 test = _addSwapFeeAmount(amountIn);
+            uint256 test1 = test.add(oceanFee).add(marketFee);
+            console.log(test, 'amount after bal swap fee');
+            console.log(test1, 'finalAmount after fees');
+            return test1;
         }
     }
 
