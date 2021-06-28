@@ -133,7 +133,7 @@ contract ERC721Factory is Deployer, Ownable {
 
     /**
      * @dev get the token template address
-     * @return the template address
+     * @return the template struct
      */
     function getTokenTemplate(uint256 _index)
         external
@@ -212,7 +212,4 @@ contract ERC721Factory is Deployer, Ownable {
         return size > 0;
     }
 
-
-    // NEEDED FOR IMPERSONATING THIS CONTRACT(need eth to send txs). WILL BE REMOVED
-    receive() external payable {}
 }

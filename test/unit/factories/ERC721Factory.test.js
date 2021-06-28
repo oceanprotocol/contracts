@@ -39,7 +39,7 @@ describe("ERC721Factory", () => {
         },
       ],
     });
-    
+
     const ERC721Template = await ethers.getContractFactory("ERC721Template");
     const ERC20Template = await ethers.getContractFactory("ERC20Template");
     const ERC721Factory = await ethers.getContractFactory("ERC721Factory");
@@ -71,23 +71,6 @@ describe("ERC721Factory", () => {
 
     await metadata.setERC20Factory(factoryERC20.address);
     await factoryERC20.setERC721Factory(factoryERC721.address);
-
-    // const tx = await factoryERC721.deployERC721Contract(
-    //   "DT1",
-    //   "DTSYMBOL",
-    //   metadata.address,
-    //   data,
-    //   flags,
-    //   1
-    // );
-    // const txReceipt = await tx.wait();
-
-    // tokenAddress = txReceipt.events[4].args[0];
-    // tokenERC721 = await ethers.getContractAt("ERC721Template", tokenAddress);
-    // symbol = await tokenERC721.symbol();
-    // name = await tokenERC721.name();
-    // assert(name === "DT1");
-    // assert(symbol === "DTSYMBOL");
   });
 
   it("#deployERC721Contract - should deploy a new erc721 contract and send tokenId=1 to contract owner", async () => {
@@ -173,4 +156,99 @@ describe("ERC721Factory", () => {
       "ERC721DTFactory: ERC721Token Template disabled"
     );
   });
+
+  it("#getCurrentTokenCount - should return token count", async () => {
+    assert((await factoryERC721.getCurrentTokenCount()) == 1);
+
+    await factoryERC721.deployERC721Contract(
+      "DT1",
+      "DTSYMBOL",
+      metadata.address,
+      data,
+      flags,
+      1
+    );
+
+    assert((await factoryERC721.getCurrentTokenCount()) == 2);
+  });
+
+  it("#getTokenTemplate - should return token template struct", async () => {
+    const template = await factoryERC721.getTokenTemplate(1);
+
+    assert(template.templateAddress == templateERC721.address);
+    assert(template.isActive == true);
+  });
+
+  it("#getCurrentTemplateCount - should return template count", async () => {
+    assert((await factoryERC721.getCurrentTemplateCount()) == 1);
+
+    await factoryERC721.addTokenTemplate(newERC721Template.address);
+
+    assert((await factoryERC721.getCurrentTemplateCount()) == 2);
+  });
+
+  it("#addTokenTemplate - should fail to add Token Template if not Owner", async () => {
+    await expectRevert(
+      factoryERC721.connect(user2).addTokenTemplate(newERC721Template.address),
+      "Ownable: caller is not the owner"
+    );
+  });
+
+  it("#addTokenTemplate - should succeed to add Token Template if Owner", async () => {
+    await factoryERC721.addTokenTemplate(newERC721Template.address);
+    assert((await factoryERC721.getCurrentTemplateCount()) == 2);
+  });
+
+  it("#disableTokenTemplate - should fail to disable Token Template if not Owner", async () => {
+    await expectRevert(
+      factoryERC721.connect(user2).disableTokenTemplate(1),
+      "Ownable: caller is not the owner"
+    );
+  });
+
+  it("#disableTokenTemplate - should succeed to disable Token Template if Owner", async () => {
+    await factoryERC721.addTokenTemplate(newERC721Template.address);
+    let template = await factoryERC721.getTokenTemplate(2);
+    assert(template.templateAddress == newERC721Template.address);
+    // active by default
+    assert(template.isActive == true);
+
+    await factoryERC721.disableTokenTemplate(2)
+
+    template = await factoryERC721.getTokenTemplate(2);
+
+    assert(template.templateAddress == newERC721Template.address);
+    assert(template.isActive == false);
+  });
+
+  it("#reactivateTokenTemplate - should fail to reactivate Token Template if not Owner", async () => {
+    
+    await expectRevert(
+      factoryERC721.connect(user2).disableTokenTemplate(1),
+      "Ownable: caller is not the owner"
+    );
+  });
+
+  it("#reactivateTokenTemplate - should succeed to reactivate Token Template if Owner", async () => {
+    await factoryERC721.addTokenTemplate(newERC721Template.address);
+    let template = await factoryERC721.getTokenTemplate(2);
+    assert(template.templateAddress == newERC721Template.address);
+    // active by default
+    assert(template.isActive == true);
+
+    await factoryERC721.disableTokenTemplate(2)
+
+    template = await factoryERC721.getTokenTemplate(2);
+
+    assert(template.isActive == false);
+
+    await factoryERC721.reactivateTokenTemplate(2)
+
+    template = await factoryERC721.getTokenTemplate(2);
+
+    assert(template.isActive == true);
+
+  });
+
+  // TODO: complete template functions unit test
 });
