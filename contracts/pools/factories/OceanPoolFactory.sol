@@ -11,7 +11,7 @@ contract OceanPoolFactory is BasePoolSplitCodeFactory, FactoryWidePauseWindow {
     address public oceanRouter; 
     
     address private owner;
-    address public factoryFork; // we can decide if hardcoding or set it in the constructor
+    address public factoryFork; 
     
     event NewPool(address pool);
 
@@ -67,7 +67,6 @@ contract OceanPoolFactory is BasePoolSplitCodeFactory, FactoryWidePauseWindow {
     function createPoolWithFork(address controller) external onlyRouter returns (address){
         address pool = IFriendlyFactory(factoryFork).newBPool(controller);
         
-       
         return pool;
     }
 

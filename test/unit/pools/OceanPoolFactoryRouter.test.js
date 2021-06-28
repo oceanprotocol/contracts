@@ -174,38 +174,18 @@ describe("OceanPoolFactoryRouter", () => {
    
   })
 
-  it("#balV2 - should be true at the beginnning", async () => {
-    assert((await router.balV2()) == true);
-  });
-
-  it("#updateBalV2status - should fail to update balV2 boolean if NOT Owner", async () => {
-    await expectRevert(
-      router.connect(user2).updateBalV2Status(false),
-      "OceanRouter: NOT OWNER"
-    );
-    assert((await router.balV2()) == true);
-  });
-
-  it("#updateBalV2status - should succeed to update balV2 boolean if Owner", async () => {
-    await router.updateBalV2Status(false);
-    assert((await router.balV2()) == false);
-  });
-
-  it("#createPoolFork - should fail to create new Pool if BalV2 == true", async () => {
+  it("#deployPoolWithFork - should fail to create new Pool if controller is Address ZERO", async () => {
    
 
     // CREATE BALANCER POOL THROUGH THE ROUTER
     await expectRevert(
-      router.deployPoolWithFork(owner.address),
-      "OceanPoolFactoryRouter: BalV2 available on this network"
+      router.deployPoolWithFork(ZERO_ADDRESS),
+      "OceanPoolFactoryRouter: Invalid address"
     );
   });
 
-  it("#createPoolFork - should succeed to create new Pool from Router if BalV2 == false", async () => {
-    // SET BALV2 to False (meaning there's no BALV2 on the current network)
-    await router.updateBalV2Status(false)
-   
-
+  it("#deployPoolWithFork - should succeed to create new Pool from Router", async () => {
+  
     // CREATE BALANCER POOL THROUGH THE ROUTER
     receipt = await (await router.deployPoolWithFork(owner.address)).wait()
     const events = receipt.events.filter((e) => e.event === "NewForkPool");

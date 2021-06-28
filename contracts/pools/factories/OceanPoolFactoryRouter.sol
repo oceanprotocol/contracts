@@ -14,7 +14,7 @@ contract OceanPoolFactoryRouter {
     address private routerOwner;
     address public oceanPoolFactory;
     
-    bool public balV2;
+    //bool public balV2;
 
     uint256 public constant swapFeeOcean = 1e15; // 0.1%
 
@@ -32,7 +32,7 @@ contract OceanPoolFactoryRouter {
         routerOwner = _routerOwner; 
         
         addOceanToken(_oceanToken);
-        balV2 = true;
+       // balV2 = true;
     }
 
     function addOceanToken(address oceanTokenAddress) public onlyRouterOwner {
@@ -58,10 +58,10 @@ contract OceanPoolFactoryRouter {
         uint256 marketFee,
         address owner
     ) external returns (address) {
-        require(
-            balV2 == true,
-            "OceanPoolFactoryRouter: Bal V2 not available on this network"
-        );
+        // require(
+        //     balV2 == true,
+        //     "OceanPoolFactoryRouter: Bal V2 not available on this network"
+        // );
         bool flag;
         address pool;
         // TODO? ADD REQUIRE TO CHECK IF datatoken is on the erc20List => erc20List[datatoken] == true
@@ -84,7 +84,7 @@ contract OceanPoolFactoryRouter {
                 marketFee,
                 owner
             );
-            emit NewPool(pool, flag);
+          //  emit NewPool(pool, flag);
         } else {
             pool = _createPool(
                 name,
@@ -135,10 +135,10 @@ contract OceanPoolFactoryRouter {
 
     function deployPoolWithFork(address controller) external returns (address) {
         require(controller != address(0), "OceanPoolFactoryRouter: Invalid address");
-        require(
-            balV2 == false,
-            "OceanPoolFactoryRouter: BalV2 available on this network"
-        );
+        // require(
+        //     balV2 == false,
+        //     "OceanPoolFactoryRouter: BalV2 available on this network"
+        // );
    
         address pool =
             IOceanPoolFactory(oceanPoolFactory).createPoolWithFork(controller);
@@ -146,7 +146,7 @@ contract OceanPoolFactoryRouter {
         return pool;
     }
 
-    function updateBalV2Status(bool _isAvailable) external onlyRouterOwner {
-        balV2 = _isAvailable;
-    }
+    // function updateBalV2Status(bool _isAvailable) external onlyRouterOwner {
+    //     balV2 = _isAvailable;
+    // }
 }
