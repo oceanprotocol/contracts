@@ -351,7 +351,6 @@ contract ERC20Template is ERC20("test", "testSymbol"), ERC20Roles {
         feeCollector = _newFeeCollector;
     }
 
-    
     /**
      * @dev name
      *      It returns the token name.
@@ -443,7 +442,7 @@ contract ERC20Template is ERC20("test", "testSymbol"), ERC20Roles {
         return array.length;
     }
 
-    function getFeeCollector() private view returns (address) {
+    function getFeeCollector() public view returns (address) {
         if (feeCollector == address(0)) {
             return IERC721Template(_erc721Address).ownerOf(1);
         } else {
