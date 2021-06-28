@@ -13,7 +13,6 @@ interface IOceanPoolFactory {
         string memory symbol,
         IERC20[] memory tokens,
         uint256[] memory weights,
-      //  address[] memory assetManagers,
         uint256 swapFeePercentage,
         uint256 oceanFee,
         uint256 marketFee, 
