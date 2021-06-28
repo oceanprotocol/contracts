@@ -33,6 +33,7 @@ describe("OceanPoolFactory", () => {
     balContract,
     erc20DTContract,
     vault,
+    fork,
     signer;
 
   const oceanAddress = "0x967da4048cd07ab37855c090aaf366e4ce1b9f48";
@@ -64,6 +65,11 @@ describe("OceanPoolFactory", () => {
     const OceanPoolFactory = await ethers.getContractFactory(
       "OceanPoolFactory"
     );
+    const ForkFactory = await ethers.getContractFactory("BFactory");
+    const PoolForkTemplate = await ethers.getContractFactory("BPool")
+     // WE DEPLOY THE FRIENDLY FORK (BALANCER V1)
+    const poolForkTemplate = await PoolForkTemplate.deploy()
+    fork = await ForkFactory.deploy(poolForkTemplate.address)
     vault = await ethers.getContractAt(
       "@balancer-labs/v2-vault/contracts/interfaces/IVault.sol:IVault",
       vaultAddress
@@ -76,7 +82,8 @@ describe("OceanPoolFactory", () => {
     poolFactory = await OceanPoolFactory.deploy(
       vaultAddress,
       router.address,
-      owner.address
+      owner.address,
+      fork.address
     );
     // ADD THE FACTORY ADDRESS TO THE ROUTER
     await router.addOceanPoolFactory(poolFactory.address);
@@ -239,43 +246,6 @@ describe("OceanPoolFactory", () => {
     );
   });
 
-  it("#createPool - should fail to create new Pool if BalV2 == false", async () => {
-    // IMPERSONATE ROUTER ADDRESS
-    await impersonate(router.address);
-    signer = ethers.provider.getSigner(router.address);
-
-    // WE FIRST SET BALV2 to false (is true as default)
-    await poolFactory.updateBalV2Status(false);
-
-    const tokens = [erc20DTContract.address, oceanAddress];
-    const weights = [
-      ethers.utils.parseEther("0.5"),
-      ethers.utils.parseEther("0.5"),
-    ];
-
-    const NAME = "Two-token Pool";
-    const SYMBOL = "OCEAN-DT-50-50";
-    const swapFeePercentage = 3e15; // 0.3%
-    const marketFee = 1e15;
-    const oceanFee = 5e15;
-
-    // CREATE BALANCER POOL THROUGH THE ROUTER
-    await expectRevert(
-      poolFactory
-        .connect(signer)
-        .createPool(
-          NAME,
-          SYMBOL,
-          tokens,
-          weights,
-          swapFeePercentage,
-          oceanFee,
-          marketFee,
-          owner.address
-        ),
-      "OceanPoolFactory: Bal V2 not available on this network"
-    );
-  });
 
   it("#createPool - should succeed to create(From ROUTER) and provide initial liquidity(generic user) into a new Pool WITH OceanToken from our Custom Factory on Balancer V2", async () => {
     // IMPERSONATE ROUTER ADDRESS
@@ -363,32 +333,29 @@ describe("OceanPoolFactory", () => {
 
   it("#createPoolFork - should fail to create new Pool if NOT OCEAN ROUTER", async () => {
     await expectRevert(
-      poolFactory.createPoolFork(),
+      poolFactory.createPoolWithFork(owner.address),
       "OceanPoolFactory: NOT OCEAN ROUTER"
     );
   });
 
-  it("#createPoolFork - should fail to create new Pool if BalV2 == false", async () => {
-    // IMPERSONATE ROUTER ADDRESS
-    await impersonate(router.address);
-    signer = ethers.provider.getSigner(router.address);
+  it("#createPoolFork - should fail to create new Pool if BalV2 == true", async () => {
 
+    assert(await router.balV2() == true)
     // CREATE BALANCER POOL THROUGH THE ROUTER
     await expectRevert(
-      poolFactory.connect(signer).createPoolFork(),
-      "OceanPoolFactory: BalV2 available on this network"
+      router.deployPoolWithFork(owner.address),
+      "OceanPoolFactoryRouter: BalV2 available on this network"
     );
   });
 
   it("#createPoolFork - should succeed to create new Pool from Router if BalV2 == false", async () => {
-    // SET BALV2 to False (meaning there's no BALV2 on the current network)
-    await poolFactory.updateBalV2Status(false)
-    // IMPERSONATE ROUTER ADDRESS
-    await impersonate(router.address);
-    signer = ethers.provider.getSigner(router.address);
-
+   // SET BALV2 to False (meaning there's no BALV2 on the current network)
+   await router.updateBalV2Status(false)
     // CREATE BALANCER POOL THROUGH THE ROUTER
-    await poolFactory.connect(signer).createPoolFork()
-
+    receipt = await (await router.deployPoolWithFork(owner.address)).wait()
+    const events = receipt.events.filter((e) => e.event === "NewForkPool");
+    assert(events[0].args.poolAddress != ZERO_ADDRESS)
+    const forkPool = await ethers.getContractAt('BPool',events[0].args.poolAddress )
+    assert(await forkPool.getController() == owner.address)
   });
 });

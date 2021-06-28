@@ -191,7 +191,7 @@ describe("OceanPoolFactoryRouter", () => {
     assert((await router.balV2()) == false);
   });
 
-  it("#createPoolFork - should fail to create new Pool if BalV2 == false", async () => {
+  it("#createPoolFork - should fail to create new Pool if BalV2 == true", async () => {
    
 
     // CREATE BALANCER POOL THROUGH THE ROUTER
