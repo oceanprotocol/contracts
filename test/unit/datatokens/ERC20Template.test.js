@@ -300,6 +300,9 @@ describe("ERC20Template", () => {
     // owner is already minter
     assert((await erc20Token.permissions(owner.address)).minter == true);
 
+    // we set a new FeeCollector
+    await erc20Token.setFeeCollector(user2.address);
+    assert((await erc20Token.getFeeCollector()) == user2.address);
     // WE add 2 more minters
     await erc20Token.addMinter(user2.address);
     await erc20Token.addMinter(user3.address);
@@ -313,5 +316,7 @@ describe("ERC20Template", () => {
     assert((await erc20Token.permissions(owner.address)).minter == false);
     assert((await erc20Token.permissions(user2.address)).minter == false);
     assert((await erc20Token.permissions(user3.address)).minter == false);
+    // we reassigned feeCollector to address(0) when cleaning permissions, so now getFeeCollector points to NFT Owner
+    assert((await erc20Token.getFeeCollector()) == owner.address);
   });
 });
