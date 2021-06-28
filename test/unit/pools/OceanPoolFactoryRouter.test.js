@@ -9,6 +9,7 @@ const constants = require("../../helpers/constants");
 const { web3 } = require("@openzeppelin/test-helpers/src/setup");
 const { ZERO_ADDRESS } = require("@openzeppelin/test-helpers/src/constants");
 const { getContractFactory } = require("@nomiclabs/hardhat-ethers/types");
+const { address } = require("../../helpers/constants");
 const ethers = hre.ethers;
 
 describe("OceanPoolFactoryRouter", () => {
@@ -30,7 +31,8 @@ describe("OceanPoolFactoryRouter", () => {
     poolFactory,
     oceanContract,
     erc20DTContract,
-    vault
+    vault,
+    fork
 
   const oceanAddress = "0x967da4048cd07ab37855c090aaf366e4ce1b9f48";
   const daiAddress = "0x6b175474e89094c44da98b954eedeac495271d0f"
@@ -57,13 +59,20 @@ describe("OceanPoolFactoryRouter", () => {
     const Metadata = await ethers.getContractFactory("Metadata");
     const Router = await ethers.getContractFactory("OceanPoolFactoryRouter");
     const OceanPoolFactory = await ethers.getContractFactory("OceanPoolFactory");
+    const ForkFactory = await ethers.getContractFactory("BFactory");
+    const PoolForkTemplate = await ethers.getContractFactory("BPool")
     vault = await ethers.getContractAt("@balancer-labs/v2-vault/contracts/interfaces/IVault.sol:IVault", vaultAddress);
 
     [owner, reciever, user2, user3] = await ethers.getSigners();
+    
+    // WE DEPLOY THE FRIENDLY FORK (BALANCER V1)
+    const poolForkTemplate = await PoolForkTemplate.deploy()
+    fork = await ForkFactory.deploy(poolForkTemplate.address)
+    
     // DEPLOY ROUTER, SETTING OWNER
     router = await Router.deploy(owner.address,oceanAddress)
     // DEPLOY OUR POOL FACTORY
-    poolFactory = await OceanPoolFactory.deploy(vaultAddress,router.address,owner.address)
+    poolFactory = await OceanPoolFactory.deploy(vaultAddress,router.address,owner.address, fork.address)
     // ADD THE FACTORY ADDRESS TO THE ROUTER
     await router.addOceanPoolFactory(poolFactory.address);
 
@@ -132,6 +141,7 @@ describe("OceanPoolFactoryRouter", () => {
     await erc20DTContract.mint(owner.address, web3.utils.toWei("100"));
     assert(await erc20DTContract.balanceOf(owner.address) == web3.utils.toWei("100"))
 
+   
 
   });
 
@@ -197,8 +207,11 @@ describe("OceanPoolFactoryRouter", () => {
    
 
     // CREATE BALANCER POOL THROUGH THE ROUTER
-    await router.deployPoolWithFork(owner.address)
-
+    receipt = await (await router.deployPoolWithFork(owner.address)).wait()
+    const events = receipt.events.filter((e) => e.event === "NewForkPool");
+    assert(events[0].args.poolAddress != ZERO_ADDRESS)
+    const forkPool = await ethers.getContractAt('BPool',events[0].args.poolAddress )
+    assert(await forkPool.getController() == owner.address)
   });
 
   it("#deployPool - should succeed to deploy a new 2 token Pool WITH OceanToken from our Custom Factory on Balancer V2", async () => {
@@ -244,7 +257,7 @@ describe("OceanPoolFactoryRouter", () => {
   });
 
   it("#deployPool - should succeed to deploy a new 2 token Pool WITHOUT OceanToken from our Custom Factory on Balancer V2", async () => {
-    const tokens = [daiAddress, erc20DTContract.address];
+    const tokens = [erc20DTContract.address, daiAddress];
     const weights = [
       ethers.utils.parseEther("0.5"),
       ethers.utils.parseEther("0.5"),
@@ -287,7 +300,7 @@ describe("OceanPoolFactoryRouter", () => {
   });
   it("#deployPool - should succeed to deploy a new multiple token Pool WITH OceanToken from our Custom Factory on Balancer V2", async () => {
   
-    const tokens = [daiAddress, erc20DTContract.address, oceanAddress];
+    const tokens = [ erc20DTContract.address, daiAddress, oceanAddress];
     const weights = [
       ethers.utils.parseEther("0.3"),
       ethers.utils.parseEther("0.5"),
@@ -331,7 +344,7 @@ describe("OceanPoolFactoryRouter", () => {
   });
   it("#deployPool - should succeed to deploy a new multiple token Pool WITHOUT OceanToken from our Custom Factory on Balancer V2", async () => {
   
-    const tokens = [daiAddress, erc20DTContract.address, usdcAddress];
+    const tokens = [erc20DTContract.address,daiAddress, usdcAddress];
     const weights = [
       ethers.utils.parseEther("0.3"),
       ethers.utils.parseEther("0.5"),

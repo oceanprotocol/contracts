@@ -13,6 +13,7 @@ import "../../interfaces/IOceanPoolFactory.sol";
 contract OceanPoolFactoryRouter {
     address private routerOwner;
     address public oceanPoolFactory;
+    
     bool public balV2;
 
     uint256 public constant swapFeeOcean = 1e15; // 0.1%
@@ -20,6 +21,7 @@ contract OceanPoolFactoryRouter {
     mapping(address => bool) public oceanTokens;
 
     event NewPool(address indexed poolAddress, bool isOcean);
+    event NewForkPool(address indexed poolAddress);
 
     modifier onlyRouterOwner {
         require(routerOwner == msg.sender, "OceanRouter: NOT OWNER");
@@ -27,8 +29,8 @@ contract OceanPoolFactoryRouter {
     }
 
     constructor(address _routerOwner, address _oceanToken) {
-        routerOwner = _routerOwner;
-
+        routerOwner = _routerOwner; 
+        
         addOceanToken(_oceanToken);
         balV2 = true;
     }
@@ -140,7 +142,7 @@ contract OceanPoolFactoryRouter {
    
         address pool =
             IOceanPoolFactory(oceanPoolFactory).createPoolWithFork(controller);
-        
+        emit NewForkPool(pool);
         return pool;
     }
 

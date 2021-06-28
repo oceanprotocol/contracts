@@ -12,12 +12,14 @@ contract OceanPoolFactory is BasePoolSplitCodeFactory, FactoryWidePauseWindow {
     
     address private owner;
     address public factoryFork; // we can decide if hardcoding or set it in the constructor
-   
+    
+    event NewPool(address pool);
 
-   constructor(IVault vault, address _oceanRouter, address _owner) BasePoolSplitCodeFactory(vault, type(WeightedPool).creationCode) {
+   constructor(IVault vault, address _oceanRouter, address _owner, address _factoryFork) BasePoolSplitCodeFactory(vault, type(WeightedPool).creationCode) {
         oceanRouter = _oceanRouter;
         owner = _owner;
         vault_ = vault;
+        factoryFork = _factoryFork;
         
         
     }
@@ -57,14 +59,15 @@ contract OceanPoolFactory is BasePoolSplitCodeFactory, FactoryWidePauseWindow {
                     owner
                 ));
             
-            
+            emit NewPool(pool);
             return pool;
     }
 
 
     function createPoolWithFork(address controller) external onlyRouter returns (address){
         address pool = IFriendlyFactory(factoryFork).newBPool(controller);
-
+        
+       
         return pool;
     }
 
