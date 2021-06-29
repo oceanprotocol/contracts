@@ -5,9 +5,9 @@ pragma solidity >=0.6.0;
 
 import "../interfaces/IERC20Template.sol";
 import "../interfaces/IERC721Template.sol";
-//import "../templates/ERC725Template.sol";
 import "../utils/ERC725/ERC725Ocean.sol";
 import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
+import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "@openzeppelin/contracts/utils/math/SafeMath.sol";
 import "../utils/ERC20Roles.sol";
 
@@ -195,9 +195,18 @@ contract ERC20Template is ERC20("test", "testSymbol"), ERC20Roles {
         address consumer,
         uint256 amount,
         uint256 serviceId,
-        address mrktFeeCollector
+        address mrktFeeCollector,
+        address feeToken, // address of the token marketplace wants to add fee on top
+        uint256 feeAmount // amount to be transfered by 
     ) external {
+        // TO WHO WE SEND THIS FEE? Marketplace address?
+        // Requires approval for the specific feeToken
+        if(feeAmount > 0){
+            IERC20(feeToken).transferFrom(msg.sender,mrktFeeCollector,feeAmount);
+        }
+
         uint256 marketFee = 0;
+
         uint256 communityFee =
             calculateFee(amount, BASE_COMMUNITY_FEE_PERCENTAGE);
         transfer(_communityFeeCollector, communityFee);
@@ -220,10 +229,12 @@ contract ERC20Template is ERC20("test", "testSymbol"), ERC20Roles {
     }
 
     function startMultipleOrder(
-        address[] calldata consumers,
-        uint256[] calldata amounts,
-        uint256[] calldata serviceIds,
-        address[] calldata mrktFeeCollectors
+        address[] memory consumers,
+        uint256[] memory amounts,
+        uint256[] memory serviceIds,
+        address[] memory mrktFeeCollectors,
+        address[] memory feeTokens,
+        uint256[] memory feeAmounts
     ) external {
         uint256 ids = serviceIds.length;
        
@@ -231,8 +242,15 @@ contract ERC20Template is ERC20("test", "testSymbol"), ERC20Roles {
         require(getAddressLength(consumers) == ids, "WRONG ARRAYS FORMAT");
         require(getUintLength(amounts) == ids, "WRONG ARRAYS FORMAT");
         require(getAddressLength(mrktFeeCollectors)== ids, "WRONG ARRAYS FORMAT");
+        require(getUintLength(feeAmounts) == ids, "WRONG ARRAYS FORMAT");
+        require(getAddressLength(feeTokens)== ids, "WRONG ARRAYS FORMAT");
 
         for (uint256 i = 0; i < ids; i++) {
+            
+            if(feeAmounts[i] > 0){
+                IERC20(feeTokens[i]).transferFrom(msg.sender,mrktFeeCollectors[i],feeAmounts[i]);
+            }
+            
             uint256 marketFee = 0;
             uint256 communityFee =
                 calculateFee(amounts[i], BASE_COMMUNITY_FEE_PERCENTAGE);
