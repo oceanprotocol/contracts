@@ -9,6 +9,60 @@ const constants = require("../../helpers/constants");
 const { web3 } = require("@openzeppelin/test-helpers/src/setup");
 const { keccak256 } = require("@ethersproject/keccak256");
 const ethers = hre.ethers;
+const { ecsign } = require("ethereumjs-util");
+
+const getDomainSeparator = (name, tokenAddress, chainId) => {
+  return keccak256(
+    ethers.utils.defaultAbiCoder.encode(
+      ["bytes32", "bytes32", "bytes32", "uint256", "address"],
+      [
+        keccak256(
+          ethers.utils.toUtf8Bytes(
+            "EIP712Domain(string name,string version,uint256 chainId,address verifyingContract)"
+          )
+        ),
+        keccak256(ethers.utils.toUtf8Bytes(name)),
+        keccak256(ethers.utils.toUtf8Bytes("1")),
+        chainId,
+        tokenAddress,
+      ]
+    )
+  );
+};
+const PERMIT_TYPEHASH = keccak256(
+  ethers.utils.toUtf8Bytes(
+    "Permit(address owner,address spender,uint256 value,uint256 nonce,uint256 deadline)"
+  )
+);
+
+const getApprovalDigest = async (
+  token,
+  owner,
+  spender,
+  value,
+  nonce,
+  deadline,
+  chainId
+) => {
+  const name = await token.name();
+  const DOMAIN_SEPARATOR = getDomainSeparator(name, token.address, chainId);
+  return keccak256(
+    ethers.utils.solidityPack(
+      ["bytes1", "bytes1", "bytes32", "bytes32"],
+      [
+        "0x19",
+        "0x01",
+        DOMAIN_SEPARATOR,
+        keccak256(
+          ethers.utils.defaultAbiCoder.encode(
+            ["bytes32", "address", "address", "uint256", "uint256", "uint256"],
+            [PERMIT_TYPEHASH, owner, spender, value, nonce, deadline]
+          )
+        ),
+      ]
+    )
+  );
+};
 
 describe("ERC20Template", () => {
   let name,
@@ -88,11 +142,9 @@ describe("ERC20Template", () => {
 
     [owner, reciever, user2, user3] = await ethers.getSigners();
 
-    // cap = new BigNumber('1400000000')
     data = web3.utils.asciiToHex(constants.blob[0]);
     flags = web3.utils.asciiToHex(constants.blob[0]);
     metadata = await Metadata.deploy();
-    //console.log(metadata.address)
 
     templateERC20 = await ERC20Template.deploy();
     factoryERC20 = await ERC20Factory.deploy(
@@ -133,7 +185,7 @@ describe("ERC20Template", () => {
       await tokenERC721.createERC20(
         "ERC20DT1",
         "ERC20DT1Symbol",
-        web3.utils.toWei("10"),
+        web3.utils.toWei("1000"),
         1,
         owner.address
       )
@@ -259,30 +311,26 @@ describe("ERC20Template", () => {
 
     assert((await erc20Token.permissions(user2.address)).minter == false);
   });
-  
+
   it("#setData - should fail to setData if NOT erc20Deployer", async () => {
     const key = web3.utils.keccak256(erc20Token.address);
-    const value = web3.utils.asciiToHex('SomeData')
-
+    const value = web3.utils.asciiToHex("SomeData");
 
     await expectRevert(
       erc20Token.connect(user2).setData(value),
       "ERC20Template: NOT DEPLOYER ROLE"
     );
 
-    assert(await tokenERC721.getData(key) == '0x')
-
+    assert((await tokenERC721.getData(key)) == "0x");
   });
 
   it("#setData - should succeed to setData if erc20Deployer", async () => {
     const key = web3.utils.keccak256(erc20Token.address);
-    const value = web3.utils.asciiToHex('SomeData')
+    const value = web3.utils.asciiToHex("SomeData");
 
+    await erc20Token.setData(value);
 
-    await erc20Token.setData(value)
-
-    assert(await tokenERC721.getData(key) == value)
-
+    assert((await tokenERC721.getData(key)) == value);
   });
 
   it("#cleanPermissions - should fail to call cleanPermissions if NOT NFTOwner", async () => {
@@ -292,7 +340,7 @@ describe("ERC20Template", () => {
       erc20Token.connect(user2).cleanPermissions(),
       "ERC20Template: not NFTOwner"
     );
-    
+
     assert((await erc20Token.permissions(owner.address)).minter == true);
   });
 
@@ -308,15 +356,65 @@ describe("ERC20Template", () => {
     await erc20Token.addMinter(user3.address);
     assert((await erc20Token.permissions(user2.address)).minter == true);
     assert((await erc20Token.permissions(user3.address)).minter == true);
-    
+
     // NFT Owner cleans
-    await erc20Token.cleanPermissions()
-    
+    await erc20Token.cleanPermissions();
+
     // check permission were removed
     assert((await erc20Token.permissions(owner.address)).minter == false);
     assert((await erc20Token.permissions(user2.address)).minter == false);
     assert((await erc20Token.permissions(user3.address)).minter == false);
     // we reassigned feeCollector to address(0) when cleaning permissions, so now getFeeCollector points to NFT Owner
     assert((await erc20Token.getFeeCollector()) == owner.address);
+  });
+
+  it("#permit - should succeed to deposit with permit function", async () => {
+    // mint some DT to owner
+    await erc20Token.mint(owner.address, web3.utils.toWei("100"));
+
+    // mock exchange
+    const Exchange = await ethers.getContractFactory("MockExchange");
+    exchange = await Exchange.deploy();
+   
+
+    const TEST_AMOUNT = ethers.utils.parseEther("10");
+    const nonce = await erc20Token.nonces(owner.address);
+    const chainId = await owner.getChainId();
+    const deadline = Math.round(new Date().getTime() / 1000 + 600000); // 10 minutes
+    
+    
+    const digest = await getApprovalDigest(
+      erc20Token,
+      owner.address,
+      exchange.address,
+      TEST_AMOUNT,
+      nonce,
+      deadline,
+      chainId
+    );
+    // private Key from owner, taken from the RPC
+    const { v, r, s } = ecsign(
+      Buffer.from(digest.slice(2), "hex"),
+      Buffer.from(
+        "0xac0974bec39a17e36ba4a6b4d238ff944bacb478cbed5efcae784d7bf4f2ff80".slice(
+          2
+        ),
+        "hex"
+      )
+    );
+
+    // we can now deposit using permit
+    await exchange.depositWithPermit(
+      erc20Token.address,
+      TEST_AMOUNT,
+      deadline,
+      v,
+      r,
+      s
+    );
+
+    assert(
+      (await erc20Token.balanceOf(exchange.address)).eq(TEST_AMOUNT) == true
+    );
   });
 });
