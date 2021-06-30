@@ -1024,8 +1024,8 @@ describe("Pools Creation Flow", () => {
 
     it("#8 - user3 triggers function to exit pools and collecting fees for marketPlace and Ocean in BOTH DAI and DT", async () => {
       // In this pool dt is index 1 and dai is 0
-      const dtIndex = 1;
-      const daiIndex = 0;
+      const dtIndex = 0;
+      const daiIndex = 1;
 
       // confirm marketFeeCollector
       assert(

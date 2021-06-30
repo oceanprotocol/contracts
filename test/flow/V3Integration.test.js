@@ -52,7 +52,8 @@ describe("V3 Integration flow", () => {
     factoryERC721 = await ERC721Factory.deploy(
       templateERC721.address,
       communityFeeCollector,
-      factoryERC20.address
+      factoryERC20.address,
+      metadata.address
     );
 
 
@@ -69,7 +70,6 @@ describe("V3 Integration flow", () => {
       .deployERC721Contract(
         "NFT",
         "NFTSYMBOL",
-        metadata.address,
         data,
         flags,
         1
