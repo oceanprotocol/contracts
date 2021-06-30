@@ -50,7 +50,8 @@ describe("NFT Creation, roles and erc20 deployments", () => {
     factoryERC721 = await ERC721Factory.deploy(
       templateERC721.address,
       communityFeeCollector,
-      factoryERC20.address
+      factoryERC20.address,
+      metadata.address
     );
 
   
@@ -66,7 +67,6 @@ describe("NFT Creation, roles and erc20 deployments", () => {
       .deployERC721Contract(
         "NFT",
         "NFTSYMBOL",
-        metadata.address,
         data,
         flags,
         1

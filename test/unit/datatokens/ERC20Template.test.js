@@ -95,7 +95,6 @@ describe("ERC20Template", () => {
       .deployERC721Contract(
         "NFT2",
         "NFTSYMBOL",
-        metadata.address,
         data,
         flags,
         1
@@ -155,7 +154,8 @@ describe("ERC20Template", () => {
     factoryERC721 = await ERC721Factory.deploy(
       templateERC721.address,
       communityFeeCollector,
-      factoryERC20.address
+      factoryERC20.address,
+      metadata.address
     );
 
     await metadata.setERC20Factory(factoryERC20.address);
@@ -164,7 +164,6 @@ describe("ERC20Template", () => {
     const tx = await factoryERC721.deployERC721Contract(
       "DT1",
       "DTSYMBOL",
-      metadata.address,
       data,
       flags,
       1

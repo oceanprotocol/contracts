@@ -101,7 +101,8 @@ describe("OceanPoolFactory", () => {
     factoryERC721 = await ERC721Factory.deploy(
       templateERC721.address,
       communityFeeCollector,
-      factoryERC20.address
+      factoryERC20.address,
+      metadata.address
     );
 
     newERC721Template = await ERC721Template.deploy();
@@ -112,7 +113,6 @@ describe("OceanPoolFactory", () => {
     const tx = await factoryERC721.deployERC721Contract(
       "DT1",
       "DTSYMBOL",
-      metadata.address,
       data,
       flags,
       1

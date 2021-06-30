@@ -23,6 +23,7 @@ contract ERC721Factory is Deployer, Ownable {
     address private communityFeeCollector;
     uint256 private currentTokenCount = 1;
     address private erc20Factory;
+    address private metadata;
     uint256 public templateCount;
 
     struct Template {
@@ -57,23 +58,24 @@ contract ERC721Factory is Deployer, Ownable {
     constructor(
         address _template,
         address _collector,
-        address _erc20Factory
+        address _erc20Factory,
+        address _metadata
     ) public {
         require(
             _template != address(0) &&
                 _collector != address(0) &&
-                _erc20Factory != address(0),
+                _erc20Factory != address(0) && _metadata != address(0),
             "ERC721DTFactory: Invalid template token/community fee collector address"
         );
         addTokenTemplate(_template);
         communityFeeCollector = _collector;
         erc20Factory = _erc20Factory;
+        metadata = _metadata;
     }
 
     function deployERC721Contract(
         string memory name,
         string memory symbol,
-        address metadata, // hardcoded in the future
         bytes memory _data,
         bytes memory _flags,
         uint256 _templateIndex

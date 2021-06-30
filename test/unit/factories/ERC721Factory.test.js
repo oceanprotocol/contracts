@@ -64,7 +64,8 @@ describe("ERC721Factory", () => {
     factoryERC721 = await ERC721Factory.deploy(
       templateERC721.address,
       communityFeeCollector,
-      factoryERC20.address
+      factoryERC20.address,
+      metadata.address
     );
 
     newERC721Template = await ERC721Template.deploy();
@@ -77,7 +78,6 @@ describe("ERC721Factory", () => {
     const tx = await factoryERC721.deployERC721Contract(
       "DT1",
       "DTSYMBOL",
-      metadata.address,
       data,
       flags,
       1
@@ -99,7 +99,6 @@ describe("ERC721Factory", () => {
     const tx = await factoryERC721.deployERC721Contract(
       "DT1",
       "DTSYMBOL",
-      metadata.address,
       data,
       flags,
       1
@@ -117,7 +116,6 @@ describe("ERC721Factory", () => {
       factoryERC721.deployERC721Contract(
         "DT1",
         "DTSYMBOL",
-        metadata.address,
         data,
         flags,
         7
@@ -131,7 +129,6 @@ describe("ERC721Factory", () => {
       factoryERC721.deployERC721Contract(
         "DT1",
         "DTSYMBOL",
-        metadata.address,
         data,
         flags,
         0
@@ -148,7 +145,6 @@ describe("ERC721Factory", () => {
       factoryERC721.deployERC721Contract(
         "DT1",
         "DTSYMBOL",
-        metadata.address,
         data,
         flags,
         2
@@ -163,7 +159,6 @@ describe("ERC721Factory", () => {
     await factoryERC721.deployERC721Contract(
       "DT1",
       "DTSYMBOL",
-      metadata.address,
       data,
       flags,
       1

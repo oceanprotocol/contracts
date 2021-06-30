@@ -50,6 +50,8 @@ describe("Pools Creation Flow", () => {
     const OceanPoolFactory = await ethers.getContractFactory(
       "OceanPoolFactory"
     );
+    const ForkFactory = await ethers.getContractFactory("BFactory");
+    const PoolForkTemplate = await ethers.getContractFactory("BPool");
 
     [
       owner, // nft owner, 721 deployer
@@ -64,13 +66,18 @@ describe("Pools Creation Flow", () => {
       pool2MarketFeeCollector, // POOL2
     ] = await ethers.getSigners();
 
+     // WE DEPLOY THE FRIENDLY FORK (BALANCER V1)
+     const poolForkTemplate = await PoolForkTemplate.deploy()
+     fork = await ForkFactory.deploy(poolForkTemplate.address)
+
     // DEPLOY ROUTER, SETTING OWNER
     router = await Router.deploy(owner.address, oceanAddress);
     // DEPLOY OUR POOL FACTORY
     poolFactory = await OceanPoolFactory.deploy(
       vaultAddress,
       router.address,
-      owner.address
+      owner.address,
+      fork.address
     );
     // ADD THE FACTORY ADDRESS TO THE ROUTER
     await router.addOceanPoolFactory(poolFactory.address);
@@ -135,7 +142,8 @@ describe("Pools Creation Flow", () => {
     factoryERC721 = await ERC721Factory.deploy(
       templateERC721.address,
       communityFeeCollector,
-      factoryERC20.address
+      factoryERC20.address,
+      metadata.address
     );
 
     // SET REQUIRED ADDRESSES
@@ -148,7 +156,6 @@ describe("Pools Creation Flow", () => {
     const tx = await factoryERC721.deployERC721Contract(
       "NFT",
       "NFTSYMBOL",
-      metadata.address,
       data,
       flags,
       1
@@ -658,7 +665,7 @@ describe("Pools Creation Flow", () => {
   });
   describe("POOL #2: 2 Token pool without OCEAN token and market Fee at 0.2%, Exact AmountIn and AmountOut test", async () => {
     it("#1 - user3 succeed to deploy a new 2 token Pool WITHOUT OceanToken from our Custom Factory on Balancer V2", async () => {
-      const tokens = [daiAddress, erc20Token.address];
+      const tokens = [erc20Token.address,daiAddress ];
       const weights = [
         ethers.utils.parseEther("0.5"),
         ethers.utils.parseEther("0.5"),
@@ -704,11 +711,12 @@ describe("Pools Creation Flow", () => {
     });
 
     it("#2 - user3 add initial liquidity to the pool he just created", async () => {
-      const tokens = [daiAddress, erc20Token.address];
+      const tokens = [erc20Token.address,daiAddress ];
       // 1 DT = 10 DAI
       const initialBalances = [
-        ethers.utils.parseEther("1000"),
+        
         ethers.utils.parseEther("100"),
+        ethers.utils.parseEther("1000")
       ];
       const JOIN_KIND_INIT = 0;
 
@@ -827,9 +835,9 @@ describe("Pools Creation Flow", () => {
     });
 
     it("#5 - user3 triggers function to exit pools and collecting fees for marketPlace and Ocean", async () => {
-      // In this pool dt is index 1 and dai is 0
-      const dtIndex = 1;
-      const daiIndex = 0;
+      // based on the tokens array
+      const dtIndex = 0;
+      const daiIndex = 1;
 
       assert((await pool.communityFees(dtIndex)) == 0);
       // fees in DAI have been collected so balance cannot be ZERO
@@ -851,7 +859,7 @@ describe("Pools Creation Flow", () => {
       const totalOceanFeeInDAI = await pool.communityFees(daiIndex);
 
       // Creating the arguments for exitPool()
-      const tokens = [daiAddress, erc20Token.address];
+      const tokens = [erc20Token.address,daiAddress];
       const exitKindMarket = MP_FEE_WITHDRAWAL;
       const exitKindOcean = OPF_FEE_WITHDRAWAL;
       const userData = ethers.utils.defaultAbiCoder.encode(
@@ -1045,7 +1053,7 @@ describe("Pools Creation Flow", () => {
         alreadyCollectedOPFinDAI
       );
       // Creating the arguments for exitPool()
-      const tokens = [daiAddress, erc20Token.address];
+      const tokens = [erc20Token.address,daiAddress ];
       const exitKindMarket = MP_FEE_WITHDRAWAL;
       const exitKindOcean = OPF_FEE_WITHDRAWAL;
       const userData = ethers.utils.defaultAbiCoder.encode(

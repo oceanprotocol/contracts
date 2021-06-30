@@ -41,7 +41,6 @@ describe("ERC721Template", () => {
     const tx = await factoryERC721.connect(signer).deployERC721Contract(
       "NFT2",
       "NFTSYMBOL",
-      metadata.address,
       data,
       flags,
       1
@@ -102,7 +101,8 @@ describe("ERC721Template", () => {
     factoryERC721 = await ERC721Factory.deploy(
       templateERC721.address,
       communityFeeCollector,
-      factoryERC20.address
+      factoryERC20.address,
+      metadata.address
     );
 
     newERC721Template = await ERC721Template
@@ -114,7 +114,6 @@ describe("ERC721Template", () => {
     const tx = await factoryERC721.deployERC721Contract(
       "DT1",
       "DTSYMBOL",
-      metadata.address,
       data,
       flags,
       1
@@ -415,7 +414,6 @@ describe("ERC721Template", () => {
     const tx = await factoryERC721.connect(signer).deployERC721Contract(
       "NFT2",
       "NFTSYMBOL",
-      metadata.address,
       data,
       flags,
       1
