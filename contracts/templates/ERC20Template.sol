@@ -199,7 +199,7 @@ contract ERC20Template is ERC20("test", "testSymbol"), ERC20Roles {
         address feeToken, // address of the token marketplace wants to add fee on top
         uint256 feeAmount // amount to be transfered by 
     ) external {
-        // TO WHO WE SEND THIS FEE? Marketplace address?
+        // TODO: TO WHO WE SEND THIS FEE? Marketplace address? now set to mrktFeeCollector
         // Requires approval for the specific feeToken
         if(feeAmount > 0){
             IERC20(feeToken).transferFrom(msg.sender,mrktFeeCollector,feeAmount);

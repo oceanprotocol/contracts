@@ -205,7 +205,8 @@ contract ERC721Template is
         );
         setData(_key, _value);
     }
-
+    
+    // TODO: check if we actually need the value and data or can be the same
     function setDataV3(
         address datatoken,
         bytes calldata _value,
@@ -224,7 +225,7 @@ contract ERC721Template is
     }
 
     
-
+    // TODO: should we clean also all erc20 permissions as when a transfer occurr? best could be to use a flag to allow NFT owner decide
     function cleanPermissions() external {
         _checkNFTOwner(msg.sender);
         _cleanPermissions();

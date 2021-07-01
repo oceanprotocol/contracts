@@ -138,7 +138,7 @@ contract ERC725Ocean is ERC165Storage, IERC725X, IERC725Y  {
     /**
      * @notice Gets data at a given `key`
      * @param _key the key which value to retrieve
-     * @return _value The date stored at the key
+     * @return _value The data stored at the key
      */
     function getData(bytes32 _key)
     public

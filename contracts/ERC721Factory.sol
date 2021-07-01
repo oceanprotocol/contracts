@@ -21,10 +21,10 @@ import "@openzeppelin/contracts/access/Ownable.sol";
  */
 contract ERC721Factory is Deployer, Ownable {
     address private communityFeeCollector;
-    uint256 private currentTokenCount = 1;
+    uint256 private currentTokenCount = 1; // should be set to ZERO
     address private erc20Factory;
     address private metadata;
-    uint256 public templateCount;
+    uint256 private templateCount;
 
     struct Template {
         address templateAddress;

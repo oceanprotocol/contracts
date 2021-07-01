@@ -181,6 +181,16 @@ contract ERC20Factory is Deployer, Ownable {
         template.isActive = false;
     }
 
+       // function to activate a disabled token.
+    function reactivateTokenTemplate(uint256 _index) external onlyOwner {
+        require(
+            _index <= templateCount && _index != 0,
+            "ERC20DTFactory: Template index doesnt exist"
+        );
+        Template storage template = templateList[_index];
+        template.isActive = true;
+    }
+
     // if templateCount is public we could remove it, or set templateCount to private
     function getCurrentTemplateCount() external view returns (uint256) {
         return templateCount;
