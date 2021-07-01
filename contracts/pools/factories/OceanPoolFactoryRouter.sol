@@ -4,13 +4,10 @@
 pragma solidity ^0.7.0;
 pragma experimental ABIEncoderV2;
 
-import "@balancer-labs/v2-vault/contracts/interfaces/IVault.sol";
 
-import "@balancer-labs/v2-pool-utils/contracts/factories/BasePoolFactory.sol";
+import "./OceanPoolFactory.sol";
 
-import "../../interfaces/IOceanPoolFactory.sol";
-
-contract OceanPoolFactoryRouter {
+contract OceanPoolFactoryRouter is OceanPoolFactory{
     address private routerOwner;
     address public oceanPoolFactory;
     
@@ -27,7 +24,7 @@ contract OceanPoolFactoryRouter {
         _;
     }
 
-    constructor(address _routerOwner, address _oceanToken) {
+    constructor(address _routerOwner, address _oceanToken, IVault _vault, address _factoryFork) OceanPoolFactory(_vault,_factoryFork) {
         routerOwner = _routerOwner; 
         
         addOceanToken(_oceanToken);
@@ -38,15 +35,9 @@ contract OceanPoolFactoryRouter {
         oceanTokens[oceanTokenAddress] = true;
     }
 
-    function addOceanPoolFactory(address _oceanPoolFactory)
-        external
-        onlyRouterOwner
-    {
-        oceanPoolFactory = _oceanPoolFactory;
-    }
 
     /**
-     * @dev Deploys a new `OceanPool`.
+     * @dev Deploys a new `OceanPool` on Balancer V2.
      */
     function deployPool(
         string memory name,
@@ -100,44 +91,23 @@ contract OceanPoolFactoryRouter {
         return pool;
     }
 
-    function _createPool(
-        string memory name,
-        string memory symbol,
-        IERC20[] memory tokens,
-        uint256[] memory weights,
-        uint256 swapFeePercentage,
-        uint256 oceanFee,
-        uint256 marketFee,
-        address owner
-    ) private returns (address) {
-        address pool =
-            IOceanPoolFactory(oceanPoolFactory).createPool(
-                name,
-                symbol,
-                tokens,
-                weights,
-                swapFeePercentage,
-                oceanFee,
-                marketFee,
-                owner
-            );
 
-        return pool;
-    }
 
-    function getLength(IERC20[] memory array) private view returns (uint256) {
-        return array.length;
-    }
-
+    // deploy a new pool on Ocean fork of Balancer v1
     function deployPoolWithFork(address controller) external returns (address) {
         require(controller != address(0), "OceanPoolFactoryRouter: Invalid address");
        
    
         address pool =
-            IOceanPoolFactory(oceanPoolFactory).createPoolWithFork(controller);
+            _createPoolWithFork(controller);
+
         emit NewForkPool(pool);
         return pool;
     }
 
+
+    function getLength(IERC20[] memory array) private view returns (uint256) {
+        return array.length;
+    }
    
 }

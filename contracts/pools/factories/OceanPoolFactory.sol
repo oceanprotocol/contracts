@@ -7,29 +7,23 @@ import "./BasePoolSplitCodeFactory.sol";
 import "../../interfaces/IFriendlyFactory.sol";
 
 contract OceanPoolFactory is BasePoolSplitCodeFactory, FactoryWidePauseWindow {
-    IVault public vault_;
-    address public oceanRouter; 
     
-    address private owner;
+    IVault public vault;
+    
     address public factoryFork; 
     
-    event NewPool(address pool);
 
-   constructor(IVault vault, address _oceanRouter, address _owner, address _factoryFork) BasePoolSplitCodeFactory(vault, type(WeightedPool).creationCode) {
-        oceanRouter = _oceanRouter;
-        owner = _owner;
-        vault_ = vault;
+   constructor(IVault _vault, address _factoryFork) BasePoolSplitCodeFactory(vault, type(WeightedPool).creationCode) {
+      
+        vault = _vault;
         factoryFork = _factoryFork;
         
         
     }
     
-    modifier onlyRouter {
-         require(oceanRouter == msg.sender, 'OceanPoolFactory: NOT OCEAN ROUTER');
-         _;
-    }
    
-    function createPool(
+   
+    function _createPool(
         string memory name,
         string memory symbol,
         IERC20[] memory tokens,
@@ -38,7 +32,7 @@ contract OceanPoolFactory is BasePoolSplitCodeFactory, FactoryWidePauseWindow {
         uint256 oceanFee,
         uint256 marketFee,
         address owner
-        ) external onlyRouter returns (address) {
+        ) internal returns (address) {
        
        
 
@@ -46,7 +40,7 @@ contract OceanPoolFactory is BasePoolSplitCodeFactory, FactoryWidePauseWindow {
             getPauseConfiguration();
 
              address pool = _create(abi.encode(
-                    vault_,
+                    vault,
                     name,
                     symbol,
                     tokens,
@@ -59,12 +53,12 @@ contract OceanPoolFactory is BasePoolSplitCodeFactory, FactoryWidePauseWindow {
                     owner
                 ));
             
-            emit NewPool(pool);
+          
             return pool;
     }
 
 
-    function createPoolWithFork(address controller) external onlyRouter returns (address){
+    function _createPoolWithFork(address controller) internal returns (address){
         address pool = IFriendlyFactory(factoryFork).newBPool(controller);
         
         return pool;

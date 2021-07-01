@@ -234,7 +234,7 @@ contract ERC20Factory is Deployer, Ownable {
         return size > 0;
     }
 
-    // MISSING ONLYOWNER OR SOME KIND OF RESTRICION, COULD BE REMOVED IF WE DON"T WANT TO UPDATE IT(HARDCODED IN THE CONTRACT)
+   
     function setERC721Factory(address _erc721FactoryAddress) public onlyOwner {
         erc721Factory = _erc721FactoryAddress;
     }

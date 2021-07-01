@@ -70,11 +70,11 @@ describe("OceanPoolFactoryRouter", () => {
     fork = await ForkFactory.deploy(poolForkTemplate.address)
     
     // DEPLOY ROUTER, SETTING OWNER
-    router = await Router.deploy(owner.address,oceanAddress)
-    // DEPLOY OUR POOL FACTORY
-    poolFactory = await OceanPoolFactory.deploy(vaultAddress,router.address,owner.address, fork.address)
-    // ADD THE FACTORY ADDRESS TO THE ROUTER
-    await router.addOceanPoolFactory(poolFactory.address);
+    router = await Router.deploy(owner.address,oceanAddress,vaultAddress,fork.address)
+    // // DEPLOY OUR POOL FACTORY
+    // poolFactory = await OceanPoolFactory.deploy(vaultAddress,router.address,owner.address, fork.address)
+    // // ADD THE FACTORY ADDRESS TO THE ROUTER
+    // await router.addOceanPoolFactory(poolFactory.address);
 
 
     data = web3.utils.asciiToHex(constants.blob[0]);
@@ -145,18 +145,6 @@ describe("OceanPoolFactoryRouter", () => {
 
   });
 
-  it("#oceanPoolFactory - should confirm oceanPoolFactory",async () => {
-     assert(await router.oceanPoolFactory() == poolFactory.address);
-  })
-
-  it("#addOceanPoolFactory - should fail to update poolFactory if NOT Router Owner",async () => {
-    await expectRevert(router.connect(user2).addOceanPoolFactory(user2.address), "OceanRouter: NOT OWNER")
-  })
-
-  it("#addOceanPoolFactory - should allow to update poolFactory if Router Owner",async () => {
-    await router.addOceanPoolFactory(user2.address)
-    assert(await router.oceanPoolFactory() == user2.address);
-  })
 
   it("#oceanTokens - should confirm Ocean token has been added to the mapping",async () => {
     assert(await router.oceanTokens(oceanAddress) == true);

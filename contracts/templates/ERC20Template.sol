@@ -425,7 +425,7 @@ contract ERC20Template is ERC20("test", "testSymbol"), ERC20Roles {
      */
 
     function calculateFee(uint256 amount, uint256 feePercentage)
-        public
+        private
         pure
         returns (uint256)
     {

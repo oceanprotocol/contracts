@@ -71,16 +71,8 @@ describe("Pools Creation Flow", () => {
      fork = await ForkFactory.deploy(poolForkTemplate.address)
 
     // DEPLOY ROUTER, SETTING OWNER
-    router = await Router.deploy(owner.address, oceanAddress);
-    // DEPLOY OUR POOL FACTORY
-    poolFactory = await OceanPoolFactory.deploy(
-      vaultAddress,
-      router.address,
-      owner.address,
-      fork.address
-    );
-    // ADD THE FACTORY ADDRESS TO THE ROUTER
-    await router.addOceanPoolFactory(poolFactory.address);
+    router = await Router.deploy(owner.address, oceanAddress,vaultAddress,fork.address);
+ 
 
     vault = await ethers.getContractAt(
       "@balancer-labs/v2-vault/contracts/interfaces/IVault.sol:IVault",
