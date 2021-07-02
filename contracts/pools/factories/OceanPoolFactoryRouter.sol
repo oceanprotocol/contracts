@@ -7,7 +7,7 @@ pragma experimental ABIEncoderV2;
 
 import "./OceanPoolFactory.sol";
 
-contract OceanPoolFactoryRouter is OceanPoolFactory{
+contract OceanPoolFactoryRouter is OceanPoolFactory {
     address private routerOwner;
     address public oceanPoolFactory;
     
