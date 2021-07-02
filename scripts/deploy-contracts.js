@@ -4,6 +4,9 @@
 // When running the script with `hardhat run <script>` you'll find the Hardhat
 // Runtime Environment's members available in the global scope.
 const hre = require("hardhat");
+const fs = require('fs');
+const { address } = require("../test/helpers/constants");
+
 
 async function main() {
 
@@ -55,11 +58,38 @@ async function main() {
   await factoryERC20.setERC721Factory(factoryERC721.address);
 
 
+  const Ocean = await ethers.getContractFactory('MockOcean')
+  const ocean = await Ocean.deploy(owner.address)
+
+  const addressFile = './addresses/address.json'
+  let oldAddresses
+        try {
+            oldAddresses = JSON.parse(fs.readFileSync(addressFile))
+        } catch (e) { 
+          console.log(e)
+          oldAddresses = {} }
+  const networkName = 'development'
+  const addresses = oldAddresses[networkName]
+  console.log(oldAddresses)
+  console.log(addressFile)
   console.log(metadata.address,"METADATA")
   console.log(factoryERC20.address,"FACTORY ERC20")
   console.log(factoryERC721.address, "FACTORY ERC721")
   console.log(router.address,"POOL ROUTER")
+  console.log(ocean.address, "OCEAN MOCKED");
   console.log('DONE')
+  console.log(addresses)
+  addresses.Metadata = metadata.address
+  addresses.ERC721Factory = factoryERC721.address
+  addresses.ERC20Factory = factoryERC20.address
+  addresses.OceanPoolFactoryRouter = router.address
+  addresses.ERC20Template = templateERC20.address
+  addresses.Ocean = ocean.address
+  //addresses.Ocean
+  console.info('writing address.json file: ' + networkName + JSON.stringify(oldAddresses, null, 2))
+  fs.writeFileSync(addressFile, JSON.stringify(oldAddresses, null, 2))
+
+
   
 
 
