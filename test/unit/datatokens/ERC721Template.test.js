@@ -87,7 +87,7 @@ describe("ERC721Template", () => {
     // cap = new BigNumber('1400000000')
     data = web3.utils.asciiToHex(constants.blob[0]);
     flags = web3.utils.asciiToHex(constants.blob[0]);
-    metadata = await Metadata.deploy();
+   
     //console.log(metadata.address)
 
     templateERC20 = await ERC20Template
@@ -96,6 +96,8 @@ describe("ERC721Template", () => {
       templateERC20.address,
       communityFeeCollector
     );
+
+    metadata = await Metadata.deploy(factoryERC20.address);
     templateERC721 = await ERC721Template
       .deploy();
     factoryERC721 = await ERC721Factory.deploy(
@@ -108,7 +110,7 @@ describe("ERC721Template", () => {
     newERC721Template = await ERC721Template
       .deploy();
 
-    await metadata.setERC20Factory(factoryERC20.address);
+    //await metadata.setERC20Factory(factoryERC20.address);
     await factoryERC20.setERC721Factory(factoryERC721.address);
 
     const tx = await factoryERC721.deployERC721Contract(
@@ -119,7 +121,7 @@ describe("ERC721Template", () => {
       1
     );
     const txReceipt = await tx.wait();
-
+      
     tokenAddress = txReceipt.events[4].args[0];
     tokenERC721 = await ethers.getContractAt("ERC721Template", tokenAddress);
     symbol = await tokenERC721.symbol();

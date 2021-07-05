@@ -39,13 +39,14 @@ describe("NFT Creation, roles and erc20 deployments", () => {
 
     data = web3.utils.asciiToHex('SomeData');
     flags = web3.utils.asciiToHex(constants.blob[0]);
-    metadata = await Metadata.deploy();
+    
  
     templateERC20 = await ERC20Template.deploy();
     factoryERC20 = await ERC20Factory.deploy(
       templateERC20.address,
       communityFeeCollector
     );
+    metadata = await Metadata.deploy(factoryERC20.address);
     templateERC721 = await ERC721Template.deploy();
     factoryERC721 = await ERC721Factory.deploy(
       templateERC721.address,
@@ -53,10 +54,10 @@ describe("NFT Creation, roles and erc20 deployments", () => {
       factoryERC20.address,
       metadata.address
     );
-
+      console.log(factoryERC721.address)
   
 
-    await metadata.setERC20Factory(factoryERC20.address);
+    //await metadata.setERC20Factory(factoryERC20.address);
     await factoryERC20.setERC721Factory(factoryERC721.address);
 
   });

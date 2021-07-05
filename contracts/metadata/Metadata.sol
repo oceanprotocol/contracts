@@ -30,6 +30,11 @@ contract Metadata {
         bytes data
     );
 
+
+    constructor(address _erc20Factory) {
+        erc20Factory = _erc20Factory;
+    }
+    
     modifier onlyDataTokenMinter(address dataToken) {
         require(
             IERC20Factory(erc20Factory).erc721List(msg.sender) == msg.sender,
