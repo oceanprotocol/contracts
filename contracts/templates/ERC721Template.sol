@@ -91,7 +91,7 @@ contract ERC721Template is
         _symbol = symbol_;
         _erc20Factory = erc20Factory;
         initialized = true;
-        //_createMetadata(_flags, _data);
+        _createMetadata(_flags, _data);
         _safeMint(owner, 1);
         _addManager(owner);
         return initialized;
