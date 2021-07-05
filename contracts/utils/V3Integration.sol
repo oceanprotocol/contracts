@@ -1,7 +1,7 @@
 pragma solidity ^0.8.0;
 
 import "../interfaces/IV3ERC20.sol";
-import "hardhat/console.sol";
+//import "hardhat/console.sol";
 
 contract V3Integration {
 

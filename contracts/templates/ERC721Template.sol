@@ -14,7 +14,7 @@ import "../interfaces/IERC20Template.sol";
 import "../utils/ERC721RolesAddress.sol";
 import "../utils/V3Integration.sol";
 
-import "hardhat/console.sol";
+//import "hardhat/console.sol";
 
 contract ERC721Template is
     ERC721("Template", "TemplateSymbol"),
