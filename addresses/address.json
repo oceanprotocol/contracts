@@ -20,14 +20,15 @@
     "startBlock": 9227563
   },
   "development": {
-    "ERC20Template": "0xc3e53F4d16Ae77Db1c982e75a937B9f60FE63690",
+    "ERC20Template": "0xE6E340D132b5f46d1e472DebcD681B2aBc16e57E",
     "ERC721Factory": "0xa82fF9aFd8f496c3d6ac40E2a0F282E47488CFc9",
-    "ERC20Factory": "0x84eA74d481Ee0A5332c457a4d796187F6Ba67fEB",
-    "Metadata": "0xE6E340D132b5f46d1e472DebcD681B2aBc16e57E",
+    "ERC20Factory": "0xc3e53F4d16Ae77Db1c982e75a937B9f60FE63690",
+    "Metadata": "0x84eA74d481Ee0A5332c457a4d796187F6Ba67fEB",
     "OceanPoolFactoryRouter": "0xf5059a5D33d5853360D16C683c16e67980206f36",
-    "Ocean": "0x70e0bA845a1A0F2DA3359C97E0285013525FFC49",
+    "Ocean": "0x998abeb3E57409262aE5b751f60747921B33613E",
     "chainId": 8996,
-    "startBlock": 0
+    "startBlock": 0,
+    "ERC721Template": "0x9E545E3C0baAB3E08CdfD552C960A1050f373042"
   },
   "mainnet": {
     "DTFactory": "0x57317f97E9EA49eBd19f7c9bB7c180b8cDcbDeB9",

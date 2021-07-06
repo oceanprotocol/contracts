@@ -30,13 +30,16 @@ async function main() {
   const ForkFactory = await ethers.getContractFactory("BFactory");
   const PoolForkTemplate = await ethers.getContractFactory("BPool");
 
-  const metadata = await Metadata.deploy();
+  
 
   const templateERC20 = await ERC20Template.deploy();
   const factoryERC20 = await ERC20Factory.deploy(
     templateERC20.address,
     communityFeeCollector
   );
+
+  const metadata = await Metadata.deploy(factoryERC20.address);
+  
   const templateERC721 = await ERC721Template.deploy();
   const factoryERC721 = await ERC721Factory.deploy(
     templateERC721.address,
@@ -54,7 +57,7 @@ async function main() {
    const router = await Router.deploy(owner.address, oceanAddress,vaultAddress,fork.address);
 
 
-  await metadata.setERC20Factory(factoryERC20.address);
+ // await metadata.setERC20Factory(factoryERC20.address);
   await factoryERC20.setERC721Factory(factoryERC721.address);
 
 
@@ -85,6 +88,7 @@ async function main() {
   addresses.OceanPoolFactoryRouter = router.address
   addresses.ERC20Template = templateERC20.address
   addresses.Ocean = ocean.address
+  addresses.ERC721Template = templateERC721.address
   //addresses.Ocean
   console.info('writing address.json file: ' + networkName + JSON.stringify(oldAddresses, null, 2))
   fs.writeFileSync(addressFile, JSON.stringify(oldAddresses, null, 2))
