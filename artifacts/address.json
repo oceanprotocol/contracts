@@ -49,14 +49,14 @@
     "startBlock": 11005222
   },
   "moonbeamalpha": {
-    "DTFactory": "0x80E63f73cAc60c1662f27D2DFd2EA834acddBaa8",
-    "BFactory": "0x30E4CC2C7A9c6aA2b2Ce93586E3Df24a3A00bcDD",
-    "FixedRateExchange": "0xDEfD0018969cd2d4E648209F876ADe184815f038",
-    "Metadata": "0x9C9eE07b8Ce907D2f9244F8317C1Ed29A3193bAe",
-    "Ocean": "0x3c21a90599b5B7f37014cA5Bf30d3f1b73d7e391",
-    "Dispenser": "0x042D709b72B437d7d387F2679bD4ac060e561c9f",
+    "DTFactory": "0x9C9eE07b8Ce907D2f9244F8317C1Ed29A3193bAe",
+    "BFactory": "0xEF62FB495266C72a5212A11Dce8baa79Ec0ABeB1",
+    "FixedRateExchange": "0xc37F8341Ac6e4a94538302bCd4d49Cf0852D30C0",
+    "Metadata": "0x3c21a90599b5B7f37014cA5Bf30d3f1b73d7e391",
+    "Ocean": "0xF6410bf5d773C7a41ebFf972f38e7463FA242477",
+    "Dispenser": "0xCfDdA22C9837aE76E0faA845354f33C62E03653a",
     "chainId": 1287,
-    "startBlock": 90707
+    "startBlock": 281770
   },
   "undefined": {
     "DTFactory": "0xC54b688d81b6B3bab9834D9D7afd8655641EEdA7",

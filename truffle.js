@@ -131,7 +131,8 @@ module.exports = {
             provider: () => setupWallet('https://rpc.testnet.moonbeam.network/'),
             network_id: 0x507, // 4
             gas: 10000000,
-            from: '0xC7EC1970B09224B317c52d92f37F5e1E4fF6B687'
+            from: '0xC7EC1970B09224B317c52d92f37F5e1E4fF6B687',
+            gasPrice: utils.toWei('1', 'gwei')
         },
         gaiaxtestnet: {
             provider: () => setupWallet('YOUR-RPC-PROVIDER'),
