@@ -26,8 +26,8 @@ module.exports = function(deployer, network, accounts) {
         const addresses = oldAddresses[networkName]
         switch (networkName) {
             case 'moonbeamalpha':
-                communityCollector = '0x06100AB868206861a4D7936166A91668c2Ce1312'
-                OPFOwner = '0x06100AB868206861a4D7936166A91668c2Ce1312'
+                communityCollector = '0xd8992Ed72C445c35Cb4A2be468568Ed1079357c8'
+                OPFOwner = '0xd8992Ed72C445c35Cb4A2be468568Ed1079357c8'
                 break
             case 'gaiaxtestnet':
                 communityCollector = '0x2112Eb973af1DBf83a4f11eda82f7a7527D7Fde5'
@@ -102,7 +102,7 @@ module.exports = function(deployer, network, accounts) {
                 addresses.Ocean = '0x282d8efCe846A88B159800bd4130ad77443Fa1A1'
                 break
             case 'moonbeamalpha':
-                addresses.Ocean = '0xd8992Ed72C445c35Cb4A2be468568Ed1079357c8'
+                addresses.Ocean = '0xF6410bf5d773C7a41ebFf972f38e7463FA242477'
                 break
             case 'gaiaxtestnet':
                 addresses.Ocean = '0x80E63f73cAc60c1662f27D2DFd2EA834acddBaa8'
