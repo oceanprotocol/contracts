@@ -54,7 +54,7 @@ contract ERC20Roles {
         for (uint256 i = 0; i < authERC20.length; i++) {
             RolesERC20 storage user = permissions[authERC20[i]];
             user.minter = false;
-
+            user.feeManager = false;
 
         }
         
