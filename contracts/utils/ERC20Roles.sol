@@ -29,6 +29,21 @@ contract ERC20Roles {
        
     }
 
+    function _addFeeManager(address _feeManager) internal {
+        RolesERC20 storage user = permissions[_feeManager];
+        require(user.feeManager == false, "ERC20Roles:  ALREADY A FEE MANAGER");
+        user.feeManager = true;
+        authERC20.push(_feeManager);
+    }
+
+    function _removeFeeManager(address _feeManager) internal {
+        RolesERC20 storage user = permissions[_feeManager];
+        user.feeManager = false;
+       
+    }
+
+
+    
 
    
 

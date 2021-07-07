@@ -89,6 +89,7 @@ async function main() {
   addresses.ERC20Template = templateERC20.address
   addresses.Ocean = ocean.address
   addresses.ERC721Template = templateERC721.address
+  addresses.FactoryRouter = router.address
   //addresses.Ocean
   console.info('writing address.json file: ' + networkName + JSON.stringify(oldAddresses, null, 2))
   fs.writeFileSync(addressFile, JSON.stringify(oldAddresses, null, 2))

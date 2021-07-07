@@ -149,7 +149,7 @@ contract ERC20Template is ERC20("test", "testSymbol"), ERC20Roles {
         initialized = true;
         // add a default minter, similar to what happens with manager in the 721 contract
         _addMinter(minter);
-
+        // TODO: add option to add a fee manager when initializing?
         uint chainId;
         assembly {
             chainId := chainid()
@@ -348,6 +348,14 @@ contract ERC20Template is ERC20("test", "testSymbol"), ERC20Roles {
         _removeMinter(_minter);
     }
 
+    function addFeeManager(address _feeManager) external onlyERC20Deployer {
+        _addFeeManager(_feeManager);
+    }
+
+    function removeFeeManager(address _feeManager) external onlyERC20Deployer {
+        _removeFeeManager(_feeManager);
+    }
+
     function setData(bytes calldata _value) external onlyERC20Deployer {
         bytes32 key = keccak256(abi.encodePacked(address(this))); // could be any other key, used a simple configuration
         IERC721Template(_erc721Address).setDataERC20(key, _value);
@@ -365,7 +373,9 @@ contract ERC20Template is ERC20("test", "testSymbol"), ERC20Roles {
          feeCollector = address(0);
     }
 
-    function setFeeCollector(address _newFeeCollector) external onlyNFTOwner {
+    function setFeeCollector(address _newFeeCollector) external {
+        RolesERC20 memory user = permissions[msg.sender];
+        require(user.feeManager == true, "ERC20Template: NOT FEE MANAGER");
         feeCollector = _newFeeCollector;
     }
 
