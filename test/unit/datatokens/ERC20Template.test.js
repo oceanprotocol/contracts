@@ -143,13 +143,15 @@ describe("ERC20Template", () => {
 
     data = web3.utils.asciiToHex(constants.blob[0]);
     flags = web3.utils.asciiToHex(constants.blob[0]);
-    metadata = await Metadata.deploy();
+    
 
     templateERC20 = await ERC20Template.deploy();
     factoryERC20 = await ERC20Factory.deploy(
       templateERC20.address,
       communityFeeCollector
     );
+
+    metadata = await Metadata.deploy(factoryERC20.address);
     templateERC721 = await ERC721Template.deploy();
     factoryERC721 = await ERC721Factory.deploy(
       templateERC721.address,
@@ -158,7 +160,7 @@ describe("ERC20Template", () => {
       metadata.address
     );
 
-    await metadata.setERC20Factory(factoryERC20.address);
+    //await metadata.setERC20Factory(factoryERC20.address);
     await factoryERC20.setERC721Factory(factoryERC721.address);
 
     const tx = await factoryERC721.deployERC721Contract(
@@ -234,11 +236,13 @@ describe("ERC20Template", () => {
   it("#setFeeCollector - should fail to set new FeeCollector if not NFTOwner", async () => {
     await expectRevert(
       erc20Token.connect(user2).setFeeCollector(user2.address),
-      "ERC20Template: not NFTOwner"
+      "ERC20Template: NOT FEE MANAGER"
     );
   });
 
-  it("#setFeeCollector - should succeed to set new FeeCollector if NFTOwner", async () => {
+  it("#setFeeCollector - should succeed to set new FeeCollector if feeManager", async () => {
+    await erc20Token.addFeeManager(owner.address)
+    
     assert((await erc20Token.getFeeCollector()) == owner.address);
     await erc20Token.setFeeCollector(user2.address);
     assert((await erc20Token.getFeeCollector()) == user2.address);
@@ -346,7 +350,7 @@ describe("ERC20Template", () => {
   it("#cleanPermissions - should succeed to call cleanPermissions if NFTOwner", async () => {
     // owner is already minter
     assert((await erc20Token.permissions(owner.address)).minter == true);
-
+    await erc20Token.addFeeManager(owner.address)
     // we set a new FeeCollector
     await erc20Token.setFeeCollector(user2.address);
     assert((await erc20Token.getFeeCollector()) == user2.address);
@@ -361,8 +365,10 @@ describe("ERC20Template", () => {
 
     // check permission were removed
     assert((await erc20Token.permissions(owner.address)).minter == false);
+    assert((await erc20Token.permissions(owner.address)).feeManager == false);
     assert((await erc20Token.permissions(user2.address)).minter == false);
     assert((await erc20Token.permissions(user3.address)).minter == false);
+
     // we reassigned feeCollector to address(0) when cleaning permissions, so now getFeeCollector points to NFT Owner
     assert((await erc20Token.getFeeCollector()) == owner.address);
   });
