@@ -279,6 +279,77 @@ describe("ERC20Template", () => {
     assert((await erc20Token.permissions(user2.address)).minter == false);
   });
 
+  it("#addFeeManager - should fail to addFeeManager if not erc20Deployer (permission to deploy the erc20Contract at 721 level)", async () => {
+    assert((await erc20Token.permissions(user2.address)).feeManager == false);
+
+    await expectRevert(
+      erc20Token.connect(user2).addFeeManager(user2.address),
+      "ERC20Template: NOT DEPLOYER ROLE"
+    );
+
+    assert((await erc20Token.permissions(user2.address)).feeManager == false);
+  });
+
+  it("#addFeeManager - should fail to addFeeManager if it's already feeManager", async () => {
+    assert((await erc20Token.permissions(user2.address)).feeManager == false);
+
+    await erc20Token.addFeeManager(user2.address);
+
+    assert((await erc20Token.permissions(user2.address)).feeManager == true);
+
+    await expectRevert(
+      erc20Token.addFeeManager(user2.address),
+      "ERC20Roles:  ALREADY A FEE MANAGER"
+    );
+  });
+
+  it("#addFeeManager - should succeed to addFeeManager if erc20Deployer (permission to deploy the erc20Contract at 721 level)", async () => {
+    assert((await erc20Token.permissions(user2.address)).feeManager == false);
+
+    // owner is already erc20Deployer
+    await erc20Token.addFeeManager(user2.address);
+
+    assert((await erc20Token.permissions(user2.address)).feeManager == true);
+  });
+
+  it("#removeFeeManager - should fail to removeFeeManager if NOT erc20Deployer", async () => {
+    await erc20Token.addFeeManager(owner.address);
+
+    assert((await erc20Token.permissions(owner.address)).feeManager == true);
+
+    await expectRevert(
+      erc20Token.connect(user2).removeFeeManager(owner.address),
+      "ERC20Template: NOT DEPLOYER ROLE"
+    );
+
+    assert((await erc20Token.permissions(owner.address)).feeManager == true);
+  });
+
+  it("#removeFeeManager - should fail to removeFeeManager even if it's feeManager", async () => {
+    // ERC20 deployer role add himself as manager and user2
+    await erc20Token.addFeeManager(owner.address);
+    await erc20Token.addFeeManager(user2.address);
+
+    assert((await erc20Token.permissions(user2.address)).feeManager == true);
+
+    await expectRevert(
+      erc20Token.connect(user2).removeFeeManager(owner.address),
+      "ERC20Template: NOT DEPLOYER ROLE"
+    );
+
+    assert((await erc20Token.permissions(owner.address)).feeManager == true);
+  });
+
+  it("#removeFeeManager - should succeed to removeFeeManager if erc20Deployer", async () => {
+    await erc20Token.addFeeManager(user2.address);
+
+    assert((await erc20Token.permissions(user2.address)).feeManager == true);
+
+    await erc20Token.removeFeeManager(user2.address);
+
+    assert((await erc20Token.permissions(user2.address)).feeManager == false);
+  });
+
   it("#setData - should fail to setData if NOT erc20Deployer", async () => {
     const key = web3.utils.keccak256(erc20Token.address);
     const value = web3.utils.asciiToHex("SomeData");
@@ -442,7 +513,7 @@ describe("ERC20Template", () => {
       .connect(signer)
       .transfer(user2.address, ethers.utils.parseEther("100"));
 
-    // we approve the erc20Token contract to pull feeAmount (10 DAI)
+    // we approve the erc20Token contract to pull feeAmount (3 DAI)
 
     await daiContract
       .connect(user2)
@@ -515,5 +586,173 @@ describe("ERC20Template", () => {
     assert(
       (await erc20Token.balanceOf(provider.address)) == web3.utils.toWei("9")
     );
+  });
+
+  it("#startMultipleOrder - user should succeed to call startOrder, FEE on top is ZERO", async () => {
+    //MINT SOME DT20 to USER2 so he can start order
+    await erc20Token.mint(user2.address, web3.utils.toWei("10"));
+    assert(
+      (await erc20Token.balanceOf(user2.address)) == web3.utils.toWei("10")
+    );
+    const consumer = user2.address; // could be different user
+    const consumers = [consumer,consumer,user3.address] // consumers can be set arbitrary
+    const dtAmount = web3.utils.toWei("1")
+    const dtAmounts = [dtAmount,dtAmount,dtAmount]
+    const serviceIds = [1,2,3]// dummy indexes
+    const marketFeeCollector = user3.address; // marketplace fee Collector
+    const marketFeeCollectors = [marketFeeCollector,marketFeeCollector,reciever.address]
+    const feeAmount = 0; // fee to be collected on top, requires approval
+    const feeAmounts = [feeAmount,feeAmount,feeAmount]
+    const feeToken = "0x6b175474e89094c44da98b954eedeac495271d0f"; // token address for the feeAmount, in this case DAI
+    const feeTokens = [feeToken,feeToken,feeToken]
+
+    await erc20Token
+      .connect(user2)
+      .startMultipleOrder(
+        consumers,
+        dtAmounts,
+        serviceIds,
+        marketFeeCollectors,
+        feeTokens,
+        feeAmounts
+      );
+
+    assert(
+      (await erc20Token.balanceOf(user2.address)) == web3.utils.toWei("7")
+    );
+    
+    // CHECK COMMUNTIY FEES
+    assert(
+      (await erc20Token.balanceOf(communityFeeCollector)) ==
+        web3.utils.toWei("0.003")
+    );
+    // CHECK MARKETPLACE FEES
+    assert(
+      (await erc20Token.balanceOf(marketFeeCollector)) == web3.utils.toWei("0.002")
+    );
+    assert(
+      (await erc20Token.balanceOf(reciever.address)) == web3.utils.toWei("0.001")
+    );
+
+    assert(
+      (await erc20Token.balanceOf(await erc20Token.getFeeCollector())) ==
+        web3.utils.toWei("2.994")
+    );
+  });
+
+  it("#startMultipleOrder - user should succeed to call startOrder, FEE on top is 3 DAI", async () => {
+    
+    const feeToken = "0x6b175474e89094c44da98b954eedeac495271d0f"; // token address for the feeAmount, in this case DAI
+    // GET SOME DAI (A NEW TOKEN different from OCEAN)
+    const userWithDAI = "0xB09cD60ad551cE7fF6bc97458B483A8D50489Ee7";
+
+    await impersonate(userWithDAI);
+
+    daiContract = await ethers.getContractAt(
+      "contracts/interfaces/IERC20.sol:IERC20",
+      feeToken
+    );
+    signer = ethers.provider.getSigner(userWithDAI);
+    await daiContract
+      .connect(signer)
+      .transfer(user2.address, ethers.utils.parseEther("100"));
+
+    // we approve the erc20Token contract to pull feeAmount (3*3=9 DAI)
+
+    await daiContract
+      .connect(user2)
+      .approve(erc20Token.address, web3.utils.toWei("9"));
+
+    
+    //MINT SOME DT20 to USER2 so he can start order
+    await erc20Token.mint(user2.address, web3.utils.toWei("10"));
+    assert(
+      (await erc20Token.balanceOf(user2.address)) == web3.utils.toWei("10")
+    );
+    const consumer = user2.address; // could be different user
+    const consumers = [consumer,consumer,user3.address] // consumers can be set arbitrary
+    const dtAmount = web3.utils.toWei("1")
+    const dtAmounts = [dtAmount,dtAmount,dtAmount]
+    const serviceIds = [1,2,3]// dummy indexes
+    const marketFeeCollector = user3.address; // marketplace fee Collector
+    const marketFeeCollectors = [marketFeeCollector,marketFeeCollector,reciever.address]
+    const feeAmount = web3.utils.toWei("3"); // fee to be collected on top, requires approval
+    const feeAmounts = [feeAmount,feeAmount,feeAmount]
+    const feeTokens = [feeToken,feeToken,feeToken]
+
+    await erc20Token
+      .connect(user2)
+      .startMultipleOrder(
+        consumers,
+        dtAmounts,
+        serviceIds,
+        marketFeeCollectors,
+        feeTokens,
+        feeAmounts
+      );
+
+    assert(
+      (await erc20Token.balanceOf(user2.address)) == web3.utils.toWei("7")
+    );
+    // CHECK FEES ON TOP
+    assert(
+      (await daiContract.balanceOf(marketFeeCollector)) == web3.utils.toWei("11")
+    ); // marketFeeCollector receives 2 fees (6 dai), markteFeeCollector already has 5 DAI so it's 11
+    assert(
+      (await daiContract.balanceOf(reciever.address)) == web3.utils.toWei("3")
+    ); // reciever receives 1 fee (3 dai)
+
+    // CHECK COMMUNTIY FEES
+    assert(
+      (await erc20Token.balanceOf(communityFeeCollector)) ==
+        web3.utils.toWei("0.003")
+    );
+    // CHECK MARKETPLACE FEES
+    assert(
+      (await erc20Token.balanceOf(marketFeeCollector)) == web3.utils.toWei("0.002")
+    );
+    assert(
+      (await erc20Token.balanceOf(reciever.address)) == web3.utils.toWei("0.001")
+    );
+
+    assert(
+      (await erc20Token.balanceOf(await erc20Token.getFeeCollector())) ==
+        web3.utils.toWei("2.994")
+    );
+  });
+
+  it("#finishMultipleOrder - provider calls finishMultipleOrder and refunds user2", async () => {
+    //MINT SOME DT20 to PROVIDER so he can refund a user
+    await erc20Token.mint(provider.address, web3.utils.toWei("10"));
+    assert(
+      (await erc20Token.balanceOf(provider.address)) == web3.utils.toWei("10")
+    );
+    const consumer = user2.address; // could be different user
+    const consumers = [consumer,consumer,reciever.address]
+    const dtAmount = web3.utils.toWei("1");
+    const dtAmounts = [dtAmount,dtAmount,web3.utils.toWei("3")]
+    const orderTxId = web3.utils.keccak256("0x01"); // dummy orderTxId
+    const orderTxIds = [orderTxId,web3.utils.keccak256("0x02"),web3.utils.keccak256("0x03")]
+    const serviceIds = [1,2,3];
+
+    assert(
+      (await erc20Token.balanceOf(user2.address)) == web3.utils.toWei("0")
+    );
+
+    // PROVIDER CALLS FINISH ORDER AND REFUNDS 1 DT to USER2.
+    await erc20Token
+      .connect(provider)
+      .finishMultipleOrder(orderTxIds, consumers, dtAmounts, serviceIds);
+
+    // CHECK REFUNDS
+    assert((await erc20Token.balanceOf(user2.address)) == 2*dtAmount);
+    assert(
+      (await erc20Token.balanceOf(reciever.address)) == web3.utils.toWei("3")
+    );
+
+    assert(
+      (await erc20Token.balanceOf(provider.address)) == web3.utils.toWei("5")
+    );
+   
   });
 });
