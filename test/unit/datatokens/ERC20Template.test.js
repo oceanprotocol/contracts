@@ -82,41 +82,6 @@ describe("ERC20Template", () => {
     erc20Token;
 
   const communityFeeCollector = "0xeE9300b7961e0a01d9f0adb863C7A227A07AaD75";
-  const v3Datatoken = "0xa2B8b3aC4207CFCCbDe4Ac7fa40214fd00A2BA71";
-  const v3DTOwner = "0x12BD31628075C20919BA838b89F414241b8c4869";
-
-  const migrateFromV3 = async (v3DTOwner, v3Datatoken) => {
-    // WE IMPERSONATE THE ACTUAL v3DT OWNER and create a new ERC721 Contract, from which we are going to wrap the v3 datatoken
-
-    await impersonate(v3DTOwner);
-    signer = ethers.provider.getSigner(v3DTOwner);
-    const tx = await factoryERC721
-      .connect(signer)
-      .deployERC721Contract(
-        "NFT2",
-        "NFTSYMBOL",
-        data,
-        flags,
-        1
-      );
-    const txReceipt = await tx.wait();
-
-    tokenAddress = txReceipt.events[4].args[0];
-    tokenERC721 = await ethers.getContractAt("ERC721Template", tokenAddress);
-    assert((await tokenERC721.v3DT(v3Datatoken)) == false);
-
-    // WE then have to Propose a new minter for the v3Datatoken
-
-    v3DTContract = await ethers.getContractAt("IV3ERC20", v3Datatoken);
-    await v3DTContract.connect(signer).proposeMinter(tokenAddress);
-
-    // ONLY V3DTOwner can now call wrapV3DT() to transfer minter permission to the erc721Contract
-    await tokenERC721.connect(signer).wrapV3DT(v3Datatoken, v3DTOwner);
-    assert((await tokenERC721.v3DT(v3Datatoken)) == true);
-    assert((await tokenERC721._getPermissions(v3DTOwner)).v3Minter == true);
-
-    return tokenERC721;
-  };
 
   beforeEach("init contracts for each test", async () => {
     await network.provider.request({
@@ -139,11 +104,10 @@ describe("ERC20Template", () => {
 
     const Metadata = await ethers.getContractFactory("Metadata");
 
-    [owner, reciever, user2, user3] = await ethers.getSigners();
+    [owner, reciever, user2, user3, provider] = await ethers.getSigners();
 
     data = web3.utils.asciiToHex(constants.blob[0]);
     flags = web3.utils.asciiToHex(constants.blob[0]);
-    
 
     templateERC20 = await ERC20Template.deploy();
     factoryERC20 = await ERC20Factory.deploy(
@@ -241,8 +205,8 @@ describe("ERC20Template", () => {
   });
 
   it("#setFeeCollector - should succeed to set new FeeCollector if feeManager", async () => {
-    await erc20Token.addFeeManager(owner.address)
-    
+    await erc20Token.addFeeManager(owner.address);
+
     assert((await erc20Token.getFeeCollector()) == owner.address);
     await erc20Token.setFeeCollector(user2.address);
     assert((await erc20Token.getFeeCollector()) == user2.address);
@@ -350,7 +314,7 @@ describe("ERC20Template", () => {
   it("#cleanPermissions - should succeed to call cleanPermissions if NFTOwner", async () => {
     // owner is already minter
     assert((await erc20Token.permissions(owner.address)).minter == true);
-    await erc20Token.addFeeManager(owner.address)
+    await erc20Token.addFeeManager(owner.address);
     // we set a new FeeCollector
     await erc20Token.setFeeCollector(user2.address);
     assert((await erc20Token.getFeeCollector()) == user2.address);
@@ -380,14 +344,12 @@ describe("ERC20Template", () => {
     // mock exchange
     const Exchange = await ethers.getContractFactory("MockExchange");
     exchange = await Exchange.deploy();
-   
 
     const TEST_AMOUNT = ethers.utils.parseEther("10");
     const nonce = await erc20Token.nonces(owner.address);
     const chainId = await owner.getChainId();
     const deadline = Math.round(new Date().getTime() / 1000 + 600000); // 10 minutes
-    
-    
+
     const digest = await getApprovalDigest(
       erc20Token,
       owner.address,
@@ -420,6 +382,138 @@ describe("ERC20Template", () => {
 
     assert(
       (await erc20Token.balanceOf(exchange.address)).eq(TEST_AMOUNT) == true
+    );
+  });
+
+  it("#startOrder - user should succeed to call startOrder, FEE on top is ZERO", async () => {
+    //MINT SOME DT20 to USER2 so he can start order
+    await erc20Token.mint(user2.address, web3.utils.toWei("10"));
+    assert(
+      (await erc20Token.balanceOf(user2.address)) == web3.utils.toWei("10")
+    );
+    const consumer = user2.address; // could be different user
+    const dtAmount = web3.utils.toWei("1");
+    const serviceId = 1; // dummy index
+    const marketFeeCollector = user3.address; // marketplace fee Collector
+    const feeAmount = 0; // fee to be collected on top, requires approval
+    const feeToken = "0x6b175474e89094c44da98b954eedeac495271d0f"; // token address for the feeAmount, in this case DAI
+
+    await erc20Token
+      .connect(user2)
+      .startOrder(
+        consumer,
+        dtAmount,
+        serviceId,
+        marketFeeCollector,
+        feeToken,
+        feeAmount
+      );
+
+    assert(
+      (await erc20Token.balanceOf(user2.address)) == web3.utils.toWei("9")
+    );
+
+    assert(
+      (await erc20Token.balanceOf(communityFeeCollector)) ==
+        web3.utils.toWei("0.001")
+    );
+    assert(
+      (await erc20Token.balanceOf(user3.address)) == web3.utils.toWei("0.001")
+    );
+    assert(
+      (await erc20Token.balanceOf(await erc20Token.getFeeCollector())) ==
+        web3.utils.toWei("0.998")
+    );
+  });
+
+  it("#startOrder - user should succeed to call startOrder, FEE on top is 3 DAI", async () => {
+    const feeToken = "0x6b175474e89094c44da98b954eedeac495271d0f"; // token address for the feeAmount, in this case DAI
+    // GET SOME DAI (A NEW TOKEN different from OCEAN)
+    const userWithDAI = "0xB09cD60ad551cE7fF6bc97458B483A8D50489Ee7";
+
+    await impersonate(userWithDAI);
+
+    daiContract = await ethers.getContractAt(
+      "contracts/interfaces/IERC20.sol:IERC20",
+      feeToken
+    );
+    signer = ethers.provider.getSigner(userWithDAI);
+    await daiContract
+      .connect(signer)
+      .transfer(user2.address, ethers.utils.parseEther("100"));
+
+    // we approve the erc20Token contract to pull feeAmount (10 DAI)
+
+    await daiContract
+      .connect(user2)
+      .approve(erc20Token.address, web3.utils.toWei("3"));
+
+    //MINT SOME DT20 to USER2 so he can start order
+    await erc20Token.mint(user2.address, web3.utils.toWei("10"));
+    assert(
+      (await erc20Token.balanceOf(user2.address)) == web3.utils.toWei("10")
+    );
+    const consumer = user2.address; // could be different user
+    const dtAmount = web3.utils.toWei("1");
+    const serviceId = 1; // dummy index
+    const marketFeeCollector = user3.address; // marketplace fee Collector
+    const feeAmount = web3.utils.toWei("3"); // fee to be collected on top, requires approval
+
+    await erc20Token
+      .connect(user2)
+      .startOrder(
+        consumer,
+        dtAmount,
+        serviceId,
+        marketFeeCollector,
+        feeToken,
+        feeAmount
+      );
+
+    assert(
+      (await daiContract.balanceOf(marketFeeCollector)) == web3.utils.toWei("8")
+    ); // marketFeeCollector has already 5 DAI so it's 8
+
+    assert(
+      (await erc20Token.balanceOf(user2.address)) == web3.utils.toWei("9")
+    );
+
+    assert(
+      (await erc20Token.balanceOf(communityFeeCollector)) ==
+        web3.utils.toWei("0.001")
+    );
+    assert(
+      (await erc20Token.balanceOf(user3.address)) == web3.utils.toWei("0.001")
+    );
+    assert(
+      (await erc20Token.balanceOf(await erc20Token.getFeeCollector())) ==
+        web3.utils.toWei("0.998")
+    );
+  });
+
+  it("#finishOrder - provider calls finish Order and refunds user2", async () => {
+    //MINT SOME DT20 to PROVIDER so he can refund a user
+    await erc20Token.mint(provider.address, web3.utils.toWei("10"));
+    assert(
+      (await erc20Token.balanceOf(provider.address)) == web3.utils.toWei("10")
+    );
+    const consumer = user2.address; // could be different user
+    const dtAmount = web3.utils.toWei("1");
+    const orderTxId = web3.utils.keccak256("0x01"); // dummy orderTxId
+    const serviceId = 1;
+
+    assert(
+      (await erc20Token.balanceOf(user2.address)) == web3.utils.toWei("0")
+    );
+
+    // PROVIDER CALLS FINISH ORDER AND REFUNDS 1 DT to USER2.
+    await erc20Token
+      .connect(provider)
+      .finishOrder(orderTxId, consumer, dtAmount, serviceId);
+
+    assert((await erc20Token.balanceOf(user2.address)) == dtAmount);
+    assert(
+      (await erc20Token.balanceOf(provider.address)) == web3.utils.toWei("9")
     );
   });
 });
