@@ -34,40 +34,35 @@ describe("ERC20Factory", () => {
   beforeEach("init contracts for each test", async () => {
     await network.provider.request({
       method: "hardhat_reset",
-      params: [{
-        forking: {
-          jsonRpcUrl: "https://eth-mainnet.alchemyapi.io/v2/eOqKsGAdsiNLCVm846Vgb-6yY3jlcNEo",
-          blockNumber: 12515000,
-        }
-      }]
-    })
+      params: [
+        {
+          forking: {
+            jsonRpcUrl:
+              "https://eth-mainnet.alchemyapi.io/v2/eOqKsGAdsiNLCVm846Vgb-6yY3jlcNEo",
+            blockNumber: 12515000,
+          },
+        },
+      ],
+    });
 
     const ERC721Template = await ethers.getContractFactory("ERC721Template");
     const ERC20Template = await ethers.getContractFactory("ERC20Template");
     const ERC721Factory = await ethers.getContractFactory("ERC721Factory");
     const ERC20Factory = await ethers.getContractFactory("ERC20Factory");
 
-
-    // const OceanFactory = await ethers.getContractFactory('OceanPoolFactory')
-    // const oceanFactory = await OceanFactory.deploy(
-    //   '0xBA12222222228d8Ba445958a75a0704d566BF2C8',
-    //   '0xBA12222222228d8Ba445958a75a0704d566BF2C8'
-    // )
     const Metadata = await ethers.getContractFactory("Metadata");
 
     [owner, reciever, user2, user3] = await ethers.getSigners();
 
-    // cap = new BigNumber('1400000000')
     data = web3.utils.asciiToHex(constants.blob[0]);
     flags = web3.utils.asciiToHex(constants.blob[0]);
-    metadata = await Metadata.deploy();
-    //console.log(metadata.address)
 
     templateERC20 = await ERC20Template.deploy();
     factoryERC20 = await ERC20Factory.deploy(
       templateERC20.address,
       communityFeeCollector
     );
+    metadata = await Metadata.deploy(factoryERC20.address);
     templateERC721 = await ERC721Template.deploy();
     factoryERC721 = await ERC721Factory.deploy(
       templateERC721.address,
@@ -78,7 +73,6 @@ describe("ERC20Factory", () => {
 
     newERC721Template = await ERC721Template.deploy();
 
-    await metadata.setERC20Factory(factoryERC20.address);
     await factoryERC20.setERC721Factory(factoryERC721.address);
 
     const tx = await factoryERC721.deployERC721Contract(
@@ -103,7 +97,10 @@ describe("ERC20Factory", () => {
     const userWithOcean = "0x53aB4a93B31F480d17D3440a6329bDa86869458A";
     await impersonate(userWithOcean);
 
-    oceanContract = await ethers.getContractAt("contracts/interfaces/IERC20.sol:IERC20", oceanAddress);
+    oceanContract = await ethers.getContractAt(
+      "contracts/interfaces/IERC20.sol:IERC20",
+      oceanAddress
+    );
     const signer = await ethers.provider.getSigner(userWithOcean);
     await oceanContract
       .connect(signer)
@@ -114,8 +111,6 @@ describe("ERC20Factory", () => {
     //   (await oceanContract.balanceOf(owner.address)).toString() ==
     //     ethers.utils.parseEther("10000")
     // );
-
-    
   });
 
   it("#isInitialized - should check that the tokenERC721 contract is initialized", async () => {
@@ -160,7 +155,6 @@ describe("ERC20Factory", () => {
   });
 
   it("#createToken - should not allow to create a new ERC20Token directly if ERC721 contract is not on the list", async () => {
- 
     await impersonate(templateERC721.address);
 
     const signer = await ethers.provider.getSigner(templateERC721.address);
@@ -168,20 +162,31 @@ describe("ERC20Factory", () => {
     await expectRevert(
       factoryERC20
         .connect(signer)
-        .createToken("ERC20DT1", "ERC20DT1Symbol", web3.utils.toWei("10"), 1,owner.address),
+        .createToken(
+          "ERC20DT1",
+          "ERC20DT1Symbol",
+          web3.utils.toWei("10"),
+          1,
+          owner.address
+        ),
       "ERC20Factory: ONLY ERC721 INSTANCE FROM ERC721FACTORY"
     );
   });
 
   it("#createToken - should not allow to create a new ERC20Token directly from the ERC20Factory even if is a contract", async () => {
-    
     await impersonate(newERC721Template.address);
     const signer = await ethers.provider.getSigner(newERC721Template.address);
 
     await expectRevert(
       factoryERC20
         .connect(signer)
-        .createToken("ERC20DT1", "ERC20DT1Symbol", web3.utils.toWei("10"), 1,owner.address),
+        .createToken(
+          "ERC20DT1",
+          "ERC20DT1Symbol",
+          web3.utils.toWei("10"),
+          1,
+          owner.address
+        ),
       "ERC20Factory: ONLY ERC721 INSTANCE FROM ERC721FACTORY"
     );
   });
@@ -224,8 +229,10 @@ describe("ERC20Factory", () => {
   });
 
   it("#addTokenTemplate - should fail to add a new ERC20 Template if not owner", async () => {
-    await expectRevert(factoryERC20.connect(user2).addTokenTemplate(newERC721Template.address), 'Ownable: caller is not the owner')
-    
+    await expectRevert(
+      factoryERC20.connect(user2).addTokenTemplate(newERC721Template.address),
+      "Ownable: caller is not the owner"
+    );
   });
 
   it("#disableTokenTemplate - should disable a specific ERC20 Template from owner", async () => {
@@ -296,7 +303,6 @@ describe("ERC20Factory", () => {
   });
 
   it("#addToERC721Registry - should succeed to add a new allowed ERC721 contract from erc721 factory contract", async () => {
-   
     await impersonate(factoryERC721.address);
     const signer = await ethers.provider.getSigner(factoryERC721.address);
 
@@ -315,9 +321,6 @@ describe("ERC20Factory", () => {
   });
 
   it("#getCurrentTemplateCount - should succeed to get Template count", async () => {
-    assert(await factoryERC20.getCurrentTemplateCount() == 1)
+    assert((await factoryERC20.getCurrentTemplateCount()) == 1);
   });
-
- 
 });
-

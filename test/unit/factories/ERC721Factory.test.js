@@ -49,17 +49,15 @@ describe("ERC721Factory", () => {
 
     [owner, reciever, user2, user3] = await ethers.getSigners();
 
-    // cap = new BigNumber('1400000000')
     data = web3.utils.asciiToHex(constants.blob[0]);
     flags = web3.utils.asciiToHex(constants.blob[0]);
-    metadata = await Metadata.deploy();
-    //console.log(metadata.address)
 
     templateERC20 = await ERC20Template.deploy();
     factoryERC20 = await ERC20Factory.deploy(
       templateERC20.address,
       communityFeeCollector
     );
+    metadata = await Metadata.deploy(factoryERC20.address);
     templateERC721 = await ERC721Template.deploy();
     factoryERC721 = await ERC721Factory.deploy(
       templateERC721.address,
@@ -70,7 +68,7 @@ describe("ERC721Factory", () => {
 
     newERC721Template = await ERC721Template.deploy();
 
-    await metadata.setERC20Factory(factoryERC20.address);
+    
     await factoryERC20.setERC721Factory(factoryERC721.address);
   });
 
@@ -113,26 +111,14 @@ describe("ERC721Factory", () => {
 
   it("#deployERC721Contract - should fail to deploy a new erc721 contract if template index doesn't exist", async () => {
     await expectRevert(
-      factoryERC721.deployERC721Contract(
-        "DT1",
-        "DTSYMBOL",
-        data,
-        flags,
-        7
-      ),
+      factoryERC721.deployERC721Contract("DT1", "DTSYMBOL", data, flags, 7),
       "ERC721DTFactory: Template index doesnt exist"
     );
   });
 
   it("#deployERC721Contract - should fail to deploy a new erc721 contract if template index is ZERO", async () => {
     await expectRevert(
-      factoryERC721.deployERC721Contract(
-        "DT1",
-        "DTSYMBOL",
-        data,
-        flags,
-        0
-      ),
+      factoryERC721.deployERC721Contract("DT1", "DTSYMBOL", data, flags, 0),
       "ERC721DTFactory: Template index doesnt exist"
     );
   });
@@ -142,13 +128,7 @@ describe("ERC721Factory", () => {
     await factoryERC721.disableTokenTemplate(2);
 
     await expectRevert(
-      factoryERC721.deployERC721Contract(
-        "DT1",
-        "DTSYMBOL",
-        data,
-        flags,
-        2
-      ),
+      factoryERC721.deployERC721Contract("DT1", "DTSYMBOL", data, flags, 2),
       "ERC721DTFactory: ERC721Token Template disabled"
     );
   });
@@ -156,13 +136,7 @@ describe("ERC721Factory", () => {
   it("#getCurrentTokenCount - should return token count", async () => {
     assert((await factoryERC721.getCurrentTokenCount()) == 1);
 
-    await factoryERC721.deployERC721Contract(
-      "DT1",
-      "DTSYMBOL",
-      data,
-      flags,
-      1
-    );
+    await factoryERC721.deployERC721Contract("DT1", "DTSYMBOL", data, flags, 1);
 
     assert((await factoryERC721.getCurrentTokenCount()) == 2);
   });
@@ -208,7 +182,7 @@ describe("ERC721Factory", () => {
     // active by default
     assert(template.isActive == true);
 
-    await factoryERC721.disableTokenTemplate(2)
+    await factoryERC721.disableTokenTemplate(2);
 
     template = await factoryERC721.getTokenTemplate(2);
 
@@ -217,7 +191,6 @@ describe("ERC721Factory", () => {
   });
 
   it("#reactivateTokenTemplate - should fail to reactivate Token Template if not Owner", async () => {
-    
     await expectRevert(
       factoryERC721.connect(user2).disableTokenTemplate(1),
       "Ownable: caller is not the owner"
@@ -231,18 +204,17 @@ describe("ERC721Factory", () => {
     // active by default
     assert(template.isActive == true);
 
-    await factoryERC721.disableTokenTemplate(2)
+    await factoryERC721.disableTokenTemplate(2);
 
     template = await factoryERC721.getTokenTemplate(2);
 
     assert(template.isActive == false);
 
-    await factoryERC721.reactivateTokenTemplate(2)
+    await factoryERC721.reactivateTokenTemplate(2);
 
     template = await factoryERC721.getTokenTemplate(2);
 
     assert(template.isActive == true);
-
   });
 
   // TODO: complete template functions unit test
