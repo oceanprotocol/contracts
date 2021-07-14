@@ -79,13 +79,17 @@ describe("OceanPoolFactoryRouter", () => {
 
     data = web3.utils.asciiToHex(constants.blob[0]);
     flags = web3.utils.asciiToHex(constants.blob[0]);
-    metadata = await Metadata.deploy();
+   
     
     templateERC20 = await ERC20Template.deploy();
     factoryERC20 = await ERC20Factory.deploy(
       templateERC20.address,
       communityFeeCollector
     );
+
+    metadata = await Metadata.deploy(factoryERC20.address);
+
+
     templateERC721 = await ERC721Template.deploy();
     factoryERC721 = await ERC721Factory.deploy(
       templateERC721.address,
@@ -96,7 +100,7 @@ describe("OceanPoolFactoryRouter", () => {
 
     newERC721Template = await ERC721Template.deploy();
 
-    await metadata.setERC20Factory(factoryERC20.address);
+   
     await factoryERC20.setERC721Factory(factoryERC721.address);
 
     const tx = await factoryERC721.deployERC721Contract(
@@ -354,6 +358,8 @@ describe("OceanPoolFactoryRouter", () => {
     result = await vault.getPool(poolID)
     assert(result[0] == poolAddress)  
   });
+
+
 });
 
 
