@@ -6,6 +6,7 @@ pragma experimental ABIEncoderV2;
 
 
 import "./OceanPoolFactory.sol";
+import "../../interfaces/IPool.sol";
 
 contract OceanPoolFactoryRouter is OceanPoolFactory {
     address public routerOwner;
@@ -18,6 +19,13 @@ contract OceanPoolFactoryRouter is OceanPoolFactory {
 
     event NewPool(address indexed poolAddress, bool isOcean);
     event NewForkPool(address indexed poolAddress);
+
+    // struct JoinPoolRequest {
+    //     IAsset[] assets;
+    //     uint256[] maxAmountsIn;
+    //     bytes userData;
+    //     bool fromInternalBalance;
+    // }
 
     modifier onlyRouterOwner {
         require(routerOwner == msg.sender, "OceanRouter: NOT OWNER");
@@ -88,6 +96,73 @@ contract OceanPoolFactoryRouter is OceanPoolFactory {
         require(pool != address(0), "FAILED TO DEPLOY POOL");
 
         emit NewPool(pool, flag);
+        return pool;
+    }
+
+
+      /**
+     * @dev Deploys a new `OceanPool` and Add Initial Liquidity on Balancer V2. Requires vault approval from user for each token
+     */
+    function deployPoolAndAddLiquidity(
+        string memory name,
+        string memory symbol,
+        IERC20[] memory tokens,
+        uint256[] memory weights,
+        uint256 swapFeePercentage,
+        uint256 marketFee,
+        address owner,
+        IAsset[] memory assets, // same as tokens, passed in as argument to avoid explicit convertion
+        uint256[] memory maxAmountsIn,
+        bytes memory userData
+    ) external returns (address) {
+        
+        bool flag;
+        address pool;
+        // TODO? ADD REQUIRE TO CHECK IF datatoken is on the erc20List => erc20List[datatoken] == true
+
+        for (uint256 i = 0; i < getLength(tokens); i++) {
+            if (oceanTokens[address(tokens[i])] == true) {
+                flag = true;
+                break;
+            }
+        }
+
+        if (flag == true) {
+            pool = _createPool(
+                name,
+                symbol,
+                tokens,
+                weights,
+                swapFeePercentage,
+                0,
+                marketFee,
+                owner
+            );
+       
+        } else {
+            pool = _createPool(
+                name,
+                symbol,
+                tokens,
+                weights,
+                swapFeePercentage,
+                swapFeeOcean,
+                marketFee,
+                owner
+            );
+        }
+
+        require(pool != address(0), "FAILED TO DEPLOY POOL");
+
+        emit NewPool(pool, flag);
+        
+        bytes32 poolId = IPool(pool).getPoolId();
+
+        IVault.JoinPoolRequest memory request = IVault.JoinPoolRequest(assets,maxAmountsIn,userData,false);
+
+        vault.joinPool(poolId, owner, owner, request);
+
+
         return pool;
     }
 
