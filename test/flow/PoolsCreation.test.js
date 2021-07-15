@@ -47,12 +47,7 @@ describe("Pools Creation Flow", () => {
 
     const Metadata = await ethers.getContractFactory("Metadata");
     const Router = await ethers.getContractFactory("OceanPoolFactoryRouter");
-    const OceanPoolFactory = await ethers.getContractFactory(
-      "OceanPoolFactory"
-    );
-    const ForkFactory = await ethers.getContractFactory("BFactory");
-    const PoolForkTemplate = await ethers.getContractFactory("BPool");
-
+  
     [
       owner, // nft owner, 721 deployer
       reciever,
@@ -66,12 +61,9 @@ describe("Pools Creation Flow", () => {
       pool2MarketFeeCollector, // POOL2
     ] = await ethers.getSigners();
 
-     // WE DEPLOY THE FRIENDLY FORK (BALANCER V1)
-     const poolForkTemplate = await PoolForkTemplate.deploy()
-     fork = await ForkFactory.deploy(poolForkTemplate.address)
 
     // DEPLOY ROUTER, SETTING OWNER
-    router = await Router.deploy(owner.address, oceanAddress,vaultAddress,fork.address);
+    router = await Router.deploy(owner.address, oceanAddress,vaultAddress);
  
 
     vault = await ethers.getContractAt(
@@ -120,14 +112,15 @@ describe("Pools Creation Flow", () => {
 
     data = web3.utils.asciiToHex("SomeData");
     flags = web3.utils.asciiToHex(constants.blob[0]);
-    metadata = await Metadata.deploy();
-
+    
     // SETUP ERC20 Factory with template
     templateERC20 = await ERC20Template.deploy();
     factoryERC20 = await ERC20Factory.deploy(
       templateERC20.address,
       communityFeeCollector
     );
+
+    metadata = await Metadata.deploy(factoryERC20.address);
 
     // SETUP ERC721 Factory with template
     templateERC721 = await ERC721Template.deploy();
@@ -138,8 +131,7 @@ describe("Pools Creation Flow", () => {
       metadata.address
     );
 
-    // SET REQUIRED ADDRESSES
-    await metadata.setERC20Factory(factoryERC20.address);
+    // SET REQUIRED ADDRESS
     await factoryERC20.setERC721Factory(factoryERC721.address);
   });
 

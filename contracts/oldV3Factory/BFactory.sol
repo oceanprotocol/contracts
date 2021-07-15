@@ -46,8 +46,8 @@ contract BFactory is BConst, Deployer {
     /* @dev Deploys new BPool proxy contract.
        Template contract address could not be a zero address. 
        @return address of a new proxy BPool contract */
-    // THIS FUNCTION IS DIFFERENT FROM THE ORIGINAL ONE BECAUSE CONTROLLER CANNOT BE ASSIGNED AS msg.sender, it has to be passed as argument
-    function newBPool(address controller)
+   
+    function newBPool()
         external
         returns (address bpool)
     {
@@ -59,7 +59,7 @@ contract BFactory is BConst, Deployer {
         BPool bpoolInstance = BPool(bpool);	
         require(
             bpoolInstance.initialize(
-                controller,
+                msg.sender,
                 address(this), 
                 MIN_FEE, 
                 false,

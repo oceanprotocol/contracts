@@ -26,7 +26,7 @@ contract OceanPoolFactoryRouter is OceanPoolFactory {
         _;
     }
 
-    constructor(address _routerOwner, address _oceanToken, IVault _vault, address _factoryFork) OceanPoolFactory(_vault,_factoryFork) {
+    constructor(address _routerOwner, address _oceanToken, IVault _vault) OceanPoolFactory(_vault) {
         routerOwner = _routerOwner; 
         
         addOceanToken(_oceanToken);
@@ -94,19 +94,6 @@ contract OceanPoolFactoryRouter is OceanPoolFactory {
     }
 
 
-
-
-    // deploy a new pool on Ocean fork of Balancer v1
-    function deployPoolWithFork(address controller) external returns (address) {
-        require(controller != address(0), "OceanPoolFactoryRouter: Invalid address");
-       
-   
-        address pool =
-            _createPoolWithFork(controller);
-
-        emit NewForkPool(pool);
-        return pool;
-    }
 
 
     function getLength(IERC20[] memory array) private view returns (uint256) {

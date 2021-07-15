@@ -10,13 +10,13 @@ contract OceanPoolFactory is BasePoolSplitCodeFactory, FactoryWidePauseWindow {
     
     IVault public vault;
     
-    address public factoryFork; 
+   
     
 
-   constructor(IVault _vault, address _factoryFork) BasePoolSplitCodeFactory(vault, type(WeightedPool).creationCode) {
+   constructor(IVault _vault) BasePoolSplitCodeFactory(vault, type(WeightedPool).creationCode) {
       
         vault = _vault;
-        factoryFork = _factoryFork;
+        
         
         
     }
@@ -58,10 +58,6 @@ contract OceanPoolFactory is BasePoolSplitCodeFactory, FactoryWidePauseWindow {
     }
 
 
-    function _createPoolWithFork(address controller) internal returns (address){
-        address pool = IFriendlyFactory(factoryFork).newBPool(controller);
-        
-        return pool;
-    }
+   
 
 }

@@ -1,7 +1,7 @@
 {
   "name": "hardhat-project",
   "scripts": {
-    "test:unit": "npx hardhat test test/unit/*/*.test.js"
+    "test:unit": "npx hardhat test test/unit/*/*.test.js test/flow/*.test.js "
   },
   "devDependencies": {
     "@nomiclabs/hardhat-ethers": "^2.0.2",

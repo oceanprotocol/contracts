@@ -58,23 +58,17 @@ describe("OceanPoolFactoryRouter", () => {
     const ERC20Factory = await ethers.getContractFactory("ERC20Factory");
     const Metadata = await ethers.getContractFactory("Metadata");
     const Router = await ethers.getContractFactory("OceanPoolFactoryRouter");
-    const OceanPoolFactory = await ethers.getContractFactory("OceanPoolFactory");
-    const ForkFactory = await ethers.getContractFactory("BFactory");
-    const PoolForkTemplate = await ethers.getContractFactory("BPool")
+    
+ 
     vault = await ethers.getContractAt("@balancer-labs/v2-vault/contracts/interfaces/IVault.sol:IVault", vaultAddress);
 
     [owner, reciever, user2, user3] = await ethers.getSigners();
     
-    // WE DEPLOY THE FRIENDLY FORK (BALANCER V1)
-    const poolForkTemplate = await PoolForkTemplate.deploy()
-    fork = await ForkFactory.deploy(poolForkTemplate.address)
+  
     
     // DEPLOY ROUTER, SETTING OWNER
-    router = await Router.deploy(owner.address,oceanAddress,vaultAddress,fork.address)
-    // // DEPLOY OUR POOL FACTORY
-    // poolFactory = await OceanPoolFactory.deploy(vaultAddress,router.address,owner.address, fork.address)
-    // // ADD THE FACTORY ADDRESS TO THE ROUTER
-    // await router.addOceanPoolFactory(poolFactory.address);
+    router = await Router.deploy(owner.address,oceanAddress,vaultAddress)
+   
 
 
     data = web3.utils.asciiToHex(constants.blob[0]);
@@ -165,26 +159,6 @@ describe("OceanPoolFactoryRouter", () => {
     assert(await router.oceanTokens(user2.address) == false);
    
   })
-
-  it("#deployPoolWithFork - should fail to create new Pool if controller is Address ZERO", async () => {
-   
-
-    // CREATE BALANCER POOL THROUGH THE ROUTER
-    await expectRevert(
-      router.deployPoolWithFork(ZERO_ADDRESS),
-      "OceanPoolFactoryRouter: Invalid address"
-    );
-  });
-
-  it("#deployPoolWithFork - should succeed to create new Pool from Router", async () => {
-  
-    // CREATE BALANCER POOL THROUGH THE ROUTER
-    receipt = await (await router.deployPoolWithFork(owner.address)).wait()
-    const events = receipt.events.filter((e) => e.event === "NewForkPool");
-    assert(events[0].args.poolAddress != ZERO_ADDRESS)
-    const forkPool = await ethers.getContractAt('BPool',events[0].args.poolAddress )
-    assert(await forkPool.getController() == owner.address)
-  });
 
   it("#deployPool - should succeed to deploy a new 2 token Pool WITH OceanToken from our Custom Factory on Balancer V2", async () => {
   

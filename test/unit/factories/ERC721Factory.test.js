@@ -58,6 +58,7 @@ describe("ERC721Factory", () => {
       communityFeeCollector
     );
     metadata = await Metadata.deploy(factoryERC20.address);
+    
     templateERC721 = await ERC721Template.deploy();
     factoryERC721 = await ERC721Factory.deploy(
       templateERC721.address,
