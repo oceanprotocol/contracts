@@ -510,6 +510,7 @@ contract WeightedPool is BaseMinimalSwapInfoPool, WeightedMath {
             require(recipient == oceanCommunityCollector, "NOT OPF RECIPIENT");
             return _exitOPFCommunityFee();
         } else if (kind == ExitKind.MP_FEE_WITHDRAWAL) {
+            require(marketFeeCollector != address(0),'MarketFeeCollector NOT SET');
             require(recipient == marketFeeCollector, "NOT MP RECIPIENT");
             return _exitMPFee();
         } else {

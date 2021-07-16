@@ -161,7 +161,7 @@ abstract contract BasePool is IBasePool, BasePoolAuthorization, BalancerPoolToke
         bytes32 poolId = vault.registerPool(specialization);
         //_poolIdReg = poolId;
         // Pass in zero addresses for Asset Managers
-       
+    
         vault.registerTokens(poolId, tokens, new address[](tokens.length));
 
         // Set immutable state variables - these cannot be read from during construction
