@@ -29,6 +29,7 @@ contract ERC20Template is ERC20("test", "testSymbol"), ERC20Roles {
     bool private initialized = false;
     address private _erc721Address;
     address private feeCollector;
+    uint8 private constant templateId = 1;
     //  address private _minter;
     //  address private _proposedMinter;
     uint256 public constant BASE = 10**18;
@@ -378,6 +379,11 @@ contract ERC20Template is ERC20("test", "testSymbol"), ERC20Roles {
         require(user.feeManager == true, "ERC20Template: NOT FEE MANAGER");
         feeCollector = _newFeeCollector;
     }
+
+    function getId() external view returns (uint8) {
+        return templateId;
+    }
+
 
     /**
      * @dev name

@@ -737,7 +737,7 @@ describe("Pools Creation Flow", () => {
       assert(result[0] == poolAddress);
     });
 
-    it("#3 - user5 performs a swap from dai to datatoken", async () => {
+    it("#3 - user5 performs a swap from dai (exact IN) to datatoken", async () => {
       // user3 sends some dai token to user5
 
       await daiContract
@@ -756,7 +756,7 @@ describe("Pools Creation Flow", () => {
 
       const swapStruct = {
         poolId: poolID,
-        kind: 0,
+        kind: 0, // GIVEN IN
         assetIn: daiAddress,
         assetOut: erc20Token.address,
         amount: ethers.utils.parseEther("10"),
