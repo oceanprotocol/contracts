@@ -595,16 +595,20 @@ describe("ERC20Template", () => {
       (await erc20Token.balanceOf(user2.address)) == web3.utils.toWei("10")
     );
     const consumer = user2.address; // could be different user
-    const consumers = [consumer,consumer,user3.address] // consumers can be set arbitrary
-    const dtAmount = web3.utils.toWei("1")
-    const dtAmounts = [dtAmount,dtAmount,dtAmount]
-    const serviceIds = [1,2,3]// dummy indexes
+    const consumers = [consumer, consumer, user3.address]; // consumers can be set arbitrary
+    const dtAmount = web3.utils.toWei("1");
+    const dtAmounts = [dtAmount, dtAmount, dtAmount];
+    const serviceIds = [1, 2, 3]; // dummy indexes
     const marketFeeCollector = user3.address; // marketplace fee Collector
-    const marketFeeCollectors = [marketFeeCollector,marketFeeCollector,reciever.address]
+    const marketFeeCollectors = [
+      marketFeeCollector,
+      marketFeeCollector,
+      reciever.address,
+    ];
     const feeAmount = 0; // fee to be collected on top, requires approval
-    const feeAmounts = [feeAmount,feeAmount,feeAmount]
+    const feeAmounts = [feeAmount, feeAmount, feeAmount];
     const feeToken = "0x6b175474e89094c44da98b954eedeac495271d0f"; // token address for the feeAmount, in this case DAI
-    const feeTokens = [feeToken,feeToken,feeToken]
+    const feeTokens = [feeToken, feeToken, feeToken];
 
     await erc20Token
       .connect(user2)
@@ -620,7 +624,7 @@ describe("ERC20Template", () => {
     assert(
       (await erc20Token.balanceOf(user2.address)) == web3.utils.toWei("7")
     );
-    
+
     // CHECK COMMUNTIY FEES
     assert(
       (await erc20Token.balanceOf(communityFeeCollector)) ==
@@ -628,10 +632,12 @@ describe("ERC20Template", () => {
     );
     // CHECK MARKETPLACE FEES
     assert(
-      (await erc20Token.balanceOf(marketFeeCollector)) == web3.utils.toWei("0.002")
+      (await erc20Token.balanceOf(marketFeeCollector)) ==
+        web3.utils.toWei("0.002")
     );
     assert(
-      (await erc20Token.balanceOf(reciever.address)) == web3.utils.toWei("0.001")
+      (await erc20Token.balanceOf(reciever.address)) ==
+        web3.utils.toWei("0.001")
     );
 
     assert(
@@ -641,7 +647,6 @@ describe("ERC20Template", () => {
   });
 
   it("#startMultipleOrder - user should succeed to call startOrder, FEE on top is 3 DAI", async () => {
-    
     const feeToken = "0x6b175474e89094c44da98b954eedeac495271d0f"; // token address for the feeAmount, in this case DAI
     // GET SOME DAI (A NEW TOKEN different from OCEAN)
     const userWithDAI = "0xB09cD60ad551cE7fF6bc97458B483A8D50489Ee7";
@@ -663,22 +668,25 @@ describe("ERC20Template", () => {
       .connect(user2)
       .approve(erc20Token.address, web3.utils.toWei("9"));
 
-    
     //MINT SOME DT20 to USER2 so he can start order
     await erc20Token.mint(user2.address, web3.utils.toWei("10"));
     assert(
       (await erc20Token.balanceOf(user2.address)) == web3.utils.toWei("10")
     );
     const consumer = user2.address; // could be different user
-    const consumers = [consumer,consumer,user3.address] // consumers can be set arbitrary
-    const dtAmount = web3.utils.toWei("1")
-    const dtAmounts = [dtAmount,dtAmount,dtAmount]
-    const serviceIds = [1,2,3]// dummy indexes
+    const consumers = [consumer, consumer, user3.address]; // consumers can be set arbitrary
+    const dtAmount = web3.utils.toWei("1");
+    const dtAmounts = [dtAmount, dtAmount, dtAmount];
+    const serviceIds = [1, 2, 3]; // dummy indexes
     const marketFeeCollector = user3.address; // marketplace fee Collector
-    const marketFeeCollectors = [marketFeeCollector,marketFeeCollector,reciever.address]
+    const marketFeeCollectors = [
+      marketFeeCollector,
+      marketFeeCollector,
+      reciever.address,
+    ];
     const feeAmount = web3.utils.toWei("3"); // fee to be collected on top, requires approval
-    const feeAmounts = [feeAmount,feeAmount,feeAmount]
-    const feeTokens = [feeToken,feeToken,feeToken]
+    const feeAmounts = [feeAmount, feeAmount, feeAmount];
+    const feeTokens = [feeToken, feeToken, feeToken];
 
     await erc20Token
       .connect(user2)
@@ -696,7 +704,8 @@ describe("ERC20Template", () => {
     );
     // CHECK FEES ON TOP
     assert(
-      (await daiContract.balanceOf(marketFeeCollector)) == web3.utils.toWei("11")
+      (await daiContract.balanceOf(marketFeeCollector)) ==
+        web3.utils.toWei("11")
     ); // marketFeeCollector receives 2 fees (6 dai), markteFeeCollector already has 5 DAI so it's 11
     assert(
       (await daiContract.balanceOf(reciever.address)) == web3.utils.toWei("3")
@@ -709,10 +718,12 @@ describe("ERC20Template", () => {
     );
     // CHECK MARKETPLACE FEES
     assert(
-      (await erc20Token.balanceOf(marketFeeCollector)) == web3.utils.toWei("0.002")
+      (await erc20Token.balanceOf(marketFeeCollector)) ==
+        web3.utils.toWei("0.002")
     );
     assert(
-      (await erc20Token.balanceOf(reciever.address)) == web3.utils.toWei("0.001")
+      (await erc20Token.balanceOf(reciever.address)) ==
+        web3.utils.toWei("0.001")
     );
 
     assert(
@@ -728,12 +739,16 @@ describe("ERC20Template", () => {
       (await erc20Token.balanceOf(provider.address)) == web3.utils.toWei("10")
     );
     const consumer = user2.address; // could be different user
-    const consumers = [consumer,consumer,reciever.address]
+    const consumers = [consumer, consumer, reciever.address];
     const dtAmount = web3.utils.toWei("1");
-    const dtAmounts = [dtAmount,dtAmount,web3.utils.toWei("3")]
+    const dtAmounts = [dtAmount, dtAmount, web3.utils.toWei("3")];
     const orderTxId = web3.utils.keccak256("0x01"); // dummy orderTxId
-    const orderTxIds = [orderTxId,web3.utils.keccak256("0x02"),web3.utils.keccak256("0x03")]
-    const serviceIds = [1,2,3];
+    const orderTxIds = [
+      orderTxId,
+      web3.utils.keccak256("0x02"),
+      web3.utils.keccak256("0x03"),
+    ];
+    const serviceIds = [1, 2, 3];
 
     assert(
       (await erc20Token.balanceOf(user2.address)) == web3.utils.toWei("0")
@@ -745,7 +760,7 @@ describe("ERC20Template", () => {
       .finishMultipleOrder(orderTxIds, consumers, dtAmounts, serviceIds);
 
     // CHECK REFUNDS
-    assert((await erc20Token.balanceOf(user2.address)) == 2*dtAmount);
+    assert((await erc20Token.balanceOf(user2.address)) == 2 * dtAmount);
     assert(
       (await erc20Token.balanceOf(reciever.address)) == web3.utils.toWei("3")
     );
@@ -753,6 +768,10 @@ describe("ERC20Template", () => {
     assert(
       (await erc20Token.balanceOf(provider.address)) == web3.utils.toWei("5")
     );
-   
+  });
+
+  it("#getId - should return templateId", async () => {
+    const templateId = 1;
+    assert((await erc20Token.getId()) == templateId);
   });
 });
