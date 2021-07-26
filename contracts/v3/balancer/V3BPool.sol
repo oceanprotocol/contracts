@@ -21,7 +21,7 @@ import './BMath.sol';
 *
 *  [1] https://github.com/balancer-labs/balancer-core/contracts/.
 */
-contract BPool is BToken, BMath {
+contract V3BPool is BToken, BMath {
 
     struct Record {
         bool bound;   // is token bound to pool

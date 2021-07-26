@@ -14,7 +14,7 @@ import "@openzeppelin/contracts/utils/math/SafeMath.sol";
 *      Used by the factory contract as a bytecode reference to 
 *      deploy new DataTokens.
 */
-contract DataTokenTemplate is ERC20("test", "testSymbol"){
+contract V3DataTokenTemplate is ERC20("test", "testSymbol"){
     using SafeMath for uint256;
 
     string  private _name;

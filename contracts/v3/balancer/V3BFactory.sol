@@ -3,7 +3,7 @@ pragma solidity 0.5.7;
 // SPDX-License-Identifier: (Apache-2.0 AND CC-BY-4.0)
 // Code is Apache-2.0 and docs are CC-BY-4.0
 
-import './BPool.sol';
+import './V3BPool.sol';
 import './BConst.sol';
 import '../../utils/Deployer.sol';
 
@@ -17,7 +17,7 @@ import '../../utils/Deployer.sol';
 *      Proxy contract functionality is based on Ocean Protocol custom
 *        implementation of ERC1167 standard.
 */
-contract BFactory is BConst, Deployer {
+contract V3BFactory is BConst, Deployer {
 
     address public bpoolTemplate;
 
@@ -55,7 +55,7 @@ contract BFactory is BConst, Deployer {
             bpool != address(0), 
             'BFactory: invalid bpool zero address'
         );
-        BPool bpoolInstance = BPool(bpool);	
+        V3BPool bpoolInstance = V3BPool(bpool);	
         require(
             bpoolInstance.initialize(
                 msg.sender,
