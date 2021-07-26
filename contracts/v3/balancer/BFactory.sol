@@ -5,7 +5,7 @@ pragma solidity 0.5.7;
 
 import './BPool.sol';
 import './BConst.sol';
-import '../utils/Deployer.sol';
+import '../../utils/Deployer.sol';
 
 /*
 * @title BFactory contract
@@ -46,7 +46,6 @@ contract BFactory is BConst, Deployer {
     /* @dev Deploys new BPool proxy contract.
        Template contract address could not be a zero address. 
        @return address of a new proxy BPool contract */
-   
     function newBPool()
         external
         returns (address bpool)

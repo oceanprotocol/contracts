@@ -13,7 +13,7 @@
   },
   "dependencies": {
     "@balancer-labs/v2-pool-utils": "^1.0.0",
-    "@openzeppelin/contracts": "^4.0.0",
+    "@openzeppelin/contracts": "^4.2.0",
     "@openzeppelin/test-helpers": "^0.5.10",
     "eth-permit": "^0.1.10",
     "ethereumjs-util": "^7.0.10",

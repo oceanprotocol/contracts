@@ -14,8 +14,8 @@
 pragma solidity 0.5.7;
 
 import './BNum.sol';
-import '../interfaces/IERC20.sol';
-
+// import '@openzeppelin/contracts/token/ERC20/IERC20.sol';
+import '../../interfaces/IERC20.sol';
 // Highly opinionated token implementation
 
 // interface IERC20 {
@@ -32,10 +32,6 @@ import '../interfaces/IERC20.sol';
 //         address src, address dst, uint amt
 //     ) external returns (bool);
 // }
-
-
-
-
 
 contract BTokenBase is BNum {
 
@@ -96,7 +92,7 @@ contract BToken is BTokenBase, IERC20 {
         return _decimals;
     }
 
-    function allowance(address src, address dst) external view returns (uint) {
+    function allowance(address src, address dst) external view returns (uint256) {
         return _allowance[src][dst];
     }
 

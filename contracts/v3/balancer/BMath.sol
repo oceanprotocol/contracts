@@ -125,10 +125,12 @@ contract BMath is BConst, BNum {
         public pure
         returns (uint poolAmountOut)
     {
-        // Charge the trading fee for the proportion of tokenAi
-        ///  which is implicitly traded to the other pool tokens.
-        // That proportion is (1- weightTokenIn)
-        // tokenAiAfterFee = tAi * (1 - (1-weightTi) * poolFee);
+        /* Charge the trading fee for the proportion of tokenAi
+         which is implicitly traded to the other pool tokens.
+         That proportion is (1- weightTokenIn)
+         tokenAiAfterFee = tAi * (1 - (1-weightTi) * poolFee);
+        */
+
         uint normalizedWeight = bdiv(tokenWeightIn, totalWeight);
         uint zaz = bmul(bsub(BONE, normalizedWeight), swapFee); 
         uint tokenAmountInAfterFee = bmul(tokenAmountIn, bsub(BONE, zaz));
