@@ -1,0 +1,235 @@
+{
+  "_format": "hh-sol-artifact-1",
+  "contractName": "BConst",
+  "sourceName": "contracts/v3/balancer/BConst.sol",
+  "abi": [
+    {
+      "constant": true,
+      "inputs": [],
+      "name": "MAX_TOTAL_WEIGHT",
+      "outputs": [
+        {
+          "name": "",
+          "type": "uint256"
+        }
+      ],
+      "payable": false,
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "constant": true,
+      "inputs": [],
+      "name": "BPOW_PRECISION",
+      "outputs": [
+        {
+          "name": "",
+          "type": "uint256"
+        }
+      ],
+      "payable": false,
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "constant": true,
+      "inputs": [],
+      "name": "MIN_WEIGHT",
+      "outputs": [
+        {
+          "name": "",
+          "type": "uint256"
+        }
+      ],
+      "payable": false,
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "constant": true,
+      "inputs": [],
+      "name": "MIN_FEE",
+      "outputs": [
+        {
+          "name": "",
+          "type": "uint256"
+        }
+      ],
+      "payable": false,
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "constant": true,
+      "inputs": [],
+      "name": "MIN_BALANCE",
+      "outputs": [
+        {
+          "name": "",
+          "type": "uint256"
+        }
+      ],
+      "payable": false,
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "constant": true,
+      "inputs": [],
+      "name": "INIT_POOL_SUPPLY",
+      "outputs": [
+        {
+          "name": "",
+          "type": "uint256"
+        }
+      ],
+      "payable": false,
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "constant": true,
+      "inputs": [],
+      "name": "MAX_OUT_RATIO",
+      "outputs": [
+        {
+          "name": "",
+          "type": "uint256"
+        }
+      ],
+      "payable": false,
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "constant": true,
+      "inputs": [],
+      "name": "MAX_BOUND_TOKENS",
+      "outputs": [
+        {
+          "name": "",
+          "type": "uint256"
+        }
+      ],
+      "payable": false,
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "constant": true,
+      "inputs": [],
+      "name": "MIN_BOUND_TOKENS",
+      "outputs": [
+        {
+          "name": "",
+          "type": "uint256"
+        }
+      ],
+      "payable": false,
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "constant": true,
+      "inputs": [],
+      "name": "MIN_BPOW_BASE",
+      "outputs": [
+        {
+          "name": "",
+          "type": "uint256"
+        }
+      ],
+      "payable": false,
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "constant": true,
+      "inputs": [],
+      "name": "MAX_FEE",
+      "outputs": [
+        {
+          "name": "",
+          "type": "uint256"
+        }
+      ],
+      "payable": false,
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "constant": true,
+      "inputs": [],
+      "name": "MAX_BPOW_BASE",
+      "outputs": [
+        {
+          "name": "",
+          "type": "uint256"
+        }
+      ],
+      "payable": false,
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "constant": true,
+      "inputs": [],
+      "name": "BONE",
+      "outputs": [
+        {
+          "name": "",
+          "type": "uint256"
+        }
+      ],
+      "payable": false,
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "constant": true,
+      "inputs": [],
+      "name": "EXIT_FEE",
+      "outputs": [
+        {
+          "name": "",
+          "type": "uint256"
+        }
+      ],
+      "payable": false,
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "constant": true,
+      "inputs": [],
+      "name": "MAX_WEIGHT",
+      "outputs": [
+        {
+          "name": "",
+          "type": "uint256"
+        }
+      ],
+      "payable": false,
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "constant": true,
+      "inputs": [],
+      "name": "MAX_IN_RATIO",
+      "outputs": [
+        {
+          "name": "",
+          "type": "uint256"
+        }
+      ],
+      "payable": false,
+      "stateMutability": "view",
+      "type": "function"
+    }
+  ],
+  "bytecode": "0x608060405234801561001057600080fd5b5061025f806100206000396000f3fe608060405234801561001057600080fd5b50600436106101005760003560e01c8063b7b800a411610097578063c36596a611610066578063c36596a614610127578063c6580d1214610177578063e4a28a5214610105578063ec0930211461017f57610100565b8063b7b800a414610157578063ba019dab1461015f578063bc063e1a14610167578063bc694ea21461016f57610100565b8063867378c5116100d3578063867378c5146101375780639381cd2b1461013f578063992e2a9214610147578063b0e0d1361461014f57610100565b806309a3bbe414610105578063189d00ca1461011f578063218b53821461012757806376c7a3c71461012f575b600080fd5b61010d610187565b60408051918252519081900360200190f35b61010d610194565b61010d6101a8565b61010d6101b4565b61010d6101c6565b61010d6101da565b61010d6101e7565b61010d6101f3565b61010d6101f8565b61010d6101fd565b61010d610202565b61010d610212565b61010d61021e565b61010d610223565b6802b5e3af16b188000081565b6402540be400670de0b6b3a76400005b0481565b670de0b6b3a764000081565b620f4240670de0b6b3a76400006101a4565b64e8d4a51000670de0b6b3a76400006101a4565b68056bc75e2d6310000081565b6704a03ce68d21555681565b600881565b600281565b600181565b600a670de0b6b3a76400006101a4565b671bc16d674ec7ffff81565b600081565b6002670de0b6b3a76400006101a456fea165627a7a72305820eb820cf75e0d0ce7c65d113075844ddd0d60a88d99082b7a339a8b8db0e696ce0029",
+  "deployedBytecode": "0x608060405234801561001057600080fd5b50600436106101005760003560e01c8063b7b800a411610097578063c36596a611610066578063c36596a614610127578063c6580d1214610177578063e4a28a5214610105578063ec0930211461017f57610100565b8063b7b800a414610157578063ba019dab1461015f578063bc063e1a14610167578063bc694ea21461016f57610100565b8063867378c5116100d3578063867378c5146101375780639381cd2b1461013f578063992e2a9214610147578063b0e0d1361461014f57610100565b806309a3bbe414610105578063189d00ca1461011f578063218b53821461012757806376c7a3c71461012f575b600080fd5b61010d610187565b60408051918252519081900360200190f35b61010d610194565b61010d6101a8565b61010d6101b4565b61010d6101c6565b61010d6101da565b61010d6101e7565b61010d6101f3565b61010d6101f8565b61010d6101fd565b61010d610202565b61010d610212565b61010d61021e565b61010d610223565b6802b5e3af16b188000081565b6402540be400670de0b6b3a76400005b0481565b670de0b6b3a764000081565b620f4240670de0b6b3a76400006101a4565b64e8d4a51000670de0b6b3a76400006101a4565b68056bc75e2d6310000081565b6704a03ce68d21555681565b600881565b600281565b600181565b600a670de0b6b3a76400006101a4565b671bc16d674ec7ffff81565b600081565b6002670de0b6b3a76400006101a456fea165627a7a72305820eb820cf75e0d0ce7c65d113075844ddd0d60a88d99082b7a339a8b8db0e696ce0029",
+  "linkReferences": {},
+  "deployedLinkReferences": {}
+}

@@ -1,21 +1,22 @@
-pragma solidity >=0.6.0;
+pragma solidity >=0.5.7;
 // Copyright BigchainDB GmbH and Ocean Protocol contributors
 // SPDX-License-Identifier: (Apache-2.0 AND CC-BY-4.0)
 // Code is Apache-2.0 and docs are CC-BY-4.0
 
-import '../interfaces/IERC20Template.sol';
-import '@openzeppelin/contracts/utils/math/SafeMath.sol';
+import "../interfaces/IERC20Template.sol";
+import "@openzeppelin/contracts/utils/math/SafeMath.sol";
+import "hardhat/console.sol";
 
 /**
  * @title FixedRateExchange
  * @dev FixedRateExchange is a fixed rate exchange Contract
- *      Marketplaces uses this contract to allow consumers 
- *      exchanging datatokens with ocean token using a fixed 
+ *      Marketplaces uses this contract to allow consumers
+ *      exchanging datatokens with ocean token using a fixed
  *      exchange rate.
  */
 contract FixedRateExchange {
     using SafeMath for uint256;
-    uint256 private constant BASE = 10 ** 18;
+    uint256 private constant BASE = 10**18;
     struct Exchange {
         bool active;
         address exchangeOwner;
@@ -28,25 +29,19 @@ contract FixedRateExchange {
     mapping(bytes32 => Exchange) private exchanges;
     bytes32[] private exchangeIds;
 
-    modifier onlyActiveExchange(
-        bytes32 exchangeId
-    )
-    {
+    modifier onlyActiveExchange(bytes32 exchangeId) {
         require(
             exchanges[exchangeId].fixedRate != 0 &&
-            exchanges[exchangeId].active == true,
-            'FixedRateExchange: Exchange does not exist!'
+                exchanges[exchangeId].active == true,
+            "FixedRateExchange: Exchange does not exist!"
         );
         _;
     }
 
-    modifier onlyExchangeOwner(
-        bytes32 exchangeId
-    )
-    {
+    modifier onlyExchangeOwner(bytes32 exchangeId) {
         require(
             exchanges[exchangeId].exchangeOwner == msg.sender,
-            'FixedRateExchange: invalid exchange owner'
+            "FixedRateExchange: invalid exchange owner"
         );
         _;
     }
@@ -94,24 +89,22 @@ contract FixedRateExchange {
         address baseToken,
         address dataToken,
         uint256 fixedRate
-    )
-        external
-    {
+    ) external {
         require(
             baseToken != address(0),
-            'FixedRateExchange: Invalid basetoken,  zero address'
+            "FixedRateExchange: Invalid basetoken,  zero address"
         );
         require(
             dataToken != address(0),
-            'FixedRateExchange: Invalid datatoken,  zero address'
+            "FixedRateExchange: Invalid datatoken,  zero address"
         );
         require(
             baseToken != dataToken,
-            'FixedRateExchange: Invalid datatoken,  equals basetoken'
+            "FixedRateExchange: Invalid datatoken,  equals basetoken"
         );
         require(
-            fixedRate != 0, 
-            'FixedRateExchange: Invalid exchange rate value'
+            fixedRate != 0,
+            "FixedRateExchange: Invalid exchange rate value"
         );
         bytes32 exchangeId = generateExchangeId(
             baseToken,
@@ -120,7 +113,7 @@ contract FixedRateExchange {
         );
         require(
             exchanges[exchangeId].fixedRate == 0,
-            'FixedRateExchange: Exchange already exists!'
+            "FixedRateExchange: Exchange already exists!"
         );
         exchanges[exchangeId] = Exchange({
             active: true,
@@ -139,10 +132,7 @@ contract FixedRateExchange {
             fixedRate
         );
 
-        emit ExchangeActivated(
-            exchangeId,
-            msg.sender
-        );
+        emit ExchangeActivated(exchangeId, msg.sender);
     }
 
     /**
@@ -156,68 +146,61 @@ contract FixedRateExchange {
         address baseToken,
         address dataToken,
         address exchangeOwner
-    )
-        public
-        pure
-        returns (bytes32)
-    {
-        return keccak256(
-            abi.encode(
-                baseToken,
-                dataToken,
-                exchangeOwner
-            )
-        );
+    ) public pure returns (bytes32) {
+        return keccak256(abi.encode(baseToken, dataToken, exchangeOwner));
     }
-    
+
     /**
      * @dev CalcInGivenOut
      *      Calculates how many basetokens are needed to get specifyed amount of datatokens
-     * @param exchangeId a unique exchange idnetifier 
+     * @param exchangeId a unique exchange idnetifier
      * @param dataTokenAmount the amount of data tokens to be exchanged
      */
-    function CalcInGivenOut(
-        bytes32 exchangeId,
-        uint256 dataTokenAmount
-    )
+    function CalcInGivenOut(bytes32 exchangeId, uint256 dataTokenAmount)
         public
         view
-        onlyActiveExchange(
-            exchangeId
-        )
+        onlyActiveExchange(exchangeId)
         returns (uint256 baseTokenAmount)
     {
-        baseTokenAmount = dataTokenAmount.mul(
-            exchanges[exchangeId].fixedRate).div(BASE);
+        uint256 bTDecimals = IERC20Template(exchanges[exchangeId].baseToken)
+        .decimals();
+        uint256 dTDecimals = IERC20Template(exchanges[exchangeId].dataToken)
+        .decimals();
+        console.log(bTDecimals, "btDecimals");
+        console.log(dTDecimals, "dtDecimals");
+
+            baseTokenAmount = dataTokenAmount
+            .mul(exchanges[exchangeId].fixedRate)
+            .div(BASE)
+            .mul(10**bTDecimals)
+            .div(10**dTDecimals);
+
+            console.log(baseTokenAmount, "baseAmount solidity");
+      
     }
-    
+
     /**
      * @dev swap
      *      atomic swap between two registered fixed rate exchange.
-     * @param exchangeId a unique exchange idnetifier 
+     * @param exchangeId a unique exchange idnetifier
      * @param dataTokenAmount the amount of data tokens to be exchanged
      */
-    function swap(
-        bytes32 exchangeId,
-        uint256 dataTokenAmount
-    )
+    function swap(bytes32 exchangeId, uint256 dataTokenAmount)
         external
-        onlyActiveExchange(
-            exchangeId
-        )
+        onlyActiveExchange(exchangeId)
     {
         require(
             dataTokenAmount != 0,
-            'FixedRateExchange: zero data token amount'
+            "FixedRateExchange: zero data token amount"
         );
-        uint256 baseTokenAmount = CalcInGivenOut(exchangeId,dataTokenAmount);
+        uint256 baseTokenAmount = CalcInGivenOut(exchangeId, dataTokenAmount);
         require(
             IERC20Template(exchanges[exchangeId].baseToken).transferFrom(
                 msg.sender,
                 exchanges[exchangeId].exchangeOwner,
                 baseTokenAmount
             ),
-            'FixedRateExchange: transferFrom failed in the baseToken contract'
+            "FixedRateExchange: transferFrom failed in the baseToken contract"
         );
         require(
             IERC20Template(exchanges[exchangeId].dataToken).transferFrom(
@@ -225,15 +208,10 @@ contract FixedRateExchange {
                 msg.sender,
                 dataTokenAmount
             ),
-            'FixedRateExchange: transferFrom failed in the dataToken contract'
+            "FixedRateExchange: transferFrom failed in the dataToken contract"
         );
 
-        emit Swapped(
-            exchangeId,
-            msg.sender,
-            baseTokenAmount,
-            dataTokenAmount
-        );
+        emit Swapped(exchangeId, msg.sender, baseTokenAmount, dataTokenAmount);
     }
 
     /**
@@ -241,11 +219,7 @@ contract FixedRateExchange {
      *      gets the total number of registered exchanges
      * @return total number of registered exchange IDs
      */
-    function getNumberOfExchanges()
-        external
-        view
-        returns (uint256)
-    {
+    function getNumberOfExchanges() external view returns (uint256) {
         return exchangeIds.length;
     }
 
@@ -255,49 +229,31 @@ contract FixedRateExchange {
      * @param exchangeId a unique exchange idnetifier
      * @param newRate new fixed rate value
      */
-    function setRate(
-        bytes32 exchangeId,
-        uint256 newRate
-    )
+    function setRate(bytes32 exchangeId, uint256 newRate)
         external
         onlyExchangeOwner(exchangeId)
     {
-        require(
-            newRate != 0,
-            'FixedRateExchange: Ratio must be >0'
-        );
+        require(newRate != 0, "FixedRateExchange: Ratio must be >0");
 
         exchanges[exchangeId].fixedRate = newRate;
-        emit ExchangeRateChanged(
-            exchangeId,
-            msg.sender,
-            newRate
-        );
+        emit ExchangeRateChanged(exchangeId, msg.sender, newRate);
     }
 
-     /**
+    /**
      * @dev toggleExchangeState
      *      toggles the active state of an existing exchange
      * @param exchangeId a unique exchange idnetifier
      */
-    function toggleExchangeState(
-        bytes32 exchangeId
-    )
+    function toggleExchangeState(bytes32 exchangeId)
         external
         onlyExchangeOwner(exchangeId)
     {
-        if(exchanges[exchangeId].active){
+        if (exchanges[exchangeId].active) {
             exchanges[exchangeId].active = false;
-            emit ExchangeDeactivated(
-                exchangeId,
-                msg.sender
-            );
+            emit ExchangeDeactivated(exchangeId, msg.sender);
         } else {
             exchanges[exchangeId].active = true;
-            emit ExchangeActivated(
-                exchangeId,
-                msg.sender
-            );
+            emit ExchangeActivated(exchangeId, msg.sender);
         }
     }
 
@@ -307,13 +263,7 @@ contract FixedRateExchange {
      * @param exchangeId a unique exchange idnetifier
      * @return fixed rate value
      */
-    function getRate(
-        bytes32 exchangeId
-    )
-        external
-        view
-        returns(uint256)
-    {
+    function getRate(bytes32 exchangeId) external view returns (uint256) {
         return exchanges[exchangeId].fixedRate;
     }
 
@@ -329,38 +279,27 @@ contract FixedRateExchange {
         view
         returns (uint256 supply)
     {
-        if(exchanges[exchangeId].active == false)
-            supply = 0;
+        if (exchanges[exchangeId].active == false) supply = 0;
         else {
             uint256 balance = IERC20Template(exchanges[exchangeId].dataToken)
-                .balanceOf(exchanges[exchangeId].exchangeOwner);
+            .balanceOf(exchanges[exchangeId].exchangeOwner);
             uint256 allowance = IERC20Template(exchanges[exchangeId].dataToken)
-                .allowance(exchanges[exchangeId].exchangeOwner, address(this));
-            if(balance < allowance)
-                supply = balance;
-            else
-                supply = allowance;
+            .allowance(exchanges[exchangeId].exchangeOwner, address(this));
+            if (balance < allowance) supply = balance;
+            else supply = allowance;
         }
     }
 
-    /**
-     * @dev getExchange
-     *      gets all the exchange details
-     * @param exchangeId a unique exchange idnetifier
-     * @return exchangeOwner
-     * @return dataToken
-     * @return baseToken
-     * @return fixedRate
-     * @return active
-     * @return supply
-     *         all the exchange details including  the exchange Owner
-     *         the dataToken contract address, the base token address, the 
-     *         fixed rate, whether the exchange is active and the supply or the 
-     *         the current data token liquidity.
-     */
-    function getExchange(
-        bytes32 exchangeId
-    )
+    // /**
+    //  * @dev getExchange
+    //  *      gets all the exchange details
+    //  * @param exchangeId a unique exchange idnetifier
+    //  * @return all the exchange details including  the exchange Owner
+    //  *         the dataToken contract address, the base token address, the
+    //  *         fixed rate, whether the exchange is active and the supply or the
+    //  *         the current data token liquidity.
+    //  */
+    function getExchange(bytes32 exchangeId)
         external
         view
         returns (
@@ -386,11 +325,7 @@ contract FixedRateExchange {
      *      gets all the exchanges list
      * @return a list of all registered exchange Ids
      */
-    function getExchanges()
-        external 
-        view 
-        returns (bytes32[] memory)
-    {
+    function getExchanges() external view returns (bytes32[] memory) {
         return exchangeIds;
     }
 
@@ -400,13 +335,7 @@ contract FixedRateExchange {
      * @param exchangeId a unique exchange idnetifier
      * @return true if exchange is true, otherwise returns false
      */
-    function isActive(
-        bytes32 exchangeId
-    )
-        external
-        view
-        returns (bool)
-    {
+    function isActive(bytes32 exchangeId) external view returns (bool) {
         return exchanges[exchangeId].active;
     }
 }

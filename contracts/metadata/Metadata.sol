@@ -73,8 +73,5 @@ contract Metadata {
         emit MetadataUpdated(dataToken, msg.sender, flags, data);
     }
 
-    // MISSING ONLYOWNER OR SOME KIND OF RESTRICION, COULD BE REMOVED IF WE DON"T WANT TO UPDATE IT(HARDCODED IN THE CONTRACT)
-    function setERC20Factory(address _erc20Factory) public {
-        erc20Factory = _erc20Factory;
-    }
+ 
 }
