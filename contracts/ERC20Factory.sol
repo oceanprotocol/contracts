@@ -69,7 +69,7 @@ contract ERC20Factory is Deployer, Ownable {
      * @param _template refers to the address of a deployed DataToken contract.
      * @param _collector refers to the community fee collector address
      */
-    constructor(address _template, address _collector) public {
+    constructor(address _template, address _collector) {
         require(
             _template != address(0) && _collector != address(0),
             "DTFactory: Invalid template token/community fee collector address"

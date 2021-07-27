@@ -120,12 +120,12 @@
       "inputs": [
         {
           "internalType": "string",
-          "name": "name",
+          "name": "name_",
           "type": "string"
         },
         {
           "internalType": "string",
-          "name": "symbol",
+          "name": "symbol_",
           "type": "string"
         },
         {

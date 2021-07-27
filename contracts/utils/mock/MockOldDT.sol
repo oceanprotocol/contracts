@@ -75,8 +75,8 @@ contract MockOldDT is ERC20('Test','TESTSYMBOL') {
         _;
     }
 
-    constructor()
-        public
+    constructor() 
+        
     {
         _initialize(
             _name,
@@ -93,8 +93,8 @@ contract MockOldDT is ERC20('Test','TESTSYMBOL') {
         string calldata name,
         string calldata symbol,
         address minterAddress,
-        uint256 cap,
-        string calldata blob,
+        uint256 cap_,
+        string calldata blob_,
         address feeCollector
     ) 
         external
@@ -105,8 +105,8 @@ contract MockOldDT is ERC20('Test','TESTSYMBOL') {
             name,
             symbol,
             minterAddress,
-            cap,
-            blob,
+            cap_,
+            blob_,
             feeCollector
         );
     }
@@ -116,8 +116,8 @@ contract MockOldDT is ERC20('Test','TESTSYMBOL') {
         string memory name,
         string memory symbol,
         address minterAddress,
-        uint256 cap,
-        string memory blob,
+        uint256 cap_,
+        string memory blob_,
         address feeCollector
     )
         private
@@ -139,12 +139,12 @@ contract MockOldDT is ERC20('Test','TESTSYMBOL') {
         );
 
         require(
-            cap != 0,
+            cap_ != 0,
             'DataTokenTemplate: Invalid cap value'
         );
-        _cap = cap;
+        _cap = cap_;
         _name = name;
-        _blob = blob;
+        _blob = blob_;
         _symbol = symbol;
         _minter = minterAddress;
         _communityFeeCollector = feeCollector;

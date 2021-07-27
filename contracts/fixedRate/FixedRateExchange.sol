@@ -236,7 +236,7 @@ contract FixedRateExchange {
         .mul(10**exchanges[exchangeId].btDecimals)
         .div(10**exchanges[exchangeId].dtDecimals);
 
-        console.log(baseTokenAmount, "baseAmount solidity");
+        //console.log(baseTokenAmount, "baseAmount solidity");
     }
 
     /**

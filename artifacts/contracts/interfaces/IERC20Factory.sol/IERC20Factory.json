@@ -103,7 +103,7 @@
         },
         {
           "internalType": "address",
-          "name": "minter",
+          "name": "minter_",
           "type": "address"
         }
       ],

@@ -3,8 +3,8 @@ pragma solidity >=0.5.0;
 
 interface IERC20Template {
     function initialize(
-        string calldata name,
-        string calldata symbol,
+        string calldata name_,
+        string calldata symbol_,
         address erc721Address,
         uint256 capERC20,
         address collector,

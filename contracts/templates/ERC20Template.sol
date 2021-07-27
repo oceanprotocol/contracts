@@ -96,38 +96,38 @@ contract ERC20Template is ERC20("test", "testSymbol"), ERC20Roles {
      * @dev initialize
      *      Called prior contract initialization (e.g creating new DataToken instance)
      *      Calls private _initialize function. Only if contract is not initialized.
-     * @param name refers to a new DataToken name
-     * @param symbol refers to a nea DataToken symbol
+     * @param name_ refers to a new DataToken name
+     * @param symbol_ refers to a nea DataToken symbol
      * @param erc721Address refers to the erc721 address (used for onlyNFTOwner modifier)
-     * @param cap the total ERC20 cap
+     * @param cap_ the total ERC20 cap
      * @param communityFeeCollector it is the community fee collector address
        @param minter account who can mint datatokens (can have multiple minters)
      */
     function initialize(
-        string calldata name,
-        string calldata symbol,
+        string calldata name_,
+        string calldata symbol_,
         address erc721Address,
-        uint256 cap,
+        uint256 cap_,
         address communityFeeCollector,
         address minter
     ) external onlyNotInitialized returns (bool) {
-        return _initialize(name, symbol, erc721Address, cap, communityFeeCollector, minter);
+        return _initialize(name_, symbol_, erc721Address, cap_, communityFeeCollector, minter);
     }
 
     /**
      * @dev _initialize
      *      Private function called on contract initialization.
-     * @param name refers to a new DataToken name
-     * @param symbol refers to a nea DataToken symbol
+     * @param name_ refers to a new DataToken name
+     * @param symbol_ refers to a nea DataToken symbol
      * @param erc721Address refers to an address that has minter rights
-     * @param cap the total ERC20 cap
+     * @param cap_ the total ERC20 cap
      * @param communityFeeCollector it is the community fee collector address
      */
     function _initialize(
-        string memory name,
-        string memory symbol,
+        string memory name_,
+        string memory symbol_,
         address erc721Address,
-        uint256 cap,
+        uint256 cap_,
         address communityFeeCollector,
         address minter
     ) private returns (bool) {
@@ -141,10 +141,10 @@ contract ERC20Template is ERC20("test", "testSymbol"), ERC20Roles {
             "ERC20Template: Invalid community fee collector, zero address"
         );
 
-        require(cap != 0, "DataTokenTemplate: Invalid cap value");
-        _cap = cap;
-        _name = name;
-        _symbol = symbol;
+        require(cap_ != 0, "DataTokenTemplate: Invalid cap value");
+        _cap = cap_;
+        _name = name_;
+        _symbol = symbol_;
         _erc721Address = erc721Address;
         _communityFeeCollector = communityFeeCollector;
         initialized = true;
@@ -380,7 +380,7 @@ contract ERC20Template is ERC20("test", "testSymbol"), ERC20Roles {
         feeCollector = _newFeeCollector;
     }
 
-    function getId() external view returns (uint8) {
+    function getId() external pure returns (uint8) {
         return templateId;
     }
 
@@ -409,7 +409,7 @@ contract ERC20Template is ERC20("test", "testSymbol"), ERC20Roles {
      *      how many supported decimal points
      * @return DataToken decimals.
      */
-    function decimals() public view override returns (uint8) {
+    function decimals() public pure override returns (uint8) {
         return _decimals;
     }
 

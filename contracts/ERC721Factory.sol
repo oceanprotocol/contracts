@@ -60,7 +60,7 @@ contract ERC721Factory is Deployer, Ownable {
         address _collector,
         address _erc20Factory,
         address _metadata
-    ) public {
+    ) {
         require(
             _template != address(0) &&
                 _collector != address(0) &&

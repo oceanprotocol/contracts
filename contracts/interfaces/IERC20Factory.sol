@@ -50,7 +50,7 @@ interface IERC20Factory {
         string calldata symbolERC20,
         uint256 capERC20,
         uint256 templateIndex,
-        address minter
+        address minter_
     ) external returns (address token);
 
     function addToERC721Registry(address ERC721address) external;
