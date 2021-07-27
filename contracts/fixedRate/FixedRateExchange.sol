@@ -23,6 +23,8 @@ contract FixedRateExchange {
         address dataToken;
         address baseToken;
         uint256 fixedRate;
+        uint8 dtDecimals;
+        uint8 btDecimals;
     }
 
     // maps an exchangeId to an exchange
@@ -120,8 +122,74 @@ contract FixedRateExchange {
             exchangeOwner: msg.sender,
             dataToken: dataToken,
             baseToken: baseToken,
-            fixedRate: fixedRate
+            fixedRate: fixedRate,
+            dtDecimals: 18,
+            btDecimals: 18
         });
+
+        exchangeIds.push(exchangeId);
+
+        emit ExchangeCreated(
+            exchangeId,
+            baseToken,
+            dataToken,
+            msg.sender,
+            fixedRate
+        );
+
+        emit ExchangeActivated(exchangeId, msg.sender);
+    }
+
+    /**
+     * @dev create
+     *      creates new exchange pairs between base token
+     *      (ocean token) and data tokens.
+     * @param baseToken refers to a ocean token contract address
+     * @param dataToken refers to a data token contract address
+     * @param fixedRate refers to the exact fixed exchange rate in wei
+     */
+    function createWithDecimals(
+        address baseToken,
+        address dataToken,
+        uint8 _btDecimals,
+        uint8 _dtDecimals,
+        uint256 fixedRate
+    ) external {
+        require(
+            baseToken != address(0),
+            "FixedRateExchange: Invalid basetoken,  zero address"
+        );
+        require(
+            dataToken != address(0),
+            "FixedRateExchange: Invalid datatoken,  zero address"
+        );
+        require(
+            baseToken != dataToken,
+            "FixedRateExchange: Invalid datatoken,  equals basetoken"
+        );
+        require(
+            fixedRate != 0,
+            "FixedRateExchange: Invalid exchange rate value"
+        );
+        bytes32 exchangeId = generateExchangeId(
+            baseToken,
+            dataToken,
+            msg.sender
+        );
+        require(
+            exchanges[exchangeId].fixedRate == 0,
+            "FixedRateExchange: Exchange already exists!"
+        );
+        exchanges[exchangeId] = Exchange({
+            active: true,
+            exchangeOwner: msg.sender,
+            dataToken: dataToken,
+            baseToken: baseToken,
+            fixedRate: fixedRate,
+            dtDecimals: _dtDecimals,
+            btDecimals: _btDecimals
+        });
+
         exchangeIds.push(exchangeId);
 
         emit ExchangeCreated(
@@ -162,21 +230,13 @@ contract FixedRateExchange {
         onlyActiveExchange(exchangeId)
         returns (uint256 baseTokenAmount)
     {
-        uint256 bTDecimals = IERC20Template(exchanges[exchangeId].baseToken)
-        .decimals();
-        uint256 dTDecimals = IERC20Template(exchanges[exchangeId].dataToken)
-        .decimals();
-        console.log(bTDecimals, "btDecimals");
-        console.log(dTDecimals, "dtDecimals");
+        baseTokenAmount = dataTokenAmount
+        .mul(exchanges[exchangeId].fixedRate)
+        .div(BASE)
+        .mul(10**exchanges[exchangeId].btDecimals)
+        .div(10**exchanges[exchangeId].dtDecimals);
 
-            baseTokenAmount = dataTokenAmount
-            .mul(exchanges[exchangeId].fixedRate)
-            .div(BASE)
-            .mul(10**bTDecimals)
-            .div(10**dTDecimals);
-
-            console.log(baseTokenAmount, "baseAmount solidity");
-      
+        console.log(baseTokenAmount, "baseAmount solidity");
     }
 
     /**
@@ -305,7 +365,9 @@ contract FixedRateExchange {
         returns (
             address exchangeOwner,
             address dataToken,
+            uint8 dtDecimals,
             address baseToken,
+            uint8 btDecimals,
             uint256 fixedRate,
             bool active,
             uint256 supply
@@ -314,7 +376,9 @@ contract FixedRateExchange {
         Exchange memory exchange = exchanges[exchangeId];
         exchangeOwner = exchange.exchangeOwner;
         dataToken = exchange.dataToken;
+        dtDecimals = exchange.dtDecimals;
         baseToken = exchange.baseToken;
+        btDecimals = exchange.btDecimals;
         fixedRate = exchange.fixedRate;
         active = exchange.active;
         supply = getSupply(exchangeId);
