@@ -1,13 +1,14 @@
-pragma solidity 0.5.7;
+pragma solidity >=0.5.7;
 // Copyright BigchainDB GmbH and Ocean Protocol contributors
 // SPDX-License-Identifier: (Apache-2.0 AND CC-BY-4.0)
 // Code is Apache-2.0 and docs are CC-BY-4.0
 
-import "../interfaces/DataToken.sol";
+import "./IDatatoken.sol";
 import "../interfaces/IERC20Template.sol";
-import "../interfaces/BPoolInterface.sol";
-import 'openzeppelin-solidity/contracts/math/SafeMath.sol';
+import "./BPoolInterface.sol";
+import "@openzeppelin/contracts/utils/math/SafeMath.sol";
 import "../interfaces/IVault.sol";
+import "../interfaces/IPool.sol";
 /**
  * @title ssFixedRate
  *
@@ -89,7 +90,7 @@ contract ssFixedRateV2 {
             "BaseToken address missmatch"
         );
         // check if we are the minter of DT
-        DataToken dt = DataToken(datatokenAddress);
+        IDatatoken dt = IDatatoken(datatokenAddress);
         require(dt.minter() == address(this), "BaseToken address missmatch");
         // get cap and mint it..
         dt.mint(address(this), dt.totalSupply());
@@ -264,7 +265,7 @@ contract ssFixedRateV2 {
         if (_datatokens[datatokenAddress].bound != true) return (false);
         if (_datatokens[datatokenAddress].basetokenAddress == stakeToken) return (false);
         //check balances
-        DataToken dt = DataToken(datatokenAddress);
+        IDatatoken dt = IDatatoken(datatokenAddress);
         uint256 balance = dt.balanceOf(address(this));
         if (_datatokens[datatokenAddress].datatokenBalance >=amount && balance>= amount) return (true);
         return(false);
@@ -275,7 +276,7 @@ contract ssFixedRateV2 {
         require(msg.sender == _datatokens[datatokenAddress].poolAddress,'ERR: Only pool can call this');
         bool ok=canStake(datatokenAddress,stakeToken,amount);
         if (ok != true) return;
-        DataToken dt = DataToken(datatokenAddress);
+        IDatatoken dt = IDatatoken(datatokenAddress);
         dt.approve(_datatokens[datatokenAddress].poolAddress,amount);
         _datatokens[datatokenAddress].datatokenBalance-=amount;
     }
@@ -308,9 +309,9 @@ contract ssFixedRateV2 {
         //given the price, compute dataTokenAmount
         uint dataTokenAmount=_datatokens[datatokenAddress].rate * (baseTokenAmount/baseTokenWeight) * dataTokenWeight;
         //approve the tokens and amounts
-        DataToken dt = DataToken(datatokenAddress);
+         IDatatoken dt = IDatatoken(datatokenAddress);
         dt.approve(_datatokens[datatokenAddress].poolAddress,dataTokenAmount);
-        DataToken dtBase = DataToken(_datatokens[datatokenAddress].basetokenAddress);
+        IDatatoken dtBase = IDatatoken(_datatokens[datatokenAddress].basetokenAddress);
         dtBase.approve(_datatokens[datatokenAddress].basetokenAddress,baseTokenAmount);
         // call the pool, bind the tokens, set the price, finalize pool
         BPoolInterface pool=BPoolInterface(_datatokens[datatokenAddress].poolAddress);
@@ -342,7 +343,7 @@ contract ssFixedRateV2 {
         tokenAmountOut=calcOutGivenIn(datatokenAddress,tokenIn,tokenOut,tokenAmountIn);
         require(tokenAmountOut>=minAmountOut,'ERR:minAmountOut not meet'); //revert if minAmountOut is not met
         //pull tokenIn from the pool (pool will approve)
-        DataToken dtIn = DataToken(tokenIn);
+        IDatatoken dtIn = IDatatoken(tokenIn);
         dtIn.transferFrom(_datatokens[datatokenAddress].poolAddress,address(this), tokenAmountIn);
         //update our balances
         if(tokenIn==datatokenAddress){
@@ -354,7 +355,7 @@ contract ssFixedRateV2 {
             _datatokens[datatokenAddress].basetokenBalance+=tokenAmountIn;
         }
         //send tokens to the user  
-        DataToken dtOut = DataToken(tokenOut);
+        IDatatoken dtOut = IDatatoken(tokenOut);
         dtOut.transfer(userAddress, tokenAmountOut);
         return(tokenAmountOut);
     }
@@ -365,7 +366,7 @@ contract ssFixedRateV2 {
         tokenAmountIn=calcInGivenOut(datatokenAddress,tokenIn,tokenOut,amountOut);
         require(tokenAmountIn<=maxTokenAmountIn,'ERR:maxTokenAmountIn not meet'); //revert if minAmountOut is not met
         //pull tokenIn from the pool (pool will approve)
-        DataToken dtIn = DataToken(tokenIn);
+       IDatatoken dtIn = IDatatoken(tokenIn);
         dtIn.transferFrom(_datatokens[datatokenAddress].poolAddress,address(this), tokenAmountIn);
         //update our balances
         if(tokenIn==datatokenAddress){
@@ -377,7 +378,7 @@ contract ssFixedRateV2 {
             _datatokens[datatokenAddress].basetokenBalance+=tokenAmountIn;
         }
         //send tokens to the user  
-        DataToken dtOut = DataToken(tokenOut);
+       IDatatoken dtOut = IDatatoken(tokenOut);
         dtOut.transfer(userAddress, amountOut);
         return(tokenAmountIn);
     }
@@ -392,7 +393,7 @@ contract ssFixedRateV2 {
         if(vestPerBlock==0) return;
         uint amount=blocksPassed.mul(vestPerBlock);
         if(amount>0 && _datatokens[datatokenAddress].datatokenBalance >= amount){
-            DataToken dt = DataToken(datatokenAddress);
+            IDatatoken dt = IDatatoken(datatokenAddress);
             _datatokens[datatokenAddress].vestingAmount+=amount;
             _datatokens[datatokenAddress].vestingLastBlock=block.number;
             dt.transfer(_datatokens[datatokenAddress].publisherAddress, amount);
@@ -467,12 +468,51 @@ contract ssFixedRateV2 {
     // BALANCER V2
 
     address vault = 0xBA12222222228d8Ba445958a75a0704d566BF2C8;
-    
+  
+    // should we create a new type of joining pool (instead of TOKEN_IN_FOR_EXACT_BPT_OUT)?
+    // or we could transfer user tokens here, joinPool with EXACT_TOKENS_IN_FOR_BPT_OUT and then send 1/2 of the LP token back to the user
     // TODO: add new type of joining pool
-    function joinPool(uint256 poolAddress, uint256 amountIn) external {
+  
+
+    IAsset[] tokens;
+    uint256[] amounts;
+
+    function stake(bytes memory self, bytes32 poolId, uint256 amountIn, address tokenAddress, address recipient ) external {
         // TODO
+        bytes memory userData = abi.encode(self,(IPool.JoinKind.TOKEN_IN_FOR_EXACT_BPT_OUT));
+        
+        // do it better, without delete etc
+        tokens.push(IAsset(tokenAddress));
+        
+        amounts.push(amountIn);
+
+        IVault.JoinPoolRequest memory request = IVault.JoinPoolRequest(tokens,amounts,userData, false);
+        // JoinKind.TOKEN_IN_FOR_EXACT_BPT_OUT
+        IVault(vault).joinPool(poolId, address(this), recipient, request);
         // call the new type of joining pool
         // calculate amount of DT to add as liquidity.
         // enter with the same type of joining pool (new one)
+        delete amounts;
+        delete tokens;
     }
+
+
+      function unstake(bytes memory self, bytes32 poolId, uint256 amountOut, address tokenAddress, address payable recipient ) external {
+        // TODO
+        bytes memory userData = abi.encode(self,(IPool.ExitKind.EXACT_BPT_IN_FOR_ONE_TOKEN_OUT));
+        
+        // do it better, without delete etc
+        tokens.push(IAsset(tokenAddress));
+        amounts.push(amountOut);
+
+        IVault.ExitPoolRequest memory request = IVault.ExitPoolRequest(tokens,amounts,userData, false);
+        // JoinKind.TOKEN_IN_FOR_EXACT_BPT_OUT
+        IVault(vault).exitPool(poolId, address(this), recipient, request);
+      
+        // calculate amount of DT to add as liquidity.
+        // enter with the same type of joining pool (new one)
+        delete amounts;
+        delete tokens;
+    }
+   
 }
