@@ -214,6 +214,42 @@ contract WeightedMath {
         return nonTaxableAmount.add(taxableAmount.divUp(swapFee.complement()));
     }
 
+        function _calcNoFeeTokenInGivenExactBptOut(
+        uint256 balance,
+        uint256 normalizedWeight,
+        uint256 bptAmountOut,
+        uint256 bptTotalSupply
+    ) internal pure returns (uint256) {
+        /******************************************************************************************
+        // tokenInForExactBPTOut                                                                 //
+        // a = amountIn                                                                          //
+        // b = balance                      /  /    totalBPT + bptOut      \    (1 / w)       \  //
+        // bptOut = bptAmountOut   a = b * |  | --------------------------  | ^          - 1  |  //
+        // bpt = totalBPT                   \  \       totalBPT            /                  /  //
+        // w = weight                                                                            //
+        ******************************************************************************************/
+
+        // Token in, so we round up overall.
+
+        // Calculate the factor by which the invariant will increase after minting BPTAmountOut
+        uint256 invariantRatio = bptTotalSupply.add(bptAmountOut).divUp(bptTotalSupply);
+        _require(invariantRatio <= _MAX_INVARIANT_RATIO, Errors.MAX_OUT_BPT_FOR_TOKEN_IN);
+
+        // Calculate by how much the token balance has to increase to match the invariantRatio
+        uint256 balanceRatio = invariantRatio.powUp(FixedPoint.ONE.divUp(normalizedWeight));
+
+        uint256 amountInWithoutFee = balance.mulUp(balanceRatio.sub(FixedPoint.ONE));
+
+        // // We can now compute how much extra balance is being deposited and used in virtual swaps, and charge swap fees
+        // // accordingly.
+        // uint256 taxablePercentage = normalizedWeight.complement();
+        // uint256 taxableAmount = amountInWithoutFee.mulUp(taxablePercentage);
+        // uint256 nonTaxableAmount = amountInWithoutFee.sub(taxableAmount);
+
+        return amountInWithoutFee;
+    }
+
+
     function _calcBptInGivenExactTokensOut(
         uint256[] memory balances,
         uint256[] memory normalizedWeights,

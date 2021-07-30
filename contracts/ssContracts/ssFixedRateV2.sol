@@ -626,7 +626,7 @@ contract ssFixedRateV2 {
         uint256[] memory maxAmountsIn,
         bytes memory userDataStake,
         uint256 amountInDT
-    ) external {
+    ) external returns(bool) {
         // TODO
         uint256 balanceDT = IERC20(getDTAddress(msg.sender)).balanceOf(
             address(this)
@@ -654,6 +654,9 @@ contract ssFixedRateV2 {
             );
             
             delete assets;
+            return true;
+        } else {
+            return false;
         }
     }
 

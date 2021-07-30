@@ -450,12 +450,11 @@ contract WeightedPool is BaseMinimalSwapInfoPool, WeightedMath {
         _require(tokenIndex < _getTotalTokens(), Errors.OUT_OF_BOUNDS);
 
         uint256[] memory amountsIn = new uint256[](_getTotalTokens());
-        amountsIn[tokenIndex] = WeightedMath._calcTokenInGivenExactBptOut(
+        amountsIn[tokenIndex] = WeightedMath._calcNoFeeTokenInGivenExactBptOut(
             balances[tokenIndex],
             normalizedWeights[tokenIndex],
             bptAmountOut,
-            totalSupply(),
-            _swapFeePercentage
+            totalSupply()
         );
         // CALL 1 SIDE STAKING CONTRACT
         ( IERC20[] memory tokens,
@@ -474,13 +473,12 @@ contract WeightedPool is BaseMinimalSwapInfoPool, WeightedMath {
         }
 
         uint256[] memory maxAmountsIn = new uint256[](_getTotalTokens());
-
-        maxAmountsIn[dtIndex] = WeightedMath._calcTokenInGivenExactBptOut(
+        // we should probably add the new  amountsIn[tokenIndex] from the previous step to more accurate calculation
+        maxAmountsIn[dtIndex] = WeightedMath._calcNoFeeTokenInGivenExactBptOut(
             balances[dtIndex],
             normalizedWeights[dtIndex],
             bptAmountOut,
-            totalSupply(),
-            _swapFeePercentage
+            totalSupply()
         );
 
         bytes memory userDataStake = abi.encode(JoinKind.TOKEN_IN_FOR_EXACT_BPT_OUT,bptAmountOut, dtIndex);
