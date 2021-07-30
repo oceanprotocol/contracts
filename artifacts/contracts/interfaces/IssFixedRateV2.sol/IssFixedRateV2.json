@@ -4,7 +4,13 @@
   "sourceName": "contracts/interfaces/IssFixedRateV2.sol",
   "abi": [
     {
-      "inputs": [],
+      "inputs": [
+        {
+          "internalType": "address",
+          "name": "",
+          "type": "address"
+        }
+      ],
       "name": "getDTAddress",
       "outputs": [
         {
@@ -30,7 +36,7 @@
         },
         {
           "internalType": "uint256[]",
-          "name": "amountsInDT",
+          "name": "maxAmountsIn",
           "type": "uint256[]"
         },
         {

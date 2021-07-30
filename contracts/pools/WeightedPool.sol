@@ -53,7 +53,8 @@ contract WeightedPool is BaseMinimalSwapInfoPool, WeightedMath {
     enum JoinKind {
         INIT,
         EXACT_TOKENS_IN_FOR_BPT_OUT,
-        TOKEN_IN_FOR_EXACT_BPT_OUT
+        TOKEN_IN_FOR_EXACT_BPT_OUT,
+        STAKING_TOKEN_IN_FOR_EXACT_BPT_OUT
     }
     enum ExitKind {
         EXACT_BPT_IN_FOR_ONE_TOKEN_OUT,
@@ -372,6 +373,15 @@ contract WeightedPool is BaseMinimalSwapInfoPool, WeightedMath {
                     normalizedWeights,
                     userData
                 );
+
+        }  else if (kind == JoinKind.STAKING_TOKEN_IN_FOR_EXACT_BPT_OUT) {
+            return
+               _joinStakingTokenInForExactBPTOut(
+                    balances,
+                    normalizedWeights,
+                    userData
+                );
+
         } else {
             _revert(Errors.UNHANDLED_JOIN_KIND);
         }
@@ -409,6 +419,29 @@ contract WeightedPool is BaseMinimalSwapInfoPool, WeightedMath {
         uint256[] memory balances,
         uint256[] memory normalizedWeights,
         bytes memory userData
+    ) private view returns (uint256, uint256[] memory) {
+        (uint256 bptAmountOut, uint256 tokenIndex) =
+            userData.tokenInForExactBptOut();
+        // Note that there is no maximum amountIn parameter: this is handled by `IVault.joinPool`.
+
+        _require(tokenIndex < _getTotalTokens(), Errors.OUT_OF_BOUNDS);
+
+        uint256[] memory amountsIn = new uint256[](_getTotalTokens());
+        amountsIn[tokenIndex] = WeightedMath._calcTokenInGivenExactBptOut(
+            balances[tokenIndex],
+            normalizedWeights[tokenIndex],
+            bptAmountOut,
+            totalSupply(),
+            _swapFeePercentage
+        );
+
+        return (bptAmountOut, amountsIn);
+    }
+
+     function _joinStakingTokenInForExactBPTOut(
+        uint256[] memory balances,
+        uint256[] memory normalizedWeights,
+        bytes memory userData
     ) private returns (uint256, uint256[] memory) {
         (uint256 bptAmountOut, uint256 tokenIndex) =
             userData.tokenInForExactBptOut();
@@ -425,14 +458,13 @@ contract WeightedPool is BaseMinimalSwapInfoPool, WeightedMath {
             _swapFeePercentage
         );
         // CALL 1 SIDE STAKING CONTRACT
-        // WHAT HAPPENS WHEN THERE ARE 3 TOKENS? We need to know in advance
         ( IERC20[] memory tokens,
             uint256[] memory balances,
             uint256 lastChangeBlock
         ) = getVault().getPoolTokens(getPoolId());
 
         uint256 dtIndex;
-        address dtAddress = IssFixedRateV2(SSContract).getDTAddress();
+        address dtAddress = IssFixedRateV2(SSContract).getDTAddress(address(this));
 
         for (uint i = 0; i < _getTotalTokens(); i++) {
                 if (address(tokens[i]) == dtAddress) {
@@ -441,9 +473,9 @@ contract WeightedPool is BaseMinimalSwapInfoPool, WeightedMath {
                 } 
         }
 
-        uint256[] memory amountsInDT = new uint256[](_getTotalTokens());
-        
-        amountsInDT[dtIndex] = WeightedMath._calcTokenInGivenExactBptOut(
+        uint256[] memory maxAmountsIn = new uint256[](_getTotalTokens());
+
+        maxAmountsIn[dtIndex] = WeightedMath._calcTokenInGivenExactBptOut(
             balances[dtIndex],
             normalizedWeights[dtIndex],
             bptAmountOut,
@@ -452,8 +484,8 @@ contract WeightedPool is BaseMinimalSwapInfoPool, WeightedMath {
         );
 
         bytes memory userDataStake = abi.encode(JoinKind.TOKEN_IN_FOR_EXACT_BPT_OUT,bptAmountOut, dtIndex);
-       // IVault.JoinPoolRequest memory request = IVault.JoinPoolRequest(tokens,amountsInDT,userDataStake, false, amountsIn[dtIndex]);
-        IssFixedRateV2(SSContract).stake(getPoolId(),tokens,amountsInDT,userDataStake,amountsIn[dtIndex]);
+       
+        IssFixedRateV2(SSContract).stake(getPoolId(),tokens,maxAmountsIn,userDataStake,maxAmountsIn[dtIndex]);
 
         return (bptAmountOut, amountsIn);
     }

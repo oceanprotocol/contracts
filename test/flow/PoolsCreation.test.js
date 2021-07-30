@@ -367,7 +367,7 @@ describe("Pools Creation Flow", () => {
       // THIS POOL HAS OCEAN TOKEN SO OCEAN COMMUNITY WON'T GET ANY FEES
       const tokens = (await vault.getPoolTokens(poolID)).tokens;
 
-      if (parseFloat(tokens[0]) == parseFloat(oceanAddress)) {
+      if (tokens[0].toString() == oceanAddress.toString()) {
         dtIndex = 1;
         oceanIndex = 0;
       } else {
@@ -824,7 +824,7 @@ describe("Pools Creation Flow", () => {
       // based on the tokens array
       const tokens = (await vault.getPoolTokens(poolID)).tokens;
 
-      if (parseFloat(tokens[0]) == parseFloat(daiAddress)) {
+      if (tokens[0].toString() == daiAddress.toString()) {
         dtIndex = 1;
         daiIndex = 0;
       } else {

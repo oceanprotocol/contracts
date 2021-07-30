@@ -46,6 +46,8 @@ contract ssFixedRateV2 {
         uint256 vestingAmountSoFar; //how much was vested so far
     }
 
+    mapping(address => address) private datatoken;
+
     mapping(address => Record) private _datatokens;
     uint256 private constant BASE = 10**18;
 
@@ -55,6 +57,7 @@ contract ssFixedRateV2 {
      */
     constructor() public {}
 
+    // V3 FUNCTIONS
     /**
      * @dev newDataTokenCreated
      *      Called when new DataToken is deployed by the DataTokenFactory
@@ -123,6 +126,8 @@ contract ssFixedRateV2 {
             vestingLastBlock: block.number,
             vestingAmountSoFar: 0
         });
+
+        datatoken[poolAddress] = datatokenAddress;
 
         return (true);
     }
@@ -610,35 +615,50 @@ contract ssFixedRateV2 {
 
     address vault = 0xBA12222222228d8Ba445958a75a0704d566BF2C8;
     IAsset[] private assets;
+
     // should we create a new type of joining pool (instead of TOKEN_IN_FOR_EXACT_BPT_OUT)?
     // or we could transfer user tokens here, joinPool with EXACT_TOKENS_IN_FOR_BPT_OUT and then send 1/2 of the LP token back to the user
     // TODO: add new type of joining pool
 
-    function stake(bytes32 poolId, IERC20[] memory tokens, uint256[] memory amountsInDT, bytes memory userDataStake)
-        external 
-    {
+    function stake(
+        bytes32 poolId,
+        IERC20[] memory tokens,
+        uint256[] memory maxAmountsIn,
+        bytes memory userDataStake,
+        uint256 amountInDT
+    ) external {
         // TODO
-        //bytes memory userData = abi.encode(IPool.JoinKind.TOKEN_IN_FOR_EXACT_BPT_OUT);
-        
-        
-        for(uint i = 0; i < tokens.length;i++) {
-           IAsset token = IAsset(address(tokens[i]));
-            assets.push(token);
-        }
+        uint256 balanceDT = IERC20(getDTAddress(msg.sender)).balanceOf(
+            address(this)
+        );
+       
+        if (balanceDT >= amountInDT) {
+            for (uint256 i = 0; i < tokens.length; i++) {
+                IAsset token = IAsset(address(tokens[i]));
+                assets.push(token);
+            }
 
-        // IPool(poolAddress).getPoolTokens();
-        IVault.JoinPoolRequest memory request = IVault.JoinPoolRequest(assets,amountsInDT,userDataStake, false);
-        // JoinKind.TOKEN_IN_FOR_EXACT_BPT_OUT
-       // if (amountInDT > IERC20(datatokenAddress).balanceOf(address(this)))
-        IVault(vault).joinPool(poolId, address(this), address(this), request);
-        // call the new type of joining pool
-        // calculate amount of DT to add as liquidity.
-        // enter with the same type of joining pool (new one)
-        delete assets;
+            
+            IVault.JoinPoolRequest memory request = IVault.JoinPoolRequest(
+                assets,
+                maxAmountsIn,
+                userDataStake,
+                false
+            );
+        
+            IVault(vault).joinPool(
+                poolId,
+                address(this),
+                address(this),
+                request
+            );
+            
+            delete assets;
+        }
     }
 
-    function getDTAddress(bytes32 poolId) view external {
-        IVault(vault).getPoolTokens(poolId);
+    function getDTAddress(address poolAddress) public view returns (address) {
+        return datatoken[poolAddress];
     }
     // function unstake(
     //     bytes memory self,
@@ -654,7 +674,6 @@ contract ssFixedRateV2 {
     //     );
 
     //     // do it better, without delete etc
-       
 
     //     IVault.ExitPoolRequest memory request = IVault.ExitPoolRequest(
     //         tokens,
