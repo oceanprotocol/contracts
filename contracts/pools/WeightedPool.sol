@@ -24,6 +24,7 @@ import "./BaseMinimalSwapInfoPool.sol";
 
 import "./WeightedMath.sol";
 import "./WeightedPoolUserDataHelpers.sol";
+import "../interfaces/IssFixedRateV2.sol";
 
 // This contract relies on tons of immutable state variables to perform efficient lookup, without resorting to storage
 // reads. Because immutable arrays are not supported, we instead declare a fixed set of state variables plus total
@@ -48,6 +49,7 @@ contract WeightedPool is BaseMinimalSwapInfoPool, WeightedMath {
 
     uint256 private _lastInvariant;
 
+    address private SSContract; // 1 side staking bot address
     enum JoinKind {
         INIT,
         EXACT_TOKENS_IN_FOR_BPT_OUT,
@@ -87,7 +89,8 @@ contract WeightedPool is BaseMinimalSwapInfoPool, WeightedMath {
             bufferPeriodDuration,
             owner
         )
-    {
+    {   
+        SSContract = owner; // TODO: check how this will affect following pool modification (asset manager, relayers)
         //  uint256 numTokens = tokens.length;
         InputHelpers.ensureInputLengthMatch(
             tokens.length,
@@ -334,6 +337,8 @@ contract WeightedPool is BaseMinimalSwapInfoPool, WeightedMath {
         _mutateAmounts(balances, dueProtocolFeeAmounts, FixedPoint.sub);
         (uint256 bptAmountOut, uint256[] memory amountsIn) =
             _doJoin(balances, normalizedWeights, userData);
+        
+        
 
         // Update the invariant with the balances the Pool will have after the join, in order to compute the
         // protocol swap fee amounts due in future joins and exits.
@@ -342,7 +347,7 @@ contract WeightedPool is BaseMinimalSwapInfoPool, WeightedMath {
             amountsIn,
             normalizedWeights
         );
-
+      
         return (bptAmountOut, amountsIn, dueProtocolFeeAmounts);
     }
 
@@ -350,7 +355,7 @@ contract WeightedPool is BaseMinimalSwapInfoPool, WeightedMath {
         uint256[] memory balances,
         uint256[] memory normalizedWeights,
         bytes memory userData
-    ) private view returns (uint256, uint256[] memory) {
+    ) private returns (uint256, uint256[] memory) {
         JoinKind kind = userData.joinKind();
 
         if (kind == JoinKind.EXACT_TOKENS_IN_FOR_BPT_OUT) {
@@ -404,7 +409,7 @@ contract WeightedPool is BaseMinimalSwapInfoPool, WeightedMath {
         uint256[] memory balances,
         uint256[] memory normalizedWeights,
         bytes memory userData
-    ) private view returns (uint256, uint256[] memory) {
+    ) private returns (uint256, uint256[] memory) {
         (uint256 bptAmountOut, uint256 tokenIndex) =
             userData.tokenInForExactBptOut();
         // Note that there is no maximum amountIn parameter: this is handled by `IVault.joinPool`.
@@ -419,6 +424,36 @@ contract WeightedPool is BaseMinimalSwapInfoPool, WeightedMath {
             totalSupply(),
             _swapFeePercentage
         );
+        // CALL 1 SIDE STAKING CONTRACT
+        // WHAT HAPPENS WHEN THERE ARE 3 TOKENS? We need to know in advance
+        ( IERC20[] memory tokens,
+            uint256[] memory balances,
+            uint256 lastChangeBlock
+        ) = getVault().getPoolTokens(getPoolId());
+
+        uint256 dtIndex;
+        address dtAddress = IssFixedRateV2(SSContract).getDTAddress();
+
+        for (uint i = 0; i < _getTotalTokens(); i++) {
+                if (address(tokens[i]) == dtAddress) {
+                    dtIndex = i;
+                    break;
+                } 
+        }
+
+        uint256[] memory amountsInDT = new uint256[](_getTotalTokens());
+        
+        amountsInDT[dtIndex] = WeightedMath._calcTokenInGivenExactBptOut(
+            balances[dtIndex],
+            normalizedWeights[dtIndex],
+            bptAmountOut,
+            totalSupply(),
+            _swapFeePercentage
+        );
+
+        bytes memory userDataStake = abi.encode(JoinKind.TOKEN_IN_FOR_EXACT_BPT_OUT,bptAmountOut, dtIndex);
+       // IVault.JoinPoolRequest memory request = IVault.JoinPoolRequest(tokens,amountsInDT,userDataStake, false, amountsIn[dtIndex]);
+        IssFixedRateV2(SSContract).stake(getPoolId(),tokens,amountsInDT,userDataStake,amountsIn[dtIndex]);
 
         return (bptAmountOut, amountsIn);
     }
@@ -580,7 +615,7 @@ contract WeightedPool is BaseMinimalSwapInfoPool, WeightedMath {
             totalSupply(),
             _swapFeePercentage
         );
-
+        
         return (bptAmountIn, amountsOut);
     }
 

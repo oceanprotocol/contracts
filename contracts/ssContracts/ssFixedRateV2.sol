@@ -9,6 +9,7 @@ import "./BPoolInterface.sol";
 import "@openzeppelin/contracts/utils/math/SafeMath.sol";
 import "../interfaces/IVault.sol";
 import "../interfaces/IPool.sol";
+
 /**
  * @title ssFixedRate
  *
@@ -101,7 +102,7 @@ contract ssFixedRateV2 {
         if (ssParams[1] == 0) allowSell = false;
         else allowSell = true;
         uint256 vestingAmount = ssParams[2];
-        uint256 vestingEndBlock = block.number+ssParams[3];
+        uint256 vestingEndBlock = block.number + ssParams[3];
         //we are rich :)let's setup the records and we are good to go
         _datatokens[datatokenAddress] = Record({
             bound: true,
@@ -109,7 +110,7 @@ contract ssFixedRateV2 {
             poolAddress: poolAddress,
             poolFinalized: false,
             datatokenBalance: dt.totalSupply(),
-            datatokenCap:dt.cap(),
+            datatokenCap: dt.cap(),
             basetokenBalance: 0,
             lastPrice: 0,
             burnInEndBlock: burnInEndBlock,
@@ -130,11 +131,13 @@ contract ssFixedRateV2 {
     function getDataTokenCirculatingSupply(address datatokenAddress)
         public
         view
-        returns (uint)
+        returns (uint256)
     {
         if (_datatokens[datatokenAddress].bound != true) return (0);
-        return( _datatokens[datatokenAddress].datatokenCap - _datatokens[datatokenAddress].datatokenBalance);
+        return (_datatokens[datatokenAddress].datatokenCap -
+            _datatokens[datatokenAddress].datatokenBalance);
     }
+
     function getPublisherAddress(address datatokenAddress)
         public
         view
@@ -257,160 +260,292 @@ contract ssFixedRateV2 {
     }
 
     //called by pool to confirm that we can stake a token (add pool liquidty). If true, pool will call Stake function
-    function canStake(address datatokenAddress,address stakeToken,uint256 amount) public view returns (bool){
+    function canStake(
+        address datatokenAddress,
+        address stakeToken,
+        uint256 amount
+    ) public view returns (bool) {
         //TO DO
         if (_datatokens[datatokenAddress].bound != true) return (false);
-        require(msg.sender == _datatokens[datatokenAddress].poolAddress,'ERR: Only pool can call this');
-        
+        require(
+            msg.sender == _datatokens[datatokenAddress].poolAddress,
+            "ERR: Only pool can call this"
+        );
+
         if (_datatokens[datatokenAddress].bound != true) return (false);
-        if (_datatokens[datatokenAddress].basetokenAddress == stakeToken) return (false);
+        if (_datatokens[datatokenAddress].basetokenAddress == stakeToken)
+            return (false);
         //check balances
         IDatatoken dt = IDatatoken(datatokenAddress);
         uint256 balance = dt.balanceOf(address(this));
-        if (_datatokens[datatokenAddress].datatokenBalance >=amount && balance>= amount) return (true);
-        return(false);
+        if (
+            _datatokens[datatokenAddress].datatokenBalance >= amount &&
+            balance >= amount
+        ) return (true);
+        return (false);
     }
+
     //called by pool so 1ss will stake a token (add pool liquidty). Function only needs to approve the amount to be spent by the pool, pool will do the rest
-    function Stake(address datatokenAddress,address stakeToken,uint256 amount) public {
+    function Stake(
+        address datatokenAddress,
+        address stakeToken,
+        uint256 amount
+    ) public {
         if (_datatokens[datatokenAddress].bound != true) return;
-        require(msg.sender == _datatokens[datatokenAddress].poolAddress,'ERR: Only pool can call this');
-        bool ok=canStake(datatokenAddress,stakeToken,amount);
+        require(
+            msg.sender == _datatokens[datatokenAddress].poolAddress,
+            "ERR: Only pool can call this"
+        );
+        bool ok = canStake(datatokenAddress, stakeToken, amount);
         if (ok != true) return;
         IDatatoken dt = IDatatoken(datatokenAddress);
-        dt.approve(_datatokens[datatokenAddress].poolAddress,amount);
-        _datatokens[datatokenAddress].datatokenBalance-=amount;
+        dt.approve(_datatokens[datatokenAddress].poolAddress, amount);
+        _datatokens[datatokenAddress].datatokenBalance -= amount;
     }
+
     //called by pool to confirm that we can stake a token (add pool liquidty). If true, pool will call Unstake function
-    function canUnStake(address datatokenAddress,address stakeToken,uint256 amount) public view returns (bool){
+    function canUnStake(
+        address datatokenAddress,
+        address stakeToken,
+        uint256 amount
+    ) public view returns (bool) {
         //TO DO
         if (_datatokens[datatokenAddress].bound != true) return (false);
-        require(msg.sender == _datatokens[datatokenAddress].poolAddress,'ERR: Only pool can call this');
+        require(
+            msg.sender == _datatokens[datatokenAddress].poolAddress,
+            "ERR: Only pool can call this"
+        );
         //check balances, etc and issue true or false
-        if (_datatokens[datatokenAddress].basetokenAddress == stakeToken) return (false);
+        if (_datatokens[datatokenAddress].basetokenAddress == stakeToken)
+            return (false);
         return true;
     }
+
     //called by pool so 1ss will unstake a token (remove pool liquidty). In our case the balancer pool will handle all, this is just a notifier so 1ss can handle internal kitchen
-    function UnStake(address datatokenAddress,address stakeToken,uint256 amount) public {
+    function UnStake(
+        address datatokenAddress,
+        address stakeToken,
+        uint256 amount
+    ) public {
         if (_datatokens[datatokenAddress].bound != true) return;
-        require(msg.sender == _datatokens[datatokenAddress].poolAddress,'ERR: Only pool can call this');
-        bool ok=canUnStake(datatokenAddress,stakeToken,amount);
+        require(
+            msg.sender == _datatokens[datatokenAddress].poolAddress,
+            "ERR: Only pool can call this"
+        );
+        bool ok = canUnStake(datatokenAddress, stakeToken, amount);
         if (ok != true) return;
-        _datatokens[datatokenAddress].datatokenBalance+=amount;
+        _datatokens[datatokenAddress].datatokenBalance += amount;
     }
+
     //called by the pool (or by us) when we should finalize the pool
     function notifyFinalize(address datatokenAddress) public {
         if (_datatokens[datatokenAddress].bound != true) return;
-        require(msg.sender == _datatokens[datatokenAddress].poolAddress,'ERR: Only pool can call this');
-        if(_datatokens[datatokenAddress].poolFinalized==true) return;
-        _datatokens[datatokenAddress].poolFinalized=true;
-        uint baseTokenWeight=5*BASE; //pool weight: 50-50
-        uint dataTokenWeight=5*BASE; //pool weight: 50-50
-        uint baseTokenAmount=_datatokens[datatokenAddress].basetokenBalance;
+        require(
+            msg.sender == _datatokens[datatokenAddress].poolAddress,
+            "ERR: Only pool can call this"
+        );
+        if (_datatokens[datatokenAddress].poolFinalized == true) return;
+        _datatokens[datatokenAddress].poolFinalized = true;
+        uint256 baseTokenWeight = 5 * BASE; //pool weight: 50-50
+        uint256 dataTokenWeight = 5 * BASE; //pool weight: 50-50
+        uint256 baseTokenAmount = _datatokens[datatokenAddress]
+            .basetokenBalance;
         //given the price, compute dataTokenAmount
-        uint dataTokenAmount=_datatokens[datatokenAddress].rate * (baseTokenAmount/baseTokenWeight) * dataTokenWeight;
+        uint256 dataTokenAmount = _datatokens[datatokenAddress].rate *
+            (baseTokenAmount / baseTokenWeight) *
+            dataTokenWeight;
         //approve the tokens and amounts
-         IDatatoken dt = IDatatoken(datatokenAddress);
-        dt.approve(_datatokens[datatokenAddress].poolAddress,dataTokenAmount);
-        IDatatoken dtBase = IDatatoken(_datatokens[datatokenAddress].basetokenAddress);
-        dtBase.approve(_datatokens[datatokenAddress].basetokenAddress,baseTokenAmount);
+        IDatatoken dt = IDatatoken(datatokenAddress);
+        dt.approve(_datatokens[datatokenAddress].poolAddress, dataTokenAmount);
+        IDatatoken dtBase = IDatatoken(
+            _datatokens[datatokenAddress].basetokenAddress
+        );
+        dtBase.approve(
+            _datatokens[datatokenAddress].basetokenAddress,
+            baseTokenAmount
+        );
         // call the pool, bind the tokens, set the price, finalize pool
-        BPoolInterface pool=BPoolInterface(_datatokens[datatokenAddress].poolAddress);
-        pool.setup(datatokenAddress,dataTokenAmount,dataTokenWeight,_datatokens[datatokenAddress].basetokenAddress,baseTokenAmount,baseTokenWeight);
+        BPoolInterface pool = BPoolInterface(
+            _datatokens[datatokenAddress].poolAddress
+        );
+        pool.setup(
+            datatokenAddress,
+            dataTokenAmount,
+            dataTokenWeight,
+            _datatokens[datatokenAddress].basetokenAddress,
+            baseTokenAmount,
+            baseTokenWeight
+        );
         //substract
-        _datatokens[datatokenAddress].basetokenBalance-=baseTokenAmount;
-        _datatokens[datatokenAddress].datatokenBalance-=dataTokenAmount;
-
-    }
-    function allowStake(address datatokenAddress,address basetoken,uint datatokenAmount,uint basetokenAmount,address userAddress) public view returns (bool){
-        if (_datatokens[datatokenAddress].bound != true) return false;
-        require(msg.sender == _datatokens[datatokenAddress].poolAddress,'ERR: Only pool can call this');
-        if (isInBurnIn(datatokenAddress) == true) return (false); //we are in burn-period, so no stake/unstake
-        //allow user to stake
-        return(true);
-    }
-    function allowUnStake(address datatokenAddress,address basetoken,uint datatokenAmount,uint basetokenAmount,address userAddress) public view returns (bool){
-        if (_datatokens[datatokenAddress].bound != true) return false;
-        require(msg.sender == _datatokens[datatokenAddress].poolAddress,'ERR: Only pool can call this');
-        if (isInBurnIn(datatokenAddress) == true) return (false); //we are in burn-period, so no stake/unstake
-        //allow user to stake
-        return(true);
+        _datatokens[datatokenAddress].basetokenBalance -= baseTokenAmount;
+        _datatokens[datatokenAddress].datatokenBalance -= dataTokenAmount;
     }
 
-    function swapExactAmountIn(address datatokenAddress,address userAddress,address tokenIn,uint tokenAmountIn,address tokenOut,uint minAmountOut) public returns (uint tokenAmountOut){
-        require(_datatokens[datatokenAddress].bound == true,'ERR:Invalid datatoken');
-        require(msg.sender == _datatokens[datatokenAddress].poolAddress,'ERR: Only pool can call this');
-        require(isInBurnIn(datatokenAddress) == true,'ERR: Not in burn-in period');
-        tokenAmountOut=calcOutGivenIn(datatokenAddress,tokenIn,tokenOut,tokenAmountIn);
-        require(tokenAmountOut>=minAmountOut,'ERR:minAmountOut not meet'); //revert if minAmountOut is not met
+    function allowStake(
+        address datatokenAddress,
+        address basetoken,
+        uint256 datatokenAmount,
+        uint256 basetokenAmount,
+        address userAddress
+    ) public view returns (bool) {
+        if (_datatokens[datatokenAddress].bound != true) return false;
+        require(
+            msg.sender == _datatokens[datatokenAddress].poolAddress,
+            "ERR: Only pool can call this"
+        );
+        if (isInBurnIn(datatokenAddress) == true) return (false); //we are in burn-period, so no stake/unstake
+        //allow user to stake
+        return (true);
+    }
+
+    function allowUnStake(
+        address datatokenAddress,
+        address basetoken,
+        uint256 datatokenAmount,
+        uint256 basetokenAmount,
+        address userAddress
+    ) public view returns (bool) {
+        if (_datatokens[datatokenAddress].bound != true) return false;
+        require(
+            msg.sender == _datatokens[datatokenAddress].poolAddress,
+            "ERR: Only pool can call this"
+        );
+        if (isInBurnIn(datatokenAddress) == true) return (false); //we are in burn-period, so no stake/unstake
+        //allow user to stake
+        return (true);
+    }
+
+    function swapExactAmountIn(
+        address datatokenAddress,
+        address userAddress,
+        address tokenIn,
+        uint256 tokenAmountIn,
+        address tokenOut,
+        uint256 minAmountOut
+    ) public returns (uint256 tokenAmountOut) {
+        require(
+            _datatokens[datatokenAddress].bound == true,
+            "ERR:Invalid datatoken"
+        );
+        require(
+            msg.sender == _datatokens[datatokenAddress].poolAddress,
+            "ERR: Only pool can call this"
+        );
+        require(
+            isInBurnIn(datatokenAddress) == true,
+            "ERR: Not in burn-in period"
+        );
+        tokenAmountOut = calcOutGivenIn(
+            datatokenAddress,
+            tokenIn,
+            tokenOut,
+            tokenAmountIn
+        );
+        require(tokenAmountOut >= minAmountOut, "ERR:minAmountOut not meet"); //revert if minAmountOut is not met
         //pull tokenIn from the pool (pool will approve)
         IDatatoken dtIn = IDatatoken(tokenIn);
-        dtIn.transferFrom(_datatokens[datatokenAddress].poolAddress,address(this), tokenAmountIn);
+        dtIn.transferFrom(
+            _datatokens[datatokenAddress].poolAddress,
+            address(this),
+            tokenAmountIn
+        );
         //update our balances
-        if(tokenIn==datatokenAddress){
-            _datatokens[datatokenAddress].basetokenBalance+=tokenAmountOut;
-            _datatokens[datatokenAddress].datatokenBalance+=tokenAmountIn;
+        if (tokenIn == datatokenAddress) {
+            _datatokens[datatokenAddress].basetokenBalance += tokenAmountOut;
+            _datatokens[datatokenAddress].datatokenBalance += tokenAmountIn;
+        } else {
+            _datatokens[datatokenAddress].datatokenBalance += tokenAmountOut;
+            _datatokens[datatokenAddress].basetokenBalance += tokenAmountIn;
         }
-        else{
-            _datatokens[datatokenAddress].datatokenBalance+=tokenAmountOut;
-            _datatokens[datatokenAddress].basetokenBalance+=tokenAmountIn;
-        }
-        //send tokens to the user  
+        //send tokens to the user
         IDatatoken dtOut = IDatatoken(tokenOut);
         dtOut.transfer(userAddress, tokenAmountOut);
-        return(tokenAmountOut);
+        return (tokenAmountOut);
     }
-    function swapExactAmountOut(address datatokenAddress,address userAddress,address tokenIn,uint maxTokenAmountIn,address tokenOut,uint amountOut) public returns (uint tokenAmountIn){
-        require(_datatokens[datatokenAddress].bound == true,'ERR:Invalid datatoken');
-        require(msg.sender == _datatokens[datatokenAddress].poolAddress,'ERR: Only pool can call this');
-        require(isInBurnIn(datatokenAddress) == true,'ERR: Not in burn-in period');
-        tokenAmountIn=calcInGivenOut(datatokenAddress,tokenIn,tokenOut,amountOut);
-        require(tokenAmountIn<=maxTokenAmountIn,'ERR:maxTokenAmountIn not meet'); //revert if minAmountOut is not met
+
+    function swapExactAmountOut(
+        address datatokenAddress,
+        address userAddress,
+        address tokenIn,
+        uint256 maxTokenAmountIn,
+        address tokenOut,
+        uint256 amountOut
+    ) public returns (uint256 tokenAmountIn) {
+        require(
+            _datatokens[datatokenAddress].bound == true,
+            "ERR:Invalid datatoken"
+        );
+        require(
+            msg.sender == _datatokens[datatokenAddress].poolAddress,
+            "ERR: Only pool can call this"
+        );
+        require(
+            isInBurnIn(datatokenAddress) == true,
+            "ERR: Not in burn-in period"
+        );
+        tokenAmountIn = calcInGivenOut(
+            datatokenAddress,
+            tokenIn,
+            tokenOut,
+            amountOut
+        );
+        require(
+            tokenAmountIn <= maxTokenAmountIn,
+            "ERR:maxTokenAmountIn not meet"
+        ); //revert if minAmountOut is not met
         //pull tokenIn from the pool (pool will approve)
-       IDatatoken dtIn = IDatatoken(tokenIn);
-        dtIn.transferFrom(_datatokens[datatokenAddress].poolAddress,address(this), tokenAmountIn);
+        IDatatoken dtIn = IDatatoken(tokenIn);
+        dtIn.transferFrom(
+            _datatokens[datatokenAddress].poolAddress,
+            address(this),
+            tokenAmountIn
+        );
         //update our balances
-        if(tokenIn==datatokenAddress){
-            _datatokens[datatokenAddress].basetokenBalance+=amountOut;
-            _datatokens[datatokenAddress].datatokenBalance+=tokenAmountIn;
+        if (tokenIn == datatokenAddress) {
+            _datatokens[datatokenAddress].basetokenBalance += amountOut;
+            _datatokens[datatokenAddress].datatokenBalance += tokenAmountIn;
+        } else {
+            _datatokens[datatokenAddress].datatokenBalance += amountOut;
+            _datatokens[datatokenAddress].basetokenBalance += tokenAmountIn;
         }
-        else{
-            _datatokens[datatokenAddress].datatokenBalance+=amountOut;
-            _datatokens[datatokenAddress].basetokenBalance+=tokenAmountIn;
-        }
-        //send tokens to the user  
-       IDatatoken dtOut = IDatatoken(tokenOut);
+        //send tokens to the user
+        IDatatoken dtOut = IDatatoken(tokenOut);
         dtOut.transfer(userAddress, amountOut);
-        return(tokenAmountIn);
+        return (tokenAmountIn);
     }
 
     // called by vester to get datatokens
-    function getVesting(address datatokenAddress) public{
-        require(_datatokens[datatokenAddress].bound == true,'ERR:Invalid datatoken');
-        require(msg.sender == _datatokens[datatokenAddress].publisherAddress,'ERR: Only publisher can call this');
+    function getVesting(address datatokenAddress) public {
+        require(
+            _datatokens[datatokenAddress].bound == true,
+            "ERR:Invalid datatoken"
+        );
+        require(
+            msg.sender == _datatokens[datatokenAddress].publisherAddress,
+            "ERR: Only publisher can call this"
+        );
         //calculate how many tokens we need to vest to publisher
-        uint blocksPassed=block.number-_datatokens[datatokenAddress].vestingLastBlock;
-        uint vestPerBlock=_datatokens[datatokenAddress].vestingAmount.div(_datatokens[datatokenAddress].vestingEndBlock-_datatokens[datatokenAddress].blockDeployed);
-        if(vestPerBlock==0) return;
-        uint amount=blocksPassed.mul(vestPerBlock);
-        if(amount>0 && _datatokens[datatokenAddress].datatokenBalance >= amount){
+        uint256 blocksPassed = block.number -
+            _datatokens[datatokenAddress].vestingLastBlock;
+        uint256 vestPerBlock = _datatokens[datatokenAddress].vestingAmount.div(
+            _datatokens[datatokenAddress].vestingEndBlock -
+                _datatokens[datatokenAddress].blockDeployed
+        );
+        if (vestPerBlock == 0) return;
+        uint256 amount = blocksPassed.mul(vestPerBlock);
+        if (
+            amount > 0 &&
+            _datatokens[datatokenAddress].datatokenBalance >= amount
+        ) {
             IDatatoken dt = IDatatoken(datatokenAddress);
-            _datatokens[datatokenAddress].vestingAmount+=amount;
-            _datatokens[datatokenAddress].vestingLastBlock=block.number;
+            _datatokens[datatokenAddress].vestingAmount += amount;
+            _datatokens[datatokenAddress].vestingLastBlock = block.number;
             dt.transfer(_datatokens[datatokenAddress].publisherAddress, amount);
-            _datatokens[datatokenAddress].datatokenBalance-=amount;
+            _datatokens[datatokenAddress].datatokenBalance -= amount;
         }
     }
 
-
-
-
-
-
-
-
-
     // this is the section that is customizable for every ss
-
 
     //private functions that depends on the ss type
     function _calcInGivenOut(
@@ -418,7 +553,6 @@ contract ssFixedRateV2 {
         address tokenOut,
         uint256 tokenAmountOut
     ) private view returns (uint256) {
-
         /// baseTokenAmount = dataTokenAmount.mul(_datatokens[tokenIn].rate).div(BASE);
         //  dataTokenAmount = baseTokenAmount.mul(BASE).div(_datatokens[tokenIn].rate)
 
@@ -427,12 +561,16 @@ contract ssFixedRateV2 {
             if (_datatokens[tokenIn].allowDtSale == false) return (0); //selling DT is not allowed
             //compute how many tokenIn tokens are needed to get tokenOut
             // THIS IS VERY SPECIFIC TO THE ss TYPE (Fixed rate, Bonding, Dutch, etc)
-            uint256 tokenAmountIn = tokenAmountOut.mul(BASE).div(_datatokens[tokenIn].rate);
+            uint256 tokenAmountIn = tokenAmountOut.mul(BASE).div(
+                _datatokens[tokenIn].rate
+            );
             return (tokenAmountIn);
         }
         if (_datatokens[tokenOut].bound == true) {
             //swap basetoken(tokenIn) for datatokens(tokenOut) - spending Ocean to get DT
-            uint256 tokenAmountIn = tokenAmountOut.mul(_datatokens[tokenIn].rate).div(BASE);
+            uint256 tokenAmountIn = tokenAmountOut
+                .mul(_datatokens[tokenIn].rate)
+                .div(BASE);
             return (tokenAmountIn);
         }
         //no match, bail out
@@ -444,7 +582,6 @@ contract ssFixedRateV2 {
         address tokenOut,
         uint256 tokenAmountIn
     ) private view returns (uint256 tokenAmount) {
-        
         /// baseTokenAmount = dataTokenAmount.mul(_datatokens[tokenIn].rate).div(BASE);
         //  dataTokenAmount = baseTokenAmount.mul(BASE).div(_datatokens[tokenIn].rate)
 
@@ -453,12 +590,16 @@ contract ssFixedRateV2 {
             if (_datatokens[tokenIn].allowDtSale == false) return (0); //selling DT is not allowed
             //compute how many tokenIn tokens are needed to get tokenOut
             // THIS IS VERY SPECIFIC TO THE ss TYPE (Fixed rate, Bonding, Dutch, etc)
-            tokenAmount = tokenAmountIn.mul(_datatokens[tokenIn].rate).div(BASE);
+            tokenAmount = tokenAmountIn.mul(_datatokens[tokenIn].rate).div(
+                BASE
+            );
             return (tokenAmount);
         }
         if (_datatokens[tokenOut].bound == true) {
             //sells basetoken(tokenIn) for datatokens(tokenOut) - spending Ocean to get DT
-            tokenAmount = tokenAmountIn.mul(BASE).div(_datatokens[tokenIn].rate);
+            tokenAmount = tokenAmountIn.mul(BASE).div(
+                _datatokens[tokenIn].rate
+            );
             return (tokenAmount);
         }
         //no match, bail out
@@ -468,51 +609,65 @@ contract ssFixedRateV2 {
     // BALANCER V2
 
     address vault = 0xBA12222222228d8Ba445958a75a0704d566BF2C8;
-  
+    IAsset[] private assets;
     // should we create a new type of joining pool (instead of TOKEN_IN_FOR_EXACT_BPT_OUT)?
     // or we could transfer user tokens here, joinPool with EXACT_TOKENS_IN_FOR_BPT_OUT and then send 1/2 of the LP token back to the user
     // TODO: add new type of joining pool
-  
 
-    IAsset[] tokens;
-    uint256[] amounts;
-
-    function stake(bytes memory self, bytes32 poolId, uint256 amountIn, address tokenAddress, address recipient ) external {
+    function stake(bytes32 poolId, IERC20[] memory tokens, uint256[] memory amountsInDT, bytes memory userDataStake)
+        external 
+    {
         // TODO
-        bytes memory userData = abi.encode(self,(IPool.JoinKind.TOKEN_IN_FOR_EXACT_BPT_OUT));
+        //bytes memory userData = abi.encode(IPool.JoinKind.TOKEN_IN_FOR_EXACT_BPT_OUT);
         
-        // do it better, without delete etc
-        tokens.push(IAsset(tokenAddress));
         
-        amounts.push(amountIn);
+        for(uint i = 0; i < tokens.length;i++) {
+           IAsset token = IAsset(address(tokens[i]));
+            assets.push(token);
+        }
 
-        IVault.JoinPoolRequest memory request = IVault.JoinPoolRequest(tokens,amounts,userData, false);
+        // IPool(poolAddress).getPoolTokens();
+        IVault.JoinPoolRequest memory request = IVault.JoinPoolRequest(assets,amountsInDT,userDataStake, false);
         // JoinKind.TOKEN_IN_FOR_EXACT_BPT_OUT
-        IVault(vault).joinPool(poolId, address(this), recipient, request);
+       // if (amountInDT > IERC20(datatokenAddress).balanceOf(address(this)))
+        IVault(vault).joinPool(poolId, address(this), address(this), request);
         // call the new type of joining pool
         // calculate amount of DT to add as liquidity.
         // enter with the same type of joining pool (new one)
-        delete amounts;
-        delete tokens;
+        delete assets;
     }
 
-
-      function unstake(bytes memory self, bytes32 poolId, uint256 amountOut, address tokenAddress, address payable recipient ) external {
-        // TODO
-        bytes memory userData = abi.encode(self,(IPool.ExitKind.EXACT_BPT_IN_FOR_ONE_TOKEN_OUT));
-        
-        // do it better, without delete etc
-        tokens.push(IAsset(tokenAddress));
-        amounts.push(amountOut);
-
-        IVault.ExitPoolRequest memory request = IVault.ExitPoolRequest(tokens,amounts,userData, false);
-        // JoinKind.TOKEN_IN_FOR_EXACT_BPT_OUT
-        IVault(vault).exitPool(poolId, address(this), recipient, request);
-      
-        // calculate amount of DT to add as liquidity.
-        // enter with the same type of joining pool (new one)
-        delete amounts;
-        delete tokens;
+    function getDTAddress(bytes32 poolId) view external {
+        IVault(vault).getPoolTokens(poolId);
     }
-   
+    // function unstake(
+    //     bytes memory self,
+    //     bytes32 poolId,
+    //     uint256 amountOut,
+    //     address tokenAddress,
+    //     address payable recipient
+    // ) external {
+    //     // TODO
+    //     bytes memory userData = abi.encode(
+    //         self,
+    //         (IPool.ExitKind.EXACT_BPT_IN_FOR_ONE_TOKEN_OUT)
+    //     );
+
+    //     // do it better, without delete etc
+       
+
+    //     IVault.ExitPoolRequest memory request = IVault.ExitPoolRequest(
+    //         tokens,
+    //         amounts,
+    //         userData,
+    //         false
+    //     );
+    //     // JoinKind.TOKEN_IN_FOR_EXACT_BPT_OUT
+    //     IVault(vault).exitPool(poolId, address(this), recipient, request);
+
+    //     // calculate amount of DT to add as liquidity.
+    //     // enter with the same type of joining pool (new one)
+    //     delete amounts;
+    //     delete tokens;
+    // }
 }

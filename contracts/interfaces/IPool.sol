@@ -24,6 +24,7 @@ interface IPool {
         OPF_FEE_WITHDRAWAL,
         MP_FEE_WITHDRAWAL
     }
-    
+
     function getPoolId() external view returns (bytes32);
+    function getPoolTokens() external view returns(address[] memory);
 }

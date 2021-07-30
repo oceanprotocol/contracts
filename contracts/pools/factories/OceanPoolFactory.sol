@@ -7,22 +7,14 @@ import "./BasePoolSplitCodeFactory.sol";
 import "../../interfaces/IFriendlyFactory.sol";
 
 contract OceanPoolFactory is BasePoolSplitCodeFactory, FactoryWidePauseWindow {
-    
     IVault public vault;
-    
-   
-    
 
-   constructor(IVault _vault) BasePoolSplitCodeFactory(vault, type(WeightedPool).creationCode) {
-      
+    constructor(IVault _vault)
+        BasePoolSplitCodeFactory(vault, type(WeightedPool).creationCode)
+    {
         vault = _vault;
-        
-        
-        
     }
-    
-   
-   
+
     function _createPool(
         string memory name,
         string memory symbol,
@@ -32,32 +24,28 @@ contract OceanPoolFactory is BasePoolSplitCodeFactory, FactoryWidePauseWindow {
         uint256 oceanFee,
         uint256 marketFee,
         address owner
-        ) internal returns (address) {
-       
-       
+    ) internal returns (address) {
+        (
+            uint256 pauseWindowDuration,
+            uint256 bufferPeriodDuration
+        ) = getPauseConfiguration();
 
-             (uint256 pauseWindowDuration, uint256 bufferPeriodDuration) =
-            getPauseConfiguration();
+        address pool = _create(
+            abi.encode(
+                vault,
+                name,
+                symbol,
+                tokens,
+                weights,
+                swapFeePercentage,
+                oceanFee,
+                marketFee,
+                pauseWindowDuration,
+                bufferPeriodDuration,
+                owner
+            )
+        );
 
-             address pool = _create(abi.encode(
-                    vault,
-                    name,
-                    symbol,
-                    tokens,
-                    weights,
-                    swapFeePercentage,
-                    oceanFee,
-                    marketFee,
-                    pauseWindowDuration,
-                    bufferPeriodDuration,
-                    owner
-                ));
-            
-          
-            return pool;
+        return pool;
     }
-
-
-   
-
 }
