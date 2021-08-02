@@ -25,7 +25,7 @@ import "./BaseMinimalSwapInfoPool.sol";
 import "./WeightedMath.sol";
 import "./WeightedPoolUserDataHelpers.sol";
 import "../interfaces/IssFixedRateV2.sol";
-
+import "hardhat/console.sol";
 // This contract relies on tons of immutable state variables to perform efficient lookup, without resorting to storage
 // reads. Because immutable arrays are not supported, we instead declare a fixed set of state variables plus total
 // count, resulting in a large number of state variables.
@@ -450,35 +450,37 @@ contract WeightedPool is BaseMinimalSwapInfoPool, WeightedMath {
         _require(tokenIndex < _getTotalTokens(), Errors.OUT_OF_BOUNDS);
 
         uint256[] memory amountsIn = new uint256[](_getTotalTokens());
-        amountsIn[tokenIndex] = WeightedMath._calcNoFeeTokenInGivenExactBptOut(
+        amountsIn[tokenIndex] = WeightedMath._calcTokenInGivenExactBptOut(
             balances[tokenIndex],
             normalizedWeights[tokenIndex],
             bptAmountOut,
-            totalSupply()
+            totalSupply(),
+            _swapFeePercentage
         );
         // CALL 1 SIDE STAKING CONTRACT
         ( IERC20[] memory tokens,
             uint256[] memory balances,
             uint256 lastChangeBlock
         ) = getVault().getPoolTokens(getPoolId());
-
+        
         uint256 dtIndex;
         address dtAddress = IssFixedRateV2(SSContract).getDTAddress(address(this));
-
+        console.log(dtAddress, 'dtAddress');
         for (uint i = 0; i < _getTotalTokens(); i++) {
                 if (address(tokens[i]) == dtAddress) {
                     dtIndex = i;
                     break;
                 } 
         }
-
+        console.log(dtIndex, 'dtIndex');
         uint256[] memory maxAmountsIn = new uint256[](_getTotalTokens());
         // we should probably add the new  amountsIn[tokenIndex] from the previous step to more accurate calculation
-        maxAmountsIn[dtIndex] = WeightedMath._calcNoFeeTokenInGivenExactBptOut(
+        maxAmountsIn[dtIndex] = WeightedMath._calcTokenInGivenExactBptOut(
             balances[dtIndex],
             normalizedWeights[dtIndex],
             bptAmountOut,
-            totalSupply()
+            totalSupply(),
+            _swapFeePercentage
         );
 
         bytes memory userDataStake = abi.encode(JoinKind.TOKEN_IN_FOR_EXACT_BPT_OUT,bptAmountOut, dtIndex);

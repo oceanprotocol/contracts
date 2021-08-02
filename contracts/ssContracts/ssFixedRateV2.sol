@@ -9,7 +9,7 @@ import "./BPoolInterface.sol";
 import "@openzeppelin/contracts/utils/math/SafeMath.sol";
 import "../interfaces/IVault.sol";
 import "../interfaces/IPool.sol";
-
+import "hardhat/console.sol";
 /**
  * @title ssFixedRate
  *
@@ -615,6 +615,10 @@ contract ssFixedRateV2 {
 
     address vault = 0xBA12222222228d8Ba445958a75a0704d566BF2C8;
     IAsset[] private assets;
+    
+    function setDTinPool(address pool, address _datatokenAddress) external {
+        datatoken[pool] = _datatokenAddress;
+    }
 
     // should we create a new type of joining pool (instead of TOKEN_IN_FOR_EXACT_BPT_OUT)?
     // or we could transfer user tokens here, joinPool with EXACT_TOKENS_IN_FOR_BPT_OUT and then send 1/2 of the LP token back to the user
@@ -631,8 +635,12 @@ contract ssFixedRateV2 {
         uint256 balanceDT = IERC20(getDTAddress(msg.sender)).balanceOf(
             address(this)
         );
-       
+        console.log(balanceDT, 'aqui');
         if (balanceDT >= amountInDT) {
+
+            // We approve the vault to collect our DT
+            IERC20(getDTAddress(msg.sender)).approve(vault, amountInDT);
+
             for (uint256 i = 0; i < tokens.length; i++) {
                 IAsset token = IAsset(address(tokens[i]));
                 assets.push(token);

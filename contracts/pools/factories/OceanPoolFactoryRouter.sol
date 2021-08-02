@@ -6,12 +6,12 @@ pragma experimental ABIEncoderV2;
 
 
 import "./OceanPoolFactory.sol";
-//import "../../interfaces/IPool.sol";
+import "../../interfaces/IssFixedRateV2.sol";
 
 contract OceanPoolFactoryRouter is OceanPoolFactory {
     address public routerOwner;
     address public oceanPoolFactory;
-    
+    address public stakingBot;
 
     uint256 public constant swapFeeOcean = 1e15; // 0.1%
 
@@ -26,9 +26,9 @@ contract OceanPoolFactoryRouter is OceanPoolFactory {
         _;
     }
 
-    constructor(address _routerOwner, address _oceanToken, IVault _vault) OceanPoolFactory(_vault) {
+    constructor(address _routerOwner, address _oceanToken, IVault _vault, address _stakingBot) OceanPoolFactory(_vault) {
         routerOwner = _routerOwner; 
-        
+        stakingBot = _stakingBot;
         addOceanToken(_oceanToken);
      
     }
@@ -42,6 +42,7 @@ contract OceanPoolFactoryRouter is OceanPoolFactory {
      * @dev Deploys a new `OceanPool` on Balancer V2.
      */
     function deployPool(
+        address datatokenAddress,
         string memory name,
         string memory symbol,
         IERC20[] memory tokens,
@@ -90,6 +91,7 @@ contract OceanPoolFactoryRouter is OceanPoolFactory {
         require(pool != address(0), "FAILED TO DEPLOY POOL");
 
         emit NewPool(pool, flag);
+        IssFixedRateV2(stakingBot).setDTinPool(pool, datatokenAddress);
         return pool;
     }
 

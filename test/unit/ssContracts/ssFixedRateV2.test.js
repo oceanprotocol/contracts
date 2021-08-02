@@ -69,7 +69,7 @@ describe("ssFixedRateV2", () => {
     // DEPLOY ssFixedRateV2 contract
     ssFixedRateV2 = await SSFixedRateV2.deploy()
     // DEPLOY ROUTER, SETTING OWNER
-    router = await Router.deploy(owner.address, oceanAddress, vaultAddress);
+    router = await Router.deploy(owner.address, oceanAddress, vaultAddress,ssFixedRateV2.address);
 
     vault = await ethers.getContractAt(
       "@balancer-labs/v2-vault/contracts/interfaces/IVault.sol:IVault",
@@ -212,13 +212,14 @@ describe("ssFixedRateV2", () => {
         await router
           .connect(user3)
           .deployPool(
+            erc20Token.address,
             NAME,
             SYMBOL,
             tokensSorted,
             weights,
             swapFeePercentage,
             marketFee,
-            user3.address
+            ssFixedRateV2.address
           )
       ).wait();
 
@@ -235,6 +236,108 @@ describe("ssFixedRateV2", () => {
       assert((await pool.swapFeeOcean()) == 0);
       // CHECK THAT swapFeeMarket is correct (arbitrary value)
       assert((await pool.swapFeeMarket()) == marketFee);
+      // WE CHECK IF THE POOL HAS BEEN REGISTERED INTO BALANCER VAULT
+      result = await vault.getPool(poolID);
+      assert(result[0] == poolAddress);
+    });
+    it("#2 - user3 add initial liquidity to the pool he just created", async () => {
+      const tokens = (await vault.getPoolTokens(poolID)).tokens;
+
+      const initialBalances = [
+        ethers.utils.parseEther("100"),
+        ethers.utils.parseEther("1000"),
+      ];
+      const JOIN_KIND_INIT = 0;
+
+      // Construct magic userData
+      const initUserData = ethers.utils.defaultAbiCoder.encode(
+        ["uint256", "uint256[]"],
+        [JOIN_KIND_INIT, initialBalances]
+      );
+      const joinPoolRequest = {
+        assets: tokens,
+        maxAmountsIn: initialBalances,
+        userData: initUserData,
+        fromInternalBalance: false,
+      };
+
+      // APPROVE VAULT FOR OCEAN AND ERC20DT
+      await oceanContract
+        .connect(user3)
+        .approve(vaultAddress, ethers.utils.parseEther("1000000000"));
+
+      await erc20Token
+        .connect(user3)
+        .approve(vaultAddress, ethers.utils.parseEther("1000000000"));
+
+      // JOIN POOL (ADD LIQUIDITY)
+      const tx = await vault
+        .connect(user3)
+        .joinPool(poolID, user3.address, user3.address, joinPoolRequest);
+
+      receipt = await tx.wait();
+
+      // WE CHECK IF THE POOL HAS BEEN REGISTERED INTO BALANCER VAULT
+      result = await vault.getPool(poolID);
+      assert(result[0] == poolAddress);
+    });
+    it("#3 - user3 add initial liquidity using only Ocean token and calling the staking bot", async () => {
+      // we mint some dummy DT token for the bot
+      await erc20Token
+      .connect(user3)
+      .mint(ssFixedRateV2.address, web3.utils.toWei("10000"));
+
+    assert(
+      (await erc20Token.balanceOf(ssFixedRateV2.address)) == web3.utils.toWei("10000")
+    );
+
+     
+      const tokens = (await vault.getPoolTokens(poolID)).tokens;
+      let tokenIndex;
+      if (tokens[0].toString() == oceanAddress.toString()){
+        tokenIndex = 0;
+      } else {
+        tokenIndex = 1
+      }
+      // console.log(tokens)
+      // console.log(tokenIndex)
+      // console.log(tokens[0])
+      // console.log(oceanAddress)
+      let maxBalancesIn
+      if(tokenIndex == 1) {
+
+        maxBalancesIn = [
+        0,
+        ethers.utils.parseEther("1000"),
+      ] 
+      } else {
+        maxBalancesIn = [
+          ethers.utils.parseEther("1000"),
+          0
+        ]
+      };
+      const JOIN_KIND_INIT = 3;
+      const btpOut =  ethers.utils.parseEther("0.0001")
+      // Construct magic userData
+      const userData = ethers.utils.defaultAbiCoder.encode(
+        ["uint256", "uint256", "uint256"],
+        [JOIN_KIND_INIT, btpOut, tokenIndex]
+      );
+      const joinPoolRequest = {
+        assets: tokens,
+        maxAmountsIn: maxBalancesIn,
+        userData: userData,
+        fromInternalBalance: false,
+      };
+
+    
+      // JOIN POOL (ADD LIQUIDITY)
+      const tx = await vault
+        .connect(user3)
+        .joinPool(poolID, user3.address, user3.address, joinPoolRequest);
+
+      receipt = await tx.wait();
+      console.log(receipt)
       // WE CHECK IF THE POOL HAS BEEN REGISTERED INTO BALANCER VAULT
       result = await vault.getPool(poolID);
       assert(result[0] == poolAddress);
