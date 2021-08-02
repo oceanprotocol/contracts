@@ -20,6 +20,9 @@ const { assert } = chai
    7. Bob buys datatokens using it's own basetokens (through the FPLP contract)
    8. Alice changes the exchange rate to 2
    9. Bob buys datatokens with the new ex rate using it's own basetokens (through the FPLP contract)
+   10. Alice creates FixedRateExchange with decimals autodetect
+   11. Alice creates FixedRateExchange, passing decimals as arguments
+   12. Alice gets extended details about FRE, including decimals
    */
 contract('FixedRateExchange', async (accounts) => {
     let cap,
@@ -31,10 +34,13 @@ contract('FixedRateExchange', async (accounts) => {
         bob,
         blob,
         basetoken,
+        basetoken18,
         datatoken,
         fixedRateExchange,
         rate,
+        rateWithDecimals,
         ExchangeCreatedEventArgs,
+        ExchangeWithDecimalsCreatedEventArgs,
         approvedDataTokens,
         approvedBaseTokens
     const amountOfMintedTokens = 10
@@ -48,6 +54,7 @@ contract('FixedRateExchange', async (accounts) => {
         const communityFeeCollector = '0xeE9300b7961e0a01d9f0adb863C7A227A07AaD75'
         template = await Template.new('Template', 'TEMPLATE', alice, cap, blob, communityFeeCollector)
         rate = web3.utils.toWei('1')
+        rateWithDecimals = web3.utils.toWei('1')
         fixedRateExchange = await FixedRateExchange.new()
         factory = await DTFactory.new(template.address, communityFeeCollector)
         // Bob creates basetokens
@@ -64,12 +71,24 @@ contract('FixedRateExchange', async (accounts) => {
         TokenCreatedEventArgs = testUtils.getEventArgsFromTx(trxReceipt, 'TokenCreated')
         tokenAddress = TokenCreatedEventArgs.newTokenAddress
         datatoken = await Token.at(tokenAddress)
+        trxReceipt = await factory.createToken(blob, 'DT3', 'DT3', web3.utils.toWei('1000000'), {
+            from: bob
+        })
+        TokenCreatedEventArgs = testUtils.getEventArgsFromTx(trxReceipt, 'TokenCreated')
+        tokenAddress = TokenCreatedEventArgs.newTokenAddress
+        basetoken18 = await Token.at(tokenAddress)
         // Alice creates fixed rate exchange
         trxReceipt = await fixedRateExchange.create(basetoken.address, datatoken.address, rate, { from: exchangeOwner })
         ExchangeCreatedEventArgs = testUtils.getEventArgsFromTx(trxReceipt, 'ExchangeCreated')
-
         assert(
             ExchangeCreatedEventArgs.exchangeOwner === exchangeOwner,
+            'Invalid exchange owner'
+        )
+        // Alice creates fixed rate exchange
+        trxReceipt = await fixedRateExchange.createWithDecimals(basetoken18.address, datatoken.address, 18, 18, rateWithDecimals, { from: exchangeOwner })
+        ExchangeWithDecimalsCreatedEventArgs = testUtils.getEventArgsFromTx(trxReceipt, 'ExchangeCreated')
+        assert(
+            ExchangeWithDecimalsCreatedEventArgs.exchangeOwner === exchangeOwner,
             'Invalid exchange owner'
         )
     })
@@ -248,7 +267,7 @@ contract('FixedRateExchange', async (accounts) => {
     })
     it('should get the number of exchanges', async () => {
         assert(
-            (await fixedRateExchange.getNumberOfExchanges()).toNumber() === 1,
+            (await fixedRateExchange.getNumberOfExchanges()).toNumber() === 2,
             'faild to get number of exchanges'
         )
     })
@@ -257,24 +276,78 @@ contract('FixedRateExchange', async (accounts) => {
             ExchangeCreatedEventArgs.exchangeId
         )
         assert(
-            exchange.exchangeOwner === exchangeOwner
+            exchange.exchangeOwner === exchangeOwner, 'Owner address wrong'
         )
         assert(
-            exchange.dataToken === datatoken.address
+            exchange.dataToken === datatoken.address, 'Datatoken address wrong'
         )
         assert(
-            exchange.baseToken === basetoken.address
+            exchange.baseToken === basetoken.address, 'Basetoken address wrong'
         )
         assert(
-            web3.utils.fromWei(exchange.fixedRate) === web3.utils.fromWei(rate)
+            web3.utils.fromWei(exchange.fixedRate) === web3.utils.fromWei(rate), 'Rate wrong'
         )
         assert(
-            exchange.active === true
+            exchange.active === true, 'Exchange not active'
         )
     })
     it('should get all exchange IDs', async () => {
         assert(
-            (await fixedRateExchange.getExchanges()).length === 1
+            (await fixedRateExchange.getExchanges()).length === 2
+        )
+    })
+
+    it('should get extended exchange information for exchange', async () => {
+        const exchange = await fixedRateExchange.getExchangeExtended(
+            ExchangeCreatedEventArgs.exchangeId
+        )
+        assert(
+            exchange.exchangeOwner === exchangeOwner, 'Owner address wrong'
+        )
+        assert(
+            exchange.dataToken === datatoken.address, 'Datatoken address wrong'
+        )
+        assert(
+            exchange.baseToken === basetoken.address, 'Basetoken address wrong'
+        )
+        assert(
+            web3.utils.fromWei(exchange.fixedRate) === web3.utils.fromWei(rate), 'Rate wrong, got ' + web3.utils.fromWei(exchange.fixedRate) + ' instead of ' + web3.utils.fromWei(rate)
+        )
+        assert(
+            exchange.active === true, 'Exchange not active'
+        )
+        assert(
+            exchange.dtDecimals.toString() === '18', 'dtDecimals wrong, got:' + exchange.dtDecimals.toString()
+        )
+        assert(
+            exchange.btDecimals.toString() === '18', 'btDecimals wrong, got:' + exchange.btDecimals.toString()
+        )
+    })
+
+    it('should get extended exchange information for exchange with Decimals', async () => {
+        const exchange = await fixedRateExchange.getExchangeExtended(
+            ExchangeWithDecimalsCreatedEventArgs.exchangeId
+        )
+        assert(
+            exchange.exchangeOwner === exchangeOwner, 'Owner address wrong'
+        )
+        assert(
+            exchange.dataToken === datatoken.address, 'Datatoken address wrong'
+        )
+        assert(
+            exchange.baseToken === basetoken18.address, 'Basetoken address wrong'
+        )
+        assert(
+            web3.utils.fromWei(exchange.fixedRate) === web3.utils.fromWei(rateWithDecimals), 'Rate wrong, got ' + web3.utils.fromWei(exchange.fixedRate) + ' instead of ' + web3.utils.fromWei(rateWithDecimals)
+        )
+        assert(
+            exchange.active === true, 'Exchange not active'
+        )
+        assert(
+            exchange.dtDecimals.toString() === '18', 'dtDecimals wrong, got:' + exchange.dtDecimals.toString()
+        )
+        assert(
+            exchange.btDecimals.toString() === '18', 'btDecimals wrong, got:' + exchange.btDecimals.toString()
         )
     })
 

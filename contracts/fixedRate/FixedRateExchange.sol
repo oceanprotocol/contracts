@@ -22,6 +22,8 @@ contract FixedRateExchange {
         address dataToken;
         address baseToken;
         uint256 fixedRate;
+        uint256 dtDecimals;
+        uint256 btDecimals;
     }
 
     // maps an exchangeId to an exchange
@@ -85,33 +87,33 @@ contract FixedRateExchange {
     /**
      * @dev create
      *      creates new exchange pairs between base token
-     *      (ocean token) and data tokens.
+     *      (ocean token) and data tokens, auto detecting no of decimals for each token
+     *      This will fail if ERC20 decimals call fails
      * @param baseToken refers to a ocean token contract address
      * @param dataToken refers to a data token contract address
      * @param fixedRate refers to the exact fixed exchange rate in wei
+
      */
     function create(
         address baseToken,
         address dataToken,
         uint256 fixedRate
-    )
-        external
-    {
+    ) external {
         require(
             baseToken != address(0),
-            'FixedRateExchange: Invalid basetoken,  zero address'
+            "FixedRateExchange: Invalid basetoken,  zero address"
         );
         require(
             dataToken != address(0),
-            'FixedRateExchange: Invalid datatoken,  zero address'
+            "FixedRateExchange: Invalid datatoken,  zero address"
         );
         require(
             baseToken != dataToken,
-            'FixedRateExchange: Invalid datatoken,  equals basetoken'
+            "FixedRateExchange: Invalid datatoken,  equals basetoken"
         );
         require(
-            fixedRate != 0, 
-            'FixedRateExchange: Invalid exchange rate value'
+            fixedRate != 0,
+            "FixedRateExchange: Invalid exchange rate value"
         );
         bytes32 exchangeId = generateExchangeId(
             baseToken,
@@ -120,15 +122,25 @@ contract FixedRateExchange {
         );
         require(
             exchanges[exchangeId].fixedRate == 0,
-            'FixedRateExchange: Exchange already exists!'
+            "FixedRateExchange: Exchange already exists!"
         );
         exchanges[exchangeId] = Exchange({
             active: true,
             exchangeOwner: msg.sender,
             dataToken: dataToken,
             baseToken: baseToken,
-            fixedRate: fixedRate
+            fixedRate: fixedRate,
+            dtDecimals: IERC20Template(dataToken).decimals(),
+            btDecimals: IERC20Template(baseToken).decimals()
         });
+        require(
+            exchanges[exchangeId].btDecimals > 0,
+            "FixedRateExchange: Invalid btDecimals value"
+        );
+        require(
+            exchanges[exchangeId].dtDecimals > 0,
+            "FixedRateExchange: Invalid dtDecimals value"
+        );
         exchangeIds.push(exchangeId);
 
         emit ExchangeCreated(
@@ -139,10 +151,80 @@ contract FixedRateExchange {
             fixedRate
         );
 
-        emit ExchangeActivated(
-            exchangeId,
+        emit ExchangeActivated(exchangeId, msg.sender);
+    }
+    /**
+     * @dev createWithDecimals
+     *      creates new exchange pairs between base token
+     *      (ocean token) and data tokens, passing into arguments the exact no of decimals to use
+     * @param baseToken refers to a ocean token contract address
+     * @param dataToken refers to a data token contract address
+     * @param btDecimals how many decimals to use for baseToken
+     * @param dtDecimals how many decimals to use for dataToken
+     * @param fixedRate refers to the exact fixed exchange rate in wei
+
+     */
+    function createWithDecimals(
+        address baseToken,
+        address dataToken,
+        uint256 btDecimals,
+        uint256 dtDecimals,
+        uint256 fixedRate
+    ) external {
+        require(
+            baseToken != address(0),
+            "FixedRateExchange: Invalid basetoken,  zero address"
+        );
+        require(
+            dataToken != address(0),
+            "FixedRateExchange: Invalid datatoken,  zero address"
+        );
+        require(
+            baseToken != dataToken,
+            "FixedRateExchange: Invalid datatoken,  equals basetoken"
+        );
+        require(
+            fixedRate != 0,
+            "FixedRateExchange: Invalid exchange rate value"
+        );
+        require(
+            btDecimals > 0,
+            "FixedRateExchange: Invalid btDecimals value"
+        );
+        require(
+            dtDecimals > 0,
+            "FixedRateExchange: Invalid dtDecimals value"
+        );
+        bytes32 exchangeId = generateExchangeId(
+            baseToken,
+            dataToken,
             msg.sender
         );
+        require(
+            exchanges[exchangeId].fixedRate == 0,
+            "FixedRateExchange: Exchange already exists!"
+        );
+        exchanges[exchangeId] = Exchange({
+            active: true,
+            exchangeOwner: msg.sender,
+            dataToken: dataToken,
+            baseToken: baseToken,
+            fixedRate: fixedRate,
+            dtDecimals: dtDecimals,
+            btDecimals: btDecimals
+        });
+
+        exchangeIds.push(exchangeId);
+
+        emit ExchangeCreated(
+            exchangeId,
+            baseToken,
+            dataToken,
+            msg.sender,
+            fixedRate
+        );
+
+        emit ExchangeActivated(exchangeId, msg.sender);
     }
 
     /**
@@ -187,8 +269,13 @@ contract FixedRateExchange {
         )
         returns (uint256 baseTokenAmount)
     {
-        baseTokenAmount = dataTokenAmount.mul(
-            exchanges[exchangeId].fixedRate).div(BASE);
+        require(exchanges[exchangeId].btDecimals >0, 'btDecimals equal 0');
+        require(exchanges[exchangeId].dtDecimals >0, 'dtDecimals equal 0');
+        baseTokenAmount = dataTokenAmount
+        .mul(exchanges[exchangeId].fixedRate)
+        .div(BASE)
+        .mul(10**exchanges[exchangeId].btDecimals)
+        .div(10**exchanges[exchangeId].dtDecimals);
     }
     
     /**
@@ -370,6 +457,42 @@ contract FixedRateExchange {
         exchangeOwner = exchange.exchangeOwner;
         dataToken = exchange.dataToken;
         baseToken = exchange.baseToken;
+        fixedRate = exchange.fixedRate;
+        active = exchange.active;
+        supply = getSupply(exchangeId);
+    }
+
+    /**
+     * @dev getExchange
+     *      gets all the exchange details
+     * @param exchangeId a unique exchange idnetifier
+     * @return all the exchange details including  the exchange Owner
+     *         the dataToken contract address, the base token address, the 
+     *         fixed rate, whether the exchange is active and the supply or the 
+     *         the current data token liquidity.
+     */
+    function getExchangeExtended(
+        bytes32 exchangeId
+    )
+        external
+        view
+        returns (
+            address exchangeOwner,
+            address dataToken,
+            uint256 dtDecimals,
+            address baseToken,
+            uint256 btDecimals,
+            uint256 fixedRate,
+            bool active,
+            uint256 supply
+        )
+    {
+        Exchange memory exchange = exchanges[exchangeId];
+        exchangeOwner = exchange.exchangeOwner;
+        dataToken = exchange.dataToken;
+        dtDecimals = exchange.dtDecimals;
+        baseToken = exchange.baseToken;
+        btDecimals = exchange.btDecimals;
         fixedRate = exchange.fixedRate;
         active = exchange.active;
         supply = getSupply(exchangeId);
