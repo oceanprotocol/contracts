@@ -101,19 +101,19 @@ contract FixedRateExchange {
     ) external {
         require(
             baseToken != address(0),
-            "FixedRateExchange: Invalid basetoken,  zero address"
+            'FixedRateExchange: Invalid basetoken,  zero address'
         );
         require(
             dataToken != address(0),
-            "FixedRateExchange: Invalid datatoken,  zero address"
+            'FixedRateExchange: Invalid datatoken,  zero address'
         );
         require(
             baseToken != dataToken,
-            "FixedRateExchange: Invalid datatoken,  equals basetoken"
+            'FixedRateExchange: Invalid datatoken,  equals basetoken'
         );
         require(
             fixedRate != 0,
-            "FixedRateExchange: Invalid exchange rate value"
+            'FixedRateExchange: Invalid exchange rate value'
         );
         bytes32 exchangeId = generateExchangeId(
             baseToken,
@@ -122,7 +122,7 @@ contract FixedRateExchange {
         );
         require(
             exchanges[exchangeId].fixedRate == 0,
-            "FixedRateExchange: Exchange already exists!"
+            'FixedRateExchange: Exchange already exists!'
         );
         exchanges[exchangeId] = Exchange({
             active: true,
@@ -135,11 +135,11 @@ contract FixedRateExchange {
         });
         require(
             exchanges[exchangeId].btDecimals > 0,
-            "FixedRateExchange: Invalid btDecimals value"
+            'FixedRateExchange: Invalid btDecimals value'
         );
         require(
             exchanges[exchangeId].dtDecimals > 0,
-            "FixedRateExchange: Invalid dtDecimals value"
+            'FixedRateExchange: Invalid dtDecimals value'
         );
         exchangeIds.push(exchangeId);
 
@@ -173,27 +173,27 @@ contract FixedRateExchange {
     ) external {
         require(
             baseToken != address(0),
-            "FixedRateExchange: Invalid basetoken,  zero address"
+            'FixedRateExchange: Invalid basetoken,  zero address'
         );
         require(
             dataToken != address(0),
-            "FixedRateExchange: Invalid datatoken,  zero address"
+            'FixedRateExchange: Invalid datatoken,  zero address'
         );
         require(
             baseToken != dataToken,
-            "FixedRateExchange: Invalid datatoken,  equals basetoken"
+            'FixedRateExchange: Invalid datatoken,  equals basetoken'
         );
         require(
             fixedRate != 0,
-            "FixedRateExchange: Invalid exchange rate value"
+            'FixedRateExchange: Invalid exchange rate value'
         );
         require(
             btDecimals > 0,
-            "FixedRateExchange: Invalid btDecimals value"
+            'FixedRateExchange: Invalid btDecimals value'
         );
         require(
             dtDecimals > 0,
-            "FixedRateExchange: Invalid dtDecimals value"
+            'FixedRateExchange: Invalid dtDecimals value'
         );
         bytes32 exchangeId = generateExchangeId(
             baseToken,
@@ -202,7 +202,7 @@ contract FixedRateExchange {
         );
         require(
             exchanges[exchangeId].fixedRate == 0,
-            "FixedRateExchange: Exchange already exists!"
+            'FixedRateExchange: Exchange already exists!'
         );
         exchanges[exchangeId] = Exchange({
             active: true,
@@ -269,8 +269,8 @@ contract FixedRateExchange {
         )
         returns (uint256 baseTokenAmount)
     {
-        require(exchanges[exchangeId].btDecimals >0, 'btDecimals equal 0');
-        require(exchanges[exchangeId].dtDecimals >0, 'dtDecimals equal 0');
+        require(exchanges[exchangeId].btDecimals > 0, 'btDecimals equal 0');
+        require(exchanges[exchangeId].dtDecimals > 0, 'dtDecimals equal 0');
         baseTokenAmount = dataTokenAmount
         .mul(exchanges[exchangeId].fixedRate)
         .div(BASE)
