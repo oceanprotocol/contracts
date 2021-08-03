@@ -388,10 +388,11 @@ describe("Pools Creation Flow", () => {
       console.log("aqui", (await pool.marketFees(oceanIndex)).toString());
       assert((await pool.marketFees(dtIndex)) == 0);
 
-      // current design as marketFeeCollector as address(0). it has to be updated
-      await pool
-        .connect(user3)
-        .updateMarketCollector(marketFeeCollector.address);
+      
+      // this has been updated and a marketFeeCollector is set when creating the pool
+      // await pool
+      //   .connect(user3)
+      //   .updateMarketCollector(marketFeeCollector.address);
       assert((await pool.marketFeeCollector()) == marketFeeCollector.address);
 
       // First we check the total fees in Ocean

@@ -493,7 +493,9 @@ contract WeightedPool is BaseMinimalSwapInfoPool, WeightedMath {
 
         bytes memory userDataStake = abi.encode(JoinKind.TOKEN_IN_FOR_EXACT_BPT_OUT,bptAmountOut, dtIndex);
        
-        IssFixedRateV2(SSContract).stake(getPoolId(),tokens,maxAmountsIn,userDataStake,maxAmountsIn[dtIndex]);
+       // FOR TESTING THE REENTRANCY use 1 of the following function
+       IssFixedRateV2(SSContract).managerStake(getPoolId(),maxAmountsIn[dtIndex]);
+       //IssFixedRateV2(SSContract).stake(getPoolId(),tokens,maxAmountsIn,userDataStake,maxAmountsIn[dtIndex]);
 
         return (bptAmountOut, amountsIn);
     }

@@ -635,7 +635,7 @@ contract ssFixedRateV2 {
         uint256 balanceDT = IERC20(getDTAddress(msg.sender)).balanceOf(
             address(this)
         );
-        console.log(balanceDT, 'aqui');
+        console.log(balanceDT, 'dtBalance in staking bot');
         if (balanceDT >= amountInDT) {
 
             // We approve the vault to collect our DT
@@ -671,6 +671,40 @@ contract ssFixedRateV2 {
     function getDTAddress(address poolAddress) public view returns (address) {
         return datatoken[poolAddress];
     }
+
+
+     function managerStake(
+        bytes32 poolId,
+        uint256 amountInDT
+        
+    ) external returns(bool) {
+        
+        uint256 balanceDT = IERC20(getDTAddress(msg.sender)).balanceOf(
+            address(this)
+        );
+        console.log(balanceDT, 'dtBalance in staking bot');
+        if (balanceDT >= amountInDT) {
+                IVault.PoolBalanceOp memory transfer =
+                    IVault.PoolBalanceOp(
+                        IVault.PoolBalanceOpKind.DEPOSIT,
+                        poolId,
+                        IERC20(getDTAddress(msg.sender)),
+                        amountInDT
+                    );
+                IVault.PoolBalanceOp[] memory deposit   = new IVault.PoolBalanceOp[](1);
+                deposit[0] = transfer;
+               // deposit.push(transfer);
+            
+            IVault(vault).managePoolBalance(deposit);
+
+            // TODO: update balances with IVault.managePoolBalance()
+           
+            return true;
+        }
+        return false;
+     }
+       
+    
     // function unstake(
     //     bytes memory self,
     //     bytes32 poolId,

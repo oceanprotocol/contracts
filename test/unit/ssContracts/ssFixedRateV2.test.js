@@ -67,9 +67,14 @@ describe("ssFixedRateV2", () => {
     ] = await ethers.getSigners();
 
     // DEPLOY ssFixedRateV2 contract
-    ssFixedRateV2 = await SSFixedRateV2.deploy()
+    ssFixedRateV2 = await SSFixedRateV2.deploy();
     // DEPLOY ROUTER, SETTING OWNER
-    router = await Router.deploy(owner.address, oceanAddress, vaultAddress,ssFixedRateV2.address);
+    router = await Router.deploy(
+      owner.address,
+      oceanAddress,
+      vaultAddress,
+      ssFixedRateV2.address
+    );
 
     vault = await ethers.getContractAt(
       "@balancer-labs/v2-vault/contracts/interfaces/IVault.sol:IVault",
@@ -159,10 +164,7 @@ describe("ssFixedRateV2", () => {
     await tokenERC721.connect(user2).addTo725StoreList(user3.address);
     await tokenERC721.connect(user2).addToCreateERC20List(user3.address);
     await tokenERC721.connect(user2).addToMetadataList(user3.address);
-
-
   });
-
 
   it("#3 - user3 deploys a new erc20DT, assigning himself as minter", async () => {
     const trxERC20 = await tokenERC721
@@ -213,13 +215,12 @@ describe("ssFixedRateV2", () => {
           .connect(user3)
           .deployPool(
             erc20Token.address,
-            NAME,
-            SYMBOL,
+            [NAME, SYMBOL],
             tokensSorted,
             weights,
             swapFeePercentage,
             marketFee,
-            ssFixedRateV2.address
+            [user3.address, ssFixedRateV2.address, user3.address]
           )
       ).wait();
 
@@ -281,43 +282,37 @@ describe("ssFixedRateV2", () => {
       result = await vault.getPool(poolID);
       assert(result[0] == poolAddress);
     });
-    it("#3 - user3 add initial liquidity using only Ocean token and calling the staking bot", async () => {
+
+    it("#3 - REENTRANCY ERROR - test both stake() and managerStake()", async () => {
+     // In order to test both stake() and managerStake() (they will both fail for reentrancy)
+     // uncomment / comment out line 496 and 497 on WeightedPool.sol depending which one you want to test
+     
       // we mint some dummy DT token for the bot
       await erc20Token
-      .connect(user3)
-      .mint(ssFixedRateV2.address, web3.utils.toWei("10000"));
+        .connect(user3)
+        .mint(ssFixedRateV2.address, web3.utils.toWei("10000"));
 
-    assert(
-      (await erc20Token.balanceOf(ssFixedRateV2.address)) == web3.utils.toWei("10000")
-    );
+      assert(
+        (await erc20Token.balanceOf(ssFixedRateV2.address)) ==
+          web3.utils.toWei("10000")
+      );
 
-     
       const tokens = (await vault.getPoolTokens(poolID)).tokens;
       let tokenIndex;
-      if (tokens[0].toString() == oceanAddress.toString()){
+      if (tokens[0].toString() == oceanAddress.toString()) {
         tokenIndex = 0;
       } else {
-        tokenIndex = 1
+        tokenIndex = 1;
       }
-      // console.log(tokens)
-      // console.log(tokenIndex)
-      // console.log(tokens[0])
-      // console.log(oceanAddress)
-      let maxBalancesIn
-      if(tokenIndex == 1) {
 
-        maxBalancesIn = [
-        0,
-        ethers.utils.parseEther("1000"),
-      ] 
+      let maxBalancesIn;
+      if (tokenIndex == 1) {
+        maxBalancesIn = [0, ethers.utils.parseEther("1000")];
       } else {
-        maxBalancesIn = [
-          ethers.utils.parseEther("1000"),
-          0
-        ]
-      };
+        maxBalancesIn = [ethers.utils.parseEther("1000"), 0];
+      }
       const JOIN_KIND_INIT = 3;
-      const btpOut =  ethers.utils.parseEther("0.0001")
+      const btpOut = ethers.utils.parseEther("0.0001");
       // Construct magic userData
       const userData = ethers.utils.defaultAbiCoder.encode(
         ["uint256", "uint256", "uint256"],
@@ -330,17 +325,10 @@ describe("ssFixedRateV2", () => {
         fromInternalBalance: false,
       };
 
-    
-      // JOIN POOL (ADD LIQUIDITY)
-      const tx = await vault
+      await expectRevert(vault
         .connect(user3)
-        .joinPool(poolID, user3.address, user3.address, joinPoolRequest);
-
-      receipt = await tx.wait();
-      console.log(receipt)
-      // WE CHECK IF THE POOL HAS BEEN REGISTERED INTO BALANCER VAULT
-      result = await vault.getPool(poolID);
-      assert(result[0] == poolAddress);
+        .joinPool(poolID, user3.address, user3.address, joinPoolRequest), 'revert BAL#400' )
+    
     });
   });
 });
