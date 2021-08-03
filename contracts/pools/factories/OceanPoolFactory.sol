@@ -16,14 +16,18 @@ contract OceanPoolFactory is BasePoolSplitCodeFactory, FactoryWidePauseWindow {
     }
 
     function _createPool(
-        string memory name,
-        string memory symbol,
+        string[2] memory identifiers,
+        // string memory name,
+        // string memory symbol,
         IERC20[] memory tokens,
         uint256[] memory weights,
         uint256 swapFeePercentage,
         uint256 oceanFee,
         uint256 marketFee,
-        address owner
+        address[3] memory addresses
+        // address owner,
+        // address ssStaking,
+        // address marketFeeCollector
     ) internal returns (address) {
         (
             uint256 pauseWindowDuration,
@@ -33,8 +37,9 @@ contract OceanPoolFactory is BasePoolSplitCodeFactory, FactoryWidePauseWindow {
         address pool = _create(
             abi.encode(
                 vault,
-                name,
-                symbol,
+                identifiers,
+                // name,
+                // symbol,
                 tokens,
                 weights,
                 swapFeePercentage,
@@ -42,7 +47,10 @@ contract OceanPoolFactory is BasePoolSplitCodeFactory, FactoryWidePauseWindow {
                 marketFee,
                 pauseWindowDuration,
                 bufferPeriodDuration,
-                owner
+                addresses
+                // owner,
+                // ssStaking,
+                // marketFeeCollector
             )
         );
 

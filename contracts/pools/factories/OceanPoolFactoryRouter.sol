@@ -43,13 +43,17 @@ contract OceanPoolFactoryRouter is OceanPoolFactory {
      */
     function deployPool(
         address datatokenAddress,
-        string memory name,
-        string memory symbol,
+        string[2] memory identifiers,
+        // string memory name,
+        // string memory symbol,
         IERC20[] memory tokens,
         uint256[] memory weights,
         uint256 swapFeePercentage,
         uint256 marketFee,
-        address owner
+        address[3] memory addresses
+        // address owner,
+        // address ssStaking,
+        // address marketFeeCollector
     ) external returns (address) {
         
         bool flag;
@@ -65,26 +69,34 @@ contract OceanPoolFactoryRouter is OceanPoolFactory {
 
         if (flag == true) {
             pool = _createPool(
-                name,
-                symbol,
+                identifiers,
+                // name,
+                // symbol,
                 tokens,
                 weights,
                 swapFeePercentage,
                 0,
                 marketFee,
-                owner
+                addresses
+                // owner,
+                // ssStaking,
+                // marketFeeCollector
             );
        
         } else {
             pool = _createPool(
-                name,
-                symbol,
+                identifiers,
+                // name,
+                // symbol,
                 tokens,
                 weights,
                 swapFeePercentage,
                 swapFeeOcean,
                 marketFee,
-                owner
+                addresses
+                // owner,
+                // ssStaking,
+                // marketFeeCollector
             );
         }
 

@@ -13,7 +13,7 @@
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 pragma solidity ^0.7.0;
-
+pragma experimental ABIEncoderV2;
 import "@balancer-labs/v2-solidity-utils/contracts/math/Math.sol";
 import "@balancer-labs/v2-solidity-utils/contracts/openzeppelin/IERC20.sol";
 import "@balancer-labs/v2-solidity-utils/contracts/openzeppelin/IERC20Permit.sol";
@@ -55,9 +55,14 @@ contract BalancerPoolToken is IERC20, IERC20Permit, EIP712 {
 
     // Function declarations
 
-    constructor(string memory tokenName, string memory tokenSymbol) EIP712(tokenName, "1") {
-        _name = tokenName;
-        _symbol = tokenSymbol;
+    constructor( string[2] memory identifiers
+        // string memory tokenName, 
+         //string memory tokenSymbol
+         ) EIP712(identifiers[0], "1") {
+        // _name = tokenName;
+        // _symbol = tokenSymbol;
+        _name = identifiers[0];
+        _symbol = identifiers[1];
     }
 
     // External functions

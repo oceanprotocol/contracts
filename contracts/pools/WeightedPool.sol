@@ -66,8 +66,9 @@ contract WeightedPool is BaseMinimalSwapInfoPool, WeightedMath {
 
     constructor(
         IVault vault,
-        string memory name,
-        string memory symbol,
+        string[2] memory identifiers,
+        //string memory name,
+        //string memory symbol,
         IERC20[] memory tokens,
         uint256[] memory normalizedWeights,
        // address[] memory assetManagers,
@@ -76,22 +77,29 @@ contract WeightedPool is BaseMinimalSwapInfoPool, WeightedMath {
         uint256 marketFee,
         uint256 pauseWindowDuration,
         uint256 bufferPeriodDuration,
-        address owner
+        address[3] memory addresses
+        // address owner,
+        // address ssStaking,
+        // address marketFeeCollector
     )
         BaseMinimalSwapInfoPool(
             vault,
-            name,
-            symbol,
+            identifiers,
+            // name,
+            // symbol,
             tokens,
             swapFeePercentage,
             oceanFee,
             marketFee,
             pauseWindowDuration,
             bufferPeriodDuration,
-            owner
+            addresses
+            // owner,
+            // ssStaking,
+            // marketFeeCollector
         )
     {   
-        SSContract = owner; // TODO: check how this will affect following pool modification (asset manager, relayers)
+        SSContract = addresses[1]; // TODO: check how this will affect following pool modification (asset manager, relayers)
         //  uint256 numTokens = tokens.length;
         InputHelpers.ensureInputLengthMatch(
             tokens.length,

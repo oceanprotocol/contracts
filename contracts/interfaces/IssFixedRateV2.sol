@@ -13,8 +13,6 @@ import "@balancer-labs/v2-vault/contracts/interfaces/IVault.sol";
 
 interface IssFixedRateV2 {
 
-
-
    function stake(bytes32 poolId, IERC20[] memory tokens, uint256[] memory maxAmountsIn, bytes memory userDataStake, uint256 amountInDT) external returns(bool);
 
    function unstake(bytes memory self, bytes32 poolId, uint256 amountOut, address tokenAddress, address payable recipient ) external;

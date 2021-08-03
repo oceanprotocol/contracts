@@ -123,15 +123,19 @@ abstract contract BasePool is IBasePool, BasePoolAuthorization, BalancerPoolToke
     constructor(
         IVault vault,
         IVault.PoolSpecialization specialization,
-        string memory name,
-        string memory symbol,
+        string[2] memory identifiers,
+        // string memory name,
+        // string memory symbol,
         IERC20[] memory tokens,
         uint256 swapFeePercentage,
         uint256 oceanFee,
         uint256 marketFee,
         uint256 pauseWindowDuration,
         uint256 bufferPeriodDuration,
-        address owner
+        address[3] memory addresses
+        // address owner,
+        // address ssStaking,
+        // address marketFeeCollector
     )
         // Base Pools are expected to be deployed using factories. By using the factory address as the action
         // disambiguator, we make all Pools deployed by the same factory share action identifiers. This allows for
@@ -139,8 +143,8 @@ abstract contract BasePool is IBasePool, BasePoolAuthorization, BalancerPoolToke
         // any Pool created by the same factory), while still making action identifiers unique among different factories
         // if the selectors match, preventing accidental errors.
         Authentication(bytes32(uint256(msg.sender)))
-        BalancerPoolToken(name, symbol)
-        BasePoolAuthorization(owner)
+        BalancerPoolToken(identifiers)
+        BasePoolAuthorization(addresses[0])
         TemporarilyPausable(pauseWindowDuration, bufferPeriodDuration)
     {
         _require(tokens.length >= _MIN_TOKENS, Errors.MIN_TOKENS);
@@ -187,6 +191,8 @@ abstract contract BasePool is IBasePool, BasePoolAuthorization, BalancerPoolToke
         _scalingFactor5 = tokens.length > 5 ? _computeScalingFactor(tokens[5]) : 0;
         _scalingFactor6 = tokens.length > 6 ? _computeScalingFactor(tokens[6]) : 0;
         _scalingFactor7 = tokens.length > 7 ? _computeScalingFactor(tokens[7]) : 0;
+
+        _updateMarketCollector(addresses[2]);
     }
 
     // Getters / Setters
@@ -556,6 +562,13 @@ abstract contract BasePool is IBasePool, BasePoolAuthorization, BalancerPoolToke
     }
     function updateMarketCollector(address _newMarketFeeCollector) external {
         require(getOwner() == msg.sender, 'NOT OWNER');
+        _updateMarketCollector(_newMarketFeeCollector);
+        
+
+    }
+
+    function _updateMarketCollector(address _newMarketFeeCollector) internal {
+        
         marketFeeCollector = _newMarketFeeCollector;
 
     }

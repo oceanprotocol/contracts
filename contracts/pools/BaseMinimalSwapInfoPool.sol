@@ -30,28 +30,36 @@ abstract contract BaseMinimalSwapInfoPool is IMinimalSwapInfoPool, BasePool {
 
     constructor(
         IVault vault,
-        string memory name,
-        string memory symbol,
+        string[2] memory identifiers,
+        //string memory name,
+        //string memory symbol,
         IERC20[] memory tokens,
         uint256 swapFeePercentage,
         uint256 oceanFee,
         uint256 marketFee,
         uint256 pauseWindowDuration,
         uint256 bufferPeriodDuration,
-        address owner
+        address[3] memory addresses
+        // address owner,
+        // address ssStaking,
+        // address marketFeeCollector
     )
         BasePool(
             vault,
             tokens.length == 2 ? IVault.PoolSpecialization.TWO_TOKEN : IVault.PoolSpecialization.MINIMAL_SWAP_INFO,
-            name,
-            symbol,
+            identifiers,
+            // name,
+            // symbol,
             tokens,
             swapFeePercentage,
             oceanFee,
             marketFee,
             pauseWindowDuration,
             bufferPeriodDuration,
-            owner
+            addresses
+            // owner,
+            // ssStaking,
+            // marketFeeCollector
         )
     {
       
