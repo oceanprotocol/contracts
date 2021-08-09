@@ -85,6 +85,7 @@ contract V3BPool is BToken, BMath {
     // `setSwapFee` and `finalize` require CONTROL
     // `finalize` sets `PUBLIC can SWAP`, `PUBLIC can JOIN`
     uint private _swapFee;
+
     bool private _finalized;
 
     address[] private _tokens;
@@ -94,6 +95,16 @@ contract V3BPool is BToken, BMath {
     //-----------------------------------------------------------------------
     //Proxy contract functionality: begin
     bool private initialized = false; 
+
+
+    // Ocean and Market fee registry;
+    address public constant oceanCommunityCollector = 0xeE9300b7961e0a01d9f0adb863C7A227A07AaD75; // updated with the actual community fee collector
+
+    address public marketFeeCollector = address(0);
+
+   
+
+
     modifier onlyNotInitialized() {
         require(
             !initialized, 
@@ -107,7 +118,7 @@ contract V3BPool is BToken, BMath {
     
     // Called prior to contract deployment
     constructor() public {
-        _initialize(msg.sender, msg.sender, MIN_FEE, false, false);
+        _initialize(msg.sender, msg.sender, MIN_FEE, 0, false, false);
     }
     
     // Called prior to contract initialization (e.g creating new BPool instance)
@@ -116,6 +127,7 @@ contract V3BPool is BToken, BMath {
         address controller, 
         address factory, 
         uint swapFee,
+        uint swapFeeOcean,
         bool publicSwap,
         bool finalized
     )
@@ -133,7 +145,7 @@ contract V3BPool is BToken, BMath {
         );
         require(swapFee >= MIN_FEE, 'ERR_MIN_FEE');
         require(swapFee <= MAX_FEE, 'ERR_MAX_FEE');
-        return _initialize(controller, factory, swapFee, publicSwap, finalized);
+        return _initialize(controller, factory, swapFee,swapFeeOcean, publicSwap, finalized);
     }
 	
     // Private function called on contract initialization.
@@ -141,6 +153,7 @@ contract V3BPool is BToken, BMath {
         address controller, 
         address factory, 
         uint swapFee,
+        uint swapOceanFee,
         bool publicSwap, 
         bool finalized
     )
@@ -150,6 +163,7 @@ contract V3BPool is BToken, BMath {
         _controller = controller;
         _factory = factory;
         _swapFee = swapFee;
+        _swapOceanFee = swapOceanFee;
         _publicSwap = publicSwap;
         _finalized = finalized;
 	
@@ -164,7 +178,8 @@ contract V3BPool is BToken, BMath {
         address baseTokenAddress, 
         uint256 baseTokenAmount,
         uint256 baseTokenWeight,
-        uint256 swapFee
+        uint256 swapFee,
+        uint256 swapFeeMarket
     )
         external
         _logs_
@@ -194,6 +209,7 @@ contract V3BPool is BToken, BMath {
         );
         emit LOG_JOIN(msg.sender, baseTokenAddress, baseTokenAmount);
         setSwapFee(swapFee);
+        setMarketFee(swapFeeMarket);
         // finalize
         finalize();
     }
@@ -263,6 +279,7 @@ contract V3BPool is BToken, BMath {
         return _totalWeight;
     }
 
+    
     function getNormalizedWeight(address token)
         external view
         _viewlock_
@@ -310,6 +327,19 @@ contract V3BPool is BToken, BMath {
         require(swapFee >= MIN_FEE, 'ERR_MIN_FEE');
         require(swapFee <= MAX_FEE, 'ERR_MAX_FEE');
         _swapFee = swapFee;
+    }
+
+     function setMarketFee(uint swapMarketFee)
+        public
+        _logs_
+        _lock_
+    {   
+        // TODO: what kind of limits should we add here?
+        require(!_finalized, 'ERR_IS_FINALIZED');
+        require(msg.sender == _controller, 'ERR_NOT_CONTROLLER');
+        require(swapMarketFee >= MIN_FEE, 'ERR_MIN_FEE');
+        require(swapMarketFee <= MAX_FEE, 'ERR_MAX_FEE');
+        _swapMarketFee = swapMarketFee;
     }
 
     function setController(address manager)
@@ -581,13 +611,14 @@ contract V3BPool is BToken, BMath {
         );
         require(spotPriceBefore <= maxPrice, 'ERR_BAD_LIMIT_PRICE');
 
-        tokenAmountOut = calcOutGivenIn(
+        tokenAmountOut = calcOutGivenInSwap(
             inRecord.balance,
             inRecord.denorm,
             outRecord.balance,
             outRecord.denorm,
             tokenAmountIn,
-            _swapFee
+            _swapFee,
+            tokenIn
         );
         require(tokenAmountOut >= minAmountOut, 'ERR_LIMIT_OUT');
 

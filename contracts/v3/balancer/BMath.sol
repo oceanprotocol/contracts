@@ -16,6 +16,17 @@ pragma solidity 0.5.7;
 import './BNum.sol';
 
 contract BMath is BConst, BNum {
+
+    uint public _swapOceanFee;
+    uint public _swapMarketFee;
+
+    mapping(address => uint) public communityFees;
+
+    mapping(address => uint) public feesCollectedOPF;
+
+    mapping(address => uint) public marketFees;
+
+    mapping(address => uint) public feesCollectedMarket;
     /**********************************************************************************************
     // calcSpotPrice                                                                             //
     // sP = spotPrice                                                                            //
@@ -32,17 +43,67 @@ contract BMath is BConst, BNum {
         uint tokenWeightOut,
         uint swapFee
     )
-        public pure
+        public view
         returns (uint spotPrice)
     {
         uint numer = bdiv(tokenBalanceIn, tokenWeightIn);
         uint denom = bdiv(tokenBalanceOut, tokenWeightOut);
         uint ratio = bdiv(numer, denom);
-        uint scale = bdiv(BONE, bsub(BONE, swapFee));
+        uint totalFee = swapFee+_swapMarketFee+_swapOceanFee;
+        uint scale = bdiv(BONE, bsub(BONE, totalFee));
         return  (spotPrice = bmul(ratio, scale));
     }
 
     /**********************************************************************************************
+    // calcOutGivenIn                                                                            //
+    // aO = tokenAmountOut                                                                       //
+    // bO = tokenBalanceOut                                                                      //
+    // bI = tokenBalanceIn              /      /            bI             \    (wI / wO) \      //
+    // aI = tokenAmountIn    aO = bO * |  1 - | --------------------------  | ^            |     //
+    // wI = tokenWeightIn               \      \ ( bI + ( aI * ( 1 - sF )) /              /      //
+    // wO = tokenWeightOut                                                                       //
+    // sF = swapFee                                                                              //
+    **********************************************************************************************/
+    function calcOutGivenInSwap(
+        uint tokenBalanceIn,
+        uint tokenWeightIn,
+        uint tokenBalanceOut,
+        uint tokenWeightOut,
+        uint tokenAmountIn,
+        uint swapFee
+       // address tokenInAddress
+    )
+        internal
+        returns (uint tokenAmountOut)
+    {
+        uint weightRatio = bdiv(tokenWeightIn, tokenWeightOut);
+
+        uint adjustedIn = bsub(BONE, swapFee);
+        adjustedIn = bmul(tokenAmountIn, adjustedIn);
+
+       
+        uint oceanFeeAmount =  bmul(tokenAmountIn, bsub(BONE, _swapOceanFee));
+
+        communityFees[tokenInAddress] = badd(communityFees[tokenInAddress],oceanFeeAmount);
+
+     
+        uint marketFeeAmount =  bmul(tokenAmountIn, bsub(BONE, _swapMarketFee));
+
+        marketFees[tokenInAddress] = badd(marketFees[tokenInAddress],marketFeeAmount);
+
+        uint totalFee = adjustedIn+oceanFeeAmount+marketFeeAmount;
+    
+
+        uint y = bdiv(tokenBalanceIn, badd(tokenBalanceIn, totalFee));
+        uint foo = bpow(y, weightRatio);
+        uint bar = bsub(BONE, foo);
+
+        tokenAmountOut = bmul(tokenBalanceOut, bar);
+
+        return tokenAmountOut;
+    }
+
+     /**********************************************************************************************
     // calcOutGivenIn                                                                            //
     // aO = tokenAmountOut                                                                       //
     // bO = tokenBalanceOut                                                                      //
@@ -60,16 +121,28 @@ contract BMath is BConst, BNum {
         uint tokenAmountIn,
         uint swapFee
     )
-        public pure
+        public view
         returns (uint tokenAmountOut)
     {
         uint weightRatio = bdiv(tokenWeightIn, tokenWeightOut);
+
         uint adjustedIn = bsub(BONE, swapFee);
         adjustedIn = bmul(tokenAmountIn, adjustedIn);
-        uint y = bdiv(tokenBalanceIn, badd(tokenBalanceIn, adjustedIn));
+
+        uint oceanAdjustedIn = bsub(BONE, _swapOceanFee);
+        uint oceanFeeAmount =  bmul(tokenAmountIn, oceanAdjustedIn);
+        
+        uint marketAdjustedIn = bsub(BONE, _swapMarketFee);
+        uint marketFeeAmount =  bmul(tokenAmountIn, marketAdjustedIn);
+
+        uint totalFee =adjustedIn+oceanFeeAmount+marketFeeAmount;
+
+        uint y = bdiv(tokenBalanceIn, badd(tokenBalanceIn, totalFee));
         uint foo = bpow(y, weightRatio);
         uint bar = bsub(BONE, foo);
+
         tokenAmountOut = bmul(tokenBalanceOut, bar);
+
         return tokenAmountOut;
     }
 

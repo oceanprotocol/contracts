@@ -61,6 +61,7 @@ contract V3BFactory is BConst, Deployer {
                 msg.sender,
                 address(this), 
                 MIN_FEE, 
+                0, // just to compile, will be moved
                 false,
                 false
             ),
