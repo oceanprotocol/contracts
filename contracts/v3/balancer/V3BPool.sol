@@ -84,7 +84,7 @@ contract V3BPool is BToken, BMath {
 
     // `setSwapFee` and `finalize` require CONTROL
     // `finalize` sets `PUBLIC can SWAP`, `PUBLIC can JOIN`
-    uint private _swapFee;
+   
 
     bool private _finalized;
 
@@ -102,6 +102,7 @@ contract V3BPool is BToken, BMath {
 
     address public marketFeeCollector = address(0);
 
+    address public oceanAddress;
    
 
 
@@ -117,7 +118,8 @@ contract V3BPool is BToken, BMath {
     }
     
     // Called prior to contract deployment
-    constructor() public {
+    constructor(address _oceanAddress) public {
+        oceanAddress = _oceanAddress;
         _initialize(msg.sender, msg.sender, MIN_FEE, 0, false, false);
     }
     
@@ -210,6 +212,9 @@ contract V3BPool is BToken, BMath {
         emit LOG_JOIN(msg.sender, baseTokenAddress, baseTokenAmount);
         setSwapFee(swapFee);
         setMarketFee(swapFeeMarket);
+        if(baseTokenAddress != oceanAddress){
+            setOceanFee();
+        }
         // finalize
         finalize();
     }
@@ -340,6 +345,16 @@ contract V3BPool is BToken, BMath {
         require(swapMarketFee >= MIN_FEE, 'ERR_MIN_FEE');
         require(swapMarketFee <= MAX_FEE, 'ERR_MAX_FEE');
         _swapMarketFee = swapMarketFee;
+    }
+
+     function setOceanFee()
+        internal
+        _logs_
+        _lock_
+    {   
+        require(!_finalized, 'ERR_IS_FINALIZED');
+        
+        _swapOceanFee = 10000; // TODO: use actual value
     }
 
     function setController(address manager)
@@ -498,8 +513,8 @@ contract V3BPool is BToken, BMath {
             inRecord.balance, 
             inRecord.denorm, 
             outRecord.balance, 
-            outRecord.denorm, 
-            _swapFee
+            outRecord.denorm
+           // _swapFee
         );
     }
 
@@ -516,8 +531,8 @@ contract V3BPool is BToken, BMath {
             inRecord.balance, 
             inRecord.denorm, 
             outRecord.balance, 
-            outRecord.denorm, 
-            0
+            outRecord.denorm
+           // 0
         );
     }
 
@@ -606,8 +621,8 @@ contract V3BPool is BToken, BMath {
             inRecord.balance,
             inRecord.denorm,
             outRecord.balance,
-            outRecord.denorm,
-            _swapFee
+            outRecord.denorm
+          //  _swapFee
         );
         require(spotPriceBefore <= maxPrice, 'ERR_BAD_LIMIT_PRICE');
 
@@ -617,7 +632,7 @@ contract V3BPool is BToken, BMath {
             outRecord.balance,
             outRecord.denorm,
             tokenAmountIn,
-            _swapFee,
+          //  _swapFee,
             tokenIn
         );
         require(tokenAmountOut >= minAmountOut, 'ERR_LIMIT_OUT');
@@ -629,8 +644,8 @@ contract V3BPool is BToken, BMath {
             inRecord.balance,
             inRecord.denorm,
             outRecord.balance,
-            outRecord.denorm,
-            _swapFee
+            outRecord.denorm
+           // _swapFee
         );
         require(spotPriceAfter >= spotPriceBefore, 'ERR_MATH_APPROX');     
         require(spotPriceAfter <= maxPrice, 'ERR_LIMIT_PRICE');
@@ -681,8 +696,8 @@ contract V3BPool is BToken, BMath {
             inRecord.balance,
             inRecord.denorm,
             outRecord.balance,
-            outRecord.denorm,
-            _swapFee
+            outRecord.denorm
+           // _swapFee
         );
         
         require(spotPriceBefore <= maxPrice, 'ERR_BAD_LIMIT_PRICE');
@@ -692,8 +707,8 @@ contract V3BPool is BToken, BMath {
             inRecord.denorm,
             outRecord.balance,
             outRecord.denorm,
-            tokenAmountOut,
-            _swapFee
+            tokenAmountOut
+           // _swapFee
         );
         require(tokenAmountIn <= maxAmountIn, 'ERR_LIMIT_IN');
 
@@ -704,8 +719,8 @@ contract V3BPool is BToken, BMath {
             inRecord.balance,
             inRecord.denorm,
             outRecord.balance,
-            outRecord.denorm,
-            _swapFee
+            outRecord.denorm
+           // _swapFee
         );
         require(spotPriceAfter >= spotPriceBefore, 'ERR_MATH_APPROX');
         require(spotPriceAfter <= maxPrice, 'ERR_LIMIT_PRICE');
@@ -754,8 +769,8 @@ contract V3BPool is BToken, BMath {
             inRecord.denorm,
             _totalSupply,
             _totalWeight,
-            tokenAmountIn,
-            _swapFee
+            tokenAmountIn
+           // _swapFee
         );
 
         require(poolAmountOut >= minPoolAmountOut, 'ERR_LIMIT_OUT');
@@ -791,8 +806,8 @@ contract V3BPool is BToken, BMath {
             inRecord.denorm,
             _totalSupply,
             _totalWeight,
-            poolAmountOut,
-            _swapFee
+            poolAmountOut
+          //  _swapFee
         );
 
         require(tokenAmountIn != 0, 'ERR_MATH_APPROX');
@@ -834,8 +849,8 @@ contract V3BPool is BToken, BMath {
             outRecord.denorm,
             _totalSupply,
             _totalWeight,
-            poolAmountIn,
-            _swapFee
+            poolAmountIn
+           // _swapFee
         );
 
         require(tokenAmountOut >= minAmountOut, 'ERR_LIMIT_OUT');
@@ -883,8 +898,8 @@ contract V3BPool is BToken, BMath {
             outRecord.denorm,
             _totalSupply,
             _totalWeight,
-            tokenAmountOut,
-            _swapFee
+            tokenAmountOut
+            //_swapFee
         );
 
         require(poolAmountIn != 0, 'ERR_MATH_APPROX');
