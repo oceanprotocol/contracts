@@ -28,8 +28,9 @@ describe("1SS flow", () => {
     ssFixedRate,
     router,
     poolTemplate,
+    bPoolAddress,
+    bPool,
     signer,
-    
     dtIndex = null,
     oceanIndex = null,
     daiIndex = null;
@@ -52,7 +53,7 @@ describe("1SS flow", () => {
     const Router = await ethers.getContractFactory("FactoryRouter");
     const SSContract = await ethers.getContractFactory("ssFixedRate");
     const BPool = await ethers.getContractFactory("BPool");
-   
+
     [
       owner, // nft owner, 721 deployer
       reciever,
@@ -66,13 +67,10 @@ describe("1SS flow", () => {
       pool2MarketFeeCollector, // POOL2
     ] = await ethers.getSigners();
 
-    poolTemplate = await BPool.deploy()
+    poolTemplate = await BPool.deploy();
 
-    ssFixedRate = await SSContract.deploy()
+    ssFixedRate = await SSContract.deploy();
 
-    
-
-   
     // GET SOME OCEAN TOKEN FROM OUR MAINNET FORK and send them to user3
     const userWithOcean = "0x53aB4a93B31F480d17D3440a6329bDa86869458A";
     await impersonate(userWithOcean);
@@ -85,6 +83,10 @@ describe("1SS flow", () => {
     await oceanContract
       .connect(signer)
       .transfer(user3.address, ethers.utils.parseEther("10000"));
+
+    await oceanContract
+      .connect(signer)
+      .transfer(user4.address, ethers.utils.parseEther("10000"));
 
     assert(
       (await oceanContract.balanceOf(user3.address)).toString() ==
@@ -115,9 +117,15 @@ describe("1SS flow", () => {
     data = web3.utils.asciiToHex("SomeData");
     flags = web3.utils.asciiToHex(constants.blob[0]);
 
-     // DEPLOY ROUTER, SETTING OWNER
-    router = await Router.deploy(owner.address, oceanAddress, poolTemplate.address, ssFixedRate.address, []);  
-      
+    // DEPLOY ROUTER, SETTING OWNER
+    router = await Router.deploy(
+      owner.address,
+      oceanAddress,
+      poolTemplate.address,
+      ssFixedRate.address,
+      []
+    );
+
     // SETUP ERC20 Factory with template
     templateERC20 = await ERC20Template.deploy();
     factoryERC20 = await ERC20Factory.deploy(
@@ -136,9 +144,9 @@ describe("1SS flow", () => {
       factoryERC20.address,
       metadata.address
     );
-   
+
     // SET REQUIRED ADDRESS
-    await router.addERC20Factory(factoryERC20.address)
+    await router.addERC20Factory(factoryERC20.address);
     await factoryERC20.setERC721Factory(factoryERC721.address);
   });
 
@@ -192,24 +200,106 @@ describe("1SS flow", () => {
   });
 
   it("#4 - user3 calls deployPool()", async () => {
-    await erc20Token
-      .connect(user3)
-      .deployPool(ssFixedRate.address,oceanAddress,10000, [web3.utils.toWei('1'),0,web3.utils.toWei('200'),500]);
+   
+    
+    receipt = await (
+      await erc20Token
+        .connect(user3)
+        .deployPool(ssFixedRate.address, oceanAddress, web3.utils.toWei('10000'), [
+          web3.utils.toWei("1"),
+          0,
+          web3.utils.toWei("200"),
+          500,
+        ])
+    ).wait();
+    //console.log(receipt)
+    const PoolEvent = receipt.events.filter((e) => e.event === "NewPool");
+    // console.log(PoolEvent[0].args)
 
-      console.log((await erc20Token.balanceOf(ssFixedRate.address)).toString())
+    assert(PoolEvent[0].args.ssContract == ssFixedRate.address);
+
+    bPoolAddress = PoolEvent[0].args.poolAddress;
+    console.log(bPoolAddress);
     assert(
-      (await erc20Token.balanceOf(ssFixedRate.address)) == web3.utils.toWei("100000")
+      (await erc20Token.balanceOf(ssFixedRate.address)) ==
+        web3.utils.toWei("100000")
     );
   });
 
+  it("#5 - user3 fails to mints new erc20 tokens even if it's minter", async () => {
+    assert((await erc20Token.permissions(user3.address)).minter == true);
 
-  it("#4 - user3 fails to mints new erc20 tokens to himself", async () => {
-    await expectRevert(erc20Token
-      .connect(user3)
-      .mint(user3.address, web3.utils.toWei("10000")), 'DataTokenTemplate: cap exceeded')
+    await expectRevert(
+      erc20Token.connect(user3).mint(user3.address, web3.utils.toWei("10000")),
+      "DataTokenTemplate: cap exceeded"
+    );
 
-    assert(
-      (await erc20Token.balanceOf(user3.address)) == 0  );
+    assert((await erc20Token.balanceOf(user3.address)) == 0);
+  });
+
+  it("#6 - user4 buys some DT during burnIn period - exactAmountIn", async () => {
+
+    // pool has no ocean token at the beginning
+    assert(await oceanContract.balanceOf(bPoolAddress)== 0)
+
+    // we approve the pool to withdraw Ocean tokens
+    await oceanContract.connect(user4).approve(bPoolAddress,web3.utils.toWei('10000'))
+
+    bPool = await ethers.getContractAt("BPool", bPoolAddress);
+  
+   // user4 has no DT before swap
+    assert(await erc20Token.balanceOf(user4.address)== 0)
+
+    // RATE is 1 and there's no fee, so we should get the same amount back in DT
+    await bPool
+      .connect(user4)
+      .swapExactAmountIn(
+        oceanAddress,
+        web3.utils.toWei("100"),
+        erc20Token.address,
+        web3.utils.toWei("10"),
+        web3.utils.toWei("10")
+      );
+
+      // no ocean token stays in the pool, all goes to the ssFixedRate
+    assert(await oceanContract.balanceOf(bPoolAddress)== 0)
+    assert(await oceanContract.balanceOf(ssFixedRate.address)== web3.utils.toWei("100"))
+
+    // user4 got his DT
+    assert(await erc20Token.balanceOf(user4.address)== web3.utils.toWei("100"))
+    
+  });
+
+  it("#6 - user4 buys some DT during burnIn period - exactAmountOut", async () => {
+
+    // pool has no ocean token at the beginning
+    assert(await oceanContract.balanceOf(bPoolAddress)== 0)
+
+    // we already approved pool to withdraw Ocean tokens
+  
+   // user only has DT from previous test
+    assert(await erc20Token.balanceOf(user4.address)== web3.utils.toWei('100'))
+    console.log((await oceanContract.balanceOf(ssFixedRate.address)).toString())
+
+    // RATE is 1 and there's no fee, so we should get the same amount back in DT
+    await bPool
+      .connect(user4)
+      .swapExactAmountOut(
+        oceanAddress,
+        web3.utils.toWei("100"),
+        erc20Token.address,
+        web3.utils.toWei("100"),
+        web3.utils.toWei("10")
+      );
+
+      // no ocean token stays in the pool, all goes to the ssFixedRate
+    assert(await oceanContract.balanceOf(bPoolAddress)== 0)
+    console.log((await oceanContract.balanceOf(ssFixedRate.address)).toString())
+    assert(await oceanContract.balanceOf(ssFixedRate.address)== web3.utils.toWei("200"))
+
+    // user4 got his DT
+    assert(await erc20Token.balanceOf(user4.address)== web3.utils.toWei("200"))
+    
   });
 
 

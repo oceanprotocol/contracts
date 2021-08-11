@@ -6,7 +6,7 @@ pragma solidity 0.5.7;
 import "./BToken.sol";
 import './BMath.sol';
 import "../../interfaces/IssFixedRate.sol";
-
+import "hardhat/console.sol";
 /**
  * @title BPool
  *
@@ -591,11 +591,10 @@ contract BPool is BMath, BToken {
     )
         external
         _logs_
-        _lock_
+       
         returns (uint256 tokenAmountOut, uint256 spotPriceAfter)
-    {
-        require(_records[tokenIn].bound, "ERR_NOT_BOUND");
-        require(_records[tokenOut].bound, "ERR_NOT_BOUND");
+    {   
+       
         if (block.number <= _burnInEndBlock) {
             // we are in burn-in period, leverage to controller
             //defer calc to ssContract
@@ -605,9 +604,14 @@ contract BPool is BMath, BToken {
                 tokenOut,
                 tokenAmountIn
             );
+            
             require(tokenAmountOut >= minAmountOut, "ERR_LIMIT_OUT");
             //approve tokens so ssContract can pull them
+
             IERC20 token = IERC20(tokenIn);
+            
+            token.transferFrom(msg.sender, address(this), tokenAmountIn);
+            
             token.approve(_controller, tokenAmountIn);
             ssContract.swapExactAmountIn(
                 _datatokenAddress,
@@ -631,6 +635,8 @@ contract BPool is BMath, BToken {
                 //notify 1SS to setup the pool first
                 ssContract.notifyFinalize(_datatokenAddress);
         }
+        require(_records[tokenIn].bound, "ERR_NOT_BOUND");
+        require(_records[tokenOut].bound, "ERR_NOT_BOUND");
         require(_publicSwap, "ERR_SWAP_NOT_PUBLIC");
         Record storage inRecord = _records[address(tokenIn)];
         Record storage outRecord = _records[address(tokenOut)];
@@ -703,8 +709,7 @@ contract BPool is BMath, BToken {
         _lock_
         returns (uint256 tokenAmountIn, uint256 spotPriceAfter)
     {
-        require(_records[tokenIn].bound, "ERR_NOT_BOUND");
-        require(_records[tokenOut].bound, "ERR_NOT_BOUND");
+      
         if (block.number <= _burnInEndBlock) {
             // we are in burn-in period, leverage to controller
             //defer calc to ssContract
@@ -717,7 +722,10 @@ contract BPool is BMath, BToken {
             );
             require(tokenAmountIn <= maxAmountIn, "ERR_LIMIT_IN");
             //approve tokens so ssContract can pull them
+            
             IERC20 token = IERC20(tokenIn);
+            console.log(tokenAmountIn,'amountOut');
+            token.transferFrom(msg.sender, address(this), tokenAmountIn);
             token.approve(_controller, tokenAmountIn);
             ssContract.swapExactAmountOut(
                 _datatokenAddress,
@@ -741,6 +749,9 @@ contract BPool is BMath, BToken {
                 //notify 1SS to setup the pool first
                 ssContract.notifyFinalize(_datatokenAddress);
         }
+        require(_records[tokenIn].bound, "ERR_NOT_BOUND");
+        require(_records[tokenOut].bound, "ERR_NOT_BOUND");
+
         require(_publicSwap, "ERR_SWAP_NOT_PUBLIC");
 
         Record storage inRecord = _records[address(tokenIn)];

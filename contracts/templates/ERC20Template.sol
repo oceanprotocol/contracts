@@ -70,6 +70,8 @@ contract ERC20Template is ERC20("test", "testSymbol"), ERC20Roles {
 
     event MinterApproved(address currentMinter, address newMinter);
 
+    event NewPool(address poolAddress, address ssContract, address basetokenAddress);
+
     modifier onlyNotInitialized() {
         require(
             !initialized,
@@ -198,7 +200,7 @@ contract ERC20Template is ERC20("test", "testSymbol"), ERC20Roles {
         require(totalSupply() == 0,'ERC20Template: tokens already minted');
         _addMinter(controller);
         console.log(router,'router address');
-         IFactoryRouter(router).deployPool(
+         address pool = IFactoryRouter(router).deployPool(
             controller,
             address(this),
             basetokenAddress,
@@ -206,6 +208,8 @@ contract ERC20Template is ERC20("test", "testSymbol"), ERC20Roles {
             burnInEndBlock,
             ssParams
         );
+
+        emit NewPool(pool,controller,basetokenAddress);
     }
     /**
      * @dev mint

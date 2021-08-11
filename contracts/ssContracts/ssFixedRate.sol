@@ -89,7 +89,7 @@ contract ssFixedRate {
         );
         // check if we are the minter of DT
         IERC20Template dt = IERC20Template(datatokenAddress);
-        require( (dt.permissions(address(this))).minter == true , "BaseToken address missmatch");
+        require( (dt.permissions(address(this))).minter == true , "BaseToken address mismatch");
         // get cap and mint it..
         dt.mint(address(this), dt.cap());
         require(dt.balanceOf(address(this)) == dt.totalSupply(), "Mint failed");
@@ -344,6 +344,11 @@ contract ssFixedRate {
         require(tokenAmountOut>=minAmountOut,'ERR:minAmountOut not meet'); //revert if minAmountOut is not met
         //pull tokenIn from the pool (pool will approve)
         IERC20Template dtIn = IERC20Template(tokenIn);
+        console.log('test');
+        console.log(_datatokens[datatokenAddress].poolAddress);
+        console.log(tokenAmountIn);
+        uint balance = dtIn.balanceOf(_datatokens[datatokenAddress].poolAddress);
+        console.log('balance', balance);
         dtIn.transferFrom(_datatokens[datatokenAddress].poolAddress,address(this), tokenAmountIn);
         //update our balances
         if(tokenIn==datatokenAddress){
@@ -364,6 +369,7 @@ contract ssFixedRate {
         require(msg.sender == _datatokens[datatokenAddress].poolAddress,'ERR: Only pool can call this');
         require(isInBurnIn(datatokenAddress) == true,'ERR: Not in burn-in period');
         tokenAmountIn=calcInGivenOut(datatokenAddress,tokenIn,tokenOut,amountOut);
+        console.log('ssFixed',tokenAmountIn);
         require(tokenAmountIn<=maxTokenAmountIn,'ERR:maxTokenAmountIn not meet'); //revert if minAmountOut is not met
         //pull tokenIn from the pool (pool will approve)
         IERC20Template dtIn = IERC20Template(tokenIn);
@@ -419,8 +425,8 @@ contract ssFixedRate {
         uint256 tokenAmountOut
     ) private view returns (uint256) {
 
-        /// baseTokenAmount = dataTokenAmount.mul(_datatokens[tokenIn].rate).div(BASE);
-        //  dataTokenAmount = baseTokenAmount.mul(BASE).div(_datatokens[tokenIn].rate)
+        /// baseTokenAmount = dataTokenAmount.mul(_datatokens[tokenOut].rate).div(BASE);
+        //  dataTokenAmount = baseTokenAmount.mul(BASE).div(_datatokens[tokenOut].rate)
 
         if (_datatokens[tokenIn].bound == true) {
             //swap datatoken(tokenIn) for basetoken(tokenOut) - spending DT to get Ocean
@@ -432,7 +438,7 @@ contract ssFixedRate {
         }
         if (_datatokens[tokenOut].bound == true) {
             //swap basetoken(tokenIn) for datatokens(tokenOut) - spending Ocean to get DT
-            uint256 tokenAmountIn = tokenAmountOut.mul(_datatokens[tokenIn].rate).div(BASE);
+            uint256 tokenAmountIn = tokenAmountOut.mul(_datatokens[tokenOut].rate).div(BASE);
             return (tokenAmountIn);
         }
         //no match, bail out
@@ -447,20 +453,28 @@ contract ssFixedRate {
         
         /// baseTokenAmount = dataTokenAmount.mul(_datatokens[tokenIn].rate).div(BASE);
         //  dataTokenAmount = baseTokenAmount.mul(BASE).div(_datatokens[tokenIn].rate)
-
+        console.log('_calcOutGivenIn');
         if (_datatokens[tokenIn].bound == true) {
+            console.log('_calcOutGivenIn2');
             //swap datatoken(tokenIn) for basetoken(tokenOut) - spending DT to get Ocean
             if (_datatokens[tokenIn].allowDtSale == false) return (0); //selling DT is not allowed
             //compute how many tokenIn tokens are needed to get tokenOut
             // THIS IS VERY SPECIFIC TO THE ss TYPE (Fixed rate, Bonding, Dutch, etc)
+            
             tokenAmount = tokenAmountIn.mul(_datatokens[tokenIn].rate).div(BASE);
             return (tokenAmount);
         }
         if (_datatokens[tokenOut].bound == true) {
+            console.log('_calcOutGivenIn3');
             //sells basetoken(tokenIn) for datatokens(tokenOut) - spending Ocean to get DT
-            tokenAmount = tokenAmountIn.mul(BASE).div(_datatokens[tokenIn].rate);
+            console.log(tokenAmountIn);
+            console.log(BASE);
+            console.log(_datatokens[tokenOut].rate);
+            tokenAmount = tokenAmountIn.mul(BASE).div(_datatokens[tokenOut].rate);
+            console.log(tokenAmount,'tokenAmount');
             return (tokenAmount);
         }
+        
         //no match, bail out
         return (0);
     }

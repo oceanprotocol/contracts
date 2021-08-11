@@ -50,7 +50,7 @@ contract FactoryRouter is BFactory {
     }
 
     /**
-     * @dev Deploys a new `OceanPool` on Balancer V2.
+     * @dev Deploys a new `OceanPool` on Ocean Friendly Fork.
      */
     function deployPool(
         address controller, 
@@ -62,11 +62,10 @@ contract FactoryRouter is BFactory {
     ) external returns (address) {
         require(IERC20Factory(erc20Factory).erc20List(msg.sender) == true, 'FACTORY ROUTER: NOT ORIGINAL ERC20 TEMPLATE');
         require(ssContracts[controller] = true, 'FACTORY ROUTER: invalid ssContract');
-        // TODO: WHERE TO SET A RESTRICTION FOR CREATING A POOL
+      
         bool flag;
         address pool;
-        // TODO? ADD REQUIRE TO CHECK IF datatoken is on the erc20List => erc20List[datatoken] == true
-
+       
        
         if (oceanTokens[basetokenAddress] == true) {
                 flag = true;
