@@ -4,232 +4,216 @@
   "sourceName": "contracts/v3/balancer/BConst.sol",
   "abi": [
     {
-      "constant": true,
-      "inputs": [],
-      "name": "MAX_TOTAL_WEIGHT",
-      "outputs": [
-        {
-          "name": "",
-          "type": "uint256"
-        }
-      ],
-      "payable": false,
-      "stateMutability": "view",
-      "type": "function"
-    },
-    {
-      "constant": true,
-      "inputs": [],
-      "name": "BPOW_PRECISION",
-      "outputs": [
-        {
-          "name": "",
-          "type": "uint256"
-        }
-      ],
-      "payable": false,
-      "stateMutability": "view",
-      "type": "function"
-    },
-    {
-      "constant": true,
-      "inputs": [],
-      "name": "MIN_WEIGHT",
-      "outputs": [
-        {
-          "name": "",
-          "type": "uint256"
-        }
-      ],
-      "payable": false,
-      "stateMutability": "view",
-      "type": "function"
-    },
-    {
-      "constant": true,
-      "inputs": [],
-      "name": "MIN_FEE",
-      "outputs": [
-        {
-          "name": "",
-          "type": "uint256"
-        }
-      ],
-      "payable": false,
-      "stateMutability": "view",
-      "type": "function"
-    },
-    {
-      "constant": true,
-      "inputs": [],
-      "name": "MIN_BALANCE",
-      "outputs": [
-        {
-          "name": "",
-          "type": "uint256"
-        }
-      ],
-      "payable": false,
-      "stateMutability": "view",
-      "type": "function"
-    },
-    {
-      "constant": true,
-      "inputs": [],
-      "name": "INIT_POOL_SUPPLY",
-      "outputs": [
-        {
-          "name": "",
-          "type": "uint256"
-        }
-      ],
-      "payable": false,
-      "stateMutability": "view",
-      "type": "function"
-    },
-    {
-      "constant": true,
-      "inputs": [],
-      "name": "MAX_OUT_RATIO",
-      "outputs": [
-        {
-          "name": "",
-          "type": "uint256"
-        }
-      ],
-      "payable": false,
-      "stateMutability": "view",
-      "type": "function"
-    },
-    {
-      "constant": true,
-      "inputs": [],
-      "name": "MAX_BOUND_TOKENS",
-      "outputs": [
-        {
-          "name": "",
-          "type": "uint256"
-        }
-      ],
-      "payable": false,
-      "stateMutability": "view",
-      "type": "function"
-    },
-    {
-      "constant": true,
-      "inputs": [],
-      "name": "MIN_BOUND_TOKENS",
-      "outputs": [
-        {
-          "name": "",
-          "type": "uint256"
-        }
-      ],
-      "payable": false,
-      "stateMutability": "view",
-      "type": "function"
-    },
-    {
-      "constant": true,
-      "inputs": [],
-      "name": "MIN_BPOW_BASE",
-      "outputs": [
-        {
-          "name": "",
-          "type": "uint256"
-        }
-      ],
-      "payable": false,
-      "stateMutability": "view",
-      "type": "function"
-    },
-    {
-      "constant": true,
-      "inputs": [],
-      "name": "MAX_FEE",
-      "outputs": [
-        {
-          "name": "",
-          "type": "uint256"
-        }
-      ],
-      "payable": false,
-      "stateMutability": "view",
-      "type": "function"
-    },
-    {
-      "constant": true,
-      "inputs": [],
-      "name": "MAX_BPOW_BASE",
-      "outputs": [
-        {
-          "name": "",
-          "type": "uint256"
-        }
-      ],
-      "payable": false,
-      "stateMutability": "view",
-      "type": "function"
-    },
-    {
-      "constant": true,
       "inputs": [],
       "name": "BONE",
       "outputs": [
         {
+          "internalType": "uint256",
           "name": "",
           "type": "uint256"
         }
       ],
-      "payable": false,
       "stateMutability": "view",
       "type": "function"
     },
     {
-      "constant": true,
+      "inputs": [],
+      "name": "BPOW_PRECISION",
+      "outputs": [
+        {
+          "internalType": "uint256",
+          "name": "",
+          "type": "uint256"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
       "inputs": [],
       "name": "EXIT_FEE",
       "outputs": [
         {
+          "internalType": "uint256",
           "name": "",
           "type": "uint256"
         }
       ],
-      "payable": false,
       "stateMutability": "view",
       "type": "function"
     },
     {
-      "constant": true,
       "inputs": [],
-      "name": "MAX_WEIGHT",
+      "name": "INIT_POOL_SUPPLY",
       "outputs": [
         {
+          "internalType": "uint256",
           "name": "",
           "type": "uint256"
         }
       ],
-      "payable": false,
       "stateMutability": "view",
       "type": "function"
     },
     {
-      "constant": true,
+      "inputs": [],
+      "name": "MAX_BOUND_TOKENS",
+      "outputs": [
+        {
+          "internalType": "uint256",
+          "name": "",
+          "type": "uint256"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [],
+      "name": "MAX_BPOW_BASE",
+      "outputs": [
+        {
+          "internalType": "uint256",
+          "name": "",
+          "type": "uint256"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [],
+      "name": "MAX_FEE",
+      "outputs": [
+        {
+          "internalType": "uint256",
+          "name": "",
+          "type": "uint256"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
       "inputs": [],
       "name": "MAX_IN_RATIO",
       "outputs": [
         {
+          "internalType": "uint256",
           "name": "",
           "type": "uint256"
         }
       ],
-      "payable": false,
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [],
+      "name": "MAX_OUT_RATIO",
+      "outputs": [
+        {
+          "internalType": "uint256",
+          "name": "",
+          "type": "uint256"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [],
+      "name": "MAX_TOTAL_WEIGHT",
+      "outputs": [
+        {
+          "internalType": "uint256",
+          "name": "",
+          "type": "uint256"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [],
+      "name": "MAX_WEIGHT",
+      "outputs": [
+        {
+          "internalType": "uint256",
+          "name": "",
+          "type": "uint256"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [],
+      "name": "MIN_BALANCE",
+      "outputs": [
+        {
+          "internalType": "uint256",
+          "name": "",
+          "type": "uint256"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [],
+      "name": "MIN_BOUND_TOKENS",
+      "outputs": [
+        {
+          "internalType": "uint256",
+          "name": "",
+          "type": "uint256"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [],
+      "name": "MIN_BPOW_BASE",
+      "outputs": [
+        {
+          "internalType": "uint256",
+          "name": "",
+          "type": "uint256"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [],
+      "name": "MIN_FEE",
+      "outputs": [
+        {
+          "internalType": "uint256",
+          "name": "",
+          "type": "uint256"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [],
+      "name": "MIN_WEIGHT",
+      "outputs": [
+        {
+          "internalType": "uint256",
+          "name": "",
+          "type": "uint256"
+        }
+      ],
       "stateMutability": "view",
       "type": "function"
     }
   ],
-  "bytecode": "0x608060405234801561001057600080fd5b5061025f806100206000396000f3fe608060405234801561001057600080fd5b50600436106101005760003560e01c8063b7b800a411610097578063c36596a611610066578063c36596a614610127578063c6580d1214610177578063e4a28a5214610105578063ec0930211461017f57610100565b8063b7b800a414610157578063ba019dab1461015f578063bc063e1a14610167578063bc694ea21461016f57610100565b8063867378c5116100d3578063867378c5146101375780639381cd2b1461013f578063992e2a9214610147578063b0e0d1361461014f57610100565b806309a3bbe414610105578063189d00ca1461011f578063218b53821461012757806376c7a3c71461012f575b600080fd5b61010d610187565b60408051918252519081900360200190f35b61010d610194565b61010d6101a8565b61010d6101b4565b61010d6101c6565b61010d6101da565b61010d6101e7565b61010d6101f3565b61010d6101f8565b61010d6101fd565b61010d610202565b61010d610212565b61010d61021e565b61010d610223565b6802b5e3af16b188000081565b6402540be400670de0b6b3a76400005b0481565b670de0b6b3a764000081565b620f4240670de0b6b3a76400006101a4565b64e8d4a51000670de0b6b3a76400006101a4565b68056bc75e2d6310000081565b6704a03ce68d21555681565b600881565b600281565b600181565b600a670de0b6b3a76400006101a4565b671bc16d674ec7ffff81565b600081565b6002670de0b6b3a76400006101a456fea165627a7a72305820eb820cf75e0d0ce7c65d113075844ddd0d60a88d99082b7a339a8b8db0e696ce0029",
-  "deployedBytecode": "0x608060405234801561001057600080fd5b50600436106101005760003560e01c8063b7b800a411610097578063c36596a611610066578063c36596a614610127578063c6580d1214610177578063e4a28a5214610105578063ec0930211461017f57610100565b8063b7b800a414610157578063ba019dab1461015f578063bc063e1a14610167578063bc694ea21461016f57610100565b8063867378c5116100d3578063867378c5146101375780639381cd2b1461013f578063992e2a9214610147578063b0e0d1361461014f57610100565b806309a3bbe414610105578063189d00ca1461011f578063218b53821461012757806376c7a3c71461012f575b600080fd5b61010d610187565b60408051918252519081900360200190f35b61010d610194565b61010d6101a8565b61010d6101b4565b61010d6101c6565b61010d6101da565b61010d6101e7565b61010d6101f3565b61010d6101f8565b61010d6101fd565b61010d610202565b61010d610212565b61010d61021e565b61010d610223565b6802b5e3af16b188000081565b6402540be400670de0b6b3a76400005b0481565b670de0b6b3a764000081565b620f4240670de0b6b3a76400006101a4565b64e8d4a51000670de0b6b3a76400006101a4565b68056bc75e2d6310000081565b6704a03ce68d21555681565b600881565b600281565b600181565b600a670de0b6b3a76400006101a4565b671bc16d674ec7ffff81565b600081565b6002670de0b6b3a76400006101a456fea165627a7a72305820eb820cf75e0d0ce7c65d113075844ddd0d60a88d99082b7a339a8b8db0e696ce0029",
+  "bytecode": "0x608060405234801561001057600080fd5b5061033d806100206000396000f3fe608060405234801561001057600080fd5b50600436106101005760003560e01c8063b7b800a411610097578063c36596a611610066578063c36596a61461012b578063c6580d121461017b578063e4a28a5214610105578063ec0930211461018357610100565b8063b7b800a41461015b578063ba019dab14610163578063bc063e1a1461016b578063bc694ea21461017357610100565b8063867378c5116100d3578063867378c51461013b5780639381cd2b14610143578063992e2a921461014b578063b0e0d1361461015357610100565b806309a3bbe414610105578063189d00ca14610123578063218b53821461012b57806376c7a3c714610133575b600080fd5b61010d61018b565b60405161011a919061027a565b60405180910390f35b61010d6101a1565b61010d6101b8565b61010d6101c4565b61010d6101d9565b61010d6101f0565b61010d610203565b61010d610221565b61010d610226565b61010d61022b565b61010d610230565b61010d610243565b61010d610262565b61010d610267565b61019e670de0b6b3a764000060326102bb565b81565b61019e6402540be400670de0b6b3a764000061029b565b670de0b6b3a764000081565b61019e620f4240670de0b6b3a764000061029b565b61019e64e8d4a51000670de0b6b3a764000061029b565b61019e670de0b6b3a764000060646102bb565b6102166003670de0b6b3a764000061029b565b61019e906001610283565b600881565b600281565b600181565b61019e600a670de0b6b3a764000061029b565b6001610258670de0b6b3a764000060026102bb565b61019e91906102da565b600081565b61019e6002670de0b6b3a764000061029b565b90815260200190565b60008219821115610296576102966102f1565b500190565b6000826102b657634e487b7160e01b81526012600452602481fd5b500490565b60008160001904831182151516156102d5576102d56102f1565b500290565b6000828210156102ec576102ec6102f1565b500390565b634e487b7160e01b600052601160045260246000fdfea26469706673582212200699ba10761fb593e41a38df93a760d5f50baa645d56c771ad20ca6b5e0f6c0c64736f6c63430008000033",
+  "deployedBytecode": "0x608060405234801561001057600080fd5b50600436106101005760003560e01c8063b7b800a411610097578063c36596a611610066578063c36596a61461012b578063c6580d121461017b578063e4a28a5214610105578063ec0930211461018357610100565b8063b7b800a41461015b578063ba019dab14610163578063bc063e1a1461016b578063bc694ea21461017357610100565b8063867378c5116100d3578063867378c51461013b5780639381cd2b14610143578063992e2a921461014b578063b0e0d1361461015357610100565b806309a3bbe414610105578063189d00ca14610123578063218b53821461012b57806376c7a3c714610133575b600080fd5b61010d61018b565b60405161011a919061027a565b60405180910390f35b61010d6101a1565b61010d6101b8565b61010d6101c4565b61010d6101d9565b61010d6101f0565b61010d610203565b61010d610221565b61010d610226565b61010d61022b565b61010d610230565b61010d610243565b61010d610262565b61010d610267565b61019e670de0b6b3a764000060326102bb565b81565b61019e6402540be400670de0b6b3a764000061029b565b670de0b6b3a764000081565b61019e620f4240670de0b6b3a764000061029b565b61019e64e8d4a51000670de0b6b3a764000061029b565b61019e670de0b6b3a764000060646102bb565b6102166003670de0b6b3a764000061029b565b61019e906001610283565b600881565b600281565b600181565b61019e600a670de0b6b3a764000061029b565b6001610258670de0b6b3a764000060026102bb565b61019e91906102da565b600081565b61019e6002670de0b6b3a764000061029b565b90815260200190565b60008219821115610296576102966102f1565b500190565b6000826102b657634e487b7160e01b81526012600452602481fd5b500490565b60008160001904831182151516156102d5576102d56102f1565b500290565b6000828210156102ec576102ec6102f1565b500390565b634e487b7160e01b600052601160045260246000fdfea26469706673582212200699ba10761fb593e41a38df93a760d5f50baa645d56c771ad20ca6b5e0f6c0c64736f6c63430008000033",
   "linkReferences": {},
   "deployedLinkReferences": {}
 }

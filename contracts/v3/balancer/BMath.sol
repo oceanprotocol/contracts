@@ -11,7 +11,7 @@
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-pragma solidity 0.5.7;
+pragma solidity >=0.5.7;
 
 import './BNum.sol';
 
@@ -173,8 +173,45 @@ contract BMath is BConst, BNum {
         uint y = bdiv(tokenBalanceOut, diff);
         uint foo = bpow(y, weightRatio);
         foo = bsub(foo, BONE);
-        tokenAmountIn = bsub(BONE, _swapFee);
+        uint totalFee =_swapFee+_swapOceanFee+_swapMarketFee;
+
+        tokenAmountIn = bsub(BONE, totalFee);
         tokenAmountIn = bdiv(bmul(tokenBalanceIn, foo), tokenAmountIn);
+        return tokenAmountIn;
+    }
+
+    /**********************************************************************************************
+    // calcInGivenOut                                                                            //
+    // aI = tokenAmountIn                                                                        //
+    // bO = tokenBalanceOut               /  /     bO      \    (wO / wI)      \                 //
+    // bI = tokenBalanceIn          bI * |  | ------------  | ^            - 1  |                //
+    // aO = tokenAmountOut    aI =        \  \ ( bO - aO ) /                   /                 //
+    // wI = tokenWeightIn           --------------------------------------------                 //
+    // wO = tokenWeightOut                          ( 1 - sF )                                   //
+    // sF = swapFee                                                                              //
+    **********************************************************************************************/
+    function calcInGivenOutSwap(
+        uint tokenBalanceIn,
+        uint tokenWeightIn,
+        uint tokenBalanceOut,
+        uint tokenWeightOut,
+        uint tokenAmountOut
+       // uint swapFee
+    )
+        public view
+        returns (uint tokenAmountIn)
+    {
+        uint weightRatio = bdiv(tokenWeightOut, tokenWeightIn);
+        uint diff = bsub(tokenBalanceOut, tokenAmountOut);
+        uint y = bdiv(tokenBalanceOut, diff);
+        uint foo = bpow(y, weightRatio);
+        foo = bsub(foo, BONE);
+        uint totalFee =_swapFee+_swapOceanFee+_swapMarketFee;
+
+        uint test = bsub(BONE, _swapFee);
+        tokenAmountIn = bdiv(bmul(tokenBalanceIn, foo), test);
+       // uint oceanFeeAmount = 
+
         return tokenAmountIn;
     }
 

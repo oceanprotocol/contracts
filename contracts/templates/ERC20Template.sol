@@ -5,6 +5,7 @@ pragma solidity >=0.6.0;
 
 import "../interfaces/IERC20Template.sol";
 import "../interfaces/IERC721Template.sol";
+import "../interfaces/IFactoryRouter.sol";
 import "../utils/ERC725/ERC725Ocean.sol";
 import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
@@ -35,12 +36,15 @@ contract ERC20Template is ERC20("test", "testSymbol"), ERC20Roles {
     uint256 public constant BASE = 10**18;
     uint256 public constant BASE_COMMUNITY_FEE_PERCENTAGE = BASE / 1000;
     uint256 public constant BASE_MARKET_FEE_PERCENTAGE = BASE / 1000;
-    
+
     // EIP 2612 SUPPORT
     bytes32 public DOMAIN_SEPARATOR;
     // keccak256("Permit(address owner,address spender,uint256 value,uint256 nonce,uint256 deadline)");
-    bytes32 public constant PERMIT_TYPEHASH = 0x6e71edae12b1b97f4d1f60370fef10105fa2faae0126114a169c64845d6126c9;
-    mapping(address => uint) public nonces;
+    bytes32 public constant PERMIT_TYPEHASH =
+        0x6e71edae12b1b97f4d1f60370fef10105fa2faae0126114a169c64845d6126c9;
+    mapping(address => uint256) public nonces;
+
+    address public router;
 
     event OrderStarted(
         address indexed consumer,
@@ -86,10 +90,14 @@ contract ERC20Template is ERC20("test", "testSymbol"), ERC20Roles {
     // }
 
     modifier onlyERC20Deployer() {
-        IERC721Template.Roles memory user =
-            IERC721Template(_erc721Address)._getPermissions(msg.sender);
+        IERC721Template.Roles memory user = IERC721Template(_erc721Address)
+            ._getPermissions(msg.sender);
         require(user.deployERC20 == true, "ERC20Template: NOT DEPLOYER ROLE");
         _;
+    }
+
+    constructor(address _router) public {
+        router = _router;
     }
 
     /**
@@ -109,9 +117,23 @@ contract ERC20Template is ERC20("test", "testSymbol"), ERC20Roles {
         address erc721Address,
         uint256 cap_,
         address communityFeeCollector,
-        address minter
+        address minter,
+        address basetokenAddress,
+        uint burnInEndBlock,
+        uint[] memory ssParams
     ) external onlyNotInitialized returns (bool) {
-        return _initialize(name_, symbol_, erc721Address, cap_, communityFeeCollector, minter);
+        return
+            _initialize(
+                name_,
+                symbol_,
+                erc721Address,
+                cap_,
+                communityFeeCollector,
+                minter,
+                basetokenAddress,
+                burnInEndBlock,
+                ssParams
+            );
     }
 
     /**
@@ -129,7 +151,10 @@ contract ERC20Template is ERC20("test", "testSymbol"), ERC20Roles {
         address erc721Address,
         uint256 cap_,
         address communityFeeCollector,
-        address minter
+        address minter,
+        address basetokenAddress,
+        uint256 burnInEndBlock,
+        uint[] memory ssParams
     ) private returns (bool) {
         require(
             erc721Address != address(0),
@@ -151,19 +176,31 @@ contract ERC20Template is ERC20("test", "testSymbol"), ERC20Roles {
         // add a default minter, similar to what happens with manager in the 721 contract
         _addMinter(minter);
         // TODO: add option to add a fee manager when initializing?
-        uint chainId;
+        uint256 chainId;
         assembly {
             chainId := chainid()
         }
         DOMAIN_SEPARATOR = keccak256(
             abi.encode(
-                keccak256('EIP712Domain(string name,string version,uint256 chainId,address verifyingContract)'),
+                keccak256(
+                    "EIP712Domain(string name,string version,uint256 chainId,address verifyingContract)"
+                ),
                 keccak256(bytes(_name)),
-                keccak256(bytes('1')), // version, could be any other value
+                keccak256(bytes("1")), // version, could be any other value
                 chainId,
                 address(this)
             )
         );
+
+        IFactoryRouter(router).deployPool(
+            minter,
+            address(this),
+            basetokenAddress,
+            _erc721Address, // publisherAddress, refers to the erc721 contract
+            burnInEndBlock,
+            ssParams
+        );
+
         return initialized;
     }
 
@@ -198,18 +235,24 @@ contract ERC20Template is ERC20("test", "testSymbol"), ERC20Roles {
         uint256 serviceId,
         address mrktFeeCollector,
         address feeToken, // address of the token marketplace wants to add fee on top
-        uint256 feeAmount // amount to be transfered by 
+        uint256 feeAmount // amount to be transfered by
     ) external {
         // TODO: TO WHO WE SEND THIS FEE? Marketplace address? now set to mrktFeeCollector
         // Requires approval for the specific feeToken
-        if(feeAmount > 0){
-            IERC20(feeToken).transferFrom(msg.sender,mrktFeeCollector,feeAmount);
+        if (feeAmount > 0) {
+            IERC20(feeToken).transferFrom(
+                msg.sender,
+                mrktFeeCollector,
+                feeAmount
+            );
         }
 
         uint256 marketFee = 0;
 
-        uint256 communityFee =
-            calculateFee(amount, BASE_COMMUNITY_FEE_PERCENTAGE);
+        uint256 communityFee = calculateFee(
+            amount,
+            BASE_COMMUNITY_FEE_PERCENTAGE
+        );
         transfer(_communityFeeCollector, communityFee);
         if (mrktFeeCollector != address(0)) {
             marketFee = calculateFee(amount, BASE_MARKET_FEE_PERCENTAGE);
@@ -238,23 +281,30 @@ contract ERC20Template is ERC20("test", "testSymbol"), ERC20Roles {
         uint256[] memory feeAmounts
     ) external {
         uint256 ids = serviceIds.length;
-       
-        
+
         require(getAddressLength(consumers) == ids, "WRONG ARRAYS FORMAT");
         require(getUintLength(amounts) == ids, "WRONG ARRAYS FORMAT");
-        require(getAddressLength(mrktFeeCollectors)== ids, "WRONG ARRAYS FORMAT");
+        require(
+            getAddressLength(mrktFeeCollectors) == ids,
+            "WRONG ARRAYS FORMAT"
+        );
         require(getUintLength(feeAmounts) == ids, "WRONG ARRAYS FORMAT");
-        require(getAddressLength(feeTokens)== ids, "WRONG ARRAYS FORMAT");
+        require(getAddressLength(feeTokens) == ids, "WRONG ARRAYS FORMAT");
 
         for (uint256 i = 0; i < ids; i++) {
-            
-            if(feeAmounts[i] > 0){
-                IERC20(feeTokens[i]).transferFrom(msg.sender,mrktFeeCollectors[i],feeAmounts[i]);
+            if (feeAmounts[i] > 0) {
+                IERC20(feeTokens[i]).transferFrom(
+                    msg.sender,
+                    mrktFeeCollectors[i],
+                    feeAmounts[i]
+                );
             }
-            
+
             uint256 marketFee = 0;
-            uint256 communityFee =
-                calculateFee(amounts[i], BASE_COMMUNITY_FEE_PERCENTAGE);
+            uint256 communityFee = calculateFee(
+                amounts[i],
+                BASE_COMMUNITY_FEE_PERCENTAGE
+            );
             transfer(_communityFeeCollector, communityFee);
             if (mrktFeeCollectors[i] != address(0)) {
                 marketFee = calculateFee(
@@ -318,10 +368,9 @@ contract ERC20Template is ERC20("test", "testSymbol"), ERC20Roles {
     ) external {
         uint256 ids = serviceIds.length;
 
-        
         require(getAddressLength(consumers) == ids, "WRONG ARRAYS FORMAT");
         require(getUintLength(amounts) == ids, "WRONG ARRAYS FORMAT");
-        require(getBytesLength(orderTxIds)== ids, "WRONG ARRAYS FORMAT");
+        require(getBytesLength(orderTxIds) == ids, "WRONG ARRAYS FORMAT");
 
         for (uint256 i = 0; i < ids; i++) {
             if (amounts[i] != 0)
@@ -341,13 +390,13 @@ contract ERC20Template is ERC20("test", "testSymbol"), ERC20Roles {
         }
     }
 
-    function addMinter(address _minter) external onlyERC20Deployer {
-        _addMinter(_minter);
-    }
+    // function addMinter(address _minter) external onlyERC20Deployer {
+    //     _addMinter(_minter);
+    // }
 
-    function removeMinter(address _minter) external onlyERC20Deployer {
-        _removeMinter(_minter);
-    }
+    // function removeMinter(address _minter) external onlyERC20Deployer {
+    //     _removeMinter(_minter);
+    // }
 
     function addFeeManager(address _feeManager) external onlyERC20Deployer {
         _addFeeManager(_feeManager);
@@ -361,17 +410,19 @@ contract ERC20Template is ERC20("test", "testSymbol"), ERC20Roles {
         bytes32 key = keccak256(abi.encodePacked(address(this))); // could be any other key, used a simple configuration
         IERC721Template(_erc721Address).setDataERC20(key, _value);
     }
-    
+
     function cleanPermissions() external onlyNFTOwner {
         _cleanPermissions();
         feeCollector = address(0);
-       
     }
 
     function cleanFrom721() external {
-        require(msg.sender == _erc721Address, "ERC20Template: NOT 721 Contract");
-         _cleanPermissions();
-         feeCollector = address(0);
+        require(
+            msg.sender == _erc721Address,
+            "ERC20Template: NOT 721 Contract"
+        );
+        _cleanPermissions();
+        feeCollector = address(0);
     }
 
     function setFeeCollector(address _newFeeCollector) external {
@@ -383,7 +434,6 @@ contract ERC20Template is ERC20("test", "testSymbol"), ERC20Roles {
     function getId() external pure returns (uint8) {
         return templateId;
     }
-
 
     /**
      * @dev name
@@ -450,29 +500,61 @@ contract ERC20Template is ERC20("test", "testSymbol"), ERC20Roles {
         return amount.mul(feePercentage).div(BASE);
     }
 
-    function permit(address owner, address spender, uint value, uint deadline, uint8 v, bytes32 r, bytes32 s) external {
-        require(deadline >= block.timestamp, 'ERC20DT: EXPIRED');
+    function permit(
+        address owner,
+        address spender,
+        uint256 value,
+        uint256 deadline,
+        uint8 v,
+        bytes32 r,
+        bytes32 s
+    ) external {
+        require(deadline >= block.timestamp, "ERC20DT: EXPIRED");
         bytes32 digest = keccak256(
             abi.encodePacked(
-                '\x19\x01',
+                "\x19\x01",
                 DOMAIN_SEPARATOR,
-                keccak256(abi.encode(PERMIT_TYPEHASH, owner, spender, value, nonces[owner]++, deadline))
+                keccak256(
+                    abi.encode(
+                        PERMIT_TYPEHASH,
+                        owner,
+                        spender,
+                        value,
+                        nonces[owner]++,
+                        deadline
+                    )
+                )
             )
         );
         address recoveredAddress = ecrecover(digest, v, r, s);
-        require(recoveredAddress != address(0) && recoveredAddress == owner, 'ERC20DT: INVALID_SIGNATURE');
+        require(
+            recoveredAddress != address(0) && recoveredAddress == owner,
+            "ERC20DT: INVALID_SIGNATURE"
+        );
         _approve(owner, spender, value);
     }
 
-    function getAddressLength(address[] memory array) private pure returns (uint256) {
+    function getAddressLength(address[] memory array)
+        private
+        pure
+        returns (uint256)
+    {
         return array.length;
     }
 
-    function getUintLength(uint[] memory array) private pure returns (uint256) {
+    function getUintLength(uint256[] memory array)
+        private
+        pure
+        returns (uint256)
+    {
         return array.length;
     }
 
-    function getBytesLength(bytes32[] memory array) private pure returns (uint256) {
+    function getBytesLength(bytes32[] memory array)
+        private
+        pure
+        returns (uint256)
+    {
         return array.length;
     }
 
@@ -482,6 +564,5 @@ contract ERC20Template is ERC20("test", "testSymbol"), ERC20Roles {
         } else {
             return feeCollector;
         }
-        
     }
 }

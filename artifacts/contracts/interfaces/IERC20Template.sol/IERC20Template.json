@@ -98,6 +98,19 @@
     },
     {
       "inputs": [],
+      "name": "cap",
+      "outputs": [
+        {
+          "internalType": "uint256",
+          "name": "",
+          "type": "uint256"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [],
       "name": "cleanFrom721",
       "outputs": [],
       "stateMutability": "nonpayable",
@@ -135,18 +148,33 @@
         },
         {
           "internalType": "uint256",
-          "name": "capERC20",
+          "name": "cap_",
           "type": "uint256"
         },
         {
           "internalType": "address",
-          "name": "collector",
+          "name": "communityFeeCollector",
           "type": "address"
         },
         {
           "internalType": "address",
           "name": "minter",
           "type": "address"
+        },
+        {
+          "internalType": "address",
+          "name": "basetokenAddress",
+          "type": "address"
+        },
+        {
+          "internalType": "uint256",
+          "name": "burnInEndBlock",
+          "type": "uint256"
+        },
+        {
+          "internalType": "uint256[]",
+          "name": "ssParams",
+          "type": "uint256[]"
         }
       ],
       "name": "initialize",
@@ -157,6 +185,24 @@
           "type": "bool"
         }
       ],
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "address",
+          "name": "account",
+          "type": "address"
+        },
+        {
+          "internalType": "uint256",
+          "name": "value",
+          "type": "uint256"
+        }
+      ],
+      "name": "mint",
+      "outputs": [],
       "stateMutability": "nonpayable",
       "type": "function"
     },
@@ -187,6 +233,37 @@
           "internalType": "uint256",
           "name": "",
           "type": "uint256"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "address",
+          "name": "user",
+          "type": "address"
+        }
+      ],
+      "name": "permissions",
+      "outputs": [
+        {
+          "components": [
+            {
+              "internalType": "bool",
+              "name": "minter",
+              "type": "bool"
+            },
+            {
+              "internalType": "bool",
+              "name": "feeManager",
+              "type": "bool"
+            }
+          ],
+          "internalType": "struct IERC20Template.RolesERC20",
+          "name": "",
+          "type": "tuple"
         }
       ],
       "stateMutability": "view",

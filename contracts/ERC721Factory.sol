@@ -26,6 +26,7 @@ contract ERC721Factory is Deployer, Ownable {
     address private metadata;
     uint256 private templateCount;
 
+   
     struct Template {
         address templateAddress;
         bool isActive;
@@ -71,6 +72,7 @@ contract ERC721Factory is Deployer, Ownable {
         communityFeeCollector = _collector;
         erc20Factory = _erc20Factory;
         metadata = _metadata;
+        
     }
 
     function deployERC721Contract(
@@ -185,6 +187,8 @@ contract ERC721Factory is Deployer, Ownable {
     function getCurrentTemplateCount() external view returns (uint256) {
         return templateCount;
     }
+
+   
 
       /**
      * @dev Returns true if `account` is a contract.

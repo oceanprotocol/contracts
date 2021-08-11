@@ -11,7 +11,7 @@
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-pragma solidity 0.5.7;
+pragma solidity >=0.5.7;
 
 import './BNum.sol';
 // import '@openzeppelin/contracts/token/ERC20/IERC20.sol';
@@ -74,7 +74,7 @@ contract BTokenBase is BNum {
     }
 }
 
-contract BToken is BTokenBase, IERC20 {
+contract BToken is BTokenBase {
 
     string  private _name     = 'Balancer Pool Token';
     string  private _symbol   = 'BPT';
@@ -137,7 +137,7 @@ contract BToken is BTokenBase, IERC20 {
         address dst, 
         uint amt
     ) 
-    external 
+    external
     returns (bool) 
     {
         require(
@@ -145,7 +145,7 @@ contract BToken is BTokenBase, IERC20 {
             'ERR_BTOKEN_BAD_CALLER'
         );
         _move(src, dst, amt);
-        if (msg.sender != src && _allowance[src][msg.sender] != uint256(-1)) {
+        if (msg.sender != src && _allowance[src][msg.sender] != uint256(int(-1)) ) {
             _allowance[src][msg.sender] = bsub(_allowance[src][msg.sender], amt);
             emit Approval(msg.sender, dst, _allowance[src][msg.sender]);
         }

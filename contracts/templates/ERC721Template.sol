@@ -31,6 +31,7 @@ contract ERC721Template is
     address public _metadata;
     address private _erc20Factory;
     address[] private deployedERC20List;
+    address public ssContract;
 
     mapping(address => bool) private deployedERC20;
 
@@ -126,7 +127,11 @@ contract ERC721Template is
         string calldata symbol_,
         uint256 cap,
         uint256 templateIndex,
-        address minter
+        address minter,
+        address baseTokenAddress,
+        uint256 burnInEndBlock,
+        uint[] memory ssParams
+
     ) external returns (address) {
         Roles memory user = _getPermissions(msg.sender);
         require(user.deployERC20 == true, "ERC721Template: NOT MINTER_ROLE");
@@ -137,7 +142,10 @@ contract ERC721Template is
                 symbol_,
                 cap,
                 templateIndex,
-                minter
+                minter,
+                baseTokenAddress,
+                burnInEndBlock,
+                ssParams
             );
 
         deployedERC20[token] = true;

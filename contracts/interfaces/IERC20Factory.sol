@@ -46,11 +46,15 @@ interface IERC20Factory {
     function approveMinter() external;
 
     function createToken(
-        string calldata nameERC20,
-        string calldata symbolERC20,
-        uint256 capERC20,
-        uint256 templateIndex,
-        address minter_
+        string memory name,
+        string memory symbol,
+        uint256 cap,
+        //  address erc721address,
+        uint256 _templateIndex,
+        address minter,
+        address baseTokenAddress,
+        uint256 burnInEndBlock,
+        uint[] memory ssParams
     ) external returns (address token);
 
     function addToERC721Registry(address ERC721address) external;

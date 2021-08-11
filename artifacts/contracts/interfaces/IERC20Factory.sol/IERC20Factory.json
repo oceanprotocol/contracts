@@ -83,28 +83,43 @@
       "inputs": [
         {
           "internalType": "string",
-          "name": "nameERC20",
+          "name": "name",
           "type": "string"
         },
         {
           "internalType": "string",
-          "name": "symbolERC20",
+          "name": "symbol",
           "type": "string"
         },
         {
           "internalType": "uint256",
-          "name": "capERC20",
+          "name": "cap",
           "type": "uint256"
         },
         {
           "internalType": "uint256",
-          "name": "templateIndex",
+          "name": "_templateIndex",
           "type": "uint256"
         },
         {
           "internalType": "address",
-          "name": "minter_",
+          "name": "minter",
           "type": "address"
+        },
+        {
+          "internalType": "address",
+          "name": "baseTokenAddress",
+          "type": "address"
+        },
+        {
+          "internalType": "uint256",
+          "name": "burnInEndBlock",
+          "type": "uint256"
+        },
+        {
+          "internalType": "uint256[]",
+          "name": "ssParams",
+          "type": "uint256[]"
         }
       ],
       "name": "createToken",
