@@ -13,10 +13,7 @@ interface IERC20Template {
         address erc721Address,
         uint256 cap_,
         address communityFeeCollector,
-        address minter,
-        address basetokenAddress,
-        uint burnInEndBlock,
-        uint[] memory ssParams
+        address minter
     ) external returns (bool);
     
     function name() external pure returns (string memory);

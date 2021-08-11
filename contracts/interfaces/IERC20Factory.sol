@@ -1,4 +1,4 @@
-pragma solidity >=0.5.0;
+pragma solidity >=0.5.7;
 
 interface IERC20Factory {
     function initialize(
@@ -46,18 +46,20 @@ interface IERC20Factory {
     function approveMinter() external;
 
     function createToken(
-        string memory name,
-        string memory symbol,
+        string calldata name,
+        string calldata symbol,
         uint256 cap,
         //  address erc721address,
         uint256 _templateIndex,
         address minter,
         address baseTokenAddress,
         uint256 burnInEndBlock,
-        uint[] memory ssParams
+        uint[] calldata ssParams
     ) external returns (address token);
 
     function addToERC721Registry(address ERC721address) external;
 
     function erc721List(address ERC721address) external returns (address);
+
+    function erc20List(address erc20dt) external view returns(bool);
 }

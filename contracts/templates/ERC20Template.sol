@@ -45,6 +45,7 @@ contract ERC20Template is ERC20("test", "testSymbol"), ERC20Roles {
     mapping(address => uint256) public nonces;
 
     address public router;
+    //bool public stopMint;
 
     event OrderStarted(
         address indexed consumer,
@@ -117,10 +118,7 @@ contract ERC20Template is ERC20("test", "testSymbol"), ERC20Roles {
         address erc721Address,
         uint256 cap_,
         address communityFeeCollector,
-        address minter,
-        address basetokenAddress,
-        uint burnInEndBlock,
-        uint[] memory ssParams
+        address minter
     ) external onlyNotInitialized returns (bool) {
         return
             _initialize(
@@ -129,10 +127,7 @@ contract ERC20Template is ERC20("test", "testSymbol"), ERC20Roles {
                 erc721Address,
                 cap_,
                 communityFeeCollector,
-                minter,
-                basetokenAddress,
-                burnInEndBlock,
-                ssParams
+                minter
             );
     }
 
@@ -151,10 +146,7 @@ contract ERC20Template is ERC20("test", "testSymbol"), ERC20Roles {
         address erc721Address,
         uint256 cap_,
         address communityFeeCollector,
-        address minter,
-        address basetokenAddress,
-        uint256 burnInEndBlock,
-        uint[] memory ssParams
+        address minter
     ) private returns (bool) {
         require(
             erc721Address != address(0),
@@ -192,18 +184,27 @@ contract ERC20Template is ERC20("test", "testSymbol"), ERC20Roles {
             )
         );
 
-        IFactoryRouter(router).deployPool(
-            minter,
+       
+
+        return initialized;
+    }
+
+
+    function deployPool(address controller, address basetokenAddress, uint burnInEndBlock, uint[] memory ssParams) external onlyERC20Deployer {
+         // TODO: how we want to handle the minters? If someone calls this functions, all other minters should be removed
+         // stopMint could be an option but eventually when we call the ssFixed it will mint the overall supply so that's probably not an issue
+         //stopMint = true;
+        require(totalSupply() == 0,'ERC20Template: tokens already minted');
+        _addMinter(controller);
+         IFactoryRouter(router).deployPool(
+            controller,
             address(this),
             basetokenAddress,
             _erc721Address, // publisherAddress, refers to the erc721 contract
             burnInEndBlock,
             ssParams
         );
-
-        return initialized;
     }
-
     /**
      * @dev mint
      *      Only the minter address can call it.
@@ -212,6 +213,7 @@ contract ERC20Template is ERC20("test", "testSymbol"), ERC20Roles {
      * @param value refers to amount of tokens that is going to be minted.
      */
     function mint(address account, uint256 value) external {
+        //require(stopMint == false, 'ERC20Template: minting is stopped');
         RolesERC20 memory user = permissions[msg.sender];
         require(user.minter == true, "ERC20Template: NOT MINTER");
         require(

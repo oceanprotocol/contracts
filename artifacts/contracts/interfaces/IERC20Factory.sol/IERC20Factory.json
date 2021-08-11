@@ -150,6 +150,25 @@
       "inputs": [
         {
           "internalType": "address",
+          "name": "erc20dt",
+          "type": "address"
+        }
+      ],
+      "name": "erc20List",
+      "outputs": [
+        {
+          "internalType": "bool",
+          "name": "",
+          "type": "bool"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "address",
           "name": "ERC721address",
           "type": "address"
         }

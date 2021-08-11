@@ -72,13 +72,13 @@ contract ERC20Factory is Deployer, Ownable {
      * @param _template refers to the address of a deployed DataToken contract.
      * @param _collector refers to the community fee collector address
      */
-    constructor(address _template, address _collector,address _ssContract) {
+    constructor(address _template, address _collector) {
         require(
             _template != address(0) && _collector != address(0),
             "DTFactory: Invalid template token/community fee collector address"
         );
         addTokenTemplate(_template);
-        ssContracts[_ssContract] = true;
+        
 
         //tokenTemplate = _template;
         communityFeeCollector = _collector;
@@ -99,10 +99,7 @@ contract ERC20Factory is Deployer, Ownable {
         uint256 cap,
         //  address erc721address,
         uint256 _templateIndex,
-        address minter,
-        address baseTokenAddress,
-        uint256 burnInEndBlock,
-        uint[] memory ssParams
+        address minter
     ) public returns (address token) {
         require(cap != 0, "ERC20Factory: zero cap is not allowed");
         require(
@@ -116,7 +113,7 @@ contract ERC20Factory is Deployer, Ownable {
             "ERC20Factory: ERC721Token Template disabled"
         );
 
-        require(ssContracts[minter] == true, 'ERC20Factory: minter is not ss Contract');
+       
 
         token = deploy(tokenTemplate.templateAddress);
 
@@ -140,10 +137,7 @@ contract ERC20Factory is Deployer, Ownable {
                 msg.sender,
                 cap,
                 communityFeeCollector,
-                minter,
-                baseTokenAddress,
-                burnInEndBlock,
-                ssParams
+                minter
             ),
             "ERC20Factory: Unable to initialize token instance"
         );
@@ -216,10 +210,7 @@ contract ERC20Factory is Deployer, Ownable {
         erc721List[ERC721address] = ERC721address;
     }
 
-     // TODO: add remove function? 
-    function addSSContract(address _ssContract) external onlyOwner {
-        ssContracts[_ssContract] = true;
-    }
+
 
     /**
      * @dev Returns true if `account` is a contract.
