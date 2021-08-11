@@ -8,7 +8,7 @@ pragma experimental ABIEncoderV2;
 import "./BFactory.sol";
 import  "../../interfaces/IERC20Factory.sol";
 
-contract OceanPoolFactoryRouter is BFactory {
+contract FactoryRouter is BFactory {
     address public routerOwner;
     address public erc20Factory;
 
@@ -26,9 +26,9 @@ contract OceanPoolFactoryRouter is BFactory {
         _;
     }
 
-    constructor(address _routerOwner, address _oceanToken,address _bpoolTemplate, address _ssContract, address _erc20Factory, address[] memory _preCreatedPools) BFactory(_bpoolTemplate,_preCreatedPools) public {
+    constructor(address _routerOwner, address _oceanToken,address _bpoolTemplate, address _ssContract, address[] memory _preCreatedPools) BFactory(_bpoolTemplate,_preCreatedPools) public {
         routerOwner = _routerOwner; 
-        erc20Factory = _erc20Factory;
+       // erc20Factory = _erc20Factory;
         ssContracts[_ssContract] = true;
         addOceanToken(_oceanToken);
 
@@ -41,6 +41,12 @@ contract OceanPoolFactoryRouter is BFactory {
          // TODO: add remove function? 
     function addSSContract(address _ssContract) external onlyRouterOwner {
         ssContracts[_ssContract] = true;
+    }
+
+          // TODO: add remove function? 
+    function addERC20Factory(address _erc20Factory) external onlyRouterOwner {
+        require(erc20Factory == address(0), 'FACTORY ALREADY SET');
+        erc20Factory = _erc20Factory;
     }
 
     /**

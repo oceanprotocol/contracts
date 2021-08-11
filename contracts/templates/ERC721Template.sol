@@ -127,10 +127,7 @@ contract ERC721Template is
         string calldata symbol_,
         uint256 cap,
         uint256 templateIndex,
-        address minter,
-        address baseTokenAddress,
-        uint256 burnInEndBlock,
-        uint[] memory ssParams
+        address minter
 
     ) external returns (address) {
         Roles memory user = _getPermissions(msg.sender);
@@ -142,10 +139,7 @@ contract ERC721Template is
                 symbol_,
                 cap,
                 templateIndex,
-                minter,
-                baseTokenAddress,
-                burnInEndBlock,
-                ssParams
+                minter
             );
 
         deployedERC20[token] = true;

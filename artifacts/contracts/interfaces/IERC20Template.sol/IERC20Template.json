@@ -132,6 +132,34 @@
     {
       "inputs": [
         {
+          "internalType": "address",
+          "name": "controller",
+          "type": "address"
+        },
+        {
+          "internalType": "address",
+          "name": "basetokenAddress",
+          "type": "address"
+        },
+        {
+          "internalType": "uint256",
+          "name": "burnInEndBlock",
+          "type": "uint256"
+        },
+        {
+          "internalType": "uint256[]",
+          "name": "ssParams",
+          "type": "uint256[]"
+        }
+      ],
+      "name": "deployPool",
+      "outputs": [],
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
           "internalType": "string",
           "name": "name_",
           "type": "string"
@@ -159,6 +187,11 @@
         {
           "internalType": "address",
           "name": "minter",
+          "type": "address"
+        },
+        {
+          "internalType": "address",
+          "name": "router",
           "type": "address"
         }
       ],

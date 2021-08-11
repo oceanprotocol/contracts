@@ -6,6 +6,7 @@ pragma solidity >=0.6.0;
 import "../interfaces/IERC20Template.sol";
 import "../ssContracts/BPoolInterface.sol";
 import "@openzeppelin/contracts/utils/math/SafeMath.sol";
+import "hardhat/console.sol";
 /**
  * @title ssFixedRate
  *
@@ -90,8 +91,10 @@ contract ssFixedRate {
         IERC20Template dt = IERC20Template(datatokenAddress);
         require( (dt.permissions(address(this))).minter == true , "BaseToken address missmatch");
         // get cap and mint it..
-        dt.mint(address(this), dt.totalSupply());
+        dt.mint(address(this), dt.cap());
         require(dt.balanceOf(address(this)) == dt.totalSupply(), "Mint failed");
+        console.log('here');
+        console.log(dt.balanceOf(address(this)));
         // check the ssParams
         uint256 rate = ssParams[0];
         bool allowSell;

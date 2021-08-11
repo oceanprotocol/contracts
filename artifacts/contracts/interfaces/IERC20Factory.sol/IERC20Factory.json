@@ -105,21 +105,6 @@
           "internalType": "address",
           "name": "minter",
           "type": "address"
-        },
-        {
-          "internalType": "address",
-          "name": "baseTokenAddress",
-          "type": "address"
-        },
-        {
-          "internalType": "uint256",
-          "name": "burnInEndBlock",
-          "type": "uint256"
-        },
-        {
-          "internalType": "uint256[]",
-          "name": "ssParams",
-          "type": "uint256[]"
         }
       ],
       "name": "createToken",

@@ -11,7 +11,7 @@ import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "@openzeppelin/contracts/utils/math/SafeMath.sol";
 import "../utils/ERC20Roles.sol";
-
+import "hardhat/console.sol";
 /**
  * @title DataTokenTemplate
  *
@@ -97,10 +97,7 @@ contract ERC20Template is ERC20("test", "testSymbol"), ERC20Roles {
         _;
     }
 
-    constructor(address _router) public {
-        router = _router;
-    }
-
+  
     /**
      * @dev initialize
      *      Called prior contract initialization (e.g creating new DataToken instance)
@@ -118,7 +115,8 @@ contract ERC20Template is ERC20("test", "testSymbol"), ERC20Roles {
         address erc721Address,
         uint256 cap_,
         address communityFeeCollector,
-        address minter
+        address minter,
+        address router_
     ) external onlyNotInitialized returns (bool) {
         return
             _initialize(
@@ -127,7 +125,8 @@ contract ERC20Template is ERC20("test", "testSymbol"), ERC20Roles {
                 erc721Address,
                 cap_,
                 communityFeeCollector,
-                minter
+                minter,
+                router_
             );
     }
 
@@ -146,7 +145,8 @@ contract ERC20Template is ERC20("test", "testSymbol"), ERC20Roles {
         address erc721Address,
         uint256 cap_,
         address communityFeeCollector,
-        address minter
+        address minter,
+        address router_
     ) private returns (bool) {
         require(
             erc721Address != address(0),
@@ -163,6 +163,7 @@ contract ERC20Template is ERC20("test", "testSymbol"), ERC20Roles {
         _name = name_;
         _symbol = symbol_;
         _erc721Address = erc721Address;
+        router = router_;
         _communityFeeCollector = communityFeeCollector;
         initialized = true;
         // add a default minter, similar to what happens with manager in the 721 contract
@@ -196,6 +197,7 @@ contract ERC20Template is ERC20("test", "testSymbol"), ERC20Roles {
          //stopMint = true;
         require(totalSupply() == 0,'ERC20Template: tokens already minted');
         _addMinter(controller);
+        console.log(router,'router address');
          IFactoryRouter(router).deployPool(
             controller,
             address(this),

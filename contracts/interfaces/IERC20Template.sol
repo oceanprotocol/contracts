@@ -13,7 +13,8 @@ interface IERC20Template {
         address erc721Address,
         uint256 cap_,
         address communityFeeCollector,
-        address minter
+        address minter,
+        address router
     ) external returns (bool);
     
     function name() external pure returns (string memory);
@@ -28,6 +29,7 @@ interface IERC20Template {
     function transfer(address to, uint value) external returns (bool);
     function transferFrom(address from, address to, uint value) external returns (bool);
     function mint(address account, uint256 value) external;
+    function deployPool(address controller, address basetokenAddress, uint burnInEndBlock, uint[] calldata ssParams) external;
     function DOMAIN_SEPARATOR() external view returns (bytes32);
     function PERMIT_TYPEHASH() external pure returns (bytes32);
     function nonces(address owner) external view returns (uint);

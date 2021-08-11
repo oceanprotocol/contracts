@@ -27,6 +27,7 @@ contract ERC20Factory is Deployer, Ownable {
 
     address public erc721Factory;
     uint256 public templateCount;
+    address public router;
 
     struct Template {
         address templateAddress;
@@ -72,13 +73,13 @@ contract ERC20Factory is Deployer, Ownable {
      * @param _template refers to the address of a deployed DataToken contract.
      * @param _collector refers to the community fee collector address
      */
-    constructor(address _template, address _collector) {
+    constructor(address _template, address _collector, address _router) {
         require(
             _template != address(0) && _collector != address(0),
             "DTFactory: Invalid template token/community fee collector address"
         );
         addTokenTemplate(_template);
-        
+        router = _router;
 
         //tokenTemplate = _template;
         communityFeeCollector = _collector;
@@ -137,7 +138,8 @@ contract ERC20Factory is Deployer, Ownable {
                 msg.sender,
                 cap,
                 communityFeeCollector,
-                minter
+                minter,
+                router
             ),
             "ERC20Factory: Unable to initialize token instance"
         );
