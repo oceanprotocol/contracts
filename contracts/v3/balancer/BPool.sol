@@ -181,7 +181,7 @@ contract BPool is BMath, BToken {
 
     //can be called only by the controller
     function setup(
-        address dataTokenAaddress,
+        address dataTokenAddress,
         uint256 dataTokenAmount,
         uint256 dataTokenWeight,
         address baseTokenAddress,
@@ -190,23 +190,25 @@ contract BPool is BMath, BToken {
     ) external _logs_ {
         require(msg.sender == _controller, "ERR_INVALID_CONTROLLER");
         require(
-            dataTokenAaddress == _datatokenAddress,
+            dataTokenAddress == _datatokenAddress,
             "ERR_INVALID_DATATOKEN_ADDRESS"
         );
         require(
             baseTokenAddress == _basetokenAddress,
             "ERR_INVALID_BASETOKEN_ADDRESS"
         );
+        console.log('in setup function');
         // other inputs will be validated prior
         // calling the below functions
         // bind data token
-        bind(dataTokenAaddress, dataTokenAmount, dataTokenWeight);
+        bind(dataTokenAddress, dataTokenAmount, dataTokenWeight);
         emit LOG_JOIN(
             msg.sender,
-            dataTokenAaddress,
+            dataTokenAddress,
             dataTokenAmount,
             block.timestamp
         );
+        
         // bind base token
         bind(baseTokenAddress, baseTokenAmount, baseTokenWeight);
         emit LOG_JOIN(
@@ -215,6 +217,7 @@ contract BPool is BMath, BToken {
             baseTokenAmount,
             block.timestamp
         );
+        console.log('tupac');
         // finalize
         finalize();
     }
@@ -460,8 +463,8 @@ contract BPool is BMath, BToken {
                 inRecord.balance,
                 inRecord.denorm,
                 outRecord.balance,
-                outRecord.denorm,
-                _swapFee
+                outRecord.denorm
+                //_swapFee
             );
     }
 
@@ -480,8 +483,7 @@ contract BPool is BMath, BToken {
                 inRecord.balance,
                 inRecord.denorm,
                 outRecord.balance,
-                outRecord.denorm,
-                0
+                outRecord.denorm
             );
     }
 
@@ -591,10 +593,10 @@ contract BPool is BMath, BToken {
     )
         external
         _logs_
-       
+      
         returns (uint256 tokenAmountOut, uint256 spotPriceAfter)
     {   
-       
+        console.log('finalized', _finalized, block.number, _burnInEndBlock);
         if (block.number <= _burnInEndBlock) {
             // we are in burn-in period, leverage to controller
             //defer calc to ssContract
@@ -631,8 +633,10 @@ contract BPool is BMath, BToken {
             );
             return (tokenAmountOut, 0); //returning spot price 0 because there is no public spotPrice
         }
-        if(_finalized == false && block.number>_burnInEndBlock){
+       
+        if(_finalized == false && block.number >_burnInEndBlock){
                 //notify 1SS to setup the pool first
+                console.log('finalize');
                 ssContract.notifyFinalize(_datatokenAddress);
         }
         require(_records[tokenIn].bound, "ERR_NOT_BOUND");
@@ -650,8 +654,8 @@ contract BPool is BMath, BToken {
             inRecord.balance,
             inRecord.denorm,
             outRecord.balance,
-            outRecord.denorm,
-            _swapFee
+            outRecord.denorm
+            //_swapFee
         );
         require(spotPriceBefore <= maxPrice, "ERR_BAD_LIMIT_PRICE");
 
@@ -672,11 +676,14 @@ contract BPool is BMath, BToken {
             inRecord.balance,
             inRecord.denorm,
             outRecord.balance,
-            outRecord.denorm,
-            _swapFee
+            outRecord.denorm
+           // _swapFee
         );
+        console.log('spotPrices',spotPriceAfter,spotPriceBefore);
         require(spotPriceAfter >= spotPriceBefore, "ERR_MATH_APPROX");
         require(spotPriceAfter <= maxPrice, "ERR_LIMIT_PRICE");
+        console.log(tokenAmountIn,tokenAmountOut);
+        console.log(bdiv(tokenAmountIn, tokenAmountOut));
         require(
             spotPriceBefore <= bdiv(tokenAmountIn, tokenAmountOut),
             "ERR_MATH_APPROX"
@@ -766,8 +773,8 @@ contract BPool is BMath, BToken {
             inRecord.balance,
             inRecord.denorm,
             outRecord.balance,
-            outRecord.denorm,
-            _swapFee
+            outRecord.denorm
+            //_swapFee
         );
 
         require(spotPriceBefore <= maxPrice, "ERR_BAD_LIMIT_PRICE");
@@ -788,8 +795,8 @@ contract BPool is BMath, BToken {
             inRecord.balance,
             inRecord.denorm,
             outRecord.balance,
-            outRecord.denorm,
-            _swapFee
+            outRecord.denorm
+           // _swapFee
         );
         require(spotPriceAfter >= spotPriceBefore, "ERR_MATH_APPROX");
         require(spotPriceAfter <= maxPrice, "ERR_LIMIT_PRICE");
@@ -1220,19 +1227,19 @@ contract BPool is BMath, BToken {
     // wO = tokenWeightOut                                                                       //
     // sF = swapFee                                                                              //
     **********************************************************************************************/
-    function calcSpotPrice(
-        uint256 tokenBalanceIn,
-        uint256 tokenWeightIn,
-        uint256 tokenBalanceOut,
-        uint256 tokenWeightOut,
-        uint256 swapFee
-    ) public pure returns (uint256 spotPrice) {
-        uint256 numer = bdiv(tokenBalanceIn, tokenWeightIn);
-        uint256 denom = bdiv(tokenBalanceOut, tokenWeightOut);
-        uint256 ratio = bdiv(numer, denom);
-        uint256 scale = bdiv(BONE, bsub(BONE, swapFee));
-        return (spotPrice = bmul(ratio, scale));
-    }
+    // function calcSpotPrice(
+    //     uint256 tokenBalanceIn,
+    //     uint256 tokenWeightIn,
+    //     uint256 tokenBalanceOut,
+    //     uint256 tokenWeightOut,
+    //     uint256 swapFee
+    // ) public pure returns (uint256 spotPrice) {
+    //     uint256 numer = bdiv(tokenBalanceIn, tokenWeightIn);
+    //     uint256 denom = bdiv(tokenBalanceOut, tokenWeightOut);
+    //     uint256 ratio = bdiv(numer, denom);
+    //     uint256 scale = bdiv(BONE, bsub(BONE, swapFee));
+    //     return (spotPrice = bmul(ratio, scale));
+    // }
 
     /**********************************************************************************************
     // calcOutGivenIn                                                                            //
@@ -1466,8 +1473,8 @@ contract BPool is BMath, BToken {
                 _records[tokenIn].balance,
                 _records[tokenIn].denorm,
                 _records[tokenOut].balance,
-                _records[tokenOut].denorm,
-                _swapFee
+                _records[tokenOut].denorm
+                //_swapFee
             )
         );
     }

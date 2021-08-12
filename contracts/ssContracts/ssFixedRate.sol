@@ -96,12 +96,16 @@ contract ssFixedRate {
         console.log('here');
         console.log(dt.balanceOf(address(this)));
         // check the ssParams
-        uint256 rate = ssParams[0];
+       // uint256 rate = ssParams[0];
+       IERC20Template bt = IERC20Template(basetokenAddress);
+       console.log('OCEAN', bt.balanceOf(address(this)));
         bool allowSell;
         if (ssParams[1] == 0) allowSell = false;
         else allowSell = true;
-        uint256 vestingAmount = ssParams[2];
-        uint256 vestingEndBlock = block.number+ssParams[3];
+       // uint256 vestingAmount = ssParams[2];
+        //uint256 vestingEndBlock = block.number+ssParams[3];
+        
+      
         //we are rich :)let's setup the records and we are good to go
         _datatokens[datatokenAddress] = Record({
             bound: true,
@@ -110,18 +114,20 @@ contract ssFixedRate {
             poolFinalized: false,
             datatokenBalance: dt.totalSupply(),
             datatokenCap:dt.cap(),
-            basetokenBalance: 0,
+            basetokenBalance: ssParams[4],
             lastPrice: 0,
             burnInEndBlock: burnInEndBlock,
-            rate: rate,
+            rate: ssParams[0],
             allowDtSale: allowSell,
             publisherAddress: publisherAddress,
             blockDeployed: block.number,
-            vestingEndBlock: vestingEndBlock,
-            vestingAmount: vestingAmount,
+            vestingEndBlock: block.number+ssParams[3],
+            vestingAmount: ssParams[2],
             vestingLastBlock: block.number,
             vestingAmountSoFar: 0
         });
+
+        notifyFinalize(datatokenAddress);
 
         return (true);
     }
@@ -298,21 +304,22 @@ contract ssFixedRate {
         _datatokens[datatokenAddress].datatokenBalance+=amount;
     }
     //called by the pool (or by us) when we should finalize the pool
-    function notifyFinalize(address datatokenAddress) public {
+    function notifyFinalize(address datatokenAddress) internal {
         if (_datatokens[datatokenAddress].bound != true) return;
-        require(msg.sender == _datatokens[datatokenAddress].poolAddress,'ERR: Only pool can call this');
+       // require(msg.sender == _datatokens[datatokenAddress].poolAddress,'ERR: Only pool can call this');
         if(_datatokens[datatokenAddress].poolFinalized==true) return;
         _datatokens[datatokenAddress].poolFinalized=true;
         uint baseTokenWeight=5*BASE; //pool weight: 50-50
         uint dataTokenWeight=5*BASE; //pool weight: 50-50
         uint baseTokenAmount=_datatokens[datatokenAddress].basetokenBalance;
         //given the price, compute dataTokenAmount
-        uint dataTokenAmount=_datatokens[datatokenAddress].rate * (baseTokenAmount/baseTokenWeight) * dataTokenWeight;
+        uint dataTokenAmount=_datatokens[datatokenAddress].rate * (baseTokenAmount/baseTokenWeight) * dataTokenWeight/ BASE;
         //approve the tokens and amounts
         IERC20Template dt = IERC20Template(datatokenAddress);
         dt.approve(_datatokens[datatokenAddress].poolAddress,dataTokenAmount);
         IERC20Template dtBase = IERC20Template(_datatokens[datatokenAddress].basetokenAddress);
-        dtBase.approve(_datatokens[datatokenAddress].basetokenAddress,baseTokenAmount);
+        dtBase.approve(_datatokens[datatokenAddress].poolAddress,baseTokenAmount);
+        console.log('dataTokenAmount',dataTokenAmount);
         // call the pool, bind the tokens, set the price, finalize pool
         BPoolInterface pool=BPoolInterface(_datatokens[datatokenAddress].poolAddress);
         pool.setup(datatokenAddress,dataTokenAmount,dataTokenWeight,_datatokens[datatokenAddress].basetokenAddress,baseTokenAmount,baseTokenWeight);

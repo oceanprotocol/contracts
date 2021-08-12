@@ -34,6 +34,11 @@
           "internalType": "uint256[]",
           "name": "ssParams",
           "type": "uint256[]"
+        },
+        {
+          "internalType": "address",
+          "name": "basetokenSender",
+          "type": "address"
         }
       ],
       "name": "deployPool",

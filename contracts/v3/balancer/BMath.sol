@@ -14,6 +14,7 @@
 pragma solidity >=0.5.7;
 
 import './BNum.sol';
+import "hardhat/console.sol";
 
 contract BMath is BConst, BNum {
 
@@ -79,23 +80,21 @@ contract BMath is BConst, BNum {
     {
         uint weightRatio = bdiv(tokenWeightIn, tokenWeightOut);
 
-        uint adjustedIn = bsub(BONE, _swapFee);
-        adjustedIn = bmul(tokenAmountIn, adjustedIn);
-
-       
-        uint oceanFeeAmount =  bmul(tokenAmountIn, bsub(BONE, _swapOceanFee));
+        uint oceanFeeAmount =  bsub(tokenAmountIn, bmul(tokenAmountIn, bsub(BONE, _swapOceanFee)));
 
         communityFees[tokenInAddress] = badd(communityFees[tokenInAddress],oceanFeeAmount);
 
      
-        uint marketFeeAmount =  bmul(tokenAmountIn, bsub(BONE, _swapMarketFee));
+        uint marketFeeAmount =  bsub(tokenAmountIn, bmul(tokenAmountIn, bsub(BONE, _swapMarketFee)));
 
         marketFees[tokenInAddress] = badd(marketFees[tokenInAddress],marketFeeAmount);
 
-        uint totalFee = adjustedIn+oceanFeeAmount+marketFeeAmount;
+        uint totalFee = _swapFee+oceanFeeAmount+marketFeeAmount;
     
 
-        uint y = bdiv(tokenBalanceIn, badd(tokenBalanceIn, totalFee));
+        uint adjustedIn = bsub(BONE, totalFee);
+        adjustedIn = bmul(tokenAmountIn, adjustedIn);
+        uint y = bdiv(tokenBalanceIn, badd(tokenBalanceIn, adjustedIn));
         uint foo = bpow(y, weightRatio);
         uint bar = bsub(BONE, foo);
 

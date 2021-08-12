@@ -7,6 +7,7 @@ import './BPool.sol';
 import './BConst.sol';
 import '../../utils/Deployer.sol';
 import '../../interfaces/IssFixedRate.sol';
+import '../../interfaces/IERC20.sol';
 /*
 * @title BFactory contract
 * @author Ocean Protocol (with code from Balancer Labs)
@@ -86,6 +87,8 @@ contract BFactory is BConst, Deployer {
         );
         
         emit BPoolCreated(bpool, msg.sender,datatokenAddress,basetokenAddress,bpoolTemplate,controller);
+        
+        // requires approval first from basetokenSender
         
         IssFixedRate(controller).newDataTokenCreated(  
         datatokenAddress,

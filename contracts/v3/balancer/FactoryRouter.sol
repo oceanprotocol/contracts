@@ -7,13 +7,14 @@ pragma experimental ABIEncoderV2;
 
 import "./BFactory.sol";
 import  "../../interfaces/IERC20Factory.sol";
+import "../../interfaces/IERC20.sol";
 
 contract FactoryRouter is BFactory {
     address public routerOwner;
     address public erc20Factory;
 
-    uint256 public constant swapOceanFee = 1e15; // 0.1% - TODO: check bal v1 
-
+    uint256 public constant swapOceanFee = 1e12; 
+    //uint public constant MIN_FEE  = 
     mapping(address => bool) public oceanTokens;
     mapping(address => bool) public ssContracts;
 
@@ -58,7 +59,8 @@ contract FactoryRouter is BFactory {
         address basetokenAddress, 
         address publisherAddress, 
         uint256 burnInEndBlock,
-        uint256[] calldata ssParams
+        uint256[] calldata ssParams,
+        address basetokenSender
     ) external returns (address) {
         require(IERC20Factory(erc20Factory).erc20List(msg.sender) == true, 'FACTORY ROUTER: NOT ORIGINAL ERC20 TEMPLATE');
         require(ssContracts[controller] = true, 'FACTORY ROUTER: invalid ssContract');
@@ -71,7 +73,9 @@ contract FactoryRouter is BFactory {
                 flag = true;
             
             }
-        
+          // we pull basetoken for creating initial pool
+        IERC20 bt = IERC20(basetokenAddress);
+        bt.transferFrom(basetokenSender,controller,ssParams[4]);
 
         if (flag == true) {
             pool =  newBPool(
