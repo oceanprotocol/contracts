@@ -825,6 +825,7 @@ contract BPool is BMath, BToken {
         uint256 tokenAmountIn,
         uint256 minPoolAmountOut
     ) external _logs_ _lock_ returns (uint256 poolAmountOut) {
+        
         if(_finalized == false && block.number>_burnInEndBlock){
                 //notify 1SS to setup the pool first
                 ssContract.notifyFinalize(_datatokenAddress);
@@ -879,11 +880,15 @@ contract BPool is BMath, BToken {
         inRecord.balance = badd(inRecord.balance, tokenAmountIn);
 
         emit LOG_JOIN(msg.sender, tokenIn, tokenAmountIn, block.timestamp);
-
+       
         _mintPoolShare(poolAmountOut);
         _pushPoolShare(msg.sender, poolAmountOut);
+         console.log('test2');
+         console.log(tokenIn);
+         console.log(msg.sender);
+         console.log(tokenAmountIn);
         _pullUnderlying(tokenIn, msg.sender, tokenAmountIn);
-
+        
         //ask the ssContract to stake as well
         //calculate how much should the 1ss stake
         
@@ -1188,8 +1193,10 @@ contract BPool is BMath, BToken {
         address from,
         uint256 amount
     ) internal {
+       
         bool xfer = IERC20(erc20).transferFrom(from, address(this), amount);
         require(xfer, "ERR_ERC20_FALSE");
+         
     }
 
     function _pushUnderlying(

@@ -2,7 +2,11 @@
 /* global artifacts, contract, web3, it, beforeEach */
 const hre = require("hardhat");
 const { assert, expect } = require("chai");
-const { expectRevert, expectEvent, time} = require("@openzeppelin/test-helpers");
+const {
+  expectRevert,
+  expectEvent,
+  time,
+} = require("@openzeppelin/test-helpers");
 
 const { impersonate } = require("../helpers/impersonate");
 const constants = require("../helpers/constants");
@@ -42,8 +46,8 @@ describe("1SS flow", () => {
   const communityFeeCollector = "0xeE9300b7961e0a01d9f0adb863C7A227A07AaD75";
   const OPF_FEE_WITHDRAWAL = 3; // corresponding enum index for ocean community exitKind
   const MP_FEE_WITHDRAWAL = 4; // corresponding enum index for market fee exitKind
-  const provider = new ethers.providers.JsonRpcProvider()
-  
+  const provider = new ethers.providers.JsonRpcProvider();
+
   before("init contracts for each test", async () => {
     const ERC721Template = await ethers.getContractFactory("ERC721Template");
     const ERC20Template = await ethers.getContractFactory("ERC20Template");
@@ -54,7 +58,7 @@ describe("1SS flow", () => {
     const Router = await ethers.getContractFactory("FactoryRouter");
     const SSContract = await ethers.getContractFactory("ssFixedRate");
     const BPool = await ethers.getContractFactory("BPool");
-    
+
     console.log(await provider.getBlockNumber());
 
     [
@@ -151,8 +155,6 @@ describe("1SS flow", () => {
     // SET REQUIRED ADDRESS
     await router.addERC20Factory(factoryERC20.address);
     await factoryERC20.setERC721Factory(factoryERC721.address);
-
-    
   });
 
   it("#1 - owner deploys a new ERC721 Contract", async () => {
@@ -205,21 +207,28 @@ describe("1SS flow", () => {
   });
 
   it("#4 - user3 calls deployPool()", async () => {
-   
-    const burnInEndBlock = (await provider.getBlockNumber())-387;
-    console.log(await provider.getBlockNumber())
+    const burnInEndBlock = (await provider.getBlockNumber()) - 387;
+    console.log(await provider.getBlockNumber());
 
-    await oceanContract.connect(user3).approve(router.address, web3.utils.toWei('2000'))
+    // approve exact amount
+    await oceanContract
+      .connect(user3)
+      .approve(router.address, web3.utils.toWei("2000"));
 
-     receipt = await (await erc20Token
-        .connect(user3)
-        .deployPool(ssFixedRate.address, oceanAddress, burnInEndBlock , [
+    receipt = await (
+      await erc20Token.connect(user3).deployPool(
+        ssFixedRate.address,
+        oceanAddress,
+        burnInEndBlock,
+        [
           web3.utils.toWei("1"), // rate
           0, // allowSell false , != 0 if true
           web3.utils.toWei("200"), // vesting amount
           500, // vested blocks
-          web3.utils.toWei('2000') // baseToken initial pool liquidity
-        ],user3.address)
+          web3.utils.toWei("2000"), // baseToken initial pool liquidity
+        ],
+        user3.address
+      )
     ).wait();
     //console.log(receipt)
     const PoolEvent = receipt.events.filter((e) => e.event === "NewPool");
@@ -228,12 +237,11 @@ describe("1SS flow", () => {
     assert(PoolEvent[0].args.ssContract == ssFixedRate.address);
 
     bPoolAddress = PoolEvent[0].args.poolAddress;
-  
+
     assert(
-      await erc20Token.balanceOf(ssFixedRate.address) ==
+      (await erc20Token.balanceOf(ssFixedRate.address)) ==
         web3.utils.toWei("98000")
     );
-   
   });
 
   it("#5 - user3 fails to mints new erc20 tokens even if it's minter", async () => {
@@ -248,72 +256,68 @@ describe("1SS flow", () => {
   });
 
   it("#6 - user4 buys some DT after burnIn period- exactAmountIn", async () => {
-
     // pool has initial ocean tokens at the beginning
-    assert(await oceanContract.balanceOf(bPoolAddress)== web3.utils.toWei('2000'))
+    assert(
+      (await oceanContract.balanceOf(bPoolAddress)) == web3.utils.toWei("2000")
+    );
 
     // we approve the pool to move Ocean tokens
-    await oceanContract.connect(user4).approve(bPoolAddress,web3.utils.toWei('10000'))
+    await oceanContract
+      .connect(user4)
+      .approve(bPoolAddress, web3.utils.toWei("10000"));
 
     bPool = await ethers.getContractAt("BPool", bPoolAddress);
-    assert(await bPool.isFinalized() == true)
-   // user4 has no DT before swap
-    assert(await erc20Token.balanceOf(user4.address)== 0)
+    assert((await bPool.isFinalized()) == true);
+    // user4 has no DT before swap
+    assert((await erc20Token.balanceOf(user4.address)) == 0);
 
     // RATE is 1 and there's no fee, so we should get the same amount back in DT
-    await bPool
-      .connect(user4)
-      .swapExactAmountIn(
-        oceanAddress, // tokenIn
-        web3.utils.toWei("10"), // tokenAmountIn
-        erc20Token.address, // tokenOut
-        web3.utils.toWei("1"), //minAmountOut
-        web3.utils.toWei("100"), //maxPrice
-      );
-
+    await bPool.connect(user4).swapExactAmountIn(
+      oceanAddress, // tokenIn
+      web3.utils.toWei("10"), // tokenAmountIn
+      erc20Token.address, // tokenOut
+      web3.utils.toWei("1"), //minAmountOut
+      web3.utils.toWei("100") //maxPrice
+    );
 
     // user4 got his DT
-    assert(await erc20Token.balanceOf(user4.address) > 0);
-    
+    assert((await erc20Token.balanceOf(user4.address)) > 0);
   });
 
   it("#7 - user4 buys some DT after burnIn period - exactAmountOut", async () => {
-
-  
-
     // we already approved pool to withdraw Ocean tokens
-  
-   // user only has DT from previous test
-    const user4DTbalance = await erc20Token.balanceOf(user4.address)
-    console.log(user4DTbalance.toString())
+
+    // user only has DT from previous test
+    const user4DTbalance = await erc20Token.balanceOf(user4.address);
+    console.log(user4DTbalance.toString());
 
     // RATE is 1 and there's no fee, so we should get the same amount back in DT
-    await bPool
-      .connect(user4)
-      .swapExactAmountOut(
-        oceanAddress, // tokenIn
-        web3.utils.toWei("100"), // maxAmountIn
-        erc20Token.address, // tokenOut
-        web3.utils.toWei("10"), // tokenAmountOut
-        web3.utils.toWei("10")// maxPrice
-      );
-
+    await bPool.connect(user4).swapExactAmountOut(
+      oceanAddress, // tokenIn
+      web3.utils.toWei("100"), // maxAmountIn
+      erc20Token.address, // tokenOut
+      web3.utils.toWei("10"), // tokenAmountOut
+      web3.utils.toWei("10") // maxPrice
+    );
 
     // user4 got his DT
-    console.log((await erc20Token.balanceOf(user4.address)).toString())
-    assert( parseInt(await erc20Token.balanceOf(user4.address)) > parseInt(user4DTbalance))
-    
+    console.log((await erc20Token.balanceOf(user4.address)).toString());
+    assert(
+      parseInt(await erc20Token.balanceOf(user4.address)) >
+        parseInt(user4DTbalance)
+    );
   });
 
   it("#8 - user4 swaps some DT back to Ocean swapExactAmountIn", async () => {
+    assert((await bPool.isFinalized()) == true);
 
-    
-    assert(await bPool.isFinalized() == true)
+    await erc20Token
+      .connect(user4)
+      .approve(bPoolAddress, web3.utils.toWei("10000000"));
 
-    await erc20Token.connect(user4).approve(bPoolAddress,web3.utils.toWei('10000000'))
-    
-    const user4DTbalance = await erc20Token.balanceOf(user4.address)
-    const user4Oceanbalance = await oceanContract.balanceOf(user4.address)
+    const user4DTbalance = await erc20Token.balanceOf(user4.address);
+
+    const user4Oceanbalance = await oceanContract.balanceOf(user4.address);
     await bPool
       .connect(user4)
       .swapExactAmountIn(
@@ -323,13 +327,112 @@ describe("1SS flow", () => {
         web3.utils.toWei("1"),
         web3.utils.toWei("10")
       );
-      
-   
-    assert( parseInt(await erc20Token.balanceOf(user4.address)) < parseInt(user4DTbalance))
-    assert( parseInt(await oceanContract.balanceOf(user4.address)) > parseInt(user4Oceanbalance))
-   
-    
+
+    assert(
+      parseInt(await erc20Token.balanceOf(user4.address)) <
+        parseInt(user4DTbalance)
+    );
+    assert(
+      parseInt(await oceanContract.balanceOf(user4.address)) >
+        parseInt(user4Oceanbalance)
+    );
   });
 
+  it("#9 - user4 adds more liquidity with joinPool() (adding both tokens)", async () => {
+    const user4DTbalance = await erc20Token.balanceOf(user4.address);
+    const user4Oceanbalance = await oceanContract.balanceOf(user4.address);
 
+    await oceanContract
+      .connect(user4)
+      .approve(bPool.address, web3.utils.toWei("50"));
+
+    await erc20Token
+      .connect(user4)
+      .approve(bPool.address, web3.utils.toWei("50"));
+
+    receipt = await (
+      await bPool
+        .connect(user4)
+        .joinPool(
+          web3.utils.toWei("0.01"), // min token OUT
+        [
+          web3.utils.toWei("50"), // max Amounts IN
+          web3.utils.toWei("50"), // max Amounts IN
+        ])
+    ).wait();
+
+    //console.log(receipt);
+    assert(
+      parseInt(await erc20Token.balanceOf(user4.address)) <
+        parseInt(user4DTbalance)
+    );
+    assert(
+      parseInt(await oceanContract.balanceOf(user4.address)) <
+        parseInt(user4Oceanbalance)
+    );
+  });
+
+  it("#10 - user3 adds more liquidity with joinswapExternAmountIn (only OCEAN)", async () => {
+    const user3DTbalance = await erc20Token.balanceOf(user3.address);
+    const user3Oceanbalance = await oceanContract.balanceOf(user3.address);
+
+    await oceanContract
+      .connect(user3)
+      .approve(bPool.address, web3.utils.toWei("100"));
+
+  
+    receipt = await (
+      await bPool
+        .connect(user3)
+        .joinswapExternAmountIn(
+          oceanAddress, //token IN
+          web3.utils.toWei("100"), // amount In (ocean tokens)
+          web3.utils.toWei("0.01") // min lp token out
+        )
+    ).wait();
+
+    assert(
+      parseInt(await erc20Token.balanceOf(user3.address)) ==
+        parseInt(user3DTbalance)
+    );
+    assert(
+      parseInt(await oceanContract.balanceOf(user3.address)) <
+        parseInt(user3Oceanbalance)
+    );
+  });
+
+  it("#11 - user3 adds more liquidity with joinswapPoolAmountOut (only OCEAN)", async () => {
+    const user3DTbalance = await erc20Token.balanceOf(user3.address);
+    const user3Oceanbalance = await oceanContract.balanceOf(user3.address);
+    const user3BPTbalance = await bPool.balanceOf(user3.address)
+
+    await oceanContract
+      .connect(user3)
+      .approve(bPool.address, web3.utils.toWei("100"));
+
+  
+    receipt = await (
+      await bPool
+        .connect(user3)
+        .joinswapPoolAmountOut(
+          oceanAddress, //token IN
+          web3.utils.toWei("0.1"), // exact lp token out amount In (ocean tokens)
+          web3.utils.toWei("100") // max ocean tokens IN
+        )
+    ).wait();
+
+    assert(
+      parseInt(await erc20Token.balanceOf(user3.address)) ==
+        parseInt(user3DTbalance)
+    );
+    assert(
+      parseInt(await oceanContract.balanceOf(user3.address)) <
+        parseInt(user3Oceanbalance)
+    );
+
+    assert(
+      parseInt(await bPool.balanceOf(user3.address)) >
+        parseInt(user3BPTbalance)
+    );
+  });
 });
