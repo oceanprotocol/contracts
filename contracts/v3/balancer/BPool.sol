@@ -883,10 +883,7 @@ contract BPool is BMath, BToken {
        
         _mintPoolShare(poolAmountOut);
         _pushPoolShare(msg.sender, poolAmountOut);
-         console.log('test2');
-         console.log(tokenIn);
-         console.log(msg.sender);
-         console.log(tokenAmountIn);
+        
         _pullUnderlying(tokenIn, msg.sender, tokenAmountIn);
         
         //ask the ssContract to stake as well
@@ -900,9 +897,14 @@ contract BPool is BMath, BToken {
             poolAmountOut,
             _swapFee
         );
+       
         if(ssContract.canStake(_datatokenAddress,ssStakeToken,ssAmountIn)==true){
                 //call 1ss to approve
+                 console.log(ssStakeToken);
+                console.log(_datatokenAddress);
+
                 ssContract.Stake(_datatokenAddress, ssStakeToken,ssAmountIn);
+                //IERC20(_datatokenAddress).transferFrom(_controller,address(this),ssAmountIn);
                 // follow the same path
                 ssInRecord.balance = badd(ssInRecord.balance, ssAmountIn);
                 emit LOG_JOIN(_controller, ssStakeToken, ssAmountIn, block.timestamp);
@@ -1193,8 +1195,10 @@ contract BPool is BMath, BToken {
         address from,
         uint256 amount
     ) internal {
-       
+        console.log(IERC20(erc20).balanceOf(from), 'antes');
         bool xfer = IERC20(erc20).transferFrom(from, address(this), amount);
+         console.log(IERC20(erc20).balanceOf(from),'despues');
+       
         require(xfer, "ERR_ERC20_FALSE");
          
     }
