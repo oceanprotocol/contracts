@@ -434,23 +434,31 @@ describe("1SS flow", () => {
 
     expect(JoinEvent[0].args.tokenAmountIn).to.equal(oceanAmountIn);
 
+    expect(JoinEvent[1].args.tokenIn).to.equal(erc20Token.address)
+    
     const ssFixedRateAmountIn = ssContractDTbalance.sub(
       await erc20Token.balanceOf(ssFixedRate.address)
     );
+    
+    expect(JoinEvent[1].args.tokenAmountIn).to.equal(ssFixedRateAmountIn);
+
+   
 
     // dt amount is slightly higher because we ask for the same amount of BPT but the pool is bigger
     assert(ssFixedRateAmountIn.gt(JoinEvent[0].args.tokenAmountIn) == true);
 
     // we check ssContract actually moved DT and got back BPT
-    assert(
-      ssContractDTbalance > (await erc20Token.balanceOf(ssFixedRate.address))
-    );
-    assert(ssContractBPTbalance < (await bPool.balanceOf(ssFixedRate.address)));
+    expect(ssContractDTbalance.sub(JoinEvent[1].args.tokenAmountIn)).to.equal(await erc20Token.balanceOf(ssFixedRate.address))
+  
+    expect(ssContractDTbalance.sub(ssFixedRateAmountIn))
+    
+    const BPTEvent = receipt.events.filter((e) => e.event === "LOG_BPT");
+
+    expect(BPTEvent[0].args.bptAmount.add(ssContractBPTbalance)).to.equal(await bPool.balanceOf(ssFixedRate.address))
+   
     // no dt token where taken from user3
-    assert(
-      parseInt(await erc20Token.balanceOf(user3.address)) ==
-        parseInt(user3DTbalance)
-    );
+    expect(await erc20Token.balanceOf(user3.address)).to.equal(user3DTbalance)
+    
   });
 
   it("#11 - user3 adds more liquidity with joinswapPoolAmountOut (only OCEAN)", async () => {
@@ -478,6 +486,7 @@ describe("1SS flow", () => {
     const JoinEvent = receipt.events.filter((e) => e.event === "LOG_JOIN");
 
     expect(JoinEvent[0].args.tokenIn).to.equal(oceanAddress);
+    expect(JoinEvent[1].args.tokenIn).to.equal(erc20Token.address);
 
     // check balances (ocean and bpt)
     expect(
@@ -485,6 +494,7 @@ describe("1SS flow", () => {
         await oceanContract.balanceOf(user3.address)
       )
     ).to.equal(user3Oceanbalance);
+
     expect(BPTAmountOut.add(user3BPTbalance)).to.equal(
       await bPool.balanceOf(user3.address)
     );
@@ -493,15 +503,13 @@ describe("1SS flow", () => {
     expect(ssContractBPTbalance.add(BPTAmountOut)).to.equal(
       await bPool.balanceOf(ssFixedRate.address)
     );
-    // and also that DT balance lowered
-    assert(
-      ssContractDTbalance > (await erc20Token.balanceOf(ssFixedRate.address))
-    );
 
-    assert(
-      parseInt(await erc20Token.balanceOf(user3.address)) ==
-        parseInt(user3DTbalance)
-    );
+    // and also that DT balance lowered in the ssContract
+    expect(ssContractDTbalance.sub( JoinEvent[1].args.tokenAmountIn)).to.equal(await erc20Token.balanceOf(ssFixedRate.address))
+    
+    // no token where taken from user3.
+    expect(user3DTbalance).to.equal(await erc20Token.balanceOf(user3.address))
+    
   });
   it("#12 - user3 removes liquidity with JoinPool, receiving both tokens", async () => {
     const user3DTbalance = await erc20Token.balanceOf(user3.address);
@@ -570,10 +578,9 @@ describe("1SS flow", () => {
       )
     ).wait();
 
-    assert(
-      parseInt(await erc20Token.balanceOf(user3.address)) ==
-        parseInt(user3DTbalance)
-    );
+    expect(
+      await erc20Token.balanceOf(user3.address)).to.equal(user3DTbalance)
+  
 
     // LOOK FOR EXIT EVENT
     const ExitEvent = receipt.events.filter((e) => e.event === "LOG_EXIT");
@@ -581,6 +588,7 @@ describe("1SS flow", () => {
     // we check event arguments
     expect(ExitEvent[0].args.caller).to.equal(user3.address);
     expect(ExitEvent[0].args.tokenOut).to.equal(oceanContract.address);
+    expect(ExitEvent[1].args.tokenOut).to.equal(erc20Token.address);
     // we check user3 OCEAN balance before and after
     expect(ExitEvent[0].args.tokenAmountOut.add(user3Oceanbalance)).to.equal(
       await oceanContract.balanceOf(user3.address)
@@ -594,10 +602,10 @@ describe("1SS flow", () => {
     expect(ssContractBPTbalance).to.equal(
       (await bPool.balanceOf(ssFixedRate.address)).add(BPTAmountIn)
     );
-    // and that we got back some dt when redeeeming BPT
-    assert(
-      ssContractDTbalance < (await erc20Token.balanceOf(ssFixedRate.address))
-    );
+    // and that ssContract got back his dt when redeeeming BPT
+    expect(
+      ssContractDTbalance.add(ExitEvent[1].args.tokenAmountOut)).to.equal(await erc20Token.balanceOf(ssFixedRate.address))
+    
   });
 
   it("#14 - user3 removes liquidity with exitswapPoolAmountIn, receiving only DT tokens", async () => {
@@ -619,12 +627,11 @@ describe("1SS flow", () => {
       )
     ).wait();
 
-    assert(
-      parseInt(await oceanContract.balanceOf(user3.address)) ==
-        parseInt(user3Oceanbalance)
-    );
-    assert(
-      parseInt(await bPool.balanceOf(user3.address)) < parseInt(user3BPTbalance)
+    expect(await oceanContract.balanceOf(user3.address)).to.equal(user3Oceanbalance)
+        
+    const BPTEvent = receipt.events.filter((e) => e.event === "LOG_BPT");
+
+    expect(await bPool.balanceOf(user3.address)).to.equal(user3BPTbalance.sub((BPTEvent[0].args.bptAmount))
     );
 
     // LOOK FOR EXIT EVENT
@@ -672,13 +679,13 @@ describe("1SS flow", () => {
       )
     ).wait();
 
-    assert(
-      parseInt(await erc20Token.balanceOf(user3.address)) ==
-        parseInt(user3DTbalance)
-    );
-    assert(
-      parseInt(await bPool.balanceOf(user3.address)) < parseInt(user3BPTbalance)
-    );
+    expect(
+     await erc20Token.balanceOf(user3.address)).to.equal(user3DTbalance)
+    
+    const BPTEvent = receipt.events.filter((e) => e.event === "LOG_BPT");
+
+    expect(await bPool.balanceOf(user3.address)).to.equal(user3BPTbalance.sub(BPTEvent[0].args.bptAmount))
+    
 
     // LOOK FOR EXIT EVENT
     const ExitEvent = receipt.events.filter((e) => e.event === "LOG_EXIT");
@@ -686,17 +693,17 @@ describe("1SS flow", () => {
     // we check event arguments
     expect(ExitEvent[0].args.caller).to.equal(user3.address);
     expect(ExitEvent[0].args.tokenOut).to.equal(oceanContract.address);
+    expect(ExitEvent[1].args.tokenOut).to.equal(erc20Token.address);
     // we check user3 OCEAN balance before and after
     expect(ExitEvent[0].args.tokenAmountOut.add(user3Oceanbalance)).to.equal(
       await oceanContract.balanceOf(user3.address)
     );
 
     // NOW we check the ssContract BPT balance
-    assert(ssContractBPTbalance > (await bPool.balanceOf(ssFixedRate.address)));
+    expect(ssContractBPTbalance.sub(BPTEvent[0].args.bptAmount)).to.equal(await bPool.balanceOf(ssFixedRate.address))
     // and that we got back some dt when redeeeming BPT
-    assert(
-      ssContractDTbalance < (await erc20Token.balanceOf(ssFixedRate.address))
-    );
+    expect(ssContractDTbalance.add(ExitEvent[1].args.tokenAmountOut)).to.equal(await erc20Token.balanceOf(ssFixedRate.address))
+    
   });
 
   it("#16 - user3 removes liquidity with exitswapExternAmountOut, receiving only DT tokens", async () => {
@@ -718,15 +725,12 @@ describe("1SS flow", () => {
     ).wait();
 
     // OCEAN BALANCE DOESN"T CHANGE
-    assert(
-      parseInt(await oceanContract.balanceOf(user3.address)) ==
-        parseInt(user3Oceanbalance)
-    );
+    expect(await oceanContract.balanceOf(user3.address)).to.equal(user3Oceanbalance);
 
+    const BPTEvent = receipt.events.filter((e) => e.event === "LOG_BPT");
     // BPT balance decrease
-    assert(
-      parseInt(await bPool.balanceOf(user3.address)) < parseInt(user3BPTbalance)
-    );
+    expect(await bPool.balanceOf(user3.address)).to.equal(user3BPTbalance.sub(BPTEvent[0].args.bptAmount))
+    
 
     // LOOK FOR EXIT EVENT
     const ExitEvent = receipt.events.filter((e) => e.event === "LOG_EXIT");

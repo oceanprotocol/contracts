@@ -60,6 +60,10 @@ contract BPool is BMath, BToken {
         bytes data
     );
 
+    event LOG_BPT (
+        uint256 bptAmount
+    );
+
     modifier _logs_() {
         emit LOG_CALL(msg.sig, msg.sender, block.timestamp, msg.data);
         _;
@@ -531,6 +535,7 @@ contract BPool is BMath, BToken {
         }
         _mintPoolShare(poolAmountOut);
         _pushPoolShare(msg.sender, poolAmountOut);
+        emit LOG_BPT(poolAmountOut);
     }
 
     function exitPool(uint256 poolAmountIn, uint256[] calldata minAmountsOut)
@@ -880,7 +885,7 @@ contract BPool is BMath, BToken {
         inRecord.balance = badd(inRecord.balance, tokenAmountIn);
 
         emit LOG_JOIN(msg.sender, tokenIn, tokenAmountIn, block.timestamp);
-       
+        emit LOG_BPT(poolAmountOut);
         _mintPoolShare(poolAmountOut);
         _pushPoolShare(msg.sender, poolAmountOut);
         
@@ -908,6 +913,7 @@ contract BPool is BMath, BToken {
                 // follow the same path
                 ssInRecord.balance = badd(ssInRecord.balance, ssAmountIn);
                 emit LOG_JOIN(_controller, ssStakeToken, ssAmountIn, block.timestamp);
+                emit LOG_BPT(poolAmountOut);
                 _mintPoolShare(poolAmountOut);
                 _pushPoolShare(_controller, poolAmountOut);
                 _pullUnderlying(ssStakeToken, _controller, ssAmountIn);
@@ -977,7 +983,7 @@ contract BPool is BMath, BToken {
         inRecord.balance = badd(inRecord.balance, tokenAmountIn);
 
         emit LOG_JOIN(msg.sender, tokenIn, tokenAmountIn, block.timestamp);
-
+        emit LOG_BPT(poolAmountOut);
         _mintPoolShare(poolAmountOut);
         _pushPoolShare(msg.sender, poolAmountOut);
         _pullUnderlying(tokenIn, msg.sender, tokenAmountIn);
@@ -1066,7 +1072,7 @@ contract BPool is BMath, BToken {
         uint256 exitFee = bmul(poolAmountIn, EXIT_FEE);
 
         emit LOG_EXIT(msg.sender, tokenOut, tokenAmountOut, block.timestamp);
-
+        emit LOG_BPT(poolAmountIn);
         _pullPoolShare(msg.sender, poolAmountIn);
         _burnPoolShare(bsub(poolAmountIn, exitFee));
         _pushPoolShare(_factory, exitFee);
@@ -1156,7 +1162,7 @@ contract BPool is BMath, BToken {
         uint256 exitFee = bmul(poolAmountIn, EXIT_FEE);
 
         emit LOG_EXIT(msg.sender, tokenOut, tokenAmountOut, block.timestamp);
-
+        emit LOG_BPT(poolAmountIn);
         _pullPoolShare(msg.sender, poolAmountIn);
         _burnPoolShare(bsub(poolAmountIn, exitFee));
         _pushPoolShare(_factory, exitFee);
