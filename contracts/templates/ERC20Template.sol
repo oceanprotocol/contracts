@@ -118,7 +118,8 @@ contract ERC20Template is ERC20("test", "testSymbol"), ERC20Roles {
         uint256 cap_,
         address communityFeeCollector,
         address minter,
-        address router_
+        address router_,
+        address feeManager
     ) external onlyNotInitialized returns (bool) {
         return
             _initialize(
@@ -128,7 +129,8 @@ contract ERC20Template is ERC20("test", "testSymbol"), ERC20Roles {
                 cap_,
                 communityFeeCollector,
                 minter,
-                router_
+                router_,
+                feeManager
             );
     }
 
@@ -148,7 +150,8 @@ contract ERC20Template is ERC20("test", "testSymbol"), ERC20Roles {
         uint256 cap_,
         address communityFeeCollector,
         address minter,
-        address router_
+        address router_,
+        address feeManager
     ) private returns (bool) {
         require(
             erc721Address != address(0),
@@ -171,6 +174,7 @@ contract ERC20Template is ERC20("test", "testSymbol"), ERC20Roles {
         // add a default minter, similar to what happens with manager in the 721 contract
         _addMinter(minter);
         // TODO: add option to add a fee manager when initializing?
+        _addFeeManager(feeManager);
         uint256 chainId;
         assembly {
             chainId := chainid()
@@ -399,13 +403,13 @@ contract ERC20Template is ERC20("test", "testSymbol"), ERC20Roles {
         }
     }
 
-    // function addMinter(address _minter) external onlyERC20Deployer {
-    //     _addMinter(_minter);
-    // }
+    function addMinter(address _minter) external onlyERC20Deployer {
+        _addMinter(_minter);
+    }
 
-    // function removeMinter(address _minter) external onlyERC20Deployer {
-    //     _removeMinter(_minter);
-    // }
+    function removeMinter(address _minter) external onlyERC20Deployer {
+        _removeMinter(_minter);
+    }
 
     function addFeeManager(address _feeManager) external onlyERC20Deployer {
         _addFeeManager(_feeManager);
@@ -435,8 +439,7 @@ contract ERC20Template is ERC20("test", "testSymbol"), ERC20Roles {
     }
 
     function setFeeCollector(address _newFeeCollector) external {
-        RolesERC20 memory user = permissions[msg.sender];
-        require(user.feeManager == true, "ERC20Template: NOT FEE MANAGER");
+        require(permissions[msg.sender].feeManager == true, "ERC20Template: NOT FEE MANAGER");
         feeCollector = _newFeeCollector;
     }
 

@@ -100,7 +100,8 @@ contract ERC20Factory is Deployer, Ownable {
         uint256 cap,
         //  address erc721address,
         uint256 _templateIndex,
-        address minter
+        address minter,
+        address feeManager
     ) public returns (address token) {
         require(cap != 0, "ERC20Factory: zero cap is not allowed");
         require(
@@ -139,7 +140,8 @@ contract ERC20Factory is Deployer, Ownable {
                 cap,
                 communityFeeCollector,
                 minter,
-                router
+                router,
+                feeManager
             ),
             "ERC20Factory: Unable to initialize token instance"
         );

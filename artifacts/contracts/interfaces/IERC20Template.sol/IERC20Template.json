@@ -193,6 +193,11 @@
           "internalType": "address",
           "name": "router",
           "type": "address"
+        },
+        {
+          "internalType": "address",
+          "name": "feeManager",
+          "type": "address"
         }
       ],
       "name": "initialize",

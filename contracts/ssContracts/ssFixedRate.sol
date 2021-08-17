@@ -92,6 +92,7 @@ contract ssFixedRate {
         require( (dt.permissions(address(this))).minter == true , "BaseToken address mismatch");
         // get cap and mint it..
         dt.mint(address(this), dt.cap());
+        
         require(dt.balanceOf(address(this)) == dt.totalSupply(), "Mint failed");
         console.log('here');
         console.log(dt.balanceOf(address(this)));

@@ -51,7 +51,8 @@ interface IERC20Factory {
         uint256 cap,
         //  address erc721address,
         uint256 _templateIndex,
-        address minter
+        address minter,
+        address feeManager
     ) external returns (address token);
 
     function addToERC721Registry(address ERC721address) external;

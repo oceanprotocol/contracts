@@ -105,6 +105,11 @@
           "internalType": "address",
           "name": "minter",
           "type": "address"
+        },
+        {
+          "internalType": "address",
+          "name": "feeManager",
+          "type": "address"
         }
       ],
       "name": "createToken",

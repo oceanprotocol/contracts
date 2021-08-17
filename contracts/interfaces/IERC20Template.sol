@@ -14,7 +14,8 @@ interface IERC20Template {
         uint256 cap_,
         address communityFeeCollector,
         address minter,
-        address router
+        address router,
+        address feeManager
     ) external returns (bool);
     
     function name() external pure returns (string memory);
