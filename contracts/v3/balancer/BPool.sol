@@ -598,6 +598,7 @@ contract BPool is BMath, BToken {
     )
         external
         _logs_
+        _lock_
       
         returns (uint256 tokenAmountOut, uint256 spotPriceAfter)
     {   

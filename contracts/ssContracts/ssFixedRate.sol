@@ -399,9 +399,10 @@ contract ssFixedRate {
     // called by vester to get datatokens
     function getVesting(address datatokenAddress) public{
         require(_datatokens[datatokenAddress].bound == true,'ERR:Invalid datatoken');
-        require(msg.sender == _datatokens[datatokenAddress].publisherAddress,'ERR: Only publisher can call this');
+       // require(msg.sender == _datatokens[datatokenAddress].publisherAddress,'ERR: Only publisher can call this');
         //calculate how many tokens we need to vest to publisher
         uint blocksPassed=block.number-_datatokens[datatokenAddress].vestingLastBlock;
+        console.log(blocksPassed,'blocksPassed');
         uint vestPerBlock=_datatokens[datatokenAddress].vestingAmount.div(_datatokens[datatokenAddress].vestingEndBlock-_datatokens[datatokenAddress].blockDeployed);
         if(vestPerBlock==0) return;
         uint amount=blocksPassed.mul(vestPerBlock);
