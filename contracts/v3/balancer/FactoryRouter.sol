@@ -19,7 +19,7 @@ contract FactoryRouter is BFactory {
 
     event NewPool(address indexed poolAddress, bool isOcean);
     event NewForkPool(address indexed poolAddress);
-    
+    uint256 private test;
 
     modifier onlyRouterOwner {
         require(routerOwner == msg.sender, "OceanRouter: NOT OWNER");

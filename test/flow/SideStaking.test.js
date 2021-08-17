@@ -77,7 +77,7 @@ describe("1SS flow", () => {
       pool2MarketFeeCollector, // POOL2
     ] = await ethers.getSigners();
 
-    poolTemplate = await BPool.deploy();
+    //poolTemplate = await BPool.deploy();
 
     ssFixedRate = await SSContract.deploy();
 
@@ -131,7 +131,7 @@ describe("1SS flow", () => {
     router = await Router.deploy(
       owner.address,
       oceanAddress,
-      poolTemplate.address,
+      oceanAddress, // pooltemplate field
       ssFixedRate.address,
       []
     );
