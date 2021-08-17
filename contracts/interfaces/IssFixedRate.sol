@@ -16,7 +16,6 @@ interface IssFixedRate {
         address basetokenAddress,
         address poolAddress,
         address publisherAddress,
-        uint256 burnInEndBlock,
         uint256[] calldata ssParams
     ) external returns (bool);
 
@@ -46,11 +45,6 @@ interface IssFixedRate {
         returns (uint256);
 
     function getDataTokenBalance(address datatokenAddress)
-        external
-        view
-        returns (uint256);
-
-    function getburnInEndBlock(address datatokenAddress)
         external
         view
         returns (uint256);

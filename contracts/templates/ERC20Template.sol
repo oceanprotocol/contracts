@@ -197,7 +197,7 @@ contract ERC20Template is ERC20("test", "testSymbol"), ERC20Roles {
     }
 
 
-    function deployPool(address controller, address basetokenAddress, uint burnInEndBlock, uint[] memory ssParams, address basetokenSender) external onlyERC20Deployer {
+    function deployPool(address controller, address basetokenAddress, uint[] memory ssParams, address basetokenSender) external onlyERC20Deployer {
          // TODO: how we want to handle the minters? If someone calls this functions, all other minters should be removed
          // stopMint could be an option but eventually when we call the ssFixed it will mint the overall supply so that's probably not an issue
          //stopMint = true;
@@ -209,7 +209,6 @@ contract ERC20Template is ERC20("test", "testSymbol"), ERC20Roles {
             address(this),
             basetokenAddress,
             _erc721Address, // publisherAddress, refers to the erc721 contract
-            burnInEndBlock,
             ssParams,
             basetokenSender
         );

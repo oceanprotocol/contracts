@@ -375,25 +375,6 @@
           "type": "address"
         }
       ],
-      "name": "getburnInEndBlock",
-      "outputs": [
-        {
-          "internalType": "uint256",
-          "name": "",
-          "type": "uint256"
-        }
-      ],
-      "stateMutability": "view",
-      "type": "function"
-    },
-    {
-      "inputs": [
-        {
-          "internalType": "address",
-          "name": "datatokenAddress",
-          "type": "address"
-        }
-      ],
       "name": "getvestingAmount",
       "outputs": [
         {
@@ -502,11 +483,6 @@
           "internalType": "address",
           "name": "publisherAddress",
           "type": "address"
-        },
-        {
-          "internalType": "uint256",
-          "name": "burnInEndBlock",
-          "type": "uint256"
         },
         {
           "internalType": "uint256[]",

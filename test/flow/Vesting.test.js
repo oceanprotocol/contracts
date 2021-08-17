@@ -129,37 +129,33 @@ describe("Vesting flow", () => {
     data = web3.utils.asciiToHex("SomeData");
     flags = web3.utils.asciiToHex(constants.blob[0]);
 
-    // DEPLOY ROUTER, SETTING OWNER
-    router = await Router.deploy(
-      owner.address,
-      oceanAddress,
-      poolTemplate.address,
-      ssFixedRate.address,
-      []
-    );
-
-    // SETUP ERC20 Factory with template
-    templateERC20 = await ERC20Template.deploy();
-    factoryERC20 = await ERC20Factory.deploy(
-      templateERC20.address,
-      communityFeeCollector,
-      router.address
-    );
-
-    metadata = await Metadata.deploy(factoryERC20.address);
-
-    // SETUP ERC721 Factory with template
-    templateERC721 = await ERC721Template.deploy();
-    factoryERC721 = await ERC721Factory.deploy(
-      templateERC721.address,
-      communityFeeCollector,
-      factoryERC20.address,
-      metadata.address
-    );
-
-    // SET REQUIRED ADDRESS
-    await router.addERC20Factory(factoryERC20.address);
-    await factoryERC20.setERC721Factory(factoryERC721.address);
+        // DEPLOY ROUTER, SETTING OWNER
+        router = await Router.deploy(
+          owner.address,
+          oceanAddress,
+          poolTemplate.address,
+          ssFixedRate.address,
+          []
+        );
+    
+      
+        templateERC20 = await ERC20Template.deploy();
+    
+        metadata = await Metadata.deploy();
+        
+        // SETUP ERC721 Factory with template
+        templateERC721 = await ERC721Template.deploy();
+        factoryERC721 = await ERC721Factory.deploy(
+          templateERC721.address,
+          templateERC20.address,
+          communityFeeCollector,
+          router.address,
+          metadata.address
+        );
+    
+        await metadata.addTokenFactory(factoryERC721.address)
+        // SET REQUIRED ADDRESS
+        await router.addERC20Factory(factoryERC721.address);
   });
 
   it("#1 - owner deploys a new ERC721 Contract", async () => {
@@ -202,7 +198,8 @@ describe("Vesting flow", () => {
         "ERC20DT1Symbol",
         web3.utils.toWei("100000"),
         1,
-        user3.address
+        user3.address, // minter
+        user6.address // feeManager
       );
     const trxReceiptERC20 = await trxERC20.wait();
     erc20Address = trxReceiptERC20.events[3].args.erc20Address;
@@ -212,8 +209,8 @@ describe("Vesting flow", () => {
   });
 
   it("#4 - user3 calls deployPool()", async () => {
-    const burnInEndBlock = (await provider.getBlockNumber()) - 387;
-    console.log(await provider.getBlockNumber());
+ //   const burnInEndBlock = (await provider.getBlockNumber()) - 387;
+ 
 
     // approve exact amount
     await oceanContract
@@ -227,7 +224,6 @@ describe("Vesting flow", () => {
       await erc20Token.connect(user3).deployPool(
         ssFixedRate.address,
         oceanAddress,
-        burnInEndBlock,
         [
           web3.utils.toWei("1"), // rate
           0, // allowSell false , != 0 if true
@@ -285,7 +281,6 @@ describe("Vesting flow", () => {
     console.log((await time.latestBlock()).toString())
     //await ssFixedRate.getVesting(erc20Token.address)
    
-    
     for (let i = 0; i< 600; i++) {
      // each one advance a block
         await signer.sendTransaction({
@@ -295,6 +290,7 @@ describe("Vesting flow", () => {
     await ssFixedRate.getVesting(erc20Token.address)
     const pubDTbalAFTER = await erc20Token.balanceOf(tokenERC721.address)
     console.log(ethers.utils.formatEther(pubDTbalAFTER))
+   
   });
 
 

@@ -15,7 +15,7 @@ import "../interfaces/IERC20Factory.sol";
  *      https://github.com/oceanprotocol/OEPs/blob/master/7/v0.2/README.md
  */
 contract Metadata {
-    address public erc20Factory;
+    address public tokenFactory;
 
     event MetadataCreated(
         address indexed dataToken,
@@ -31,13 +31,12 @@ contract Metadata {
     );
 
 
-    constructor(address _erc20Factory) {
-        erc20Factory = _erc20Factory;
-    }
+    // constructor() {
+    // }
     
     modifier onlyDataTokenMinter(address dataToken) {
         require(
-            IERC20Factory(erc20Factory).erc721List(msg.sender) == msg.sender,
+            IERC20Factory(tokenFactory).erc721List(msg.sender) == msg.sender,
             "Metadata:NOT ORIGINAL TEMPLATE"
         );
         _;
@@ -73,5 +72,8 @@ contract Metadata {
         emit MetadataUpdated(dataToken, msg.sender, flags, data);
     }
 
- 
+    
+    function addTokenFactory(address _tokenFactory) external {
+        tokenFactory = _tokenFactory;
+    }
 }

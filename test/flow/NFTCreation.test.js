@@ -25,13 +25,16 @@ describe("NFT Creation, roles and erc20 deployments", () => {
 
   const communityFeeCollector = "0xeE9300b7961e0a01d9f0adb863C7A227A07AaD75";
 
+  const oceanAddress = "0x967da4048cD07aB37855c090aAF366e4ce1b9F48";
   before("init contracts for each test", async () => {
     const ERC721Template = await ethers.getContractFactory("ERC721Template");
     const ERC20Template = await ethers.getContractFactory("ERC20Template");
     const ERC721Factory = await ethers.getContractFactory("ERC721Factory");
     const ERC20Factory = await ethers.getContractFactory("ERC20Factory");
-
+    const Router = await ethers.getContractFactory("FactoryRouter");
     const Metadata = await ethers.getContractFactory("Metadata");
+    const SSContract = await ethers.getContractFactory("ssFixedRate");
+    const BPool = await ethers.getContractFactory("BPool");
 
     [
       owner,
@@ -44,22 +47,36 @@ describe("NFT Creation, roles and erc20 deployments", () => {
 
     data = web3.utils.asciiToHex("SomeData");
     flags = web3.utils.asciiToHex(constants.blob[0]);
+    
+    poolTemplate = await BPool.deploy();
+
+    ssFixedRate = await SSContract.deploy();
+    // DEPLOY ROUTER, SETTING OWNER
+    router = await Router.deploy(
+      owner.address,
+      oceanAddress,
+      poolTemplate.address,
+      ssFixedRate.address,
+      []
+    );
 
     templateERC20 = await ERC20Template.deploy();
-    factoryERC20 = await ERC20Factory.deploy(
-      templateERC20.address,
-      communityFeeCollector
-    );
-    metadata = await Metadata.deploy(factoryERC20.address);
+
+    metadata = await Metadata.deploy();
+
+    // SETUP ERC721 Factory with template
     templateERC721 = await ERC721Template.deploy();
     factoryERC721 = await ERC721Factory.deploy(
       templateERC721.address,
+      templateERC20.address,
       communityFeeCollector,
-      factoryERC20.address,
+      router.address,
       metadata.address
     );
 
-    await factoryERC20.setERC721Factory(factoryERC721.address);
+    await metadata.addTokenFactory(factoryERC721.address);
+    // SET REQUIRED ADDRESS
+    await router.addERC20Factory(factoryERC721.address);
   });
 
   it("#1 - owner deploys a new ERC721 Contract", async () => {
@@ -117,7 +134,8 @@ describe("NFT Creation, roles and erc20 deployments", () => {
         "ERC20DT1Symbol",
         web3.utils.toWei("10"),
         1,
-        user3.address
+        user3.address, // minter
+        user4.address // feeManager
       );
     const trxReceiptERC20 = await trxERC20.wait();
     erc20Address = trxReceiptERC20.events[3].args.erc20Address;
@@ -142,8 +160,9 @@ describe("NFT Creation, roles and erc20 deployments", () => {
         "ERC20DT1Symbol",
         web3.utils.toWei("10"),
         1,
-        user4.address
-      );
+        user4.address,// minter
+        user4.address // feeManager
+              );
     const trxReceiptERC20 = await trxERC20.wait();
     erc20Address = trxReceiptERC20.events[3].args.erc20Address;
 
@@ -227,7 +246,8 @@ describe("NFT Creation, roles and erc20 deployments", () => {
           "ERC20DT2Symbol",
           web3.utils.toWei("10"),
           1,
-          user2.address
+          user2.address,
+          user3.address
         ),
       "ERC721Template: NOT MINTER_ROLE"
     );
@@ -256,7 +276,8 @@ describe("NFT Creation, roles and erc20 deployments", () => {
           "ERC20DT2Symbol",
           web3.utils.toWei("10"),
           1,
-          user2.address
+          user2.address,
+          user3.address
         ),
       "ERC721Template: NOT MINTER_ROLE"
     );

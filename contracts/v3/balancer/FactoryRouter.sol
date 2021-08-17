@@ -14,7 +14,6 @@ contract FactoryRouter is BFactory {
     address public erc20Factory;
 
     uint256 public constant swapOceanFee = 1e12; 
-    //uint public constant MIN_FEE  = 
     mapping(address => bool) public oceanTokens;
     mapping(address => bool) public ssContracts;
 
@@ -58,7 +57,6 @@ contract FactoryRouter is BFactory {
         address datatokenAddress, 
         address basetokenAddress, 
         address publisherAddress, 
-        uint256 burnInEndBlock,
         uint256[] calldata ssParams,
         address basetokenSender
     ) external returns (address) {
@@ -83,7 +81,6 @@ contract FactoryRouter is BFactory {
                datatokenAddress,
                basetokenAddress,
                publisherAddress,
-               burnInEndBlock,
                ssParams,
                0
             );
@@ -94,7 +91,6 @@ contract FactoryRouter is BFactory {
                datatokenAddress,
                basetokenAddress,
                publisherAddress,
-               burnInEndBlock,
                ssParams,
                swapOceanFee
             );

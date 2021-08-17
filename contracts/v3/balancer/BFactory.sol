@@ -58,7 +58,6 @@ contract BFactory is BConst, Deployer {
         address datatokenAddress, 
         address basetokenAddress, 
         address publisherAddress, 
-        uint256 burnInEndBlock,
         uint256[] memory ssParams,
         uint256 swapOceanFee)
         internal 
@@ -79,9 +78,7 @@ contract BFactory is BConst, Deployer {
                 false,
                 false,
                 datatokenAddress,
-                basetokenAddress,
-                burnInEndBlock
-               
+                basetokenAddress
             ),
             'ERR_INITIALIZE_BPOOL'
         );
@@ -95,7 +92,6 @@ contract BFactory is BConst, Deployer {
         basetokenAddress,
         bpool,
         publisherAddress,
-        burnInEndBlock,
         ssParams);
         
 

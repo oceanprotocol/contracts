@@ -88,7 +88,6 @@ contract BPool is BMath, BToken {
     bool private _publicSwap; // true if PUBLIC can call SWAP functions
     address private _datatokenAddress; //datatoken address
     address private _basetokenAddress; //base token address
-    uint256 private _burnInEndBlock; //burn-in period end block. While burnInEndBlock<block.number call 1ss for buy/sell and reject add/rem liquidiy
     // `setSwapFee` and `finalize` require CONTROL
     // `finalize` sets `PUBLIC can SWAP`, `PUBLIC can JOIN`
     uint256 private _swapFee;
@@ -121,8 +120,7 @@ contract BPool is BMath, BToken {
             false,
             false,
             msg.sender,
-            msg.sender,
-            0
+            msg.sender
         );
     }
 
@@ -136,8 +134,7 @@ contract BPool is BMath, BToken {
         bool publicSwap,
         bool finalized,
         address datatokenAddress,
-        address basetokenAddress,
-        uint256 burnInEndBlock
+        address basetokenAddress
     ) external onlyNotInitialized returns (bool) {
         require(controller != address(0), "ERR_INVALID_CONTROLLER_ADDRESS");
         require(factory != address(0), "ERR_INVALID_FACTORY_ADDRESS");
@@ -152,8 +149,7 @@ contract BPool is BMath, BToken {
                 publicSwap,
                 finalized,
                 datatokenAddress,
-                basetokenAddress,
-                burnInEndBlock
+                basetokenAddress
             );
     }
 
@@ -166,8 +162,7 @@ contract BPool is BMath, BToken {
         bool publicSwap,
         bool finalized,
         address datatokenAddress,
-        address basetokenAddress,
-        uint256 burnInEndBlock
+        address basetokenAddress
     ) private returns (bool) {
         _controller = controller;
         _factory = factory;
@@ -178,7 +173,6 @@ contract BPool is BMath, BToken {
         _datatokenAddress = datatokenAddress;
         _basetokenAddress = basetokenAddress;
         initialized = true;
-        _burnInEndBlock = burnInEndBlock;
         ssContract = IssFixedRate(_controller);
         return initialized;
     }
@@ -221,7 +215,6 @@ contract BPool is BMath, BToken {
             baseTokenAmount,
             block.timestamp
         );
-        console.log('tupac');
         // finalize
         finalize();
     }
@@ -496,10 +489,10 @@ contract BPool is BMath, BToken {
         _logs_
         _lock_
     {
-        if(_finalized == false && block.number>_burnInEndBlock){
-                //notify 1SS to setup the pool first
-                ssContract.notifyFinalize(_datatokenAddress);
-        }
+        // if(_finalized == false && block.number>_burnInEndBlock){
+        //         //notify 1SS to setup the pool first
+        //         ssContract.notifyFinalize(_datatokenAddress);
+        // }
         require(_finalized, "ERR_NOT_FINALIZED");
 
         //ask ssContract if join is allowed
@@ -543,10 +536,10 @@ contract BPool is BMath, BToken {
         _logs_
         _lock_
     {
-        if(_finalized == false && block.number>_burnInEndBlock){
-                //notify 1SS to setup the pool first
-                ssContract.notifyFinalize(_datatokenAddress);
-        }
+        // if(_finalized == false && block.number>_burnInEndBlock){
+        //         //notify 1SS to setup the pool first
+        //         ssContract.notifyFinalize(_datatokenAddress);
+        // }
         require(_finalized, "ERR_NOT_FINALIZED");
 
         //ask ssContract if exit is allowed
@@ -602,49 +595,49 @@ contract BPool is BMath, BToken {
       
         returns (uint256 tokenAmountOut, uint256 spotPriceAfter)
     {   
-        console.log('finalized', _finalized, block.number, _burnInEndBlock);
-        if (block.number <= _burnInEndBlock) {
-            // we are in burn-in period, leverage to controller
-            //defer calc to ssContract
-            tokenAmountOut = ssContract.calcOutGivenIn(
-                _datatokenAddress,
-                tokenIn,
-                tokenOut,
-                tokenAmountIn
-            );
-            
-            require(tokenAmountOut >= minAmountOut, "ERR_LIMIT_OUT");
-            //approve tokens so ssContract can pull them
-
-            IERC20 token = IERC20(tokenIn);
-            
-            token.transferFrom(msg.sender, address(this), tokenAmountIn);
-            
-            token.approve(_controller, tokenAmountIn);
-            ssContract.swapExactAmountIn(
-                _datatokenAddress,
-                msg.sender,
-                tokenIn,
-                tokenAmountIn,
-                tokenOut,
-                minAmountOut
-            );
-            emit LOG_SWAP(
-                msg.sender,
-                tokenIn,
-                tokenOut,
-                tokenAmountIn,
-                tokenAmountOut,
-                block.timestamp
-            );
-            return (tokenAmountOut, 0); //returning spot price 0 because there is no public spotPrice
-        }
        
-        if(_finalized == false && block.number >_burnInEndBlock){
-                //notify 1SS to setup the pool first
-                console.log('finalize');
-                ssContract.notifyFinalize(_datatokenAddress);
-        }
+        // if (block.number <= _burnInEndBlock) {
+        //     // we are in burn-in period, leverage to controller
+        //     //defer calc to ssContract
+        //     tokenAmountOut = ssContract.calcOutGivenIn(
+        //         _datatokenAddress,
+        //         tokenIn,
+        //         tokenOut,
+        //         tokenAmountIn
+        //     );
+            
+        //     require(tokenAmountOut >= minAmountOut, "ERR_LIMIT_OUT");
+        //     //approve tokens so ssContract can pull them
+
+        //     IERC20 token = IERC20(tokenIn);
+            
+        //     token.transferFrom(msg.sender, address(this), tokenAmountIn);
+            
+        //     token.approve(_controller, tokenAmountIn);
+        //     ssContract.swapExactAmountIn(
+        //         _datatokenAddress,
+        //         msg.sender,
+        //         tokenIn,
+        //         tokenAmountIn,
+        //         tokenOut,
+        //         minAmountOut
+        //     );
+        //     emit LOG_SWAP(
+        //         msg.sender,
+        //         tokenIn,
+        //         tokenOut,
+        //         tokenAmountIn,
+        //         tokenAmountOut,
+        //         block.timestamp
+        //     );
+        //     return (tokenAmountOut, 0); //returning spot price 0 because there is no public spotPrice
+        // }
+        require(_finalized, "ERR_NOT_FINALIZED");
+        // if(_finalized == false && block.number >_burnInEndBlock){
+        //         //notify 1SS to setup the pool first
+        //         console.log('finalize');
+        //         ssContract.notifyFinalize(_datatokenAddress);
+        // }
         require(_records[tokenIn].bound, "ERR_NOT_BOUND");
         require(_records[tokenOut].bound, "ERR_NOT_BOUND");
         require(_publicSwap, "ERR_SWAP_NOT_PUBLIC");
@@ -723,45 +716,46 @@ contract BPool is BMath, BToken {
         returns (uint256 tokenAmountIn, uint256 spotPriceAfter)
     {
       
-        if (block.number <= _burnInEndBlock) {
-            // we are in burn-in period, leverage to controller
-            //defer calc to ssContract
-            //tokenAmountOut = ssContract.calcOutGivenIn(_datatokenAddress,tokenIn,tokenOut,tokenAmountIn);
-            tokenAmountIn = ssContract.calcInGivenOut(
-                _datatokenAddress,
-                tokenIn,
-                tokenOut,
-                tokenAmountOut
-            );
-            require(tokenAmountIn <= maxAmountIn, "ERR_LIMIT_IN");
-            //approve tokens so ssContract can pull them
+        // if (block.number <= _burnInEndBlock) {
+        //     // we are in burn-in period, leverage to controller
+        //     //defer calc to ssContract
+        //     //tokenAmountOut = ssContract.calcOutGivenIn(_datatokenAddress,tokenIn,tokenOut,tokenAmountIn);
+        //     tokenAmountIn = ssContract.calcInGivenOut(
+        //         _datatokenAddress,
+        //         tokenIn,
+        //         tokenOut,
+        //         tokenAmountOut
+        //     );
+        //     require(tokenAmountIn <= maxAmountIn, "ERR_LIMIT_IN");
+        //     //approve tokens so ssContract can pull them
             
-            IERC20 token = IERC20(tokenIn);
-            console.log(tokenAmountIn,'amountOut');
-            token.transferFrom(msg.sender, address(this), tokenAmountIn);
-            token.approve(_controller, tokenAmountIn);
-            ssContract.swapExactAmountOut(
-                _datatokenAddress,
-                msg.sender,
-                tokenIn,
-                tokenAmountIn,
-                tokenOut,
-                tokenAmountOut
-            );
-            emit LOG_SWAP(
-                msg.sender,
-                tokenIn,
-                tokenOut,
-                tokenAmountIn,
-                tokenAmountOut,
-                block.timestamp
-            );
-            return (tokenAmountOut, 0); //returning spot price 0 because there is no public spotPrice
-        }
-        if(_finalized == false && block.number>_burnInEndBlock){
-                //notify 1SS to setup the pool first
-                ssContract.notifyFinalize(_datatokenAddress);
-        }
+        //     IERC20 token = IERC20(tokenIn);
+        //     console.log(tokenAmountIn,'amountOut');
+        //     token.transferFrom(msg.sender, address(this), tokenAmountIn);
+        //     token.approve(_controller, tokenAmountIn);
+        //     ssContract.swapExactAmountOut(
+        //         _datatokenAddress,
+        //         msg.sender,
+        //         tokenIn,
+        //         tokenAmountIn,
+        //         tokenOut,
+        //         tokenAmountOut
+        //     );
+        //     emit LOG_SWAP(
+        //         msg.sender,
+        //         tokenIn,
+        //         tokenOut,
+        //         tokenAmountIn,
+        //         tokenAmountOut,
+        //         block.timestamp
+        //     );
+        //     return (tokenAmountOut, 0); //returning spot price 0 because there is no public spotPrice
+        // }
+        // if(_finalized == false && block.number>_burnInEndBlock){
+        //         //notify 1SS to setup the pool first
+        //         ssContract.notifyFinalize(_datatokenAddress);
+        // }
+        require(_finalized, "ERR_NOT_FINALIZED");
         require(_records[tokenIn].bound, "ERR_NOT_BOUND");
         require(_records[tokenOut].bound, "ERR_NOT_BOUND");
 
@@ -832,10 +826,10 @@ contract BPool is BMath, BToken {
         uint256 minPoolAmountOut
     ) external _logs_ _lock_ returns (uint256 poolAmountOut) {
         
-        if(_finalized == false && block.number>_burnInEndBlock){
-                //notify 1SS to setup the pool first
-                ssContract.notifyFinalize(_datatokenAddress);
-        }
+        // if(_finalized == false && block.number>_burnInEndBlock){
+        //         //notify 1SS to setup the pool first
+        //         ssContract.notifyFinalize(_datatokenAddress);
+        // }
         require(_finalized, "ERR_NOT_FINALIZED");
         require(_records[tokenIn].bound, "ERR_NOT_BOUND");
         require(
@@ -927,10 +921,10 @@ contract BPool is BMath, BToken {
         uint256 poolAmountOut,
         uint256 maxAmountIn
     ) external _logs_ _lock_ returns (uint256 tokenAmountIn) {
-        if(_finalized == false && block.number>_burnInEndBlock){
-                //notify 1SS to setup the pool first
-                ssContract.notifyFinalize(_datatokenAddress);
-        }
+        // if(_finalized == false && block.number>_burnInEndBlock){
+        //         //notify 1SS to setup the pool first
+        //         ssContract.notifyFinalize(_datatokenAddress);
+        // }
         require(_finalized, "ERR_NOT_FINALIZED");
         require(_records[tokenIn].bound, "ERR_NOT_BOUND");
         
@@ -1017,10 +1011,10 @@ contract BPool is BMath, BToken {
         uint256 poolAmountIn,
         uint256 minAmountOut
     ) external _logs_ _lock_ returns (uint256 tokenAmountOut) {
-        if(_finalized == false && block.number>_burnInEndBlock){
-                //notify 1SS to setup the pool first
-                ssContract.notifyFinalize(_datatokenAddress);
-        }
+        // if(_finalized == false && block.number>_burnInEndBlock){
+        //         //notify 1SS to setup the pool first
+        //         ssContract.notifyFinalize(_datatokenAddress);
+        // }
         require(_finalized, "ERR_NOT_FINALIZED");
         require(_records[tokenOut].bound, "ERR_NOT_BOUND");
         
@@ -1089,7 +1083,7 @@ contract BPool is BMath, BToken {
             poolAmountIn,
             _swapFee
         );
-        if(ssContract.canStake(_datatokenAddress,ssStakeToken,ssAmountOut)==true){
+        if(ssContract.canUnStake(_datatokenAddress,ssStakeToken,ssAmountOut)==true){
                 ssOutRecord.balance = bsub(ssOutRecord.balance, ssAmountOut);
                 exitFee = bmul(poolAmountIn, EXIT_FEE);
                 emit LOG_EXIT(_controller, ssStakeToken, ssAmountOut, block.timestamp);
@@ -1108,10 +1102,10 @@ contract BPool is BMath, BToken {
         uint256 tokenAmountOut,
         uint256 maxPoolAmountIn
     ) external _logs_ _lock_ returns (uint256 poolAmountIn) {
-        if(_finalized == false && block.number>_burnInEndBlock){
-                //notify 1SS to setup the pool first
-                ssContract.notifyFinalize(_datatokenAddress);
-        }
+        // if(_finalized == false && block.number>_burnInEndBlock){
+        //         //notify 1SS to setup the pool first
+        //         ssContract.notifyFinalize(_datatokenAddress);
+        // }
         require(_finalized, "ERR_NOT_FINALIZED");
         require(_records[tokenOut].bound, "ERR_NOT_BOUND");
         require(

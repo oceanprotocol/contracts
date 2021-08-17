@@ -6,8 +6,7 @@ interface IFactoryRouter {
         address controller, 
         address datatokenAddress, 
         address basetokenAddress, 
-        address publisherAddress, 
-        uint256 burnInEndBlock,
+        address publisherAddress,
         uint256[] calldata ssParams,
         address basetokenSender
     ) external returns (address);

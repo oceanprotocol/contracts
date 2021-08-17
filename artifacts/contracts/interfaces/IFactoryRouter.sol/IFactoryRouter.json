@@ -26,11 +26,6 @@
           "type": "address"
         },
         {
-          "internalType": "uint256",
-          "name": "burnInEndBlock",
-          "type": "uint256"
-        },
-        {
           "internalType": "uint256[]",
           "name": "ssParams",
           "type": "uint256[]"

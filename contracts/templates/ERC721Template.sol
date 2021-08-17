@@ -29,7 +29,7 @@ contract ERC721Template is
     //uint256 private tokenId = 1;
     bool private initialized;
     address public _metadata;
-    address private _erc20Factory;
+    address private _tokenFactory;
     address[] private deployedERC20List;
     address public ssContract;
 
@@ -49,7 +49,7 @@ contract ERC721Template is
         string calldata name_,
         string calldata symbol_,
         address metadata,
-        address erc20Factory,
+        address tokenFactory,
         bytes calldata _data,
         bytes calldata _flags
     ) external returns (bool) {
@@ -63,7 +63,7 @@ contract ERC721Template is
                 name_,
                 symbol_,
                 metadata,
-                erc20Factory,
+                tokenFactory,
                 _data,
                 _flags
             );
@@ -74,7 +74,7 @@ contract ERC721Template is
         string memory name_,
         string memory symbol_,
         address metadata,
-        address erc20Factory,
+        address tokenFactory,
         bytes calldata _data,
         bytes memory _flags
     ) internal returns (bool) {
@@ -90,7 +90,7 @@ contract ERC721Template is
         
         _name = name_;
         _symbol = symbol_;
-        _erc20Factory = erc20Factory;
+        _tokenFactory = tokenFactory;
         initialized = true;
         _createMetadata(_flags, _data);
         _safeMint(owner, 1);
@@ -101,7 +101,7 @@ contract ERC721Template is
     function _createMetadata(bytes memory flags, bytes calldata data) internal {
         // require(_metadata != address(0), "Invalid Metadata address");
         require(
-            IERC20Factory(_erc20Factory).erc721List(address(this)) ==
+            IERC20Factory(_tokenFactory).erc721List(address(this)) ==
                 address(this),
             "ERC721Template: NOT ORIGINAL TEMPLATE"
         );
@@ -135,7 +135,7 @@ contract ERC721Template is
         require(user.deployERC20 == true, "ERC721Template: NOT MINTER_ROLE");
 
         address token =
-            IERC20Factory(_erc20Factory).createToken(
+            IERC20Factory(_tokenFactory).createToken(
                 name_,
                 symbol_,
                 cap,

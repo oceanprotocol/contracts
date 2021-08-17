@@ -31,7 +31,6 @@ contract ssFixedRate {
         uint256 basetokenBalance; //current basetoken balance
         uint256 lastPrice; //used for creating the pool
         // rate options
-        uint256 burnInEndBlock; //block to end burn-in
         uint256 rate; // rate to exchange DT<->BaseToken
         bool allowDtSale; //if should allow DT to be swaped for basetoken.  Buying is always accepted
         // vesting options
@@ -51,7 +50,7 @@ contract ssFixedRate {
      *      Called on contract deployment.
      */
     constructor() public {}
-
+    // TODO: add onlyRouter modifier
     /**
      * @dev newDataTokenCreated
      *      Called when new DataToken is deployed by the DataTokenFactory
@@ -59,7 +58,6 @@ contract ssFixedRate {
      * @param basetokenAddress -
      * @param poolAddress - poolAddress
      * @param publisherAddress - publisherAddress
-     * @param burnInEndBlock - block that will end the burn-in period
      * @param ssParams  - ss Params, see below
      */
 
@@ -68,7 +66,6 @@ contract ssFixedRate {
         address basetokenAddress,
         address poolAddress,
         address publisherAddress,
-        uint256 burnInEndBlock,
         uint256[] memory ssParams
     ) public returns (bool) {
         //check if we are the controller of the pool
@@ -98,8 +95,8 @@ contract ssFixedRate {
         console.log(dt.balanceOf(address(this)));
         // check the ssParams
        // uint256 rate = ssParams[0];
-       IERC20Template bt = IERC20Template(basetokenAddress);
-       console.log('OCEAN', bt.balanceOf(address(this)));
+        IERC20Template bt = IERC20Template(basetokenAddress);
+        console.log('OCEAN', bt.balanceOf(address(this)));
         bool allowSell;
         if (ssParams[1] == 0) allowSell = false;
         else allowSell = true;
@@ -117,7 +114,7 @@ contract ssFixedRate {
             datatokenCap:dt.cap(),
             basetokenBalance: ssParams[4],
             lastPrice: 0,
-            burnInEndBlock: burnInEndBlock,
+            //burnInEndBlock: burnInEndBlock,
             rate: ssParams[0],
             allowDtSale: allowSell,
             publisherAddress: publisherAddress,
@@ -187,14 +184,6 @@ contract ssFixedRate {
         return (_datatokens[datatokenAddress].datatokenBalance);
     }
 
-    function getburnInEndBlock(address datatokenAddress)
-        public
-        view
-        returns (uint256)
-    {
-        if (_datatokens[datatokenAddress].bound != true) return (0);
-        return (_datatokens[datatokenAddress].burnInEndBlock);
-    }
 
     function getvestingEndBlock(address datatokenAddress)
         public
@@ -232,12 +221,12 @@ contract ssFixedRate {
         return (_datatokens[datatokenAddress].vestingAmountSoFar);
     }
 
-    function isInBurnIn(address datatokenAddress) public view returns (bool) {
-        if (_datatokens[datatokenAddress].bound != true) return (false);
-        if (block.number > _datatokens[datatokenAddress].burnInEndBlock)
-            return (false);
-        else return (true);
-    }
+    // function isInBurnIn(address datatokenAddress) public view returns (bool) {
+    //     if (_datatokens[datatokenAddress].bound != true) return (false);
+    //     if (block.number > _datatokens[datatokenAddress].burnInEndBlock)
+    //         return (false);
+    //     else return (true);
+    // }
 
     //how many tokenIn tokens are required to get tokenAmountOut tokenOut tokens
     function calcInGivenOut(
@@ -332,14 +321,14 @@ contract ssFixedRate {
     function allowStake(address datatokenAddress,address basetoken,uint datatokenAmount,uint basetokenAmount,address userAddress) public view returns (bool){
         if (_datatokens[datatokenAddress].bound != true) return false;
         require(msg.sender == _datatokens[datatokenAddress].poolAddress,'ERR: Only pool can call this');
-        if (isInBurnIn(datatokenAddress) == true) return (false); //we are in burn-period, so no stake/unstake
+       // if (isInBurnIn(datatokenAddress) == true) return (false); //we are in burn-period, so no stake/unstake
         //allow user to stake
         return(true);
     }
     function allowUnStake(address datatokenAddress,address basetoken,uint datatokenAmount,uint basetokenAmount,address userAddress) public view returns (bool){
         if (_datatokens[datatokenAddress].bound != true) return false;
         require(msg.sender == _datatokens[datatokenAddress].poolAddress,'ERR: Only pool can call this');
-        if (isInBurnIn(datatokenAddress) == true) return (false); //we are in burn-period, so no stake/unstake
+        //if (isInBurnIn(datatokenAddress) == true) return (false); //we are in burn-period, so no stake/unstake
         //allow user to stake
         return(true);
     }
@@ -347,7 +336,7 @@ contract ssFixedRate {
     function swapExactAmountIn(address datatokenAddress,address userAddress,address tokenIn,uint tokenAmountIn,address tokenOut,uint minAmountOut) public returns (uint tokenAmountOut){
         require(_datatokens[datatokenAddress].bound == true,'ERR:Invalid datatoken');
         require(msg.sender == _datatokens[datatokenAddress].poolAddress,'ERR: Only pool can call this');
-        require(isInBurnIn(datatokenAddress) == true,'ERR: Not in burn-in period');
+      // require(isInBurnIn(datatokenAddress) == true,'ERR: Not in burn-in period');
         tokenAmountOut=calcOutGivenIn(datatokenAddress,tokenIn,tokenOut,tokenAmountIn);
         require(tokenAmountOut>=minAmountOut,'ERR:minAmountOut not meet'); //revert if minAmountOut is not met
         //pull tokenIn from the pool (pool will approve)
@@ -375,7 +364,7 @@ contract ssFixedRate {
     function swapExactAmountOut(address datatokenAddress,address userAddress,address tokenIn,uint maxTokenAmountIn,address tokenOut,uint amountOut) public returns (uint tokenAmountIn){
         require(_datatokens[datatokenAddress].bound == true,'ERR:Invalid datatoken');
         require(msg.sender == _datatokens[datatokenAddress].poolAddress,'ERR: Only pool can call this');
-        require(isInBurnIn(datatokenAddress) == true,'ERR: Not in burn-in period');
+      //  require(isInBurnIn(datatokenAddress) == true,'ERR: Not in burn-in period');
         tokenAmountIn=calcInGivenOut(datatokenAddress,tokenIn,tokenOut,amountOut);
         console.log('ssFixed',tokenAmountIn);
         require(tokenAmountIn<=maxTokenAmountIn,'ERR:maxTokenAmountIn not meet'); //revert if minAmountOut is not met
@@ -402,6 +391,8 @@ contract ssFixedRate {
         require(_datatokens[datatokenAddress].bound == true,'ERR:Invalid datatoken');
        // is this needed? 
        // require(msg.sender == _datatokens[datatokenAddress].publisherAddress,'ERR: Only publisher can call this');
+       
+       
         //calculate how many tokens we need to vest to publisher<<
          uint blocksPassed;
 
@@ -421,11 +412,10 @@ contract ssFixedRate {
         uint amount=blocksPassed.mul(vestPerBlock);
         if(amount>0 && _datatokens[datatokenAddress].datatokenBalance >= amount){
             IERC20Template dt = IERC20Template(datatokenAddress);
-           // _datatokens[datatokenAddress].vestingAmount+=amount;
             _datatokens[datatokenAddress].vestingLastBlock=block.number;
             dt.transfer(_datatokens[datatokenAddress].publisherAddress, amount);
             _datatokens[datatokenAddress].datatokenBalance-=amount;
-        }
+            _datatokens[datatokenAddress].vestingAmountSoFar += amount;         }
     }
 
 
