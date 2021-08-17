@@ -18,7 +18,7 @@ const { ZERO_ADDRESS } = require("@openzeppelin/test-helpers/src/constants");
 const ether = require("@openzeppelin/test-helpers/src/ether");
 const ethers = hre.ethers;
 
-describe("1SS flow", () => {
+describe("Vesting flow", () => {
   let metadata,
     tokenERC721,
     tokenAddress,
@@ -283,10 +283,18 @@ describe("1SS flow", () => {
     console.log((await time.latestBlock()).toString())
     
     console.log((await time.latestBlock()).toString())
+    //await ssFixedRate.getVesting(erc20Token.address)
+   
+    
+    for (let i = 0; i< 600; i++) {
+     // each one advance a block
+        await signer.sendTransaction({
+        to: user4.address,
+        value: ethers.utils.parseEther("0.0")});
+    }
     await ssFixedRate.getVesting(erc20Token.address)
     const pubDTbalAFTER = await erc20Token.balanceOf(tokenERC721.address)
     console.log(ethers.utils.formatEther(pubDTbalAFTER))
-    
   });
 
 

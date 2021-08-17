@@ -399,16 +399,28 @@ contract ssFixedRate {
     // called by vester to get datatokens
     function getVesting(address datatokenAddress) public{
         require(_datatokens[datatokenAddress].bound == true,'ERR:Invalid datatoken');
+       // is this needed? 
        // require(msg.sender == _datatokens[datatokenAddress].publisherAddress,'ERR: Only publisher can call this');
-        //calculate how many tokens we need to vest to publisher
-        uint blocksPassed=block.number-_datatokens[datatokenAddress].vestingLastBlock;
+        //calculate how many tokens we need to vest to publisher<<
+         uint blocksPassed;
+
+        if(_datatokens[datatokenAddress].vestingEndBlock < block.number) {
+
+            blocksPassed=_datatokens[datatokenAddress].vestingEndBlock-_datatokens[datatokenAddress].vestingLastBlock;
+
+        } else {
+
+            blocksPassed=block.number-_datatokens[datatokenAddress].vestingLastBlock;
+        }
+    
+        
         console.log(blocksPassed,'blocksPassed');
         uint vestPerBlock=_datatokens[datatokenAddress].vestingAmount.div(_datatokens[datatokenAddress].vestingEndBlock-_datatokens[datatokenAddress].blockDeployed);
         if(vestPerBlock==0) return;
         uint amount=blocksPassed.mul(vestPerBlock);
         if(amount>0 && _datatokens[datatokenAddress].datatokenBalance >= amount){
             IERC20Template dt = IERC20Template(datatokenAddress);
-            _datatokens[datatokenAddress].vestingAmount+=amount;
+           // _datatokens[datatokenAddress].vestingAmount+=amount;
             _datatokens[datatokenAddress].vestingLastBlock=block.number;
             dt.transfer(_datatokens[datatokenAddress].publisherAddress, amount);
             _datatokens[datatokenAddress].datatokenBalance-=amount;
