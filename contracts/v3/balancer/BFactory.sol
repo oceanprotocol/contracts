@@ -60,7 +60,7 @@ contract BFactory is BConst, Deployer, BaseSplitCodeFactory {
         address basetokenAddress, 
         address publisherAddress, 
         uint256[] memory ssParams,
-        uint256 swapOceanFee)
+        uint256[] memory swapFees)
         internal 
         returns (address bpool)
     {
@@ -75,12 +75,12 @@ contract BFactory is BConst, Deployer, BaseSplitCodeFactory {
             'BFactory: invalid bpool zero address'
         );
         BPool bpoolInstance = BPool(bpool);	
+
         require(
             bpoolInstance.initialize(
                 controller,  // ss is the pool controller
                 address(this), 
-                MIN_FEE, 
-                swapOceanFee,
+                swapFees,
                 false,
                 false,
                 datatokenAddress,

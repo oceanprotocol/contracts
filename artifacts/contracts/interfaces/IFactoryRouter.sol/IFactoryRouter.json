@@ -34,6 +34,11 @@
           "internalType": "address",
           "name": "basetokenSender",
           "type": "address"
+        },
+        {
+          "internalType": "uint256[]",
+          "name": "swapFees",
+          "type": "uint256[]"
         }
       ],
       "name": "deployPool",

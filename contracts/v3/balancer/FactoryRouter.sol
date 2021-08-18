@@ -58,7 +58,8 @@ contract FactoryRouter is BFactory {
         address basetokenAddress, 
         address publisherAddress, 
         uint256[] calldata ssParams,
-        address basetokenSender
+        address basetokenSender,
+        uint256[] calldata swapFees
     ) external returns (address) {
         require(IERC20Factory(erc20Factory).erc20List(msg.sender) == true, 'FACTORY ROUTER: NOT ORIGINAL ERC20 TEMPLATE');
         require(ssContracts[controller] = true, 'FACTORY ROUTER: invalid ssContract');
@@ -75,24 +76,28 @@ contract FactoryRouter is BFactory {
         IERC20 bt = IERC20(basetokenAddress);
         bt.transferFrom(basetokenSender,controller,ssParams[4]);
 
+        uint256[] memory fees = swapFees;
+
         if (flag == true) {
+            fees[1] = 0;
             pool =  newBPool(
                controller,
                datatokenAddress,
                basetokenAddress,
                publisherAddress,
                ssParams,
-               0
+               fees
             );
        
         } else {
+            fees[1] = swapOceanFee;
              pool =  newBPool(
                controller,
                datatokenAddress,
                basetokenAddress,
                publisherAddress,
                ssParams,
-               swapOceanFee
+               fees
             );
         }
 

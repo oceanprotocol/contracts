@@ -91,12 +91,11 @@ contract ssFixedRate {
         dt.mint(address(this), dt.cap());
         
         require(dt.balanceOf(address(this)) == dt.totalSupply(), "Mint failed");
-        console.log('here');
-        console.log(dt.balanceOf(address(this)));
+    
         // check the ssParams
        // uint256 rate = ssParams[0];
         IERC20Template bt = IERC20Template(basetokenAddress);
-        console.log('OCEAN', bt.balanceOf(address(this)));
+      
         bool allowSell;
         if (ssParams[1] == 0) allowSell = false;
         else allowSell = true;
@@ -309,7 +308,7 @@ contract ssFixedRate {
         dt.approve(_datatokens[datatokenAddress].poolAddress,dataTokenAmount);
         IERC20Template dtBase = IERC20Template(_datatokens[datatokenAddress].basetokenAddress);
         dtBase.approve(_datatokens[datatokenAddress].poolAddress,baseTokenAmount);
-        console.log('dataTokenAmount',dataTokenAmount);
+       
         // call the pool, bind the tokens, set the price, finalize pool
         BPoolInterface pool=BPoolInterface(_datatokens[datatokenAddress].poolAddress);
         pool.setup(datatokenAddress,dataTokenAmount,dataTokenWeight,_datatokens[datatokenAddress].basetokenAddress,baseTokenAmount,baseTokenWeight);
@@ -341,11 +340,10 @@ contract ssFixedRate {
         require(tokenAmountOut>=minAmountOut,'ERR:minAmountOut not meet'); //revert if minAmountOut is not met
         //pull tokenIn from the pool (pool will approve)
         IERC20Template dtIn = IERC20Template(tokenIn);
-        console.log('test');
-        console.log(_datatokens[datatokenAddress].poolAddress);
-        console.log(tokenAmountIn);
+      
+       
         uint balance = dtIn.balanceOf(_datatokens[datatokenAddress].poolAddress);
-        console.log('balance', balance);
+      
         dtIn.transferFrom(_datatokens[datatokenAddress].poolAddress,address(this), tokenAmountIn);
         //update our balances
         if(tokenIn==datatokenAddress){
@@ -366,7 +364,7 @@ contract ssFixedRate {
         require(msg.sender == _datatokens[datatokenAddress].poolAddress,'ERR: Only pool can call this');
       //  require(isInBurnIn(datatokenAddress) == true,'ERR: Not in burn-in period');
         tokenAmountIn=calcInGivenOut(datatokenAddress,tokenIn,tokenOut,amountOut);
-        console.log('ssFixed',tokenAmountIn);
+       
         require(tokenAmountIn<=maxTokenAmountIn,'ERR:maxTokenAmountIn not meet'); //revert if minAmountOut is not met
         //pull tokenIn from the pool (pool will approve)
         IERC20Template dtIn = IERC20Template(tokenIn);
@@ -406,7 +404,7 @@ contract ssFixedRate {
         }
     
         
-        console.log(blocksPassed,'blocksPassed');
+       
         uint vestPerBlock=_datatokens[datatokenAddress].vestingAmount.div(_datatokens[datatokenAddress].vestingEndBlock-_datatokens[datatokenAddress].blockDeployed);
         if(vestPerBlock==0) return;
         uint amount=blocksPassed.mul(vestPerBlock);
@@ -464,9 +462,9 @@ contract ssFixedRate {
         
         /// baseTokenAmount = dataTokenAmount.mul(_datatokens[tokenIn].rate).div(BASE);
         //  dataTokenAmount = baseTokenAmount.mul(BASE).div(_datatokens[tokenIn].rate)
-        console.log('_calcOutGivenIn');
+      
         if (_datatokens[tokenIn].bound == true) {
-            console.log('_calcOutGivenIn2');
+           
             //swap datatoken(tokenIn) for basetoken(tokenOut) - spending DT to get Ocean
             if (_datatokens[tokenIn].allowDtSale == false) return (0); //selling DT is not allowed
             //compute how many tokenIn tokens are needed to get tokenOut
@@ -476,13 +474,11 @@ contract ssFixedRate {
             return (tokenAmount);
         }
         if (_datatokens[tokenOut].bound == true) {
-            console.log('_calcOutGivenIn3');
+           
             //sells basetoken(tokenIn) for datatokens(tokenOut) - spending Ocean to get DT
-            console.log(tokenAmountIn);
-            console.log(BASE);
-            console.log(_datatokens[tokenOut].rate);
+           
             tokenAmount = tokenAmountIn.mul(BASE).div(_datatokens[tokenOut].rate);
-            console.log(tokenAmount,'tokenAmount');
+           
             return (tokenAmount);
         }
         

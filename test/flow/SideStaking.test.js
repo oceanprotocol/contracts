@@ -40,7 +40,8 @@ describe("1SS flow", () => {
     signer,
     dtIndex = null,
     oceanIndex = null,
-    daiIndex = null;
+    daiIndex = null,
+    cap = web3.utils.toWei("100000");
 
   const oceanAddress = "0x967da4048cD07aB37855c090aAF366e4ce1b9F48";
   const daiAddress = "0x6b175474e89094c44da98b954eedeac495271d0f";
@@ -195,7 +196,7 @@ describe("1SS flow", () => {
       .createERC20(
         "ERC20DT1",
         "ERC20DT1Symbol",
-        web3.utils.toWei("100000"),
+        cap,
         1,
         user3.address, // minter
         user6.address // feeManager
@@ -207,10 +208,12 @@ describe("1SS flow", () => {
     assert((await erc20Token.permissions(user3.address)).minter == true);
   });
 
-  it("#4 - user3 calls deployPool()", async () => {
-   // const burnInEndBlock = (await provider.getBlockNumber()) - 387;
+  it("#4 - user3 calls deployPool() and check ocean and market fee", async () => {
     
-
+    const ssDTBalance = await erc20Token.balanceOf(ssFixedRate.address)
+    
+    const initialOceanLiquidity = web3.utils.toWei("2000")
+    const initialDTLiquidity = initialOceanLiquidity
     // approve exact amount
     await oceanContract
       .connect(user3)
@@ -226,7 +229,7 @@ describe("1SS flow", () => {
           0, // allowSell false , != 0 if true
           web3.utils.toWei("200"), // vesting amount
           500, // vested blocks
-          web3.utils.toWei("2000"), // baseToken initial pool liquidity
+          initialOceanLiquidity, // baseToken initial pool liquidity
         ],
         user3.address
       )
@@ -239,10 +242,26 @@ describe("1SS flow", () => {
 
     bPoolAddress = PoolEvent[0].args.poolAddress;
 
-    assert(
-      (await erc20Token.balanceOf(ssFixedRate.address)) ==
-        web3.utils.toWei("98000")
-    );
+    bPool = await ethers.getContractAt("BPool", bPoolAddress);
+
+    assert((await bPool.isFinalized()) == true);
+
+    expect(
+      await erc20Token.balanceOf(ssFixedRate.address))
+       .to.equal(web3.utils.toWei("98000"))
+
+    expect(await bPool._swapOceanFee()).to.equal(0)
+    expect(await bPool._swapMarketFee()).to.equal(0)
+
+    expect(await bPool.communityFees(oceanAddress)).to.equal(0)
+    expect(await bPool.communityFees(erc20Token.address)).to.equal(0)
+    expect(await bPool.marketFees(oceanAddress)).to.equal(0)
+    expect(await bPool.marketFees(erc20Token.address)).to.equal(0)
+    expect(await bPool.feesCollectedMarket(oceanAddress)).to.equal(0)
+    expect(await bPool.feesCollectedMarket(erc20Token.address)).to.equal(0)
+    expect(await bPool.feesCollectedOPF(oceanAddress)).to.equal(0)
+    expect(await bPool.feesCollectedOPF(erc20Token.address)).to.equal(0)
+
   });
 
   it("#5 - user3 fails to mints new erc20 tokens even if it's minter", async () => {
@@ -256,6 +275,7 @@ describe("1SS flow", () => {
     assert((await erc20Token.balanceOf(user3.address)) == 0);
   });
 
+
   it("#6 - user4 buys some DT after burnIn period- exactAmountIn", async () => {
     // pool has initial ocean tokens at the beginning
     assert(
@@ -267,9 +287,7 @@ describe("1SS flow", () => {
       .connect(user4)
       .approve(bPoolAddress, web3.utils.toWei("10000"));
 
-    bPool = await ethers.getContractAt("BPool", bPoolAddress);
-
-    assert((await bPool.isFinalized()) == true);
+  
     // user4 has no DT before swap
     assert((await erc20Token.balanceOf(user4.address)) == 0);
 
@@ -749,5 +767,21 @@ describe("1SS flow", () => {
     expect(ssContractDTbalance).to.equal(
       await erc20Token.balanceOf(ssFixedRate.address)
     );
+  });
+
+  it("#17 - we check again no ocean and market fees were accounted", async () => {
+   
+    expect(await bPool._swapOceanFee()).to.equal(0)
+    expect(await bPool._swapMarketFee()).to.equal(0)
+
+    expect(await bPool.communityFees(oceanAddress)).to.equal(0)
+    expect(await bPool.communityFees(erc20Token.address)).to.equal(0)
+    expect(await bPool.marketFees(oceanAddress)).to.equal(0)
+    expect(await bPool.marketFees(erc20Token.address)).to.equal(0)
+    expect(await bPool.feesCollectedMarket(oceanAddress)).to.equal(0)
+    expect(await bPool.feesCollectedMarket(erc20Token.address)).to.equal(0)
+    expect(await bPool.feesCollectedOPF(oceanAddress)).to.equal(0)
+    expect(await bPool.feesCollectedOPF(erc20Token.address)).to.equal(0)
+    
   });
 });

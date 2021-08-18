@@ -83,10 +83,10 @@ contract BMath is BConst, BNum {
         uint oceanFeeAmount =  bsub(tokenAmountIn, bmul(tokenAmountIn, bsub(BONE, _swapOceanFee)));
 
         communityFees[tokenInAddress] = badd(communityFees[tokenInAddress],oceanFeeAmount);
-
+        console.log(oceanFeeAmount,'test');
      
         uint marketFeeAmount =  bsub(tokenAmountIn, bmul(tokenAmountIn, bsub(BONE, _swapMarketFee)));
-
+         console.log(marketFeeAmount,'test1');
         marketFees[tokenInAddress] = badd(marketFees[tokenInAddress],marketFeeAmount);
 
         uint totalFee = _swapFee+oceanFeeAmount+marketFeeAmount;
@@ -131,10 +131,10 @@ contract BMath is BConst, BNum {
 
       //  uint oceanAdjustedIn = bsub(BONE, _swapOceanFee);
         uint oceanFeeAmount =  bmul(tokenAmountIn,  bsub(BONE, _swapOceanFee));
-        
+       
        // uint marketAdjustedIn = bsub(BONE, _swapMarketFee);
         uint marketFeeAmount =  bmul(tokenAmountIn, bsub(BONE, _swapMarketFee));
-
+       
         uint totalFee =adjustedIn+oceanFeeAmount+marketFeeAmount;
 
         uint y = bdiv(tokenBalanceIn, badd(tokenBalanceIn, totalFee));

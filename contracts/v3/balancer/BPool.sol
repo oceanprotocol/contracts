@@ -129,8 +129,7 @@ contract BPool is BMath, BToken {
     function initialize(
         address controller,
         address factory,
-        uint256 swapFee,
-        uint swapOceanFee,
+        uint256[] calldata swapFees,
         bool publicSwap,
         bool finalized,
         address datatokenAddress,
@@ -139,14 +138,13 @@ contract BPool is BMath, BToken {
         require(!initialized, "ERR_ALREADY_INITIALIZED");
         require(controller != address(0), "ERR_INVALID_CONTROLLER_ADDRESS");
         require(factory != address(0), "ERR_INVALID_FACTORY_ADDRESS");
-        require(swapFee >= MIN_FEE, "ERR_MIN_FEE");
-        require(swapFee <= MAX_FEE, "ERR_MAX_FEE");
+        require(swapFees[0] >= MIN_FEE, "ERR_MIN_FEE");
+        require(swapFees[0] <= MAX_FEE, "ERR_MAX_FEE");
         return
             _initialize(
                 controller,
                 factory,
-                swapFee,
-                swapOceanFee,
+                swapFees,
                 publicSwap,
                 finalized,
                 datatokenAddress,
@@ -158,8 +156,7 @@ contract BPool is BMath, BToken {
     function _initialize(
         address controller,
         address factory,
-        uint256 swapFee,
-        uint256 swapOceanFee,
+        uint256[] memory swapFees,
         bool publicSwap,
         bool finalized,
         address datatokenAddress,
@@ -167,9 +164,10 @@ contract BPool is BMath, BToken {
     ) private returns (bool) {
         _controller = controller;
         _factory = factory;
-        _swapFee = swapFee;
-        console.log(swapFee, _swapFee, 'swapFee');
-        _swapOceanFee = swapOceanFee;
+        _swapFee = swapFees[0];
+        console.log(swapFees[0], swapFees[1],swapFees[2], 'swapFees');
+        _swapOceanFee = swapFees[1];
+        _swapMarketFee = swapFees[2];
         _publicSwap = publicSwap;
         _finalized = finalized;
         _datatokenAddress = datatokenAddress;
