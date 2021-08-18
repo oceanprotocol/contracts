@@ -64,10 +64,10 @@ contract BPool is BMath, BToken {
         uint256 bptAmount
     );
 
-    modifier _logs_() {
-        emit LOG_CALL(msg.sig, msg.sender, block.timestamp, msg.data);
-        _;
-    }
+    // modifier() {
+    //     emit LOG_CALL(msg.sig, msg.sender, block.timestamp, msg.data);
+    //     _;
+    // }
 
     modifier _lock_() {
         require(!_mutex, "ERR_REENTRY");
@@ -186,7 +186,7 @@ contract BPool is BMath, BToken {
         address baseTokenAddress,
         uint256 baseTokenAmount,
         uint256 baseTokenWeight
-    ) external _logs_ {
+    ) external {
         require(msg.sender == _controller, "ERR_INVALID_CONTROLLER");
         require(
             dataTokenAddress == _datatokenAddress,
@@ -298,23 +298,23 @@ contract BPool is BMath, BToken {
         return _records[token].balance;
     }
 
-    function getSwapFee() external view _viewlock_ returns (uint256) {
+    function getSwapFee() external view returns (uint256) {
         return _swapFee;
     }
 
-    function getController() external view _viewlock_ returns (address) {
+    function getController() external view  returns (address) {
         return _controller;
     }
 
-    function getDataTokenAddress() external view _viewlock_ returns (address) {
+    function getDataTokenAddress() external view  returns (address) {
         return _datatokenAddress;
     }
 
-    function getBaseTokenAddress() external view _viewlock_ returns (address) {
+    function getBaseTokenAddress() external view returns (address) {
         return _basetokenAddress;
     }
 
-    function setSwapFee(uint256 swapFee) public _logs_ _lock_ {
+    function setSwapFee(uint256 swapFee) public {
         require(!_finalized, "ERR_IS_FINALIZED");
         require(msg.sender == _controller, "ERR_NOT_CONTROLLER");
         require(swapFee >= MIN_FEE, "ERR_MIN_FEE");
@@ -322,19 +322,19 @@ contract BPool is BMath, BToken {
         _swapFee = swapFee;
     }
 
-    function setController(address manager) external _logs_ _lock_ {
+    function setController(address manager) external {
         require(manager != address(0), "ERR_INVALID_MANAGER_ADDRESS");
         require(msg.sender == _controller, "ERR_NOT_CONTROLLER");
         _controller = manager;
     }
 
-    function setPublicSwap(bool public_) public _logs_ _lock_ {
+    function setPublicSwap(bool public_) public {
         require(!_finalized, "ERR_IS_FINALIZED");
         require(msg.sender == _controller, "ERR_NOT_CONTROLLER");
         _publicSwap = public_;
     }
 
-    function finalize() public _logs_ _lock_ {
+    function finalize() internal {
         require(msg.sender == _controller, "ERR_NOT_CONTROLLER");
         require(!_finalized, "ERR_IS_FINALIZED");
         require(_tokens.length >= MIN_BOUND_TOKENS, "ERR_MIN_TOKENS");
@@ -352,7 +352,7 @@ contract BPool is BMath, BToken {
         uint256 denorm
     )
         public
-        _logs_
+    
     // _lock_  Bind does not lock because it jumps to `rebind`, which does
     {
         require(msg.sender == _controller, "ERR_NOT_CONTROLLER");
@@ -375,7 +375,7 @@ contract BPool is BMath, BToken {
         address token,
         uint256 balance,
         uint256 denorm
-    ) public _logs_ _lock_ {
+    ) internal _lock_ {
         require(msg.sender == _controller, "ERR_NOT_CONTROLLER");
         require(_records[token].bound, "ERR_NOT_BOUND");
         require(!_finalized, "ERR_IS_FINALIZED");
@@ -412,7 +412,7 @@ contract BPool is BMath, BToken {
         }
     }
 
-    // function unbind(address token) external _logs_ _lock_ {
+    // function unbind(address token) external _lock_ {
     //     require(msg.sender == _controller, "ERR_NOT_CONTROLLER");
     //     require(_records[token].bound, "ERR_NOT_BOUND");
     //     require(!_finalized, "ERR_IS_FINALIZED");
@@ -441,7 +441,7 @@ contract BPool is BMath, BToken {
     // }
 
     // Absorb any tokens that have been sent to this contract into the pool
-    function gulp(address token) external _logs_ _lock_ {
+    function gulp(address token) external _lock_ {
         require(_records[token].bound, "ERR_NOT_BOUND");
         _records[token].balance = IERC20(token).balanceOf(address(this));
     }
@@ -487,7 +487,7 @@ contract BPool is BMath, BToken {
 
     function joinPool(uint256 poolAmountOut, uint256[] calldata maxAmountsIn)
         external
-        _logs_
+    
         _lock_
     {
         // if(_finalized == false && block.number>_burnInEndBlock){
@@ -505,14 +505,14 @@ contract BPool is BMath, BToken {
             if (_tokens[i] == _basetokenAddress)
                 tbasetokenAmount = maxAmountsIn[i];
         }
-        bool allowed = ssContract.allowStake(
-            _datatokenAddress,
-            _basetokenAddress,
-            tdatatokenAmount,
-            tbasetokenAmount,
-            msg.sender
-        );
-        require(allowed == true, "ERR_DENIED_BY_CONTROLLER");
+        // bool allowed = ssContract.allowStake(
+        //     _datatokenAddress,
+        //     _basetokenAddress,
+        //     tdatatokenAmount,
+        //     tbasetokenAmount,
+        //     msg.sender
+        // );
+        // require(allowed == true, "ERR_DENIED_BY_CONTROLLER");
 
         uint256 poolTotal = totalSupply();
         uint256 ratio = bdiv(poolAmountOut, poolTotal);
@@ -534,7 +534,7 @@ contract BPool is BMath, BToken {
 
     function exitPool(uint256 poolAmountIn, uint256[] calldata minAmountsOut)
         external
-        _logs_
+    
         _lock_
     {
         // if(_finalized == false && block.number>_burnInEndBlock){
@@ -552,14 +552,14 @@ contract BPool is BMath, BToken {
             if (_tokens[i] == _basetokenAddress)
                 tbasetokenAmount = minAmountsOut[i];
         }
-        bool allowed = ssContract.allowUnStake(
-            _datatokenAddress,
-            _basetokenAddress,
-            tdatatokenAmount,
-            tbasetokenAmount,
-            msg.sender
-        );
-        require(allowed == true, "ERR_DENIED_BY_CONTROLLER");
+        // bool allowed = ssContract.allowUnStake(
+        //     _datatokenAddress,
+        //     _basetokenAddress,
+        //     tdatatokenAmount,
+        //     tbasetokenAmount,
+        //     msg.sender
+        // );
+        // require(allowed == true, "ERR_DENIED_BY_CONTROLLER");
 
         uint256 poolTotal = totalSupply();
         uint256 exitFee = bmul(poolAmountIn, EXIT_FEE);
@@ -591,7 +591,7 @@ contract BPool is BMath, BToken {
         uint256 maxPrice
     )
         external
-        _logs_
+    
         _lock_
       
         returns (uint256 tokenAmountOut, uint256 spotPriceAfter)
@@ -673,7 +673,7 @@ contract BPool is BMath, BToken {
         uint256 maxPrice
     )
         external
-        _logs_
+    
         _lock_
         returns (uint256 tokenAmountIn, uint256 spotPriceAfter)
     {
@@ -786,7 +786,7 @@ contract BPool is BMath, BToken {
         address tokenIn,
         uint256 tokenAmountIn,
         uint256 minPoolAmountOut
-    ) external _logs_ _lock_ returns (uint256 poolAmountOut) {
+    ) external _lock_ returns (uint256 poolAmountOut) {
         
         // if(_finalized == false && block.number>_burnInEndBlock){
         //         //notify 1SS to setup the pool first
@@ -882,7 +882,7 @@ contract BPool is BMath, BToken {
         address tokenIn,
         uint256 poolAmountOut,
         uint256 maxAmountIn
-    ) external _logs_ _lock_ returns (uint256 tokenAmountIn) {
+    ) external _lock_ returns (uint256 tokenAmountIn) {
         // if(_finalized == false && block.number>_burnInEndBlock){
         //         //notify 1SS to setup the pool first
         //         ssContract.notifyFinalize(_datatokenAddress);
@@ -972,7 +972,7 @@ contract BPool is BMath, BToken {
         address tokenOut,
         uint256 poolAmountIn,
         uint256 minAmountOut
-    ) external _logs_ _lock_ returns (uint256 tokenAmountOut) {
+    ) external _lock_ returns (uint256 tokenAmountOut) {
         // if(_finalized == false && block.number>_burnInEndBlock){
         //         //notify 1SS to setup the pool first
         //         ssContract.notifyFinalize(_datatokenAddress);
@@ -1063,7 +1063,7 @@ contract BPool is BMath, BToken {
         address tokenOut,
         uint256 tokenAmountOut,
         uint256 maxPoolAmountIn
-    ) external _logs_ _lock_ returns (uint256 poolAmountIn) {
+    ) external _lock_ returns (uint256 poolAmountIn) {
         // if(_finalized == false && block.number>_burnInEndBlock){
         //         //notify 1SS to setup the pool first
         //         ssContract.notifyFinalize(_datatokenAddress);

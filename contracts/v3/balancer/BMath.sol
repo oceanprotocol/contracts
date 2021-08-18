@@ -45,7 +45,7 @@ contract BMath is BConst, BNum {
         uint tokenWeightOut
        // uint swapFee
     )
-        public view
+        internal view
         returns (uint spotPrice)
     {
         uint numer = bdiv(tokenBalanceIn, tokenWeightIn);
@@ -121,7 +121,7 @@ contract BMath is BConst, BNum {
         uint tokenAmountIn
         //uint swapFee
     )
-        public view
+        internal view
         returns (uint tokenAmountOut)
     {
         uint weightRatio = bdiv(tokenWeightIn, tokenWeightOut);
@@ -164,7 +164,7 @@ contract BMath is BConst, BNum {
         uint tokenAmountOut
        // uint swapFee
     )
-        public view
+        internal view
         returns (uint tokenAmountIn)
     {
         uint weightRatio = bdiv(tokenWeightOut, tokenWeightIn);
@@ -197,7 +197,7 @@ contract BMath is BConst, BNum {
         uint tokenAmountOut
        // uint swapFee
     )
-        public view
+        internal view
         returns (uint tokenAmountIn)
     {
         uint weightRatio = bdiv(tokenWeightOut, tokenWeightIn);
@@ -232,7 +232,7 @@ contract BMath is BConst, BNum {
         uint tokenAmountIn
        // uint swapFee
     )
-        public view
+        internal view
         returns (uint poolAmountOut)
     {
         /* Charge the trading fee for the proportion of tokenAi
@@ -273,7 +273,7 @@ contract BMath is BConst, BNum {
         uint poolAmountOut
         //uint swapFee
     )
-        public view
+        internal view
         returns (uint tokenAmountIn)
     {
         uint normalizedWeight = bdiv(tokenWeightIn, totalWeight);
@@ -312,7 +312,7 @@ contract BMath is BConst, BNum {
         uint poolAmountIn
       //  uint swapFee
     )
-        public view
+        internal view
         returns (uint tokenAmountOut)
     {
         uint normalizedWeight = bdiv(tokenWeightOut, totalWeight);
@@ -360,7 +360,7 @@ contract BMath is BConst, BNum {
         uint tokenAmountOut
         //uint swapFee
     )
-        public view
+        internal view
         returns (uint poolAmountIn)
     {
 
