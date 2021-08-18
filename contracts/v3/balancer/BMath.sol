@@ -198,7 +198,7 @@ contract BMath is BConst, BNum {
        // uint swapFee
     )
         internal view
-        returns (uint tokenAmountIn)
+        returns (uint tokenAmountIn, uint tokenAmountInBalance)
     {
         uint weightRatio = bdiv(tokenWeightOut, tokenWeightIn);
         uint diff = bsub(tokenBalanceOut, tokenAmountOut);
@@ -206,12 +206,13 @@ contract BMath is BConst, BNum {
         uint foo = bpow(y, weightRatio);
         foo = bsub(foo, BONE);
         uint totalFee =_swapFee+_swapOceanFee+_swapMarketFee;
-
-        uint test = bsub(BONE, _swapFee);
-        tokenAmountIn = bdiv(bmul(tokenBalanceIn, foo), test);
-       // uint oceanFeeAmount = 
-
-        return tokenAmountIn;
+        console.log(totalFee);
+        console.log(_swapFee,_swapOceanFee,_swapMarketFee);
+        tokenAmountIn = bdiv(bmul(tokenBalanceIn, foo), bsub(BONE, totalFee));
+       // console.log(tokenAmountIn, 'token amount with total fee');
+        tokenAmountInBalance = bdiv(bmul(tokenBalanceIn, foo), bsub(BONE, _swapFee));
+       // console.log(tokenAmountInBalance, 'token amount with swap fee');
+        return (tokenAmountIn, tokenAmountInBalance);
     }
 
     /**********************************************************************************************
