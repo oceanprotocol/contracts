@@ -173,7 +173,6 @@ contract ERC20Template is ERC20("test", "testSymbol"), ERC20Roles {
         initialized = true;
         // add a default minter, similar to what happens with manager in the 721 contract
         _addMinter(minter);
-        // TODO: add option to add a fee manager when initializing?
         _addFeeManager(feeManager);
         uint256 chainId;
         assembly {
@@ -197,21 +196,22 @@ contract ERC20Template is ERC20("test", "testSymbol"), ERC20Roles {
     }
 
 
-    function deployPool(address controller, address basetokenAddress, uint[] memory ssParams, address basetokenSender, uint[] memory swapFees) external onlyERC20Deployer {
+    function deployPool(address controller, address basetokenAddress, uint[] memory ssParams, address basetokenSender, uint[] memory swapFees, address marketFeeCollector) external onlyERC20Deployer {
          // TODO: how we want to handle the minters? If someone calls this functions, all other minters should be removed
          // stopMint could be an option but eventually when we call the ssFixed it will mint the overall supply so that's probably not an issue
          //stopMint = true;
         require(totalSupply() == 0,'ERC20Template: tokens already minted');
         _addMinter(controller);
         console.log(router,'router address');
-         address pool = IFactoryRouter(router).deployPool(
+        address[2] memory tokens = [address(this),basetokenAddress];
+        address pool = IFactoryRouter(router).deployPool(
             controller,
-            address(this),
-            basetokenAddress,
+            tokens,
             _erc721Address, // publisherAddress, refers to the erc721 contract
             ssParams,
             basetokenSender,
-            swapFees
+            swapFees,
+            marketFeeCollector
         );
 
         emit NewPool(pool,controller,basetokenAddress);

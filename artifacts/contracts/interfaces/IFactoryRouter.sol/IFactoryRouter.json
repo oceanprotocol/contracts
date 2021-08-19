@@ -11,14 +11,9 @@
           "type": "address"
         },
         {
-          "internalType": "address",
-          "name": "datatokenAddress",
-          "type": "address"
-        },
-        {
-          "internalType": "address",
-          "name": "basetokenAddress",
-          "type": "address"
+          "internalType": "address[2]",
+          "name": "tokens",
+          "type": "address[2]"
         },
         {
           "internalType": "address",
@@ -39,6 +34,11 @@
           "internalType": "uint256[]",
           "name": "swapFees",
           "type": "uint256[]"
+        },
+        {
+          "internalType": "address",
+          "name": "marketFeeCollector",
+          "type": "address"
         }
       ],
       "name": "deployPool",

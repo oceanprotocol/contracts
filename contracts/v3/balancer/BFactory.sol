@@ -22,6 +22,7 @@ import '../../interfaces/IERC20.sol';
 contract BFactory is BConst, Deployer, BaseSplitCodeFactory {
 
     address public bpoolTemplate;
+    address public opfCollector;
 
     event BPoolCreated(
         address indexed newBPoolAddress,
@@ -37,14 +38,20 @@ contract BFactory is BConst, Deployer, BaseSplitCodeFactory {
        @param _bpoolTemplate -- address of a deployed BPool contract. 
        @param _preCreatedPools list of pre-created pools. It can be only used in case of migration from an old factory contract.
     */
-    constructor(address _bpoolTemplate, address[] memory _preCreatedPools) BaseSplitCodeFactory(type(BPool).creationCode)
+    constructor(address _bpoolTemplate, address _opfCollector, address[] memory _preCreatedPools) BaseSplitCodeFactory(type(BPool).creationCode)
         public 
     {
         require(
             _bpoolTemplate != address(0), 
             'BFactory: invalid bpool template zero address'
         );
+        require(
+            _opfCollector != address(0), 
+            'BFactory: zero address'
+        );
         bpoolTemplate = _bpoolTemplate;
+        opfCollector = _opfCollector;
+
         if(_preCreatedPools.length > 0){
             for(uint256 i = 0; i < _preCreatedPools.length; i++){
                 emit BPoolCreated(_preCreatedPools[i], msg.sender,address(0),address(0),address(0),address(0));
@@ -56,16 +63,17 @@ contract BFactory is BConst, Deployer, BaseSplitCodeFactory {
        Template contract address could not be a zero address. 
        @return address of a new proxy BPool contract */
     function newBPool(address controller, 
-        address datatokenAddress, 
-        address basetokenAddress, 
+        address[2] memory tokens, 
+     //   address basetokenAddress, 
         address publisherAddress, 
         uint256[] memory ssParams,
-        uint256[] memory swapFees)
+        uint256[] memory swapFees,
+        address marketFeeCollector)
         internal 
         returns (address bpool)
     {
         
-        
+        address[2] memory feeCollectors = [marketFeeCollector,opfCollector];
        
        // bpool = deploy(bpoolTemplate);
         address bpool = _create("");
@@ -83,19 +91,19 @@ contract BFactory is BConst, Deployer, BaseSplitCodeFactory {
                 swapFees,
                 false,
                 false,
-                datatokenAddress,
-                basetokenAddress
+                tokens,
+                feeCollectors
             ),
             'ERR_INITIALIZE_BPOOL'
         );
         
-        emit BPoolCreated(bpool, msg.sender,datatokenAddress,basetokenAddress,bpoolTemplate,controller);
+      //  emit BPoolCreated(bpool, msg.sender,datatokenAddress,basetokenAddress,bpoolTemplate,controller);
         
         // requires approval first from basetokenSender
         
         IssFixedRate(controller).newDataTokenCreated(  
-        datatokenAddress,
-        basetokenAddress,
+        tokens[0],
+        tokens[1],
         bpool,
         publisherAddress,
         ssParams);

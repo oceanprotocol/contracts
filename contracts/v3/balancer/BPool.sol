@@ -88,6 +88,8 @@ contract BPool is BMath, BToken {
     bool private _publicSwap; // true if PUBLIC can call SWAP functions
     address private _datatokenAddress; //datatoken address
     address private _basetokenAddress; //base token address
+    address public  _marketCollector;
+    address public  _opfCollector;
     // `setSwapFee` and `finalize` require CONTROL
     // `finalize` sets `PUBLIC can SWAP`, `PUBLIC can JOIN`
    // uint256 private _swapFee;
@@ -132,8 +134,9 @@ contract BPool is BMath, BToken {
         uint256[] calldata swapFees,
         bool publicSwap,
         bool finalized,
-        address datatokenAddress,
-        address basetokenAddress
+        address[2] calldata tokens,
+        //address basetokenAddress,
+        address[2] calldata feeCollectors
     ) external returns (bool) {
         require(!initialized, "ERR_ALREADY_INITIALIZED");
         require(controller != address(0), "ERR_INVALID_CONTROLLER_ADDRESS");
@@ -147,8 +150,8 @@ contract BPool is BMath, BToken {
                 swapFees,
                 publicSwap,
                 finalized,
-                datatokenAddress,
-                basetokenAddress
+                tokens,
+                feeCollectors
             );
     }
 
@@ -159,8 +162,8 @@ contract BPool is BMath, BToken {
         uint256[] memory swapFees,
         bool publicSwap,
         bool finalized,
-        address datatokenAddress,
-        address basetokenAddress
+        address[2] memory tokens,
+        address[2] memory feeCollectors
     ) private returns (bool) {
         _controller = controller;
         _factory = factory;
@@ -170,8 +173,10 @@ contract BPool is BMath, BToken {
         _swapMarketFee = swapFees[2];
         _publicSwap = publicSwap;
         _finalized = finalized;
-        _datatokenAddress = datatokenAddress;
-        _basetokenAddress = basetokenAddress;
+        _datatokenAddress = tokens[0];
+        _basetokenAddress = tokens[1];
+        _marketCollector = feeCollectors[0];
+        _opfCollector = feeCollectors[1];
         initialized = true;
         ssContract = IssFixedRate(_controller);
         return initialized;
@@ -258,7 +263,7 @@ contract BPool is BMath, BToken {
     }
 
     function collectOPF(address to) external {
-        require(_controller != address(0), "ERR_INVALID_CONTROLLER_ADDRESS");
+        require(_opfCollector == msg.sender, "ONLY OPF");
         address[] memory tokens = getFinalTokens();
         for (uint i = 0; i < tokens.length; i++){
              uint amount = communityFees[tokens[i]]-feesCollectedOPF[tokens[i]];
@@ -268,13 +273,18 @@ contract BPool is BMath, BToken {
     }
 
     function collectMarketFee(address to) external {
-        require(_controller != address(0), "ERR_INVALID_CONTROLLER_ADDRESS");
+        require(_marketCollector == msg.sender, "ONLY MARKET COLLECTOR");
         address[] memory tokens = getFinalTokens();
         for (uint i = 0; i < tokens.length; i++){
              uint amount = marketFees[tokens[i]]-feesCollectedMarket[tokens[i]];
              feesCollectedMarket[tokens[i]] = feesCollectedMarket[tokens[i]]+amount;
              IERC20(tokens[i]).transfer(to,amount);
         }   
+    }
+
+    function updateMarketFeeCollector(address _newCollector) external {
+        require(_marketCollector == msg.sender, "ONLY MARKET COLLECTOR");
+        _marketCollector = _newCollector;
     }
     
     function getDenormalizedWeight(address token)
