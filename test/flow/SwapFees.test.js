@@ -39,6 +39,8 @@ describe("Swap Fees", () => {
     bPool,
     signer,
     opfCollector,
+    SwapFeesEvent,
+    SwapEvent
     dtIndex = null,
     oceanIndex = null,
     daiIndex = null,
@@ -212,9 +214,9 @@ describe("Swap Fees", () => {
   });
 
  describe(" Pool with ocean token and market fee 0.1%", async ()=> {
-  const swapFee = 1e12
-  const swapOceanFee = 1e12
-  const swapMarketFee = 1e12
+  const swapFee = 1e15
+  const swapOceanFee = 1e15
+  const swapMarketFee = 1e15
   it("#4 - user3 calls deployPool() and check ocean and market fee", async () => {
     // user3 hasn't minted any token so he can call deployPool()
     
@@ -292,18 +294,47 @@ describe("Swap Fees", () => {
   
     // user4 has no DT before swap
     assert((await erc20Token.balanceOf(user4.address)) == 0);
+    
+    const user4DTbalance = await erc20Token.balanceOf(user4.address);
+    const user4OceanBalance = await oceanContract.balanceOf(user4.address);
+    const dtMarketFeeBal = await bPool.marketFees(erc20Token.address) 
+    const oceanMarketFeeBal = await bPool.marketFees(oceanAddress)
 
     // RATE is 1 and there's no fee, so we should get the same amount back in DT
-    await bPool.connect(user4).swapExactAmountIn(
+    receipt = await(await bPool.connect(user4).swapExactAmountIn(
       oceanAddress, // tokenIn
       web3.utils.toWei("10"), // tokenAmountIn
       erc20Token.address, // tokenOut
       web3.utils.toWei("1"), //minAmountOut
       web3.utils.toWei("100") //maxPrice
-    );
+    )).wait();
 
     // user4 got his DT
     assert((await erc20Token.balanceOf(user4.address)) > 0);
+
+    SwapFeesEvent = receipt.events.filter((e) => e.event === "SWAP_FEES");
+    //console.log(SwapFeesEvent, 'swapEvent')
+    const args = SwapFeesEvent[0].args
+    //console.log(args)
+
+    // marketFee have been calculated properly - ocean fee is zero
+    expect(web3.utils.toWei("0.01")).to.equal(args.marketFee)
+   // expect(oceanMarketFeeBal).to.equal(args.oceanFee)
+    
+    // marketFees accounting increased as expected , in OCEAN
+    expect(oceanAddress).to.equal(args.tokenFees)
+    expect(oceanMarketFeeBal.add(args.marketFee)).to.equal(await bPool.marketFees(args.tokenFees))
+    
+
+    SwapEvent = receipt.events.filter((e) => e.event === "LOG_SWAP");
+    const swapArgs = SwapEvent[0].args
+    console.log(swapArgs)
+
+    // CHECK SWAP BALANCES
+    // user 4 OCEAN balance decresead properly
+    expect((await oceanContract.balanceOf(user4.address)).add(swapArgs.tokenAmountIn)).to.equal(user4OceanBalance)
+    // user 4 DT balance increased properly
+    expect(user4DTbalance.add(swapArgs.tokenAmountOut)).to.equal(await erc20Token.balanceOf(user4.address))
   });
 
   it("#7 - user4 buys some DT after burnIn period - exactAmountOut", async () => {
@@ -311,26 +342,48 @@ describe("Swap Fees", () => {
 
     // user only has DT from previous test
     const user4DTbalance = await erc20Token.balanceOf(user4.address);
-    console.log(user4DTbalance.toString());
+    const user4OceanBalance = await oceanContract.balanceOf(user4.address);
+    
+    const dtMarketFeeBal = await bPool.marketFees(erc20Token.address) 
+    const oceanMarketFeeBal = await bPool.marketFees(oceanAddress)
 
-    // RATE is 1 and there's no fee, so we should get the same amount back in DT
-    await bPool.connect(user4).swapExactAmountOut(
+    // RATE is 1
+    receipt = await (await bPool.connect(user4).swapExactAmountOut(
       oceanAddress, // tokenIn
       web3.utils.toWei("100"), // maxAmountIn
       erc20Token.address, // tokenOut
       web3.utils.toWei("10"), // tokenAmountOut
       web3.utils.toWei("10") // maxPrice
-    );
+    )).wait();
 
-    // user4 got his DT
-    console.log((await erc20Token.balanceOf(user4.address)).toString());
-    assert(
-      parseInt(await erc20Token.balanceOf(user4.address)) >
-        parseInt(user4DTbalance)
-    );
+   
+    SwapEvent = receipt.events.filter((e) => e.event === "LOG_SWAP");
+    const swapArgs = SwapEvent[0].args
+    console.log(swapArgs)
+
+    // CHECK SWAP BALANCES
+    // user 4 DT balance increased properly
+    expect(user4DTbalance.add(swapArgs.tokenAmountOut)).to.equal(await erc20Token.balanceOf(user4.address))
+    // user 4 Ocean balance decreased properly
+    expect(user4OceanBalance.sub(swapArgs.tokenAmountIn)).to.equal(await oceanContract.balanceOf(user4.address))
+
+    // WE NOW CHECK FEES
+    SwapFeesEvent = receipt.events.filter((e) => e.event === "SWAP_FEES");
+    //console.log(SwapFeesEvent, 'swapEvent')
+    const args = SwapFeesEvent[0].args
+   
+
+    // marketFee have been calculated properly - ocean fee is zero
+    expect(0).to.equal(args.oceanFee)
+    
+    
+    // marketFees accounting increased as expected (fees are taken from the amountIn so OCEAN IN THIS CASE)
+    expect(oceanMarketFeeBal.add(args.marketFee)).to.equal(await bPool.marketFees(args.tokenFees))
+    expect(dtMarketFeeBal).to.equal(await bPool.marketFees(erc20Token.address))
+
   });
 
-  it("#8 - user4 swaps some DT back to Ocean swapExactAmountIn", async () => {
+  it("#8 - user4 swaps some DT back to Ocean swapExactAmountIn, check swap custom fees", async () => {
     assert((await bPool.isFinalized()) == true);
 
     await erc20Token
@@ -339,37 +392,62 @@ describe("Swap Fees", () => {
 
     const user4DTbalance = await erc20Token.balanceOf(user4.address);
 
-    const user4DAIbalance = await oceanContract.balanceOf(user4.address);
+    const user4Oceanbalance = await oceanContract.balanceOf(user4.address);
+
+
+    const dtMarketFeeBal = await bPool.marketFees(erc20Token.address) 
+    const oceanMarketFeeBal = await bPool.marketFees(oceanAddress)
+
+    expect(await bPool.communityFees(oceanAddress)).to.equal(0)
+    expect(await bPool.communityFees(erc20Token.address)).to.equal(0)
+    
+    expect(await bPool.marketFees(erc20Token.address)).to.equal(0)
+    
+    const amountIn = web3.utils.toWei("10")
+    const minAmountOut = web3.utils.toWei("1")
+    const maxPrice = web3.utils.toWei("10")
 
     receipt = await (
       await bPool
         .connect(user4)
         .swapExactAmountIn(
           erc20Token.address,
-          web3.utils.toWei("10"),
+          amountIn,
           oceanAddress,
-          web3.utils.toWei("1"),
-          web3.utils.toWei("10")
+          minAmountOut,
+          maxPrice
         )
     ).wait();
 
-    const SwapEvent = receipt.events.filter((e) => e.event === "LOG_SWAP");
-    // TODO: continue testing from Swap, check fees
+    SwapFeesEvent = receipt.events.filter((e) => e.event === "SWAP_FEES");
+    //console.log(SwapFeesEvent, 'swapEvent')
+    const args = SwapFeesEvent[0].args
+    //console.log(args)
 
-    //console.log(SwapEvent)
-    assert(
-      parseInt(await erc20Token.balanceOf(user4.address)) <
-        parseInt(user4DTbalance)
-    );
-    assert(
-      parseInt(await oceanContract.balanceOf(user4.address)) >
-        parseInt(user4DAIbalance)
-    );
+    // marketFee have been calculated properly - ocean fee is zero
+    expect(web3.utils.toWei("0.01")).to.equal(args.marketFee)
+   // expect(oceanMarketFeeBal).to.equal(args.oceanFee)
+    
+    // marketFees accounting increased as expected
+    expect(dtMarketFeeBal.add(args.marketFee)).to.equal(await bPool.marketFees(args.tokenFees))
+    
+
+    SwapEvent = receipt.events.filter((e) => e.event === "LOG_SWAP");
+    const swapArgs = SwapEvent[0].args
+    console.log(swapArgs)
+
+    // CHECK SWAP BALANCES
+    // user 4 DT balance decresead properly
+    expect((await erc20Token.balanceOf(user4.address)).add(swapArgs.tokenAmountIn)).to.equal(user4DTbalance)
+    // user 4 Ocean balance increased properly
+    expect(user4Oceanbalance.add(swapArgs.tokenAmountOut)).to.equal(await oceanContract.balanceOf(user4.address))
+
+
   });
 
   it("#9 - user4 adds more liquidity with joinPool() (adding both tokens)", async () => {
     const user4DTbalance = await erc20Token.balanceOf(user4.address);
-    const user4DAIbalance = await oceanContract.balanceOf(user4.address);
+    const user4Oceanbalance = await oceanContract.balanceOf(user4.address);
     const user4BPTbalance = await bPool.balanceOf(user4.address);
     const ssContractDTbalance = await erc20Token.balanceOf(ssFixedRate.address);
     const ssContractBPTbalance = await bPool.balanceOf(ssFixedRate.address);
@@ -408,7 +486,7 @@ describe("Swap Fees", () => {
       JoinEvent[1].args.tokenAmountIn.add(
         await oceanContract.balanceOf(user4.address)
       )
-    ).to.equal(user4DAIbalance);
+    ).to.equal(user4Oceanbalance);
 
     expect(user4BPTbalance.add(BPTAmountOut)).to.equal(
       await bPool.balanceOf(user4.address)

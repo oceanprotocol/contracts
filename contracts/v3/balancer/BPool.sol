@@ -246,7 +246,7 @@ contract BPool is BMath, BToken {
     function getCurrentTokens()
         external
         view
-        _viewlock_
+        // _viewlock_
         returns (address[] memory tokens)
     {
         return _tokens;
@@ -255,7 +255,7 @@ contract BPool is BMath, BToken {
     function getFinalTokens()
         public
         view
-        _viewlock_
+        // _viewlock_
         returns (address[] memory tokens)
     {
         require(_finalized, "ERR_NOT_FINALIZED");
@@ -290,7 +290,7 @@ contract BPool is BMath, BToken {
     function getDenormalizedWeight(address token)
         external
         view
-        _viewlock_
+        // _viewlock_
         returns (uint256)
     {
         require(_records[token].bound, "ERR_NOT_BOUND");
@@ -300,7 +300,7 @@ contract BPool is BMath, BToken {
     function getTotalDenormalizedWeight()
         external
         view
-        _viewlock_
+        // _viewlock_
         returns (uint256)
     {
         return _totalWeight;
@@ -309,7 +309,7 @@ contract BPool is BMath, BToken {
     function getNormalizedWeight(address token)
         external
         view
-        _viewlock_
+        // _viewlock_
         returns (uint256)
     {
         require(_records[token].bound, "ERR_NOT_BOUND");
@@ -320,7 +320,7 @@ contract BPool is BMath, BToken {
     function getBalance(address token)
         external
         view
-        _viewlock_
+        // _viewlock_
         returns (uint256)
     {
         require(_records[token].bound, "ERR_NOT_BOUND");
@@ -475,7 +475,7 @@ contract BPool is BMath, BToken {
     function getSpotPrice(address tokenIn, address tokenOut)
         external
         view
-        _viewlock_
+        // _viewlock_
         returns (uint256 spotPrice)
     {
         require(_records[tokenIn].bound, "ERR_NOT_BOUND");
@@ -495,7 +495,7 @@ contract BPool is BMath, BToken {
     // function getSpotPriceSansFee(address tokenIn, address tokenOut)
     //     external
     //     view
-    //     _viewlock_
+    // //     _viewlock_
     //     returns (uint256 spotPrice)
     // {
     //     require(_records[tokenIn].bound, "ERR_NOT_BOUND");
@@ -684,6 +684,7 @@ contract BPool is BMath, BToken {
             tokenAmountOut,
             block.timestamp
         );
+        
 
         _pullUnderlying(tokenIn, msg.sender, tokenAmountIn);
         _pushUnderlying(tokenOut, msg.sender, tokenAmountOut);
@@ -704,50 +705,10 @@ contract BPool is BMath, BToken {
         returns (uint256 tokenAmountIn, uint256 spotPriceAfter)
     {
       
-        // if (block.number <= _burnInEndBlock) {
-        //     // we are in burn-in period, leverage to controller
-        //     //defer calc to ssContract
-        //     //tokenAmountOut = ssContract.calcOutGivenIn(_datatokenAddress,tokenIn,tokenOut,tokenAmountIn);
-        //     tokenAmountIn = ssContract.calcInGivenOut(
-        //         _datatokenAddress,
-        //         tokenIn,
-        //         tokenOut,
-        //         tokenAmountOut
-        //     );
-        //     require(tokenAmountIn <= maxAmountIn, "ERR_LIMIT_IN");
-        //     //approve tokens so ssContract can pull them
-            
-        //     IERC20 token = IERC20(tokenIn);
-        //     console.log(tokenAmountIn,'amountOut');
-        //     token.transferFrom(msg.sender, address(this), tokenAmountIn);
-        //     token.approve(_controller, tokenAmountIn);
-        //     ssContract.swapExactAmountOut(
-        //         _datatokenAddress,
-        //         msg.sender,
-        //         tokenIn,
-        //         tokenAmountIn,
-        //         tokenOut,
-        //         tokenAmountOut
-        //     );
-        //     emit LOG_SWAP(
-        //         msg.sender,
-        //         tokenIn,
-        //         tokenOut,
-        //         tokenAmountIn,
-        //         tokenAmountOut,
-        //         block.timestamp
-        //     );
-        //     return (tokenAmountOut, 0); //returning spot price 0 because there is no public spotPrice
-        // }
-        // if(_finalized == false && block.number>_burnInEndBlock){
-        //         //notify 1SS to setup the pool first
-        //         ssContract.notifyFinalize(_datatokenAddress);
-        // }
+       
         require(_finalized, "ERR_NOT_FINALIZED");
         require(_records[tokenIn].bound, "ERR_NOT_BOUND");
         require(_records[tokenOut].bound, "ERR_NOT_BOUND");
-
-       // require(_publicSwap, "ERR_SWAP_NOT_PUBLIC");
 
         Record storage inRecord = _records[address(tokenIn)];
         Record storage outRecord = _records[address(tokenOut)];
@@ -767,17 +728,17 @@ contract BPool is BMath, BToken {
 
         require(spotPriceBefore <= maxPrice, "ERR_BAD_LIMIT_PRICE");
 
-        uint test; // this is the amount we are going to register in balances (only takes account of swapFee, not OPF and market fee, in order to not affect price during following swaps etc)
-        (tokenAmountIn, test) = calcInGivenOutSwap(
-            inRecord.balance,
-            inRecord.denorm,
-            outRecord.balance,
-            outRecord.denorm,
-            tokenAmountOut
+        uint balanceToAdd; // this is the amount we are going to register in balances (only takes account of swapFee, not OPF and market fee, in order to not affect price during following swaps, fee wtihdrawl etc)
+        uint[4] memory data = [inRecord.balance,inRecord.denorm,outRecord.balance,outRecord.denorm];
+
+        (tokenAmountIn, balanceToAdd) = calcInGivenOutSwap(
+            data,
+            tokenAmountOut,
+            tokenIn
         );
         require(tokenAmountIn <= maxAmountIn, "ERR_LIMIT_IN");
 
-        inRecord.balance = badd(inRecord.balance, test);
+        inRecord.balance = badd(inRecord.balance, balanceToAdd);
         outRecord.balance = bsub(outRecord.balance, tokenAmountOut);
 
         spotPriceAfter = calcSpotPrice(
