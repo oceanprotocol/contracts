@@ -51,7 +51,7 @@ module.exports = {
   },
   networks: {
     hardhat: {
-      allowUnlimitedContractSize: true,
+      allowUnlimitedContractSize: false,
       forking: {
         url:
           "https://eth-mainnet.alchemyapi.io/v2/eOqKsGAdsiNLCVm846Vgb-6yY3jlcNEo",

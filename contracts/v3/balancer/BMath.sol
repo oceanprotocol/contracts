@@ -30,7 +30,7 @@ contract BMath is BConst, BNum {
 
     mapping(address => uint) public feesCollectedMarket;
 
-    event SWAP_FEES(uint oceanFee, uint marketFee, address tokenFees);
+    event SWAP_FEES(uint swapFeeAmount, uint oceanFeeAmount, uint marketFeeAmount, address tokenFees);
     /**********************************************************************************************
     // calcSpotPrice                                                                             //
     // sP = spotPrice                                                                            //
@@ -85,15 +85,17 @@ contract BMath is BConst, BNum {
         uint oceanFeeAmount =  bsub(tokenAmountIn, bmul(tokenAmountIn, bsub(BONE, _swapOceanFee)));
 
         communityFees[tokenInAddress] = badd(communityFees[tokenInAddress],oceanFeeAmount);
-        console.log(oceanFeeAmount,'test');
+        
      
         uint marketFeeAmount =  bsub(tokenAmountIn, bmul(tokenAmountIn, bsub(BONE, _swapMarketFee)));
-         console.log(marketFeeAmount,'test1');
+        
         marketFees[tokenInAddress] = badd(marketFees[tokenInAddress],marketFeeAmount);
 
         uint totalFee = _swapFee+oceanFeeAmount+marketFeeAmount;
-        
-        emit SWAP_FEES(oceanFeeAmount, marketFeeAmount,tokenInAddress);
+        console.log(bsub(tokenAmountIn, bmul(tokenAmountIn, bsub(BONE, _swapFee))),'test');
+        console.log(_swapFee);
+        console.log(bsub(tokenAmountIn, bmul(tokenAmountIn, bsub(BONE, _swapMarketFee))));
+        emit SWAP_FEES(bsub(tokenAmountIn, bmul(tokenAmountIn, bsub(BONE, _swapFee))), oceanFeeAmount, marketFeeAmount,tokenInAddress);
 
         uint adjustedIn = bsub(BONE, totalFee);
         adjustedIn = bmul(tokenAmountIn, adjustedIn);
@@ -224,7 +226,7 @@ contract BMath is BConst, BNum {
       
         tokenAmountInBalance = bdiv(bmul(data[0], foo), bsub(BONE, _swapFee));
       
-        emit SWAP_FEES(oceanFeeAmount, marketFeeAmount,tokenInAddress);
+        emit SWAP_FEES(bsub(tokenAmountIn, bmul(tokenAmountIn, bsub(BONE, _swapFee))), oceanFeeAmount, marketFeeAmount,tokenInAddress);
         return (tokenAmountIn, tokenAmountInBalance);
     }
 

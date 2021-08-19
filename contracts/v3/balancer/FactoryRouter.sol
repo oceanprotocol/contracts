@@ -12,7 +12,7 @@ contract FactoryRouter is BFactory {
     address public routerOwner;
     address public erc20Factory;
 
-    uint256 public constant swapOceanFee = 1e12;
+    uint256 public constant swapOceanFee = 1e15;
     mapping(address => bool) public oceanTokens;
     mapping(address => bool) public ssContracts;
 
