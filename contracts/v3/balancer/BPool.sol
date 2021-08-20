@@ -246,7 +246,7 @@ contract BPool is BMath, BToken {
     function getCurrentTokens()
         external
         view
-        // _viewlock_
+        _viewlock_
         returns (address[] memory tokens)
     {
         return _tokens;
@@ -255,7 +255,7 @@ contract BPool is BMath, BToken {
     function getFinalTokens()
         public
         view
-        // _viewlock_
+        _viewlock_
         returns (address[] memory tokens)
     {
         require(_finalized, "ERR_NOT_FINALIZED");
@@ -290,7 +290,7 @@ contract BPool is BMath, BToken {
     function getDenormalizedWeight(address token)
         external
         view
-        // _viewlock_
+        _viewlock_
         returns (uint256)
     {
         require(_records[token].bound, "ERR_NOT_BOUND");
@@ -300,7 +300,7 @@ contract BPool is BMath, BToken {
     function getTotalDenormalizedWeight()
         external
         view
-        // _viewlock_
+        _viewlock_
         returns (uint256)
     {
         return _totalWeight;
@@ -309,7 +309,7 @@ contract BPool is BMath, BToken {
     function getNormalizedWeight(address token)
         external
         view
-        // _viewlock_
+        _viewlock_
         returns (uint256)
     {
         require(_records[token].bound, "ERR_NOT_BOUND");
@@ -320,7 +320,7 @@ contract BPool is BMath, BToken {
     function getBalance(address token)
         external
         view
-        // _viewlock_
+        _viewlock_
         returns (uint256)
     {
         require(_records[token].bound, "ERR_NOT_BOUND");
@@ -475,7 +475,7 @@ contract BPool is BMath, BToken {
     function getSpotPrice(address tokenIn, address tokenOut)
         external
         view
-        // _viewlock_
+        _viewlock_
         returns (uint256 spotPrice)
     {
         require(_records[tokenIn].bound, "ERR_NOT_BOUND");
@@ -495,7 +495,7 @@ contract BPool is BMath, BToken {
     // function getSpotPriceSansFee(address tokenIn, address tokenOut)
     //     external
     //     view
-    // //     _viewlock_
+    // //  _viewlock_
     //     returns (uint256 spotPrice)
     // {
     //     require(_records[tokenIn].bound, "ERR_NOT_BOUND");

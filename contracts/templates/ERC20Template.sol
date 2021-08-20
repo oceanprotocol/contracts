@@ -202,7 +202,7 @@ contract ERC20Template is ERC20("test", "testSymbol"), ERC20Roles {
          //stopMint = true;
         require(totalSupply() == 0,'ERC20Template: tokens already minted');
         _addMinter(controller);
-        console.log(router,'router address');
+
         address[2] memory tokens = [address(this),basetokenAddress];
         address pool = IFactoryRouter(router).deployPool(
             controller,

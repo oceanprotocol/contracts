@@ -291,7 +291,7 @@ describe("1SS flow", () => {
     // user4 has no DT before swap
     assert((await erc20Token.balanceOf(user4.address)) == 0);
 
-    // RATE is 1 and there's no fee, so we should get the same amount back in DT
+    
     await bPool.connect(user4).swapExactAmountIn(
       oceanAddress, // tokenIn
       web3.utils.toWei("10"), // tokenAmountIn
@@ -311,7 +311,7 @@ describe("1SS flow", () => {
     const user4DTbalance = await erc20Token.balanceOf(user4.address);
     console.log(user4DTbalance.toString());
 
-    // RATE is 1 and there's no fee, so we should get the same amount back in DT
+    
     await bPool.connect(user4).swapExactAmountOut(
       oceanAddress, // tokenIn
       web3.utils.toWei("100"), // maxAmountIn

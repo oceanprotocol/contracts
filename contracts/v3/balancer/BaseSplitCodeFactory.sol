@@ -184,8 +184,7 @@ contract BaseSplitCodeFactory {
         assembly {
             destination := create(0, add(creationCode, 32), mload(creationCode))
         }
-
-        console.log(destination,'destination');
+    //console.log(destination,'destination');
 
         if (destination == address(0)) {
             // Bubble up inner revert reason

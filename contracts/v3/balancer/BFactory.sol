@@ -107,8 +107,7 @@ contract BFactory is BConst, Deployer, BaseSplitCodeFactory {
         bpool,
         publisherAddress,
         ssParams);
-
-        console.log(bpool, 'bpool');
+        
         return bpool;
        
 

@@ -92,9 +92,9 @@ contract BMath is BConst, BNum {
         marketFees[tokenInAddress] = badd(marketFees[tokenInAddress],marketFeeAmount);
 
         uint totalFee = _swapFee+oceanFeeAmount+marketFeeAmount;
-        console.log(bsub(tokenAmountIn, bmul(tokenAmountIn, bsub(BONE, _swapFee))),'test');
-        console.log(_swapFee);
-        console.log(bsub(tokenAmountIn, bmul(tokenAmountIn, bsub(BONE, _swapMarketFee))));
+        // console.log(bsub(tokenAmountIn, bmul(tokenAmountIn, bsub(BONE, _swapFee))),'test');
+        // console.log(_swapFee);
+        // console.log(bsub(tokenAmountIn, bmul(tokenAmountIn, bsub(BONE, _swapMarketFee))));
         emit SWAP_FEES(bsub(tokenAmountIn, bmul(tokenAmountIn, bsub(BONE, _swapFee))), oceanFeeAmount, marketFeeAmount,tokenInAddress);
 
         uint adjustedIn = bsub(BONE, totalFee);
