@@ -197,9 +197,7 @@ contract ERC20Template is ERC20("test", "testSymbol"), ERC20Roles {
 
 
     function deployPool(address controller, address basetokenAddress, uint[] memory ssParams, address basetokenSender, uint[] memory swapFees, address marketFeeCollector) external onlyERC20Deployer {
-         // TODO: how we want to handle the minters? If someone calls this functions, all other minters should be removed
-         // stopMint could be an option but eventually when we call the ssFixed it will mint the overall supply so that's probably not an issue
-         //stopMint = true;
+        // TODO: add publisherAddress in function parameters
         require(totalSupply() == 0,'ERC20Template: tokens already minted');
         _addMinter(controller);
 

@@ -95,7 +95,9 @@ contract ssFixedRate {
         // check the ssParams
        // uint256 rate = ssParams[0];
         IERC20Template bt = IERC20Template(basetokenAddress);
-      
+        uint decimals = bt.decimals();
+
+       
         bool allowSell;
         if (ssParams[1] == 0) allowSell = false;
         else allowSell = true;
@@ -124,7 +126,7 @@ contract ssFixedRate {
             vestingAmountSoFar: 0
         });
 
-        notifyFinalize(datatokenAddress);
+        notifyFinalize(datatokenAddress,decimals);
 
         return (true);
     }
@@ -293,7 +295,7 @@ contract ssFixedRate {
         _datatokens[datatokenAddress].datatokenBalance+=amount;
     }
     //called by the pool (or by us) when we should finalize the pool
-    function notifyFinalize(address datatokenAddress) internal {
+    function notifyFinalize(address datatokenAddress,uint decimals) internal {
         if (_datatokens[datatokenAddress].bound != true) return;
        // require(msg.sender == _datatokens[datatokenAddress].poolAddress,'ERR: Only pool can call this');
         if(_datatokens[datatokenAddress].poolFinalized==true) return;
@@ -301,14 +303,24 @@ contract ssFixedRate {
         uint baseTokenWeight=5*BASE; //pool weight: 50-50
         uint dataTokenWeight=5*BASE; //pool weight: 50-50
         uint baseTokenAmount=_datatokens[datatokenAddress].basetokenBalance;
+        console.log(baseTokenAmount,'baseTokenamount');
         //given the price, compute dataTokenAmount
-        uint dataTokenAmount=_datatokens[datatokenAddress].rate * (baseTokenAmount/baseTokenWeight) * dataTokenWeight/ BASE;
+
+        uint dataTokenAmount=_datatokens[datatokenAddress].rate * baseTokenAmount * dataTokenWeight/baseTokenWeight / BASE *(10**(18-decimals));
+        // if(decimals == 18) {
+        //     dataTokenAmount=_datatokens[datatokenAddress].rate * (baseTokenAmount/baseTokenWeight) * dataTokenWeight/ BASE;
+        //     console.log(dataTokenAmount, 'datatokenamout');
+        // } else {
+        //     dataTokenAmount=_datatokens[datatokenAddress].rate * baseTokenAmount * dataTokenWeight/baseTokenWeight / BASE *(10**(18-decimals));
+        //     console.log(dataTokenAmount, 'datatokenamout');
+        // }
+        
         //approve the tokens and amounts
         IERC20Template dt = IERC20Template(datatokenAddress);
         dt.approve(_datatokens[datatokenAddress].poolAddress,dataTokenAmount);
         IERC20Template dtBase = IERC20Template(_datatokens[datatokenAddress].basetokenAddress);
         dtBase.approve(_datatokens[datatokenAddress].poolAddress,baseTokenAmount);
-       
+        console.log('hasta aqui');
         // call the pool, bind the tokens, set the price, finalize pool
         BPoolInterface pool=BPoolInterface(_datatokens[datatokenAddress].poolAddress);
         pool.setup(datatokenAddress,dataTokenAmount,dataTokenWeight,_datatokens[datatokenAddress].basetokenAddress,baseTokenAmount,baseTokenWeight);

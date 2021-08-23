@@ -168,7 +168,7 @@ contract BPool is BMath, BToken {
         _controller = controller;
         _factory = factory;
         _swapFee = swapFees[0];
-        console.log(swapFees[0], swapFees[1],swapFees[2], 'swapFees');
+       // console.log(swapFees[0], swapFees[1],swapFees[2], 'swapFees');
         _swapOceanFee = swapFees[1];
         _swapMarketFee = swapFees[2];
         _publicSwap = publicSwap;
@@ -644,6 +644,8 @@ contract BPool is BMath, BToken {
             outRecord.denorm
             //_swapFee
         );
+       // console.log(spotPriceBefore);
+       // console.log(maxPrice);
         require(spotPriceBefore <= maxPrice, "ERR_BAD_LIMIT_PRICE");
 
         tokenAmountOut = calcOutGivenInSwap(
