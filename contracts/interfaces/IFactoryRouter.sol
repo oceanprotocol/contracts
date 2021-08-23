@@ -11,4 +11,7 @@ interface IFactoryRouter {
         uint256[] calldata swapFees,
         address marketFeeCollector
     ) external returns (address);
+
+    function deployFixedRate(address basetokenAddress, uint256 fixedRate,
+        address owner) external;
 }

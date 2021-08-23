@@ -7,6 +7,29 @@
       "inputs": [
         {
           "internalType": "address",
+          "name": "basetokenAddress",
+          "type": "address"
+        },
+        {
+          "internalType": "uint256",
+          "name": "fixedRate",
+          "type": "uint256"
+        },
+        {
+          "internalType": "address",
+          "name": "owner",
+          "type": "address"
+        }
+      ],
+      "name": "deployFixedRate",
+      "outputs": [],
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "address",
           "name": "controller",
           "type": "address"
         },

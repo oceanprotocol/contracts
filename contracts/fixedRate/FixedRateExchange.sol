@@ -90,7 +90,8 @@ contract FixedRateExchange {
     function create(
         address baseToken,
         address dataToken,
-        uint256 fixedRate
+        uint256 fixedRate,
+        address owner
     ) external {
         require(
             baseToken != address(0),
@@ -111,7 +112,7 @@ contract FixedRateExchange {
         bytes32 exchangeId = generateExchangeId(
             baseToken,
             dataToken,
-            msg.sender
+            owner
         );
         require(
             exchanges[exchangeId].fixedRate == 0,
@@ -119,7 +120,7 @@ contract FixedRateExchange {
         );
         exchanges[exchangeId] = Exchange({
             active: true,
-            exchangeOwner: msg.sender,
+            exchangeOwner: owner,
             dataToken: dataToken,
             baseToken: baseToken,
             fixedRate: fixedRate,
@@ -133,11 +134,11 @@ contract FixedRateExchange {
             exchangeId,
             baseToken,
             dataToken,
-            msg.sender,
+            owner,
             fixedRate
         );
 
-        emit ExchangeActivated(exchangeId, msg.sender);
+        emit ExchangeActivated(exchangeId, owner);
     }
 
     /**
@@ -153,7 +154,8 @@ contract FixedRateExchange {
         address dataToken,
         uint8 _btDecimals,
         uint8 _dtDecimals,
-        uint256 fixedRate
+        uint256 fixedRate,
+        address owner
     ) external {
         require(
             baseToken != address(0),
@@ -174,7 +176,7 @@ contract FixedRateExchange {
         bytes32 exchangeId = generateExchangeId(
             baseToken,
             dataToken,
-            msg.sender
+            owner
         );
         require(
             exchanges[exchangeId].fixedRate == 0,
@@ -182,7 +184,7 @@ contract FixedRateExchange {
         );
         exchanges[exchangeId] = Exchange({
             active: true,
-            exchangeOwner: msg.sender,
+            exchangeOwner: owner,
             dataToken: dataToken,
             baseToken: baseToken,
             fixedRate: fixedRate,
@@ -196,11 +198,11 @@ contract FixedRateExchange {
             exchangeId,
             baseToken,
             dataToken,
-            msg.sender,
+            owner,
             fixedRate
         );
 
-        emit ExchangeActivated(exchangeId, msg.sender);
+        emit ExchangeActivated(exchangeId, owner);
     }
 
     /**

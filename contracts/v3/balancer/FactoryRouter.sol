@@ -7,10 +7,12 @@ pragma experimental ABIEncoderV2;
 import "./BFactory.sol";
 import "../../interfaces/IERC20Factory.sol";
 import "../../interfaces/IERC20.sol";
+import "../../interfaces/IFixedRateExchange.sol";
 
 contract FactoryRouter is BFactory {
     address public routerOwner;
     address public erc20Factory;
+    address public fixedRate;
 
     uint256 public constant swapOceanFee = 1e15;
     mapping(address => bool) public oceanTokens;
@@ -31,12 +33,14 @@ contract FactoryRouter is BFactory {
         address _bpoolTemplate,
         address _ssContract,
         address _opfCollector,
+        address _fixedRate,
         address[] memory _preCreatedPools
     ) public BFactory(_bpoolTemplate, _opfCollector, _preCreatedPools) {
         routerOwner = _routerOwner;
 
         // erc20Factory = _erc20Factory;
         ssContracts[_ssContract] = true;
+        fixedRate = _fixedRate;
         addOceanToken(_oceanToken);
     }
 
@@ -60,7 +64,7 @@ contract FactoryRouter is BFactory {
      */
     function deployPool(
         address controller,
-        address[2] calldata tokens,  // [datatokenAddress, basetokenAddress]
+        address[2] calldata tokens, // [datatokenAddress, basetokenAddress]
         //address basetokenAddress,
         address publisherAddress,
         uint256[] calldata ssParams,
@@ -125,5 +129,34 @@ contract FactoryRouter is BFactory {
 
     function getLength(IERC20[] memory array) private view returns (uint256) {
         return array.length;
+    }
+
+    function deployFixedRate(
+        address basetokenAddress,
+        uint256 fixedRate,
+        address owner
+    ) external {
+        require(
+            IERC20Factory(erc20Factory).erc20List(msg.sender) == true,
+            "FACTORY ROUTER: NOT ORIGINAL ERC20 TEMPLATE"
+        );
+
+        if (IERC20(basetokenAddress).decimals() == 18) {
+            IFixedRateExchange(fixedRate).create(
+                basetokenAddress,
+                msg.sender,
+                fixedRate,
+                owner
+            );
+        } else {
+            IFixedRateExchange(fixedRate).createWithDecimals(
+                basetokenAddress,
+                msg.sender,
+                IERC20(basetokenAddress).decimals(),
+                18,
+                fixedRate,
+                owner
+            );
+        }
     }
 }

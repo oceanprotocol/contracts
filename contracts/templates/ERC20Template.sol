@@ -198,6 +198,7 @@ contract ERC20Template is ERC20("test", "testSymbol"), ERC20Roles {
 
     function deployPool(address controller, address basetokenAddress, uint[] memory ssParams, address basetokenSender, uint[] memory swapFees, address marketFeeCollector) external onlyERC20Deployer {
         // TODO: add publisherAddress in function parameters
+        // TODO: add require to avoid anyone call this function
         require(totalSupply() == 0,'ERC20Template: tokens already minted');
         _addMinter(controller);
 
@@ -213,6 +214,11 @@ contract ERC20Template is ERC20("test", "testSymbol"), ERC20Roles {
         );
 
         emit NewPool(pool,controller,basetokenAddress);
+    }
+
+    function createFixedRate(address basetokenAddress, uint fixedRate, address owner) external {
+         // TODO: add require to avoid anyone call this function
+         IFactoryRouter(router).deployFixedRate(basetokenAddress, fixedRate, owner);
     }
     /**
      * @dev mint
