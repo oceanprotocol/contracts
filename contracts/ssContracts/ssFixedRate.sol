@@ -32,7 +32,7 @@ contract ssFixedRate {
         uint256 lastPrice; //used for creating the pool
         // rate options
         uint256 rate; // rate to exchange DT<->BaseToken
-        bool allowDtSale; //if should allow DT to be swaped for basetoken.  Buying is always accepted
+        // bool allowDtSale; //if should allow DT to be swaped for basetoken.  Buying is always accepted
         // vesting options
         address publisherAddress;
         uint256 blockDeployed; //when this record was created
@@ -92,15 +92,12 @@ contract ssFixedRate {
         
         require(dt.balanceOf(address(this)) == dt.totalSupply(), "Mint failed");
     
-        // check the ssParams
-       // uint256 rate = ssParams[0];
-        IERC20Template bt = IERC20Template(basetokenAddress);
-        uint decimals = bt.decimals();
+
 
        
-        bool allowSell;
-        if (ssParams[1] == 0) allowSell = false;
-        else allowSell = true;
+       // bool allowSell;
+       // if (ssParams[1] == 0) allowSell = false;
+       // else allowSell = true;
        // uint256 vestingAmount = ssParams[2];
         //uint256 vestingEndBlock = block.number+ssParams[3];
         
@@ -111,13 +108,13 @@ contract ssFixedRate {
             basetokenAddress: basetokenAddress,
             poolAddress: poolAddress,
             poolFinalized: false,
-            datatokenBalance: dt.totalSupply(),
+            datatokenBalance: dt.totalSupply()-ssParams[2], // We need to remove the vesting amount from that
             datatokenCap:dt.cap(),
             basetokenBalance: ssParams[4],
             lastPrice: 0,
             //burnInEndBlock: burnInEndBlock,
             rate: ssParams[0],
-            allowDtSale: allowSell,
+            //allowDtSale: allowSell,
             publisherAddress: publisherAddress,
             blockDeployed: block.number,
             vestingEndBlock: block.number+ssParams[3],
@@ -126,7 +123,7 @@ contract ssFixedRate {
             vestingAmountSoFar: 0
         });
 
-        notifyFinalize(datatokenAddress,decimals);
+        notifyFinalize(datatokenAddress,ssParams[1]);
 
         return (true);
     }
@@ -256,15 +253,13 @@ contract ssFixedRate {
     //called by pool to confirm that we can stake a token (add pool liquidty). If true, pool will call Stake function
     function canStake(address datatokenAddress,address stakeToken,uint256 amount) public view returns (bool){
         //TO DO
-        if (_datatokens[datatokenAddress].bound != true) return (false);
         require(msg.sender == _datatokens[datatokenAddress].poolAddress,'ERR: Only pool can call this');
-        
         if (_datatokens[datatokenAddress].bound != true) return (false);
         if (_datatokens[datatokenAddress].basetokenAddress == stakeToken) return (false);
         //check balances
-        IERC20Template dt = IERC20Template(datatokenAddress);
-        uint256 balance = dt.balanceOf(address(this));
-        if (_datatokens[datatokenAddress].datatokenBalance >=amount && balance>= amount) return (true);
+        // IERC20Template dt = IERC20Template(datatokenAddress);
+        // uint256 balance = dt.balanceOf(address(this));
+        if (_datatokens[datatokenAddress].datatokenBalance >= amount) return (true);
         return(false);
     }
     //called by pool so 1ss will stake a token (add pool liquidty). Function only needs to approve the amount to be spent by the pool, pool will do the rest
@@ -451,7 +446,7 @@ contract ssFixedRate {
 
         if (_datatokens[tokenIn].bound == true) {
             //swap datatoken(tokenIn) for basetoken(tokenOut) - spending DT to get Ocean
-            if (_datatokens[tokenIn].allowDtSale == false) return (0); //selling DT is not allowed
+           // if (_datatokens[tokenIn].allowDtSale == false) return (0); //selling DT is not allowed
             //compute how many tokenIn tokens are needed to get tokenOut
             // THIS IS VERY SPECIFIC TO THE ss TYPE (Fixed rate, Bonding, Dutch, etc)
             uint256 tokenAmountIn = tokenAmountOut.mul(BASE).div(_datatokens[tokenIn].rate);
@@ -478,7 +473,7 @@ contract ssFixedRate {
         if (_datatokens[tokenIn].bound == true) {
            
             //swap datatoken(tokenIn) for basetoken(tokenOut) - spending DT to get Ocean
-            if (_datatokens[tokenIn].allowDtSale == false) return (0); //selling DT is not allowed
+            //if (_datatokens[tokenIn].allowDtSale == false) return (0); //selling DT is not allowed
             //compute how many tokenIn tokens are needed to get tokenOut
             // THIS IS VERY SPECIFIC TO THE ss TYPE (Fixed rate, Bonding, Dutch, etc)
             

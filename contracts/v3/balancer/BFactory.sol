@@ -63,7 +63,7 @@ contract BFactory is BConst, Deployer, BaseSplitCodeFactory {
        Template contract address could not be a zero address. 
        @return address of a new proxy BPool contract */
     function newBPool(address controller, 
-        address[2] memory tokens, 
+        address[2] memory tokens,
      //   address basetokenAddress, 
         address publisherAddress, 
         uint256[] memory ssParams,

@@ -41,6 +41,7 @@ describe("Swap Fees", () => {
     signer,
     opfCollector,
     SwapFeesEvent,
+    fixedRateExchange,
     SwapEvent;
   (dtIndex = null),
     (oceanIndex = null),
@@ -64,6 +65,7 @@ describe("Swap Fees", () => {
     const Router = await ethers.getContractFactory("FactoryRouter");
     const SSContract = await ethers.getContractFactory("ssFixedRate");
     const BPool = await ethers.getContractFactory("BPool");
+    
 
     //console.log(await provider.getBlockNumber());
 
@@ -162,7 +164,12 @@ describe("Swap Fees", () => {
     data = web3.utils.asciiToHex("SomeData");
     flags = web3.utils.asciiToHex(constants.blob[0]);
 
+    const FixedRateExchange = await ethers.getContractFactory(
+      "FixedRateExchange"
+    );
 
+
+    fixedRateExchange = await FixedRateExchange.deploy();
 
     // DEPLOY ROUTER, SETTING OWNER
     router = await Router.deploy(
@@ -171,6 +178,7 @@ describe("Swap Fees", () => {
       oceanAddress, // pooltemplate field
       ssFixedRate.address,
       opfCollector.address,
+      fixedRateExchange.address,
       []
     );
 
@@ -269,7 +277,7 @@ describe("Swap Fees", () => {
           oceanAddress,
           [
             web3.utils.toWei("1"), // rate
-            0, // allowSell false , != 0 if true
+            18, // basetokenDecimals
             web3.utils.toWei("200"), // vesting amount
             500, // vested blocks
             initialOceanLiquidity, // baseToken initial pool liquidity
@@ -1103,7 +1111,7 @@ describe("Swap Fees", () => {
           daiAddress,
           [
             web3.utils.toWei("1"), // rate
-            0, // allowSell false , != 0 if true
+            18, // basetokenDecimals
             web3.utils.toWei("200"), // vesting amount
             500, // vested blocks
             initialDAILiquidity, // baseToken initial pool liquidity
@@ -1942,7 +1950,7 @@ describe("Swap Fees", () => {
           usdcAddress,
           [
             web3.utils.toWei("1"), // rate
-            0, // allowSell false , != 0 if true
+            6, // basetokenDecimals
             web3.utils.toWei("200"), // vesting amount
             500, // vested blocks
             initialUSDCLiquidity, // baseToken initial pool liquidity

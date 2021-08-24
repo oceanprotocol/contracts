@@ -65,7 +65,6 @@ contract FactoryRouter is BFactory {
     function deployPool(
         address controller,
         address[2] calldata tokens, // [datatokenAddress, basetokenAddress]
-        //address basetokenAddress,
         address publisherAddress,
         uint256[] calldata ssParams,
         address basetokenSender,
@@ -80,6 +79,7 @@ contract FactoryRouter is BFactory {
             ssContracts[controller] = true,
             "FACTORY ROUTER: invalid ssContract"
         );
+        require(ssParams[1] > 0, 'Wrong decimals');
 
         bool flag;
         address pool;
