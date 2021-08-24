@@ -53,6 +53,9 @@ contract BMath is BConst, BNum {
         uint numer = bdiv(tokenBalanceIn, tokenWeightIn);
         uint denom = bdiv(tokenBalanceOut, tokenWeightOut);
         uint ratio = bdiv(numer, denom);
+        console.log(ratio, 'ratio');
+        console.log(numer, 'numer');
+        console.log(denom, 'denom');
         uint totalFee = _swapFee+_swapMarketFee+_swapOceanFee;
         uint scale = bdiv(BONE, bsub(BONE, totalFee));
         return  (spotPrice = bmul(ratio, scale));
@@ -69,18 +72,19 @@ contract BMath is BConst, BNum {
     // sF = swapFee                                                                              //
     **********************************************************************************************/
     function calcOutGivenInSwap(
-        uint tokenBalanceIn,
-        uint tokenWeightIn,
-        uint tokenBalanceOut,
-        uint tokenWeightOut,
+        uint[4] memory data,
+        // uint tokenBalanceIn,
+        // uint tokenWeightIn,
+        // uint tokenBalanceOut,
+        // uint tokenWeightOut,
         uint tokenAmountIn,
        // uint swapFee
         address tokenInAddress
     )
         internal
-        returns (uint tokenAmountOut)
+        returns (uint tokenAmountOut, uint balanceInToAdd)
     {
-        uint weightRatio = bdiv(tokenWeightIn, tokenWeightOut);
+        uint weightRatio = bdiv(data[1], data[3]);
 
         uint oceanFeeAmount =  bsub(tokenAmountIn, bmul(tokenAmountIn, bsub(BONE, _swapOceanFee)));
 
@@ -99,13 +103,17 @@ contract BMath is BConst, BNum {
 
         uint adjustedIn = bsub(BONE, totalFee);
         adjustedIn = bmul(tokenAmountIn, adjustedIn);
-        uint y = bdiv(tokenBalanceIn, badd(tokenBalanceIn, adjustedIn));
+        uint y = bdiv(data[0], badd(data[0], adjustedIn));
         uint foo = bpow(y, weightRatio);
         uint bar = bsub(BONE, foo);
+        
+        
+       // uint swapFeeAmount  = bsub(tokenAmountIn, bmul(tokenAmountIn, bsub(BONE, _swapFee)));
 
-        tokenAmountOut = bmul(tokenBalanceOut, bar);
 
-        return tokenAmountOut;
+        tokenAmountOut = bmul(data[2], bar);
+
+        return (tokenAmountOut, bsub(data[0],(oceanFeeAmount+marketFeeAmount)));
     }
 
      /**********************************************************************************************
@@ -349,7 +357,7 @@ contract BMath is BConst, BNum {
             tokenBalanceOut, 
             newTokenBalanceOut
         );
-
+        
         // charge swap fee on the output token side 
         //uint tAo = tAoBeforeSwapFee * (1 - (1-weightTo) * swapFee)
         uint zaz = bmul(bsub(BONE, normalizedWeight), _swapFee); 

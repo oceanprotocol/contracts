@@ -302,6 +302,7 @@ contract ssFixedRate {
         //given the price, compute dataTokenAmount
 
         uint dataTokenAmount=_datatokens[datatokenAddress].rate * baseTokenAmount * dataTokenWeight/baseTokenWeight / BASE *(10**(18-decimals));
+        console.log(dataTokenAmount, 'datatokenamount');
         // if(decimals == 18) {
         //     dataTokenAmount=_datatokens[datatokenAddress].rate * (baseTokenAmount/baseTokenWeight) * dataTokenWeight/ BASE;
         //     console.log(dataTokenAmount, 'datatokenamout');
@@ -339,57 +340,57 @@ contract ssFixedRate {
         return(true);
     }
 
-    function swapExactAmountIn(address datatokenAddress,address userAddress,address tokenIn,uint tokenAmountIn,address tokenOut,uint minAmountOut) public returns (uint tokenAmountOut){
-        require(_datatokens[datatokenAddress].bound == true,'ERR:Invalid datatoken');
-        require(msg.sender == _datatokens[datatokenAddress].poolAddress,'ERR: Only pool can call this');
-      // require(isInBurnIn(datatokenAddress) == true,'ERR: Not in burn-in period');
-        tokenAmountOut=calcOutGivenIn(datatokenAddress,tokenIn,tokenOut,tokenAmountIn);
-        require(tokenAmountOut>=minAmountOut,'ERR:minAmountOut not meet'); //revert if minAmountOut is not met
-        //pull tokenIn from the pool (pool will approve)
-        IERC20Template dtIn = IERC20Template(tokenIn);
+    // function swapExactAmountIn(address datatokenAddress,address userAddress,address tokenIn,uint tokenAmountIn,address tokenOut,uint minAmountOut) public returns (uint tokenAmountOut){
+    //     require(_datatokens[datatokenAddress].bound == true,'ERR:Invalid datatoken');
+    //     require(msg.sender == _datatokens[datatokenAddress].poolAddress,'ERR: Only pool can call this');
+    //   // require(isInBurnIn(datatokenAddress) == true,'ERR: Not in burn-in period');
+    //     tokenAmountOut=calcOutGivenIn(datatokenAddress,tokenIn,tokenOut,tokenAmountIn);
+    //     require(tokenAmountOut>=minAmountOut,'ERR:minAmountOut not meet'); //revert if minAmountOut is not met
+    //     //pull tokenIn from the pool (pool will approve)
+    //     IERC20Template dtIn = IERC20Template(tokenIn);
       
        
-        uint balance = dtIn.balanceOf(_datatokens[datatokenAddress].poolAddress);
+    //     uint balance = dtIn.balanceOf(_datatokens[datatokenAddress].poolAddress);
       
-        dtIn.transferFrom(_datatokens[datatokenAddress].poolAddress,address(this), tokenAmountIn);
-        //update our balances
-        if(tokenIn==datatokenAddress){
-            _datatokens[datatokenAddress].basetokenBalance+=tokenAmountOut;
-            _datatokens[datatokenAddress].datatokenBalance+=tokenAmountIn;
-        }
-        else{
-            _datatokens[datatokenAddress].datatokenBalance+=tokenAmountOut;
-            _datatokens[datatokenAddress].basetokenBalance+=tokenAmountIn;
-        }
-        //send tokens to the user  
-        IERC20Template dtOut = IERC20Template(tokenOut);
-        dtOut.transfer(userAddress, tokenAmountOut);
-        return(tokenAmountOut);
-    }
-    function swapExactAmountOut(address datatokenAddress,address userAddress,address tokenIn,uint maxTokenAmountIn,address tokenOut,uint amountOut) public returns (uint tokenAmountIn){
-        require(_datatokens[datatokenAddress].bound == true,'ERR:Invalid datatoken');
-        require(msg.sender == _datatokens[datatokenAddress].poolAddress,'ERR: Only pool can call this');
-      //  require(isInBurnIn(datatokenAddress) == true,'ERR: Not in burn-in period');
-        tokenAmountIn=calcInGivenOut(datatokenAddress,tokenIn,tokenOut,amountOut);
+    //     dtIn.transferFrom(_datatokens[datatokenAddress].poolAddress,address(this), tokenAmountIn);
+    //     //update our balances
+    //     if(tokenIn==datatokenAddress){
+    //         _datatokens[datatokenAddress].basetokenBalance+=tokenAmountOut;
+    //         _datatokens[datatokenAddress].datatokenBalance+=tokenAmountIn;
+    //     }
+    //     else{
+    //         _datatokens[datatokenAddress].datatokenBalance+=tokenAmountOut;
+    //         _datatokens[datatokenAddress].basetokenBalance+=tokenAmountIn;
+    //     }
+    //     //send tokens to the user  
+    //     IERC20Template dtOut = IERC20Template(tokenOut);
+    //     dtOut.transfer(userAddress, tokenAmountOut);
+    //     return(tokenAmountOut);
+    // }
+    // function swapExactAmountOut(address datatokenAddress,address userAddress,address tokenIn,uint maxTokenAmountIn,address tokenOut,uint amountOut) public returns (uint tokenAmountIn){
+    //     require(_datatokens[datatokenAddress].bound == true,'ERR:Invalid datatoken');
+    //     require(msg.sender == _datatokens[datatokenAddress].poolAddress,'ERR: Only pool can call this');
+    //   //  require(isInBurnIn(datatokenAddress) == true,'ERR: Not in burn-in period');
+    //     tokenAmountIn=calcInGivenOut(datatokenAddress,tokenIn,tokenOut,amountOut);
        
-        require(tokenAmountIn<=maxTokenAmountIn,'ERR:maxTokenAmountIn not meet'); //revert if minAmountOut is not met
-        //pull tokenIn from the pool (pool will approve)
-        IERC20Template dtIn = IERC20Template(tokenIn);
-        dtIn.transferFrom(_datatokens[datatokenAddress].poolAddress,address(this), tokenAmountIn);
-        //update our balances
-        if(tokenIn==datatokenAddress){
-            _datatokens[datatokenAddress].basetokenBalance+=amountOut;
-            _datatokens[datatokenAddress].datatokenBalance+=tokenAmountIn;
-        }
-        else{
-            _datatokens[datatokenAddress].datatokenBalance+=amountOut;
-            _datatokens[datatokenAddress].basetokenBalance+=tokenAmountIn;
-        }
-        //send tokens to the user  
-        IERC20Template dtOut = IERC20Template(tokenOut);
-        dtOut.transfer(userAddress, amountOut);
-        return(tokenAmountIn);
-    }
+    //     require(tokenAmountIn<=maxTokenAmountIn,'ERR:maxTokenAmountIn not meet'); //revert if minAmountOut is not met
+    //     //pull tokenIn from the pool (pool will approve)
+    //     IERC20Template dtIn = IERC20Template(tokenIn);
+    //     dtIn.transferFrom(_datatokens[datatokenAddress].poolAddress,address(this), tokenAmountIn);
+    //     //update our balances
+    //     if(tokenIn==datatokenAddress){
+    //         _datatokens[datatokenAddress].basetokenBalance+=amountOut;
+    //         _datatokens[datatokenAddress].datatokenBalance+=tokenAmountIn;
+    //     }
+    //     else{
+    //         _datatokens[datatokenAddress].datatokenBalance+=amountOut;
+    //         _datatokens[datatokenAddress].basetokenBalance+=tokenAmountIn;
+    //     }
+    //     //send tokens to the user  
+    //     IERC20Template dtOut = IERC20Template(tokenOut);
+    //     dtOut.transfer(userAddress, amountOut);
+    //     return(tokenAmountIn);
+    // }
 
     // called by vester to get datatokens
     function getVesting(address datatokenAddress) public{

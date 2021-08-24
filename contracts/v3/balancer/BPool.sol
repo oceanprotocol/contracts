@@ -4,9 +4,10 @@ pragma solidity 0.5.7;
 // Code is Apache-2.0 and docs are CC-BY-4.0
 
 import "./BToken.sol";
-import './BMath.sol';
+import "./BMath.sol";
 import "../../interfaces/IssFixedRate.sol";
 import "hardhat/console.sol";
+
 /**
  * @title BPool
  *
@@ -60,9 +61,7 @@ contract BPool is BMath, BToken {
         bytes data
     );
 
-    event LOG_BPT (
-        uint256 bptAmount
-    );
+    event LOG_BPT(uint256 bptAmount);
 
     // modifier() {
     //     emit LOG_CALL(msg.sig, msg.sender, block.timestamp, msg.data);
@@ -88,11 +87,11 @@ contract BPool is BMath, BToken {
     bool private _publicSwap; // true if PUBLIC can call SWAP functions
     address private _datatokenAddress; //datatoken address
     address private _basetokenAddress; //base token address
-    address public  _marketCollector;
-    address public  _opfCollector;
+    address public _marketCollector;
+    address public _opfCollector;
     // `setSwapFee` and `finalize` require CONTROL
     // `finalize` sets `PUBLIC can SWAP`, `PUBLIC can JOIN`
-   // uint256 private _swapFee;
+    // uint256 private _swapFee;
     bool private _finalized;
 
     address[] private _tokens;
@@ -103,17 +102,14 @@ contract BPool is BMath, BToken {
     //-----------------------------------------------------------------------
     //Proxy contract functionality: begin
     bool private initialized;
-    
 
     function isInitialized() external view returns (bool) {
         return initialized;
     }
 
-
-    
     // Called prior to contract deployment
     // constructor() public {
-       
+
     //     // _initialize(
     //     //     msg.sender,
     //     //     msg.sender,
@@ -168,7 +164,7 @@ contract BPool is BMath, BToken {
         _controller = controller;
         _factory = factory;
         _swapFee = swapFees[0];
-       // console.log(swapFees[0], swapFees[1],swapFees[2], 'swapFees');
+        // console.log(swapFees[0], swapFees[1],swapFees[2], 'swapFees');
         _swapOceanFee = swapFees[1];
         _swapMarketFee = swapFees[2];
         _publicSwap = publicSwap;
@@ -200,7 +196,7 @@ contract BPool is BMath, BToken {
             baseTokenAddress == _basetokenAddress,
             "ERR_INVALID_BASETOKEN_ADDRESS"
         );
-       // console.log('in setup function');
+        // console.log('in setup function');
         // other inputs will be validated prior
         // calling the below functions
         // bind data token
@@ -211,7 +207,7 @@ contract BPool is BMath, BToken {
             dataTokenAmount,
             block.timestamp
         );
-        
+
         // bind base token
         bind(baseTokenAddress, baseTokenAmount, baseTokenWeight);
         emit LOG_JOIN(
@@ -265,28 +261,34 @@ contract BPool is BMath, BToken {
     function collectOPF(address to) external {
         require(_opfCollector == msg.sender, "ONLY OPF");
         address[] memory tokens = getFinalTokens();
-        for (uint i = 0; i < tokens.length; i++){
-             uint amount = communityFees[tokens[i]]-feesCollectedOPF[tokens[i]];
-             feesCollectedOPF[tokens[i]] = feesCollectedOPF[tokens[i]]+amount;
-             IERC20(tokens[i]).transfer(to,amount);
-        }   
+        for (uint256 i = 0; i < tokens.length; i++) {
+            uint256 amount = communityFees[tokens[i]] -
+                feesCollectedOPF[tokens[i]];
+            feesCollectedOPF[tokens[i]] = feesCollectedOPF[tokens[i]] + amount;
+            IERC20(tokens[i]).transfer(to, amount);
+        }
     }
 
     function collectMarketFee(address to) external {
+        console.log("collectMarkte");
         require(_marketCollector == msg.sender, "ONLY MARKET COLLECTOR");
+
         address[] memory tokens = getFinalTokens();
-        for (uint i = 0; i < tokens.length; i++){
-             uint amount = marketFees[tokens[i]]-feesCollectedMarket[tokens[i]];
-             feesCollectedMarket[tokens[i]] = feesCollectedMarket[tokens[i]]+amount;
-             IERC20(tokens[i]).transfer(to,amount);
-        }   
+        for (uint256 i = 0; i < tokens.length; i++) {
+            uint256 amount = marketFees[tokens[i]] -
+                feesCollectedMarket[tokens[i]];
+            feesCollectedMarket[tokens[i]] =
+                feesCollectedMarket[tokens[i]] +
+                amount;
+            IERC20(tokens[i]).transfer(to, amount);
+        }
     }
 
     function updateMarketFeeCollector(address _newCollector) external {
         require(_marketCollector == msg.sender, "ONLY MARKET COLLECTOR");
         _marketCollector = _newCollector;
     }
-    
+
     function getDenormalizedWeight(address token)
         external
         view
@@ -331,11 +333,11 @@ contract BPool is BMath, BToken {
         return _swapFee;
     }
 
-    function getController() external view  returns (address) {
+    function getController() external view returns (address) {
         return _controller;
     }
 
-    function getDataTokenAddress() external view  returns (address) {
+    function getDataTokenAddress() external view returns (address) {
         return _datatokenAddress;
     }
 
@@ -365,8 +367,8 @@ contract BPool is BMath, BToken {
 
     function finalize() internal {
         //require(msg.sender == _controller, "ERR_NOT_CONTROLLER");
-       // require(!_finalized, "ERR_IS_FINALIZED");
-       // require(_tokens.length >= MIN_BOUND_TOKENS, "ERR_MIN_TOKENS");
+        // require(!_finalized, "ERR_IS_FINALIZED");
+        // require(_tokens.length >= MIN_BOUND_TOKENS, "ERR_MIN_TOKENS");
 
         _finalized = true;
         _publicSwap = true;
@@ -379,9 +381,7 @@ contract BPool is BMath, BToken {
         address token,
         uint256 balance,
         uint256 denorm
-    )
-        internal
-    {
+    ) internal {
         require(msg.sender == _controller, "ERR_NOT_CONTROLLER");
         require(!_records[token].bound, "ERR_IS_BOUND");
         require(!_finalized, "ERR_IS_FINALIZED");
@@ -403,8 +403,6 @@ contract BPool is BMath, BToken {
         uint256 balance,
         uint256 denorm
     ) internal {
-        
-
         require(denorm >= MIN_WEIGHT, "ERR_MIN_WEIGHT");
         require(denorm <= MAX_WEIGHT, "ERR_MAX_WEIGHT");
         require(balance >= MIN_BALANCE, "ERR_MIN_BALANCE");
@@ -435,7 +433,6 @@ contract BPool is BMath, BToken {
             );
             _pushUnderlying(token, _factory, tokenExitFee);
         }
-        
     }
 
     // function unbind(address token) external _lock_ {
@@ -513,7 +510,6 @@ contract BPool is BMath, BToken {
 
     function joinPool(uint256 poolAmountOut, uint256[] calldata maxAmountsIn)
         external
-    
         _lock_
     {
         // if(_finalized == false && block.number>_burnInEndBlock){
@@ -560,7 +556,6 @@ contract BPool is BMath, BToken {
 
     function exitPool(uint256 poolAmountIn, uint256[] calldata minAmountsOut)
         external
-    
         _lock_
     {
         // if(_finalized == false && block.number>_burnInEndBlock){
@@ -615,20 +610,12 @@ contract BPool is BMath, BToken {
         address tokenOut,
         uint256 minAmountOut,
         uint256 maxPrice
-    )
-        external
-    
-        _lock_
-      
-        returns (uint256 tokenAmountOut, uint256 spotPriceAfter)
-    {   
-       
-       
+    ) external _lock_ returns (uint256 tokenAmountOut, uint256 spotPriceAfter) {
         require(_finalized, "ERR_NOT_FINALIZED");
-    
+
         require(_records[tokenIn].bound, "ERR_NOT_BOUND");
         require(_records[tokenOut].bound, "ERR_NOT_BOUND");
-       // require(_publicSwap, "ERR_SWAP_NOT_PUBLIC");
+        // require(_publicSwap, "ERR_SWAP_NOT_PUBLIC");
         Record storage inRecord = _records[address(tokenIn)];
         Record storage outRecord = _records[address(tokenOut)];
 
@@ -644,21 +631,24 @@ contract BPool is BMath, BToken {
             outRecord.denorm
             //_swapFee
         );
-       // console.log(spotPriceBefore);
-       // console.log(maxPrice);
+        // console.log(spotPriceBefore);
+        // console.log(maxPrice);
         require(spotPriceBefore <= maxPrice, "ERR_BAD_LIMIT_PRICE");
-
-        tokenAmountOut = calcOutGivenInSwap(
+        uint256 balanceInToAdd;
+        uint256[4] memory data = [
             inRecord.balance,
             inRecord.denorm,
             outRecord.balance,
-            outRecord.denorm,
+            outRecord.denorm
+        ];
+        (tokenAmountOut, balanceInToAdd) = calcOutGivenInSwap(
+            data,
             tokenAmountIn,
             tokenIn
         );
         require(tokenAmountOut >= minAmountOut, "ERR_LIMIT_OUT");
 
-        inRecord.balance = badd(inRecord.balance, tokenAmountIn);
+        inRecord.balance = badd(inRecord.balance, balanceInToAdd);
         outRecord.balance = bsub(outRecord.balance, tokenAmountOut);
 
         spotPriceAfter = calcSpotPrice(
@@ -666,15 +656,17 @@ contract BPool is BMath, BToken {
             inRecord.denorm,
             outRecord.balance,
             outRecord.denorm
-           // _swapFee
+            // _swapFee
         );
-       // console.log('spotPrices',spotPriceAfter,spotPriceBefore);
+        console.log("spotPrices", spotPriceAfter);
+        console.log("spotPrices", spotPriceBefore);
+        console.log("maxPrice", maxPrice);
         require(spotPriceAfter >= spotPriceBefore, "ERR_MATH_APPROX");
         require(spotPriceAfter <= maxPrice, "ERR_LIMIT_PRICE");
-      //  console.log(tokenAmountIn,tokenAmountOut);
-      //  console.log(bdiv(tokenAmountIn, tokenAmountOut));
+        //  console.log(tokenAmountIn,tokenAmountOut);
+        //  console.log(bdiv(tokenAmountIn, tokenAmountOut));
         require(
-            spotPriceBefore <= bdiv(tokenAmountIn, tokenAmountOut),
+            spotPriceBefore <= bdiv(balanceInToAdd, tokenAmountOut),
             "ERR_MATH_APPROX"
         );
 
@@ -686,7 +678,6 @@ contract BPool is BMath, BToken {
             tokenAmountOut,
             block.timestamp
         );
-        
 
         _pullUnderlying(tokenIn, msg.sender, tokenAmountIn);
         _pushUnderlying(tokenOut, msg.sender, tokenAmountOut);
@@ -700,14 +691,7 @@ contract BPool is BMath, BToken {
         address tokenOut,
         uint256 tokenAmountOut,
         uint256 maxPrice
-    )
-        external
-    
-        _lock_
-        returns (uint256 tokenAmountIn, uint256 spotPriceAfter)
-    {
-      
-       
+    ) external _lock_ returns (uint256 tokenAmountIn, uint256 spotPriceAfter) {
         require(_finalized, "ERR_NOT_FINALIZED");
         require(_records[tokenIn].bound, "ERR_NOT_BOUND");
         require(_records[tokenOut].bound, "ERR_NOT_BOUND");
@@ -730,8 +714,13 @@ contract BPool is BMath, BToken {
 
         require(spotPriceBefore <= maxPrice, "ERR_BAD_LIMIT_PRICE");
 
-        uint balanceToAdd; // this is the amount we are going to register in balances (only takes account of swapFee, not OPF and market fee, in order to not affect price during following swaps, fee wtihdrawl etc)
-        uint[4] memory data = [inRecord.balance,inRecord.denorm,outRecord.balance,outRecord.denorm];
+        uint256 balanceToAdd; // this is the amount we are going to register in balances (only takes account of swapFee, not OPF and market fee, in order to not affect price during following swaps, fee wtihdrawl etc)
+        uint256[4] memory data = [
+            inRecord.balance,
+            inRecord.denorm,
+            outRecord.balance,
+            outRecord.denorm
+        ];
 
         (tokenAmountIn, balanceToAdd) = calcInGivenOutSwap(
             data,
@@ -748,7 +737,7 @@ contract BPool is BMath, BToken {
             inRecord.denorm,
             outRecord.balance,
             outRecord.denorm
-           // _swapFee
+            // _swapFee
         );
         require(spotPriceAfter >= spotPriceBefore, "ERR_MATH_APPROX");
         require(spotPriceAfter <= maxPrice, "ERR_LIMIT_PRICE");
@@ -777,7 +766,6 @@ contract BPool is BMath, BToken {
         uint256 tokenAmountIn,
         uint256 minPoolAmountOut
     ) external _lock_ returns (uint256 poolAmountOut) {
-        
         // if(_finalized == false && block.number>_burnInEndBlock){
         //         //notify 1SS to setup the pool first
         //         ssContract.notifyFinalize(_datatokenAddress);
@@ -790,11 +778,11 @@ contract BPool is BMath, BToken {
         );
         //ask ssContract
         bool allowed;
-        Record storage ssInRecord=_records[_datatokenAddress];
+        Record storage ssInRecord = _records[_datatokenAddress];
         address ssStakeToken;
-        
-        if (tokenIn == _datatokenAddress){
-            ssStakeToken= _basetokenAddress;
+
+        if (tokenIn == _datatokenAddress) {
+            ssStakeToken = _basetokenAddress;
             // allowed = ssContract.allowStake(
             //     _datatokenAddress,
             //     _basetokenAddress,
@@ -802,10 +790,9 @@ contract BPool is BMath, BToken {
             //     0,
             //     msg.sender
             // );
-        }
-        else{
+        } else {
             ssInRecord = _records[_basetokenAddress];
-            ssStakeToken= _datatokenAddress;
+            ssStakeToken = _datatokenAddress;
             // allowed = ssContract.allowStake(
             //     _datatokenAddress,
             //     _basetokenAddress,
@@ -824,7 +811,7 @@ contract BPool is BMath, BToken {
             _totalSupply,
             _totalWeight,
             tokenAmountIn
-           // _swapFee
+            // _swapFee
         );
 
         require(poolAmountOut >= minPoolAmountOut, "ERR_LIMIT_OUT");
@@ -835,13 +822,13 @@ contract BPool is BMath, BToken {
         emit LOG_BPT(poolAmountOut);
         _mintPoolShare(poolAmountOut);
         _pushPoolShare(msg.sender, poolAmountOut);
-        
+
         _pullUnderlying(tokenIn, msg.sender, tokenAmountIn);
-        
+
         //ask the ssContract to stake as well
         //calculate how much should the 1ss stake
-        
-        uint ssAmountIn=calcSingleInGivenPoolOut(
+
+        uint256 ssAmountIn = calcSingleInGivenPoolOut(
             ssInRecord.balance,
             ssInRecord.denorm,
             _totalSupply,
@@ -849,21 +836,29 @@ contract BPool is BMath, BToken {
             poolAmountOut
             //_swapFee
         );
-       
-        if(ssContract.canStake(_datatokenAddress,ssStakeToken,ssAmountIn)==true){
-                //call 1ss to approve
-                // console.log(ssStakeToken);
-                //console.log(_datatokenAddress);
 
-                ssContract.Stake(_datatokenAddress, ssStakeToken,ssAmountIn);
-                //IERC20(_datatokenAddress).transferFrom(_controller,address(this),ssAmountIn);
-                // follow the same path
-                ssInRecord.balance = badd(ssInRecord.balance, ssAmountIn);
-                emit LOG_JOIN(_controller, ssStakeToken, ssAmountIn, block.timestamp);
-                emit LOG_BPT(poolAmountOut);
-                _mintPoolShare(poolAmountOut);
-                _pushPoolShare(_controller, poolAmountOut);
-                _pullUnderlying(ssStakeToken, _controller, ssAmountIn);
+        if (
+            ssContract.canStake(_datatokenAddress, ssStakeToken, ssAmountIn) ==
+            true
+        ) {
+            //call 1ss to approve
+            // console.log(ssStakeToken);
+            //console.log(_datatokenAddress);
+
+            ssContract.Stake(_datatokenAddress, ssStakeToken, ssAmountIn);
+            //IERC20(_datatokenAddress).transferFrom(_controller,address(this),ssAmountIn);
+            // follow the same path
+            ssInRecord.balance = badd(ssInRecord.balance, ssAmountIn);
+            emit LOG_JOIN(
+                _controller,
+                ssStakeToken,
+                ssAmountIn,
+                block.timestamp
+            );
+            emit LOG_BPT(poolAmountOut);
+            _mintPoolShare(poolAmountOut);
+            _pushPoolShare(_controller, poolAmountOut);
+            _pullUnderlying(ssStakeToken, _controller, ssAmountIn);
         }
         return poolAmountOut;
     }
@@ -879,7 +874,7 @@ contract BPool is BMath, BToken {
         // }
         require(_finalized, "ERR_NOT_FINALIZED");
         require(_records[tokenIn].bound, "ERR_NOT_BOUND");
-        
+
         Record storage inRecord = _records[tokenIn];
 
         tokenAmountIn = calcSingleInGivenPoolOut(
@@ -893,11 +888,11 @@ contract BPool is BMath, BToken {
 
         //ask ssContract
         bool allowed;
-        Record storage ssInRecord=_records[_datatokenAddress];
+        Record storage ssInRecord = _records[_datatokenAddress];
         address ssStakeToken;
-        
-        if (tokenIn == _datatokenAddress){
-            ssStakeToken= _basetokenAddress;
+
+        if (tokenIn == _datatokenAddress) {
+            ssStakeToken = _basetokenAddress;
             // allowed = ssContract.allowStake(
             //     _datatokenAddress,
             //     _basetokenAddress,
@@ -905,10 +900,9 @@ contract BPool is BMath, BToken {
             //     0,
             //     msg.sender
             // );
-        }
-        else{
+        } else {
             ssInRecord = _records[_basetokenAddress];
-            ssStakeToken= _datatokenAddress;
+            ssStakeToken = _datatokenAddress;
             // allowed = ssContract.allowStake(
             //     _datatokenAddress,
             //     _basetokenAddress,
@@ -937,7 +931,7 @@ contract BPool is BMath, BToken {
 
         //ask the ssContract to stake as well
         //calculate how much should the 1ss stake
-        uint ssAmountIn=calcSingleInGivenPoolOut(
+        uint256 ssAmountIn = calcSingleInGivenPoolOut(
             ssInRecord.balance,
             ssInRecord.denorm,
             _totalSupply,
@@ -945,15 +939,23 @@ contract BPool is BMath, BToken {
             poolAmountOut
             //_swapFee
         );
-        if(ssContract.canStake(_datatokenAddress,ssStakeToken,ssAmountIn)==true){
-                //call 1ss to approve
-                ssContract.Stake(_datatokenAddress, ssStakeToken,ssAmountIn);
-                // follow the same path
-                ssInRecord.balance = badd(ssInRecord.balance, ssAmountIn);
-                emit LOG_JOIN(_controller, ssStakeToken, ssAmountIn, block.timestamp);
-                _mintPoolShare(poolAmountOut);
-                _pushPoolShare(_controller, poolAmountOut);
-                _pullUnderlying(ssStakeToken, _controller, ssAmountIn);
+        if (
+            ssContract.canStake(_datatokenAddress, ssStakeToken, ssAmountIn) ==
+            true
+        ) {
+            //call 1ss to approve
+            ssContract.Stake(_datatokenAddress, ssStakeToken, ssAmountIn);
+            // follow the same path
+            ssInRecord.balance = badd(ssInRecord.balance, ssAmountIn);
+            emit LOG_JOIN(
+                _controller,
+                ssStakeToken,
+                ssAmountIn,
+                block.timestamp
+            );
+            _mintPoolShare(poolAmountOut);
+            _pushPoolShare(_controller, poolAmountOut);
+            _pullUnderlying(ssStakeToken, _controller, ssAmountIn);
         }
         return tokenAmountIn;
     }
@@ -969,7 +971,7 @@ contract BPool is BMath, BToken {
         // }
         require(_finalized, "ERR_NOT_FINALIZED");
         require(_records[tokenOut].bound, "ERR_NOT_BOUND");
-        
+
         Record storage outRecord = _records[tokenOut];
 
         tokenAmountOut = calcSingleOutGivenPoolIn(
@@ -978,7 +980,7 @@ contract BPool is BMath, BToken {
             _totalSupply,
             _totalWeight,
             poolAmountIn
-           // _swapFee
+            // _swapFee
         );
 
         require(tokenAmountOut >= minAmountOut, "ERR_LIMIT_OUT");
@@ -988,11 +990,12 @@ contract BPool is BMath, BToken {
             "ERR_MAX_OUT_RATIO"
         );
         //ask ssContract
-       // bool allowed;
+        // bool allowed;
+
         address ssStakeToken;
-        Record storage ssOutRecord=_records[_datatokenAddress];
-        if (tokenOut == _datatokenAddress){
-            ssStakeToken= _basetokenAddress;
+        Record storage ssOutRecord = _records[_datatokenAddress];
+        if (tokenOut == _datatokenAddress) {
+            ssStakeToken = _basetokenAddress;
             // allowed = ssContract.allowUnStake(
             //     _datatokenAddress,
             //     _basetokenAddress,
@@ -1000,10 +1003,9 @@ contract BPool is BMath, BToken {
             //     0,
             //     msg.sender
             // );
-        }
-        else{
-            ssStakeToken= _datatokenAddress;
-            ssOutRecord=_records[_basetokenAddress];
+        } else {
+            ssStakeToken = _datatokenAddress;
+            ssOutRecord = _records[_basetokenAddress];
             // allowed = ssContract.allowUnStake(
             //     _datatokenAddress,
             //     _basetokenAddress,
@@ -1012,7 +1014,7 @@ contract BPool is BMath, BToken {
             //     msg.sender
             // );
         }
-      //  require(allowed == true, "ERR_DENIED_BY_CONTROLLER");
+        //  require(allowed == true, "ERR_DENIED_BY_CONTROLLER");
 
         outRecord.balance = bsub(outRecord.balance, tokenAmountOut);
 
@@ -1020,31 +1022,45 @@ contract BPool is BMath, BToken {
 
         emit LOG_EXIT(msg.sender, tokenOut, tokenAmountOut, block.timestamp);
         emit LOG_BPT(poolAmountIn);
+        console.log("here");
         _pullPoolShare(msg.sender, poolAmountIn);
+
         _burnPoolShare(bsub(poolAmountIn, exitFee));
         _pushPoolShare(_factory, exitFee);
         _pushUnderlying(tokenOut, msg.sender, tokenAmountOut);
-        
+
         //ask the ssContract to unstake as well
         //calculate how much should the 1ss unstake
-        uint ssAmountOut=calcSingleOutGivenPoolIn(
+        uint256 ssAmountOut = calcSingleOutGivenPoolIn(
             ssOutRecord.balance,
             ssOutRecord.denorm,
             _totalSupply,
             _totalWeight,
             poolAmountIn
-           // _swapFee
+            // _swapFee
         );
-        if(ssContract.canUnStake(_datatokenAddress,ssStakeToken,ssAmountOut)==true){
-                ssOutRecord.balance = bsub(ssOutRecord.balance, ssAmountOut);
-                exitFee = bmul(poolAmountIn, EXIT_FEE);
-                emit LOG_EXIT(_controller, ssStakeToken, ssAmountOut, block.timestamp);
-                _pullPoolShare(_controller, poolAmountIn);
-                _burnPoolShare(bsub(poolAmountIn, exitFee));
-                _pushPoolShare(_factory, exitFee);
-                _pushUnderlying(ssStakeToken, _controller,ssAmountOut);
-                //call unstake on 1ss to do cleanup on their side
-                ssContract.UnStake(_datatokenAddress,ssStakeToken,ssAmountOut);
+
+        if (
+            ssContract.canUnStake(
+                _datatokenAddress,
+                ssStakeToken,
+                ssAmountOut
+            ) == true
+        ) {
+            ssOutRecord.balance = bsub(ssOutRecord.balance, ssAmountOut);
+            exitFee = bmul(poolAmountIn, EXIT_FEE);
+            emit LOG_EXIT(
+                _controller,
+                ssStakeToken,
+                ssAmountOut,
+                block.timestamp
+            );
+            _pullPoolShare(_controller, poolAmountIn);
+            _burnPoolShare(bsub(poolAmountIn, exitFee));
+            _pushPoolShare(_factory, exitFee);
+            _pushUnderlying(ssStakeToken, _controller, ssAmountOut);
+            //call unstake on 1ss to do cleanup on their side
+            ssContract.UnStake(_datatokenAddress, ssStakeToken, ssAmountOut);
         }
         return tokenAmountOut;
     }
@@ -1067,9 +1083,9 @@ contract BPool is BMath, BToken {
         //ask ssContract
         bool allowed;
         address ssStakeToken;
-        Record storage ssOutRecord=_records[_datatokenAddress];
-        if (tokenOut == _datatokenAddress){
-            ssStakeToken= _basetokenAddress;
+        Record storage ssOutRecord = _records[_datatokenAddress];
+        if (tokenOut == _datatokenAddress) {
+            ssStakeToken = _basetokenAddress;
             // allowed = ssContract.allowUnStake(
             //     _datatokenAddress,
             //     _basetokenAddress,
@@ -1077,10 +1093,9 @@ contract BPool is BMath, BToken {
             //     0,
             //     msg.sender
             // );
-        }
-        else{
-            ssStakeToken= _datatokenAddress;
-            ssOutRecord=_records[_basetokenAddress];
+        } else {
+            ssStakeToken = _datatokenAddress;
+            ssOutRecord = _records[_basetokenAddress];
             // allowed = ssContract.allowUnStake(
             //     _datatokenAddress,
             //     _basetokenAddress,
@@ -1117,7 +1132,7 @@ contract BPool is BMath, BToken {
 
         //ask the ssContract to unstake as well
         //calculate how much should the 1ss unstake
-        uint ssAmountOut=calcSingleOutGivenPoolIn(
+        uint256 ssAmountOut = calcSingleOutGivenPoolIn(
             ssOutRecord.balance,
             ssOutRecord.denorm,
             _totalSupply,
@@ -1125,16 +1140,27 @@ contract BPool is BMath, BToken {
             poolAmountIn
             //_swapFee
         );
-        if(ssContract.canUnStake(_datatokenAddress,ssStakeToken,ssAmountOut)==true){
-                ssOutRecord.balance = bsub(ssOutRecord.balance, ssAmountOut);
-                exitFee = bmul(poolAmountIn, EXIT_FEE);
-                emit LOG_EXIT(_controller, ssStakeToken, ssAmountOut, block.timestamp);
-                _pullPoolShare(_controller, poolAmountIn);
-                _burnPoolShare(bsub(poolAmountIn, exitFee));
-                _pushPoolShare(_factory, exitFee);
-                _pushUnderlying(ssStakeToken, _controller,ssAmountOut);
-                //call unstake on 1ss to do cleanup on their side
-                ssContract.UnStake(_datatokenAddress,ssStakeToken,ssAmountOut);
+        if (
+            ssContract.canUnStake(
+                _datatokenAddress,
+                ssStakeToken,
+                ssAmountOut
+            ) == true
+        ) {
+            ssOutRecord.balance = bsub(ssOutRecord.balance, ssAmountOut);
+            exitFee = bmul(poolAmountIn, EXIT_FEE);
+            emit LOG_EXIT(
+                _controller,
+                ssStakeToken,
+                ssAmountOut,
+                block.timestamp
+            );
+            _pullPoolShare(_controller, poolAmountIn);
+            _burnPoolShare(bsub(poolAmountIn, exitFee));
+            _pushPoolShare(_factory, exitFee);
+            _pushUnderlying(ssStakeToken, _controller, ssAmountOut);
+            //call unstake on 1ss to do cleanup on their side
+            ssContract.UnStake(_datatokenAddress, ssStakeToken, ssAmountOut);
         }
         return poolAmountIn;
     }
@@ -1148,12 +1174,11 @@ contract BPool is BMath, BToken {
         address from,
         uint256 amount
     ) internal {
-       // console.log(IERC20(erc20).balanceOf(from), 'antes');
+        // console.log(IERC20(erc20).balanceOf(from), 'antes');
         bool xfer = IERC20(erc20).transferFrom(from, address(this), amount);
-      //   console.log(IERC20(erc20).balanceOf(from),'despues');
-       
+        //   console.log(IERC20(erc20).balanceOf(from),'despues');
+
         require(xfer, "ERR_ERC20_FALSE");
-         
     }
 
     function _pushUnderlying(
@@ -1180,16 +1205,4 @@ contract BPool is BMath, BToken {
     function _burnPoolShare(uint256 amount) internal {
         _burn(amount);
     }
-
- 
-
- 
-
-   
-
-   
-
-  
-
-    
 }
