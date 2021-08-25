@@ -52,7 +52,8 @@ describe("FixedRateExchange", () => {
           mockDT18.address,
           await mockBase6.decimals(),
           await mockDT18.decimals(),
-          rate
+          rate,
+          exchangeOwner.address
         )
       ).wait(); // from exchangeOwner (alice)
 
@@ -153,7 +154,8 @@ describe("FixedRateExchange", () => {
           mockDT6.address,
           await mockBase18.decimals(),
           await mockDT6.decimals(),
-          rate
+          rate,
+          exchangeOwner.address
         )
       ).wait(); // from exchangeOwner (alice)
 
@@ -249,7 +251,8 @@ describe("FixedRateExchange", () => {
           mockDT6.address,
           mockBase6.decimals(),
           mockDT6.decimals(),
-          rate
+          rate,
+          exchangeOwner.address
         )
       ).wait(); // from exchangeOwner (alice)
 
@@ -344,7 +347,8 @@ describe("FixedRateExchange", () => {
           mockDT18.address,
           await mockBase18.decimals(),
           await mockDT18.decimals(),
-          rate
+          rate,
+          exchangeOwner.address
         )
       ).wait(); // from exchangeOwner (alice)
 
@@ -437,7 +441,8 @@ describe("FixedRateExchange", () => {
         await fixedRateExchange.create(
           mockBase18.address,
           mockDT18.address,
-          rate
+          rate,
+          exchangeOwner.address
         )
       ).wait(); // from exchangeOwner (alice)
 
@@ -536,7 +541,8 @@ describe("FixedRateExchange", () => {
           mockDT18.address,
           await mockBase18.decimals(),
           await mockDT18.decimals(),
-          rate
+          rate,
+          exchangeOwner.address
         )
       ).wait(); // from exchangeOwner (alice)
 
@@ -638,7 +644,8 @@ describe("FixedRateExchange", () => {
           mockDT6.address,
           await mockBase18.decimals(),
           await mockDT6.decimals(),
-          rate
+          rate,
+          exchangeOwner.address
         )
       ).wait(); // from exchangeOwner (alice)
 
@@ -736,7 +743,8 @@ describe("FixedRateExchange", () => {
           mockDT18.address,
           await mockBase6.decimals(),
           await mockDT18.decimals(),
-          rate
+          rate,
+          exchangeOwner.address
         )
       ).wait(); // from exchangeOwner (alice)
 
@@ -832,7 +840,8 @@ describe("FixedRateExchange", () => {
           mockDT18.address,
           await mockBase6.decimals(),
           await mockDT18.decimals(),
-          rate
+          rate,
+          exchangeOwner.address
         )
       ).wait(); // from exchangeOwner (alice)
 

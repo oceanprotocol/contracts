@@ -25,6 +25,8 @@ contract FixedRateExchange {
         uint256 fixedRate;
         uint8 dtDecimals;
         uint8 btDecimals;
+        uint256 dtBalance;
+        uint256 btBalance;
     }
 
     // maps an exchangeId to an exchange
@@ -76,7 +78,8 @@ contract FixedRateExchange {
         bytes32 indexed exchangeId,
         address indexed by,
         uint256 baseTokenSwappedAmount,
-        uint256 dataTokenSwappedAmount
+        uint256 dataTokenSwappedAmount,
+        address tokenOutAddress
     );
 
     /**
@@ -109,11 +112,7 @@ contract FixedRateExchange {
             fixedRate != 0,
             "FixedRateExchange: Invalid exchange rate value"
         );
-        bytes32 exchangeId = generateExchangeId(
-            baseToken,
-            dataToken,
-            owner
-        );
+        bytes32 exchangeId = generateExchangeId(baseToken, dataToken, owner);
         require(
             exchanges[exchangeId].fixedRate == 0,
             "FixedRateExchange: Exchange already exists!"
@@ -125,7 +124,9 @@ contract FixedRateExchange {
             baseToken: baseToken,
             fixedRate: fixedRate,
             dtDecimals: 18,
-            btDecimals: 18
+            btDecimals: 18,
+            dtBalance: 0,
+            btBalance: 0
         });
 
         exchangeIds.push(exchangeId);
@@ -173,11 +174,7 @@ contract FixedRateExchange {
             fixedRate != 0,
             "FixedRateExchange: Invalid exchange rate value"
         );
-        bytes32 exchangeId = generateExchangeId(
-            baseToken,
-            dataToken,
-            owner
-        );
+        bytes32 exchangeId = generateExchangeId(baseToken, dataToken, owner);
         require(
             exchanges[exchangeId].fixedRate == 0,
             "FixedRateExchange: Exchange already exists!"
@@ -189,7 +186,9 @@ contract FixedRateExchange {
             baseToken: baseToken,
             fixedRate: fixedRate,
             dtDecimals: _dtDecimals,
-            btDecimals: _btDecimals
+            btDecimals: _btDecimals,
+            dtBalance: 0,
+            btBalance: 0
         });
 
         exchangeIds.push(exchangeId);
@@ -226,17 +225,38 @@ contract FixedRateExchange {
      * @param exchangeId a unique exchange idnetifier
      * @param dataTokenAmount the amount of data tokens to be exchanged
      */
-    function CalcInGivenOut(bytes32 exchangeId, uint256 dataTokenAmount)
+    function CalcBaseInGivenOutDT(bytes32 exchangeId, uint256 dataTokenAmount)
         public
         view
         onlyActiveExchange(exchangeId)
         returns (uint256 baseTokenAmount)
     {
         baseTokenAmount = dataTokenAmount
-        .mul(exchanges[exchangeId].fixedRate)
-        .div(BASE)
-        .mul(10**exchanges[exchangeId].btDecimals)
-        .div(10**exchanges[exchangeId].dtDecimals);
+            .mul(exchanges[exchangeId].fixedRate)
+            .div(BASE)
+            .mul(10**exchanges[exchangeId].btDecimals)
+            .div(10**exchanges[exchangeId].dtDecimals);
+
+        //console.log(baseTokenAmount, "baseAmount solidity");
+    }
+
+    /**
+     * @dev CalcInGivenOut
+     *      Calculates how many basetokens are needed to get specifyed amount of datatokens
+     * @param exchangeId a unique exchange idnetifier
+     * @param dataTokenAmount the amount of data tokens to be exchanged
+     */
+    function CalcBaseOutGivenInDT(bytes32 exchangeId, uint256 dataTokenAmount)
+        public
+        view
+        onlyActiveExchange(exchangeId)
+        returns (uint256 baseTokenAmount)
+    {
+        baseTokenAmount = dataTokenAmount
+            .mul(BASE)
+            .div(exchanges[exchangeId].fixedRate)
+            .mul(10**exchanges[exchangeId].btDecimals)
+            .div(10**exchanges[exchangeId].dtDecimals);
 
         //console.log(baseTokenAmount, "baseAmount solidity");
     }
@@ -247,7 +267,7 @@ contract FixedRateExchange {
      * @param exchangeId a unique exchange idnetifier
      * @param dataTokenAmount the amount of data tokens to be exchanged
      */
-    function swap(bytes32 exchangeId, uint256 dataTokenAmount)
+    function buyDT(bytes32 exchangeId, uint256 dataTokenAmount)
         external
         onlyActiveExchange(exchangeId)
     {
@@ -255,25 +275,101 @@ contract FixedRateExchange {
             dataTokenAmount != 0,
             "FixedRateExchange: zero data token amount"
         );
-        uint256 baseTokenAmount = CalcInGivenOut(exchangeId, dataTokenAmount);
+        uint256 baseTokenAmount = CalcBaseInGivenOutDT(
+            exchangeId,
+            dataTokenAmount
+        );
         require(
             IERC20Template(exchanges[exchangeId].baseToken).transferFrom(
                 msg.sender,
-                exchanges[exchangeId].exchangeOwner,
+                address(this), // we send ocean to this address, then exchange owner can withdraw
                 baseTokenAmount
             ),
             "FixedRateExchange: transferFrom failed in the baseToken contract"
         );
+
+        exchanges[exchangeId].btBalance = (exchanges[exchangeId].btBalance).add(
+            baseTokenAmount
+        );
+
+        if (dataTokenAmount > exchanges[exchangeId].dtBalance) {
+            require(
+                IERC20Template(exchanges[exchangeId].dataToken).transferFrom(
+                    exchanges[exchangeId].exchangeOwner,
+                    msg.sender,
+                    dataTokenAmount
+                ),
+                "FixedRateExchange: transferFrom failed in the dataToken contract"
+            );
+        } else {
+            exchanges[exchangeId].dtBalance = (exchanges[exchangeId].dtBalance)
+                .sub(dataTokenAmount);
+            IERC20Template(exchanges[exchangeId].dataToken).transfer(
+                msg.sender,
+                dataTokenAmount
+            );
+        }
+
+        emit Swapped(
+            exchangeId,
+            msg.sender,
+            baseTokenAmount,
+            dataTokenAmount,
+            exchanges[exchangeId].dataToken
+        );
+    }
+
+    /**
+     * @dev swap
+     *      atomic swap between two registered fixed rate exchange.
+     * @param exchangeId a unique exchange idnetifier
+     * @param dataTokenAmount the amount of data tokens to be exchanged
+     */
+    function sellDT(bytes32 exchangeId, uint256 dataTokenAmount)
+        external
+        onlyActiveExchange(exchangeId)
+    {
+        require(
+            dataTokenAmount != 0,
+            "FixedRateExchange: zero data token amount"
+        );
+        uint256 baseTokenAmount = CalcBaseOutGivenInDT(
+            exchangeId,
+            dataTokenAmount
+        );
+
         require(
             IERC20Template(exchanges[exchangeId].dataToken).transferFrom(
-                exchanges[exchangeId].exchangeOwner,
                 msg.sender,
+                address(this),
                 dataTokenAmount
             ),
             "FixedRateExchange: transferFrom failed in the dataToken contract"
         );
 
-        emit Swapped(exchangeId, msg.sender, baseTokenAmount, dataTokenAmount);
+        exchanges[exchangeId].dtBalance = (exchanges[exchangeId].dtBalance).add(
+            dataTokenAmount
+        );
+
+        if (baseTokenAmount > exchanges[exchangeId].btBalance) {
+            require(
+                IERC20Template(exchanges[exchangeId].baseToken).transferFrom(
+                    exchanges[exchangeId].exchangeOwner,
+                    msg.sender,
+                    baseTokenAmount
+                ),
+                "FixedRateExchange: transferFrom failed in the baseToken contract"
+            );
+        } else {
+            exchanges[exchangeId].btBalance = (exchanges[exchangeId].btBalance)
+                .sub(baseTokenAmount);
+            IERC20Template(exchanges[exchangeId].baseToken).transfer(
+                msg.sender,
+                baseTokenAmount
+            );
+        }
+
+        emit Swapped(exchangeId, msg.sender, baseTokenAmount, dataTokenAmount, exchanges[exchangeId].baseToken);
     }
 
     /**
@@ -336,7 +432,7 @@ contract FixedRateExchange {
      * @param  exchangeId the exchange ID
      * @return supply
      */
-    function getSupply(bytes32 exchangeId)
+    function getDTSupply(bytes32 exchangeId)
         public
         view
         returns (uint256 supply)
@@ -344,11 +440,34 @@ contract FixedRateExchange {
         if (exchanges[exchangeId].active == false) supply = 0;
         else {
             uint256 balance = IERC20Template(exchanges[exchangeId].dataToken)
-            .balanceOf(exchanges[exchangeId].exchangeOwner);
+                .balanceOf(exchanges[exchangeId].exchangeOwner);
             uint256 allowance = IERC20Template(exchanges[exchangeId].dataToken)
-            .allowance(exchanges[exchangeId].exchangeOwner, address(this));
-            if (balance < allowance) supply = balance;
-            else supply = allowance;
+                .allowance(exchanges[exchangeId].exchangeOwner, address(this));
+            if (balance < allowance) supply = balance.add(exchanges[exchangeId].dtBalance);
+            else supply = allowance.add(exchanges[exchangeId].dtBalance);
+        }
+    }
+
+    /**
+     * @dev getSupply
+     *      gets the current supply of datatokens in an fixed
+     *      rate exchagne
+     * @param  exchangeId the exchange ID
+     * @return supply
+     */
+    function getBTSupply(bytes32 exchangeId)
+        public
+        view
+        returns (uint256 supply)
+    {
+        if (exchanges[exchangeId].active == false) supply = 0;
+        else {
+            uint256 balance = IERC20Template(exchanges[exchangeId].baseToken)
+                .balanceOf(exchanges[exchangeId].exchangeOwner);
+            uint256 allowance = IERC20Template(exchanges[exchangeId].baseToken)
+                .allowance(exchanges[exchangeId].exchangeOwner, address(this));
+            if (balance < allowance) supply = balance.add(exchanges[exchangeId].btBalance);
+            else supply = allowance.add(exchanges[exchangeId].btBalance);
         }
     }
 
@@ -372,7 +491,8 @@ contract FixedRateExchange {
             uint8 btDecimals,
             uint256 fixedRate,
             bool active,
-            uint256 supply
+            uint256 dtSupply,
+            uint256 btSupply
         )
     {
         Exchange memory exchange = exchanges[exchangeId];
@@ -383,7 +503,8 @@ contract FixedRateExchange {
         btDecimals = exchange.btDecimals;
         fixedRate = exchange.fixedRate;
         active = exchange.active;
-        supply = getSupply(exchangeId);
+        dtSupply = getDTSupply(exchangeId);
+        btSupply = getBTSupply(exchangeId);
     }
 
     /**
