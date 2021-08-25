@@ -14,6 +14,9 @@ import "hardhat/console.sol";
  *      exchanging datatokens with ocean token using a fixed
  *      exchange rate.
  */
+
+ // TODO: add routerAddress in constructor so that exchange creation is forced to go thorgh the router
+
 contract FixedRateExchange {
     using SafeMath for uint256;
     uint256 private constant BASE = 10**18;
@@ -80,6 +83,12 @@ contract FixedRateExchange {
         uint256 baseTokenSwappedAmount,
         uint256 dataTokenSwappedAmount,
         address tokenOutAddress
+    );
+
+    event BaseTokenCollected(
+        bytes32 indexed exchangeId,
+        address indexed to,
+        uint256 amount
     );
 
     /**
@@ -225,7 +234,7 @@ contract FixedRateExchange {
      * @param exchangeId a unique exchange idnetifier
      * @param dataTokenAmount the amount of data tokens to be exchanged
      */
-    function CalcBaseInGivenOutDT(bytes32 exchangeId, uint256 dataTokenAmount)
+    function calcBaseInGivenOutDT(bytes32 exchangeId, uint256 dataTokenAmount)
         public
         view
         onlyActiveExchange(exchangeId)
@@ -246,7 +255,7 @@ contract FixedRateExchange {
      * @param exchangeId a unique exchange idnetifier
      * @param dataTokenAmount the amount of data tokens to be exchanged
      */
-    function CalcBaseOutGivenInDT(bytes32 exchangeId, uint256 dataTokenAmount)
+    function calcBaseOutGivenInDT(bytes32 exchangeId, uint256 dataTokenAmount)
         public
         view
         onlyActiveExchange(exchangeId)
@@ -275,14 +284,14 @@ contract FixedRateExchange {
             dataTokenAmount != 0,
             "FixedRateExchange: zero data token amount"
         );
-        uint256 baseTokenAmount = CalcBaseInGivenOutDT(
+        uint256 baseTokenAmount = calcBaseInGivenOutDT(
             exchangeId,
             dataTokenAmount
         );
         require(
             IERC20Template(exchanges[exchangeId].baseToken).transferFrom(
                 msg.sender,
-                address(this), // we send ocean to this address, then exchange owner can withdraw
+                address(this), // we send basetoken to this address, then exchange owner can withdraw
                 baseTokenAmount
             ),
             "FixedRateExchange: transferFrom failed in the baseToken contract"
@@ -333,7 +342,7 @@ contract FixedRateExchange {
             dataTokenAmount != 0,
             "FixedRateExchange: zero data token amount"
         );
-        uint256 baseTokenAmount = CalcBaseOutGivenInDT(
+        uint256 baseTokenAmount = calcBaseOutGivenInDT(
             exchangeId,
             dataTokenAmount
         );
@@ -371,6 +380,21 @@ contract FixedRateExchange {
 
         emit Swapped(exchangeId, msg.sender, baseTokenAmount, dataTokenAmount, exchanges[exchangeId].baseToken);
     }
+
+
+    function collectBT(bytes32 exchangeId) onlyExchangeOwner(exchangeId) external {
+            uint amount = exchanges[exchangeId].btBalance;
+            exchanges[exchangeId].btBalance = 0;
+            IERC20Template(exchanges[exchangeId].baseToken).transfer(exchanges[exchangeId].exchangeOwner, amount);
+            emit BaseTokenCollected(exchangeId, exchanges[exchangeId].exchangeOwner, amount);
+    }
+
+    function collectDT(bytes32 exchangeId) onlyExchangeOwner(exchangeId) external {
+            uint amount = exchanges[exchangeId].dtBalance;
+            exchanges[exchangeId].dtBalance = 0;
+            IERC20Template(exchanges[exchangeId].dataToken).transfer(exchanges[exchangeId].exchangeOwner, amount);
+    }
+
 
     /**
      * @dev getNumberOfExchanges
@@ -492,7 +516,9 @@ contract FixedRateExchange {
             uint256 fixedRate,
             bool active,
             uint256 dtSupply,
-            uint256 btSupply
+            uint256 btSupply,
+            uint256 dtBalance,
+            uint256 btBalance
         )
     {
         Exchange memory exchange = exchanges[exchangeId];
@@ -505,6 +531,8 @@ contract FixedRateExchange {
         active = exchange.active;
         dtSupply = getDTSupply(exchangeId);
         btSupply = getBTSupply(exchangeId);
+        dtBalance = exchange.dtBalance;
+        btBalance = exchange.btBalance;
     }
 
     /**
