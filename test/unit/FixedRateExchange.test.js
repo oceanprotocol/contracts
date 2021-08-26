@@ -270,6 +270,7 @@ describe("FixedRateExchange", () => {
         eventsExchange[0].args.exchangeId
       );
       
+      expect(exchangeDetailsBefore.btBalance).to.equal(2000*1e6)
     
       const btAliceBeforeSwap = await mockBase6.balanceOf(alice.address);
       expect(btAliceBeforeSwap).to.equal(0) // Alice(owner) has no BT 
@@ -284,7 +285,191 @@ describe("FixedRateExchange", () => {
       const Event = receipt.events.filter((e) => e.event === "BaseTokenCollected");
       
       expect(Event[0].args.amount).to.equal(btAliceBeforeSwap.add(await mockBase6.balanceOf(alice.address)))
-     
+      
+      const exchangeDetailsAfter = await fixedRateExchange.getExchange(
+        eventsExchange[0].args.exchangeId
+      );
+
+      // we withdraw all btBalance
+      expect(exchangeDetailsAfter.btBalance).to.equal(0)
+    });
+
+    it("#12 - Bob buys back all DT left (80%%) of DataTokens available", async () => {
+      
+      const exchangeDetailsBefore = await fixedRateExchange.getExchange(
+        eventsExchange[0].args.exchangeId
+      );
+      
+      const dtBobBalanceBeforeSwap = await mockDT18.balanceOf(bob.address);
+      const btAliceBeforeSwap = await mockBase6.balanceOf(alice.address);
+      expect(dtBobBalanceBeforeSwap).to.equal(web3.utils.toWei('2000')) // BOB HAS 20% of initial DT available
+      expect(btAliceBeforeSwap).to.equal(2000*1e6) // Alice(owner) has already withdrew her BT (#11)
+
+      // BOB is going to buy20% of  all DT availables
+      amountDT = web3.utils.toWei('8000')
+      const receipt = await (
+        await fixedRateExchange
+          .connect(bob)
+          .buyDT(eventsExchange[0].args.exchangeId, amountDT)
+      ).wait();
+
+      // console.log(receipt)
+      const SwappedEvent = receipt.events.filter((e) => e.event === "Swapped");
+
+      // we check that proper amount is being swapped (rate=1)
+      expect(
+        (SwappedEvent[0].args.baseTokenSwappedAmount).mul(1e12)).to.equal(SwappedEvent[0].args.dataTokenSwappedAmount)
+    
+      // BOB's DTbalance has increased 
+      const dtBobBalanceAfterSwap = await mockDT18.balanceOf(bob.address);
+      expect(dtBobBalanceAfterSwap).to.equal((SwappedEvent[0].args.dataTokenSwappedAmount).add(dtBobBalanceBeforeSwap))
+      
+      // ALICE's BT balance hasn't increasead. 
+       expect(await mockBase6.balanceOf(alice.address)).to.equal(btAliceBeforeSwap)
+      
+       // BT are into the FixedRate contract. 
+       const exchangeDetailsAfter = await fixedRateExchange.getExchange(
+        eventsExchange[0].args.exchangeId
+      );
+
+      expect(exchangeDetailsAfter.btSupply).to.equal(SwappedEvent[0].args.baseTokenSwappedAmount);
+      
+      // Bob bought 20% of  DT on sale so now dtSupply decreased
+      expect(exchangeDetailsAfter.dtSupply).to.equal((exchangeDetailsBefore.dtSupply).sub(SwappedEvent[0].args.dataTokenSwappedAmount));
+
+      // we also check BT balances were accounted properly
+      expect(exchangeDetailsAfter.btBalance).to.equal((exchangeDetailsBefore.btBalance).add(SwappedEvent[0].args.baseTokenSwappedAmount))
+
+      // this time DT are on the contract so the balance is updated properly
+      expect(exchangeDetailsAfter.dtBalance).to.equal((exchangeDetailsBefore.dtBalance).sub(SwappedEvent[0].args.dataTokenSwappedAmount))
+    });
+
+    it("#13 - Bob attermps to buy more DT but fails, then alice approves more and he succeeds", async () => {
+      
+      const exchangeDetailsBefore = await fixedRateExchange.getExchange(
+        eventsExchange[0].args.exchangeId
+      );
+      
+      const dtBobBalanceBeforeSwap = await mockDT18.balanceOf(bob.address);
+      const btAliceBeforeSwap = await mockBase6.balanceOf(alice.address);
+      expect(dtBobBalanceBeforeSwap).to.equal( amountDTtoSell) // BOB HAS 100% of initial DT available
+      expect(btAliceBeforeSwap).to.equal(2000*1e6) // Alice(owner) has already withdrew her BT (#11)
+
+      // BOB is going to buy more DT but fails because alice hasn't approved more
+      amountDT = web3.utils.toWei('8000')
+      
+      expect(exchangeDetailsBefore.dtSupply).to.equal(0);
+
+      await expectRevert(fixedRateExchange
+        .connect(bob)
+        .buyDT(eventsExchange[0].args.exchangeId, amountDT),"ERC20: transfer amount exceeds allowance");
+      
+      // now alice approves more DT (8000)
+
+      await mockDT18.approve(fixedRateExchange.address, amountDT) 
+      
+      expect((await fixedRateExchange.getExchange(
+        eventsExchange[0].args.exchangeId
+      )).dtSupply).to.equal(amountDT)
+
+      // Now bob can buy 
+      const receipt = await (
+        await fixedRateExchange
+          .connect(bob)
+          .buyDT(eventsExchange[0].args.exchangeId, amountDT)
+      ).wait();
+
+      // console.log(receipt)
+      const SwappedEvent = receipt.events.filter((e) => e.event === "Swapped");
+
+      // we check that proper amount is being swapped (rate=1)
+      expect(
+        (SwappedEvent[0].args.baseTokenSwappedAmount).mul(1e12)).to.equal(SwappedEvent[0].args.dataTokenSwappedAmount)
+    
+      // BOB's DTbalance has increased 
+      const dtBobBalanceAfterSwap = await mockDT18.balanceOf(bob.address);
+      expect(dtBobBalanceAfterSwap).to.equal((SwappedEvent[0].args.dataTokenSwappedAmount).add(dtBobBalanceBeforeSwap))
+      
+      // ALICE's BT balance hasn't increasead. 
+       expect(await mockBase6.balanceOf(alice.address)).to.equal(btAliceBeforeSwap)
+      
+       // BT are into the FixedRate contract. 
+       const exchangeDetailsAfter = await fixedRateExchange.getExchange(
+        eventsExchange[0].args.exchangeId
+      );
+
+      expect(exchangeDetailsAfter.btSupply).to.equal(exchangeDetailsBefore.btSupply.add(SwappedEvent[0].args.baseTokenSwappedAmount));
+      
+      // Bob bought again all DT on sale so now dtSupply is 0
+      expect(exchangeDetailsAfter.dtSupply).to.equal(0);
+
+      // we also check BT balances were accounted properly
+      expect(exchangeDetailsAfter.btBalance).to.equal((exchangeDetailsBefore.btBalance).add(SwappedEvent[0].args.baseTokenSwappedAmount))
+
+      // no DT are available in internal balance
+      expect(exchangeDetailsAfter.dtBalance).to.equal(0)
+
+    });
+
+    it("#14 - Bob sells again some of his DataTokens", async () => {
+        const exchangeDetailsBefore = await fixedRateExchange.getExchange(
+          eventsExchange[0].args.exchangeId
+        );
+      
+      
+      const dtBobBalanceBeforeSwap = await mockDT18.balanceOf(bob.address);
+      const btBobBalanceBeforeSwap = await mockBase6.balanceOf(bob.address);
+      const btAliceBeforeSwap = await mockBase6.balanceOf(alice.address);
+      const dtAliceBeforeSwap = await mockDT18.balanceOf(alice.address);
+      expect(btAliceBeforeSwap).to.equal(2000*1e6) // Alice(owner) has no BT 
+      
+      amountDT = web3.utils.toWei('2000')
+      // BOB approves FixedRate to move his DTs
+      await mockDT18.connect(bob).approve(fixedRateExchange.address, amountDT )
+
+      // BOB is going to sell all DTs available
+      
+      const receipt = await (
+        await fixedRateExchange
+          .connect(bob)
+          .sellDT(eventsExchange[0].args.exchangeId, amountDT)
+      ).wait();
+
+      // console.log(receipt)
+      const SwappedEvent = receipt.events.filter((e) => e.event === "Swapped");
+
+      // we check that proper amount is being swapped (rate=1)
+      expect(
+        (SwappedEvent[0].args.baseTokenSwappedAmount).mul(1e12)).to.equal(SwappedEvent[0].args.dataTokenSwappedAmount)
+    
+      // BOB's DTbalance is zero, and BT increased as expected
+      expect(await mockDT18.balanceOf(bob.address)).to.equal(dtBobBalanceBeforeSwap.sub(SwappedEvent[0].args.dataTokenSwappedAmount))
+      expect(await mockBase6.balanceOf(bob.address)).to.equal(btBobBalanceBeforeSwap.add(SwappedEvent[0].args.baseTokenSwappedAmount))
+      
+       // BT are into the FixedRate contract. 
+       const exchangeDetails = await fixedRateExchange.getExchange(
+        eventsExchange[0].args.exchangeId
+      );
+
+      // Less BT token are available
+      expect(exchangeDetails.btSupply).to.equal(exchangeDetailsBefore.btSupply.sub(SwappedEvent[0].args.baseTokenSwappedAmount));
+      
+      // Bob sold some of his DTs so now dtSupply increased
+      expect(exchangeDetails.dtSupply).to.equal(exchangeDetailsBefore.dtSupply.add(SwappedEvent[0].args.dataTokenSwappedAmount));
+
+      // we also check DT and BT balances were accounted properly
+      // BT doesn't go to Alice but stays in the fixedRate
+      expect(exchangeDetails.btBalance).to.equal(exchangeDetailsBefore.btBalance.sub(SwappedEvent[0].args.baseTokenSwappedAmount))
+
+      //now the DT are into the FixedRate and not on alice 
+      expect(exchangeDetails.dtBalance).to.equal(exchangeDetailsBefore.dtBalance.add(SwappedEvent[0].args.dataTokenSwappedAmount))
+      
+      // ALICE's BT balance hasn't decreased
+      expect(await mockBase6.balanceOf(alice.address)).to.equal(btAliceBeforeSwap)
+
+      // ALICE's DT balance hasn't increased  
+      expect(await mockDT18.balanceOf(alice.address)).to.equal(dtAliceBeforeSwap)
+
     });
 
 
