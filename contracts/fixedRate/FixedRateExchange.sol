@@ -15,11 +15,15 @@ import "hardhat/console.sol";
  *      exchange rate.
  */
 
- // TODO: add routerAddress in constructor so that exchange creation is forced to go thorgh the router
+// TODO: add routerAddress in constructor so that exchange creation is forced to go thorgh the router
 
 contract FixedRateExchange {
     using SafeMath for uint256;
     uint256 private constant BASE = 10**18;
+
+    address public router;
+    address public opfCollector;
+
     struct Exchange {
         bool active;
         address exchangeOwner;
@@ -30,6 +34,11 @@ contract FixedRateExchange {
         uint8 btDecimals;
         uint256 dtBalance;
         uint256 btBalance;
+        uint256 marketFee;
+        address marketFeeCollector;
+        uint256 opfFee;
+        uint256 marketFeeCollected;
+        uint256 oceanFeeCollected;
     }
 
     // maps an exchangeId to an exchange
@@ -50,6 +59,11 @@ contract FixedRateExchange {
             exchanges[exchangeId].exchangeOwner == msg.sender,
             "FixedRateExchange: invalid exchange owner"
         );
+        _;
+    }
+
+    modifier onlyRouter {
+        require(msg.sender == router,'only router');
         _;
     }
 
@@ -91,6 +105,13 @@ contract FixedRateExchange {
         uint256 amount
     );
 
+    constructor(address _router, address _opfCollector) {
+        require(_router != address(0), "Wrong Router address");
+        require(_opfCollector != address(0), "Wrong Router address");
+        router = _router;
+        opfCollector = _opfCollector;
+    }
+
     /**
      * @dev create
      *      creates new exchange pairs between base token
@@ -103,8 +124,11 @@ contract FixedRateExchange {
         address baseToken,
         address dataToken,
         uint256 fixedRate,
-        address owner
-    ) external {
+        address owner,
+        uint256 marketFee,
+        address marketFeeCollector,
+        uint256 opfFee
+    ) external onlyRouter returns(bytes32 exchangeId){
         require(
             baseToken != address(0),
             "FixedRateExchange: Invalid basetoken,  zero address"
@@ -121,11 +145,12 @@ contract FixedRateExchange {
             fixedRate != 0,
             "FixedRateExchange: Invalid exchange rate value"
         );
-        bytes32 exchangeId = generateExchangeId(baseToken, dataToken, owner);
+        exchangeId = generateExchangeId(baseToken, dataToken, owner);
         require(
             exchanges[exchangeId].fixedRate == 0,
             "FixedRateExchange: Exchange already exists!"
         );
+
         exchanges[exchangeId] = Exchange({
             active: true,
             exchangeOwner: owner,
@@ -135,7 +160,13 @@ contract FixedRateExchange {
             dtDecimals: 18,
             btDecimals: 18,
             dtBalance: 0,
-            btBalance: 0
+            btBalance: 0,
+            marketFee: marketFee,
+            marketFeeCollector: marketFeeCollector,
+            opfFee: opfFee,
+            marketFeeCollected: 0,
+            oceanFeeCollected: 0
+
         });
 
         exchangeIds.push(exchangeId);
@@ -165,8 +196,11 @@ contract FixedRateExchange {
         uint8 _btDecimals,
         uint8 _dtDecimals,
         uint256 fixedRate,
-        address owner
-    ) external {
+        address owner,
+        uint256 marketFee,
+        address marketFeeCollector,
+        uint256 opfFee
+    ) external onlyRouter returns(bytes32 exchangeId) {
         require(
             baseToken != address(0),
             "FixedRateExchange: Invalid basetoken,  zero address"
@@ -183,7 +217,7 @@ contract FixedRateExchange {
             fixedRate != 0,
             "FixedRateExchange: Invalid exchange rate value"
         );
-        bytes32 exchangeId = generateExchangeId(baseToken, dataToken, owner);
+        exchangeId = generateExchangeId(baseToken, dataToken, owner);
         require(
             exchanges[exchangeId].fixedRate == 0,
             "FixedRateExchange: Exchange already exists!"
@@ -197,7 +231,12 @@ contract FixedRateExchange {
             dtDecimals: _dtDecimals,
             btDecimals: _btDecimals,
             dtBalance: 0,
-            btBalance: 0
+            btBalance: 0,
+            marketFee: marketFee,
+            marketFeeCollector: marketFeeCollector,
+            opfFee: opfFee,
+            marketFeeCollected: 0,
+            oceanFeeCollected: 0
         });
 
         exchangeIds.push(exchangeId);
@@ -238,15 +277,18 @@ contract FixedRateExchange {
         public
         view
         onlyActiveExchange(exchangeId)
-        returns (uint256 baseTokenAmount)
+        returns (uint256 baseTokenAmountBeforeFee)
     {
-        baseTokenAmount = dataTokenAmount
+        baseTokenAmountBeforeFee = dataTokenAmount
             .mul(exchanges[exchangeId].fixedRate)
             .div(BASE)
             .mul(10**exchanges[exchangeId].btDecimals)
             .div(10**exchanges[exchangeId].dtDecimals);
-
-        //console.log(baseTokenAmount, "baseAmount solidity");
+       // uint marketFeeAmount = baseTokenAmount.mul(exchanges[exchangeId].marketFee).div(BASE);
+       // console.log(marketFeeAmount, 'marketFeeAmount');
+       // baseTokenAmount = baseTokenAmountBeforeFee.add(marketFeeAmount);
+      //  console.log(baseTokenAmount);
+       
     }
 
     /**
@@ -378,23 +420,43 @@ contract FixedRateExchange {
             );
         }
 
-        emit Swapped(exchangeId, msg.sender, baseTokenAmount, dataTokenAmount, exchanges[exchangeId].baseToken);
+        emit Swapped(
+            exchangeId,
+            msg.sender,
+            baseTokenAmount,
+            dataTokenAmount,
+            exchanges[exchangeId].baseToken
+        );
     }
 
-
-    function collectBT(bytes32 exchangeId) onlyExchangeOwner(exchangeId) external {
-            uint amount = exchanges[exchangeId].btBalance;
-            exchanges[exchangeId].btBalance = 0;
-            IERC20Template(exchanges[exchangeId].baseToken).transfer(exchanges[exchangeId].exchangeOwner, amount);
-            emit BaseTokenCollected(exchangeId, exchanges[exchangeId].exchangeOwner, amount);
+    function collectBT(bytes32 exchangeId)
+        external
+        onlyExchangeOwner(exchangeId)
+    {
+        uint256 amount = exchanges[exchangeId].btBalance;
+        exchanges[exchangeId].btBalance = 0;
+        IERC20Template(exchanges[exchangeId].baseToken).transfer(
+            exchanges[exchangeId].exchangeOwner,
+            amount
+        );
+        emit BaseTokenCollected(
+            exchangeId,
+            exchanges[exchangeId].exchangeOwner,
+            amount
+        );
     }
 
-    function collectDT(bytes32 exchangeId) onlyExchangeOwner(exchangeId) external {
-            uint amount = exchanges[exchangeId].dtBalance;
-            exchanges[exchangeId].dtBalance = 0;
-            IERC20Template(exchanges[exchangeId].dataToken).transfer(exchanges[exchangeId].exchangeOwner, amount);
+    function collectDT(bytes32 exchangeId)
+        external
+        onlyExchangeOwner(exchangeId)
+    {
+        uint256 amount = exchanges[exchangeId].dtBalance;
+        exchanges[exchangeId].dtBalance = 0;
+        IERC20Template(exchanges[exchangeId].dataToken).transfer(
+            exchanges[exchangeId].exchangeOwner,
+            amount
+        );
     }
-
 
     /**
      * @dev getNumberOfExchanges
@@ -467,7 +529,8 @@ contract FixedRateExchange {
                 .balanceOf(exchanges[exchangeId].exchangeOwner);
             uint256 allowance = IERC20Template(exchanges[exchangeId].dataToken)
                 .allowance(exchanges[exchangeId].exchangeOwner, address(this));
-            if (balance < allowance) supply = balance.add(exchanges[exchangeId].dtBalance);
+            if (balance < allowance)
+                supply = balance.add(exchanges[exchangeId].dtBalance);
             else supply = allowance.add(exchanges[exchangeId].dtBalance);
         }
     }
@@ -490,7 +553,8 @@ contract FixedRateExchange {
                 .balanceOf(exchanges[exchangeId].exchangeOwner);
             uint256 allowance = IERC20Template(exchanges[exchangeId].baseToken)
                 .allowance(exchanges[exchangeId].exchangeOwner, address(this));
-            if (balance < allowance) supply = balance.add(exchanges[exchangeId].btBalance);
+            if (balance < allowance)
+                supply = balance.add(exchanges[exchangeId].btBalance);
             else supply = allowance.add(exchanges[exchangeId].btBalance);
         }
     }

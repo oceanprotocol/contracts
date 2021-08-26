@@ -13,6 +13,7 @@ contract FactoryRouter is BFactory {
     address public routerOwner;
     address public erc20Factory;
     address public fixedRate;
+    address public opfCollector;
 
     uint256 public constant swapOceanFee = 1e15;
     mapping(address => bool) public oceanTokens;
@@ -33,14 +34,13 @@ contract FactoryRouter is BFactory {
         address _bpoolTemplate,
         address _ssContract,
         address _opfCollector,
-        address _fixedRate,
         address[] memory _preCreatedPools
     ) public BFactory(_bpoolTemplate, _opfCollector, _preCreatedPools) {
         routerOwner = _routerOwner;
-
+        opfCollector = _opfCollector;
         // erc20Factory = _erc20Factory;
         ssContracts[_ssContract] = true;
-        fixedRate = _fixedRate;
+        //fixedRate = _fixedRate;
         addOceanToken(_oceanToken);
     }
 
@@ -57,6 +57,10 @@ contract FactoryRouter is BFactory {
     function addERC20Factory(address _erc20Factory) external onlyRouterOwner {
         require(erc20Factory == address(0), "FACTORY ALREADY SET");
         erc20Factory = _erc20Factory;
+    }
+
+    function addFixedRateContract(address _fixedRate) external onlyRouterOwner {
+        fixedRate = _fixedRate;
     }
 
     /**
@@ -133,30 +137,52 @@ contract FactoryRouter is BFactory {
 
     function deployFixedRate(
         address basetokenAddress,
-        uint256 fixedRate,
-        address owner
-    ) external {
+        uint8 basetokenDecimals,
+        uint256 rate,
+        address owner,
+        uint256 marketFee,
+        address marketFeeCollector
+    ) external returns(bytes32 exchangeId) {
         require(
             IERC20Factory(erc20Factory).erc20List(msg.sender) == true,
             "FACTORY ROUTER: NOT ORIGINAL ERC20 TEMPLATE"
         );
 
-        if (IERC20(basetokenAddress).decimals() == 18) {
-            IFixedRateExchange(fixedRate).create(
+        bool flag;
+        uint256 opfFee;
+
+        if (oceanTokens[basetokenAddress] == true) {
+            flag = true;
+            opfFee = swapOceanFee;
+        } 
+        
+        // TODO: remove decimals(), this could cause this function to break if the basetoken doesn't implement this optional function, 
+        // it's safer to pass basetoken decimals
+        // in this case we could use only 1 function (createWithDecimals and remove create() on FixedRateExchange)
+
+        // if (IERC20(basetokenAddress).decimals() == 18) {
+        //     exchangeId = IFixedRateExchange(fixedRate).create(
+        //         basetokenAddress,
+        //         msg.sender,
+        //         fixedRate,
+        //         owner,
+        //         marketFee,
+        //         marketFeeCollector,
+        //         opfFee
+        //     );
+        // } else {
+            console.log('fixedRate',fixedRate);
+            exchangeId = IFixedRateExchange(fixedRate).createWithDecimals(
                 basetokenAddress,
                 msg.sender,
-                fixedRate,
-                owner
-            );
-        } else {
-            IFixedRateExchange(fixedRate).createWithDecimals(
-                basetokenAddress,
-                msg.sender,
-                IERC20(basetokenAddress).decimals(),
+                basetokenDecimals,
                 18,
-                fixedRate,
-                owner
+                rate,
+                owner,
+                marketFee,
+                marketFeeCollector,
+                opfFee
             );
-        }
+        //}
     }
 }

@@ -5,8 +5,11 @@ interface IFixedRateExchange {
         address baseToken,
         address dataToken,
         uint256 fixedRate,
-        address owner
-    ) external;
+        address owner,
+        uint256 marketFee,
+        address marketFeeCollector,
+        uint256 opfFee
+    ) external returns(bytes32 exchangeId);
 
     function createWithDecimals(
         address baseToken,
@@ -14,6 +17,9 @@ interface IFixedRateExchange {
         uint8 _btDecimals,
         uint8 _dtDecimals,
         uint256 fixedRate,
-        address owner
-    ) external;
+        address owner,
+        uint256 marketFee,
+        address marketFeeCollector,
+        uint256 opfFee
+    ) external returns(bytes32 exchangeId);
 }

@@ -12,6 +12,7 @@ import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "@openzeppelin/contracts/utils/math/SafeMath.sol";
 import "../utils/ERC20Roles.sol";
 import "hardhat/console.sol";
+
 /**
  * @title DataTokenTemplate
  *
@@ -70,7 +71,13 @@ contract ERC20Template is ERC20("test", "testSymbol"), ERC20Roles {
 
     event MinterApproved(address currentMinter, address newMinter);
 
-    event NewPool(address poolAddress, address ssContract, address basetokenAddress);
+    event NewPool(
+        address poolAddress,
+        address ssContract,
+        address basetokenAddress
+    );
+
+    event NewFixedRate (bytes32 exchangeId, address owner, address basetoken);
 
     modifier onlyNotInitialized() {
         require(
@@ -99,7 +106,6 @@ contract ERC20Template is ERC20("test", "testSymbol"), ERC20Roles {
         _;
     }
 
-  
     /**
      * @dev initialize
      *      Called prior contract initialization (e.g creating new DataToken instance)
@@ -190,19 +196,23 @@ contract ERC20Template is ERC20("test", "testSymbol"), ERC20Roles {
             )
         );
 
-       
-
         return initialized;
     }
 
-
-    function deployPool(address controller, address basetokenAddress, uint[] memory ssParams, address basetokenSender, uint[] memory swapFees, address marketFeeCollector) external onlyERC20Deployer {
+    function deployPool(
+        address controller,
+        address basetokenAddress,
+        uint256[] memory ssParams,
+        address basetokenSender,
+        uint256[] memory swapFees,
+        address marketFeeCollector
+    ) external onlyERC20Deployer {
         // TODO: add publisherAddress in function parameters
         // TODO: add require to avoid anyone call this function
-        require(totalSupply() == 0,'ERC20Template: tokens already minted');
+        require(totalSupply() == 0, "ERC20Template: tokens already minted");
         _addMinter(controller);
 
-        address[2] memory tokens = [address(this),basetokenAddress];
+        address[2] memory tokens = [address(this), basetokenAddress];
         address pool = IFactoryRouter(router).deployPool(
             controller,
             tokens,
@@ -213,13 +223,30 @@ contract ERC20Template is ERC20("test", "testSymbol"), ERC20Roles {
             marketFeeCollector
         );
 
-        emit NewPool(pool,controller,basetokenAddress);
+        emit NewPool(pool, controller, basetokenAddress);
     }
 
-    function createFixedRate(address basetokenAddress, uint fixedRate, address owner) external {
-         // TODO: add require to avoid anyone call this function
-         IFactoryRouter(router).deployFixedRate(basetokenAddress, fixedRate, owner);
+    function createFixedRate(
+        address basetokenAddress,
+        uint8 basetokenDecimals,
+        uint256 fixedRate,
+        address owner,
+        uint256 marketFee,
+        address marketFeeCollector
+    ) external onlyERC20Deployer returns(bytes32 exchangeId) {
+        // TODO: add require to avoid anyone call this function
+        exchangeId = IFactoryRouter(router).deployFixedRate(
+            basetokenAddress,
+            basetokenDecimals,
+            fixedRate,
+            owner,
+            marketFee,
+            marketFeeCollector
+        );
+
+        emit NewFixedRate(exchangeId, owner, basetokenAddress);
     }
+
     /**
      * @dev mint
      *      Only the minter address can call it.
@@ -443,7 +470,10 @@ contract ERC20Template is ERC20("test", "testSymbol"), ERC20Roles {
     }
 
     function setFeeCollector(address _newFeeCollector) external {
-        require(permissions[msg.sender].feeManager == true, "ERC20Template: NOT FEE MANAGER");
+        require(
+            permissions[msg.sender].feeManager == true,
+            "ERC20Template: NOT FEE MANAGER"
+        );
         feeCollector = _newFeeCollector;
     }
 

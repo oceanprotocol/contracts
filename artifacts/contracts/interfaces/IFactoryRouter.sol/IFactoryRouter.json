@@ -11,6 +11,11 @@
           "type": "address"
         },
         {
+          "internalType": "uint8",
+          "name": "basetokenDecimals",
+          "type": "uint8"
+        },
+        {
           "internalType": "uint256",
           "name": "fixedRate",
           "type": "uint256"
@@ -19,10 +24,26 @@
           "internalType": "address",
           "name": "owner",
           "type": "address"
+        },
+        {
+          "internalType": "uint256",
+          "name": "marketFee",
+          "type": "uint256"
+        },
+        {
+          "internalType": "address",
+          "name": "marketFeeCollector",
+          "type": "address"
         }
       ],
       "name": "deployFixedRate",
-      "outputs": [],
+      "outputs": [
+        {
+          "internalType": "bytes32",
+          "name": "exchangeId",
+          "type": "bytes32"
+        }
+      ],
       "stateMutability": "nonpayable",
       "type": "function"
     },
