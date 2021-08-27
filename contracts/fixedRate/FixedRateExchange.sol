@@ -341,8 +341,8 @@ contract FixedRateExchange {
         )
     {
         baseTokenAmountBeforeFee = dataTokenAmount
-            .mul(BASE)
-            .div(exchanges[exchangeId].fixedRate)
+            .mul(exchanges[exchangeId].fixedRate)
+            .div(BASE)
             .mul(10**exchanges[exchangeId].btDecimals)
             .div(10**exchanges[exchangeId].dtDecimals);
 
