@@ -15,7 +15,7 @@ import "hardhat/console.sol";
  *      exchange rate.
  */
 
-// TODO: add routerAddress in constructor so that exchange creation is forced to go thorgh the router
+
 
 contract FixedRateExchange {
     using SafeMath for uint256;
@@ -303,7 +303,7 @@ contract FixedRateExchange {
             .mul(10**exchanges[exchangeId].btDecimals)
             .div(10**exchanges[exchangeId].dtDecimals);
 
-        // TODO: fee accounting is working, now remove baseTokenAmountBeforeFee and update test
+      
         oceanFeeAmount;
         if (exchanges[exchangeId].opfFee != 0) {
             oceanFeeAmount = baseTokenAmountBeforeFee
@@ -346,7 +346,7 @@ contract FixedRateExchange {
             .mul(10**exchanges[exchangeId].btDecimals)
             .div(10**exchanges[exchangeId].dtDecimals);
 
-        // TODO: fee accounting is working, now remove baseTokenAmountBeforeFee and update test
+       
         oceanFeeAmount;
         if (exchanges[exchangeId].opfFee != 0) {
             oceanFeeAmount = baseTokenAmountBeforeFee
@@ -546,7 +546,7 @@ contract FixedRateExchange {
     }
 
     function collectMarketFee(bytes32 exchangeId) external {
-        // TODO:ADD EVENT! should we limit access to this function?
+        // TODO: should we limit access to this function?
         uint256 amount = exchanges[exchangeId].marketFeeAvailable;
         exchanges[exchangeId].marketFeeAvailable = 0;
         IERC20Template(exchanges[exchangeId].baseToken).transfer(
@@ -561,7 +561,7 @@ contract FixedRateExchange {
     }
 
     function collectOceanFee(bytes32 exchangeId) external {
-        // TODO:ADD EVENT! should we limit access to this function?
+        // TODO:should we limit access to this function?
         uint256 amount = exchanges[exchangeId].oceanFeeAvailable;
         exchanges[exchangeId].oceanFeeAvailable = 0;
         IERC20Template(exchanges[exchangeId].baseToken).transfer(

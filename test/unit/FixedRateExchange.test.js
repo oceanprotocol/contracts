@@ -71,6 +71,7 @@ describe("FixedRateExchange", () => {
       user5,
       user6,
       marketFeeCollector,
+      newMarketFeeCollector,
       opfCollector,
     ] = await ethers.getSigners();
 
@@ -910,7 +911,7 @@ describe("FixedRateExchange", () => {
 
       // oceanFeeAmount is always zero in this pool
       expect(args.oceanFeeAmount).to.equal(0)
-      
+
       // we check that proper amount is being swapped (rate=1)
       expect(
         args.baseTokenSwappedAmount.sub(args.oceanFeeAmount).sub(args.marketFeeAmount)).to.equal(args.dataTokenSwappedAmount)
@@ -1026,7 +1027,41 @@ describe("FixedRateExchange", () => {
       expect(exchangeDetailsAfter.dtBalance).to.equal((exchangeDetailsBefore.dtBalance).sub(SwappedEvent[0].args.dataTokenSwappedAmount))
     });
 
-    it("#13 - Bob attermps to buy more DT but fails, then alice approves more and he succeeds", async () => {
+    it("#13 - MarketFeeCollector withdraws fees available on the FixedRate contract", async () => {
+      const feeInfo = await fixedRateExchange.getFeesInfo(
+        eventsExchange[0].args.exchangeId
+      );
+      
+      expect(feeInfo.oceanFeeAvailable).to.equal(0)
+
+      assert(feeInfo.marketFeeAvailable > 0);
+        
+      // marketFeeCollector balance (in Ocean is zero)
+      const btMFCBeforeSwap = await oceanContract.balanceOf(marketFeeCollector.address);
+      
+      expect(btMFCBeforeSwap).to.equal(0)
+     
+      const receipt = await (await fixedRateExchange
+          .collectMarketFee(eventsExchange[0].args.exchangeId)).wait()
+      
+
+     
+      const Event = receipt.events.filter((e) => e.event === "MarketFeeCollected");
+      
+      // balance in ocean was transferred
+      expect(await oceanContract.balanceOf(marketFeeCollector.address)).to.equal(btMFCBeforeSwap.add(Event[0].args.feeAmount))
+        
+      expect(Event[0].args.feeToken).to.equal(oceanContract.address)
+      
+      const feeInfoAfter = await fixedRateExchange.getFeesInfo(
+        eventsExchange[0].args.exchangeId
+      );
+
+      // fee were reset
+      expect(feeInfoAfter.marketFeeAvailable).to.equal(0)
+    });
+
+    it("#14 - Bob attermps to buy more DT but fails, then alice approves more and he succeeds", async () => {
       
       const exchangeDetailsBefore = await fixedRateExchange.getExchange(
         eventsExchange[0].args.exchangeId
@@ -1094,7 +1129,7 @@ describe("FixedRateExchange", () => {
 
     });
 
-    it("#14 - Bob sells again some of his DataTokens", async () => {
+    it("#15 - Bob sells again some of his DataTokens", async () => {
         const exchangeDetailsBefore = await fixedRateExchange.getExchange(
           eventsExchange[0].args.exchangeId
         );
@@ -1153,6 +1188,49 @@ describe("FixedRateExchange", () => {
       // ALICE's DT balance hasn't increased  
       expect(await mockDT18.balanceOf(alice.address)).to.equal(dtAliceBeforeSwap)
 
+    });
+
+    it("#16 - MarketFeeCollector updates new address then withdraws fees available on the FixedRate contract", async () => {
+      
+       // only market collector can update the address
+
+      await expectRevert(fixedRateExchange.updateMarketFeeCollector(eventsExchange[0].args.exchangeId, newMarketFeeCollector.address),'not marketFeeCollector')
+    
+
+      await fixedRateExchange.connect(marketFeeCollector).updateMarketFeeCollector(eventsExchange[0].args.exchangeId,newMarketFeeCollector.address)
+
+      const feeInfo = await fixedRateExchange.getFeesInfo(
+        eventsExchange[0].args.exchangeId
+      );
+      
+      expect(feeInfo.oceanFeeAvailable).to.equal(0)
+
+      assert(feeInfo.marketFeeAvailable > 0);
+
+      expect(feeInfo.marketFeeCollector).to.equal(newMarketFeeCollector.address)
+
+      const btMFCBeforeSwap = await oceanContract.balanceOf(newMarketFeeCollector.address);
+      
+      expect(btMFCBeforeSwap).to.equal(0)
+     
+      const receipt = await (await fixedRateExchange
+          .collectMarketFee(eventsExchange[0].args.exchangeId)).wait()
+      
+
+     
+      const Event = receipt.events.filter((e) => e.event === "MarketFeeCollected");
+     
+      // balance in ocean was transferred
+      expect(await oceanContract.balanceOf(newMarketFeeCollector.address)).to.equal(btMFCBeforeSwap.add(Event[0].args.feeAmount))
+
+      expect(Event[0].args.feeToken).to.equal(oceanContract.address)
+      
+      const feeInfoAfter = await fixedRateExchange.getFeesInfo(
+        eventsExchange[0].args.exchangeId
+      );
+
+      // fee were reset
+      expect(feeInfoAfter.marketFeeAvailable).to.equal(0)
     });
 
 
