@@ -148,11 +148,9 @@ contract FactoryRouter is BFactory {
             "FACTORY ROUTER: NOT ORIGINAL ERC20 TEMPLATE"
         );
 
-        bool flag;
         uint256 opfFee;
 
-        if (oceanTokens[basetokenAddress] == true) {
-            flag = true;
+        if (oceanTokens[basetokenAddress] != true) {
             opfFee = swapOceanFee;
         } 
         
@@ -171,7 +169,7 @@ contract FactoryRouter is BFactory {
         //         opfFee
         //     );
         // } else {
-            console.log('fixedRate',fixedRate);
+            //console.log('fixedRate',fixedRate);
             exchangeId = IFixedRateExchange(fixedRate).createWithDecimals(
                 basetokenAddress,
                 msg.sender,

@@ -37,8 +37,8 @@ contract FixedRateExchange {
         uint256 marketFee;
         address marketFeeCollector;
         uint256 opfFee;
-        uint256 marketFeeCollected;
-        uint256 oceanFeeCollected;
+        uint256 marketFeeAvailable;
+        uint256 oceanFeeAvailable;
     }
 
     // maps an exchangeId to an exchange
@@ -164,8 +164,8 @@ contract FixedRateExchange {
             marketFee: marketFee,
             marketFeeCollector: marketFeeCollector,
             opfFee: opfFee,
-            marketFeeCollected: 0,
-            oceanFeeCollected: 0
+            marketFeeAvailable: 0,
+            oceanFeeAvailable: 0
 
         });
 
@@ -235,8 +235,8 @@ contract FixedRateExchange {
             marketFee: marketFee,
             marketFeeCollector: marketFeeCollector,
             opfFee: opfFee,
-            marketFeeCollected: 0,
-            oceanFeeCollected: 0
+            marketFeeAvailable: 0,
+            oceanFeeAvailable: 0
         });
 
         exchangeIds.push(exchangeId);
@@ -277,17 +277,27 @@ contract FixedRateExchange {
         public
         view
         onlyActiveExchange(exchangeId)
-        returns (uint256 baseTokenAmountBeforeFee)
+        returns (uint256 baseTokenAmountBeforeFee, uint oceanFeeAmount, uint marketFeeAmount)
     {
         baseTokenAmountBeforeFee = dataTokenAmount
             .mul(exchanges[exchangeId].fixedRate)
             .div(BASE)
             .mul(10**exchanges[exchangeId].btDecimals)
             .div(10**exchanges[exchangeId].dtDecimals);
-       // uint marketFeeAmount = baseTokenAmount.mul(exchanges[exchangeId].marketFee).div(BASE);
-       // console.log(marketFeeAmount, 'marketFeeAmount');
-       // baseTokenAmount = baseTokenAmountBeforeFee.add(marketFeeAmount);
-      //  console.log(baseTokenAmount);
+        
+        // TODO: fee accounting is working, now remove baseTokenAmountBeforeFee and update test
+        oceanFeeAmount; 
+        if (exchanges[exchangeId].opfFee != 0) {
+            oceanFeeAmount = baseTokenAmountBeforeFee.mul(exchanges[exchangeId].opfFee).div(BASE);
+            
+        } 
+        console.log(oceanFeeAmount);
+        marketFeeAmount = baseTokenAmountBeforeFee.mul(exchanges[exchangeId].marketFee).div(BASE);
+        
+        console.log(marketFeeAmount, 'marketFeeAmount');
+        uint baseTokenAmount = baseTokenAmountBeforeFee.add(marketFeeAmount).add(oceanFeeAmount);
+        console.log(baseTokenAmount);
+        console.log(baseTokenAmountBeforeFee);
        
     }
 
@@ -301,14 +311,27 @@ contract FixedRateExchange {
         public
         view
         onlyActiveExchange(exchangeId)
-        returns (uint256 baseTokenAmount)
+        returns (uint256 baseTokenAmountBeforeFee, uint oceanFeeAmount, uint marketFeeAmount)
     {
-        baseTokenAmount = dataTokenAmount
+        baseTokenAmountBeforeFee = dataTokenAmount
             .mul(BASE)
             .div(exchanges[exchangeId].fixedRate)
             .mul(10**exchanges[exchangeId].btDecimals)
             .div(10**exchanges[exchangeId].dtDecimals);
 
+         // TODO: fee accounting is working, now remove baseTokenAmountBeforeFee and update test
+        oceanFeeAmount; 
+        if (exchanges[exchangeId].opfFee != 0) {
+            oceanFeeAmount = baseTokenAmountBeforeFee.mul(exchanges[exchangeId].opfFee).div(BASE);
+            
+        } 
+        console.log(oceanFeeAmount);
+        marketFeeAmount = baseTokenAmountBeforeFee.mul(exchanges[exchangeId].marketFee).div(BASE);
+        
+        console.log(marketFeeAmount, 'marketFeeAmount');
+        uint baseTokenAmount = baseTokenAmountBeforeFee.add(marketFeeAmount).add(oceanFeeAmount);
+        console.log(baseTokenAmount);
+        console.log(baseTokenAmountBeforeFee);
         //console.log(baseTokenAmount, "baseAmount solidity");
     }
 
@@ -326,10 +349,14 @@ contract FixedRateExchange {
             dataTokenAmount != 0,
             "FixedRateExchange: zero data token amount"
         );
-        uint256 baseTokenAmount = calcBaseInGivenOutDT(
+        (uint256 baseTokenAmount, uint oceanFeeAmount, uint marketFeeAmount) = calcBaseInGivenOutDT(
             exchangeId,
             dataTokenAmount
         );
+
+       // we account fees , fees are always collected in basetoken
+        exchanges[exchangeId].oceanFeeAvailable = exchanges[exchangeId].oceanFeeAvailable.add(oceanFeeAmount);
+        exchanges[exchangeId].marketFeeAvailable = exchanges[exchangeId].marketFeeAvailable.add(marketFeeAmount);
         require(
             IERC20Template(exchanges[exchangeId].baseToken).transferFrom(
                 msg.sender,
@@ -384,11 +411,14 @@ contract FixedRateExchange {
             dataTokenAmount != 0,
             "FixedRateExchange: zero data token amount"
         );
-        uint256 baseTokenAmount = calcBaseOutGivenInDT(
+         (uint256 baseTokenAmount, uint oceanFeeAmount, uint marketFeeAmount) = calcBaseOutGivenInDT(
             exchangeId,
             dataTokenAmount
         );
 
+        // we account fees , fees are always collected in basetoken
+        exchanges[exchangeId].oceanFeeAvailable = exchanges[exchangeId].oceanFeeAvailable.add(oceanFeeAmount);
+        exchanges[exchangeId].marketFeeAvailable = exchanges[exchangeId].marketFeeAvailable.add(marketFeeAmount);
         require(
             IERC20Template(exchanges[exchangeId].dataToken).transferFrom(
                 msg.sender,
@@ -458,6 +488,36 @@ contract FixedRateExchange {
         );
     }
 
+    function collectMarketFee(bytes32 exchangeId)
+        external
+    {   
+        // TODO:ADD EVENT! should we limit access to this function? 
+        uint256 amount = exchanges[exchangeId].marketFeeAvailable;
+        exchanges[exchangeId].marketFeeAvailable = 0;
+        IERC20Template(exchanges[exchangeId].baseToken).transfer(
+            exchanges[exchangeId].marketFeeCollector,
+            amount
+        );
+    }
+
+     function collectOceanFee(bytes32 exchangeId)
+        external
+    {   
+        // TODO:ADD EVENT! should we limit access to this function? 
+        uint256 amount = exchanges[exchangeId].oceanFeeAvailable;
+        exchanges[exchangeId].oceanFeeAvailable = 0;
+        IERC20Template(exchanges[exchangeId].baseToken).transfer(
+            opfCollector,
+            amount
+        );
+    }
+
+    function updateMarketFeeCollector(bytes32 exchangeId, address _newMarketCollector) external {
+        // TODO:ADD EVENT?? 
+        require(msg.sender == exchanges[exchangeId].marketFeeCollector,'not marketFeeCollector');
+        exchanges[exchangeId].marketFeeCollector = _newMarketCollector;
+    }
+    
     /**
      * @dev getNumberOfExchanges
      *      gets the total number of registered exchanges
