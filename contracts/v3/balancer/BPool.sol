@@ -239,14 +239,14 @@ contract BPool is BMath, BToken {
         return _tokens.length;
     }
 
-    function getCurrentTokens()
-        external
-        view
-        _viewlock_
-        returns (address[] memory tokens)
-    {
-        return _tokens;
-    }
+    // function getCurrentTokens()
+    //     external
+    //     view
+    //     _viewlock_
+    //     returns (address[] memory tokens)
+    // {
+    //     return _tokens;
+    // }
 
     function getFinalTokens()
         public
@@ -262,9 +262,8 @@ contract BPool is BMath, BToken {
         require(_opfCollector == msg.sender, "ONLY OPF");
         address[] memory tokens = getFinalTokens();
         for (uint256 i = 0; i < tokens.length; i++) {
-            uint256 amount = communityFees[tokens[i]] -
-                feesCollectedOPF[tokens[i]];
-            feesCollectedOPF[tokens[i]] = feesCollectedOPF[tokens[i]] + amount;
+            uint256 amount = communityFees[tokens[i]];
+            communityFees[tokens[i]] = 0;
             IERC20(tokens[i]).transfer(to, amount);
         }
     }
@@ -275,11 +274,8 @@ contract BPool is BMath, BToken {
 
         address[] memory tokens = getFinalTokens();
         for (uint256 i = 0; i < tokens.length; i++) {
-            uint256 amount = marketFees[tokens[i]] -
-                feesCollectedMarket[tokens[i]];
-            feesCollectedMarket[tokens[i]] =
-                feesCollectedMarket[tokens[i]] +
-                amount;
+            uint256 amount = marketFees[tokens[i]];
+            marketFees[tokens[i]] = 0;
             IERC20(tokens[i]).transfer(to, amount);
         }
     }

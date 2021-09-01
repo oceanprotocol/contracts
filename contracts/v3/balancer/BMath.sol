@@ -24,11 +24,10 @@ contract BMath is BConst, BNum {
 
     mapping(address => uint) public communityFees;
 
-    mapping(address => uint) public feesCollectedOPF;
+    
 
     mapping(address => uint) public marketFees;
 
-    mapping(address => uint) public feesCollectedMarket;
 
     event SWAP_FEES(uint swapFeeAmount, uint oceanFeeAmount, uint marketFeeAmount, address tokenFees);
     /**********************************************************************************************

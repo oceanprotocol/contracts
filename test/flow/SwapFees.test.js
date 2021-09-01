@@ -321,11 +321,7 @@ describe("Swap Fees", () => {
       expect(await bPool.communityFees(erc20Token.address)).to.equal(0);
       expect(await bPool.marketFees(oceanAddress)).to.equal(0);
       expect(await bPool.marketFees(erc20Token.address)).to.equal(0);
-      expect(await bPool.feesCollectedMarket(oceanAddress)).to.equal(0);
-      expect(await bPool.feesCollectedMarket(erc20Token.address)).to.equal(0);
-      expect(await bPool.feesCollectedOPF(oceanAddress)).to.equal(0);
-      expect(await bPool.feesCollectedOPF(erc20Token.address)).to.equal(0);
-
+      
     });
 
     it("#5 - user4 buys some DT - exactAmountIn", async () => {
@@ -1047,19 +1043,13 @@ describe("Swap Fees", () => {
       assert((await bPool.marketFees(oceanAddress)).gt(0) == true);
       assert((await bPool.marketFees(erc20Token.address)).gt(0) == true);
 
-      expect(await bPool.feesCollectedMarket(oceanAddress)).to.equal(0);
-      expect(await bPool.feesCollectedMarket(erc20Token.address)).to.equal(0);
-      expect(await bPool.feesCollectedOPF(oceanAddress)).to.equal(0);
-      expect(await bPool.feesCollectedOPF(erc20Token.address)).to.equal(0);
-    });
+                });
 
     it("#18 - market collector withdraws fees", async () => {
       assert((await bPool.marketFees(oceanAddress)).gt(0) == true);
       assert((await bPool.marketFees(erc20Token.address)).gt(0) == true);
 
-      expect(await bPool.feesCollectedMarket(oceanAddress)).to.equal(0);
-      expect(await bPool.feesCollectedMarket(erc20Token.address)).to.equal(0);
-      expect(await erc20Token.balanceOf(user2.address)).to.equal(0);
+            expect(await erc20Token.balanceOf(user2.address)).to.equal(0);
       expect(await oceanContract.balanceOf(user2.address)).to.equal(0);
 
       // marketFeeCollector send fees to another address
@@ -1071,13 +1061,8 @@ describe("Swap Fees", () => {
         "ONLY MARKET COLLECTOR"
       );
 
-      // Since it's the first withdraw and user2 balances were zero, user2 balance == feesCollected
-      expect(await erc20Token.balanceOf(user2.address)).to.equal(
-        await bPool.feesCollectedMarket(erc20Token.address)
-      );
-      expect(await oceanContract.balanceOf(user2.address)).to.equal(
-        await bPool.feesCollectedMarket(oceanAddress)
-      );
+      // TODO: add more test
+     
     });
   });
 
@@ -1160,11 +1145,7 @@ describe("Swap Fees", () => {
       expect(await bPool.communityFees(erc20Token.address)).to.equal(0);
       expect(await bPool.marketFees(daiAddress)).to.equal(0);
       expect(await bPool.marketFees(erc20Token.address)).to.equal(0);
-      expect(await bPool.feesCollectedMarket(daiAddress)).to.equal(0);
-      expect(await bPool.feesCollectedMarket(erc20Token.address)).to.equal(0);
-      expect(await bPool.feesCollectedOPF(daiAddress)).to.equal(0);
-      expect(await bPool.feesCollectedOPF(erc20Token.address)).to.equal(0);
-    });
+                });
 
     it("#6 - user4 buys some DT - exactAmountIn", async () => {
       // pool has initial ocean tokens at the beginning
@@ -1868,11 +1849,7 @@ describe("Swap Fees", () => {
       assert((await bPool.marketFees(daiAddress)).gt(0) == true);
       assert((await bPool.marketFees(erc20Token.address)).gt(0) == true);
 
-      expect(await bPool.feesCollectedMarket(daiAddress)).to.equal(0);
-      expect(await bPool.feesCollectedMarket(erc20Token.address)).to.equal(0);
-      expect(await bPool.feesCollectedOPF(daiAddress)).to.equal(0);
-      expect(await bPool.feesCollectedOPF(erc20Token.address)).to.equal(0);
-    });
+                });
 
     it("#18 - market collector withdraws fees", async () => {
       // no fees for OPF or MARKET WERE COLLECTED AT THIS POINT
@@ -1889,13 +1866,7 @@ describe("Swap Fees", () => {
         "ONLY MARKET COLLECTOR"
       );
 
-      // Since it's the first withdraw and user2 balances were zero, user2 balance == feesCollected
-      expect(await erc20Token.balanceOf(user2.address)).to.equal(
-        await bPool.feesCollectedMarket(erc20Token.address)
-      );
-      expect(await daiContract.balanceOf(user2.address)).to.equal(
-        await bPool.feesCollectedMarket(daiAddress)
-      );
+    
     });
 
     it("#19 - OPF collector withdraws fees", async () => {
@@ -1904,22 +1875,18 @@ describe("Swap Fees", () => {
       expect(await erc20Token.balanceOf(opfCollector.address)).to.equal(0);
       expect(await daiContract.balanceOf(opfCollector.address)).to.equal(0);
 
+         // only opfCollector can withdraw
+         await expectRevert(
+          bPool.connect(user3).collectOPF(user3.address),
+          "ONLY OPF"
+        );
+
       // opfCollector withdraws fees
-      await bPool.connect(opfCollector).collectOPF(opfCollector.address);
+     // await bPool.connect(opfCollector).collectOPF(opfCollector.address);
 
-      // only opfCollector can withdraw
-      await expectRevert(
-        bPool.connect(user3).collectOPF(user3.address),
-        "ONLY OPF"
-      );
+   
 
-      // Since it's the first withdraw and opf balances were zero, opf balances == feesCollected
-      expect(await erc20Token.balanceOf(opfCollector.address)).to.equal(
-        await bPool.feesCollectedMarket(erc20Token.address)
-      );
-      expect(await daiContract.balanceOf(opfCollector.address)).to.equal(
-        await bPool.feesCollectedMarket(daiAddress)
-      );
+    
     });
     it("#20 - user3 attemps to add more than available liquidity, check vesting still available", async () => {
       // TODO: add detailed balance check for vesting amount, review !18 decimals (USDC TEST)
@@ -2059,11 +2026,7 @@ describe("Swap Fees", () => {
       expect(await bPool.communityFees(erc20Token.address)).to.equal(0);
       expect(await bPool.marketFees(usdcAddress)).to.equal(0);
       expect(await bPool.marketFees(erc20Token.address)).to.equal(0);
-      expect(await bPool.feesCollectedMarket(usdcAddress)).to.equal(0);
-      expect(await bPool.feesCollectedMarket(erc20Token.address)).to.equal(0);
-      expect(await bPool.feesCollectedOPF(usdcAddress)).to.equal(0);
-      expect(await bPool.feesCollectedOPF(erc20Token.address)).to.equal(0);
-    });
+                });
 
     it("#6 - user4 buys some DT - exactAmountIn", async () => {
       // pool has initial ocean tokens at the beginning
@@ -2794,11 +2757,7 @@ describe("Swap Fees", () => {
       assert((await bPool.marketFees(usdcAddress)).gt(0) == true);
       assert((await bPool.marketFees(erc20Token.address)).gt(0) == true);
 
-      expect(await bPool.feesCollectedMarket(usdcAddress)).to.equal(0);
-      expect(await bPool.feesCollectedMarket(erc20Token.address)).to.equal(0);
-      expect(await bPool.feesCollectedOPF(usdcAddress)).to.equal(0);
-      expect(await bPool.feesCollectedOPF(erc20Token.address)).to.equal(0);
-    });
+                });
 
     it("#19 - market collector withdraws fees", async () => {
       // no fees for OPF or MARKET WERE COLLECTED AT THIS POINT
@@ -2815,13 +2774,7 @@ describe("Swap Fees", () => {
         "ONLY MARKET COLLECTOR"
       );
 
-      // Since it's the first withdraw and user2 balances were zero, user2 balance == feesCollected
-      expect(await erc20Token.balanceOf(user2.address)).to.equal(
-        await bPool.feesCollectedMarket(erc20Token.address)
-      );
-      expect(await usdcContract.balanceOf(user2.address)).to.equal(
-        await bPool.feesCollectedMarket(usdcAddress)
-      );
+     
     });
 
     it("#20 - OPF collector withdraws fees", async () => {
@@ -2839,13 +2792,6 @@ describe("Swap Fees", () => {
         "ONLY OPF"
       );
 
-      // Since it's the first withdraw and opf balances were zero, opf balances == feesCollected
-      expect(await erc20Token.balanceOf(opfCollector.address)).to.equal(
-        await bPool.feesCollectedMarket(erc20Token.address)
-      );
-      expect(await usdcContract.balanceOf(opfCollector.address)).to.equal(
-        await bPool.feesCollectedMarket(usdcAddress)
-      );
     });
 
     it("#21 - add all DT tokens as liquidity, check vesting still available", async () => {
