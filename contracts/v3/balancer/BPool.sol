@@ -646,6 +646,9 @@ contract BPool is BMath, BToken {
             tokenAmountIn,
             tokenIn
         );
+        console.log('aqui', tokenAmountOut);
+        console.log('aqui balanceInToAdd', balanceInToAdd);
+        console.log('aqui tokenAOmunt in', tokenAmountIn);
         require(tokenAmountOut >= minAmountOut, "ERR_LIMIT_OUT");
 
         inRecord.balance = badd(inRecord.balance, balanceInToAdd);
@@ -658,17 +661,21 @@ contract BPool is BMath, BToken {
             outRecord.denorm
             // _swapFee
         );
-        console.log("spotPrices", spotPriceAfter);
-        console.log("spotPrices", spotPriceBefore);
+        console.log("spotPriceAfter", spotPriceAfter);
+        console.log("spotPricesBefore", spotPriceBefore);
         console.log("maxPrice", maxPrice);
         require(spotPriceAfter >= spotPriceBefore, "ERR_MATH_APPROX");
         require(spotPriceAfter <= maxPrice, "ERR_LIMIT_PRICE");
         //  console.log(tokenAmountIn,tokenAmountOut);
         //  console.log(bdiv(tokenAmountIn, tokenAmountOut));
+         console.log('1');
+         console.log(spotPriceBefore, 'aqui 1');
+         console.log(bdiv(tokenAmountIn, tokenAmountOut),'aqui2');
         require(
-            spotPriceBefore <= bdiv(balanceInToAdd, tokenAmountOut),
+            spotPriceBefore <= bdiv(tokenAmountIn, tokenAmountOut),
             "ERR_MATH_APPROX"
         );
+        console.log('2');
 
         emit LOG_SWAP(
             msg.sender,
@@ -727,6 +734,10 @@ contract BPool is BMath, BToken {
             tokenAmountOut,
             tokenIn
         );
+        console.log('aqui tokenamount out', tokenAmountOut);
+        console.log('aqui balanceInToAdd', balanceToAdd);
+        console.log('aqui tokenAOmunt in', tokenAmountIn);
+        
         require(tokenAmountIn <= maxAmountIn, "ERR_LIMIT_IN");
 
         inRecord.balance = badd(inRecord.balance, balanceToAdd);
@@ -739,6 +750,7 @@ contract BPool is BMath, BToken {
             outRecord.denorm
             // _swapFee
         );
+         
         require(spotPriceAfter >= spotPriceBefore, "ERR_MATH_APPROX");
         require(spotPriceAfter <= maxPrice, "ERR_LIMIT_PRICE");
         require(

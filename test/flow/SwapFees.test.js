@@ -170,38 +170,43 @@ describe("Swap Fees", () => {
     );
 
 
-    fixedRateExchange = await FixedRateExchange.deploy();
+    
+   // DEPLOY ROUTER, SETTING OWNER
+   router = await Router.deploy(
+    owner.address,
+    oceanAddress,
+    oceanAddress, // pooltemplate field, unused in this test
+    ssFixedRate.address,
+    opfCollector.address,
+    []
+  );
 
-    // DEPLOY ROUTER, SETTING OWNER
-    router = await Router.deploy(
-      owner.address,
-      oceanAddress,
-      oceanAddress, // pooltemplate field
-      ssFixedRate.address,
-      opfCollector.address,
-      fixedRateExchange.address,
-      []
-    );
+  fixedRateExchange = await FixedRateExchange.deploy(
+    router.address,
+    opfCollector.address
+  );
 
-    templateERC20 = await ERC20Template.deploy();
+  templateERC20 = await ERC20Template.deploy();
 
-    metadata = await Metadata.deploy();
+  metadata = await Metadata.deploy();
 
-    // SETUP ERC721 Factory with template
-    templateERC721 = await ERC721Template.deploy();
-    factoryERC721 = await ERC721Factory.deploy(
-      templateERC721.address,
-      templateERC20.address,
-      communityFeeCollector,
-      router.address,
-      metadata.address
-    );
-      
-    // SET REQUIRED ADDRESS
+  // SETUP ERC721 Factory with template
+  templateERC721 = await ERC721Template.deploy();
+  factoryERC721 = await ERC721Factory.deploy(
+    templateERC721.address,
+    templateERC20.address,
+    opfCollector.address,
+    router.address,
+    metadata.address
+  );
 
-    await metadata.addTokenFactory(factoryERC721.address);
-   
-    await router.addERC20Factory(factoryERC721.address);
+  // SET REQUIRED ADDRESS
+
+  await metadata.addTokenFactory(factoryERC721.address);
+
+  await router.addERC20Factory(factoryERC721.address);
+
+  await router.addFixedRateContract(fixedRateExchange.address);
   });
 
   it("#1 - owner deploys a new ERC721 Contract", async () => {
@@ -253,7 +258,7 @@ describe("Swap Fees", () => {
   });
 // NOW user3 has 2 options, mint on his own and create custom pool, or using the staking contract and deploy a pool.
 
-  describe(" Pool with ocean token and market fee 0.1%", async () => {
+  xdescribe(" Pool with ocean token and market fee 0.1%", async () => {
     const swapFee = 1e15;
     const swapOceanFee = 1e15;
     const swapMarketFee = 1e15;
@@ -384,6 +389,7 @@ describe("Swap Fees", () => {
       expect(user4DTbalance.add(swapArgs.tokenAmountOut)).to.equal(
         await erc20Token.balanceOf(user4.address)
       );
+      
     });
 
     it("#6 - user4 buys some DT - exactAmountOut", async () => {
@@ -1074,7 +1080,7 @@ describe("Swap Fees", () => {
     });
   });
 
-  describe(" Pool with NO ocean token (DAI 18 decimals) and market fee 0.1%", async () => {
+  xdescribe(" Pool with NO ocean token (DAI 18 decimals) and market fee 0.1%", async () => {
     const swapFee = 1e15;
     const swapOceanFee = 0; // we attemp to set swapOceanFee at 0, will fail
     const swapMarketFee = 1e15;
@@ -2007,13 +2013,13 @@ describe("Swap Fees", () => {
 
       const ssDTBalance = await erc20Token.balanceOf(ssFixedRate.address);
 
-      const initialUSDCLiquidity = 88*1e9; // 88000 usdc
+      initialUSDCLiquidity = 88000*1e6; // 88000 usdc
       // approve exact amount
       await usdcContract
         .connect(user3)
         .approve(router.address, initialUSDCLiquidity);
 
-      // we deploy a new pool with burnInEndBlock as 0
+      // we deploy a new pool
       receipt = await (
         await erc20Token.connect(user3).deployPool(
           ssFixedRate.address,
@@ -2047,10 +2053,13 @@ describe("Swap Fees", () => {
       assert((await bPool.isFinalized()) == true);
       
       const spotPriceDT = await bPool.getSpotPrice(usdcAddress,erc20Token.address)
-      console.log('spotprice',spotPriceDT.toString())
+      console.log('spotprice DT',spotPriceDT.toString())
       const spotPriceUSDC = await bPool.getSpotPrice(erc20Token.address,usdcAddress)
-      console.log('spotprice',spotPriceUSDC.toString())
-      
+      console.log('spotprice USDC',spotPriceUSDC.toString())
+      const tokenBalanceUSDC = await bPool.getBalance(usdcAddress)
+      const tokenBalanceDT = await bPool.getBalance(erc20Token.address)
+      console.log(tokenBalanceUSDC.toString(), 'initial token balance')
+      console.log(ethers.utils.formatEther(tokenBalanceDT),'initial dt balance')
       // check the dt balance available for adding liquidity doesn't account for vesting amount
 
       expect(await ssFixedRate.getDataTokenBalance(erc20Token.address)).to.equal((await erc20Token.balanceOf(ssFixedRate.address)).sub(vestingAmount))
@@ -2058,7 +2067,7 @@ describe("Swap Fees", () => {
       // expect(await erc20Token.balanceOf(ssFixedRate.address)).to.equal(
       //   web3.utils.toWei("12000")
       // );
-
+    
       expect(await bPool.getSwapFee()).to.equal(swapFee);
       expect(await bPool._swapOceanFee()).to.equal(1e15);
       expect(await bPool._swapMarketFee()).to.equal(swapMarketFee);
@@ -2076,7 +2085,7 @@ describe("Swap Fees", () => {
     it("#6 - user4 buys some DT - exactAmountIn", async () => {
       // pool has initial ocean tokens at the beginning
       assert(
-        (await usdcContract.balanceOf(bPoolAddress)) == 88*1e9 // 88000 USDC
+        (await usdcContract.balanceOf(bPoolAddress)) == initialUSDCLiquidity // 88000 USDC
       );
 
       // we approve the pool to move usdc tokens
@@ -2101,7 +2110,7 @@ describe("Swap Fees", () => {
           usdcAmountIn, // tokenAmountIn
           erc20Token.address, // tokenOut
           web3.utils.toWei("1"), //minAmountOut
-          web3.utils.toWei("100") //maxPrice
+          web3.utils.toWei("5") //maxPrice
         )
       ).wait();
     
@@ -2152,7 +2161,20 @@ describe("Swap Fees", () => {
         args.swapFeeAmount,
         1
       );
+
+      const spotPriceDT = await bPool.getSpotPrice(usdcAddress,erc20Token.address)
+      console.log('spotprice DT',spotPriceDT.toString())
+      const spotPriceUSDC = await bPool.getSpotPrice(erc20Token.address,usdcAddress)
+      console.log('spotprice USDC',spotPriceUSDC.toString())
+
+      console.log(swapArgs.tokenAmountIn.toString(), 'usdc amount in')
+      console.log(ethers.utils.formatEther(swapArgs.tokenAmountOut.toString()),'dt amount out')
+      const tokenBalanceUSDC = await bPool.getBalance(usdcAddress)
+      const tokenBalanceDT = await bPool.getBalance(erc20Token.address)
+      console.log(tokenBalanceUSDC.toString(), 'after swap usdc balance')
+      console.log(ethers.utils.formatEther(tokenBalanceDT),'after swap dt balance')
     });
+    
 
     it("#7 - user4 buys some DT  - exactAmountOut", async () => {
       // we already approved pool to withdraw Ocean tokens
@@ -2215,6 +2237,13 @@ describe("Swap Fees", () => {
       expect(user4DTbalance.add(swapArgs.tokenAmountOut)).to.equal(
         await erc20Token.balanceOf(user4.address)
       );
+      const spotPriceDT = await bPool.getSpotPrice(usdcAddress,erc20Token.address)
+      console.log('spotprice DT',spotPriceDT.toString())
+      const spotPriceUSDC = await bPool.getSpotPrice(erc20Token.address,usdcAddress)
+      console.log('spotprice USDC',spotPriceUSDC.toString())
+
+      console.log(swapArgs.tokenAmountIn.toString(), 'usdc')
+      console.log(ethers.utils.formatEther(swapArgs.tokenAmountOut.toString()),'dt')
     });
 
     it("#8 - user4 swaps some DT back to USDC swapExactAmountIn", async () => {
@@ -2268,6 +2297,9 @@ describe("Swap Fees", () => {
         args.swapFeeAmount,
         1
       );
+     
+      console.log(ethers.utils.formatEther(swapArgs.tokenAmountIn.toString()),'dt')
+      console.log(swapArgs.tokenAmountOut.toString(), 'usdc')
 
     });
 
@@ -2901,4 +2933,5 @@ describe("Swap Fees", () => {
 
    
   });
+
 });

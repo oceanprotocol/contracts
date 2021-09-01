@@ -49,15 +49,22 @@ contract BMath is BConst, BNum {
     )
         internal view
         returns (uint spotPrice)
-    {
+        
+    {   
+        console.log('tokenBalanceIn', tokenBalanceIn);
+        console.log('tokenBalanceOut', tokenBalanceOut);
+        console.log(tokenWeightIn, 'tokenWeightIn');
+        console.log(tokenWeightOut,'tokenWeightOut');
+
         uint numer = bdiv(tokenBalanceIn, tokenWeightIn);
         uint denom = bdiv(tokenBalanceOut, tokenWeightOut);
         uint ratio = bdiv(numer, denom);
         console.log(ratio, 'ratio');
         console.log(numer, 'numer');
         console.log(denom, 'denom');
-        uint totalFee = _swapFee+_swapMarketFee+_swapOceanFee;
-        uint scale = bdiv(BONE, bsub(BONE, totalFee));
+       // uint totalFee = _swapFee+_swapMarketFee+_swapOceanFee;
+        uint scale = bdiv(BONE, bsub(BONE, _swapFee));
+        console.log('scale',scale);
         return  (spotPrice = bmul(ratio, scale));
     }
 
@@ -71,6 +78,12 @@ contract BMath is BConst, BNum {
     // wO = tokenWeightOut                                                                       //
     // sF = swapFee                                                                              //
     **********************************************************************************************/
+    //    data = [
+    //         inRecord.balance,
+    //         inRecord.denorm,
+    //         outRecord.balance,
+    //         outRecord.denorm
+    //     ];
     function calcOutGivenInSwap(
         uint[4] memory data,
         // uint tokenBalanceIn,
@@ -90,7 +103,6 @@ contract BMath is BConst, BNum {
 
         communityFees[tokenInAddress] = badd(communityFees[tokenInAddress],oceanFeeAmount);
         
-     
         uint marketFeeAmount =  bsub(tokenAmountIn, bmul(tokenAmountIn, bsub(BONE, _swapMarketFee)));
         
         marketFees[tokenInAddress] = badd(marketFees[tokenInAddress],marketFeeAmount);
@@ -113,7 +125,7 @@ contract BMath is BConst, BNum {
 
         tokenAmountOut = bmul(data[2], bar);
 
-        return (tokenAmountOut, bsub(data[0],(oceanFeeAmount+marketFeeAmount)));
+        return (tokenAmountOut, bsub(tokenAmountIn,(oceanFeeAmount+marketFeeAmount)));
     }
 
      /**********************************************************************************************
