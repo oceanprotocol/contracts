@@ -253,9 +253,11 @@ contract ssFixedRate {
     //called by pool to confirm that we can stake a token (add pool liquidty). If true, pool will call Stake function
     function canStake(address datatokenAddress,address stakeToken,uint256 amount) public view returns (bool){
         //TO DO
+        console.log(amount);
         require(msg.sender == _datatokens[datatokenAddress].poolAddress,'ERR: Only pool can call this');
         if (_datatokens[datatokenAddress].bound != true) return (false);
         if (_datatokens[datatokenAddress].basetokenAddress == stakeToken) return (false);
+        console.log('22222');
         //check balances
         // IERC20Template dt = IERC20Template(datatokenAddress);
         // uint256 balance = dt.balanceOf(address(this));

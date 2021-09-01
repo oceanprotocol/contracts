@@ -270,7 +270,7 @@ contract BPool is BMath, BToken {
     }
 
     function collectMarketFee(address to) external {
-        console.log("collectMarkte");
+       // console.log("collectMarkte");
         require(_marketCollector == msg.sender, "ONLY MARKET COLLECTOR");
 
         address[] memory tokens = getFinalTokens();
@@ -646,9 +646,9 @@ contract BPool is BMath, BToken {
             tokenAmountIn,
             tokenIn
         );
-        console.log('aqui', tokenAmountOut);
-        console.log('aqui balanceInToAdd', balanceInToAdd);
-        console.log('aqui tokenAOmunt in', tokenAmountIn);
+        // console.log('aqui', tokenAmountOut);
+        // console.log('aqui balanceInToAdd', balanceInToAdd);
+        // console.log('aqui tokenAOmunt in', tokenAmountIn);
         require(tokenAmountOut >= minAmountOut, "ERR_LIMIT_OUT");
 
         inRecord.balance = badd(inRecord.balance, balanceInToAdd);
@@ -661,21 +661,21 @@ contract BPool is BMath, BToken {
             outRecord.denorm
             // _swapFee
         );
-        console.log("spotPriceAfter", spotPriceAfter);
-        console.log("spotPricesBefore", spotPriceBefore);
-        console.log("maxPrice", maxPrice);
+        // console.log("spotPriceAfter", spotPriceAfter);
+        // console.log("spotPricesBefore", spotPriceBefore);
+        // console.log("maxPrice", maxPrice);
         require(spotPriceAfter >= spotPriceBefore, "ERR_MATH_APPROX");
         require(spotPriceAfter <= maxPrice, "ERR_LIMIT_PRICE");
         //  console.log(tokenAmountIn,tokenAmountOut);
         //  console.log(bdiv(tokenAmountIn, tokenAmountOut));
-         console.log('1');
-         console.log(spotPriceBefore, 'aqui 1');
-         console.log(bdiv(tokenAmountIn, tokenAmountOut),'aqui2');
+        //  console.log('1');
+        //  console.log(spotPriceBefore, 'aqui 1');
+        //  console.log(bdiv(tokenAmountIn, tokenAmountOut),'aqui2');
         require(
             spotPriceBefore <= bdiv(tokenAmountIn, tokenAmountOut),
             "ERR_MATH_APPROX"
         );
-        console.log('2');
+       // console.log('2');
 
         emit LOG_SWAP(
             msg.sender,
@@ -734,9 +734,9 @@ contract BPool is BMath, BToken {
             tokenAmountOut,
             tokenIn
         );
-        console.log('aqui tokenamount out', tokenAmountOut);
-        console.log('aqui balanceInToAdd', balanceToAdd);
-        console.log('aqui tokenAOmunt in', tokenAmountIn);
+        // console.log('aqui tokenamount out', tokenAmountOut);
+        // console.log('aqui balanceInToAdd', balanceToAdd);
+        // console.log('aqui tokenAOmunt in', tokenAmountIn);
         
         require(tokenAmountIn <= maxAmountIn, "ERR_LIMIT_IN");
 
@@ -848,7 +848,7 @@ contract BPool is BMath, BToken {
             poolAmountOut
             //_swapFee
         );
-
+        console.log(ssContract.canStake(_datatokenAddress, ssStakeToken, ssAmountIn), 'canstake');
         if (
             ssContract.canStake(_datatokenAddress, ssStakeToken, ssAmountIn) ==
             true
@@ -1034,7 +1034,7 @@ contract BPool is BMath, BToken {
 
         emit LOG_EXIT(msg.sender, tokenOut, tokenAmountOut, block.timestamp);
         emit LOG_BPT(poolAmountIn);
-        console.log("here");
+       // console.log("here");
         _pullPoolShare(msg.sender, poolAmountIn);
 
         _burnPoolShare(bsub(poolAmountIn, exitFee));

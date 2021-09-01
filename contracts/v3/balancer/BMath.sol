@@ -51,20 +51,20 @@ contract BMath is BConst, BNum {
         returns (uint spotPrice)
         
     {   
-        console.log('tokenBalanceIn', tokenBalanceIn);
-        console.log('tokenBalanceOut', tokenBalanceOut);
-        console.log(tokenWeightIn, 'tokenWeightIn');
-        console.log(tokenWeightOut,'tokenWeightOut');
+        // console.log('tokenBalanceIn', tokenBalanceIn);
+        // console.log('tokenBalanceOut', tokenBalanceOut);
+        // console.log(tokenWeightIn, 'tokenWeightIn');
+        // console.log(tokenWeightOut,'tokenWeightOut');
 
         uint numer = bdiv(tokenBalanceIn, tokenWeightIn);
         uint denom = bdiv(tokenBalanceOut, tokenWeightOut);
         uint ratio = bdiv(numer, denom);
-        console.log(ratio, 'ratio');
-        console.log(numer, 'numer');
-        console.log(denom, 'denom');
+        // console.log(ratio, 'ratio');
+        // console.log(numer, 'numer');
+        // console.log(denom, 'denom');
        // uint totalFee = _swapFee+_swapMarketFee+_swapOceanFee;
         uint scale = bdiv(BONE, bsub(BONE, _swapFee));
-        console.log('scale',scale);
+       // console.log('scale',scale);
         return  (spotPrice = bmul(ratio, scale));
     }
 
