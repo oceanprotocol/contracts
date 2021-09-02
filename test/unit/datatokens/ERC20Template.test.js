@@ -79,9 +79,13 @@ describe("ERC20Template", () => {
     templateERC721,
     templateERC20,
     erc20Address,
-    erc20Token;
+    erc20Token,
+    cap = web3.utils.toWei("100000");
 
   const communityFeeCollector = "0xeE9300b7961e0a01d9f0adb863C7A227A07AaD75";
+  const oceanAddress = "0x967da4048cD07aB37855c090aAF366e4ce1b9F48";
+  const daiAddress = "0x6B175474E89094C44Da98b954EedeAC495271d0F";
+  const usdcAddress = "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48";
 
   beforeEach("init contracts for each test", async () => {
     await network.provider.request({
@@ -100,36 +104,70 @@ describe("ERC20Template", () => {
     const ERC721Template = await ethers.getContractFactory("ERC721Template");
     const ERC20Template = await ethers.getContractFactory("ERC20Template");
     const ERC721Factory = await ethers.getContractFactory("ERC721Factory");
-    const ERC20Factory = await ethers.getContractFactory("ERC20Factory");
 
     const Metadata = await ethers.getContractFactory("Metadata");
+    const Router = await ethers.getContractFactory("FactoryRouter");
+    const SSContract = await ethers.getContractFactory("ssFixedRate");
+    const BPool = await ethers.getContractFactory("BPool");
+    const FixedRateExchange = await ethers.getContractFactory(
+      "FixedRateExchange"
+    );
 
-    [owner, reciever, user2, user3, provider] = await ethers.getSigners();
+
+    [owner, reciever, user2, user3,user4, user5, user6, provider, opfCollector, marketFeeCollector] = await ethers.getSigners();
 
     data = web3.utils.asciiToHex(constants.blob[0]);
     flags = web3.utils.asciiToHex(constants.blob[0]);
 
-    templateERC20 = await ERC20Template.deploy();
-    factoryERC20 = await ERC20Factory.deploy(
-      templateERC20.address,
-      communityFeeCollector
-    );
+ // DEPLOY ROUTER, SETTING OWNER
 
-    metadata = await Metadata.deploy(factoryERC20.address);
-    templateERC721 = await ERC721Template.deploy();
-    factoryERC721 = await ERC721Factory.deploy(
-      templateERC721.address,
-      communityFeeCollector,
-      factoryERC20.address,
-      metadata.address
-    );
+    //poolTemplate = await BPool.deploy();
 
-    //await metadata.setERC20Factory(factoryERC20.address);
-    await factoryERC20.setERC721Factory(factoryERC721.address);
+    ssFixedRate = await SSContract.deploy();
 
+
+    router = await Router.deploy(
+     owner.address,
+     oceanAddress,
+     oceanAddress, // pooltemplate field, unused in this test
+     ssFixedRate.address,
+     opfCollector.address,
+     []
+   );
+ 
+   fixedRateExchange = await FixedRateExchange.deploy(
+     router.address,
+     opfCollector.address
+   );
+ 
+   templateERC20 = await ERC20Template.deploy();
+ 
+   metadata = await Metadata.deploy();
+ 
+   // SETUP ERC721 Factory with template
+   templateERC721 = await ERC721Template.deploy();
+   factoryERC721 = await ERC721Factory.deploy(
+     templateERC721.address,
+     templateERC20.address,
+     opfCollector.address,
+     router.address,
+     metadata.address
+   );
+ 
+   // SET REQUIRED ADDRESS
+ 
+   await metadata.addTokenFactory(factoryERC721.address);
+ 
+   await router.addERC20Factory(factoryERC721.address);
+ 
+   await router.addFixedRateContract(fixedRateExchange.address); // DEPLOY ROUTER, SETTING OWNER
+
+ 
+
+    // by default connect() in ethers goes with the first address (owner in this case)
     const tx = await factoryERC721.deployERC721Contract(
-      "DT1",
-      "DTSYMBOL",
+      "NFT",
+      "NFTSYMBOL",
       data,
       flags,
       1
@@ -138,32 +176,36 @@ describe("ERC20Template", () => {
 
     tokenAddress = txReceipt.events[4].args[0];
     tokenERC721 = await ethers.getContractAt("ERC721Template", tokenAddress);
-    symbol = await tokenERC721.symbol();
-    name = await tokenERC721.name();
-    assert(name === "DT1");
-    assert(symbol === "DTSYMBOL");
 
-    // WE add owner as erc20Deployer so he can deploy an new erc20Contract
-    await tokenERC721.addToCreateERC20List(owner.address);
+    assert((await tokenERC721.balanceOf(owner.address)) == 1);
 
-    receipt = await (
-      await tokenERC721.createERC20(
-        "ERC20DT1",
-        "ERC20DT1Symbol",
-        web3.utils.toWei("1000"),
-        1,
-        owner.address
-      )
-    ).wait();
-    const events = receipt.events.filter((e) => e.event === "ERC20Created");
-    //console.log(events[0].args.erc20Address)
-    erc20Token = await ethers.getContractAt(
-      "ERC20Template",
-      events[0].args.erc20Address
+    await tokenERC721.addManager(user2.address);
+    await tokenERC721.connect(user2).addTo725StoreList(user3.address);
+    await tokenERC721.connect(user2).addToCreateERC20List(user3.address);
+    await tokenERC721.connect(user2).addToMetadataList(user3.address);
+
+    assert((await tokenERC721._getPermissions(user3.address)).store == true);
+    assert(
+      (await tokenERC721._getPermissions(user3.address)).deployERC20 == true
     );
-    assert((await erc20Token.name()) === "ERC20DT1");
-    assert((await erc20Token.symbol()) === "ERC20DT1Symbol");
+    assert(
+      (await tokenERC721._getPermissions(user3.address)).updateMetadata == true
+    );
+    const trxERC20 = await tokenERC721.connect(user3).createERC20(
+      "ERC20DT1",
+      "ERC20DT1Symbol",
+      cap,
+      1,
+      user3.address, // minter
+      user6.address // feeManager
+    );
+    const trxReceiptERC20 = await trxERC20.wait();
+    erc20Address = trxReceiptERC20.events[3].args.erc20Address;
+
+    erc20Token = await ethers.getContractAt("ERC20Template", erc20Address);
+    assert((await erc20Token.permissions(user3.address)).minter == true);
   });
+
 
   it("#isInitialized - should check that the erc20Token contract is initialized", async () => {
     expect(await erc20Token.isInitialized()).to.equal(true);
@@ -177,14 +219,16 @@ describe("ERC20Template", () => {
         tokenERC721.address,
         web3.utils.toWei("10"),
         communityFeeCollector,
-        owner.address
+        owner.address,
+        router.address,
+        marketFeeCollector.address
       ),
       "ERC20Template: token instance already initialized"
     );
   });
 
-  it("#mint - owner should succeed to mint 1 ERC20Token to user2", async () => {
-    await erc20Token.mint(user2.address, web3.utils.toWei("1"));
+  it("#mint - user3 (minter role) should succeed to mint 1 ERC20Token to user2", async () => {
+    await erc20Token.connect(user3).mint(user2.address, web3.utils.toWei("1"));
     assert(
       (await erc20Token.balanceOf(user2.address)) == web3.utils.toWei("1")
     );
@@ -205,7 +249,7 @@ describe("ERC20Template", () => {
   });
 
   it("#setFeeCollector - should succeed to set new FeeCollector if feeManager", async () => {
-    await erc20Token.addFeeManager(owner.address);
+    await erc20Token.connect(user3).addFeeManager(owner.address);
 
     assert((await erc20Token.getFeeCollector()) == owner.address);
     await erc20Token.setFeeCollector(user2.address);
@@ -226,12 +270,12 @@ describe("ERC20Template", () => {
   it("#addMinter - should fail to addMinter if it's already minter", async () => {
     assert((await erc20Token.permissions(user2.address)).minter == false);
 
-    await erc20Token.addMinter(user2.address);
+    await erc20Token.connect(user3).addMinter(user2.address);
 
     assert((await erc20Token.permissions(user2.address)).minter == true);
 
     await expectRevert(
-      erc20Token.addMinter(user2.address),
+      erc20Token.connect(user3).addMinter(user2.address),
       "ERC20Roles:  ALREADY A MINTER"
     );
   });
@@ -240,7 +284,7 @@ describe("ERC20Template", () => {
     assert((await erc20Token.permissions(user2.address)).minter == false);
 
     // owner is already erc20Deployer
-    await erc20Token.addMinter(user2.address);
+    await erc20Token.connect(user3).addMinter(user2.address);
 
     assert((await erc20Token.permissions(user2.address)).minter == true);
   });
@@ -257,7 +301,7 @@ describe("ERC20Template", () => {
   });
 
   it("#removeMinter - should fail to removeMinter even if it's minter", async () => {
-    await erc20Token.addMinter(user2.address);
+    await erc20Token.connect(user3).addMinter(user2.address);
 
     assert((await erc20Token.permissions(user2.address)).minter == true);
 
@@ -270,7 +314,7 @@ describe("ERC20Template", () => {
   });
 
   it("#removeMinter - should succeed to removeMinter if erc20Deployer", async () => {
-    await erc20Token.addMinter(user2.address);
+    await erc20Token.connect(user3).addMinter(user2.address);
 
     assert((await erc20Token.permissions(user2.address)).minter == true);
 
@@ -293,7 +337,7 @@ describe("ERC20Template", () => {
   it("#addFeeManager - should fail to addFeeManager if it's already feeManager", async () => {
     assert((await erc20Token.permissions(user2.address)).feeManager == false);
 
-    await erc20Token.addFeeManager(user2.address);
+    await erc20Token.connect(user3).addFeeManager(user2.address);
 
     assert((await erc20Token.permissions(user2.address)).feeManager == true);
 
@@ -307,13 +351,13 @@ describe("ERC20Template", () => {
     assert((await erc20Token.permissions(user2.address)).feeManager == false);
 
     // owner is already erc20Deployer
-    await erc20Token.addFeeManager(user2.address);
+    await erc20Token.connect(user3).addFeeManager(user2.address);
 
     assert((await erc20Token.permissions(user2.address)).feeManager == true);
   });
 
   it("#removeFeeManager - should fail to removeFeeManager if NOT erc20Deployer", async () => {
-    await erc20Token.addFeeManager(owner.address);
+    await erc20Token.connect(user3).addFeeManager(owner.address);
 
     assert((await erc20Token.permissions(owner.address)).feeManager == true);
 
@@ -327,8 +371,8 @@ describe("ERC20Template", () => {
 
   it("#removeFeeManager - should fail to removeFeeManager even if it's feeManager", async () => {
     // ERC20 deployer role add himself as manager and user2
-    await erc20Token.addFeeManager(owner.address);
-    await erc20Token.addFeeManager(user2.address);
+    await erc20Token.connect(user3).addFeeManager(owner.address);
+    await erc20Token.connect(user3).addFeeManager(user2.address);
 
     assert((await erc20Token.permissions(user2.address)).feeManager == true);
 
@@ -341,11 +385,11 @@ describe("ERC20Template", () => {
   });
 
   it("#removeFeeManager - should succeed to removeFeeManager if erc20Deployer", async () => {
-    await erc20Token.addFeeManager(user2.address);
+    await erc20Token.connect(user3).addFeeManager(user2.address);
 
     assert((await erc20Token.permissions(user2.address)).feeManager == true);
 
-    await erc20Token.removeFeeManager(user2.address);
+    await erc20Token.connect(user3).removeFeeManager(user2.address);
 
     assert((await erc20Token.permissions(user2.address)).feeManager == false);
   });
@@ -366,7 +410,7 @@ describe("ERC20Template", () => {
     const key = web3.utils.keccak256(erc20Token.address);
     const value = web3.utils.asciiToHex("SomeData");
 
-    await erc20Token.setData(value);
+    await erc20Token.connect(user3).setData(value);
 
     assert((await tokenERC721.getData(key)) == value);
   });

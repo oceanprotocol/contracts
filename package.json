@@ -4,7 +4,9 @@
     "test:unit": "npx hardhat test test/unit/*/*.test.js test/flow/*.test.js ",
     "test:fre": "npx hardhat test test/unit/FixedRateExchange.test.js ",
     "test:ss": "npx hardhat test test/flow/SideStaking.test.js ",
-    "test:swap": "npx hardhat test test/flow/SwapFees.test.js "
+    "test:swap": "npx hardhat test test/flow/SwapFees.test.js ",
+    "test:debug": "npx hardhat test test/unit/datatokens/ERC20Template.test.js "
+
 
   },
   "devDependencies": {

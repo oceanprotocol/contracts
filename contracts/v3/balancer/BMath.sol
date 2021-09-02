@@ -61,6 +61,7 @@ contract BMath is BConst, BNum {
         // console.log(ratio, 'ratio');
         // console.log(numer, 'numer');
         // console.log(denom, 'denom');
+        // TODO: should we use the total fee?
        // uint totalFee = _swapFee+_swapMarketFee+_swapOceanFee;
         uint scale = bdiv(BONE, bsub(BONE, _swapFee));
        // console.log('scale',scale);

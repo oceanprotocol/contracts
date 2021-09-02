@@ -67,7 +67,10 @@ describe("Swap Fees", () => {
     const Router = await ethers.getContractFactory("FactoryRouter");
     const SSContract = await ethers.getContractFactory("ssFixedRate");
     const BPool = await ethers.getContractFactory("BPool");
-    
+    const FixedRateExchange = await ethers.getContractFactory(
+      "FixedRateExchange"
+    );
+
 
     //console.log(await provider.getBlockNumber());
 
@@ -83,9 +86,6 @@ describe("Swap Fees", () => {
       opfCollector,
     ] = await ethers.getSigners();
 
-    //poolTemplate = await BPool.deploy();
-
-    ssFixedRate = await SSContract.deploy();
 
     // GET SOME OCEAN TOKEN FROM OUR MAINNET FORK and send them to user3
     const userWithOcean = "0x53aB4a93B31F480d17D3440a6329bDa86869458A";
@@ -166,13 +166,16 @@ describe("Swap Fees", () => {
     data = web3.utils.asciiToHex("SomeData");
     flags = web3.utils.asciiToHex(constants.blob[0]);
 
-    const FixedRateExchange = await ethers.getContractFactory(
-      "FixedRateExchange"
-    );
-
+    
 
     
    // DEPLOY ROUTER, SETTING OWNER
+
+    //poolTemplate = await BPool.deploy();
+
+  ssFixedRate = await SSContract.deploy();
+
+
    router = await Router.deploy(
     owner.address,
     oceanAddress,
