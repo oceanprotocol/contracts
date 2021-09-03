@@ -5,7 +5,7 @@ pragma solidity >=0.5.7;
 
 import './BPool.sol';
 import './BConst.sol';
-import './BaseSplitCodeFactory.sol';
+//import './BaseSplitCodeFactory.sol';
 import '../../utils/Deployer.sol';
 import '../../interfaces/IssFixedRate.sol';
 import '../../interfaces/IERC20.sol';
@@ -19,7 +19,7 @@ import '../../interfaces/IERC20.sol';
 *      Proxy contract functionality is based on Ocean Protocol custom
 *        implementation of ERC1167 standard.
 */
-contract BFactory is BConst, Deployer, BaseSplitCodeFactory {
+contract BFactory is BConst, Deployer {
 
     address public bpoolTemplate;
     address public opfCollector;
@@ -38,8 +38,7 @@ contract BFactory is BConst, Deployer, BaseSplitCodeFactory {
        @param _bpoolTemplate -- address of a deployed BPool contract. 
        @param _preCreatedPools list of pre-created pools. It can be only used in case of migration from an old factory contract.
     */
-    constructor(address _bpoolTemplate, address _opfCollector, address[] memory _preCreatedPools) BaseSplitCodeFactory(type(BPool).creationCode)
-        public 
+    constructor(address _bpoolTemplate, address _opfCollector, address[] memory _preCreatedPools)  public 
     {
         require(
             _bpoolTemplate != address(0), 
@@ -75,8 +74,8 @@ contract BFactory is BConst, Deployer, BaseSplitCodeFactory {
         
         address[2] memory feeCollectors = [marketFeeCollector,opfCollector];
        
-       // bpool = deploy(bpoolTemplate);
-        address bpool = _create("");
+        bpool = deploy(bpoolTemplate);
+        //address bpool = _create("");
 
         require(
             bpool != address(0), 

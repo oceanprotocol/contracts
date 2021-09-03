@@ -171,7 +171,7 @@ describe("Swap Fees", () => {
     
    // DEPLOY ROUTER, SETTING OWNER
 
-    //poolTemplate = await BPool.deploy();
+  poolTemplate = await BPool.deploy();
 
   ssFixedRate = await SSContract.deploy();
 
@@ -179,7 +179,7 @@ describe("Swap Fees", () => {
    router = await Router.deploy(
     owner.address,
     oceanAddress,
-    oceanAddress, // pooltemplate field, unused in this test
+    poolTemplate.address, // pooltemplate field, unused in this test
     ssFixedRate.address,
     opfCollector.address,
     []
