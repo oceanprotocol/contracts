@@ -121,7 +121,7 @@ describe("ERC20Template", () => {
 
  // DEPLOY ROUTER, SETTING OWNER
 
-    //poolTemplate = await BPool.deploy();
+    poolTemplate = await BPool.deploy();
 
     ssFixedRate = await SSContract.deploy();
 
@@ -129,7 +129,7 @@ describe("ERC20Template", () => {
     router = await Router.deploy(
      owner.address,
      oceanAddress,
-     oceanAddress, // pooltemplate field, unused in this test
+     poolTemplate.address, // pooltemplate field,
      ssFixedRate.address,
      opfCollector.address,
      []
@@ -290,14 +290,15 @@ describe("ERC20Template", () => {
   });
 
   it("#removeMinter - should fail to removeMinter if NOT erc20Deployer", async () => {
-    assert((await erc20Token.permissions(owner.address)).minter == true);
+    await erc20Token.connect(user3).addMinter(user2.address);
+    assert((await erc20Token.permissions(user2.address)).minter == true);
 
     await expectRevert(
-      erc20Token.connect(user2).removeMinter(owner.address),
+      erc20Token.connect(user2).removeMinter(user2.address),
       "ERC20Template: NOT DEPLOYER ROLE"
     );
 
-    assert((await erc20Token.permissions(owner.address)).minter == true);
+    assert((await erc20Token.permissions(user2.address)).minter == true);
   });
 
   it("#removeMinter - should fail to removeMinter even if it's minter", async () => {
@@ -306,26 +307,28 @@ describe("ERC20Template", () => {
     assert((await erc20Token.permissions(user2.address)).minter == true);
 
     await expectRevert(
-      erc20Token.connect(user2).removeMinter(owner.address),
+      erc20Token.connect(user4).removeMinter(user2.address),
       "ERC20Template: NOT DEPLOYER ROLE"
     );
 
-    assert((await erc20Token.permissions(owner.address)).minter == true);
+    assert((await erc20Token.permissions(user2.address)).minter == true);
   });
 
   it("#removeMinter - should succeed to removeMinter if erc20Deployer", async () => {
     await erc20Token.connect(user3).addMinter(user2.address);
 
     assert((await erc20Token.permissions(user2.address)).minter == true);
-
-    await erc20Token.removeMinter(user2.address);
+  
+    assert((await tokenERC721._getPermissions(user3.address)).deployERC20 == true)
+    
+    await erc20Token.connect(user3).removeMinter(user2.address);
 
     assert((await erc20Token.permissions(user2.address)).minter == false);
   });
 
   it("#addFeeManager - should fail to addFeeManager if not erc20Deployer (permission to deploy the erc20Contract at 721 level)", async () => {
     assert((await erc20Token.permissions(user2.address)).feeManager == false);
-
+    
     await expectRevert(
       erc20Token.connect(user2).addFeeManager(user2.address),
       "ERC20Template: NOT DEPLOYER ROLE"
@@ -342,7 +345,7 @@ describe("ERC20Template", () => {
     assert((await erc20Token.permissions(user2.address)).feeManager == true);
 
     await expectRevert(
-      erc20Token.addFeeManager(user2.address),
+      erc20Token.connect(user3).addFeeManager(user2.address),
       "ERC20Roles:  ALREADY A FEE MANAGER"
     );
   });
@@ -416,28 +419,28 @@ describe("ERC20Template", () => {
   });
 
   it("#cleanPermissions - should fail to call cleanPermissions if NOT NFTOwner", async () => {
-    assert((await erc20Token.permissions(owner.address)).minter == true);
-
+    assert((await erc20Token.permissions(user3.address)).minter == true);
     await expectRevert(
       erc20Token.connect(user2).cleanPermissions(),
       "ERC20Template: not NFTOwner"
     );
 
-    assert((await erc20Token.permissions(owner.address)).minter == true);
+    assert((await erc20Token.permissions(user3.address)).minter == true);
   });
 
   it("#cleanPermissions - should succeed to call cleanPermissions if NFTOwner", async () => {
-    // owner is already minter
-    assert((await erc20Token.permissions(owner.address)).minter == true);
-    await erc20Token.addFeeManager(owner.address);
+    // user3 is already minter
+    
+    assert((await erc20Token.permissions(user3.address)).minter == true);
+    await erc20Token.connect(user3).addFeeManager(owner.address);
     // we set a new FeeCollector
-    await erc20Token.setFeeCollector(user2.address);
+    await erc20Token.connect(owner).setFeeCollector(user2.address);
     assert((await erc20Token.getFeeCollector()) == user2.address);
     // WE add 2 more minters
-    await erc20Token.addMinter(user2.address);
-    await erc20Token.addMinter(user3.address);
+    await erc20Token.connect(user3).addMinter(user2.address);
+    await erc20Token.connect(user3).addMinter(user4.address);
     assert((await erc20Token.permissions(user2.address)).minter == true);
-    assert((await erc20Token.permissions(user3.address)).minter == true);
+    assert((await erc20Token.permissions(user4.address)).minter == true);
 
     // NFT Owner cleans
     await erc20Token.cleanPermissions();
@@ -447,14 +450,14 @@ describe("ERC20Template", () => {
     assert((await erc20Token.permissions(owner.address)).feeManager == false);
     assert((await erc20Token.permissions(user2.address)).minter == false);
     assert((await erc20Token.permissions(user3.address)).minter == false);
-
+    assert((await erc20Token.permissions(user4.address)).minter == false);
     // we reassigned feeCollector to address(0) when cleaning permissions, so now getFeeCollector points to NFT Owner
     assert((await erc20Token.getFeeCollector()) == owner.address);
   });
 
   it("#permit - should succeed to deposit with permit function", async () => {
     // mint some DT to owner
-    await erc20Token.mint(owner.address, web3.utils.toWei("100"));
+    await erc20Token.connect(user3).mint(owner.address, web3.utils.toWei("100"));
 
     // mock exchange
     const Exchange = await ethers.getContractFactory("MockExchange");
@@ -501,8 +504,9 @@ describe("ERC20Template", () => {
   });
 
   it("#startOrder - user should succeed to call startOrder, FEE on top is ZERO", async () => {
+    
     //MINT SOME DT20 to USER2 so he can start order
-    await erc20Token.mint(user2.address, web3.utils.toWei("10"));
+    await erc20Token.connect(user3).mint(user2.address, web3.utils.toWei("10"));
     assert(
       (await erc20Token.balanceOf(user2.address)) == web3.utils.toWei("10")
     );
@@ -529,7 +533,7 @@ describe("ERC20Template", () => {
     );
 
     assert(
-      (await erc20Token.balanceOf(communityFeeCollector)) ==
+      (await erc20Token.balanceOf(opfCollector.address)) ==
         web3.utils.toWei("0.001")
     );
     assert(
@@ -564,7 +568,7 @@ describe("ERC20Template", () => {
       .approve(erc20Token.address, web3.utils.toWei("3"));
 
     //MINT SOME DT20 to USER2 so he can start order
-    await erc20Token.mint(user2.address, web3.utils.toWei("10"));
+    await erc20Token.connect(user3).mint(user2.address, web3.utils.toWei("10"));
     assert(
       (await erc20Token.balanceOf(user2.address)) == web3.utils.toWei("10")
     );
@@ -594,7 +598,7 @@ describe("ERC20Template", () => {
     );
 
     assert(
-      (await erc20Token.balanceOf(communityFeeCollector)) ==
+      (await erc20Token.balanceOf(opfCollector.address)) ==
         web3.utils.toWei("0.001")
     );
     assert(
@@ -608,7 +612,7 @@ describe("ERC20Template", () => {
 
   it("#finishOrder - provider calls finish Order and refunds user2", async () => {
     //MINT SOME DT20 to PROVIDER so he can refund a user
-    await erc20Token.mint(provider.address, web3.utils.toWei("10"));
+    await erc20Token.connect(user3).mint(provider.address, web3.utils.toWei("10"));
     assert(
       (await erc20Token.balanceOf(provider.address)) == web3.utils.toWei("10")
     );
@@ -634,7 +638,7 @@ describe("ERC20Template", () => {
 
   it("#startMultipleOrder - user should succeed to call startOrder, FEE on top is ZERO", async () => {
     //MINT SOME DT20 to USER2 so he can start order
-    await erc20Token.mint(user2.address, web3.utils.toWei("10"));
+    await erc20Token.connect(user3).mint(user2.address, web3.utils.toWei("10"));
     assert(
       (await erc20Token.balanceOf(user2.address)) == web3.utils.toWei("10")
     );
@@ -671,7 +675,7 @@ describe("ERC20Template", () => {
 
     // CHECK COMMUNTIY FEES
     assert(
-      (await erc20Token.balanceOf(communityFeeCollector)) ==
+      (await erc20Token.balanceOf(opfCollector.address)) ==
         web3.utils.toWei("0.003")
     );
     // CHECK MARKETPLACE FEES
@@ -713,7 +717,7 @@ describe("ERC20Template", () => {
       .approve(erc20Token.address, web3.utils.toWei("9"));
 
     //MINT SOME DT20 to USER2 so he can start order
-    await erc20Token.mint(user2.address, web3.utils.toWei("10"));
+    await erc20Token.connect(user3).mint(user2.address, web3.utils.toWei("10"));
     assert(
       (await erc20Token.balanceOf(user2.address)) == web3.utils.toWei("10")
     );
@@ -757,7 +761,7 @@ describe("ERC20Template", () => {
 
     // CHECK COMMUNTIY FEES
     assert(
-      (await erc20Token.balanceOf(communityFeeCollector)) ==
+      (await erc20Token.balanceOf(opfCollector.address)) ==
         web3.utils.toWei("0.003")
     );
     // CHECK MARKETPLACE FEES
@@ -778,7 +782,7 @@ describe("ERC20Template", () => {
 
   it("#finishMultipleOrder - provider calls finishMultipleOrder and refunds user2", async () => {
     //MINT SOME DT20 to PROVIDER so he can refund a user
-    await erc20Token.mint(provider.address, web3.utils.toWei("10"));
+    await erc20Token.connect(user3).mint(provider.address, web3.utils.toWei("10"));
     assert(
       (await erc20Token.balanceOf(provider.address)) == web3.utils.toWei("10")
     );
@@ -818,4 +822,5 @@ describe("ERC20Template", () => {
     const templateId = 1;
     assert((await erc20Token.getId()) == templateId);
   });
+
 });
