@@ -132,7 +132,7 @@ contract ERC721Template is
 
     ) external returns (address) {
         Roles memory user = _getPermissions(msg.sender);
-        require(user.deployERC20 == true, "ERC721Template: NOT MINTER_ROLE");
+        require(user.deployERC20 == true, "ERC721Template: NOT ERC20DEPLOYER_ROLE");
 
         address token =
             IERC20Factory(_tokenFactory).createToken(

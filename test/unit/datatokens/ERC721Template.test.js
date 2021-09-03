@@ -27,12 +27,16 @@ describe("ERC721Template", () => {
     factoryERC20,
     templateERC721,
     templateERC20,
-    newERC721Template;
+    newERC721Template,
+    cap = web3.utils.toWei("100000");
 
   const communityFeeCollector = "0xeE9300b7961e0a01d9f0adb863C7A227A07AaD75";
   const v3Datatoken = "0xa2B8b3aC4207CFCCbDe4Ac7fa40214fd00A2BA71"
   const v3DTOwner = "0x12BD31628075C20919BA838b89F414241b8c4869"
-  
+  const oceanAddress = "0x967da4048cD07aB37855c090aAF366e4ce1b9F48";
+  const daiAddress = "0x6B175474E89094C44Da98b954EedeAC495271d0F";
+  const usdcAddress = "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48";
+
   const migrateFromV3 = async (v3DTOwner,v3Datatoken) => {
     // WE IMPERSONATE THE ACTUAL v3DT OWNER and create a new ERC721 Contract, from which we are going to wrap the v3 datatoken
     
@@ -67,68 +71,120 @@ describe("ERC721Template", () => {
   beforeEach("init contracts for each test", async () => {
     await network.provider.request({
       method: "hardhat_reset",
-      params: [{
-        forking: {
-          jsonRpcUrl: "https://eth-mainnet.alchemyapi.io/v2/eOqKsGAdsiNLCVm846Vgb-6yY3jlcNEo",
-          blockNumber: 12515000,
-        }
-      }]
-    })
-    
+      params: [
+        {
+          forking: {
+            jsonRpcUrl:
+              "https://eth-mainnet.alchemyapi.io/v2/eOqKsGAdsiNLCVm846Vgb-6yY3jlcNEo",
+            blockNumber: 12515000,
+          },
+        },
+      ],
+    });
+
     const ERC721Template = await ethers.getContractFactory("ERC721Template");
     const ERC20Template = await ethers.getContractFactory("ERC20Template");
     const ERC721Factory = await ethers.getContractFactory("ERC721Factory");
-    const ERC20Factory = await ethers.getContractFactory("ERC20Factory");
 
     const Metadata = await ethers.getContractFactory("Metadata");
+    const Router = await ethers.getContractFactory("FactoryRouter");
+    const SSContract = await ethers.getContractFactory("ssFixedRate");
+    const BPool = await ethers.getContractFactory("BPool");
+    const FixedRateExchange = await ethers.getContractFactory(
+      "FixedRateExchange"
+    );
 
-    [owner, reciever, user2, user3] = await ethers.getSigners();
 
-    // cap = new BigNumber('1400000000')
+    [owner, reciever, user2, user3,user4, user5, user6, provider, opfCollector, marketFeeCollector] = await ethers.getSigners();
+
     data = web3.utils.asciiToHex(constants.blob[0]);
     flags = web3.utils.asciiToHex(constants.blob[0]);
-   
-    //console.log(metadata.address)
 
-    templateERC20 = await ERC20Template
-      .deploy();
-    factoryERC20 = await ERC20Factory.deploy(
-      templateERC20.address,
-      communityFeeCollector
-    );
+ // DEPLOY ROUTER, SETTING OWNER
 
-    metadata = await Metadata.deploy(factoryERC20.address);
-    templateERC721 = await ERC721Template
-      .deploy();
-    factoryERC721 = await ERC721Factory.deploy(
-      templateERC721.address,
-      communityFeeCollector,
-      factoryERC20.address,
-      metadata.address
-    );
+    poolTemplate = await BPool.deploy();
 
-    newERC721Template = await ERC721Template
-      .deploy();
+    ssFixedRate = await SSContract.deploy();
 
-    //await metadata.setERC20Factory(factoryERC20.address);
-    await factoryERC20.setERC721Factory(factoryERC721.address);
 
+    router = await Router.deploy(
+     owner.address,
+     oceanAddress,
+     poolTemplate.address, // pooltemplate field,
+     ssFixedRate.address,
+     opfCollector.address,
+     []
+   );
+ 
+   fixedRateExchange = await FixedRateExchange.deploy(
+     router.address,
+     opfCollector.address
+   );
+ 
+   templateERC20 = await ERC20Template.deploy();
+ 
+   metadata = await Metadata.deploy();
+ 
+   // SETUP ERC721 Factory with template
+   templateERC721 = await ERC721Template.deploy();
+   factoryERC721 = await ERC721Factory.deploy(
+     templateERC721.address,
+     templateERC20.address,
+     opfCollector.address,
+     router.address,
+     metadata.address
+   );
+ 
+   // SET REQUIRED ADDRESS
+ 
+   await metadata.addTokenFactory(factoryERC721.address);
+ 
+   await router.addERC20Factory(factoryERC721.address);
+ 
+   await router.addFixedRateContract(fixedRateExchange.address); // DEPLOY ROUTER, SETTING OWNER
+
+ 
+
+    // by default connect() in ethers goes with the first address (owner in this case)
     const tx = await factoryERC721.deployERC721Contract(
-      "DT1",
-      "DTSYMBOL",
+      "NFT",
+      "NFTSYMBOL",
       data,
       flags,
       1
     );
     const txReceipt = await tx.wait();
-      
+
     tokenAddress = txReceipt.events[4].args[0];
     tokenERC721 = await ethers.getContractAt("ERC721Template", tokenAddress);
-    symbol = await tokenERC721.symbol();
-    name = await tokenERC721.name();
-    assert(name === "DT1");
-    assert(symbol === "DTSYMBOL");
-    //await tokenERC721.addManager(owner.address);
+
+    assert((await tokenERC721.balanceOf(owner.address)) == 1);
+
+    await tokenERC721.addManager(user2.address);
+    await tokenERC721.connect(user2).addTo725StoreList(user3.address);
+    await tokenERC721.connect(user2).addToCreateERC20List(user3.address);
+    await tokenERC721.connect(user2).addToMetadataList(user3.address);
+
+    assert((await tokenERC721._getPermissions(user3.address)).store == true);
+    assert(
+      (await tokenERC721._getPermissions(user3.address)).deployERC20 == true
+    );
+    assert(
+      (await tokenERC721._getPermissions(user3.address)).updateMetadata == true
+    );
+    const trxERC20 = await tokenERC721.connect(user3).createERC20(
+      "ERC20DT1",
+      "ERC20DT1Symbol",
+      cap,
+      1,
+      user3.address, // minter
+      user6.address // feeManager
+    );
+    const trxReceiptERC20 = await trxERC20.wait();
+    erc20Address = trxReceiptERC20.events[3].args.erc20Address;
+
+    erc20Token = await ethers.getContractAt("ERC20Template", erc20Address);
+    assert((await erc20Token.permissions(user3.address)).minter == true);
   });
 
   it("#isInitialized - should check that the tokenERC721 contract is initialized", async () => {
@@ -142,7 +198,7 @@ describe("ERC721Template", () => {
         "NewName",
         "NN",
         metadata.address,
-        factoryERC20.address,
+        factoryERC721.address,
         data,
         flags
       ),
@@ -183,9 +239,10 @@ describe("ERC721Template", () => {
         "ERC20DT1Symbol",
         web3.utils.toWei("10"),
         1,
-        owner.address
+        owner.address,
+        user2.address
       ),
-      "ERC721Template: NOT MINTER_ROLE"
+      "ERC721Template: NOT ERC20DEPLOYER_ROLE"
     );
   });
 
@@ -194,9 +251,10 @@ describe("ERC721Template", () => {
     await tokenERC721.createERC20(
       "ERC20DT1",
       "ERC20DT1Symbol",
-      web3.utils.toWei("10"),
+      cap,
       1,
-      owner.address
+      owner.address,
+      user2.address // feeManager
     );
   });
 
@@ -244,12 +302,12 @@ describe("ERC721Template", () => {
 
   it("#addManager - should succed to add a new manager, if NFT owner", async () => {
     assert(
-      (await tokenERC721._getPermissions(user2.address)).manager == false
+      (await tokenERC721._getPermissions(user3.address)).manager == false
     );
-    await tokenERC721.addManager(user2.address);
+    await tokenERC721.addManager(user3.address);
 
     assert(
-      (await tokenERC721._getPermissions(user2.address)).manager == true
+      (await tokenERC721._getPermissions(user3.address)).manager == true
     );
    
   });
@@ -322,11 +380,11 @@ describe("ERC721Template", () => {
     const data = web3.utils.asciiToHex('SomeData');
 
     assert(
-      (await tokenERC721._getPermissions(user2.address)).manager == false
+      (await tokenERC721._getPermissions(user3.address)).manager == false
     );
     
     await expectRevert(
-      tokenERC721.connect(user2).executeCall(operation,to,value,data),
+      tokenERC721.connect(user3).executeCall(operation,to,value,data),
       "ERC721RolesAddress: NOT MANAGER"
     );
 
@@ -507,14 +565,14 @@ describe("ERC721Template", () => {
   it("#addV3Minter - should fail to addV3Minter, if caller has NOT MANAGER", async () => {
     
     assert((await tokenERC721._getPermissions(user2.address)).v3Minter == false);
-    await expectRevert(tokenERC721.connect(user2).addV3Minter(user2.address),"ERC721RolesAddress: NOT MANAGER")
+    await expectRevert(tokenERC721.connect(user4).addV3Minter(user2.address),"ERC721RolesAddress: NOT MANAGER")
     assert((await tokenERC721._getPermissions(user2.address)).v3Minter == false);
   });
 
   it("#addV3Minter - should succeed to addV3Minter, if caller is MANAGER", async () => {
     
     assert((await tokenERC721._getPermissions(user2.address)).v3Minter == false);
-    await tokenERC721.addV3Minter(user2.address)
+    await tokenERC721.connect(user2).addV3Minter(user2.address)
     assert((await tokenERC721._getPermissions(user2.address)).v3Minter == true);
    
   });
@@ -522,7 +580,7 @@ describe("ERC721Template", () => {
   it("#removeV3Minter - should fail to removeV3Minter, if caller has NOT MANAGER", async () => {
     await tokenERC721.addV3Minter(user2.address)
     assert((await tokenERC721._getPermissions(user2.address)).v3Minter == true);
-    await expectRevert(tokenERC721.connect(user2).removeV3Minter(user2.address),"ERC721RolesAddress: NOT MANAGER")
+    await expectRevert(tokenERC721.connect(user4).removeV3Minter(user2.address),"ERC721RolesAddress: NOT MANAGER")
     assert((await tokenERC721._getPermissions(user2.address)).v3Minter == true);
   });
 
@@ -536,12 +594,13 @@ describe("ERC721Template", () => {
   
   it("#transferNFT - should transfer properly the NFT, now the new user is the owner for ERC721Template and ERC20Template", async () => {
     await tokenERC721.addToCreateERC20List(owner.address);
-    const trxERC20 = await tokenERC721.createERC20(
+    const trxERC20 = await tokenERC721.connect(user3).createERC20(
       "ERC20DT1",
       "ERC20DT1Symbol",
       web3.utils.toWei("10"),
       1,
-      owner.address
+      owner.address,
+      user2.address
     );
     const trxReceiptERC20 = await trxERC20.wait();
     erc20Address = trxReceiptERC20.events[3].args.erc20Address;
@@ -561,14 +620,15 @@ describe("ERC721Template", () => {
     assert((await tokenERC721.ownerOf(1)) == user2.address);
 
     await expectRevert(
-      tokenERC721.createERC20(
+      tokenERC721.connect(user2).createERC20(
         "ERC20DT2",
         "ERC20DT2Symbol",
         web3.utils.toWei("10"),
         1,
-        owner.address
+        owner.address,
+        user2.address
       ),
-      "ERC721Template: NOT MINTER_ROLE"
+      "ERC721Template: NOT ERC20DEPLOYER_ROLE"
     );
   
 
@@ -576,7 +636,7 @@ describe("ERC721Template", () => {
     await tokenERC721.connect(user2).addToCreateERC20List(user2.address);
     await tokenERC721
       .connect(user2)
-      .createERC20("ERC20DT2", "ERC20DT2Symbol", web3.utils.toWei("10"), 1,owner.address)
+      .createERC20("ERC20DT2", "ERC20DT2Symbol", web3.utils.toWei("10"), 1,owner.address,user2.address)
 
   
 
