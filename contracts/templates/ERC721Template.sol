@@ -9,7 +9,7 @@ import "solidity-bytes-utils/contracts/BytesLib.sol";
 import "../interfaces/IV3ERC20.sol";
 //import "@openzeppelin/contracts/utils/introspection/ERC165Storage.sol";
 import "../interfaces/IMetadata.sol";
-import "../interfaces/IERC20Factory.sol";
+import "../interfaces/IFactory.sol";
 import "../interfaces/IERC20Template.sol";
 import "../utils/ERC721RolesAddress.sol";
 import "../utils/V3Integration.sol";
@@ -101,7 +101,7 @@ contract ERC721Template is
     function _createMetadata(bytes memory flags, bytes calldata data) internal {
         // require(_metadata != address(0), "Invalid Metadata address");
         require(
-            IERC20Factory(_tokenFactory).erc721List(address(this)) ==
+            IFactory(_tokenFactory).erc721List(address(this)) ==
                 address(this),
             "ERC721Template: NOT ORIGINAL TEMPLATE"
         );
@@ -135,7 +135,7 @@ contract ERC721Template is
         require(user.deployERC20 == true, "ERC721Template: NOT ERC20DEPLOYER_ROLE");
 
         address token =
-            IERC20Factory(_tokenFactory).createToken(
+            IFactory(_tokenFactory).createToken(
                 name_,
                 symbol_,
                 cap,

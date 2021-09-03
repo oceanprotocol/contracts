@@ -4,7 +4,7 @@ pragma solidity >=0.6.0;
 // Code is Apache-2.0 and docs are CC-BY-4.0
 
 import "../interfaces/IERC721Template.sol";
-import "../interfaces/IERC20Factory.sol";
+import "../interfaces/IFactory.sol";
 
 /**
  * @title Metadata
@@ -36,7 +36,7 @@ contract Metadata {
     
     modifier onlyDataTokenMinter(address dataToken) {
         require(
-            IERC20Factory(tokenFactory).erc721List(msg.sender) == msg.sender,
+            IFactory(tokenFactory).erc721List(msg.sender) == msg.sender,
             "Metadata:NOT ORIGINAL TEMPLATE"
         );
         _;

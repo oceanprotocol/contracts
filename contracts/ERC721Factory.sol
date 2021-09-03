@@ -6,7 +6,7 @@ pragma experimental ABIEncoderV2;
 
 import "./utils/Deployer.sol";
 import "./interfaces/IERC721Template.sol";
-import "./interfaces/IERC20Factory.sol";
+import "./interfaces/IFactory.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
 import "./interfaces/IERC20Template.sol";
 

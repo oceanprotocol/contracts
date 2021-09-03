@@ -5,13 +5,13 @@ pragma solidity >=0.5.7;
 pragma experimental ABIEncoderV2;
 
 import "./BFactory.sol";
-import "../../interfaces/IERC20Factory.sol";
+import "../../interfaces/IFactory.sol";
 import "../../interfaces/IERC20.sol";
 import "../../interfaces/IFixedRateExchange.sol";
 
 contract FactoryRouter is BFactory {
     address public routerOwner;
-    address public erc20Factory;
+    address public factory;
     address public fixedRate;
     address public opfCollector;
 
@@ -54,9 +54,9 @@ contract FactoryRouter is BFactory {
     }
 
     // TODO: add remove function?
-    function addERC20Factory(address _erc20Factory) external onlyRouterOwner {
-        require(erc20Factory == address(0), "FACTORY ALREADY SET");
-        erc20Factory = _erc20Factory;
+    function addERC20Factory(address _factory) external onlyRouterOwner {
+        require(factory == address(0), "FACTORY ALREADY SET");
+        factory = _factory;
     }
 
     function addFixedRateContract(address _fixedRate) external onlyRouterOwner {
@@ -76,7 +76,7 @@ contract FactoryRouter is BFactory {
         address marketFeeCollector
     ) external returns (address) {
         require(
-            IERC20Factory(erc20Factory).erc20List(msg.sender) == true,
+            IFactory(factory).erc20List(msg.sender) == true,
             "FACTORY ROUTER: NOT ORIGINAL ERC20 TEMPLATE"
         );
         require(
@@ -144,7 +144,7 @@ contract FactoryRouter is BFactory {
         address marketFeeCollector
     ) external returns(bytes32 exchangeId) {
         require(
-            IERC20Factory(erc20Factory).erc20List(msg.sender) == true,
+            IFactory(factory).erc20List(msg.sender) == true,
             "FACTORY ROUTER: NOT ORIGINAL ERC20 TEMPLATE"
         );
 

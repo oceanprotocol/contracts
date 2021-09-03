@@ -1,6 +1,6 @@
 pragma solidity >=0.5.7;
 
-interface IERC20Factory {
+interface IFactory {
     function initialize(
         string calldata _name,
         string calldata _symbol,
