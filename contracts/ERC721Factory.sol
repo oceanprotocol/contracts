@@ -110,7 +110,7 @@ contract ERC721Factory is Deployer, Ownable {
             token != address(0),
             "ERC721DTFactory: Failed to perform minimal deploy of a new token"
         );
-        //IERC20Factory(erc20Factory).addToERC721Registry(token);
+       
         erc721List[token] = token;
 
         IERC721Template tokenInstance = IERC721Template(token);
@@ -159,7 +159,7 @@ contract ERC721Factory is Deployer, Ownable {
         return template;
     }
 
-    // when we add a new token template is going to be activated by default (we could restrict that or give an option to choose)
+    
     function add721TokenTemplate(address _templateAddress)
         public
         onlyOwner
@@ -284,14 +284,14 @@ contract ERC721Factory is Deployer, Ownable {
 
         require(
             token != address(0),
-            "ERC20Factory: Failed to perform minimal deploy of a new token"
+            "ERC721Factory: Failed to perform minimal deploy of a new token"
         );
 
         IERC20Template tokenInstance = IERC20Template(token);
 
         require(
             erc721List[msg.sender] == msg.sender,
-            "ERC20Factory: ONLY ERC721 INSTANCE FROM ERC721FACTORY"
+            "ERC721Factory: ONLY ERC721 INSTANCE FROM ERC721FACTORY"
         );
 
         require(

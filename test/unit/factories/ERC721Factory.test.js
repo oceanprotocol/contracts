@@ -20,12 +20,13 @@ describe("ERC721Factory", () => {
     data,
     flags,
     factoryERC721,
-    factoryERC20,
     templateERC721,
     templateERC20,
-    newERC721Template;
+    newERC721Template,
+    cap = web3.utils.toWei("100000");
 
   const communityFeeCollector = "0xeE9300b7961e0a01d9f0adb863C7A227A07AaD75";
+  const oceanAddress = "0x967da4048cD07aB37855c090aAF366e4ce1b9F48";
   beforeEach("init contracts for each test", async () => {
     await network.provider.request({
       method: "hardhat_reset",
@@ -43,34 +44,108 @@ describe("ERC721Factory", () => {
     const ERC721Template = await ethers.getContractFactory("ERC721Template");
     const ERC20Template = await ethers.getContractFactory("ERC20Template");
     const ERC721Factory = await ethers.getContractFactory("ERC721Factory");
-    const ERC20Factory = await ethers.getContractFactory("ERC20Factory");
 
     const Metadata = await ethers.getContractFactory("Metadata");
+    const Router = await ethers.getContractFactory("FactoryRouter");
+    const SSContract = await ethers.getContractFactory("ssFixedRate");
+    const BPool = await ethers.getContractFactory("BPool");
+    const FixedRateExchange = await ethers.getContractFactory(
+      "FixedRateExchange"
+    );
 
-    [owner, reciever, user2, user3] = await ethers.getSigners();
+
+    [owner, reciever, user2, user3,user4, user5, user6, provider, opfCollector, marketFeeCollector] = await ethers.getSigners();
 
     data = web3.utils.asciiToHex(constants.blob[0]);
     flags = web3.utils.asciiToHex(constants.blob[0]);
 
-    templateERC20 = await ERC20Template.deploy();
-    factoryERC20 = await ERC20Factory.deploy(
-      templateERC20.address,
-      communityFeeCollector
-    );
-    metadata = await Metadata.deploy(factoryERC20.address);
-    
-    templateERC721 = await ERC721Template.deploy();
-    factoryERC721 = await ERC721Factory.deploy(
-      templateERC721.address,
-      communityFeeCollector,
-      factoryERC20.address,
-      metadata.address
-    );
+ // DEPLOY ROUTER, SETTING OWNER
 
-    newERC721Template = await ERC721Template.deploy();
+    poolTemplate = await BPool.deploy();
 
-    
-    await factoryERC20.setERC721Factory(factoryERC721.address);
+    ssFixedRate = await SSContract.deploy();
+
+
+    router = await Router.deploy(
+     owner.address,
+     oceanAddress,
+     poolTemplate.address, // pooltemplate field,
+     ssFixedRate.address,
+     opfCollector.address,
+     []
+   );
+ 
+   fixedRateExchange = await FixedRateExchange.deploy(
+     router.address,
+     opfCollector.address
+   );
+ 
+   templateERC20 = await ERC20Template.deploy();
+ 
+   metadata = await Metadata.deploy();
+ 
+   // SETUP ERC721 Factory with template
+   templateERC721 = await ERC721Template.deploy();
+   newERC721Template = await ERC721Template.deploy();
+
+   factoryERC721 = await ERC721Factory.deploy(
+     templateERC721.address,
+     templateERC20.address,
+     opfCollector.address,
+     router.address,
+     metadata.address
+   );
+ 
+   // SET REQUIRED ADDRESS
+ 
+   await metadata.addTokenFactory(factoryERC721.address);
+ 
+   await router.addERC20Factory(factoryERC721.address);
+ 
+   await router.addFixedRateContract(fixedRateExchange.address); // DEPLOY ROUTER, SETTING OWNER
+
+ 
+
+    // by default connect() in ethers goes with the first address (owner in this case)
+    const tx = await factoryERC721.deployERC721Contract(
+      "NFT",
+      "NFTSYMBOL",
+      data,
+      flags,
+      1
+    );
+    const txReceipt = await tx.wait();
+
+    tokenAddress = txReceipt.events[4].args[0];
+    tokenERC721 = await ethers.getContractAt("ERC721Template", tokenAddress);
+
+    assert((await tokenERC721.balanceOf(owner.address)) == 1);
+
+    await tokenERC721.addManager(user2.address);
+    await tokenERC721.connect(user2).addTo725StoreList(user3.address);
+    await tokenERC721.connect(user2).addToCreateERC20List(user3.address);
+    await tokenERC721.connect(user2).addToMetadataList(user3.address);
+
+    assert((await tokenERC721.getPermissions(user3.address)).store == true);
+    assert(
+      (await tokenERC721.getPermissions(user3.address)).deployERC20 == true
+    );
+    assert(
+      (await tokenERC721.getPermissions(user3.address)).updateMetadata == true
+    );
+    const trxERC20 = await tokenERC721.connect(user3).createERC20(
+      "ERC20DT1",
+      "ERC20DT1Symbol",
+      cap,
+      1,
+      user3.address, // minter
+      user6.address // feeManager
+    );
+    const trxReceiptERC20 = await trxERC20.wait();
+    erc20Address = trxReceiptERC20.events[3].args.erc20Address;
+
+    erc20Token = await ethers.getContractAt("ERC20Template", erc20Address);
+    assert((await erc20Token.permissions(user3.address)).minter == true);
   });
 
   it("#deployERC721Contract - should deploy a new erc721 contract and send tokenId=1 to contract owner", async () => {
@@ -105,7 +180,7 @@ describe("ERC721Factory", () => {
     const txReceipt = await tx.wait();
     tokenAddress = txReceipt.events[4].args[0];
 
-    assert(txReceipt.events[4].event == "TokenCreated");
+    assert(txReceipt.events[4].event == "NFTCreated");
     assert(txReceipt.events[4].args[1] == templateERC721.address);
     assert(txReceipt.events[4].args[3] == owner.address);
   });
@@ -125,8 +200,9 @@ describe("ERC721Factory", () => {
   });
 
   it("#deployERC721Contract - should fail if token template is not active", async () => {
-    await factoryERC721.addTokenTemplate(newERC721Template.address);
-    await factoryERC721.disableTokenTemplate(2);
+    
+    await factoryERC721.add721TokenTemplate(newERC721Template.address);
+    await factoryERC721.disable721TokenTemplate(2);
 
     await expectRevert(
       factoryERC721.deployERC721Contract("DT1", "DTSYMBOL", data, flags, 2),
@@ -134,89 +210,280 @@ describe("ERC721Factory", () => {
     );
   });
 
-  it("#getCurrentTokenCount - should return token count", async () => {
-    assert((await factoryERC721.getCurrentTokenCount()) == 1);
+  it("#getCurrentNFTCount - should return token count", async () => {
+    assert((await factoryERC721.getCurrentNFTCount()) == 1);
 
     await factoryERC721.deployERC721Contract("DT1", "DTSYMBOL", data, flags, 1);
 
-    assert((await factoryERC721.getCurrentTokenCount()) == 2);
+    assert((await factoryERC721.getCurrentNFTCount()) == 2);
   });
 
-  it("#getTokenTemplate - should return token template struct", async () => {
-    const template = await factoryERC721.getTokenTemplate(1);
+  it("#getNFTTemplate - should return token template struct", async () => {
+    const template = await factoryERC721.getNFTTemplate(1);
 
     assert(template.templateAddress == templateERC721.address);
     assert(template.isActive == true);
   });
 
-  it("#getCurrentTemplateCount - should return template count", async () => {
-    assert((await factoryERC721.getCurrentTemplateCount()) == 1);
+  it("#getCurrentNFTTemplateCount - should return template count", async () => {
+    assert((await factoryERC721.getCurrentNFTTemplateCount()) == 1);
 
-    await factoryERC721.addTokenTemplate(newERC721Template.address);
+    await factoryERC721.add721TokenTemplate(newERC721Template.address);
 
-    assert((await factoryERC721.getCurrentTemplateCount()) == 2);
+    assert((await factoryERC721.getCurrentNFTTemplateCount()) == 2);
   });
 
-  it("#addTokenTemplate - should fail to add Token Template if not Owner", async () => {
+  it("#add721TokenTemplate - should fail to add Token Template if not Owner", async () => {
+    await expectRevert(
+      factoryERC721.connect(user2).add721TokenTemplate(newERC721Template.address),
+      "Ownable: caller is not the owner"
+    );
+  });
+
+  it("#add721TokenTemplate - should succeed to add Token Template if Owner", async () => {
+    await factoryERC721.add721TokenTemplate(newERC721Template.address);
+    assert((await factoryERC721.getCurrentNFTTemplateCount()) == 2);
+  });
+
+  it("#disable721TokenTemplate - should fail to disable Token Template if not Owner", async () => {
+    await expectRevert(
+      factoryERC721.connect(user2).disable721TokenTemplate(1),
+      "Ownable: caller is not the owner"
+    );
+  });
+
+  it("#disable721TokenTemplate - should succeed to disable Token Template if Owner", async () => {
+    await factoryERC721.add721TokenTemplate(newERC721Template.address);
+    let template = await factoryERC721.getNFTTemplate(2);
+    assert(template.templateAddress == newERC721Template.address);
+    // active by default
+    assert(template.isActive == true);
+
+    await factoryERC721.disable721TokenTemplate(2);
+
+    template = await factoryERC721.getNFTTemplate(2);
+
+    assert(template.templateAddress == newERC721Template.address);
+    assert(template.isActive == false);
+  });
+
+  it("#reactivate721TokenTemplate - should fail to reactivate Token Template if not Owner", async () => {
+    await expectRevert(
+      factoryERC721.connect(user2).disable721TokenTemplate(1),
+      "Ownable: caller is not the owner"
+    );
+  });
+
+  it("#reactivate721TokenTemplate - should succeed to reactivate Token Template if Owner", async () => {
+    await factoryERC721.add721TokenTemplate(newERC721Template.address);
+    let template = await factoryERC721.getNFTTemplate(2);
+    assert(template.templateAddress == newERC721Template.address);
+    // active by default
+    assert(template.isActive == true);
+
+    await factoryERC721.disable721TokenTemplate(2);
+
+    template = await factoryERC721.getNFTTemplate(2);
+
+    assert(template.isActive == false);
+
+    await factoryERC721.reactivate721TokenTemplate(2);
+
+    template = await factoryERC721.getNFTTemplate(2);
+
+    assert(template.isActive == true);
+  });
+
+  it("#createToken - should not allow to create a new ERC20Token if NOT in CreateERC20List", async () => {
+    await expectRevert(
+      tokenERC721.createERC20(
+        "ERC20DT1",
+        "ERC20DT1Symbol",
+        web3.utils.toWei("10"),
+        1,
+        owner.address,
+        user6.address
+      ),
+      "ERC721Template: NOT ERC20DEPLOYER_ROLE"
+    );
+  });
+
+  it("#createToken - should create a new ERC20Token, after adding address to CreateERC20List", async () => {
+    await tokenERC721.addToCreateERC20List(owner.address);
+    await tokenERC721.createERC20(
+      "ERC20DT1",
+      "ERC20DT1Symbol",
+      web3.utils.toWei("10"),
+      1,
+      owner.address,
+      user6.address
+    );
+  });
+
+  it("#createToken - should fail to create an ERC20 calling the factory directly", async () => {
+    await expectRevert(
+      factoryERC721.createToken(
+        "ERC20DT1",
+        "ERC20DT1Symbol",
+        web3.utils.toWei("10"),
+        1,
+        owner.address,
+        user6.address
+      ),
+      "ERC721Factory: ONLY ERC721 INSTANCE FROM ERC721FACTORY"
+    );
+  });
+
+  it("#createToken - should not allow to create a new ERC20Token directly if ERC721 contract is not on the list", async () => {
+    await impersonate(templateERC721.address);
+
+    const signer = await ethers.provider.getSigner(templateERC721.address);
+
+    await expectRevert(
+      factoryERC721
+        .connect(signer)
+        .createToken(
+          "ERC20DT1",
+          "ERC20DT1Symbol",
+          web3.utils.toWei("10"),
+          1,
+          owner.address,
+          user6.address
+        ),
+      "ERC721Factory: ONLY ERC721 INSTANCE FROM ERC721FACTORY"
+    );
+  });
+
+  it("#createToken - should not allow to create a new ERC20Token directly from the ERC20Factory even if is a contract", async () => {
+    await impersonate(newERC721Template.address);
+    const signer = await ethers.provider.getSigner(newERC721Template.address);
+
+    await expectRevert(
+      factoryERC721
+        .connect(signer)
+        .createToken(
+          "ERC20DT1",
+          "ERC20DT1Symbol",
+          web3.utils.toWei("10"),
+          1,
+          owner.address,
+          user6.address
+        ),
+      "ERC721Factory: ONLY ERC721 INSTANCE FROM ERC721FACTORY"
+    );
+  });
+
+  it("#createToken - should fail to create a specific ERC20 Template if the index is ZERO", async () => {
+    await tokenERC721.addToCreateERC20List(owner.address);
+    await expectRevert(
+      tokenERC721.createERC20(
+        "ERC20DT1",
+        "ERC20DT1Symbol",
+        web3.utils.toWei("10"),
+        0,
+        owner.address,
+        user6.address
+      ),
+      "ERC20Factory: Template index doesnt exist"
+    );
+  });
+
+  it("#createToken - should fail to create a specific ERC20 Template if the index doesn't exist", async () => {
+    await tokenERC721.addToCreateERC20List(owner.address);
+    await expectRevert(
+      tokenERC721.createERC20(
+        "ERC20DT1",
+        "ERC20DT1Symbol",
+        web3.utils.toWei("10"),
+        3,
+        owner.address,
+        user6.address
+      ),
+      "Template index doesnt exist"
+    );
+  });
+
+  it("#templateCount - should get templateCount from ERC20Factory", async () => {
+    assert((await factoryERC721.templateCount()) == 1);
+  });
+
+  it("#addTokenTemplate - should add a new ERC20 Template from owner(owner)", async () => {
+    await factoryERC721.addTokenTemplate(newERC721Template.address);
+    assert((await factoryERC721.templateCount()) == 2);
+  });
+
+  it("#addTokenTemplate - should fail to add a new ERC20 Template if not owner", async () => {
     await expectRevert(
       factoryERC721.connect(user2).addTokenTemplate(newERC721Template.address),
       "Ownable: caller is not the owner"
     );
   });
 
-  it("#addTokenTemplate - should succeed to add Token Template if Owner", async () => {
-    await factoryERC721.addTokenTemplate(newERC721Template.address);
-    assert((await factoryERC721.getCurrentTemplateCount()) == 2);
+  it("#disableTokenTemplate - should disable a specific ERC20 Template from owner", async () => {
+    let templateStruct = await factoryERC721.templateList(1);
+    assert(templateStruct.isActive == true);
+    await factoryERC721.disableTokenTemplate(1);
+    templateStruct = await factoryERC721.templateList(1);
+    assert(templateStruct.isActive == false);
   });
 
-  it("#disableTokenTemplate - should fail to disable Token Template if not Owner", async () => {
+  it("#disableTokenTemplate - should fail to disable a specific ERC20 Template from NOT owner", async () => {
+    let templateStruct = await factoryERC721.templateList(1);
+    assert(templateStruct.isActive == true);
     await expectRevert(
       factoryERC721.connect(user2).disableTokenTemplate(1),
       "Ownable: caller is not the owner"
     );
+    templateStruct = await factoryERC721.templateList(1);
+    assert(templateStruct.isActive == true);
   });
 
-  it("#disableTokenTemplate - should succeed to disable Token Template if Owner", async () => {
-    await factoryERC721.addTokenTemplate(newERC721Template.address);
-    let template = await factoryERC721.getTokenTemplate(2);
-    assert(template.templateAddress == newERC721Template.address);
-    // active by default
-    assert(template.isActive == true);
-
-    await factoryERC721.disableTokenTemplate(2);
-
-    template = await factoryERC721.getTokenTemplate(2);
-
-    assert(template.templateAddress == newERC721Template.address);
-    assert(template.isActive == false);
-  });
-
-  it("#reactivateTokenTemplate - should fail to reactivate Token Template if not Owner", async () => {
+  it("#disableTokenTemplate - should fail to create a specific ERC20 Template if the template is disabled", async () => {
+    await factoryERC721.disableTokenTemplate(1);
+    await tokenERC721.addToCreateERC20List(owner.address);
     await expectRevert(
-      factoryERC721.connect(user2).disableTokenTemplate(1),
-      "Ownable: caller is not the owner"
+      tokenERC721.createERC20(
+        "ERC20DT1",
+        "ERC20DT1Symbol",
+        web3.utils.toWei("10"),
+        1,
+        owner.address,
+        user6.address
+      ),
+      "ERC721Token Template disabled"
+    );
+    templateStruct = await factoryERC721.templateList(1);
+    assert(templateStruct.isActive == false);
+  });
+
+  it("#getCurrentTokenCount - should get the current token count (deployed ERC20)", async () => {
+    assert((await factoryERC721.getCurrentTokenCount()) == 1);
+  });
+
+  it("#getTokenTemplate - should get the ERC20token template struct", async () => {
+    const template = await factoryERC721.getTokenTemplate(1);
+    assert(template.isActive == true);
+    assert(template.templateAddress == templateERC20.address);
+  });
+
+  it("#getTokenTemplate - should fail to get the ERC20token template struct if index == 0", async () => {
+    await expectRevert(
+      factoryERC721.getTokenTemplate(0),
+      "ERC20Factory: Template index doesnt exist"
     );
   });
 
-  it("#reactivateTokenTemplate - should succeed to reactivate Token Template if Owner", async () => {
-    await factoryERC721.addTokenTemplate(newERC721Template.address);
-    let template = await factoryERC721.getTokenTemplate(2);
-    assert(template.templateAddress == newERC721Template.address);
-    // active by default
-    assert(template.isActive == true);
-
-    await factoryERC721.disableTokenTemplate(2);
-
-    template = await factoryERC721.getTokenTemplate(2);
-
-    assert(template.isActive == false);
-
-    await factoryERC721.reactivateTokenTemplate(2);
-
-    template = await factoryERC721.getTokenTemplate(2);
-
-    assert(template.isActive == true);
+  it("#getTokenTemplate - should fail to get the ERC20token template struct if index > templateCount", async () => {
+    await expectRevert(
+      factoryERC721.getTokenTemplate(3),
+      "ERC20Factory: Template index doesnt exist"
+    );
   });
 
-  // TODO: complete template functions unit test
+
+  it("#getCurrentTemplateCount - should succeed to get Template count", async () => {
+    assert((await factoryERC721.getCurrentTemplateCount()) == 1);
+  });
+
+ 
 });
