@@ -82,47 +82,6 @@
       "inputs": [
         {
           "internalType": "address",
-          "name": "user",
-          "type": "address"
-        }
-      ],
-      "name": "_getPermissions",
-      "outputs": [
-        {
-          "components": [
-            {
-              "internalType": "bool",
-              "name": "manager",
-              "type": "bool"
-            },
-            {
-              "internalType": "bool",
-              "name": "deployERC20",
-              "type": "bool"
-            },
-            {
-              "internalType": "bool",
-              "name": "updateMetadata",
-              "type": "bool"
-            },
-            {
-              "internalType": "bool",
-              "name": "store",
-              "type": "bool"
-            }
-          ],
-          "internalType": "struct IERC721Template.Roles",
-          "name": "",
-          "type": "tuple"
-        }
-      ],
-      "stateMutability": "nonpayable",
-      "type": "function"
-    },
-    {
-      "inputs": [
-        {
-          "internalType": "address",
           "name": "to",
           "type": "address"
         },
@@ -173,6 +132,47 @@
         }
       ],
       "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "address",
+          "name": "user",
+          "type": "address"
+        }
+      ],
+      "name": "getPermissions",
+      "outputs": [
+        {
+          "components": [
+            {
+              "internalType": "bool",
+              "name": "manager",
+              "type": "bool"
+            },
+            {
+              "internalType": "bool",
+              "name": "deployERC20",
+              "type": "bool"
+            },
+            {
+              "internalType": "bool",
+              "name": "updateMetadata",
+              "type": "bool"
+            },
+            {
+              "internalType": "bool",
+              "name": "store",
+              "type": "bool"
+            }
+          ],
+          "internalType": "struct IERC721Template.Roles",
+          "name": "",
+          "type": "tuple"
+        }
+      ],
+      "stateMutability": "nonpayable",
       "type": "function"
     },
     {

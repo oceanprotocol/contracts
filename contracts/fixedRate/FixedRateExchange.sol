@@ -120,8 +120,8 @@ contract FixedRateExchange {
     );
 
     constructor(address _router, address _opfCollector) {
-        require(_router != address(0), "Wrong Router address");
-        require(_opfCollector != address(0), "Wrong Router address");
+        require(_router != address(0), "FixedRateExchange: Wrong Router address");
+        require(_opfCollector != address(0), "FixedRateExchange: Wrong OPF address");
         router = _router;
         opfCollector = _opfCollector;
     }

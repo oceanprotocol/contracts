@@ -63,7 +63,7 @@ describe("ERC721Template", () => {
     // ONLY V3DTOwner can now call wrapV3DT() to transfer minter permission to the erc721Contract
     await tokenERC721.connect(signer).wrapV3DT(v3Datatoken,v3DTOwner)
     assert(await tokenERC721.v3DT(v3Datatoken) == true)
-    assert((await tokenERC721._getPermissions(v3DTOwner)).v3Minter == true);
+    assert((await tokenERC721.getPermissions(v3DTOwner)).v3Minter == true);
     
     return tokenERC721;
   }
@@ -165,12 +165,12 @@ describe("ERC721Template", () => {
     await tokenERC721.connect(user2).addToCreateERC20List(user3.address);
     await tokenERC721.connect(user2).addToMetadataList(user3.address);
 
-    assert((await tokenERC721._getPermissions(user3.address)).store == true);
+    assert((await tokenERC721.getPermissions(user3.address)).store == true);
     assert(
-      (await tokenERC721._getPermissions(user3.address)).deployERC20 == true
+      (await tokenERC721.getPermissions(user3.address)).deployERC20 == true
     );
     assert(
-      (await tokenERC721._getPermissions(user3.address)).updateMetadata == true
+      (await tokenERC721.getPermissions(user3.address)).updateMetadata == true
     );
     const trxERC20 = await tokenERC721.connect(user3).createERC20(
       "ERC20DT1",
@@ -270,10 +270,10 @@ describe("ERC721Template", () => {
     await tokenERC721.addToCreateERC20List(user2.address);
 
     assert(
-      (await tokenERC721._getPermissions(owner.address)).deployERC20 == true
+      (await tokenERC721.getPermissions(owner.address)).deployERC20 == true
     );
     assert(
-      (await tokenERC721._getPermissions(user2.address)).deployERC20 == true
+      (await tokenERC721.getPermissions(user2.address)).deployERC20 == true
     );
 
     await expectRevert(
@@ -284,13 +284,13 @@ describe("ERC721Template", () => {
     await tokenERC721.cleanPermissions();
 
     assert(
-      (await tokenERC721._getPermissions(owner.address)).deployERC20 == false
+      (await tokenERC721.getPermissions(owner.address)).deployERC20 == false
     );
     assert(
-      (await tokenERC721._getPermissions(user2.address)).deployERC20 == false
+      (await tokenERC721.getPermissions(user2.address)).deployERC20 == false
     );
     assert(
-      (await tokenERC721._getPermissions(user3.address)).deployERC20 == false
+      (await tokenERC721.getPermissions(user3.address)).deployERC20 == false
     );
 
     await tokenERC721.addManager(owner.address); // WE CLEANED OURSELF TO FROM ALL LISTS, so we need to re-ADD us.
@@ -302,18 +302,18 @@ describe("ERC721Template", () => {
 
   it("#addManager - should succed to add a new manager, if NFT owner", async () => {
     assert(
-      (await tokenERC721._getPermissions(user3.address)).manager == false
+      (await tokenERC721.getPermissions(user3.address)).manager == false
     );
     await tokenERC721.addManager(user3.address);
 
     assert(
-      (await tokenERC721._getPermissions(user3.address)).manager == true
+      (await tokenERC721.getPermissions(user3.address)).manager == true
     );
    
   });
   it("#addManager - should fail to add a new manager, when NOT NFT owner", async () => {
     assert(
-      (await tokenERC721._getPermissions(user3.address)).manager == false
+      (await tokenERC721.getPermissions(user3.address)).manager == false
     );
     
     await expectRevert(
@@ -322,7 +322,7 @@ describe("ERC721Template", () => {
     );
     
     assert(
-      (await tokenERC721._getPermissions(user3.address)).manager == false
+      (await tokenERC721.getPermissions(user3.address)).manager == false
     );
     
   });
@@ -330,12 +330,12 @@ describe("ERC721Template", () => {
   it("#removeManager - should succed to remove a manager, if NFT owner", async () => {
     await tokenERC721.addManager(user2.address);
     assert(
-      (await tokenERC721._getPermissions(user2.address)).manager == true
+      (await tokenERC721.getPermissions(user2.address)).manager == true
     );
     await tokenERC721.removeManager(user2.address);
 
     assert(
-      (await tokenERC721._getPermissions(user2.address)).manager == false
+      (await tokenERC721.getPermissions(user2.address)).manager == false
     );
     
   });
@@ -343,7 +343,7 @@ describe("ERC721Template", () => {
   it("#removeManager - should fail to remove a manager, when NOT NFT owner", async () => {
     await tokenERC721.addManager(user3.address);
     assert(
-      (await tokenERC721._getPermissions(user3.address)).manager == true
+      (await tokenERC721.getPermissions(user3.address)).manager == true
     );
     
     await expectRevert(
@@ -352,7 +352,7 @@ describe("ERC721Template", () => {
     );
     
     assert(
-      (await tokenERC721._getPermissions(user3.address)).manager == true
+      (await tokenERC721.getPermissions(user3.address)).manager == true
     );
     
   });
@@ -360,17 +360,17 @@ describe("ERC721Template", () => {
   it("#removeManager - should succed to remove and re-add the NFT owner from manager list, if NFT owner", async () => {
     
     assert(
-      (await tokenERC721._getPermissions(owner.address)).manager == true
+      (await tokenERC721.getPermissions(owner.address)).manager == true
     );
     await tokenERC721.removeManager(owner.address);
 
     assert(
-      (await tokenERC721._getPermissions(owner.address)).manager == false
+      (await tokenERC721.getPermissions(owner.address)).manager == false
     );
     await tokenERC721.addManager(owner.address);
     
     assert(
-      (await tokenERC721._getPermissions(owner.address)).manager == true
+      (await tokenERC721.getPermissions(owner.address)).manager == true
     );
   });
   it("#executeCall - should fail to call executeCall, if NOT manager", async () => {
@@ -380,7 +380,7 @@ describe("ERC721Template", () => {
     const data = web3.utils.asciiToHex('SomeData');
 
     assert(
-      (await tokenERC721._getPermissions(user3.address)).manager == false
+      (await tokenERC721.getPermissions(user3.address)).manager == false
     );
     
     await expectRevert(
@@ -398,7 +398,7 @@ describe("ERC721Template", () => {
     const data = web3.utils.asciiToHex('SomeData');
 
     assert(
-      (await tokenERC721._getPermissions(owner.address)).manager == true
+      (await tokenERC721.getPermissions(owner.address)).manager == true
     );
     
    
@@ -411,7 +411,7 @@ describe("ERC721Template", () => {
     const value = web3.utils.asciiToHex('SomeData')
 
     assert(
-      (await tokenERC721._getPermissions(user2.address)).store == false
+      (await tokenERC721.getPermissions(user2.address)).store == false
     );
     
     await expectRevert(
@@ -428,7 +428,7 @@ describe("ERC721Template", () => {
     await tokenERC721.addTo725StoreList(user2.address)
 
     assert(
-      (await tokenERC721._getPermissions(user2.address)).store == true
+      (await tokenERC721.getPermissions(user2.address)).store == true
     );
     
     await tokenERC721.connect(user2).setNewData(key,value)
@@ -443,7 +443,7 @@ describe("ERC721Template", () => {
     await tokenERC721.addTo725StoreList(user2.address)
 
     assert(
-      (await tokenERC721._getPermissions(user2.address)).store == true
+      (await tokenERC721.getPermissions(user2.address)).store == true
     );
     // ONLY CALLS from ERC20 contract are allowed
     await expectRevert(tokenERC721.connect(user2).setDataERC20(key,value),"ERC721Template: NOT ERC20 Contract" )
@@ -494,7 +494,7 @@ describe("ERC721Template", () => {
     // V3DTOwner can now call wrapV3DT() to transfer minter permission to the erc721Contract
     await tokenERC721.connect(signer).wrapV3DT(v3Datatoken,v3DTOwner)
     assert(await tokenERC721.v3DT(v3Datatoken) == true)
-    assert((await tokenERC721._getPermissions(v3DTOwner)).v3Minter == true);
+    assert((await tokenERC721.getPermissions(v3DTOwner)).v3Minter == true);
   });
 
   it("#mintV3DT - should succeed to mintV3DT, if caller has v3Minter permission", async () => {
@@ -509,7 +509,7 @@ describe("ERC721Template", () => {
   it("#mintV3DT - should fail to mintV3DT, if caller has NO v3Minter permission", async () => {
     tokenERC721 = await migrateFromV3(v3DTOwner,v3Datatoken)
 
-    assert((await tokenERC721._getPermissions(user2.address)).v3Minter == false);
+    assert((await tokenERC721.getPermissions(user2.address)).v3Minter == false);
 
     assert(await v3DTContract.balanceOf(user2.address) == 0)
     await expectRevert(tokenERC721.connect(user2).mintV3DT(v3Datatoken, user2.address,  web3.utils.toWei("10")),"ERC721Template: NOT v3 MINTER")
@@ -520,7 +520,7 @@ describe("ERC721Template", () => {
    
     assert(await tokenERC721.v3DT(v3Datatoken) == false)
     await tokenERC721.addV3Minter(owner.address)
-    assert((await tokenERC721._getPermissions(owner.address)).v3Minter == true);
+    assert((await tokenERC721.getPermissions(owner.address)).v3Minter == true);
 
     assert(await v3DTContract.balanceOf(user2.address) == 0)
     await expectRevert(tokenERC721.mintV3DT(v3Datatoken, user2.address,  web3.utils.toWei("10")),"ERC721Template: v3Datatoken not WRAPPED")
@@ -529,7 +529,7 @@ describe("ERC721Template", () => {
 
   it("#setDataV3 - should fail to call setDataV3, if it's not v3Minter", async () => {
     const value = web3.utils.asciiToHex('SomeData')
-    assert((await tokenERC721._getPermissions(owner.address)).v3Minter == false);
+    assert((await tokenERC721.getPermissions(owner.address)).v3Minter == false);
     
     await expectRevert(tokenERC721.setDataV3(v3Datatoken, value,flags,data),"ERC721Template: NOT v3Minter")
     
@@ -564,31 +564,31 @@ describe("ERC721Template", () => {
 
   it("#addV3Minter - should fail to addV3Minter, if caller has NOT MANAGER", async () => {
     
-    assert((await tokenERC721._getPermissions(user2.address)).v3Minter == false);
+    assert((await tokenERC721.getPermissions(user2.address)).v3Minter == false);
     await expectRevert(tokenERC721.connect(user4).addV3Minter(user2.address),"ERC721RolesAddress: NOT MANAGER")
-    assert((await tokenERC721._getPermissions(user2.address)).v3Minter == false);
+    assert((await tokenERC721.getPermissions(user2.address)).v3Minter == false);
   });
 
   it("#addV3Minter - should succeed to addV3Minter, if caller is MANAGER", async () => {
     
-    assert((await tokenERC721._getPermissions(user2.address)).v3Minter == false);
+    assert((await tokenERC721.getPermissions(user2.address)).v3Minter == false);
     await tokenERC721.connect(user2).addV3Minter(user2.address)
-    assert((await tokenERC721._getPermissions(user2.address)).v3Minter == true);
+    assert((await tokenERC721.getPermissions(user2.address)).v3Minter == true);
    
   });
 
   it("#removeV3Minter - should fail to removeV3Minter, if caller has NOT MANAGER", async () => {
     await tokenERC721.addV3Minter(user2.address)
-    assert((await tokenERC721._getPermissions(user2.address)).v3Minter == true);
+    assert((await tokenERC721.getPermissions(user2.address)).v3Minter == true);
     await expectRevert(tokenERC721.connect(user4).removeV3Minter(user2.address),"ERC721RolesAddress: NOT MANAGER")
-    assert((await tokenERC721._getPermissions(user2.address)).v3Minter == true);
+    assert((await tokenERC721.getPermissions(user2.address)).v3Minter == true);
   });
 
   it("#removeV3Minter - should succeed to removeV3Minter, if caller is MANAGER", async () => {
     await tokenERC721.addV3Minter(user2.address)
-    assert((await tokenERC721._getPermissions(user2.address)).v3Minter == true);
+    assert((await tokenERC721.getPermissions(user2.address)).v3Minter == true);
     await tokenERC721.removeV3Minter(user2.address)
-    assert((await tokenERC721._getPermissions(user2.address)).v3Minter == false);
+    assert((await tokenERC721.getPermissions(user2.address)).v3Minter == false);
   });
 
   

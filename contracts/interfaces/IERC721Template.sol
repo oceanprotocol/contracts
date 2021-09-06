@@ -182,7 +182,7 @@ interface IERC721Template is IERC165 {
     }
 
 
-    function _getPermissions(address user) external returns (Roles memory);
+    function getPermissions(address user) external returns (Roles memory);
 
     function setDataERC20(bytes32 _key, bytes calldata _value) external;
 }

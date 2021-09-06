@@ -69,21 +69,7 @@ interface IssFixedRate {
         view
         returns (uint256);
 
-    function isInBurnIn(address datatokenAddress) external view returns (bool);
 
-    function calcInGivenOut(
-        address datatokenAddress,
-        address tokenIn,
-        address tokenOut,
-        uint256 tokenAmountOut
-    ) external view returns (uint256);
-
-    function calcOutGivenIn(
-        address datatokenAddress,
-        address tokenIn,
-        address tokenOut,
-        uint256 tokenAmountIn
-    ) external view returns (uint256);
 
     function canStake(
         address datatokenAddress,
@@ -111,21 +97,21 @@ interface IssFixedRate {
 
     function notifyFinalize(address datatokenAddress) external;
 
-    function allowStake(
-        address datatokenAddress,
-        address basetoken,
-        uint256 datatokenAmount,
-        uint256 basetokenAmount,
-        address userAddress
-    ) external view returns (bool);
+    // function allowStake(
+    //     address datatokenAddress,
+    //     address basetoken,
+    //     uint256 datatokenAmount,
+    //     uint256 basetokenAmount,
+    //     address userAddress
+    // ) external view returns (bool);
 
-    function allowUnStake(
-        address datatokenAddress,
-        address basetoken,
-        uint256 datatokenAmount,
-        uint256 basetokenAmount,
-        address userAddress
-    ) external view returns (bool);
+    // function allowUnStake(
+    //     address datatokenAddress,
+    //     address basetoken,
+    //     uint256 datatokenAmount,
+    //     uint256 basetokenAmount,
+    //     address userAddress
+    // ) external view returns (bool);
 
     function swapExactAmountIn(
         address datatokenAddress,

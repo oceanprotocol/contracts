@@ -36,13 +36,16 @@ contract ERC721Template is
     mapping(address => bool) private deployedERC20;
 
 
-    //mapping(address => bool ) public v3DT;
-
+   
     event ERC20Created(address indexed erc20Address);
 
-    function _checkNFTOwner(address sender) internal view {
-        require(sender == ownerOf(1), "ERC721Template: not NFTOwner");
+
+
+    modifier onlyNFTOwner() {
+        require(msg.sender == ownerOf(1),"ERC721Template: not NFTOwner");
+        _;
     }
+
 
     function initialize(
         address owner,
@@ -113,9 +116,9 @@ contract ERC721Template is
     function updateMetadata(bytes calldata flags, bytes calldata data)
         external
     {
-        Roles memory user = _getPermissions(msg.sender);
+        
         require(
-            user.updateMetadata == true,
+             permissions[msg.sender].updateMetadata == true,
             "ERC721Template: NOT METADATA_ROLE"
         );
         IMetadata(_metadata).update(address(this), flags, data);
@@ -131,8 +134,8 @@ contract ERC721Template is
         address feeManager
 
     ) external returns (address) {
-        Roles memory user = _getPermissions(msg.sender);
-        require(user.deployERC20 == true, "ERC721Template: NOT ERC20DEPLOYER_ROLE");
+       
+        require(permissions[msg.sender].deployERC20 == true, "ERC721Template: NOT ERC20DEPLOYER_ROLE");
 
         address token =
             IFactory(_tokenFactory).createToken(
@@ -176,13 +179,13 @@ contract ERC721Template is
         return initialized;
     }
 
-    function addManager(address _managerAddress) external {
-        _checkNFTOwner(msg.sender);
+    function addManager(address _managerAddress) external onlyNFTOwner{
+     
         _addManager(_managerAddress);
     }
 
-    function removeManager(address _managerAddress) external {
-        _checkNFTOwner(msg.sender);
+    function removeManager(address _managerAddress) external onlyNFTOwner {
+      
         _removeManager(_managerAddress);
     }
 
@@ -191,14 +194,14 @@ contract ERC721Template is
         address _to,
         uint256 _value,
         bytes calldata _data
-    ) external payable {
-        _checkManager(msg.sender);
+    ) external payable onlyManager {
+        
         execute(_operation, _to, _value, _data);
     }
 
     function setNewData(bytes32 _key, bytes calldata _value) external {
-        Roles memory user = _getPermissions(msg.sender);
-        require(user.store == true, "ERC721Template: NOT STORE UPDATER");
+       
+        require(permissions[msg.sender].store == true, "ERC721Template: NOT STORE UPDATER");
         setData(_key, _value);
     }
 
@@ -217,8 +220,7 @@ contract ERC721Template is
         bytes calldata flags,
         bytes calldata data
     ) external {
-        Roles memory user = _getPermissions(msg.sender);
-        require(user.v3Minter == true, "ERC721Template: NOT v3Minter");
+        require(permissions[msg.sender].v3Minter == true, "ERC721Template: NOT v3Minter");
         _checkV3DT(datatoken);
 
         bytes32 key = keccak256(abi.encodePacked(address(datatoken))); // could be any other key, used a simple configuration
@@ -230,15 +232,15 @@ contract ERC721Template is
 
     
     // TODO: should we clean also all erc20 permissions as when a transfer occurr? best could be to use a flag to allow NFT owner decide
-    function cleanPermissions() external {
-        _checkNFTOwner(msg.sender);
+    function cleanPermissions() external onlyNFTOwner {
+       
         _cleanPermissions();
     }
 
     // // V3 MIGRATION
 
-    function wrapV3DT(address datatoken, address newMinter) external {
-        _checkNFTOwner(msg.sender);
+    function wrapV3DT(address datatoken, address newMinter) external onlyNFTOwner {
+      
         _wrap(datatoken);
         _addV3Minter(newMinter);
     }
@@ -248,23 +250,22 @@ contract ERC721Template is
         address to,
         uint256 value
     ) external {
-        Roles memory user = permissions[msg.sender];
-        require(user.v3Minter == true, "ERC721Template: NOT v3 MINTER");
+        require(permissions[msg.sender].v3Minter == true, "ERC721Template: NOT v3 MINTER");
         _checkV3DT(datatoken);
         IV3ERC20(datatoken).mint(to, value);
     }
 
-    function addV3Minter(address newMinter) external {
-        _checkManager(msg.sender); // could be a different role that is allowed to change this. in v4 erc20 is the erc20Deployer role(721 level)
+    function addV3Minter(address newMinter) external onlyManager {
+   
         _addV3Minter(newMinter);
     }
 
-    function removeV3Minter(address minter) external {
-        _checkManager(msg.sender);
+    function removeV3Minter(address minter) external onlyManager {
+    
         _removeV3Minter(minter);
     }
     
-    // TODO: test this function and adapt the others flow/unit tests
+
     function transferFrom(address from, address to, uint256 tokenId) external {
         require(tokenId == 1, "ERC721Template: Cannot transfer this tokenId");
         _cleanERC20Permissions(getAddressLength(deployedERC20List));
@@ -277,7 +278,7 @@ contract ERC721Template is
         return array.length;
     }
 
-     // TODO: test this function and adapt the others flow/unit tests
+  
     function _cleanERC20Permissions(uint lentgh) internal {
         for (uint i = 0; i < lentgh; i++) {
           

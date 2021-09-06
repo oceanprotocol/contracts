@@ -98,31 +98,31 @@ describe("NFT Creation, roles and erc20 deployments", () => {
 
   it("#2 - owner is already manager and can assign or revoke roles to himself or others", async () => {
     // NFT Owner is also added as manager when deploying (first time), if transferred that doesn't apply
-    assert((await tokenERC721._getPermissions(owner.address)).manager == true);
+    assert((await tokenERC721.getPermissions(owner.address)).manager == true);
 
     // In this test we are going to assign user2 as manager, which then adds roles and delegates user3 as store updater(725Y), erc20 deployer and metadata updater.
-    assert((await tokenERC721._getPermissions(user2.address)).manager == false);
+    assert((await tokenERC721.getPermissions(user2.address)).manager == false);
     await tokenERC721.addManager(user2.address);
-    assert((await tokenERC721._getPermissions(user2.address)).manager == true);
+    assert((await tokenERC721.getPermissions(user2.address)).manager == true);
 
-    assert((await tokenERC721._getPermissions(user3.address)).store == false);
+    assert((await tokenERC721.getPermissions(user3.address)).store == false);
     assert(
-      (await tokenERC721._getPermissions(user3.address)).deployERC20 == false
+      (await tokenERC721.getPermissions(user3.address)).deployERC20 == false
     );
     assert(
-      (await tokenERC721._getPermissions(user3.address)).updateMetadata == false
+      (await tokenERC721.getPermissions(user3.address)).updateMetadata == false
     );
 
     await tokenERC721.connect(user2).addTo725StoreList(user3.address);
     await tokenERC721.connect(user2).addToCreateERC20List(user3.address);
     await tokenERC721.connect(user2).addToMetadataList(user3.address);
 
-    assert((await tokenERC721._getPermissions(user3.address)).store == true);
+    assert((await tokenERC721.getPermissions(user3.address)).store == true);
     assert(
-      (await tokenERC721._getPermissions(user3.address)).deployERC20 == true
+      (await tokenERC721.getPermissions(user3.address)).deployERC20 == true
     );
     assert(
-      (await tokenERC721._getPermissions(user3.address)).updateMetadata == true
+      (await tokenERC721.getPermissions(user3.address)).updateMetadata == true
     );
   });
 
@@ -265,7 +265,7 @@ describe("NFT Creation, roles and erc20 deployments", () => {
 
   it("#13 - newOwner now owns the NFT, is already Manager by default but still has no roles, so transactions revert", async () => {
     assert(
-      (await tokenERC721._getPermissions(newOwner.address)).manager == true
+      (await tokenERC721.getPermissions(newOwner.address)).manager == true
     );
 
     await expectRevert(

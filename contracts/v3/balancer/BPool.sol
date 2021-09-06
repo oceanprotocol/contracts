@@ -514,23 +514,6 @@ contract BPool is BMath, BToken {
         // }
         require(_finalized, "ERR_NOT_FINALIZED");
 
-        //ask ssContract if join is allowed
-        uint256 tdatatokenAmount = 0;
-        uint256 tbasetokenAmount = 0;
-        for (uint256 i = 0; i < _tokens.length; i++) {
-            if (_tokens[i] == _datatokenAddress)
-                tdatatokenAmount = maxAmountsIn[i];
-            if (_tokens[i] == _basetokenAddress)
-                tbasetokenAmount = maxAmountsIn[i];
-        }
-        // bool allowed = ssContract.allowStake(
-        //     _datatokenAddress,
-        //     _basetokenAddress,
-        //     tdatatokenAmount,
-        //     tbasetokenAmount,
-        //     msg.sender
-        // );
-        // require(allowed == true, "ERR_DENIED_BY_CONTROLLER");
 
         uint256 poolTotal = totalSupply();
         uint256 ratio = bdiv(poolAmountOut, poolTotal);
@@ -554,29 +537,9 @@ contract BPool is BMath, BToken {
         external
         _lock_
     {
-        // if(_finalized == false && block.number>_burnInEndBlock){
-        //         //notify 1SS to setup the pool first
-        //         ssContract.notifyFinalize(_datatokenAddress);
-        // }
+  
         require(_finalized, "ERR_NOT_FINALIZED");
 
-        //ask ssContract if exit is allowed
-        uint256 tdatatokenAmount = 0;
-        uint256 tbasetokenAmount = 0;
-        for (uint256 i = 0; i < _tokens.length; i++) {
-            if (_tokens[i] == _datatokenAddress)
-                tdatatokenAmount = minAmountsOut[i];
-            if (_tokens[i] == _basetokenAddress)
-                tbasetokenAmount = minAmountsOut[i];
-        }
-        // bool allowed = ssContract.allowUnStake(
-        //     _datatokenAddress,
-        //     _basetokenAddress,
-        //     tdatatokenAmount,
-        //     tbasetokenAmount,
-        //     msg.sender
-        // );
-        // require(allowed == true, "ERR_DENIED_BY_CONTROLLER");
 
         uint256 poolTotal = totalSupply();
         uint256 exitFee = bmul(poolAmountIn, EXIT_FEE);
@@ -973,10 +936,7 @@ contract BPool is BMath, BToken {
         uint256 poolAmountIn,
         uint256 minAmountOut
     ) external _lock_ returns (uint256 tokenAmountOut) {
-        // if(_finalized == false && block.number>_burnInEndBlock){
-        //         //notify 1SS to setup the pool first
-        //         ssContract.notifyFinalize(_datatokenAddress);
-        // }
+     
         require(_finalized, "ERR_NOT_FINALIZED");
         require(_records[tokenOut].bound, "ERR_NOT_BOUND");
 
@@ -997,32 +957,18 @@ contract BPool is BMath, BToken {
             tokenAmountOut <= bmul(_records[tokenOut].balance, MAX_OUT_RATIO),
             "ERR_MAX_OUT_RATIO"
         );
-        //ask ssContract
-        // bool allowed;
-
+   
         address ssStakeToken;
         Record storage ssOutRecord = _records[_datatokenAddress];
         if (tokenOut == _datatokenAddress) {
             ssStakeToken = _basetokenAddress;
-            // allowed = ssContract.allowUnStake(
-            //     _datatokenAddress,
-            //     _basetokenAddress,
-            //     tokenAmountOut,
-            //     0,
-            //     msg.sender
-            // );
+          
         } else {
             ssStakeToken = _datatokenAddress;
             ssOutRecord = _records[_basetokenAddress];
-            // allowed = ssContract.allowUnStake(
-            //     _datatokenAddress,
-            //     _basetokenAddress,
-            //     0,
-            //     tokenAmountOut,
-            //     msg.sender
-            // );
+            
         }
-        //  require(allowed == true, "ERR_DENIED_BY_CONTROLLER");
+   
 
         outRecord.balance = bsub(outRecord.balance, tokenAmountOut);
 

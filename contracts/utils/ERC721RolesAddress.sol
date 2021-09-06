@@ -1,8 +1,6 @@
 pragma solidity >=0.6.0;
 
 contract ERC721RolesAddress {
-    
-
     mapping(address => Roles) internal permissions;
 
     address[] public auth;
@@ -15,65 +13,71 @@ contract ERC721RolesAddress {
         bool v3Minter;
     }
 
-    
-    function _checkManager(address manager) view internal{
-        Roles memory user = _getPermissions(manager);
-        require(user.manager == true, "ERC721RolesAddress: NOT MANAGER");
-    }
 
-    function _getPermissions(address account) view public returns (Roles memory){
-        return permissions[account];
-    }
-    // function getPermissions(address user) external view returns (Roles memory) {
-    //     return permissions[user];
+
+   
+
+    // function _getPermissions(address account)
+    //     public
+    //     view
+    //     returns (Roles memory)
+    // {
+    //     return permissions[account];
     // }
 
-    function addTo725StoreList(address _allowedAddress) public {
-        _checkManager(msg.sender);
+    function getPermissions(address user) public view returns (Roles memory) {
+        return permissions[user];
+    }
+
+     modifier onlyManager() {
+        require(
+            permissions[msg.sender].manager == true,
+            "ERC721RolesAddress: NOT MANAGER"
+        );
+        _;
+    }
+
+    function addTo725StoreList(address _allowedAddress) public onlyManager {
         Roles storage user = permissions[_allowedAddress];
         user.store = true;
         auth.push(_allowedAddress);
     }
 
-    function removeFrom725StoreList(address _allowedAddress) public  {
-        _checkManager(msg.sender);
+    function removeFrom725StoreList(address _allowedAddress)
+        public
+        onlyManager
+    {
         Roles storage user = permissions[_allowedAddress];
         user.store = false;
-        
     }
 
-
-    function addToCreateERC20List(address _allowedAddress) public {
-        _checkManager(msg.sender);
+    function addToCreateERC20List(address _allowedAddress) public onlyManager {
         Roles storage user = permissions[_allowedAddress];
         user.deployERC20 = true;
         auth.push(_allowedAddress);
-        
     }
 
-    function removeFromCreateERC20List(address _allowedAddress) public {
-        _checkManager(msg.sender);
+    function removeFromCreateERC20List(address _allowedAddress)
+        public
+        onlyManager
+    {
         Roles storage user = permissions[_allowedAddress];
         user.deployERC20 = false;
-        
-   
     }
-    function addToMetadataList(address _allowedAddress) public {
-        _checkManager(msg.sender);
+
+    function addToMetadataList(address _allowedAddress) public onlyManager {
         Roles storage user = permissions[_allowedAddress];
         user.updateMetadata = true;
         auth.push(_allowedAddress);
-        
     }
 
-    function removeFromMetadataList(address _allowedAddress) public {
-        _checkManager(msg.sender);
+    function removeFromMetadataList(address _allowedAddress)
+        public
+        onlyManager
+    {
         Roles storage user = permissions[_allowedAddress];
         user.updateMetadata = false;
-    
-         // TODO: remove it from createERC20List too.
     }
-
 
     function _addManager(address _managerAddress) internal {
         Roles storage user = permissions[_managerAddress];
@@ -84,8 +88,6 @@ contract ERC721RolesAddress {
     function _removeManager(address _managerAddress) internal {
         Roles storage user = permissions[_managerAddress];
         user.manager = false;
-        // TODO: Remove it from the managerList too
-        
     }
 
     function _addV3Minter(address _minter) internal {
@@ -98,9 +100,8 @@ contract ERC721RolesAddress {
         Roles storage user = permissions[_minter];
         user.v3Minter = false;
     }
-    
+
     function _cleanPermissions() internal {
-        
         for (uint256 i = 0; i < auth.length; i++) {
             Roles storage user = permissions[auth[i]];
             user.manager = false;
@@ -108,10 +109,8 @@ contract ERC721RolesAddress {
             user.updateMetadata = false;
             user.store = false;
             user.v3Minter = false;
-
         }
-        
+
         delete auth;
-        
     }
 }

@@ -12,20 +12,14 @@ pragma solidity >=0.7.0;
 
 interface IPool {
 
-    enum JoinKind {
-        INIT,
-        EXACT_TOKENS_IN_FOR_BPT_OUT,
-        TOKEN_IN_FOR_EXACT_BPT_OUT,
-        STAKING_TOKEN_IN_FOR_EXACT_BPT_OUT
-    }
-    enum ExitKind {
-        EXACT_BPT_IN_FOR_ONE_TOKEN_OUT,
-        EXACT_BPT_IN_FOR_TOKENS_OUT,
-        BPT_IN_FOR_EXACT_TOKENS_OUT,
-        OPF_FEE_WITHDRAWAL,
-        MP_FEE_WITHDRAWAL
-    }
-
-    function getPoolId() external view returns (bytes32);
-    function getPoolTokens() external view returns(address[] memory);
+        function getDataTokenAddress() external view returns (address);
+    function getBaseTokenAddress() external view returns (address);
+    function getController() external view returns (address);
+    function setup(
+        address dataTokenAaddress,
+        uint256 dataTokenAmount,
+        uint256 dataTokenWeight,
+        address baseTokenAddress,
+        uint256 baseTokenAmount,
+        uint256 baseTokenWeight) external;
 }

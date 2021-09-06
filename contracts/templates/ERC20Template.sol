@@ -32,8 +32,7 @@ contract ERC20Template is ERC20("test", "testSymbol"), ERC20Roles {
     address private _erc721Address;
     address private feeCollector;
     uint8 private constant templateId = 1;
-    //  address private _minter;
-    //  address private _proposedMinter;
+
     uint256 public constant BASE = 10**18;
     uint256 public constant BASE_COMMUNITY_FEE_PERCENTAGE = BASE / 1000;
     uint256 public constant BASE_MARKET_FEE_PERCENTAGE = BASE / 1000;
@@ -100,9 +99,8 @@ contract ERC20Template is ERC20("test", "testSymbol"), ERC20Roles {
     // }
 
     modifier onlyERC20Deployer() {
-        IERC721Template.Roles memory user = IERC721Template(_erc721Address)
-            ._getPermissions(msg.sender);
-        require(user.deployERC20 == true, "ERC20Template: NOT DEPLOYER ROLE");
+        require(IERC721Template(_erc721Address)
+            .getPermissions(msg.sender).deployERC20 == true, "ERC20Template: NOT DEPLOYER ROLE");
         _;
     }
 
@@ -234,7 +232,6 @@ contract ERC20Template is ERC20("test", "testSymbol"), ERC20Roles {
         uint256 marketFee,
         address marketFeeCollector
     ) external onlyERC20Deployer returns(bytes32 exchangeId) {
-        // TODO: add require to avoid anyone call this function
         exchangeId = IFactoryRouter(router).deployFixedRate(
             basetokenAddress,
             basetokenDecimals,
@@ -254,10 +251,8 @@ contract ERC20Template is ERC20("test", "testSymbol"), ERC20Roles {
      * @param account refers to an address that token is going to be minted to.
      * @param value refers to amount of tokens that is going to be minted.
      */
-    function mint(address account, uint256 value) external {
-        //require(stopMint == false, 'ERC20Template: minting is stopped');
-        RolesERC20 memory user = permissions[msg.sender];
-        require(user.minter == true, "ERC20Template: NOT MINTER");
+    function mint(address account, uint256 value) external {   
+        require(permissions[msg.sender].minter == true, "ERC20Template: NOT MINTER");
         require(
             totalSupply().add(value) <= _cap,
             "DataTokenTemplate: cap exceeded"
@@ -451,7 +446,7 @@ contract ERC20Template is ERC20("test", "testSymbol"), ERC20Roles {
     }
 
     function setData(bytes calldata _value) external onlyERC20Deployer {
-        bytes32 key = keccak256(abi.encodePacked(address(this))); // could be any other key, used a simple configuration
+        bytes32 key = keccak256(abi.encodePacked(address(this))); 
         IERC721Template(_erc721Address).setDataERC20(key, _value);
     }
 

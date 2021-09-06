@@ -20,8 +20,7 @@ contract FactoryRouter is BFactory {
     mapping(address => bool) public ssContracts;
 
     event NewPool(address indexed poolAddress, bool isOcean);
-    event NewForkPool(address indexed poolAddress);
-    uint256 private test;
+    
 
     modifier onlyRouterOwner() {
         require(routerOwner == msg.sender, "OceanRouter: NOT OWNER");
@@ -38,9 +37,7 @@ contract FactoryRouter is BFactory {
     ) public BFactory(_bpoolTemplate, _opfCollector, _preCreatedPools) {
         routerOwner = _routerOwner;
         opfCollector = _opfCollector;
-        // erc20Factory = _erc20Factory;
         ssContracts[_ssContract] = true;
-        //fixedRate = _fixedRate;
         addOceanToken(_oceanToken);
     }
 
@@ -48,12 +45,10 @@ contract FactoryRouter is BFactory {
         oceanTokens[oceanTokenAddress] = true;
     }
 
-    // TODO: add remove function?
     function addSSContract(address _ssContract) external onlyRouterOwner {
         ssContracts[_ssContract] = true;
     }
 
-    // TODO: add remove function?
     function addERC20Factory(address _factory) external onlyRouterOwner {
         require(factory == address(0), "FACTORY ALREADY SET");
         factory = _factory;
@@ -97,10 +92,6 @@ contract FactoryRouter is BFactory {
 
         uint256[] memory fees = swapFees;
 
-        // address memory feeCollectors = new address[](2);
-
-        // feeCollectors[0] = marketFeeCollector;
-        // feeCollectors[1] = opfCollector;
 
         if (flag == true) {
             fees[1] = 0;
@@ -153,23 +144,7 @@ contract FactoryRouter is BFactory {
         if (oceanTokens[basetokenAddress] != true) {
             opfFee = swapOceanFee;
         } 
-        
-        // TODO: remove decimals(), this could cause this function to break if the basetoken doesn't implement this optional function, 
-        // it's safer to pass basetoken decimals
-        // in this case we could use only 1 function (createWithDecimals and remove create() on FixedRateExchange)
-
-        // if (IERC20(basetokenAddress).decimals() == 18) {
-        //     exchangeId = IFixedRateExchange(fixedRate).create(
-        //         basetokenAddress,
-        //         msg.sender,
-        //         fixedRate,
-        //         owner,
-        //         marketFee,
-        //         marketFeeCollector,
-        //         opfFee
-        //     );
-        // } else {
-            //console.log('fixedRate',fixedRate);
+    
             exchangeId = IFixedRateExchange(fixedRate).createWithDecimals(
                 basetokenAddress,
                 msg.sender,
@@ -181,6 +156,6 @@ contract FactoryRouter is BFactory {
                 marketFeeCollector,
                 opfFee
             );
-        //}
+    
     }
 }

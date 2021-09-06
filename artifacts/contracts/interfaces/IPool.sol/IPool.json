@@ -5,12 +5,12 @@
   "abi": [
     {
       "inputs": [],
-      "name": "getPoolId",
+      "name": "getBaseTokenAddress",
       "outputs": [
         {
-          "internalType": "bytes32",
+          "internalType": "address",
           "name": "",
-          "type": "bytes32"
+          "type": "address"
         }
       ],
       "stateMutability": "view",
@@ -18,15 +18,66 @@
     },
     {
       "inputs": [],
-      "name": "getPoolTokens",
+      "name": "getController",
       "outputs": [
         {
-          "internalType": "address[]",
+          "internalType": "address",
           "name": "",
-          "type": "address[]"
+          "type": "address"
         }
       ],
       "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [],
+      "name": "getDataTokenAddress",
+      "outputs": [
+        {
+          "internalType": "address",
+          "name": "",
+          "type": "address"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "address",
+          "name": "dataTokenAaddress",
+          "type": "address"
+        },
+        {
+          "internalType": "uint256",
+          "name": "dataTokenAmount",
+          "type": "uint256"
+        },
+        {
+          "internalType": "uint256",
+          "name": "dataTokenWeight",
+          "type": "uint256"
+        },
+        {
+          "internalType": "address",
+          "name": "baseTokenAddress",
+          "type": "address"
+        },
+        {
+          "internalType": "uint256",
+          "name": "baseTokenAmount",
+          "type": "uint256"
+        },
+        {
+          "internalType": "uint256",
+          "name": "baseTokenWeight",
+          "type": "uint256"
+        }
+      ],
+      "name": "setup",
+      "outputs": [],
+      "stateMutability": "nonpayable",
       "type": "function"
     }
   ],
