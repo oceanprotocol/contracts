@@ -57,14 +57,15 @@ describe("Vesting flow", () => {
     const ERC721Template = await ethers.getContractFactory("ERC721Template");
     const ERC20Template = await ethers.getContractFactory("ERC20Template");
     const ERC721Factory = await ethers.getContractFactory("ERC721Factory");
-    const ERC20Factory = await ethers.getContractFactory("ERC20Factory");
 
     const Metadata = await ethers.getContractFactory("Metadata");
     const Router = await ethers.getContractFactory("FactoryRouter");
     const SSContract = await ethers.getContractFactory("ssFixedRate");
     const BPool = await ethers.getContractFactory("BPool");
+    const FixedRateExchange = await ethers.getContractFactory(
+      "FixedRateExchange"
+    );
 
-    console.log(await provider.getBlockNumber());
 
     [
       owner, // nft owner, 721 deployer
@@ -76,7 +77,8 @@ describe("Vesting flow", () => {
       user6,
       marketFeeCollector, // POOL1
       newMarketFeeCollector, // POOL1
-      pool2MarketFeeCollector, // POOL2
+      pool2MarketFeeCollector,
+      opfCollector 
     ] = await ethers.getSigners();
 
   
@@ -218,6 +220,70 @@ describe("Vesting flow", () => {
 
     erc20Token = await ethers.getContractAt("ERC20Template", erc20Address);
     assert((await erc20Token.permissions(user3.address)).minter == true);
+  });
+
+  const swapFee = 1e15;
+  const swapOceanFee = 1e15;
+  const swapMarketFee = 1e15;
+
+
+  it("#4 - user3 calls deployPool(), we then check ocean and market fee", async () => {
+    // user3 hasn't minted any token so he can call deployPool()
+
+    const ssDTBalance = await erc20Token.balanceOf(ssFixedRate.address);
+
+    const initialOceanLiquidity = web3.utils.toWei("2000");
+    const initialDTLiquidity = initialOceanLiquidity;
+    // approve exact amount
+    await oceanContract
+      .connect(user3)
+      .approve(router.address, web3.utils.toWei("2000"));
+
+    // we deploy a new pool with burnInEndBlock as 0
+    receipt = await (
+      await erc20Token.connect(user3).deployPool(
+        ssFixedRate.address,
+        oceanAddress,
+        [
+          web3.utils.toWei("1"), // rate
+          18, // basetokenDecimals
+          vestingAmount,
+          500, // vested blocks
+          initialOceanLiquidity, // baseToken initial pool liquidity
+        ],
+        user3.address,
+        [
+          swapFee, //
+          swapOceanFee, //
+          swapMarketFee,
+        ],
+        marketFeeCollector.address
+      )
+    ).wait();
+  
+    const PoolEvent = receipt.events.filter((e) => e.event === "NewPool");
+ 
+
+    assert(PoolEvent[0].args.ssContract == ssFixedRate.address);
+
+    bPoolAddress = PoolEvent[0].args.poolAddress;
+
+    bPool = await ethers.getContractAt("BPool", bPoolAddress);
+
+    assert((await bPool.isFinalized()) == true);
+
+    expect(await erc20Token.balanceOf(ssFixedRate.address)).to.equal(
+      web3.utils.toWei("98000")
+    );
+
+    expect(await bPool._swapOceanFee()).to.equal(0);
+    expect(await bPool._swapMarketFee()).to.equal(swapMarketFee);
+
+    expect(await bPool.communityFees(oceanAddress)).to.equal(0);
+    expect(await bPool.communityFees(erc20Token.address)).to.equal(0);
+    expect(await bPool.marketFees(oceanAddress)).to.equal(0);
+    expect(await bPool.marketFees(erc20Token.address)).to.equal(0);
+    
   });
 
   it("#4 - user3 calls deployPool()", async () => {

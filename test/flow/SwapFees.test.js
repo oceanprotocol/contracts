@@ -236,12 +236,12 @@ describe("Swap Fees", () => {
     await tokenERC721.connect(user2).addToCreateERC20List(user3.address);
     await tokenERC721.connect(user2).addToMetadataList(user3.address);
 
-    assert((await tokenERC721._getPermissions(user3.address)).store == true);
+    assert((await tokenERC721.getPermissions(user3.address)).store == true);
     assert(
-      (await tokenERC721._getPermissions(user3.address)).deployERC20 == true
+      (await tokenERC721.getPermissions(user3.address)).deployERC20 == true
     );
     assert(
-      (await tokenERC721._getPermissions(user3.address)).updateMetadata == true
+      (await tokenERC721.getPermissions(user3.address)).updateMetadata == true
     );
   });
 
@@ -298,7 +298,8 @@ describe("Swap Fees", () => {
             swapOceanFee, //
             swapMarketFee,
           ],
-          marketFeeCollector.address
+          marketFeeCollector.address,
+          user3.address// publisher address (vested token)
         )
       ).wait();
     
@@ -1121,7 +1122,8 @@ describe("Swap Fees", () => {
             swapOceanFee, //
             swapMarketFee,
           ],
-          marketFeeCollector.address
+          marketFeeCollector.address,
+          user3.address// publisher address (vested token)
         )
       ).wait();
       
@@ -1984,7 +1986,8 @@ describe("Swap Fees", () => {
             swapOceanFee, //
             swapMarketFee,
           ],
-          marketFeeCollector.address
+          marketFeeCollector.address,
+          user3.address// publisher address (vested token)
         )
       ).wait();
       
