@@ -117,6 +117,50 @@
       "type": "function"
     },
     {
+      "inputs": [
+        {
+          "internalType": "address",
+          "name": "basetokenAddress",
+          "type": "address"
+        },
+        {
+          "internalType": "uint8",
+          "name": "basetokenDecimals",
+          "type": "uint8"
+        },
+        {
+          "internalType": "uint256",
+          "name": "fixedRate",
+          "type": "uint256"
+        },
+        {
+          "internalType": "address",
+          "name": "owner",
+          "type": "address"
+        },
+        {
+          "internalType": "uint256",
+          "name": "marketFee",
+          "type": "uint256"
+        },
+        {
+          "internalType": "address",
+          "name": "marketFeeCollector",
+          "type": "address"
+        }
+      ],
+      "name": "createFixedRate",
+      "outputs": [
+        {
+          "internalType": "bytes32",
+          "name": "exchangeId",
+          "type": "bytes32"
+        }
+      ],
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
       "inputs": [],
       "name": "decimals",
       "outputs": [
@@ -142,14 +186,29 @@
           "type": "address"
         },
         {
-          "internalType": "uint256",
-          "name": "burnInEndBlock",
-          "type": "uint256"
-        },
-        {
           "internalType": "uint256[]",
           "name": "ssParams",
           "type": "uint256[]"
+        },
+        {
+          "internalType": "address",
+          "name": "basetokenSender",
+          "type": "address"
+        },
+        {
+          "internalType": "uint256[]",
+          "name": "swapFees",
+          "type": "uint256[]"
+        },
+        {
+          "internalType": "address",
+          "name": "marketFeeCollector",
+          "type": "address"
+        },
+        {
+          "internalType": "address",
+          "name": "publisherAddress",
+          "type": "address"
         }
       ],
       "name": "deployPool",

@@ -285,4 +285,6 @@ contract ERC721Template is
            IERC20Template(deployedERC20List[i]).cleanFrom721();
         }
     }
+
+    
 }

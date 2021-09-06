@@ -4,10 +4,10 @@
 pragma solidity >=0.5.7;
 pragma experimental ABIEncoderV2;
 
-import "./BFactory.sol";
-import "../../interfaces/IFactory.sol";
-import "../../interfaces/IERC20.sol";
-import "../../interfaces/IFixedRateExchange.sol";
+import "./balancer/BFactory.sol";
+import "../interfaces/IFactory.sol";
+import "../interfaces/IERC20.sol";
+import "../interfaces/IFixedRateExchange.sol";
 
 contract FactoryRouter is BFactory {
     address public routerOwner;

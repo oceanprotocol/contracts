@@ -203,9 +203,9 @@ contract ERC20Template is ERC20("test", "testSymbol"), ERC20Roles {
         uint256[] memory ssParams,
         address basetokenSender,
         uint256[] memory swapFees,
-        address marketFeeCollector
+        address marketFeeCollector,
+        address publisherAddress
     ) external onlyERC20Deployer {
-        // TODO: add publisherAddress in function parameters
         // TODO: add require to avoid anyone call this function
         require(totalSupply() == 0, "ERC20Template: tokens already minted");
         _addMinter(controller);
@@ -214,7 +214,7 @@ contract ERC20Template is ERC20("test", "testSymbol"), ERC20Roles {
         address pool = IFactoryRouter(router).deployPool(
             controller,
             tokens,
-            _erc721Address, // publisherAddress, refers to the erc721 contract
+            publisherAddress, // publisherAddress, refers to the erc721 contract
             ssParams,
             basetokenSender,
             swapFees,

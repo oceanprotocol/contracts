@@ -2,12 +2,12 @@ pragma solidity >=0.5.0;
 pragma experimental ABIEncoderV2;
 
 interface IERC20Template {
-      struct RolesERC20 {
+    struct RolesERC20 {
         bool minter;
-        bool feeManager; 
+        bool feeManager;
     }
 
-     function initialize(
+    function initialize(
         string calldata name_,
         string calldata symbol_,
         address erc721Address,
@@ -17,24 +17,75 @@ interface IERC20Template {
         address router,
         address feeManager
     ) external returns (bool);
-    
-    function name() external pure returns (string memory);
-    function symbol() external pure returns (string memory);
-    function decimals() external pure returns (uint8);
-    function totalSupply() external view returns (uint);
-    function cap() external view returns (uint256);
-    function balanceOf(address owner) external view returns (uint);
-    function allowance(address owner, address spender) external view returns (uint);
 
-    function approve(address spender, uint value) external returns (bool);
-    function transfer(address to, uint value) external returns (bool);
-    function transferFrom(address from, address to, uint value) external returns (bool);
+    function name() external pure returns (string memory);
+
+    function symbol() external pure returns (string memory);
+
+    function decimals() external pure returns (uint8);
+
+    function totalSupply() external view returns (uint256);
+
+    function cap() external view returns (uint256);
+
+    function balanceOf(address owner) external view returns (uint256);
+
+    function allowance(address owner, address spender)
+        external
+        view
+        returns (uint256);
+
+    function approve(address spender, uint256 value) external returns (bool);
+
+    function transfer(address to, uint256 value) external returns (bool);
+
+    function transferFrom(
+        address from,
+        address to,
+        uint256 value
+    ) external returns (bool);
+
     function mint(address account, uint256 value) external;
-    function deployPool(address controller, address basetokenAddress, uint burnInEndBlock, uint[] calldata ssParams) external;
+
     function DOMAIN_SEPARATOR() external view returns (bytes32);
+
     function PERMIT_TYPEHASH() external pure returns (bytes32);
-    function nonces(address owner) external view returns (uint);
-    function permissions(address user) external view returns(RolesERC20 memory);
-    function permit(address owner, address spender, uint value, uint deadline, uint8 v, bytes32 r, bytes32 s) external;
+
+    function nonces(address owner) external view returns (uint256);
+
+    function permissions(address user)
+        external
+        view
+        returns (RolesERC20 memory);
+
+    function permit(
+        address owner,
+        address spender,
+        uint256 value,
+        uint256 deadline,
+        uint8 v,
+        bytes32 r,
+        bytes32 s
+    ) external;
+
     function cleanFrom721() external;
+
+    function deployPool(
+        address controller,
+        address basetokenAddress,
+        uint256[] memory ssParams,
+        address basetokenSender,
+        uint256[] memory swapFees,
+        address marketFeeCollector,
+        address publisherAddress
+    ) external;
+
+    function createFixedRate(
+        address basetokenAddress,
+        uint8 basetokenDecimals,
+        uint256 fixedRate,
+        address owner,
+        uint256 marketFee,
+        address marketFeeCollector
+    ) external returns (bytes32 exchangeId);
 }
