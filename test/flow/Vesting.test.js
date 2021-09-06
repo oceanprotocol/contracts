@@ -79,10 +79,7 @@ describe("Vesting flow", () => {
       pool2MarketFeeCollector, // POOL2
     ] = await ethers.getSigners();
 
-    poolTemplate = await BPool.deploy();
-
-    ssFixedRate = await SSContract.deploy();
-
+  
     // GET SOME OCEAN TOKEN FROM OUR MAINNET FORK and send them to user3
     const userWithOcean = "0x53aB4a93B31F480d17D3440a6329bDa86869458A";
     await impersonate(userWithOcean);
@@ -129,33 +126,48 @@ describe("Vesting flow", () => {
     data = web3.utils.asciiToHex("SomeData");
     flags = web3.utils.asciiToHex(constants.blob[0]);
 
-        // DEPLOY ROUTER, SETTING OWNER
-        router = await Router.deploy(
-          owner.address,
-          oceanAddress,
-          poolTemplate.address,
-          ssFixedRate.address,
-          []
-        );
-    
-      
-        templateERC20 = await ERC20Template.deploy();
-    
-        metadata = await Metadata.deploy();
-        
-        // SETUP ERC721 Factory with template
-        templateERC721 = await ERC721Template.deploy();
-        factoryERC721 = await ERC721Factory.deploy(
-          templateERC721.address,
-          templateERC20.address,
-          communityFeeCollector,
-          router.address,
-          metadata.address
-        );
-    
-        await metadata.addTokenFactory(factoryERC721.address)
-        // SET REQUIRED ADDRESS
-        await router.addERC20Factory(factoryERC721.address);
+       // DEPLOY ROUTER, SETTING OWNER
+
+  poolTemplate = await BPool.deploy();
+
+  ssFixedRate = await SSContract.deploy();
+
+
+   router = await Router.deploy(
+    owner.address,
+    oceanAddress,
+    poolTemplate.address, // pooltemplate field, unused in this test
+    ssFixedRate.address,
+    opfCollector.address,
+    []
+  );
+
+  fixedRateExchange = await FixedRateExchange.deploy(
+    router.address,
+    opfCollector.address
+  );
+
+  templateERC20 = await ERC20Template.deploy();
+
+  metadata = await Metadata.deploy();
+
+  // SETUP ERC721 Factory with template
+  templateERC721 = await ERC721Template.deploy();
+  factoryERC721 = await ERC721Factory.deploy(
+    templateERC721.address,
+    templateERC20.address,
+    opfCollector.address,
+    router.address,
+    metadata.address
+  );
+
+  // SET REQUIRED ADDRESS
+
+  await metadata.addTokenFactory(factoryERC721.address);
+
+  await router.addERC20Factory(factoryERC721.address);
+
+  await router.addFixedRateContract(fixedRateExchange.address);
   });
 
   it("#1 - owner deploys a new ERC721 Contract", async () => {

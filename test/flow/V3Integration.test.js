@@ -28,40 +28,72 @@ describe("V3 Integration flow", () => {
   const communityFeeCollector = "0xeE9300b7961e0a01d9f0adb863C7A227A07AaD75";
   const v3Datatoken = "0xa2B8b3aC4207CFCCbDe4Ac7fa40214fd00A2BA71";
   const v3DTOwnerAddress = "0x12BD31628075C20919BA838b89F414241b8c4869";
+  const oceanAddress = "0x967da4048cD07aB37855c090aAF366e4ce1b9F48";
 
   before("init contracts for each test", async () => {
     const ERC721Template = await ethers.getContractFactory("ERC721Template");
     const ERC20Template = await ethers.getContractFactory("ERC20Template");
     const ERC721Factory = await ethers.getContractFactory("ERC721Factory");
-    const ERC20Factory = await ethers.getContractFactory("ERC20Factory");
 
     const Metadata = await ethers.getContractFactory("Metadata");
+    const Router = await ethers.getContractFactory("FactoryRouter");
+    const SSContract = await ethers.getContractFactory("ssFixedRate");
+    const BPool = await ethers.getContractFactory("BPool");
+    const FixedRateExchange = await ethers.getContractFactory(
+      "FixedRateExchange"
+    );
+    
 
-    [newOwner, reciever, user2, user3, user4] = await ethers.getSigners();
+   
+
+    [owner, reciever, user2, user3, user4,newOwner, opfCollector, marketFeeCollector] = await ethers.getSigners();
 
     data = web3.utils.asciiToHex(constants.blob[0]);
     flags = web3.utils.asciiToHex(constants.blob[0]);
     
- 
-    templateERC20 = await ERC20Template.deploy();
-    factoryERC20 = await ERC20Factory.deploy(
-      templateERC20.address,
-      communityFeeCollector
-    );
-    metadata = await Metadata.deploy(factoryERC20.address);
+    // DEPLOY ROUTER, SETTING OWNER
 
+    poolTemplate = await BPool.deploy();
+
+    ssFixedRate = await SSContract.deploy();
+  
+  
+     router = await Router.deploy(
+      owner.address,
+      oceanAddress,
+      poolTemplate.address, // pooltemplate field, unused in this test
+      ssFixedRate.address,
+      opfCollector.address,
+      []
+    );
+  
+    fixedRateExchange = await FixedRateExchange.deploy(
+      router.address,
+      opfCollector.address
+    );
+  
+    templateERC20 = await ERC20Template.deploy();
+  
+    metadata = await Metadata.deploy();
+  
+    // SETUP ERC721 Factory with template
     templateERC721 = await ERC721Template.deploy();
     factoryERC721 = await ERC721Factory.deploy(
       templateERC721.address,
-      communityFeeCollector,
-      factoryERC20.address,
+      templateERC20.address,
+      opfCollector.address,
+      router.address,
       metadata.address
     );
+  
+    // SET REQUIRED ADDRESS
+  
+    await metadata.addTokenFactory(factoryERC721.address);
 
-
+    await router.addERC20Factory(factoryERC721.address);
+    
+    await router.addFixedRateContract(fixedRateExchange.address);
    
-    await factoryERC20.setERC721Factory(factoryERC721.address);
-
     await impersonate(v3DTOwnerAddress);
     v3Owner = ethers.provider.getSigner(v3DTOwnerAddress);
   });
@@ -93,7 +125,7 @@ describe("V3 Integration flow", () => {
     await tokenERC721.connect(v3Owner).wrapV3DT(v3Datatoken, v3DTOwnerAddress);
     assert((await tokenERC721.v3DT(v3Datatoken)) == true);
     assert(
-      (await tokenERC721._getPermissions(v3DTOwnerAddress)).v3Minter == true
+      (await tokenERC721.getPermissions(v3DTOwnerAddress)).v3Minter == true
     );
   });
 
@@ -109,7 +141,7 @@ describe("V3 Integration flow", () => {
 
   it("#5 - v3DTOwner is the manager and the v3Minter, he assigns a new user to be v3Minter, then new user mints", async () => {
     assert(
-      (await tokenERC721._getPermissions(user2.address)).v3Minter == false
+      (await tokenERC721.getPermissions(user2.address)).v3Minter == false
     );
     await tokenERC721.connect(v3Owner).addV3Minter(user2.address);
     await tokenERC721
@@ -130,29 +162,29 @@ describe("V3 Integration flow", () => {
   });
 
   it("#7 - v3DTOwner  is the NFT Owner, he can assign or revoke roles just as any other NFT Owner", async () => {
-    assert((await tokenERC721._getPermissions(user2.address)).store == false);
+    assert((await tokenERC721.getPermissions(user2.address)).store == false);
     assert(
-      (await tokenERC721._getPermissions(user2.address)).deployERC20 == false
+      (await tokenERC721.getPermissions(user2.address)).deployERC20 == false
     );
     assert(
-      (await tokenERC721._getPermissions(user2.address)).updateMetadata == false
+      (await tokenERC721.getPermissions(user2.address)).updateMetadata == false
     );
 
     await tokenERC721.connect(v3Owner).addTo725StoreList(user2.address);
     await tokenERC721.connect(v3Owner).addToCreateERC20List(user2.address);
     await tokenERC721.connect(v3Owner).addToMetadataList(user2.address);
 
-    assert((await tokenERC721._getPermissions(user2.address)).store == true);
+    assert((await tokenERC721.getPermissions(user2.address)).store == true);
     assert(
-      (await tokenERC721._getPermissions(user2.address)).deployERC20 == true
+      (await tokenERC721.getPermissions(user2.address)).deployERC20 == true
     );
     assert(
-      (await tokenERC721._getPermissions(user2.address)).updateMetadata == true
+      (await tokenERC721.getPermissions(user2.address)).updateMetadata == true
     );
 
     await tokenERC721.connect(v3Owner).removeFromMetadataList(user2.address);
     assert(
-      (await tokenERC721._getPermissions(user2.address)).updateMetadata == false
+      (await tokenERC721.getPermissions(user2.address)).updateMetadata == false
     );
   });
 
@@ -160,7 +192,7 @@ describe("V3 Integration flow", () => {
     // the last argument is the minter for the erc20(v4)
     const trxERC20 = await tokenERC721
       .connect(user2)
-      .createERC20("ERC20DT1", "ERC20DT1Symbol", web3.utils.toWei("10"), 1, user2.address);
+      .createERC20("ERC20DT1", "ERC20DT1Symbol", web3.utils.toWei("10"), 1, user2.address,user4.address);
     const trxReceiptERC20 = await trxERC20.wait();
     erc20Address = trxReceiptERC20.events[3].args.erc20Address;
 
@@ -201,16 +233,16 @@ describe("V3 Integration flow", () => {
     await expectRevert(
       tokenERC721
         .connect(v3Owner)
-        .createERC20("ERC20DT2", "ERC20DT2Symbol", web3.utils.toWei("10"), 1, v3DTOwnerAddress),
-      "ERC721Template: NOT MINTER_ROLE"
+        .createERC20("ERC20DT2", "ERC20DT2Symbol", web3.utils.toWei("10"), 1, v3DTOwnerAddress,user4.address),
+      "ERC721Template: NOT ERC20DEPLOYER_ROLE"
     );
     
     
     await expectRevert(
       tokenERC721
         .connect(user2)
-        .createERC20("ERC20DT2", "ERC20DT2Symbol", web3.utils.toWei("10"), 1, user2.address),
-      "ERC721Template: NOT MINTER_ROLE"
+        .createERC20("ERC20DT2", "ERC20DT2Symbol", web3.utils.toWei("10"), 1, user2.address,user4.address),
+      "ERC721Template: NOT ERC20DEPLOYER_ROLE"
     );
 
     await expectRevert(
@@ -223,8 +255,8 @@ describe("V3 Integration flow", () => {
     await expectRevert(
       tokenERC721
         .connect(newOwner)
-        .createERC20("ERC20DT2", "ERC20DT2Symbol", web3.utils.toWei("10"), 1,newOwner.address),
-      "ERC721Template: NOT MINTER_ROLE"
+        .createERC20("ERC20DT2", "ERC20DT2Symbol", web3.utils.toWei("10"), 1,newOwner.address,user4.address),
+      "ERC721Template: NOT ERC20DEPLOYER_ROLE"
     );
 
     await expectRevert(
@@ -234,16 +266,14 @@ describe("V3 Integration flow", () => {
   });
 
   it("#13 - newOwner is already manager when receiving the NFT, can start assigning roles", async () => {
-    // we don't need to connect(newOwner) since it's the first user when getSigners() so it goes by default
-  
 
     // ROLES in 721:
     // if the NFT owner assigns another manager, the new manager could grant or revoke these roles too.
 
-    await tokenERC721.addTo725StoreList(user2.address); // Add data into the store (725Y)
-    await tokenERC721.addToCreateERC20List(user2.address); // Create new erc20 tokens (v4)
-    await tokenERC721.addToMetadataList(user2.address); // Update Metadata (for Aqua and 725Y)
-    await tokenERC721.addV3Minter(user2.address); // Minting on wrapped v3 DT
+    await tokenERC721.connect(newOwner).addTo725StoreList(user2.address); // Add data into the store (725Y)
+    await tokenERC721.connect(newOwner).addToCreateERC20List(user2.address); // Create new erc20 tokens (v4)
+    await tokenERC721.connect(newOwner).addToMetadataList(user2.address); // Update Metadata (for Aqua and 725Y)
+    await tokenERC721.connect(newOwner).addV3Minter(user2.address); // Minting on wrapped v3 DT
   });
 
   it("#14 - user2 mints on v3 wrapped token to a new user ", async () => {
@@ -267,7 +297,7 @@ describe("V3 Integration flow", () => {
   it("#16 - user2 deploys a new erc20 contract(v4), then mints some tokens ", async () => {
     const trxERC20 = await tokenERC721
       .connect(user2)
-      .createERC20("ERC20DT1", "ERC20DT1Symbol", web3.utils.toWei("10"), 1,user2.address);
+      .createERC20("ERC20DT1", "ERC20DT1Symbol", web3.utils.toWei("10"), 1,user2.address, user4.address);
     const trxReceiptERC20 = await trxERC20.wait();
     newERC20Address = trxReceiptERC20.events[3].args.erc20Address;
 
