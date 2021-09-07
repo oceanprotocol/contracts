@@ -123,18 +123,19 @@ describe("ERC20Template", () => {
 
     poolTemplate = await BPool.deploy();
 
-    ssFixedRate = await SSContract.deploy();
+    
 
 
     router = await Router.deploy(
      owner.address,
      oceanAddress,
-     poolTemplate.address, // pooltemplate field,
-     ssFixedRate.address,
+     poolTemplate.address,
      opfCollector.address,
      []
    );
- 
+      
+   ssFixedRate = await SSContract.deploy(router.address);
+
    fixedRateExchange = await FixedRateExchange.deploy(
      router.address,
      opfCollector.address
@@ -162,6 +163,7 @@ describe("ERC20Template", () => {
  
    await router.addFixedRateContract(fixedRateExchange.address); // DEPLOY ROUTER, SETTING OWNER
 
+   await router.addSSContract(ssFixedRate.address)
  
 
     // by default connect() in ethers goes with the first address (owner in this case)
@@ -184,12 +186,12 @@ describe("ERC20Template", () => {
     await tokenERC721.connect(user2).addToCreateERC20List(user3.address);
     await tokenERC721.connect(user2).addToMetadataList(user3.address);
 
-    assert((await tokenERC721._getPermissions(user3.address)).store == true);
+    assert((await tokenERC721.getPermissions(user3.address)).store == true);
     assert(
-      (await tokenERC721._getPermissions(user3.address)).deployERC20 == true
+      (await tokenERC721.getPermissions(user3.address)).deployERC20 == true
     );
     assert(
-      (await tokenERC721._getPermissions(user3.address)).updateMetadata == true
+      (await tokenERC721.getPermissions(user3.address)).updateMetadata == true
     );
     const trxERC20 = await tokenERC721.connect(user3).createERC20(
       "ERC20DT1",
@@ -319,7 +321,7 @@ describe("ERC20Template", () => {
 
     assert((await erc20Token.permissions(user2.address)).minter == true);
   
-    assert((await tokenERC721._getPermissions(user3.address)).deployERC20 == true)
+    assert((await tokenERC721.getPermissions(user3.address)).deployERC20 == true)
     
     await erc20Token.connect(user3).removeMinter(user2.address);
 

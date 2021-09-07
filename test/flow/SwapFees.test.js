@@ -148,11 +148,11 @@ describe("Swap Fees", () => {
       .transfer(user4.address, amount); 
    
 
-    expect(
-      await usdcContract.balanceOf(user3.address)).to.equal(amount)
+    // expect(
+    //   await usdcContract.balanceOf(user3.address)).to.equal(amount)
 
-    expect(
-        await usdcContract.balanceOf(user4.address)).to.equal(amount)
+    // expect(
+    //     await usdcContract.balanceOf(user4.address)).to.equal(amount)
 
 
 
@@ -1836,7 +1836,7 @@ describe("Swap Fees", () => {
       );
     });
 
-    it("#17 - we check again no ocean and market fees were accounted", async () => {
+    it("#17 - we check again ocean and market fees were accounted", async () => {
       expect(await bPool._swapOceanFee()).to.equal(1e15);
       expect(await bPool._swapMarketFee()).to.equal(swapMarketFee);
 
@@ -1856,23 +1856,26 @@ describe("Swap Fees", () => {
       expect(await erc20Token.balanceOf(user2.address)).to.equal(0);
       expect(await daiContract.balanceOf(user2.address)).to.equal(0);
 
-      // marketFeeCollector send fees to another address
-      await bPool.connect(marketFeeCollector).collectMarketFee(user2.address);
-
-      // only marketCollector can withdraw
-      await expectRevert(
+       // only marketCollector can withdraw
+       await expectRevert(
         bPool.connect(user3).collectMarketFee(user3.address),
         "ONLY MARKET COLLECTOR"
       );
+
+
+      // marketFeeCollector send fees to another address
+      await bPool.connect(marketFeeCollector).collectMarketFee(user2.address);
+
+     
+      assert(await bPool.marketFees(usdcAddress) == 0);
+      assert(await bPool.marketFees(erc20Token.address) == 0);
 
     
     });
 
     it("#19 - OPF collector withdraws fees", async () => {
       // no fees for OPF WERE COLLECTED AT THIS POINT
-      // opfCollector has no DT nor DAI
-      expect(await erc20Token.balanceOf(opfCollector.address)).to.equal(0);
-      expect(await daiContract.balanceOf(opfCollector.address)).to.equal(0);
+      
 
          // only opfCollector can withdraw
          await expectRevert(
@@ -1881,9 +1884,11 @@ describe("Swap Fees", () => {
         );
 
       // opfCollector withdraws fees
-     // await bPool.connect(opfCollector).collectOPF(opfCollector.address);
+      await bPool.connect(opfCollector).collectOPF(opfCollector.address);
 
-   
+        
+      assert(await bPool.communityFees(usdcAddress) == 0);
+      assert(await bPool.communityFees(erc20Token.address) == 0);
 
     
     });
@@ -2736,7 +2741,7 @@ describe("Swap Fees", () => {
       );
     });
 
-    it("#18 - we check again no ocean and market fees were accounted", async () => {
+    it("#18 - we check again ocean and market fees were accounted", async () => {
       expect(await bPool._swapOceanFee()).to.equal(1e15);
       expect(await bPool._swapMarketFee()).to.equal(swapMarketFee);
 
@@ -2756,32 +2761,34 @@ describe("Swap Fees", () => {
       expect(await erc20Token.balanceOf(user2.address)).to.equal(0);
       expect(await usdcContract.balanceOf(user2.address)).to.equal(0);
 
-      // marketFeeCollector send fees to another address
-      await bPool.connect(marketFeeCollector).collectMarketFee(user2.address);
-
       // only marketCollector can withdraw
       await expectRevert(
         bPool.connect(user3).collectMarketFee(user3.address),
         "ONLY MARKET COLLECTOR"
       );
 
+      // marketFeeCollector send fees to another address
+      await bPool.connect(marketFeeCollector).collectMarketFee(user2.address);
+
+      assert(await bPool.marketFees(usdcAddress) == 0);
+      assert(await bPool.marketFees(erc20Token.address) == 0);
+
      
     });
 
     it("#20 - OPF collector withdraws fees", async () => {
       // no fees for OPF WERE COLLECTED AT THIS POINT
-      // opfCollector has no DT nor DAI
-      expect(await erc20Token.balanceOf(opfCollector.address)).to.equal(0);
-      expect(await usdcContract.balanceOf(opfCollector.address)).to.equal(0);
+       // only opfCollector can withdraw
+       await expectRevert(
+        bPool.connect(user3).collectOPF(user3.address),
+        "ONLY OPF"
+      );
 
       // opfCollector withdraws fees
       await bPool.connect(opfCollector).collectOPF(opfCollector.address);
 
-      // only opfCollector can withdraw
-      await expectRevert(
-        bPool.connect(user3).collectOPF(user3.address),
-        "ONLY OPF"
-      );
+      assert(await bPool.communityFees(usdcAddress) == 0);
+      assert(await bPool.communityFees(erc20Token.address) == 0);
 
     });
 

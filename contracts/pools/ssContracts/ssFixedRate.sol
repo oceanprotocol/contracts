@@ -238,7 +238,7 @@ contract ssFixedRate {
         if (_datatokens[datatokenAddress].bound != true) return (false);
         if (_datatokens[datatokenAddress].basetokenAddress == stakeToken)
             return (false);
-        console.log("22222");
+       
         //check balances
         if (_datatokens[datatokenAddress].datatokenBalance >= amount)
             return (true);
@@ -341,7 +341,7 @@ contract ssFixedRate {
             _datatokens[datatokenAddress].poolAddress,
             baseTokenAmount
         );
-        console.log("hasta aqui");
+       
         // call the pool, bind the tokens, set the price, finalize pool
         IPool pool = IPool(_datatokens[datatokenAddress].poolAddress);
         pool.setup(

@@ -83,8 +83,7 @@ describe("FixedRateExchange", () => {
 
     rate = web3.utils.toWei("1");
 
-    ssFixedRate = await SSContract.deploy();
-
+   
     // GET SOME OCEAN TOKEN FROM OUR MAINNET FORK and send them to user3
     const userWithOcean = "0x53aB4a93B31F480d17D3440a6329bDa86869458A";
     await impersonate(userWithOcean);
@@ -149,10 +148,12 @@ describe("FixedRateExchange", () => {
       owner.address,
       oceanAddress,
       oceanAddress, // pooltemplate field, unused in this test
-      ssFixedRate.address,
       opfCollector.address,
       []
     );
+
+    ssFixedRate = await SSContract.deploy(router.address);
+
 
     fixedRateExchange = await FixedRateExchange.deploy(
       router.address,
@@ -180,7 +181,9 @@ describe("FixedRateExchange", () => {
     await router.addFactory(factoryERC721.address);
 
     await router.addFixedRateContract(fixedRateExchange.address);
-    console.log(fixedRateExchange.address);
+
+    await router.addSSContract(ssFixedRate.address)
+    
   });
 
   it("#1 - owner deploys a new ERC721 Contract", async () => {
@@ -206,12 +209,12 @@ describe("FixedRateExchange", () => {
     await tokenERC721.connect(user2).addToCreateERC20List(user3.address);
     await tokenERC721.connect(user2).addToMetadataList(user3.address);
 
-    assert((await tokenERC721._getPermissions(user3.address)).store == true);
+    assert((await tokenERC721.getPermissions(user3.address)).store == true);
     assert(
-      (await tokenERC721._getPermissions(user3.address)).deployERC20 == true
+      (await tokenERC721.getPermissions(user3.address)).deployERC20 == true
     );
     assert(
-      (await tokenERC721._getPermissions(user3.address)).updateMetadata == true
+      (await tokenERC721.getPermissions(user3.address)).updateMetadata == true
     );
   });
 
