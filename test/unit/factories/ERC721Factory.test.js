@@ -63,18 +63,19 @@ describe("ERC721Factory", () => {
 
     poolTemplate = await BPool.deploy();
 
-    ssFixedRate = await SSContract.deploy();
 
 
     router = await Router.deploy(
      owner.address,
      oceanAddress,
      poolTemplate.address, // pooltemplate field,
-     ssFixedRate.address,
      opfCollector.address,
      []
    );
- 
+      
+
+   ssFixedRate = await SSContract.deploy(router.address);
+
    fixedRateExchange = await FixedRateExchange.deploy(
      router.address,
      opfCollector.address
@@ -100,11 +101,12 @@ describe("ERC721Factory", () => {
  
    await metadata.addTokenFactory(factoryERC721.address);
  
-   await router.addERC20Factory(factoryERC721.address);
+   await router.addFactory(factoryERC721.address);
  
-   await router.addFixedRateContract(fixedRateExchange.address); // DEPLOY ROUTER, SETTING OWNER
+   await router.addFixedRateContract(fixedRateExchange.address); 
 
- 
+   await router.addSSContract(ssFixedRate.address)
+    
 
     // by default connect() in ethers goes with the first address (owner in this case)
     const tx = await factoryERC721.deployERC721Contract(

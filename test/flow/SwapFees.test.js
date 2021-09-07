@@ -173,17 +173,18 @@ describe("Swap Fees", () => {
 
   poolTemplate = await BPool.deploy();
 
-  ssFixedRate = await SSContract.deploy();
+ 
 
 
-   router = await Router.deploy(
+  router = await Router.deploy(
     owner.address,
     oceanAddress,
     poolTemplate.address, // pooltemplate field, unused in this test
-    ssFixedRate.address,
     opfCollector.address,
     []
   );
+
+  ssFixedRate = await SSContract.deploy(router.address);
 
   fixedRateExchange = await FixedRateExchange.deploy(
     router.address,
@@ -208,7 +209,7 @@ describe("Swap Fees", () => {
 
   await metadata.addTokenFactory(factoryERC721.address);
 
-  await router.addERC20Factory(factoryERC721.address);
+  await router.addFactory(factoryERC721.address);
 
   await router.addFixedRateContract(fixedRateExchange.address);
   });
@@ -1118,9 +1119,9 @@ describe("Swap Fees", () => {
           ],
           user3.address,
           [
-            swapFee, //
-            swapOceanFee, //
+            swapFee,
             swapMarketFee,
+            swapOceanFee
           ],
           marketFeeCollector.address,
           user3.address// publisher address (vested token)
@@ -1976,15 +1977,15 @@ describe("Swap Fees", () => {
           [
             web3.utils.toWei("1"), // rate
             basetokenDecimals, // basetokenDecimals
-            vestingAmount,
+            vestingAmount, // DT vesting amount
             500, // vested blocks
             initialUSDCLiquidity, // baseToken initial pool liquidity
           ],
           user3.address,
           [
-            swapFee, //
-            swapOceanFee, //
+            swapFee,
             swapMarketFee,
+            swapOceanFee
           ],
           marketFeeCollector.address,
           user3.address// publisher address (vested token)
@@ -2002,11 +2003,7 @@ describe("Swap Fees", () => {
 
       assert((await bPool.isFinalized()) == true);
       
-      // const spotPriceDT = await bPool.getSpotPrice(usdcAddress,erc20Token.address)
-      // console.log('spotprice DT',spotPriceDT.toString())
-      // const spotPriceUSDC = await bPool.getSpotPrice(erc20Token.address,usdcAddress)
-      // console.log('spotprice USDC',spotPriceUSDC.toString())
-      // const tokenBalanceUSDC = await bPool.getBalance(usdcAddress)
+    
 
       // PROPER BALANCE HAS BEEN DEPOSITED
 
@@ -2014,16 +2011,11 @@ describe("Swap Fees", () => {
       expect(await bPool.getBalance(erc20Token.address)).to.equal(web3.utils.toWei('88000'))
       
       
-      // console.log(tokenBalanceUSDC.toString(), 'initial token balance')
-      // console.log(ethers.utils.formatEther(tokenBalanceDT),'initial dt balance')
+
       // check the dt balance available for adding liquidity doesn't account for vesting amount
 
       expect(await ssFixedRate.getDataTokenBalance(erc20Token.address)).to.equal((await erc20Token.balanceOf(ssFixedRate.address)).sub(vestingAmount))
-      
-      // expect(await erc20Token.balanceOf(ssFixedRate.address)).to.equal(
-      //   web3.utils.toWei("12000")
-      // );
-    
+
       expect(await bPool.getSwapFee()).to.equal(swapFee);
       expect(await bPool._swapOceanFee()).to.equal(1e15);
       expect(await bPool._swapMarketFee()).to.equal(swapMarketFee);

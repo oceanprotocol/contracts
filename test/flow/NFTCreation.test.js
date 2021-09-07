@@ -76,7 +76,7 @@ describe("NFT Creation, roles and erc20 deployments", () => {
 
     await metadata.addTokenFactory(factoryERC721.address);
     // SET REQUIRED ADDRESS
-    await router.addERC20Factory(factoryERC721.address);
+    await router.addFactory(factoryERC721.address);
   });
 
   it("#1 - owner deploys a new ERC721 Contract", async () => {

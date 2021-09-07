@@ -23,6 +23,9 @@ import "hardhat/console.sol";
  */
 contract ssFixedRate {
     using SafeMath for uint256;
+    
+    address public router;
+
     struct Record {
         bool bound; //datatoken bounded
         address basetokenAddress;
@@ -47,11 +50,17 @@ contract ssFixedRate {
     mapping(address => Record) private _datatokens;
     uint256 private constant BASE = 10**18;
 
+    modifier onlyRouter() {
+        require(msg.sender == router, 'ONLY ROUTER');
+        _;
+    }
     /**
      * @dev constructor
      *      Called on contract deployment.
      */
-    constructor() public {}
+    constructor(address _router) public {
+        router = _router;
+    }
 
     // TODO: add onlyRouter modifier
     /**
@@ -70,7 +79,7 @@ contract ssFixedRate {
         address poolAddress,
         address publisherAddress,
         uint256[] memory ssParams
-    ) public returns (bool) {
+    ) external onlyRouter returns (bool) {
         //check if we are the controller of the pool
         require(poolAddress != address(0), "Invalid poolAddress");
         IPool bpool = IPool(poolAddress);
@@ -231,8 +240,6 @@ contract ssFixedRate {
             return (false);
         console.log("22222");
         //check balances
-        // IERC20Template dt = IERC20Template(datatokenAddress);
-        // uint256 balance = dt.balanceOf(address(this));
         if (_datatokens[datatokenAddress].datatokenBalance >= amount)
             return (true);
         return (false);

@@ -177,7 +177,7 @@ describe("FixedRateExchange", () => {
 
     await metadata.addTokenFactory(factoryERC721.address);
 
-    await router.addERC20Factory(factoryERC721.address);
+    await router.addFactory(factoryERC721.address);
 
     await router.addFixedRateContract(fixedRateExchange.address);
     console.log(fixedRateExchange.address);

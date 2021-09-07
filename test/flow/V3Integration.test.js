@@ -90,7 +90,7 @@ describe("V3 Integration flow", () => {
   
     await metadata.addTokenFactory(factoryERC721.address);
 
-    await router.addERC20Factory(factoryERC721.address);
+    await router.addFactory(factoryERC721.address);
     
     await router.addFixedRateContract(fixedRateExchange.address);
    

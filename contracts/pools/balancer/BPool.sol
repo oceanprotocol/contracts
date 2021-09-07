@@ -165,8 +165,9 @@ contract BPool is BMath, BToken {
         _factory = factory;
         _swapFee = swapFees[0];
         // console.log(swapFees[0], swapFees[1],swapFees[2], 'swapFees');
-        _swapOceanFee = swapFees[1];
-        _swapMarketFee = swapFees[2];
+       
+        _swapMarketFee = swapFees[1];
+         _swapOceanFee = swapFees[2];
         _publicSwap = publicSwap;
         _finalized = finalized;
         _datatokenAddress = tokens[0];
@@ -807,7 +808,7 @@ contract BPool is BMath, BToken {
             poolAmountOut
             //_swapFee
         );
-        console.log(ssContract.canStake(_datatokenAddress, ssStakeToken, ssAmountIn), 'canstake');
+       // console.log(ssContract.canStake(_datatokenAddress, ssStakeToken, ssAmountIn), 'canstake');
         if (
             ssContract.canStake(_datatokenAddress, ssStakeToken, ssAmountIn) ==
             true

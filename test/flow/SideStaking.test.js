@@ -154,7 +154,7 @@ describe("1SS flow", () => {
 
     await metadata.addTokenFactory(factoryERC721.address)
     // SET REQUIRED ADDRESS
-    await router.addERC20Factory(factoryERC721.address);
+    await router.addFactory(factoryERC721.address);
   
   });
 

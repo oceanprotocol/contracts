@@ -31,13 +31,11 @@ contract FactoryRouter is BFactory {
         address _routerOwner,
         address _oceanToken,
         address _bpoolTemplate,
-        address _ssContract,
         address _opfCollector,
         address[] memory _preCreatedPools
     ) public BFactory(_bpoolTemplate, _opfCollector, _preCreatedPools) {
         routerOwner = _routerOwner;
         opfCollector = _opfCollector;
-        ssContracts[_ssContract] = true;
         addOceanToken(_oceanToken);
     }
 
@@ -49,7 +47,7 @@ contract FactoryRouter is BFactory {
         ssContracts[_ssContract] = true;
     }
 
-    function addERC20Factory(address _factory) external onlyRouterOwner {
+    function addFactory(address _factory) external onlyRouterOwner {
         require(factory == address(0), "FACTORY ALREADY SET");
         factory = _factory;
     }
@@ -94,7 +92,7 @@ contract FactoryRouter is BFactory {
 
 
         if (flag == true) {
-            fees[1] = 0;
+            fees[2] = 0;
             pool = newBPool(
                 controller,
                 tokens,
@@ -104,7 +102,7 @@ contract FactoryRouter is BFactory {
                 marketFeeCollector
             );
         } else {
-            fees[1] = swapOceanFee;
+            fees[2] = swapOceanFee;
             pool = newBPool(
                 controller,
                 tokens,

@@ -102,7 +102,7 @@ contract ERC721Template is
     }
 
     function _createMetadata(bytes memory flags, bytes calldata data) internal {
-        // require(_metadata != address(0), "Invalid Metadata address");
+ 
         require(
             IFactory(_tokenFactory).erc721List(address(this)) ==
                 address(this),
@@ -180,13 +180,11 @@ contract ERC721Template is
     }
 
     function addManager(address _managerAddress) external onlyNFTOwner{
-     
         _addManager(_managerAddress);
     }
 
     function removeManager(address _managerAddress) external onlyNFTOwner {
-      
-        _removeManager(_managerAddress);
+       _removeManager(_managerAddress);
     }
 
     function executeCall(
