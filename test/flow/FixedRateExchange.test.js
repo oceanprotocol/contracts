@@ -104,7 +104,7 @@ describe("FixedRateExchange", () => {
     );
 
     // GET SOME DAI (A NEW TOKEN different from OCEAN)
-    const userWithDAI = "0xB09cD60ad551cE7fF6bc97458B483A8D50489Ee7";
+    const userWithDAI = "0xa478c2975ab1ea89e8196811f51a7b7ade33eb11";
 
     await impersonate(userWithDAI);
 

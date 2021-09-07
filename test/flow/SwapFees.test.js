@@ -289,7 +289,7 @@ describe("Swap Fees", () => {
           user3.address,
           [
             swapFee, //
-            swapMarketFee, //
+            swapMarketFee,
             swapOceanFee
           ],
           marketFeeCollector.address,
