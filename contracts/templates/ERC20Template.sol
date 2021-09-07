@@ -529,7 +529,7 @@ contract ERC20Template is ERC20("test", "testSymbol"), ERC20Roles {
     /**
      * @dev setData
      *      Only ERC20Deployer (at 721 level) can call it.
-     *      This function allows to setData with a preset key (keccak256(ERC20Address)) into NFT 725 Store
+     *      This function allows to store data with a preset key (keccak256(ERC20Address)) into NFT 725 Store
      * @param _value data to be set with this key
      */
 
@@ -540,7 +540,7 @@ contract ERC20Template is ERC20("test", "testSymbol"), ERC20Roles {
 
     /**
      * @dev cleanPermissions()
-     *      Only NFT Owner (at 721 level) can update.
+     *      Only NFT Owner (at 721 level) can call it.
      *      This function allows to remove all minters, feeManagers and reset the feeCollector
      *
      */

@@ -17,6 +17,8 @@ import "../interfaces/IFactory.sol";
 contract Metadata {
     address public tokenFactory;
 
+    address public factoryUpdater;
+
     event MetadataCreated(
         address indexed dataToken,
         address indexed createdBy,
@@ -31,14 +33,20 @@ contract Metadata {
     );
 
 
-    // constructor() {
-    // }
+    constructor() {
+        factoryUpdater = msg.sender;
+     }
     
     modifier onlyDataTokenMinter(address dataToken) {
         require(
             IFactory(tokenFactory).erc721List(msg.sender) == msg.sender,
             "Metadata:NOT ORIGINAL TEMPLATE"
         );
+        _;
+    }
+
+    modifier onlyFactoryUpdater() {
+        require(factoryUpdater == msg.sender, 'Metadata: only Factory Updater');
         _;
     }
 
@@ -72,8 +80,17 @@ contract Metadata {
         emit MetadataUpdated(dataToken, msg.sender, flags, data);
     }
 
+     /**
+     * @dev addTokenFactory
+            
+     *        only Factory Updater can set it ONCE.
+     * @param _tokenFactory factory address
     
-    function addTokenFactory(address _tokenFactory) external {
+     */
+
+    function addTokenFactory(address _tokenFactory) external onlyFactoryUpdater {
+        require(tokenFactory == address(0), 'Metadata: Factory already set');
+        require(_tokenFactory != address(0), 'Metadata: Factory cannot be address zero');
         tokenFactory = _tokenFactory;
     }
 }

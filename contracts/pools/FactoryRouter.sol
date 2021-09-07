@@ -84,7 +84,7 @@ contract FactoryRouter is BFactory {
         if (oceanTokens[tokens[1]] == true) {
             flag = true;
         }
-        // we pull basetoken for creating initial pool
+        // we pull basetoken for creating initial pool and send it to the controller (ssContract)
         IERC20 bt = IERC20(tokens[1]);
         bt.transferFrom(basetokenSender, controller, ssParams[4]);
 

@@ -104,18 +104,19 @@ describe("ERC721Template", () => {
 
     poolTemplate = await BPool.deploy();
 
-    ssFixedRate = await SSContract.deploy();
+    
 
 
     router = await Router.deploy(
      owner.address,
      oceanAddress,
      poolTemplate.address, // pooltemplate field,
-     ssFixedRate.address,
      opfCollector.address,
      []
    );
- 
+      
+   ssFixedRate = await SSContract.deploy(router.address);
+
    fixedRateExchange = await FixedRateExchange.deploy(
      router.address,
      opfCollector.address
@@ -141,9 +142,9 @@ describe("ERC721Template", () => {
  
    await router.addFactory(factoryERC721.address);
  
-   await router.addFixedRateContract(fixedRateExchange.address); // DEPLOY ROUTER, SETTING OWNER
+   await router.addFixedRateContract(fixedRateExchange.address); 
 
- 
+   await router.addSSContract(ssFixedRate.address); 
 
     // by default connect() in ethers goes with the first address (owner in this case)
     const tx = await factoryERC721.deployERC721Contract(
@@ -591,7 +592,14 @@ describe("ERC721Template", () => {
     assert((await tokenERC721.getPermissions(user2.address)).v3Minter == false);
   });
 
-  
+  it("#transferNFT - should fail to transfer NFT, if not NFT Owner or approved relayer", async () => {
+    await expectRevert(tokenERC721.connect(user2).transferFrom(owner.address, user2.address, 1),'ERC721: transfer caller is not owner nor approved')
+  })
+
+  it("#transferNFT - should fail to transfer NFT, if not NFT Owner or approved relayer", async () => {
+    await expectRevert(tokenERC721.connect(user2).safeTransferFrom(owner.address, user2.address, 1),'ERC721: transfer caller is not owner nor approved')
+  })
+
   it("#transferNFT - should transfer properly the NFT, now the new user is the owner for ERC721Template and ERC20Template", async () => {
     await tokenERC721.addToCreateERC20List(owner.address);
     const trxERC20 = await tokenERC721.connect(user3).createERC20(

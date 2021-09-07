@@ -142,6 +142,7 @@ contract ERC721 is Context, IERC721, IERC721Metadata {
         safeTransferFrom(from, to, tokenId, "");
     }
 
+   
     /**
      * @dev See {IERC721-safeTransferFrom}.
      */

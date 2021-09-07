@@ -23,7 +23,7 @@ contract ERC721Template is
     V3Integration
 {
     bytes32 public constant METADATA_KEY = keccak256("METADATA_KEY");
-   
+
     string private _name;
     string private _symbol;
     //uint256 private tokenId = 1;
@@ -35,17 +35,27 @@ contract ERC721Template is
 
     mapping(address => bool) private deployedERC20;
 
-
-   
     event ERC20Created(address indexed erc20Address);
 
-
-
     modifier onlyNFTOwner() {
-        require(msg.sender == ownerOf(1),"ERC721Template: not NFTOwner");
+        require(msg.sender == ownerOf(1), "ERC721Template: not NFTOwner");
         _;
     }
 
+    /**
+     * @dev initialize
+     *      Calls private _initialize function. Only if contract is not initialized.
+            This function mints an NFT (tokenId=1) to the owner, creates Metadata for Aqua and add owner as Manager Role
+     * @param owner NFT Owner
+     * @param name_ NFT name
+     * @param symbol_ NFT Symbol
+     * @param metadata metadata address used by Aquarius
+     * @param tokenFactory NFT factory address
+     * @param _data data used by Aquarius
+       @param _flags flags used by Aquarius
+     
+     @return boolean
+     */
 
     function initialize(
         address owner,
@@ -72,6 +82,22 @@ contract ERC721Template is
             );
     }
 
+    /**
+     * @dev _initialize
+     *      Calls private _initialize function. Only if contract is not initialized.
+             This function mints an NFT (tokenId=1) to the owner, creates Metadata for Aqua(emit event on the Metadata contract) 
+             and add owner as Manager Role (Roles admin)
+     * @param owner NFT Owner
+     * @param name_ NFT name
+     * @param symbol_ NFT Symbol
+     * @param metadata metadata address used by Aquarius
+     * @param tokenFactory NFT factory address
+     * @param _data data used by Aquarius
+       @param _flags flags used by Aquarius
+     
+     @return boolean
+     */
+
     function _initialize(
         address owner,
         string memory name_,
@@ -90,7 +116,7 @@ contract ERC721Template is
             "ERC721Template:: Metadata address cannot be zero"
         );
         _metadata = metadata;
-        
+
         _name = name_;
         _symbol = symbol_;
         _tokenFactory = tokenFactory;
@@ -101,11 +127,22 @@ contract ERC721Template is
         return initialized;
     }
 
+    /**
+     * @dev _createMetadata
+     *     
+             Creates Metadata for Aqua(emit event on the Metadata contract) when initializing
+             It also set the same data argument into the ERC725 standard (key-value store).
+             The key is prefixed at METADATA_KEY = keccak256("METADATA_KEY");
+     * @param flags flags used by Aquarius
+     * @param data data used by Aquarius
+    
+     
+
+     */
+
     function _createMetadata(bytes memory flags, bytes calldata data) internal {
- 
         require(
-            IFactory(_tokenFactory).erc721List(address(this)) ==
-                address(this),
+            IFactory(_tokenFactory).erc721List(address(this)) == address(this),
             "ERC721Template: NOT ORIGINAL TEMPLATE"
         );
         IMetadata(_metadata).create(address(this), flags, data);
@@ -113,17 +150,44 @@ contract ERC721Template is
         setData(METADATA_KEY, data);
     }
 
+    /**
+     * @dev updateMetadata
+     *        ONLY user with updateMetadata permission (assigned by Manager) can call it
+             Updates Metadata for Aqua(emit event on the Metadata contract)
+             It also updates the same data argument into the ERC725 standard (key-value store).
+             The key is prefixed at METADATA_KEY = keccak256("METADATA_KEY");
+     * @param flags flags used by Aquarius
+     * @param data data used by Aquarius
+    
+     
+     */
+
     function updateMetadata(bytes calldata flags, bytes calldata data)
         external
     {
-        
         require(
-             permissions[msg.sender].updateMetadata == true,
+            permissions[msg.sender].updateMetadata == true,
             "ERC721Template: NOT METADATA_ROLE"
         );
         IMetadata(_metadata).update(address(this), flags, data);
         setData(METADATA_KEY, data);
     }
+
+    /**
+     * @dev createERC20
+     *        ONLY user with deployERC20 permission (assigned by Manager) can call it
+             Creates a new ERC20 datatoken.
+            It also adds initial minting and fee management permissions to custom users.
+
+    * @param name_ token name
+    * @param symbol_ token symbol
+    * @param cap the maximum total supply
+    * @param templateIndex template index to deploy
+    * @param minter minter address to be set as initial minter 
+    * @param feeManager feeManager address to be set as initial feeManager (can set who gets the DT consumed)
+     
+     @return ERC20 token address
+     */
 
     function createERC20(
         string calldata name_,
@@ -132,24 +196,24 @@ contract ERC721Template is
         uint256 templateIndex,
         address minter,
         address feeManager
-
     ) external returns (address) {
-       
-        require(permissions[msg.sender].deployERC20 == true, "ERC721Template: NOT ERC20DEPLOYER_ROLE");
+        require(
+            permissions[msg.sender].deployERC20 == true,
+            "ERC721Template: NOT ERC20DEPLOYER_ROLE"
+        );
 
-        address token =
-            IFactory(_tokenFactory).createToken(
-                name_,
-                symbol_,
-                cap,
-                templateIndex,
-                minter,
-                feeManager
-            );
+        address token = IFactory(_tokenFactory).createToken(
+            name_,
+            symbol_,
+            cap,
+            templateIndex,
+            minter,
+            feeManager
+        );
 
         deployedERC20[token] = true;
 
-        deployedERC20List.push(token); 
+        deployedERC20List.push(token);
 
         //FOR TEST PURPOSE BUT COULD BE COMPLETED OR REMOVED
         emit ERC20Created(token);
@@ -175,17 +239,49 @@ contract ERC721Template is
         return _symbol;
     }
 
+      /**
+     * @dev isInitialized
+     *      It checks whether the contract is initialized.
+     * @return true if the contract is initialized.
+     */
+
     function isInitialized() public view returns (bool) {
         return initialized;
     }
 
-    function addManager(address _managerAddress) external onlyNFTOwner{
+    /**
+     * @dev addManager
+     *      Only NFT Owner can add a new manager (Roles admin)
+     *      There can be multiple minters
+     * @param _managerAddress new manager address
+     */
+
+    function addManager(address _managerAddress) external onlyNFTOwner {
         _addManager(_managerAddress);
     }
 
+    /**
+     * @dev removeManager
+     *      Only NFT Owner can remove a manager (Roles admin)
+     *      There can be multiple minters
+     * @param _managerAddress new manager address
+     */
+
+
     function removeManager(address _managerAddress) external onlyNFTOwner {
-       _removeManager(_managerAddress);
+        _removeManager(_managerAddress);
     }
+
+     /**
+     * @notice Executes any other smart contract. 
+                Is only callable by the Manager.
+     *
+     *
+     * @param _operation the operation to execute: CALL = 0; DELEGATECALL = 1; CREATE2 = 2; CREATE = 3;
+     * @param _to the smart contract or address to interact with. `_to` will be unused if a contract is created (operation 2 and 3)
+     * @param _value the value of ETH to transfer
+     * @param _data the call data, or the contract data to deploy
+    **/
 
     function executeCall(
         uint256 _operation,
@@ -193,15 +289,39 @@ contract ERC721Template is
         uint256 _value,
         bytes calldata _data
     ) external payable onlyManager {
-        
         execute(_operation, _to, _value, _data);
     }
 
+
+      /**
+     * @dev setNewData
+     *       ONLY user with store permission (assigned by Manager) can call it
+            This function allows to set any arbitrary key-value into the 725 standard
+     *      There can be multiple store updaters
+     * @param _key key (see 725 for standard (keccak256)) 
+        Data keys, should be the keccak256 hash of a type name.
+        e.g. keccak256('ERCXXXMyNewKeyType') is 0x6935a24ea384927f250ee0b954ed498cd9203fc5d2bf95c735e52e6ca675e047
+
+     * @param _value data to store at that key
+     */
+
+
     function setNewData(bytes32 _key, bytes calldata _value) external {
-       
-        require(permissions[msg.sender].store == true, "ERC721Template: NOT STORE UPDATER");
+        require(
+            permissions[msg.sender].store == true,
+            "ERC721Template: NOT STORE UPDATER"
+        );
         setData(_key, _value);
     }
+
+       /**
+     * @dev setDataERC20
+     *      ONLY callable FROM the ERC20Template and BY the corresponding ERC20Deployer
+            This function allows to store data with a preset key (keccak256(ERC20Address)) into NFT 725 Store
+     * @param _key keccak256(ERC20Address) see setData into ERC20Template.sol
+     * @param _value data to store at that key
+     */
+
 
     function setDataERC20(bytes32 _key, bytes calldata _value) public {
         require(
@@ -210,7 +330,19 @@ contract ERC721Template is
         );
         setData(_key, _value);
     }
-    
+
+
+       /**
+     * @dev setDataV3
+     *      ONLY v3Minter role can call it
+            This function allows to store data with a preset key (keccak256(ERC20Address)) into NFT 725 Store, same as setDataERC20 but for v3 DT
+            The DT we'd like to update metadata has to be already wrapped
+     * @param datatoken datatoken addresss
+     * @param _value data to store at that key
+     * @param flags data to store at that key
+     * @param data data to store at that key
+     */
+
     // TODO: check if we actually need the value and data or can be the same
     function setDataV3(
         address datatoken,
@@ -218,71 +350,158 @@ contract ERC721Template is
         bytes calldata flags,
         bytes calldata data
     ) external {
-        require(permissions[msg.sender].v3Minter == true, "ERC721Template: NOT v3Minter");
+        require(
+            permissions[msg.sender].v3Minter == true,
+            "ERC721Template: NOT v3Minter"
+        );
         _checkV3DT(datatoken);
 
         bytes32 key = keccak256(abi.encodePacked(address(datatoken))); // could be any other key, used a simple configuration
         setData(key, _value); // into the new standard 725Y
         IMetadata(_metadata).update(datatoken, flags, data); // Metadata standard for Aqua (V4 Metadata)
-        // IMetadata(_metadataV3).update(datatoken, flags, data); // Old Metadata for Aqua (V3 Metadata). We should deprecate this and not support it anymore
-        // instead we should force V3 migration to start using the new V4 Metadata contract.
+       
     }
 
+    /**
+     * @dev cleanPermissions
+     *      Only NFT Owner  can call it.
+     *      This function allows to remove all ROLES at erc721 level: Managers, ERC20Deployer, MetadataUpdater, StoreUpdater
+     *      Permissions at erc20 level stay.
+            Even NFT Owner has to readd himself as Manager
+     */
     
-    // TODO: should we clean also all erc20 permissions as when a transfer occurr? best could be to use a flag to allow NFT owner decide
     function cleanPermissions() external onlyNFTOwner {
-       
         _cleanPermissions();
     }
 
     // // V3 MIGRATION
+     /**
+     * @dev wrapV3DT
+     *      Only NFT Owner  can call it.
+     *      This function 'wraps' any v3 datatoken, NFTOwner has to be the actual minter(v3) before calling it. 
+            After wrapping, the minter() in the v3 datatoken is going to be this contract. To mint new tokens we now need to use mintV3DT
+     * @param datatoken datatoken address we want to wrap
+     * @param newMinter new minter address after wrapping
+     */
 
-    function wrapV3DT(address datatoken, address newMinter) external onlyNFTOwner {
-      
+    function wrapV3DT(address datatoken, address newMinter)
+        external
+        onlyNFTOwner
+    {
         _wrap(datatoken);
         _addV3Minter(newMinter);
     }
+
+     /**
+     * @dev mintV3DT
+     *      Only user with v3Minter permission can call it.
+     *      This function mints new v3 datatoken if cap is not reached yet.
+     
+     * @param datatoken datatoken address 
+     * @param to address will receive DTs
+     * @param value DT amount to mint   
+     */
 
     function mintV3DT(
         address datatoken,
         address to,
         uint256 value
     ) external {
-        require(permissions[msg.sender].v3Minter == true, "ERC721Template: NOT v3 MINTER");
+        require(
+            permissions[msg.sender].v3Minter == true,
+            "ERC721Template: NOT v3 MINTER"
+        );
         _checkV3DT(datatoken);
         IV3ERC20(datatoken).mint(to, value);
     }
 
+       /**
+     * @dev addV3Minter
+     *      Only Manager (Roles Admin) can call it.
+     *      This function adds a new V3 minter (will work for all v3 DT wrapped into this contract).
+     * @param newMinter new minter address
+  
+     */
+
     function addV3Minter(address newMinter) external onlyManager {
-   
         _addV3Minter(newMinter);
     }
 
+      /**
+     * @dev removeV3Minter
+     *      Only Manager (Roles Admin) can call it.
+     *      This function removes a V3 minter.
+
+     * @param minter address to revoke
+  
+     */
     function removeV3Minter(address minter) external onlyManager {
-    
         _removeV3Minter(minter);
     }
-    
 
-    function transferFrom(address from, address to, uint256 tokenId) external {
+     /**
+     * @dev transferFrom 
+     *      Used for transferring the NFT, can be used by an approved relayer
+            Even if we only have 1 tokenId, we leave it open as arguments for being a standard ERC721
+            @param from nft owner
+            @param to nft receiver
+            @param tokenId tokenId (1)
+     */
+
+    function transferFrom(
+        address from,
+        address to,
+        uint256 tokenId
+    ) external {
         require(tokenId == 1, "ERC721Template: Cannot transfer this tokenId");
         _cleanERC20Permissions(getAddressLength(deployedERC20List));
         _cleanPermissions();
-        _transferFrom(from,to,tokenId);
+        _transferFrom(from, to, tokenId);
         _addManager(to);
     }
 
-    function getAddressLength(address[] memory array) private pure returns (uint256) {
+    /**
+     * @dev safeTransferFrom 
+     *      Used for transferring the NFT, can be used by an approved relayer
+            Even if we only have 1 tokenId, we leave it open as arguments for being a standard ERC721
+            @param from nft owner
+            @param to nft receiver
+            @param tokenId tokenId (1)
+     */
+
+    function safeTransferFrom(address from, address to,uint256 tokenId) external {
+        require(tokenId == 1, "ERC721Template: Cannot transfer this tokenId");
+        _cleanERC20Permissions(getAddressLength(deployedERC20List));
+        _cleanPermissions();
+        safeTransferFrom(from, to, tokenId, "");
+        _addManager(to);
+    }
+
+      /**
+     * @dev getAddressLength
+     *      It returns the array lentgh
+            @param array address array we want to get length
+     * @return length
+     */
+
+
+    function getAddressLength(address[] memory array)
+        private
+        pure
+        returns (uint256)
+    {
         return array.length;
     }
 
-  
-    function _cleanERC20Permissions(uint lentgh) internal {
-        for (uint i = 0; i < lentgh; i++) {
-          
-           IERC20Template(deployedERC20List[i]).cleanFrom721();
+      /**
+     * @dev _cleanERC20Permissions
+     *      Internal function used to clean permissions at ERC20 level when transferring the NFT
+            @param length lentgh of the deployedERC20List 
+     */
+
+    function _cleanERC20Permissions(uint256 length) internal {
+        for (uint256 i = 0; i < length; i++) {
+            IERC20Template(deployedERC20List[i]).cleanFrom721();
         }
     }
-
-    
 }
