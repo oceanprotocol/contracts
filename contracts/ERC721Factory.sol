@@ -64,6 +64,8 @@ contract ERC721Factory is Deployer, Ownable {
      *      Called on contract deployment. Could not be called with zero address parameters.
      * @param _template refers to the address of a deployed DataToken contract.
      * @param _collector refers to the community fee collector address
+     * @param _router router contract address
+     * @param _metadata metadata contract address
      */
     constructor(
         address _template721,
@@ -85,6 +87,17 @@ contract ERC721Factory is Deployer, Ownable {
         communityFeeCollector = _collector;
         metadata = _metadata;
     }
+
+
+    /**
+     * @dev deployERC721Contract
+     *      
+     * @param name NFT name
+     * @param symbol NFT Symbol
+     * @param _data data used by Aquarius
+     * @param _flags flags used by Aquarius
+     * @param _templateIndex template index we want to use
+     */
 
     function deployERC721Contract(
         string memory name,
@@ -147,7 +160,8 @@ contract ERC721Factory is Deployer, Ownable {
     }
 
     /**
-     * @dev get the token template address
+     * @dev get the token template Object
+     * @param _index template Index
      * @return the template struct
      */
     function getNFTTemplate(uint256 _index)
@@ -159,7 +173,13 @@ contract ERC721Factory is Deployer, Ownable {
         return template;
     }
 
-    
+      /**
+     * @dev add a new NFT Template.
+      Only Factory Owner can call it
+     * @param _templateAddress new template address
+     * @return the actual template count
+     */
+
     function add721TokenTemplate(address _templateAddress)
         public
         onlyOwner
@@ -175,7 +195,12 @@ contract ERC721Factory is Deployer, Ownable {
         nftTemplateList[nftTemplateCount] = template;
         return nftTemplateCount;
     }
-
+      /**
+     * @dev reactivate a disabled NFT Template.
+            Only Factory Owner can call it
+     * @param _index index we want to reactivate
+     */
+    
     // function to activate a disabled token.
     function reactivate721TokenTemplate(uint256 _index) external onlyOwner {
         require(
@@ -186,6 +211,11 @@ contract ERC721Factory is Deployer, Ownable {
         template.isActive = true;
     }
 
+      /**
+     * @dev disable an NFT Template.
+      Only Factory Owner can call it
+     * @param _index index we want to disable
+     */
     function disable721TokenTemplate(uint256 _index) external onlyOwner {
         require(
             _index <= nftTemplateCount && _index != 0,
@@ -230,8 +260,6 @@ contract ERC721Factory is Deployer, Ownable {
     }
 
     uint256 private currentTokenCount = 0;
-
-    address public erc721Factory;
     uint256 public templateCount;
     address public router;
 
@@ -251,11 +279,15 @@ contract ERC721Factory is Deployer, Ownable {
 
     /**
      * @dev Deploys new DataToken proxy contract.
-     *      Template contract address could not be a zero address.
+     *      This function is not called directly from here. It's called from the NFT contract.
+            An NFT contract can deploy multiple ERC20 tokens.
 
      * @param name token name
      * @param symbol token symbol
      * @param cap the maximum total supply
+     * @param _templateIndex ERC20Template index 
+     * @param minter account who can mint datatokens (can have multiple minters)
+     
      * @return token address of a new proxy DataToken contract
      */
     function createToken(
@@ -314,12 +346,18 @@ contract ERC721Factory is Deployer, Ownable {
     }
 
     /**
-     * @dev get the current token count.
+     * @dev get the current ERC20token deployed count.
      * @return the current token count
      */
     function getCurrentTokenCount() external view returns (uint256) {
         return currentTokenCount;
     }
+
+    /**
+     * @dev get the current ERC20token template.
+      @param _index template Index
+     * @return the token Template Object
+     */
 
     function getTokenTemplate(uint256 _index)
         external
@@ -333,6 +371,14 @@ contract ERC721Factory is Deployer, Ownable {
         );
         return template;
     }
+
+    /**
+     * @dev add a new ERC20Template.
+      Only Factory Owner can call it
+     * @param _templateAddress new template address
+     * @return the actual template count
+     */
+
 
     function addTokenTemplate(address _templateAddress)
         public
@@ -350,10 +396,23 @@ contract ERC721Factory is Deployer, Ownable {
         return templateCount;
     }
 
+     /**
+     * @dev disable an ERC20Template.
+      Only Factory Owner can call it
+     * @param _index index we want to disable
+     */
+
     function disableTokenTemplate(uint256 _index) external onlyOwner {
         Template storage template = templateList[_index];
         template.isActive = false;
     }
+
+
+     /**
+     * @dev reactivate a disabled ERC20Template.
+      Only Factory Owner can call it
+     * @param _index index we want to reactivate
+     */
 
     // function to activate a disabled token.
     function reactivateTokenTemplate(uint256 _index) external onlyOwner {

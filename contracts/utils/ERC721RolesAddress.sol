@@ -15,16 +15,6 @@ contract ERC721RolesAddress {
 
 
 
-   
-
-    // function _getPermissions(address account)
-    //     public
-    //     view
-    //     returns (Roles memory)
-    // {
-    //     return permissions[account];
-    // }
-
     function getPermissions(address user) public view returns (Roles memory) {
         return permissions[user];
     }
