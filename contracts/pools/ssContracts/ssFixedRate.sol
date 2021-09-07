@@ -106,7 +106,7 @@ contract ssFixedRate {
         dt.mint(address(this), dt.cap());
 
         require(dt.balanceOf(address(this)) == dt.totalSupply(), "Mint failed");
-
+        require(dt.totalSupply().div(10) >= ssParams[2], 'Max vesting 10%');
         //we are rich :)let's setup the records and we are good to go
         _datatokens[datatokenAddress] = Record({
             bound: true,

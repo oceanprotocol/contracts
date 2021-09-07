@@ -1105,7 +1105,7 @@ describe("Swap Fees", () => {
         .connect(user3)
         .approve(router.address, initialDAILiquidity);
 
-      // we deploy a new pool with burnInEndBlock as 0
+      // we deploy a new pool 
       receipt = await (
         await erc20Token.connect(user3).deployPool(
           ssFixedRate.address,

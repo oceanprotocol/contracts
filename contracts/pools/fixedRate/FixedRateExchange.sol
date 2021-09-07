@@ -579,7 +579,6 @@ contract FixedRateExchange {
         bytes32 exchangeId,
         address _newMarketCollector
     ) external {
-        // TODO:ADD EVENT??
         require(
             msg.sender == exchanges[exchangeId].marketFeeCollector,
             "not marketFeeCollector"

@@ -42,10 +42,10 @@ contract ERC20Template is ERC20("test", "testSymbol"), ERC20Roles {
     // keccak256("Permit(address owner,address spender,uint256 value,uint256 nonce,uint256 deadline)");
     bytes32 public constant PERMIT_TYPEHASH =
         0x6e71edae12b1b97f4d1f60370fef10105fa2faae0126114a169c64845d6126c9;
+
     mapping(address => uint256) public nonces;
 
     address public router;
-    //bool public stopMint;
 
     event OrderStarted(
         address indexed consumer,
@@ -76,7 +76,7 @@ contract ERC20Template is ERC20("test", "testSymbol"), ERC20Roles {
         address basetokenAddress
     );
 
-    event NewFixedRate (bytes32 exchangeId, address owner, address basetoken);
+    event NewFixedRate(bytes32 exchangeId, address owner, address basetoken);
 
     modifier onlyNotInitialized() {
         require(
@@ -93,14 +93,13 @@ contract ERC20Template is ERC20("test", "testSymbol"), ERC20Roles {
         _;
     }
 
-    // modifier onlyMinter() {
-    //     require(msg.sender == _minter, "DataTokenTemplate: invalid minter");
-    //     _;
-    // }
-
     modifier onlyERC20Deployer() {
-        require(IERC721Template(_erc721Address)
-            .getPermissions(msg.sender).deployERC20 == true, "ERC20Template: NOT DEPLOYER ROLE");
+        require(
+            IERC721Template(_erc721Address)
+                .getPermissions(msg.sender)
+                .deployERC20 == true,
+            "ERC20Template: NOT DEPLOYER ROLE"
+        );
         _;
     }
 
@@ -110,10 +109,12 @@ contract ERC20Template is ERC20("test", "testSymbol"), ERC20Roles {
      *      Calls private _initialize function. Only if contract is not initialized.
      * @param name_ refers to a new DataToken name
      * @param symbol_ refers to a nea DataToken symbol
-     * @param erc721Address refers to the erc721 address (used for onlyNFTOwner modifier)
+     * @param erc721Address refers to the erc721 address 
      * @param cap_ the total ERC20 cap
      * @param communityFeeCollector it is the community fee collector address
        @param minter account who can mint datatokens (can have multiple minters)
+       @param router_ router address
+       @param feeManager initial feeManager for this DT
      */
     function initialize(
         string calldata name_,
@@ -146,6 +147,9 @@ contract ERC20Template is ERC20("test", "testSymbol"), ERC20Roles {
      * @param erc721Address refers to an address that has minter rights
      * @param cap_ the total ERC20 cap
      * @param communityFeeCollector it is the community fee collector address
+       @param minter account who can mint datatokens (can have multiple minters)
+       @param router_ router address
+       @param feeManager initial feeManager for this DT
      */
     function _initialize(
         string memory name_,
@@ -197,6 +201,18 @@ contract ERC20Template is ERC20("test", "testSymbol"), ERC20Roles {
         return initialized;
     }
 
+    /**
+     * @dev deployPool
+     *      Private function called on contract initialization.
+     * @param controller ssContract address
+     * @param basetokenAddress baseToken for pool (OCEAN or other)
+     * @param ssParams params for the ssContract. 
+     * @param basetokenSender user which will provide the baseToken amount for initial liquidity 
+     * @param swapFees swapFees (swapFee, swapMarketFee), swapOceanFee will be set automatically later
+       @param marketFeeCollector marketFeeCollector address
+       @param publisherAddress user which will be assigned the vested amount.
+     */
+
     function deployPool(
         address controller,
         address basetokenAddress,
@@ -224,6 +240,17 @@ contract ERC20Template is ERC20("test", "testSymbol"), ERC20Roles {
         emit NewPool(pool, controller, basetokenAddress);
     }
 
+    /**
+     * @dev createFixedRate
+     *      Creates a new FixedRateExchange setup.
+     * @param basetokenAddress baseToken for exchange (OCEAN or other)
+     * @param basetokenDecimals baseToken decimals
+     * @param fixedRate rate
+     * @param owner exchangeOwner
+       @param marketFee market Fee 
+       @param marketFeeCollector market fee collector address
+     */
+
     function createFixedRate(
         address basetokenAddress,
         uint8 basetokenDecimals,
@@ -231,7 +258,7 @@ contract ERC20Template is ERC20("test", "testSymbol"), ERC20Roles {
         address owner,
         uint256 marketFee,
         address marketFeeCollector
-    ) external onlyERC20Deployer returns(bytes32 exchangeId) {
+    ) external onlyERC20Deployer returns (bytes32 exchangeId) {
         exchangeId = IFactoryRouter(router).deployFixedRate(
             basetokenAddress,
             basetokenDecimals,
@@ -251,8 +278,11 @@ contract ERC20Template is ERC20("test", "testSymbol"), ERC20Roles {
      * @param account refers to an address that token is going to be minted to.
      * @param value refers to amount of tokens that is going to be minted.
      */
-    function mint(address account, uint256 value) external {   
-        require(permissions[msg.sender].minter == true, "ERC20Template: NOT MINTER");
+    function mint(address account, uint256 value) external {
+        require(
+            permissions[msg.sender].minter == true,
+            "ERC20Template: NOT MINTER"
+        );
         require(
             totalSupply().add(value) <= _cap,
             "DataTokenTemplate: cap exceeded"
@@ -267,6 +297,8 @@ contract ERC20Template is ERC20("test", "testSymbol"), ERC20Roles {
      * @param amount refers to amount of tokens that is going to be transfered.
      * @param serviceId service index in the metadata
      * @param mrktFeeCollector marketplace fee collector
+       @param feeToken // address of the token marketplace wants to add fee on top
+       @param feeAmount // fee amount on top (in feeToken)
      */
     function startOrder(
         address consumer,
@@ -274,9 +306,8 @@ contract ERC20Template is ERC20("test", "testSymbol"), ERC20Roles {
         uint256 serviceId,
         address mrktFeeCollector,
         address feeToken, // address of the token marketplace wants to add fee on top
-        uint256 feeAmount // amount to be transfered by
+        uint256 feeAmount // amount to be transfered to marketFeeCollector
     ) external {
-        // TODO: TO WHO WE SEND THIS FEE? Marketplace address? now set to mrktFeeCollector
         // Requires approval for the specific feeToken
         if (feeAmount > 0) {
             IERC20(feeToken).transferFrom(
@@ -310,6 +341,17 @@ contract ERC20Template is ERC20("test", "testSymbol"), ERC20Roles {
             marketFee
         );
     }
+
+    /**
+     * @dev startMultipleOrder
+     *      called by payer or consumer prior ordering multiple service consumes on a marketplace.
+     * @param consumers consumers address array (payer could be different address)
+     * @param amounts array of token amounts that are going to be transfered.
+     * @param serviceIds service indexes array in the metadata
+     * @param mrktFeeCollectors marketplace fee collectors array
+       @param feeTokens // feeTokens array
+       @param feeAmounts // fee amounts on top (in feeToken) array
+     */
 
     function startMultipleOrder(
         address[] memory consumers,
@@ -399,6 +441,17 @@ contract ERC20Template is ERC20("test", "testSymbol"), ERC20Roles {
         );
     }
 
+    /**
+     * @dev finishOrder
+     *      called by provider prior completing service delivery only
+     *      if there is a partial or full refund.
+     * @param orderTxIds refers to the transaction Ids  of startOrder acts
+     *                  as a payment reference.
+     * @param consumers refers to addresses that has consumed that service.
+     * @param amounts refers to amounts of tokens that is going to be transfered.
+     * @param serviceIds service indexes in the metadata.
+     */
+
     function finishMultipleOrder(
         bytes32[] calldata orderTxIds,
         address[] calldata consumers,
@@ -429,32 +482,81 @@ contract ERC20Template is ERC20("test", "testSymbol"), ERC20Roles {
         }
     }
 
+    /**
+     * @dev addMinter
+     *      Only ERC20Deployer (at 721 level) can update.
+     *      There can be multiple minters
+     * @param _minter new minter address
+     */
+
     function addMinter(address _minter) external onlyERC20Deployer {
         _addMinter(_minter);
     }
+
+    /**
+     * @dev removeMinter
+     *      Only ERC20Deployer (at 721 level) can update.
+     *      There can be multiple minters
+     * @param _minter minter address to remove
+     */
 
     function removeMinter(address _minter) external onlyERC20Deployer {
         _removeMinter(_minter);
     }
 
+    /**
+     * @dev addFeeManager (can set who's going to collect fee when consuming orders)
+     *      Only ERC20Deployer (at 721 level) can update.
+     *      There can be multiple feeManagers
+     * @param _feeManager new minter address
+     */
+
     function addFeeManager(address _feeManager) external onlyERC20Deployer {
         _addFeeManager(_feeManager);
     }
+
+    /**
+     * @dev removeFeeManager
+     *      Only ERC20Deployer (at 721 level) can update.
+     *      There can be multiple feeManagers
+     * @param _feeManager feeManager address to remove
+     */
 
     function removeFeeManager(address _feeManager) external onlyERC20Deployer {
         _removeFeeManager(_feeManager);
     }
 
+    /**
+     * @dev setData
+     *      Only ERC20Deployer (at 721 level) can call it.
+     *      This function allows to setData with a preset key (keccak256(ERC20Address)) into NFT 725 Store
+     * @param _value data to be set with this key
+     */
+
     function setData(bytes calldata _value) external onlyERC20Deployer {
-        bytes32 key = keccak256(abi.encodePacked(address(this))); 
+        bytes32 key = keccak256(abi.encodePacked(address(this)));
         IERC721Template(_erc721Address).setDataERC20(key, _value);
     }
+
+    /**
+     * @dev cleanPermissions()
+     *      Only NFT Owner (at 721 level) can update.
+     *      This function allows to remove all minters, feeManagers and reset the feeCollector
+     *
+     */
 
     function cleanPermissions() external onlyNFTOwner {
         _cleanPermissions();
         feeCollector = address(0);
     }
 
+    /**
+     * @dev cleanFrom721() 
+     *      OnlyNFT(721) Contract can call it.
+     *      This function allows to remove all minters, feeManagers and reset the feeCollector
+            This function is used when transferring an NFT to a new owner, so that permissions at ERC20level (minter,feeManager,feeCollector) can be reset.
+     *      
+     */
     function cleanFrom721() external {
         require(
             msg.sender == _erc721Address,
@@ -463,6 +565,14 @@ contract ERC20Template is ERC20("test", "testSymbol"), ERC20Roles {
         _cleanPermissions();
         feeCollector = address(0);
     }
+
+    /**
+     * @dev setFeeCollector
+     *      Only feeManager can call it
+     *      This function allows to set a newFeeCollector (receives DT when consuming)
+            If not set the feeCollector is the NFT Owner
+     * @param _newFeeCollector new fee collector 
+     */
 
     function setFeeCollector(address _newFeeCollector) external {
         require(
@@ -541,6 +651,18 @@ contract ERC20Template is ERC20("test", "testSymbol"), ERC20Roles {
         return amount.mul(feePercentage).div(BASE);
     }
 
+    /**
+     * @dev permit
+     *      used for signed approvals, see test for more details
+     * @param owner user who signed the message
+     * @param spender spender
+     * @param value token amount
+     * @param deadline deadline after which signed message is no more valid
+     * @param v parameters from signed messaged
+     * @param r parameters from signed messaged
+     * @param s parameters from signed messaged
+     */
+
     function permit(
         address owner,
         address spender,
@@ -575,6 +697,13 @@ contract ERC20Template is ERC20("test", "testSymbol"), ERC20Roles {
         _approve(owner, spender, value);
     }
 
+    /**
+     * @dev getAddressLength
+     *      It returns the array lentgh
+            @param array address array we want to get length
+     * @return length
+     */
+
     function getAddressLength(address[] memory array)
         private
         pure
@@ -582,6 +711,13 @@ contract ERC20Template is ERC20("test", "testSymbol"), ERC20Roles {
     {
         return array.length;
     }
+
+    /**
+     * @dev getUintLength
+     *      It returns the array lentgh
+            @param array uint array we want to get length
+     * @return length
+     */
 
     function getUintLength(uint256[] memory array)
         private
@@ -591,6 +727,13 @@ contract ERC20Template is ERC20("test", "testSymbol"), ERC20Roles {
         return array.length;
     }
 
+    /**
+     * @dev getBytesLength
+     *      It returns the array lentgh
+            @param array bytes32 array we want to get length
+     * @return length
+     */
+
     function getBytesLength(bytes32[] memory array)
         private
         pure
@@ -598,6 +741,12 @@ contract ERC20Template is ERC20("test", "testSymbol"), ERC20Roles {
     {
         return array.length;
     }
+
+    /**
+     * @dev getFeeCollector
+     *      It returns the current feeCollector
+     * @return feeCollector address
+     */
 
     function getFeeCollector() public view returns (address) {
         if (feeCollector == address(0)) {
