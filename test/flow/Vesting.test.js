@@ -38,7 +38,7 @@ describe("Vesting flow", () => {
     bPoolAddress,
     bPool,
     signer,
-    vestingAmount, 
+    vestingAmount = web3.utils.toWei('10000'),
     vestedBlocks,
     dtIndex = null,
     oceanIndex = null,
@@ -66,7 +66,6 @@ describe("Vesting flow", () => {
       "FixedRateExchange"
     );
 
-
     [
       owner, // nft owner, 721 deployer
       reciever,
@@ -78,10 +77,9 @@ describe("Vesting flow", () => {
       marketFeeCollector, // POOL1
       newMarketFeeCollector, // POOL1
       pool2MarketFeeCollector,
-      opfCollector 
+      opfCollector,
     ] = await ethers.getSigners();
 
-  
     // GET SOME OCEAN TOKEN FROM OUR MAINNET FORK and send them to user3
     const userWithOcean = "0x53aB4a93B31F480d17D3440a6329bDa86869458A";
     await impersonate(userWithOcean);
@@ -99,11 +97,6 @@ describe("Vesting flow", () => {
       .connect(signer)
       .transfer(user4.address, ethers.utils.parseEther("10000"));
 
-    assert(
-      (await oceanContract.balanceOf(user3.address)).toString() ==
-        ethers.utils.parseEther("10000")
-    );
-
     // GET SOME DAI (A NEW TOKEN different from OCEAN)
     const userWithDAI = "0xB09cD60ad551cE7fF6bc97458B483A8D50489Ee7";
 
@@ -118,58 +111,53 @@ describe("Vesting flow", () => {
       .connect(signer)
       .transfer(user3.address, ethers.utils.parseEther("10000"));
 
-    console.log((await daiContract.balanceOf(user3.address)).toString());
-
-    assert(
-      (await daiContract.balanceOf(user3.address)).toString() ==
-        ethers.utils.parseEther("10005")
-    );
-
     data = web3.utils.asciiToHex("SomeData");
     flags = web3.utils.asciiToHex(constants.blob[0]);
 
-       // DEPLOY ROUTER, SETTING OWNER
+    // DEPLOY ROUTER, SETTING OWNER
 
-  poolTemplate = await BPool.deploy();
+    poolTemplate = await BPool.deploy();
 
-  ssFixedRate = await SSContract.deploy();
+   
 
+    router = await Router.deploy(
+      owner.address,
+      oceanAddress,
+      poolTemplate.address, 
+      opfCollector.address,
+      []
+    );
 
-   router = await Router.deploy(
-    owner.address,
-    oceanAddress,
-    poolTemplate.address, // pooltemplate field, unused in this test
-    ssFixedRate.address,
-    opfCollector.address,
-    []
-  );
+    ssFixedRate = await SSContract.deploy(router.address);
 
-  fixedRateExchange = await FixedRateExchange.deploy(
-    router.address,
-    opfCollector.address
-  );
+    fixedRateExchange = await FixedRateExchange.deploy(
+      router.address,
+      opfCollector.address
+    );
 
-  templateERC20 = await ERC20Template.deploy();
+    templateERC20 = await ERC20Template.deploy();
 
-  metadata = await Metadata.deploy();
+    metadata = await Metadata.deploy();
 
-  // SETUP ERC721 Factory with template
-  templateERC721 = await ERC721Template.deploy();
-  factoryERC721 = await ERC721Factory.deploy(
-    templateERC721.address,
-    templateERC20.address,
-    opfCollector.address,
-    router.address,
-    metadata.address
-  );
+    // SETUP ERC721 Factory with template
+    templateERC721 = await ERC721Template.deploy();
+    factoryERC721 = await ERC721Factory.deploy(
+      templateERC721.address,
+      templateERC20.address,
+      opfCollector.address,
+      router.address,
+      metadata.address
+    );
 
-  // SET REQUIRED ADDRESS
+    // SET REQUIRED ADDRESS
 
-  await metadata.addTokenFactory(factoryERC721.address);
+    await metadata.addTokenFactory(factoryERC721.address);
 
-  await router.addFactory(factoryERC721.address);
+    await router.addFactory(factoryERC721.address);
 
-  await router.addFixedRateContract(fixedRateExchange.address);
+    await router.addFixedRateContract(fixedRateExchange.address);
+    
+    await router.addSSContract(ssFixedRate.address)
   });
 
   it("#1 - owner deploys a new ERC721 Contract", async () => {
@@ -205,16 +193,14 @@ describe("Vesting flow", () => {
   });
 
   it("#3 - user3 deploys a new erc20DT, assigning himself as minter", async () => {
-    const trxERC20 = await tokenERC721
-      .connect(user3)
-      .createERC20(
-        "ERC20DT1",
-        "ERC20DT1Symbol",
-        web3.utils.toWei("100000"),
-        1,
-        user3.address, // minter
-        user6.address // feeManager
-      );
+    const trxERC20 = await tokenERC721.connect(user3).createERC20(
+      "ERC20DT1",
+      "ERC20DT1Symbol",
+      web3.utils.toWei("100000"),
+      1,
+      user3.address, // minter
+      user6.address // feeManager
+    );
     const trxReceiptERC20 = await trxERC20.wait();
     erc20Address = trxReceiptERC20.events[3].args.erc20Address;
 
@@ -225,7 +211,6 @@ describe("Vesting flow", () => {
   const swapFee = 1e15;
   const swapOceanFee = 1e15;
   const swapMarketFee = 1e15;
-
 
   it("#4 - user3 calls deployPool(), we then check ocean and market fee", async () => {
     // user3 hasn't minted any token so he can call deployPool()
@@ -247,7 +232,7 @@ describe("Vesting flow", () => {
         [
           web3.utils.toWei("1"), // rate
           18, // basetokenDecimals
-          vestingAmount,
+          web3.utils.toWei('10000'),
           500, // vested blocks
           initialOceanLiquidity, // baseToken initial pool liquidity
         ],
@@ -261,9 +246,8 @@ describe("Vesting flow", () => {
         user3.address // publisherAddress (get vested amount)
       )
     ).wait();
-  
+
     const PoolEvent = receipt.events.filter((e) => e.event === "NewPool");
- 
 
     assert(PoolEvent[0].args.ssContract == ssFixedRate.address);
 
@@ -284,50 +268,7 @@ describe("Vesting flow", () => {
     expect(await bPool.communityFees(erc20Token.address)).to.equal(0);
     expect(await bPool.marketFees(oceanAddress)).to.equal(0);
     expect(await bPool.marketFees(erc20Token.address)).to.equal(0);
-    
   });
-
-//   it("#4 - user3 calls deployPool()", async () => {
-//  //   const burnInEndBlock = (await provider.getBlockNumber()) - 387;
- 
-
-//     // approve exact amount
-//     await oceanContract
-//       .connect(user3)
-//       .approve(router.address, web3.utils.toWei("2000"));
-
-//     vestingAmount =  web3.utils.toWei("200")
-//     vestedBlocks = 500
-//     // we deploy a new pool with burnInEndBlock as 0
-//     receipt = await (
-//       await erc20Token.connect(user3).deployPool(
-//         ssFixedRate.address,
-//         oceanAddress,
-//         [
-//           web3.utils.toWei("1"), // rate
-//           0, // allowSell false , != 0 if true
-//           vestingAmount, // vesting amount
-//           vestedBlocks, // vested blocks
-//           web3.utils.toWei("2000"), // baseToken initial pool liquidity
-//         ],
-//         user3.address
-//       )
-//     ).wait();
-//     //console.log(receipt)
-//     const PoolEvent = receipt.events.filter((e) => e.event === "NewPool");
-//     // console.log(PoolEvent[0].args)
-
-//     assert(PoolEvent[0].args.ssContract == ssFixedRate.address);
-
-//     bPoolAddress = PoolEvent[0].args.poolAddress;
-
-//     bPool = await ethers.getContractAt("BPool", bPoolAddress);
-
-//     assert(
-//       (await erc20Token.balanceOf(ssFixedRate.address)) ==
-//         web3.utils.toWei("98000")
-//     );
-//   });
 
   it("#5 - user3 fails to mints new erc20 tokens even if it's minter", async () => {
     assert((await erc20Token.permissions(user3.address)).minter == true);
@@ -341,38 +282,38 @@ describe("Vesting flow", () => {
   });
 
   it("#6 - we check vesting amount is correct", async () => {
-    expect(await ssFixedRate.getvestingAmount(erc20Token.address)).to.equal(vestingAmount)
+    expect(await ssFixedRate.getvestingAmount(erc20Token.address)).to.equal(
+      vestingAmount
+    );
 
-    //console.log((await ssFixedRate.getvestingAmountSoFar(erc20Token.address)).toString())
-    console.log((await time.latestBlock()).toString())
-    await time.advanceBlockTo(12552485+3*vestedBlocks)
-    console.log((await time.latestBlock()).toString())
+    // //console.log((await ssFixedRate.getvestingAmountSoFar(erc20Token.address)).toString())
+    // console.log((await time.latestBlock()).toString());
+    // await time.advanceBlockTo(12552485 + 3 * vestedBlocks);
+    // console.log((await time.latestBlock()).toString());
   });
 
   it("#7 - we check vesting amount is correct", async () => {
-    const pubDTbalBEFORE = await erc20Token.balanceOf(tokenERC721.address)
-    expect(await ssFixedRate.getvestingAmount(erc20Token.address)).to.equal(vestingAmount)
-    console.log(pubDTbalBEFORE.toString())
+    const pubDTbalBEFORE = await erc20Token.balanceOf(tokenERC721.address);
+    expect(await ssFixedRate.getvestingAmount(erc20Token.address)).to.equal(
+      vestingAmount
+    );
+    console.log(pubDTbalBEFORE.toString());
 
     //console.log((await ssFixedRate.getvestingAmountSoFar(erc20Token.address)).toString())
-    console.log((await time.latestBlock()).toString())
-    
-    console.log((await time.latestBlock()).toString())
+    console.log((await time.latestBlock()).toString());
+
+    console.log((await time.latestBlock()).toString());
     //await ssFixedRate.getVesting(erc20Token.address)
-   
-    for (let i = 0; i< 600; i++) {
-     // each one advance a block
-        await signer.sendTransaction({
+
+    for (let i = 0; i < 600; i++) {
+      // each one advance a block
+      await signer.sendTransaction({
         to: user4.address,
-        value: ethers.utils.parseEther("0.0")});
+        value: ethers.utils.parseEther("0.0"),
+      });
     }
-    await ssFixedRate.getVesting(erc20Token.address)
-    const pubDTbalAFTER = await erc20Token.balanceOf(tokenERC721.address)
-    console.log(ethers.utils.formatEther(pubDTbalAFTER))
-   
+    await ssFixedRate.getVesting(erc20Token.address);
+    const pubDTbalAFTER = await erc20Token.balanceOf(tokenERC721.address);
+    console.log(ethers.utils.formatEther(pubDTbalAFTER));
   });
-
-
-
- 
 });

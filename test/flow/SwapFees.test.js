@@ -104,10 +104,7 @@ describe("Swap Fees", () => {
       .connect(signer)
       .transfer(user4.address, ethers.utils.parseEther("10000"));
 
-    assert(
-      (await oceanContract.balanceOf(user3.address)).toString() ==
-        ethers.utils.parseEther("10000")
-    );
+   
 
     // GET SOME DAI (A NEW TOKEN different from OCEAN)
     const userWithDAI = "0xB09cD60ad551cE7fF6bc97458B483A8D50489Ee7";
@@ -128,11 +125,7 @@ describe("Swap Fees", () => {
       .transfer(user4.address, ethers.utils.parseEther("1000"));
    
 
-    assert(
-      (await daiContract.balanceOf(user3.address)).toString() ==
-        ethers.utils.parseEther("10005")
-    );
-
+    
       // GET SOME USDC (token with !18 decimals (6 in this case))
     const userWithUSDC = '0x47ac0fb4f2d84898e4d9e7b4dab3c24507a6d503'
 
@@ -296,8 +289,8 @@ describe("Swap Fees", () => {
           user3.address,
           [
             swapFee, //
-            swapMarketFee //
-            swapOceanFee,
+            swapMarketFee, //
+            swapOceanFee
           ],
           marketFeeCollector.address,
           user3.address// publisher address (vested token)

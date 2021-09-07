@@ -30,7 +30,6 @@ describe("NFT Creation, roles and erc20 deployments", () => {
     const ERC721Template = await ethers.getContractFactory("ERC721Template");
     const ERC20Template = await ethers.getContractFactory("ERC20Template");
     const ERC721Factory = await ethers.getContractFactory("ERC721Factory");
-    const ERC20Factory = await ethers.getContractFactory("ERC20Factory");
     const Router = await ethers.getContractFactory("FactoryRouter");
     const Metadata = await ethers.getContractFactory("Metadata");
     const SSContract = await ethers.getContractFactory("ssFixedRate");
@@ -43,6 +42,7 @@ describe("NFT Creation, roles and erc20 deployments", () => {
       user3,
       user4,
       newOwner,
+      opfCollector
     ] = await ethers.getSigners();
 
     data = web3.utils.asciiToHex("SomeData");
@@ -50,15 +50,17 @@ describe("NFT Creation, roles and erc20 deployments", () => {
     
     poolTemplate = await BPool.deploy();
 
-    ssFixedRate = await SSContract.deploy();
+   
     // DEPLOY ROUTER, SETTING OWNER
     router = await Router.deploy(
       owner.address,
       oceanAddress,
       poolTemplate.address,
-      ssFixedRate.address,
+      opfCollector.address,
       []
     );
+
+    ssFixedRate = await SSContract.deploy(router.address);
 
     templateERC20 = await ERC20Template.deploy();
 
@@ -77,6 +79,10 @@ describe("NFT Creation, roles and erc20 deployments", () => {
     await metadata.addTokenFactory(factoryERC721.address);
     // SET REQUIRED ADDRESS
     await router.addFactory(factoryERC721.address);
+
+    await router.addSSContract(ssFixedRate.address)
+
+    //await router.addFixedRate()
   });
 
   it("#1 - owner deploys a new ERC721 Contract", async () => {
@@ -249,7 +255,7 @@ describe("NFT Creation, roles and erc20 deployments", () => {
           user2.address,
           user3.address
         ),
-      "ERC721Template: NOT MINTER_ROLE"
+      "ERC721Template: NOT ERC20DEPLOYER_ROLE"
     );
 
     await expectRevert(
@@ -279,7 +285,7 @@ describe("NFT Creation, roles and erc20 deployments", () => {
           user2.address,
           user3.address
         ),
-      "ERC721Template: NOT MINTER_ROLE"
+      " ERC721Template: NOT ERC20DEPLOYER_ROLE"
     );
 
     await expectRevert(

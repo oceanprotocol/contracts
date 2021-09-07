@@ -55,17 +55,18 @@ describe("V3 Integration flow", () => {
 
     poolTemplate = await BPool.deploy();
 
-    ssFixedRate = await SSContract.deploy();
+    
   
   
      router = await Router.deploy(
       owner.address,
       oceanAddress,
       poolTemplate.address, // pooltemplate field, unused in this test
-      ssFixedRate.address,
       opfCollector.address,
       []
-    );
+    );  
+
+    ssFixedRate = await SSContract.deploy(router.address);
   
     fixedRateExchange = await FixedRateExchange.deploy(
       router.address,
@@ -94,6 +95,8 @@ describe("V3 Integration flow", () => {
     
     await router.addFixedRateContract(fixedRateExchange.address);
    
+    await router.addSSContract(ssFixedRate.address)
+    
     await impersonate(v3DTOwnerAddress);
     v3Owner = ethers.provider.getSigner(v3DTOwnerAddress);
   });
