@@ -62,7 +62,7 @@ contract ssFixedRate {
         router = _router;
     }
 
-    // TODO: add onlyRouter modifier
+   
     /**
      * @dev newDataTokenCreated
      *      Called when new DataToken is deployed by the DataTokenFactory
@@ -267,7 +267,7 @@ contract ssFixedRate {
     function canUnStake(
         address datatokenAddress,
         address stakeToken,
-        uint256 amount
+        uint256 lptIn
     ) public view returns (bool) {
         //TO DO
         if (_datatokens[datatokenAddress].bound != true) return (false);
@@ -278,7 +278,12 @@ contract ssFixedRate {
         //check balances, etc and issue true or false
         if (_datatokens[datatokenAddress].basetokenAddress == stakeToken)
             return (false);
-        return true;
+
+        // we check LPT balance TODO: review this part
+        if (IERC20Template(msg.sender).balanceOf(address(this)) >= lptIn) {
+            return true;
+        }
+        return false;
     }
 
     //called by pool so 1ss will unstake a token (remove pool liquidty). In our case the balancer pool will handle all, this is just a notifier so 1ss can handle internal kitchen

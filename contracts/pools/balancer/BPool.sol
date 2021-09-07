@@ -999,7 +999,7 @@ contract BPool is BMath, BToken {
             ssContract.canUnStake(
                 _datatokenAddress,
                 ssStakeToken,
-                ssAmountOut
+                poolAmountIn
             ) == true
         ) {
             ssOutRecord.balance = bsub(ssOutRecord.balance, ssAmountOut);

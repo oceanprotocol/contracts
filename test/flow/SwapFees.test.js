@@ -281,7 +281,7 @@ describe("Swap Fees", () => {
         .connect(user3)
         .approve(router.address, web3.utils.toWei("2000"));
 
-      // we deploy a new pool with burnInEndBlock as 0
+      // we deploy a new pool
       receipt = await (
         await erc20Token.connect(user3).deployPool(
           ssFixedRate.address,
@@ -296,8 +296,8 @@ describe("Swap Fees", () => {
           user3.address,
           [
             swapFee, //
-            swapOceanFee, //
-            swapMarketFee,
+            swapMarketFee //
+            swapOceanFee,
           ],
           marketFeeCollector.address,
           user3.address// publisher address (vested token)
