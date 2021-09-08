@@ -11,7 +11,7 @@
 [![code style: prettier](https://img.shields.io/badge/code_style-prettier-7b1173.svg?style=flat-square)](https://github.com/prettier/prettier)
 [![js oceanprotocol](https://img.shields.io/badge/js-oceanprotocol-7b1173.svg)](https://github.com/oceanprotocol/eslint-config-oceanprotocol) -->
 
-With ocean v4, you can:
+<!-- With ocean v4, you can:
 
 - **Publish** data services: downloadable files or compute-to-data.
   Ocean creates a new [ERC20](https://github.com/ethereum/EIPs/blob/7f4f0377730f5fc266824084188cc17cf246932e/EIPS/eip-20.md)
@@ -21,7 +21,7 @@ With ocean v4, you can:
 - **Stake** OCEAN on datatoken pools
 - **Consume** datatokens, to access the service
 - **Transfer** datatokens to another owner, and **all other ERC20 actions**
-  using [web3.js](https://web3js.readthedocs.io/en/v1.2.9/web3-eth-contract.html) etc.
+  using [web3.js](https://web3js.readthedocs.io/en/v1.2.9/web3-eth-contract.html) etc. -->
 
 ocean v4 is part of the [Ocean Protocol](https://oceanprotocol.com) toolset.
 
@@ -107,6 +107,7 @@ Interaction flow from Publisher point of view.
 ### Roles Diagram
 
 This is a diagram which shows how roles are handled in the v4.
+
 [Go to roles diagram](docs/quickstart_roles.md)
 
 <!-- ### Marketplace Flow

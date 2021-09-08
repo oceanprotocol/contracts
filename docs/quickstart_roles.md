@@ -47,7 +47,7 @@ ERC20 Roles are managed by the ERC20Deployers at 721 LEVEL
    - can mint new DT20 tokens if cap is not exceeded
 
 ### Fee Manager: 
-   - can set a new Fee Collector, if not set, NFT Owner is the fee Collector
+   - can set a new Fee Collector(better a DT collector), if not set, NFT Owner is the fee Collector (gets DT consumed after market and community fee)
 
 
 
