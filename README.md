@@ -2,7 +2,7 @@
 
 <h1 align="center">contracts-v4</h1>
 
-> octopus Smart contracts for Ocean Protocol v4. https://oceanprotocol.com
+> 🦑 Smart contracts for Ocean Protocol v4. https://oceanprotocol.com
 <!-- 
 [![npm](https://img.shields.io/npm/v/@oceanprotocol/lib.svg)](https://www.npmjs.com/package/@oceanprotocol/lib)
 [![Build Status](https://github.com/oceanprotocol/ocean.js/workflows/CI/badge.svg)](https://github.com/oceanprotocol/ocean.js/actions)
@@ -29,10 +29,10 @@ This is in alpha state and you can expect running into problems. If you run into
 
 - [📚 Prerequisites](#-prerequisites)
 - [🏄 Quickstart](#-quickstart)
-  - [v4](#beginners-guide)
-  - [Simple Flow](#simple-flow)
-  - [Roles](#roles-flow)
-  - [Marketplace Flow](#marketplace-flow)
+  - [Features](#features)
+  - [Publisher Flow](#publisher-flow)
+  - [Roles Diagram](#roles-diagram)
+  - [Functions you will need](#functions-you-will-need)
 - [🦑 Development](#-development)
 - [👩‍🔬 Testing](#-testing)
   - [Unit Tests](#unit-tests)
@@ -67,11 +67,8 @@ npm install @oceanprotocol/lib
 ## 🏄 Quickstart
 
 
-### V4 short description
 
-V4 introduces a new Factory:
-
-#### Features
+### Features
 
 - NFT-ize base IP: a new way of representing baseIP, all newly ERC20 DTs are linked to the NFT contract
 
@@ -101,22 +98,22 @@ V4 introduces a new Factory:
 
 [Go to beginners guide](docs/beginners_guide.md) -->
 
-### Simple Flow
+### Publisher Flow
 
-This stripped-down flow shows the essence of OceanV4
+Interaction flow from Publisher point of view.
 
-[Go to simple flow](docs/quickstart_simple.md)
+[Go to publisher flow](docs/quickstart_pubFlow.md)
 
-### Roles Flow
+### Roles Diagram
 
 This is a diagram which shows how roles are handled in the v4.
-[Go to roles flow](docs/quickstart_roles.md)
+[Go to roles diagram](docs/quickstart_roles.md)
 
-### Marketplace Flow
+<!-- ### Marketplace Flow
 
 This batteries-included flow includes metadata, multiple services for one datatoken, and compute-to-data.
 
-[Go to marketplace flow](docs/quickstart_marketplace.md)
+[Go to marketplace flow](docs/quickstart_marketplace.md) -->
 
 ### Functions you will need
 
