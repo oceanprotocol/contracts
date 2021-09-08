@@ -323,14 +323,7 @@ contract ssFixedRate {
             baseTokenWeight /
             BASE) * (10**(18 - decimals));
         console.log(dataTokenAmount, "datatokenamount");
-        // if(decimals == 18) {
-        //     dataTokenAmount=_datatokens[datatokenAddress].rate * (baseTokenAmount/baseTokenWeight) * dataTokenWeight/ BASE;
-        //     console.log(dataTokenAmount, 'datatokenamout');
-        // } else {
-        //     dataTokenAmount=_datatokens[datatokenAddress].rate * baseTokenAmount * dataTokenWeight/baseTokenWeight / BASE *(10**(18-decimals));
-        //     console.log(dataTokenAmount, 'datatokenamout');
-        // }
-
+      
         //approve the tokens and amounts
         IERC20Template dt = IERC20Template(datatokenAddress);
         dt.approve(_datatokens[datatokenAddress].poolAddress, dataTokenAmount);
@@ -357,39 +350,7 @@ contract ssFixedRate {
         _datatokens[datatokenAddress].datatokenBalance -= dataTokenAmount;
     }
 
-    // function allowStake(
-    //     address datatokenAddress,
-    //     address basetoken,
-    //     uint256 datatokenAmount,
-    //     uint256 basetokenAmount,
-    //     address userAddress
-    // ) public view returns (bool) {
-    //     if (_datatokens[datatokenAddress].bound != true) return false;
-    //     require(
-    //         msg.sender == _datatokens[datatokenAddress].poolAddress,
-    //         "ERR: Only pool can call this"
-    //     );
-    //     // if (isInBurnIn(datatokenAddress) == true) return (false); //we are in burn-period, so no stake/unstake
-    //     //allow user to stake
-    //     return (true);
-    // }
-
-    // function allowUnStake(
-    //     address datatokenAddress,
-    //     address basetoken,
-    //     uint256 datatokenAmount,
-    //     uint256 basetokenAmount,
-    //     address userAddress
-    // ) public view returns (bool) {
-    //     if (_datatokens[datatokenAddress].bound != true) return false;
-    //     require(
-    //         msg.sender == _datatokens[datatokenAddress].poolAddress,
-    //         "ERR: Only pool can call this"
-    //     );
-    //     //if (isInBurnIn(datatokenAddress) == true) return (false); //we are in burn-period, so no stake/unstake
-    //     //allow user to stake
-    //     return (true);
-    // }
+   
 
     // called by vester to get datatokens
     function getVesting(address datatokenAddress) public {

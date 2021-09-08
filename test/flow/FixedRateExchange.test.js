@@ -104,7 +104,7 @@ describe("FixedRateExchange", () => {
     );
 
     // GET SOME DAI (A NEW TOKEN different from OCEAN)
-    const userWithDAI = "0xa478c2975ab1ea89e8196811f51a7b7ade33eb11";
+    const userWithDAI = "0x16de59092dAE5CcF4A1E6439D611fd0653f0Bd01";
 
     await impersonate(userWithDAI);
 
@@ -123,7 +123,7 @@ describe("FixedRateExchange", () => {
     );
 
     // GET SOME USDC (token with !18 decimals (6 in this case))
-    const userWithUSDC = "0x47ac0fb4f2d84898e4d9e7b4dab3c24507a6d503";
+    const userWithUSDC = "0xF977814e90dA44bFA03b6295A0616a897441aceC";
 
     await impersonate(userWithUSDC);
 

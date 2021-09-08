@@ -107,7 +107,7 @@ describe("Swap Fees", () => {
    
 
     // GET SOME DAI (A NEW TOKEN different from OCEAN)
-    const userWithDAI = "0xB09cD60ad551cE7fF6bc97458B483A8D50489Ee7";
+    const userWithDAI = "0x16de59092dAE5CcF4A1E6439D611fd0653f0Bd01";
 
     await impersonate(userWithDAI);
 
@@ -127,7 +127,7 @@ describe("Swap Fees", () => {
 
     
       // GET SOME USDC (token with !18 decimals (6 in this case))
-    const userWithUSDC = '0x47ac0fb4f2d84898e4d9e7b4dab3c24507a6d503'
+      const userWithUSDC = "0xF977814e90dA44bFA03b6295A0616a897441aceC";
 
     await impersonate(userWithUSDC);
 

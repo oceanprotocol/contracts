@@ -213,20 +213,23 @@ describe("ERC721Template", () => {
   });
 
   it("#updateMetadata - should not be allowed to update the metadata if NOT in MetadataList", async () => {
+    assert((await tokenERC721.getPermissions(user6.address)).updateMetadata == false)
+
     await expectRevert(
-      tokenERC721.updateMetadata(data, flags),
+      tokenERC721.connect(user6).updateMetadata(data, flags),
       "ERC721Template: NOT METADATA_ROLE"
     );
   });
 
   it("#updateMetadata - should update the metadata, after adding address to MetadataList", async () => {
-    await tokenERC721.addToMetadataList(owner.address);
+    assert((await tokenERC721.getPermissions(user6.address)).updateMetadata == false)
+    await tokenERC721.addToMetadataList(user6.address);
 
     const keyMetadata = web3.utils.keccak256("METADATA_KEY");
     assert(await tokenERC721.getData(keyMetadata) == data)
 
     let newData = web3.utils.asciiToHex('SomeNewData');
-    await tokenERC721.updateMetadata(flags, newData);
+    await tokenERC721.connect(user6).updateMetadata(flags, newData);
     
     assert(await tokenERC721.getData(keyMetadata) == newData)
     
@@ -234,8 +237,10 @@ describe("ERC721Template", () => {
   });
 
   it("#createERC20 - should not allow to create a new ERC20Token if NOT in CreateERC20List", async () => {
+    assert((await tokenERC721.getPermissions(user6.address)).deployERC20 == false)
+
     await expectRevert(
-      tokenERC721.createERC20(
+      tokenERC721.connect(user6).createERC20(
         "ERC20DT1",
         "ERC20DT1Symbol",
         web3.utils.toWei("10"),
@@ -247,8 +252,10 @@ describe("ERC721Template", () => {
     );
   });
 
-  it("#createERC20 - should create a new ERC20Token, after adding address to CreateERC20List", async () => {
-    await tokenERC721.addToCreateERC20List(owner.address);
+  it("#createERC20 - owner should create a new ERC20Token, no need to be added into the CreateERC20List", async () => {
+    assert((await tokenERC721.getPermissions(owner.address)).deployERC20 == true)
+    
+    
     await tokenERC721.createERC20(
       "ERC20DT1",
       "ERC20DT1Symbol",
@@ -626,25 +633,18 @@ describe("ERC721Template", () => {
     await tokenERC721.transferFrom(owner.address, user2.address, 1);
     assert((await tokenERC721.balanceOf(owner.address)) == 0);
     assert((await tokenERC721.ownerOf(1)) == user2.address);
-
-    await expectRevert(
-      tokenERC721.connect(user2).createERC20(
+    // when transferred to user2, user2 is already Manager and all other roles.
+    assert((await tokenERC721.getPermissions(user2.address)).deployERC20 == true);
+    await tokenERC721.connect(user2).createERC20(
         "ERC20DT2",
         "ERC20DT2Symbol",
         web3.utils.toWei("10"),
         1,
         owner.address,
         user2.address
-      ),
-      "ERC721Template: NOT ERC20DEPLOYER_ROLE"
-    );
+      )
   
 
-  
-    await tokenERC721.connect(user2).addToCreateERC20List(user2.address);
-    await tokenERC721
-      .connect(user2)
-      .createERC20("ERC20DT2", "ERC20DT2Symbol", web3.utils.toWei("10"), 1,owner.address,user2.address)
 
   
 

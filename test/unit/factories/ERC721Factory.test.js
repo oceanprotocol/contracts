@@ -337,8 +337,9 @@ describe("ERC721Factory", () => {
   });
 
   it("#createToken - should not allow to create a new ERC20Token directly if ERC721 contract is not on the list", async () => {
+    // this test will fail when doing solidity coverage because the templateERC721 has no ether and no fallback
     await impersonate(templateERC721.address);
-
+   
     const signer = await ethers.provider.getSigner(templateERC721.address);
 
     await expectRevert(
@@ -356,7 +357,8 @@ describe("ERC721Factory", () => {
     );
   });
 
-  it("#createToken - should not allow to create a new ERC20Token directly from the ERC20Factory even if is a contract", async () => {
+  it("#createToken - should not allow to create a new ERC20Token directly from the ERC721Factory even if is a contract", async () => {
+      // this test will fail when doing solidity coverage because the templateERC721 has no ether and no fallback
     await impersonate(newERC721Template.address);
     const signer = await ethers.provider.getSigner(newERC721Template.address);
 

@@ -2,21 +2,7 @@
   "_format": "hh-sol-artifact-1",
   "contractName": "Context",
   "sourceName": "contracts/utils/ERC721/Context.sol",
-  "abi": [
-    {
-      "inputs": [
-        {
-          "internalType": "bytes32",
-          "name": "c__0x49f588ab",
-          "type": "bytes32"
-        }
-      ],
-      "name": "c_0x49f588ab",
-      "outputs": [],
-      "stateMutability": "pure",
-      "type": "function"
-    }
-  ],
+  "abi": [],
   "bytecode": "0x",
   "deployedBytecode": "0x",
   "linkReferences": {},

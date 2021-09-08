@@ -8,7 +8,8 @@
     "test:debug": "npx hardhat test test/unit/datatokens/ERC721Template.test.js ",
     "test:v3": "npx hardhat test test/flow/V3Integration.test.js ",
     "test:flow": "npx hardhat test test/flow/*.test.js ",
-    "test:unit": "npx hardhat test test/unit/*/*.test.js "
+    "test:unit": "npx hardhat test test/unit/*/*.test.js ",
+    "test:full:cover": "npx hardhat coverage"
   },
   "devDependencies": {
     "@nomiclabs/hardhat-ethers": "^2.0.2",

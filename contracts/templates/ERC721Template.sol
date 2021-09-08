@@ -124,6 +124,13 @@ contract ERC721Template is
         _createMetadata(_flags, _data);
         _safeMint(owner, 1);
         _addManager(owner);
+
+        // we add the nft owner to all other roles (so that doesn't need to make multiple transactions)
+        Roles storage user = permissions[owner];
+        user.updateMetadata = true;
+        user.deployERC20 = true;
+        user.store = true;
+        // no need to push to auth since it has been already added in _addManager()
         return initialized;
     }
 
@@ -458,6 +465,12 @@ contract ERC721Template is
         _cleanPermissions();
         _transferFrom(from, to, tokenId);
         _addManager(to);
+          // we add the nft owner to all other roles (so that doesn't need to make multiple transactions)
+        Roles storage user = permissions[to];
+        user.updateMetadata = true;
+        user.deployERC20 = true;
+        user.store = true;
+        // no need to push to auth since it has been already added in _addManager()
     }
 
     /**
@@ -475,6 +488,12 @@ contract ERC721Template is
         _cleanPermissions();
         safeTransferFrom(from, to, tokenId, "");
         _addManager(to);
+        // we add the nft owner to all other roles (so that doesn't need to make multiple transactions)
+        Roles storage user = permissions[to];
+        user.updateMetadata = true;
+        user.deployERC20 = true;
+        user.store = true;
+        // no need to push to auth since it has been already added in _addManager()
     }
 
       /**

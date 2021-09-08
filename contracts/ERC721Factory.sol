@@ -50,14 +50,25 @@ contract ERC721Factory is Deployer, Ownable {
         address admin
     );
 
-    // event TokenRegistered(
-    //     address indexed tokenAddress,
-    //     string tokenName,
-    //     string tokenSymbol,
-    //     uint256 tokenCap,
-    //     address indexed registeredBy,
-    //     string indexed blob
-    // );
+       uint256 private currentTokenCount = 0;
+    uint256 public templateCount;
+    address public router;
+
+    event TokenCreated(
+        address indexed newTokenAddress,
+        address indexed templateAddress,
+        string indexed tokenName
+    );
+
+    event TokenRegistered(
+        address indexed tokenAddress,
+        string tokenName,
+        string tokenSymbol,
+        uint256 tokenCap,
+        address indexed registeredBy
+    );
+
+    
 
     /**
      * @dev constructor
@@ -259,23 +270,7 @@ contract ERC721Factory is Deployer, Ownable {
         return size > 0;
     }
 
-    uint256 private currentTokenCount = 0;
-    uint256 public templateCount;
-    address public router;
-
-    event TokenCreated(
-        address indexed newTokenAddress,
-        address indexed templateAddress,
-        string indexed tokenName
-    );
-
-    event TokenRegistered(
-        address indexed tokenAddress,
-        string tokenName,
-        string tokenSymbol,
-        uint256 tokenCap,
-        address indexed registeredBy
-    );
+ 
 
     /**
      * @dev Deploys new DataToken proxy contract.
