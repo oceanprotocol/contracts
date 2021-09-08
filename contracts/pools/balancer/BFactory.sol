@@ -57,16 +57,24 @@ contract BFactory is BConst, Deployer {
             }
         }
     }
-
-    /* @dev Deploys new BPool proxy contract.
+    /** 
+     * @dev Deploys new BPool proxy contract.
        Template contract address could not be a zero address. 
-       @return address of a new proxy BPool contract */
+
+     * @param tokens [datatokenAddress, basetokenAddress]
+     * @param publisherAddress user which will be assigned the vested amount.
+     * @param ssParams params for the ssContract. 
+     * @param swapFees swapFees (swapFee, swapMarketFee,swapOceanFee), swapOceanFee will be set automatically later
+       @param marketFeeCollector marketFeeCollector address
+       
+      @return address of a new proxy BPool contract 
+     */
+       
     function newBPool(address controller, 
         address[2] memory tokens,
-     //   address basetokenAddress, 
         address publisherAddress, 
         uint256[] memory ssParams,
-        uint256[] memory swapFees,
+        uint256[3] memory swapFees,
         address marketFeeCollector)
         internal 
         returns (address bpool)

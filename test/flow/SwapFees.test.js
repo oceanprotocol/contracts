@@ -289,8 +289,7 @@ describe("Swap Fees", () => {
           user3.address,
           [
             swapFee, //
-            swapMarketFee,
-            swapOceanFee
+            swapMarketFee
           ],
           marketFeeCollector.address,
           user3.address// publisher address (vested token)
@@ -1113,8 +1112,7 @@ describe("Swap Fees", () => {
           user3.address,
           [
             swapFee,
-            swapMarketFee,
-            swapOceanFee
+            swapMarketFee
           ],
           marketFeeCollector.address,
           user3.address// publisher address (vested token)
@@ -1982,8 +1980,7 @@ describe("Swap Fees", () => {
           user3.address,
           [
             swapFee,
-            swapMarketFee,
-            swapOceanFee
+            swapMarketFee
           ],
           marketFeeCollector.address,
           user3.address// publisher address (vested token)

@@ -298,6 +298,11 @@ contract ERC721Factory is Deployer, Ownable {
         address minter,
         address feeManager
     ) public returns (address token) {
+        require(
+            erc721List[msg.sender] == msg.sender,
+            "ERC721Factory: ONLY ERC721 INSTANCE FROM ERC721FACTORY"
+        );
+
         require(cap != 0, "ERC20Factory: zero cap is not allowed");
         require(
             _templateIndex <= templateCount && _templateIndex != 0,
@@ -321,10 +326,7 @@ contract ERC721Factory is Deployer, Ownable {
 
         IERC20Template tokenInstance = IERC20Template(token);
 
-        require(
-            erc721List[msg.sender] == msg.sender,
-            "ERC721Factory: ONLY ERC721 INSTANCE FROM ERC721FACTORY"
-        );
+       
 
         require(
             tokenInstance.initialize(

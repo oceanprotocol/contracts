@@ -239,7 +239,6 @@ describe("Vesting flow", () => {
         user3.address,
         [
           swapFee, //
-          swapOceanFee, //
           swapMarketFee,
         ],
         marketFeeCollector.address,

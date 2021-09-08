@@ -57,7 +57,18 @@ contract FactoryRouter is BFactory {
     }
 
     /**
-     * @dev Deploys a new `OceanPool` on Ocean Friendly Fork.
+     * @dev Deploys a new `OceanPool` on Ocean Friendly Fork modified for 1SS.
+     This function cannot be called directly, but ONLY through the ERC20DT contract from a ERC20DEployer role
+
+     * @param controller ssContract address
+     * @param tokens [datatokenAddress, basetokenAddress]
+     * @param publisherAddress user which will be assigned the vested amount.
+     * @param ssParams params for the ssContract. 
+     * @param basetokenSender user which will provide the baseToken amount for initial liquidity 
+     * @param swapFees swapFees (swapFee, swapMarketFee,swapOceanFee), swapOceanFee will be set automatically later
+       @param marketFeeCollector marketFeeCollector address
+       
+        @return pool address
      */
     function deployPool(
         address controller,
@@ -65,7 +76,7 @@ contract FactoryRouter is BFactory {
         address publisherAddress,
         uint256[] calldata ssParams,
         address basetokenSender,
-        uint256[] calldata swapFees,
+        uint256[2] calldata swapFees,
         address marketFeeCollector
     ) external returns (address) {
         require(
@@ -88,7 +99,9 @@ contract FactoryRouter is BFactory {
         IERC20 bt = IERC20(tokens[1]);
         bt.transferFrom(basetokenSender, controller, ssParams[4]);
 
-        uint256[] memory fees = swapFees;
+        uint256[3] memory fees;
+        fees[0] = swapFees[0];
+        fees[1] = swapFees[1];
 
 
         if (flag == true) {
@@ -123,6 +136,20 @@ contract FactoryRouter is BFactory {
     function getLength(IERC20[] memory array) private view returns (uint256) {
         return array.length;
     }
+
+     /**
+     * @dev deployFixedRate
+     *      Creates a new FixedRateExchange setup.
+     As for deployPool, this function cannot be called directly, but ONLY through the ERC20DT contract from a ERC20DEployer role
+     * @param basetokenAddress baseToken for exchange (OCEAN or other)
+     * @param basetokenDecimals baseToken decimals
+     * @param rate rate
+     * @param owner exchangeOwner
+       @param marketFee market Fee 
+       @param marketFeeCollector market fee collector address
+
+       @return exchangeId
+     */
 
     function deployFixedRate(
         address basetokenAddress,

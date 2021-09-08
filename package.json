@@ -9,8 +9,6 @@
     "test:v3": "npx hardhat test test/flow/V3Integration.test.js ",
     "test:flow": "npx hardhat test test/flow/*.test.js ",
     "test:unit": "npx hardhat test test/unit/*/*.test.js "
-
-
   },
   "devDependencies": {
     "@nomiclabs/hardhat-ethers": "^2.0.2",
@@ -18,7 +16,8 @@
     "chai": "^4.3.4",
     "ethereum-waffle": "^3.3.0",
     "ethers": "^5.1.3",
-    "hardhat": "^2.2.0"
+    "hardhat": "^2.2.0",
+    "solidity-coverage": "^0.7.17"
   },
   "dependencies": {
     "@balancer-labs/v2-pool-utils": "^1.0.0",

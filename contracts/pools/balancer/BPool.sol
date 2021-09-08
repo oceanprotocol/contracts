@@ -127,7 +127,7 @@ contract BPool is BMath, BToken {
     function initialize(
         address controller,
         address factory,
-        uint256[] calldata swapFees,
+        uint256[3] calldata swapFees,
         bool publicSwap,
         bool finalized,
         address[2] calldata tokens,
@@ -155,7 +155,7 @@ contract BPool is BMath, BToken {
     function _initialize(
         address controller,
         address factory,
-        uint256[] memory swapFees,
+        uint256[3] memory swapFees,
         bool publicSwap,
         bool finalized,
         address[2] memory tokens,
@@ -240,14 +240,14 @@ contract BPool is BMath, BToken {
         return _tokens.length;
     }
 
-    // function getCurrentTokens()
-    //     external
-    //     view
-    //     _viewlock_
-    //     returns (address[] memory tokens)
-    // {
-    //     return _tokens;
-    // }
+    function getCurrentTokens()
+        external
+        view
+        _viewlock_
+        returns (address[] memory tokens)
+    {
+        return _tokens;
+    }
 
     function getFinalTokens()
         public

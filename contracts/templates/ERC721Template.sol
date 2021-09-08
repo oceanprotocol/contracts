@@ -338,9 +338,9 @@ contract ERC721Template is
             This function allows to store data with a preset key (keccak256(ERC20Address)) into NFT 725 Store, same as setDataERC20 but for v3 DT
             The DT we'd like to update metadata has to be already wrapped
      * @param datatoken datatoken addresss
-     * @param _value data to store at that key
-     * @param flags data to store at that key
-     * @param data data to store at that key
+     * @param _value data to store at the above key
+     * @param flags flags for Aquarius
+     * @param data data for Aquarius
      */
 
     // TODO: check if we actually need the value and data or can be the same
@@ -504,4 +504,7 @@ contract ERC721Template is
             IERC20Template(deployedERC20List[i]).cleanFrom721();
         }
     }
+
+
+  
 }

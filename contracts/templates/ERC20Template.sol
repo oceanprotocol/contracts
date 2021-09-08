@@ -203,7 +203,8 @@ contract ERC20Template is ERC20("test", "testSymbol"), ERC20Roles {
 
     /**
      * @dev deployPool
-     *      Private function called on contract initialization.
+     *      Function to deploy new Pool with 1SS. It also has a vesting schedule.
+            This function can only be called ONCE and ONLY if no token have been minted yet.
      * @param controller ssContract address
      * @param basetokenAddress baseToken for pool (OCEAN or other)
      * @param ssParams params for the ssContract. 
@@ -218,11 +219,10 @@ contract ERC20Template is ERC20("test", "testSymbol"), ERC20Roles {
         address basetokenAddress,
         uint256[] memory ssParams,
         address basetokenSender,
-        uint256[] memory swapFees,
+        uint256[2] memory swapFees,
         address marketFeeCollector,
         address publisherAddress
     ) external onlyERC20Deployer {
-        // TODO: add require to avoid anyone call this function
         require(totalSupply() == 0, "ERC20Template: tokens already minted");
         _addMinter(controller);
 
@@ -249,6 +249,8 @@ contract ERC20Template is ERC20("test", "testSymbol"), ERC20Roles {
      * @param owner exchangeOwner
        @param marketFee market Fee 
        @param marketFeeCollector market fee collector address
+
+       @return exchangeId
      */
 
     function createFixedRate(
@@ -296,7 +298,7 @@ contract ERC20Template is ERC20("test", "testSymbol"), ERC20Roles {
      * @param consumer is the consumer address (payer could be different address)
      * @param amount refers to amount of tokens that is going to be transfered.
      * @param serviceId service index in the metadata
-     * @param mrktFeeCollector marketplace fee collector
+     * @param marketFeeCollector marketplace fee collector
        @param feeToken // address of the token marketplace wants to add fee on top
        @param feeAmount // fee amount on top (in feeToken)
      */
@@ -304,7 +306,7 @@ contract ERC20Template is ERC20("test", "testSymbol"), ERC20Roles {
         address consumer,
         uint256 amount,
         uint256 serviceId,
-        address mrktFeeCollector,
+        address marketFeeCollector,
         address feeToken, // address of the token marketplace wants to add fee on top
         uint256 feeAmount // amount to be transfered to marketFeeCollector
     ) external {
@@ -312,7 +314,7 @@ contract ERC20Template is ERC20("test", "testSymbol"), ERC20Roles {
         if (feeAmount > 0) {
             IERC20(feeToken).transferFrom(
                 msg.sender,
-                mrktFeeCollector,
+                marketFeeCollector,
                 feeAmount
             );
         }
@@ -324,9 +326,9 @@ contract ERC20Template is ERC20("test", "testSymbol"), ERC20Roles {
             BASE_COMMUNITY_FEE_PERCENTAGE
         );
         transfer(_communityFeeCollector, communityFee);
-        if (mrktFeeCollector != address(0)) {
+        if (marketFeeCollector != address(0)) {
             marketFee = calculateFee(amount, BASE_MARKET_FEE_PERCENTAGE);
-            transfer(mrktFeeCollector, marketFee);
+            transfer(marketFeeCollector, marketFee);
         }
         uint256 totalFee = communityFee.add(marketFee);
         transfer(getFeeCollector(), amount.sub(totalFee));
@@ -337,7 +339,7 @@ contract ERC20Template is ERC20("test", "testSymbol"), ERC20Roles {
             amount,
             serviceId,
             block.timestamp,
-            mrktFeeCollector,
+            marketFeeCollector,
             marketFee
         );
     }
@@ -653,14 +655,14 @@ contract ERC20Template is ERC20("test", "testSymbol"), ERC20Roles {
 
     /**
      * @dev permit
-     *      used for signed approvals, see test for more details
+     *      used for signed approvals, see ERC20Template test for more details
      * @param owner user who signed the message
      * @param spender spender
      * @param value token amount
      * @param deadline deadline after which signed message is no more valid
-     * @param v parameters from signed messaged
-     * @param r parameters from signed messaged
-     * @param s parameters from signed messaged
+     * @param v parameters from signed message
+     * @param r parameters from signed message
+     * @param s parameters from signed message
      */
 
     function permit(

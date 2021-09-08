@@ -8,7 +8,7 @@ interface IFactoryRouter {
         address publisherAddress,
         uint256[] calldata ssParams,
         address basetokenSender,
-        uint256[] calldata swapFees,
+        uint256[2] calldata swapFees,
         address marketFeeCollector
     ) external returns (address);
 

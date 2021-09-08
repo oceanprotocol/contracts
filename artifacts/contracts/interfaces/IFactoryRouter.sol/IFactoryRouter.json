@@ -75,9 +75,9 @@
           "type": "address"
         },
         {
-          "internalType": "uint256[]",
+          "internalType": "uint256[2]",
           "name": "swapFees",
-          "type": "uint256[]"
+          "type": "uint256[2]"
         },
         {
           "internalType": "address",
