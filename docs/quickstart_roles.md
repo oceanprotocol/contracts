@@ -21,7 +21,7 @@
 
    - can update ERC725Y key value store from ERC20Contract level to ERC721. Key is a preset value specific to each individual ERC20Contract but stored in the same ERC721 Contract.
 
-   - can deploy a new pool with vesting and staking, or a fixed rate price.
+   - can deploy a new pool with vesting and staking, or a fixed price exchange.
 
    - can assign roles at the ERC20 level, see below
 
@@ -39,7 +39,7 @@
 
 
 
-## ERC20 ROLES:
+## ERC20 ROLES
 
 ERC20 Roles are managed by the ERC20Deployers at 721 LEVEL
 

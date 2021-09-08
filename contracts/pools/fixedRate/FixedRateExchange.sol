@@ -126,74 +126,7 @@ contract FixedRateExchange {
         opfCollector = _opfCollector;
     }
 
-    // /**
-    //  * @dev create
-    //  *      creates new exchange pairs between base token
-    //  *      (ocean token) and data tokens.
-    //  * @param baseToken refers to a ocean token contract address
-    //  * @param dataToken refers to a data token contract address
-    //  * @param fixedRate refers to the exact fixed exchange rate in wei
-    //  */
-    // function create(
-    //     address baseToken,
-    //     address dataToken,
-    //     uint256 fixedRate,
-    //     address owner,
-    //     uint256 marketFee,
-    //     address marketFeeCollector,
-    //     uint256 opfFee
-    // ) external onlyRouter returns (bytes32 exchangeId) {
-    //     require(
-    //         baseToken != address(0),
-    //         "FixedRateExchange: Invalid basetoken,  zero address"
-    //     );
-    //     require(
-    //         dataToken != address(0),
-    //         "FixedRateExchange: Invalid datatoken,  zero address"
-    //     );
-    //     require(
-    //         baseToken != dataToken,
-    //         "FixedRateExchange: Invalid datatoken,  equals basetoken"
-    //     );
-    //     require(
-    //         fixedRate != 0,
-    //         "FixedRateExchange: Invalid exchange rate value"
-    //     );
-    //     exchangeId = generateExchangeId(baseToken, dataToken, owner);
-    //     require(
-    //         exchanges[exchangeId].fixedRate == 0,
-    //         "FixedRateExchange: Exchange already exists!"
-    //     );
-
-    //     exchanges[exchangeId] = Exchange({
-    //         active: true,
-    //         exchangeOwner: owner,
-    //         dataToken: dataToken,
-    //         baseToken: baseToken,
-    //         fixedRate: fixedRate,
-    //         dtDecimals: 18,
-    //         btDecimals: 18,
-    //         dtBalance: 0,
-    //         btBalance: 0,
-    //         marketFee: marketFee,
-    //         marketFeeCollector: marketFeeCollector,
-    //         opfFee: opfFee,
-    //         marketFeeAvailable: 0,
-    //         oceanFeeAvailable: 0
-    //     });
-
-    //     exchangeIds.push(exchangeId);
-
-    //     emit ExchangeCreated(
-    //         exchangeId,
-    //         baseToken,
-    //         dataToken,
-    //         owner,
-    //         fixedRate
-    //     );
-
-    //     emit ExchangeActivated(exchangeId, owner);
-    // }
+  
 
     /**
      * @dev create
