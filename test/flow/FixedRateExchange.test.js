@@ -98,10 +98,7 @@ describe("FixedRateExchange", () => {
       .connect(signer)
       .transfer(bob.address, ethers.utils.parseEther("100000"));
 
-    assert(
-      (await oceanContract.balanceOf(bob.address)).toString() ==
-        ethers.utils.parseEther("100000")
-    );
+    
 
     // GET SOME DAI (A NEW TOKEN different from OCEAN)
     const userWithDAI = "0x16de59092dAE5CcF4A1E6439D611fd0653f0Bd01";
@@ -118,9 +115,7 @@ describe("FixedRateExchange", () => {
       .connect(signer)
       .transfer(bob.address, ethers.utils.parseEther("100000"));
 
-    expect(await daiContract.balanceOf(bob.address)).to.equal(
-      ethers.utils.parseEther("100000")
-    );
+  
 
     // GET SOME USDC (token with !18 decimals (6 in this case))
     const userWithUSDC = "0xF977814e90dA44bFA03b6295A0616a897441aceC";
@@ -137,8 +132,6 @@ describe("FixedRateExchange", () => {
     const amount = 1e11; // 100000 USDC
 
     await usdcContract.connect(signer).transfer(bob.address, amount);
-
-    expect(await usdcContract.balanceOf(bob.address)).to.equal(amount);
 
     data = web3.utils.asciiToHex("SomeData");
     flags = web3.utils.asciiToHex(constants.blob[0]);

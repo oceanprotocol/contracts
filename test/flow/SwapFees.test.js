@@ -283,7 +283,7 @@ describe("Swap Fees", () => {
             web3.utils.toWei("1"), // rate
             18, // basetokenDecimals
             vestingAmount,
-            500, // vested blocks
+            2500000, // vested blocks
             initialOceanLiquidity, // baseToken initial pool liquidity
           ],
           user3.address,
@@ -1106,7 +1106,7 @@ describe("Swap Fees", () => {
             web3.utils.toWei("1"), // rate
             18, // basetokenDecimals
             web3.utils.toWei("100"), //vestingAmount
-            500, // vested blocks
+            2500000, // vested blocks
             initialDAILiquidity, // baseToken initial pool liquidity
           ],
           user3.address,
@@ -1974,7 +1974,7 @@ describe("Swap Fees", () => {
             web3.utils.toWei("1"), // rate
             basetokenDecimals, // basetokenDecimals
             vestingAmount, // DT vesting amount
-            500, // vested blocks
+            2500000, // vested blocks
             initialUSDCLiquidity, // baseToken initial pool liquidity
           ],
           user3.address,

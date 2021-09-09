@@ -233,7 +233,7 @@ describe("1SS flow", () => {
           web3.utils.toWei("1"), // rate
           18, // basetokenDecimals
           web3.utils.toWei('10000'), //vestingAmount max 10% of total cap
-          500, // vested blocks
+          2500000, // vested blocks
           initialOceanLiquidity, // baseToken initial pool liquidity
         ],
         user3.address,
