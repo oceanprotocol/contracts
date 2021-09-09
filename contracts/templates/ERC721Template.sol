@@ -384,8 +384,9 @@ contract ERC721Template is
     // // V3 MIGRATION
      /**
      * @dev wrapV3DT
-     *      Only NFT Owner  can call it.
-     *      This function 'wraps' any v3 datatoken, NFTOwner has to be the actual minter(v3) before calling it. 
+            Requires to call proposeMinter BEFORE, the proposed minter MUST be the NFT contract address
+     *      Only NFT Owner can call it.
+     *      This function 'wraps' any v3 datatoken, NFTOwner has to be the actual minter(v3) 
             After wrapping, the minter() in the v3 datatoken is going to be this contract. To mint new tokens we now need to use mintV3DT
      * @param datatoken datatoken address we want to wrap
      * @param newMinter new minter address after wrapping
