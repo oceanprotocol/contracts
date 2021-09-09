@@ -76,7 +76,7 @@ npm install @oceanprotocol/lib
 
 - Roles Administration: there are now multiple roles for a more flexible administation both at NFT and ERC20 level.
 
-- Safer Staking - Better IDOs: An automated DT staking contract which helps to avoid rug-pull for new DTs into the market
+- Safer Staking - Better IDOs: An automated DT staking and vesting contract which helps to avoid rug-pull for new DTs into the market.
 
 - Help Ocean community: Ocean Community will receive 0.1% swap fee on pools or fixed price exchange, if Ocean is not the basetoken
 
