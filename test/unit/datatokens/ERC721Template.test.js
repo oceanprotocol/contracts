@@ -630,10 +630,12 @@ describe("ERC721Template", () => {
     );
 
     assert((await tokenERC721.ownerOf(1)) == owner.address);
+    
     await tokenERC721.transferFrom(owner.address, user2.address, 1);
+    
     assert((await tokenERC721.balanceOf(owner.address)) == 0);
     assert((await tokenERC721.ownerOf(1)) == user2.address);
-    // when transferred to user2, user2 is already Manager and all other roles.
+    // when transferred to user2, user2 is already Manager and all other main roles at 721 level.
     assert((await tokenERC721.getPermissions(user2.address)).deployERC20 == true);
     await tokenERC721.connect(user2).createERC20(
         "ERC20DT2",
@@ -643,10 +645,6 @@ describe("ERC721Template", () => {
         owner.address,
         user2.address
       )
-  
-
-
-  
 
     await expectRevert(
       erc20Token.mint(user2.address, web3.utils.toWei("1")),
@@ -665,18 +663,8 @@ describe("ERC721Template", () => {
       "ERC721Template: NOT METADATA_ROLE"
     );
 
-    await expectRevert(
-      tokenERC721.connect(user2).updateMetadata(flags, data),
-      "ERC721Template: NOT METADATA_ROLE"
-    );
 
-    await expectRevert(
-      tokenERC721.addToMetadataList(user2.address),
-      "ERC721RolesAddress: NOT MANAGER"
-    );
-
-    await tokenERC721.connect(user2).addToMetadataList(user2.address);
-   // await tokenERC721.connect(user2).updateMetadata(flags, data);
+    await tokenERC721.connect(user2).updateMetadata(flags, data);
 
     const keyMetadata = web3.utils.keccak256("METADATA_KEY");
     assert(await tokenERC721.getData(keyMetadata) == data)

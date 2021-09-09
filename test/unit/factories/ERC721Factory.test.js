@@ -297,8 +297,9 @@ describe("ERC721Factory", () => {
   });
 
   it("#createToken - should not allow to create a new ERC20Token if NOT in CreateERC20List", async () => {
+    assert((await tokenERC721.getPermissions(user6.address)).deployERC20 == false);
     await expectRevert(
-      tokenERC721.createERC20(
+      tokenERC721.connect(user6).createERC20(
         "ERC20DT1",
         "ERC20DT1Symbol",
         web3.utils.toWei("10"),
@@ -311,8 +312,8 @@ describe("ERC721Factory", () => {
   });
 
   it("#createToken - should create a new ERC20Token, after adding address to CreateERC20List", async () => {
-    await tokenERC721.addToCreateERC20List(owner.address);
-    await tokenERC721.createERC20(
+    await tokenERC721.addToCreateERC20List(user6.address);
+    await tokenERC721.connect(user6).createERC20(
       "ERC20DT1",
       "ERC20DT1Symbol",
       web3.utils.toWei("10"),

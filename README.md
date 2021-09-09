@@ -168,6 +168,9 @@ npm run format
 You can execute all tests with:
 
 ```bash
+# run hardhat node each time you want to test with the current settings
+npx hardhat node
+
 npm run test:full
 # same thing, but with coverage reporting
 npm run test:full:cover
@@ -209,6 +212,9 @@ npm test
 You can execute unit tests with:
 
 ```bash
+# run hardhat node each time you want to test with the current settings
+npx hardhat node
+
 npm run test:unit
 
 ```
@@ -218,6 +224,9 @@ npm run test:unit
 You can execute flow tests with:
 
 ```bash
+# run hardhat node each time you want to test with the current settings
+npx hardhat node
+
 npm run test:flow
 
 ```

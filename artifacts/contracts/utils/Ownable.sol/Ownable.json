@@ -23,6 +23,32 @@
       "type": "event"
     },
     {
+      "inputs": [
+        {
+          "internalType": "bytes32",
+          "name": "c__0x1e0c5326",
+          "type": "bytes32"
+        }
+      ],
+      "name": "c_0x1e0c5326",
+      "outputs": [],
+      "stateMutability": "pure",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "bytes32",
+          "name": "c__0x49f588ab",
+          "type": "bytes32"
+        }
+      ],
+      "name": "c_0x49f588ab",
+      "outputs": [],
+      "stateMutability": "pure",
+      "type": "function"
+    },
+    {
       "inputs": [],
       "name": "owner",
       "outputs": [

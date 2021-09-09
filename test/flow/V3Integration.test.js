@@ -254,21 +254,7 @@ describe("V3 Integration flow", () => {
     );
   });
 
-  it("#12 - newOwner now owns the NFT but still has no roles, so transactions revert", async () => {
-    await expectRevert(
-      tokenERC721
-        .connect(newOwner)
-        .createERC20("ERC20DT2", "ERC20DT2Symbol", web3.utils.toWei("10"), 1,newOwner.address,user4.address),
-      "ERC721Template: NOT ERC20DEPLOYER_ROLE"
-    );
-
-    await expectRevert(
-      erc20Token.connect(newOwner).mint(user2.address, web3.utils.toWei("1")),
-      "ERC20Template: NOT MINTER"
-    );
-  });
-
-  it("#13 - newOwner is already manager when receiving the NFT, can start assigning roles", async () => {
+  it("#12 - newOwner is already manager when receiving the NFT, can start assigning roles", async () => {
 
     // ROLES in 721:
     // if the NFT owner assigns another manager, the new manager could grant or revoke these roles too.
@@ -279,7 +265,7 @@ describe("V3 Integration flow", () => {
     await tokenERC721.connect(newOwner).addV3Minter(user2.address); // Minting on wrapped v3 DT
   });
 
-  it("#14 - user2 mints on v3 wrapped token to a new user ", async () => {
+  it("#13 - user2 mints on v3 wrapped token to a new user ", async () => {
     await tokenERC721
       .connect(user2)
       .mintV3DT(v3Datatoken, user4.address, web3.utils.toWei("5"));
@@ -288,7 +274,7 @@ describe("V3 Integration flow", () => {
     );
   });
 
-  it("#15 - user2 mints on an already existing v4 erc20 contract, after being added as minter at erc20 level ", async () => {
+  it("#14 - user2 mints on an already existing v4 erc20 contract, after being added as minter at erc20 level ", async () => {
     await erc20Token.connect(user2).addMinter(user2.address) // whoever has deployer erc20 roles can add minters 
     await erc20Token.connect(user2).mint(user4.address, web3.utils.toWei("2"));
 
@@ -297,7 +283,7 @@ describe("V3 Integration flow", () => {
     );
   });
 
-  it("#16 - user2 deploys a new erc20 contract(v4), then mints some tokens ", async () => {
+  it("#15 - user2 deploys a new erc20 contract(v4), then mints some tokens ", async () => {
     const trxERC20 = await tokenERC721
       .connect(user2)
       .createERC20("ERC20DT1", "ERC20DT1Symbol", web3.utils.toWei("10"), 1,user2.address, user4.address);

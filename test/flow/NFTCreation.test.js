@@ -269,12 +269,12 @@ describe("NFT Creation, roles and erc20 deployments", () => {
     );
   });
 
-  it("#13 - newOwner now owns the NFT, is already Manager by default but still has no roles, so transactions revert", async () => {
+  it("#13 - newOwner now owns the NFT, is already Manager by default and has all roles", async () => {
     assert(
       (await tokenERC721.getPermissions(newOwner.address)).manager == true
     );
 
-    await expectRevert(
+    await 
       tokenERC721
         .connect(newOwner)
         .createERC20(
@@ -285,19 +285,12 @@ describe("NFT Creation, roles and erc20 deployments", () => {
           user2.address,
           user3.address
         ),
-      " ERC721Template: NOT ERC20DEPLOYER_ROLE"
-    );
-
-    await expectRevert(
-      erc20Token.connect(newOwner).mint(user2.address, web3.utils.toWei("1")),
-      "ERC20Template: NOT MINTER"
-    );
-
-    await expectRevert(
-      erc20Token2.connect(newOwner).mint(user2.address, web3.utils.toWei("1")),
-      "ERC20Template: NOT MINTER"
-    );
+     
+    await erc20Token.connect(newOwner).addMinter(newOwner.address);
+    await erc20Token.connect(newOwner).mint(user2.address, web3.utils.toWei("1"))
+     
+    
   });
 
-  // NOTE: each time an NFT is transferred (sold), we'll have to clean permissions at the 721 level, plus at erc20 level for each v4 DT deployed.
+  
 });
