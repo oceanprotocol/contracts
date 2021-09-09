@@ -4611,7 +4611,7 @@ describe("FixedRateExchange", () => {
         .connect(alice)
         .approve(fixedRateExchange.address, amountDTtoSell);
 
-      // no need to approve amount 
+      // no need to approve amount amount will be always zero
       // await usdcContract
       //   .connect(bob)
       //   .approve(fixedRateExchange.address, web3.utils.toWei("1000000"));

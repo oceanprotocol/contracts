@@ -1,4 +1,4 @@
-# 🦑 Collection of useful funtions:
+# 🦑 Collection of useful functions:
 
 ## ERC721Factory.sol
 
