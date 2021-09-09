@@ -17,7 +17,7 @@ import "hardhat/console.sol";
 
 
 
-contract FixedRateExchange {
+contract Dispenser {
     using SafeMath for uint256;
     uint256 private constant BASE = 10**18;
 
@@ -159,16 +159,19 @@ contract FixedRateExchange {
             baseToken != dataToken,
             "FixedRateExchange: Invalid datatoken,  equals basetoken"
         );
-        require(
-            fixedRate != 0,
-            "FixedRateExchange: Invalid exchange rate value"
-        );
+        // require(
+        //     fixedRate != 0,
+        //     "FixedRateExchange: Invalid exchange rate value"
+        // );
         exchangeId = generateExchangeId(baseToken, dataToken, owner);
         require(
             exchanges[exchangeId].fixedRate == 0,
             "FixedRateExchange: Exchange already exists!"
         );
-       
+        // TODO: used for testing fixed price = 0, see if remove it or not
+        if(fixedRate == 0){
+            opfFee=0;
+        }
         exchanges[exchangeId] = Exchange({
             active: true,
             exchangeOwner: owner,
