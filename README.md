@@ -74,9 +74,11 @@ npm install @oceanprotocol/lib
 
 - NFT-ize base IP: a new way of representing baseIP, all newly ERC20 DTs are linked to the NFT contract
 
-- Roles Administration: there are now multiple roles for a more flexible administation both at NFT and ERC20 level.
+- Roles Administration: there are now multiple roles for a more flexible administation both at NFT and ERC20 levels.
 
-- Safer Staking - Better IDOs: An automated DT staking and vesting contract which helps to avoid rug-pull for new DTs into the market.
+- Safer Staking - Better IDOs: An automated DT staking and vesting contract which helps with initial DT distribution and price stability.
+
+  It also provides a customizable vesting schedule for the publisher.
 
 - Help Ocean community: Ocean Community will receive 0.1% swap fee on pools or fixed price exchange, if Ocean is not the basetoken
 
@@ -84,7 +86,7 @@ npm install @oceanprotocol/lib
 
 - Flexible key-value store in the NFT contract : NFT contract can be used to store custom key-value pairs
 
-- Metadata is also stored in the NFT contract store (even if it still support Metadata.sol)
+- Metadata is also stored in the NFT contract store (even if it still supports Metadata.sol)
 
 - Marketplace fees flexibility: now any marketplace runner can set more customized fees structure.
 
