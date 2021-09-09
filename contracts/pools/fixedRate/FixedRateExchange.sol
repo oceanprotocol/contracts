@@ -47,7 +47,7 @@ contract FixedRateExchange {
 
     modifier onlyActiveExchange(bytes32 exchangeId) {
         require(
-            exchanges[exchangeId].fixedRate != 0 &&
+            //exchanges[exchangeId].fixedRate != 0 &&
                 exchanges[exchangeId].active == true,
             "FixedRateExchange: Exchange does not exist!"
         );
@@ -159,15 +159,19 @@ contract FixedRateExchange {
             baseToken != dataToken,
             "FixedRateExchange: Invalid datatoken,  equals basetoken"
         );
-        require(
-            fixedRate != 0,
-            "FixedRateExchange: Invalid exchange rate value"
-        );
+        // require(
+        //     fixedRate != 0,
+        //     "FixedRateExchange: Invalid exchange rate value"
+        // );
         exchangeId = generateExchangeId(baseToken, dataToken, owner);
         require(
             exchanges[exchangeId].fixedRate == 0,
             "FixedRateExchange: Exchange already exists!"
         );
+        // TODO: used for testing fixed price = 0, see if remove it or not
+        if(fixedRate == 0){
+            opfFee=0;
+        }
         exchanges[exchangeId] = Exchange({
             active: true,
             exchangeOwner: owner,

@@ -80,7 +80,7 @@ npm install @oceanprotocol/lib
 
   It also provides a customizable vesting schedule for the publisher.
 
-- Help Ocean community: Ocean Community will receive 0.1% swap fee on pools or fixed price exchange, if Ocean is not the basetoken
+- Help Ocean community: if Ocean is not the basetoken, Ocean Community will receive 0.1% swap fee on pools or fixed price exchange 
 
 - V3 integration: even if you deployed a DT on v3 you can create an NFT, 'wrap' the v3 DT and enjoy all v4 features
 

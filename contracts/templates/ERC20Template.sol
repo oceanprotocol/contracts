@@ -225,6 +225,8 @@ contract ERC20Template is ERC20("test", "testSymbol"), ERC20Roles {
     ) external onlyERC20Deployer {
         require(totalSupply() == 0, "ERC20Template: tokens already minted");
         _addMinter(controller);
+        // TODO: chech this
+        require(ssParams[3] > 2426000, 'ERC20Template: minimum blocks not reached');
 
         address[2] memory tokens = [address(this), basetokenAddress];
         address pool = IFactoryRouter(router).deployPool(
