@@ -89,9 +89,7 @@ contract Dispenser {
     event Swapped(
         bytes32 indexed exchangeId,
         address indexed by,
-        uint256 baseTokenSwappedAmount,
-        uint256 dataTokenSwappedAmount,
-        address tokenOutAddress
+        uint256 dataTokenSwappedAmount
     );
 
     event TokenCollected(
@@ -202,43 +200,8 @@ contract Dispenser {
         return keccak256(abi.encode(baseToken, dataToken, exchangeOwner));
     }
 
-    /**
-     * @dev CalcInGivenOut
-     *      Calculates how many basetokens are needed to get specifyed amount of datatokens
-     * @param exchangeId a unique exchange idnetifier
-     * @param dataTokenAmount the amount of data tokens to be exchanged
-     */
-    function calcBaseInGivenOutDT(bytes32 exchangeId, uint256 dataTokenAmount)
-        public
-        view
-        onlyActiveExchange(exchangeId)
-        returns (
-            uint256 baseTokenAmount
-        )
-    {
-        baseTokenAmount = 0;
-
-    }
-
-    /**
-     * @dev CalcInGivenOut
-     *      Calculates how many basetokens are needed to get specifyed amount of datatokens
-     * @param exchangeId a unique exchange idnetifier
-     * @param dataTokenAmount the amount of data tokens to be exchanged
-     */
-    function calcBaseOutGivenInDT(bytes32 exchangeId, uint256 dataTokenAmount)
-        public
-        view
-        onlyActiveExchange(exchangeId)
-        returns (
-            uint256 baseTokenAmount
-        )
-    {
-        baseTokenAmount= 0;
-
-       
-     
-    }
+   
+  
 
     /**
      * @dev swap
@@ -254,8 +217,7 @@ contract Dispenser {
             dataTokenAmount != 0,
             "FixedRateExchange: zero data token amount"
         );
-        
-        uint256 baseTokenAmount = 0;
+    
 
     
 
@@ -282,9 +244,7 @@ contract Dispenser {
         emit Swapped(
             exchangeId,
             msg.sender,
-            baseTokenAmount,
-            dataTokenAmount,
-            exchanges[exchangeId].dataToken
+            dataTokenAmount
         );
     }
 
@@ -303,7 +263,6 @@ contract Dispenser {
             "FixedRateExchange: zero data token amount"
         );
         
-        uint256 baseTokenAmount = 0;
 
        
         require(
@@ -324,30 +283,10 @@ contract Dispenser {
         emit Swapped(
             exchangeId,
             msg.sender,
-            baseTokenAmount,
-            dataTokenAmount,
-            exchanges[exchangeId].baseToken
+            dataTokenAmount
         );
     }
 
-    // function collectBT(bytes32 exchangeId)
-    //     external
-    //     onlyExchangeOwner(exchangeId)
-    // {
-    //     uint256 amount = exchanges[exchangeId].btBalance;
-    //     exchanges[exchangeId].btBalance = 0;
-    //     IERC20Template(exchanges[exchangeId].baseToken).transfer(
-    //         exchanges[exchangeId].exchangeOwner,
-    //         amount
-    //     );
-
-    //     emit TokenCollected(
-    //         exchangeId,
-    //         exchanges[exchangeId].exchangeOwner,
-    //         exchanges[exchangeId].baseToken,
-    //         amount
-    //     );
-    // }
 
     function collectDT(bytes32 exchangeId)
         external
@@ -368,47 +307,7 @@ contract Dispenser {
         );
     }
 
-    // function collectMarketFee(bytes32 exchangeId) external {
-    //     // TODO: should we limit access to this function?
-    //     uint256 amount = exchanges[exchangeId].marketFeeAvailable;
-    //     exchanges[exchangeId].marketFeeAvailable = 0;
-    //     IERC20Template(exchanges[exchangeId].baseToken).transfer(
-    //         exchanges[exchangeId].marketFeeCollector,
-    //         amount
-    //     );
-    //     emit MarketFeeCollected(
-    //         exchangeId,
-    //         exchanges[exchangeId].baseToken,
-    //         amount
-    //     );
-    // }
-
-    // function collectOceanFee(bytes32 exchangeId) external {
-    //     // TODO:should we limit access to this function?
-    //     uint256 amount = exchanges[exchangeId].oceanFeeAvailable;
-    //     exchanges[exchangeId].oceanFeeAvailable = 0;
-    //     IERC20Template(exchanges[exchangeId].baseToken).transfer(
-    //         opfCollector,
-    //         amount
-    //     );
-    //     emit OceanFeeCollected(
-    //         exchangeId,
-    //         exchanges[exchangeId].baseToken,
-    //         amount
-    //     );
-    // }
-
-    // function updateMarketFeeCollector(
-    //     bytes32 exchangeId,
-    //     address _newMarketCollector
-    // ) external {
-    //     require(
-    //         msg.sender == exchanges[exchangeId].marketFeeCollector,
-    //         "not marketFeeCollector"
-    //     );
-    //     exchanges[exchangeId].marketFeeCollector = _newMarketCollector;
-    // }
-
+  
     /**
      * @dev getNumberOfExchanges
      *      gets the total number of registered exchanges
@@ -418,22 +317,7 @@ contract Dispenser {
         return exchangeIds.length;
     }
 
-    // /**
-    //  * @dev setRate
-    //  *      changes the fixed rate for an exchange with a new rate
-    //  * @param exchangeId a unique exchange idnetifier
-    //  * @param newRate new fixed rate value
-    //  */
-    // function setRate(bytes32 exchangeId, uint256 newRate)
-    //     external
-    //     onlyExchangeOwner(exchangeId)
-    // {
-    //     require(newRate != 0, "FixedRateExchange: Ratio must be >0");
-
-    //     exchanges[exchangeId].fixedRate = newRate;
-    //     emit ExchangeRateChanged(exchangeId, msg.sender, newRate);
-    // }
-
+   
     /**
      * @dev toggleExchangeState
      *      toggles the active state of an existing exchange
@@ -486,29 +370,7 @@ contract Dispenser {
         }
     }
 
-    /**
-     * @dev getSupply
-     *      gets the current supply of datatokens in an fixed
-     *      rate exchagne
-     * @param  exchangeId the exchange ID
-     * @return supply
-     */
-    function getBTSupply(bytes32 exchangeId)
-        public
-        view
-        returns (uint256 supply)
-    {
-        if (exchanges[exchangeId].active == false) supply = 0;
-        else {
-            uint256 balance = IERC20Template(exchanges[exchangeId].baseToken)
-                .balanceOf(exchanges[exchangeId].exchangeOwner);
-            uint256 allowance = IERC20Template(exchanges[exchangeId].baseToken)
-                .allowance(exchanges[exchangeId].exchangeOwner, address(this));
-            if (balance < allowance)
-                supply = balance.add(exchanges[exchangeId].btBalance);
-            else supply = allowance.add(exchanges[exchangeId].btBalance);
-        }
-    }
+   
 
     // /**
     //  * @dev getExchange
@@ -531,9 +393,7 @@ contract Dispenser {
             uint256 fixedRate,
             bool active,
             uint256 dtSupply,
-            uint256 btSupply,
-            uint256 dtBalance,
-            uint256 btBalance
+            uint256 dtBalance
         )
     {
         Exchange memory exchange = exchanges[exchangeId];
@@ -545,11 +405,8 @@ contract Dispenser {
         fixedRate = exchange.fixedRate;
         active = exchange.active;
         dtSupply = getDTSupply(exchangeId);
-        btSupply = getBTSupply(exchangeId);
         dtBalance = exchange.dtBalance;
-        btBalance = exchange.btBalance;
     }
-
     // function getFeesInfo(bytes32 exchangeId)
     //     external
     //     view
