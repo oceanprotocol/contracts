@@ -13,6 +13,7 @@ interface IFactoryRouter {
     ) external returns (address);
 
     function deployFixedRate(
+        address fixedPriceAddress,
         address basetokenAddress,
         uint8 basetokenDecimals,
         uint256 fixedRate,

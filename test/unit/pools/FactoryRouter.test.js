@@ -219,18 +219,14 @@ describe("FactoryRouter", () => {
   })
 
   it("#fixedRate- should confirm ssContract token has been added to the mapping",async () => {
-    assert(await router.fixedRate() == fixedRateExchange.address)
+    assert(await router.fixedPrice(fixedRateExchange.address) ==true )
   })
 
-  it("#addFixedRateContract - should UPDATE fixedRateExchange contract if Router Owner",async () => {
-    assert(await router.fixedRate() == fixedRateExchange.address)
-    await router.addFixedRateContract(user2.address)
-    assert(await router.fixedRate() == user2.address)
-  })
+ 
 
   it("#addFixedRateContract - should fail to UPDATE fixedRateExchange contract if NOT Router Owner",async () => {
     await expectRevert(router.connect(user2).addFixedRateContract(user2.address), "OceanRouter: NOT OWNER")
-    assert(await router.fixedRate() == fixedRateExchange.address)
+    assert(await router.fixedPrice(user2.address) ==false)
    
   })
 

@@ -243,6 +243,7 @@ describe("FixedRateExchange", () => {
         await mockDT18
           .connect(alice)
           .createFixedRate(
+            fixedRateExchange.address,
             oceanContract.address,
             18,
             rate,
@@ -953,6 +954,7 @@ describe("FixedRateExchange", () => {
         await mockDT18
           .connect(alice)
           .createFixedRate(
+            fixedRateExchange.address,
             daiContract.address,
             18,
             rate,
@@ -1740,6 +1742,7 @@ describe("FixedRateExchange", () => {
         await mockDT18
           .connect(alice)
           .createFixedRate(
+            fixedRateExchange.address,
             oceanContract.address,
             18,
             rate,
@@ -2448,6 +2451,7 @@ describe("FixedRateExchange", () => {
         await mockDT18
           .connect(alice)
           .createFixedRate(
+            fixedRateExchange.address,
             daiContract.address,
             18,
             rate,
@@ -3151,6 +3155,7 @@ describe("FixedRateExchange", () => {
         await mockDT18
           .connect(alice)
           .createFixedRate(
+            fixedRateExchange.address,
             usdcContract.address,
             6,
             rate,
@@ -3860,6 +3865,7 @@ describe("FixedRateExchange", () => {
         await mockDT18
           .connect(alice)
           .createFixedRate(
+            fixedRateExchange.address,
             usdcContract.address,
             6,
             rate,

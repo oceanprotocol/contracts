@@ -157,6 +157,7 @@ swapFees[2] in order:
   /**
      * @dev createFixedRate
      *      Creates a new FixedRateExchange setup.
+     * @param fixedPriceAddress fixedPriceAddress
      * @param basetokenAddress baseToken for exchange (OCEAN or other)
      * @param basetokenDecimals baseToken decimals
      * @param fixedRate rate
@@ -168,6 +169,7 @@ swapFees[2] in order:
      */
 
     function createFixedRate(
+        address fixedPriceAddress,
         address basetokenAddress,
         uint8 basetokenDecimals,
         uint256 fixedRate,

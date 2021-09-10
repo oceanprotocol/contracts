@@ -18,6 +18,7 @@ contract FactoryRouter is BFactory {
     uint256 public constant swapOceanFee = 1e15;
     mapping(address => bool) public oceanTokens;
     mapping(address => bool) public ssContracts;
+    mapping(address => bool) public fixedPrice;
 
     event NewPool(address indexed poolAddress, bool isOcean);
     
@@ -53,7 +54,7 @@ contract FactoryRouter is BFactory {
     }
 
     function addFixedRateContract(address _fixedRate) external onlyRouterOwner {
-        fixedRate = _fixedRate;
+        fixedPrice[_fixedRate] = true;
     }
 
     /**
@@ -152,6 +153,7 @@ contract FactoryRouter is BFactory {
      */
 
     function deployFixedRate(
+        address fixedPriceAddress,
         address basetokenAddress,
         uint8 basetokenDecimals,
         uint256 rate,
@@ -169,8 +171,9 @@ contract FactoryRouter is BFactory {
         if (oceanTokens[basetokenAddress] != true) {
             opfFee = swapOceanFee;
         } 
+        require(fixedPrice[fixedPriceAddress] == true, 'FACTORY ROUTER: Invalid FixedPriceContract');
     
-            exchangeId = IFixedRateExchange(fixedRate).createWithDecimals(
+            exchangeId = IFixedRateExchange(fixedPriceAddress).createWithDecimals(
                 basetokenAddress,
                 msg.sender,
                 basetokenDecimals,

@@ -193,11 +193,12 @@ describe("Dispenser", () => {
     it("#2 - create exchange", async () => {
       rate = 0
 
-      // interface has not been modified to be compatible with router etc. if this is going to stay, will update that to be more flexible
+      // interface has been modified a bit to be compatible with router etc. if this is going to stay, will update that to be more flexible
       receipt = await (
         await mockDT18
           .connect(alice)
           .createFixedRate(
+            dispenser.address,
             usdcAddress, // could be any, not used.
             6, // same thing
             rate,

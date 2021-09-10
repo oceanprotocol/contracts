@@ -7,6 +7,11 @@
       "inputs": [
         {
           "internalType": "address",
+          "name": "fixedPriceAddress",
+          "type": "address"
+        },
+        {
+          "internalType": "address",
           "name": "basetokenAddress",
           "type": "address"
         },

@@ -99,6 +99,7 @@ async function main() {
     const Router = await ethers.getContractFactory("FactoryRouter");
     const SSContract = await ethers.getContractFactory("ssFixedRate");
     const BPool = await ethers.getContractFactory("BPool");
+    const Dispenser = await ethers.getContractFactory("Dispenser");
     
     if(logging) console.info("Deploying Pool Template")
     const poolTemplate = await BPool.deploy();
@@ -122,6 +123,11 @@ async function main() {
     const ssPool = await SSContract.deploy(router.address);
     if(logging) console.info("Deploying ERC20 Template")
     const templateERC20 = await ERC20Template.deploy();
+    if(logging) console.info("Deploying Dispenser")
+    const dispenser = await Dispenser.deploy(
+      router.address,
+      addresses.OPFCommunityFeeCollector
+    );
     if(logging) console.info("Deploying Metadata")
     const metadata = await Metadata.deploy();
     if(logging) console.info("Deploying ERC721 Template")
@@ -143,6 +149,8 @@ async function main() {
    await router.addFactory(factoryERC721.address);
 
    await router.addFixedRateContract(fixedPriceExchange.address);
+
+   await router.addFixedRateContract(dispenser.address);
 
    await router.addSSContract(ssPool.address)
 

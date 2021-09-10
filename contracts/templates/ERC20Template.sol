@@ -245,6 +245,7 @@ contract ERC20Template is ERC20("test", "testSymbol"), ERC20Roles {
     /**
      * @dev createFixedRate
      *      Creates a new FixedRateExchange setup.
+     * @param fixedPriceAddress fixedPriceAddress
      * @param basetokenAddress baseToken for exchange (OCEAN or other)
      * @param basetokenDecimals baseToken decimals
      * @param fixedRate rate
@@ -256,6 +257,7 @@ contract ERC20Template is ERC20("test", "testSymbol"), ERC20Roles {
      */
 
     function createFixedRate(
+        address fixedPriceAddress,
         address basetokenAddress,
         uint8 basetokenDecimals,
         uint256 fixedRate,
@@ -264,6 +266,7 @@ contract ERC20Template is ERC20("test", "testSymbol"), ERC20Roles {
         address marketFeeCollector
     ) external onlyERC20Deployer returns (bytes32 exchangeId) {
         exchangeId = IFactoryRouter(router).deployFixedRate(
+            fixedPriceAddress,
             basetokenAddress,
             basetokenDecimals,
             fixedRate,
