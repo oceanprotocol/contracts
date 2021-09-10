@@ -15,7 +15,7 @@ const { MAX_UINT256 } = require("@openzeppelin/test-helpers/src/constants");
 const ethers = hre.ethers;
 
 // TEST NEW FUNCTIONS, FOR UNIT TEST REFER TO V3 CONTRACTS BRANCH
-describe("FixedRateExchange", () => {
+describe("Dispenser", () => {
   let alice, // DT Owner and exchange Owner
     exchangeOwner,
     bob, // BaseToken Holder
@@ -302,14 +302,7 @@ describe("FixedRateExchange", () => {
       );
       expect(exchangeDetails.dtSupply).to.equal(amountDTtoSell);
       expect(exchangeDetails.btSupply).to.equal(0);
-      const feeInfo = await fixedRateExchange.getFeesInfo(
-        eventsExchange[0].args.exchangeId
-      );
-      expect(feeInfo.marketFee).to.equal(marketFee);
-      expect(feeInfo.marketFeeCollector).to.equal(marketFeeCollector.address);
-      expect(feeInfo.opfFee).to.equal(0);
-      expect(feeInfo.marketFeeAvailable).to.equal(0);
-      expect(feeInfo.oceanFeeAvailable).to.equal(0);
+    
     });
 
     it("#7 - should get the exchange rate, which is ZERO", async () => {
@@ -362,20 +355,18 @@ describe("FixedRateExchange", () => {
       );
 
       expect(exchangeDetails.btSupply).to.equal(
-        args.baseTokenSwappedAmount.sub(
-          args.oceanFeeAmount.add(args.marketFeeAmount)
-        )
-      );
+        args.baseTokenSwappedAmount)
+        
+      
 
       // Bob bought all DT on sale so now dtSupply is ZERO
       expect(exchangeDetails.dtSupply).to.equal(0);
 
       // we also check DT and BT balances were accounted properly
       expect(exchangeDetails.btBalance).to.equal(
-        args.baseTokenSwappedAmount.sub(
-          args.oceanFeeAmount.add(args.marketFeeAmount)
+        args.baseTokenSwappedAmount
         )
-      );
+      
       expect(exchangeDetails.dtBalance).to.equal(0);
     });
 
@@ -479,8 +470,6 @@ describe("FixedRateExchange", () => {
 
       expect(
         exchangeDetailsAfter.btSupply
-          .add(args.marketFeeAmount)
-          .add(args.oceanFeeAmount)
       ).to.equal(SwappedEvent[0].args.baseTokenSwappedAmount);
 
       // Bob bought 20% of  DT on sale so now dtSupply decreased
@@ -493,8 +482,6 @@ describe("FixedRateExchange", () => {
       // we also check BT balances were accounted properly
       expect(
         exchangeDetailsAfter.btBalance
-          .add(args.marketFeeAmount)
-          .add(args.oceanFeeAmount)
       ).to.equal(
         exchangeDetailsBefore.btBalance.add(
           SwappedEvent[0].args.baseTokenSwappedAmount
@@ -509,41 +496,6 @@ describe("FixedRateExchange", () => {
       );
     });
 
-    it("#11 - Alice withdraws BT balance available on the FixedRate contract", async () => {
-      const exchangeDetailsBefore = await fixedRateExchange.getExchange(
-        eventsExchange[0].args.exchangeId
-      );
-
-      expect(exchangeDetailsBefore.btBalance).to.equal(0);
-
-      const btAliceBeforeSwap = await usdcContract.balanceOf(alice.address);
-       // Alice(owner) has 4000 USDC collected from previous test
-
-      // only exchange owner can withdraw
-      await expectRevert(
-        fixedRateExchange.collectBT(eventsExchange[0].args.exchangeId),
-        "FixedRateExchange: invalid exchange owner"
-      );
-
-      const receipt = await (
-        await fixedRateExchange
-          .connect(alice)
-          .collectBT(eventsExchange[0].args.exchangeId)
-      ).wait();
-
-      const Event = receipt.events.filter((e) => e.event === "TokenCollected");
-
-      expect(Event[0].args.amount.add(btAliceBeforeSwap)).to.equal(
-        await usdcContract.balanceOf(alice.address)
-      );
-
-      const exchangeDetailsAfter = await fixedRateExchange.getExchange(
-        eventsExchange[0].args.exchangeId
-      );
-
-      // alice withdrew all btBalance
-      expect(exchangeDetailsAfter.btBalance).to.equal(0);
-    });
 
     it("#12 - Bob buys back all DT left (80%) of DataTokens available", async () => {
       const exchangeDetailsBefore = await fixedRateExchange.getExchange(
@@ -586,8 +538,7 @@ describe("FixedRateExchange", () => {
       // btSupply was ZERO, then bob bought and supply increased
       expect(
         exchangeDetailsAfter.btSupply
-          .add(args.marketFeeAmount)
-          .add(args.oceanFeeAmount)
+         
       ).to.equal(SwappedEvent[0].args.baseTokenSwappedAmount);
 
       // Bob bought 20% of  DT on sale so now dtSupply decreased
@@ -600,8 +551,7 @@ describe("FixedRateExchange", () => {
       // we also check BT balances were accounted properly
       expect(
         exchangeDetailsAfter.btBalance
-          .add(args.marketFeeAmount)
-          .add(args.oceanFeeAmount)
+          
       ).to.equal(
         exchangeDetailsBefore.btBalance.add(
           SwappedEvent[0].args.baseTokenSwappedAmount
@@ -616,44 +566,6 @@ describe("FixedRateExchange", () => {
       );
     });
 
-    it("#13 - MarketFeeCollector withdraws fees available on the FixedRate contract", async () => {
-      const feeInfo = await fixedRateExchange.getFeesInfo(
-        eventsExchange[0].args.exchangeId
-      );
-
-      assert(feeInfo.oceanFeeAvailable == 0);
-
-      assert(feeInfo.marketFeeAvailable == 0);
-
-      // marketFeeCollector balance
-      const btMFCBeforeSwap = await usdcContract.balanceOf(
-        marketFeeCollector.address
-      );
-
-      const receipt = await (
-        await fixedRateExchange.collectMarketFee(
-          eventsExchange[0].args.exchangeId
-        )
-      ).wait();
-
-      const Event = receipt.events.filter(
-        (e) => e.event === "MarketFeeCollected"
-      );
-
-      // balance in usdc was transferred
-      expect(await usdcContract.balanceOf(marketFeeCollector.address)).to.equal(
-        btMFCBeforeSwap.add(Event[0].args.feeAmount)
-      );
-
-      expect(Event[0].args.feeToken).to.equal(usdcContract.address);
-
-      const feeInfoAfter = await fixedRateExchange.getFeesInfo(
-        eventsExchange[0].args.exchangeId
-      );
-
-      // fee were reset
-      expect(feeInfoAfter.marketFeeAvailable).to.equal(0);
-    });
 
     it("#14 - Bob attermps to buy more DT but fails, then alice approves more and he succeeds", async () => {
       const exchangeDetailsBefore = await fixedRateExchange.getExchange(
@@ -717,8 +629,6 @@ describe("FixedRateExchange", () => {
 
       expect(
         exchangeDetailsAfter.btSupply
-          .add(args.marketFeeAmount)
-          .add(args.oceanFeeAmount)
       ).to.equal(
         exchangeDetailsBefore.btSupply.add(
           SwappedEvent[0].args.baseTokenSwappedAmount
@@ -731,8 +641,6 @@ describe("FixedRateExchange", () => {
       // we also check BT balances were accounted properly
       expect(
         exchangeDetailsAfter.btBalance
-          .add(args.marketFeeAmount)
-          .add(args.oceanFeeAmount)
       ).to.equal(
         exchangeDetailsBefore.btBalance.add(
           SwappedEvent[0].args.baseTokenSwappedAmount
@@ -787,8 +695,6 @@ describe("FixedRateExchange", () => {
       // Less BT token are available
       expect(
         exchangeDetails.btSupply
-          .add(args.marketFeeAmount)
-          .add(args.oceanFeeAmount)
       ).to.equal(
         exchangeDetailsBefore.btSupply.sub(
           SwappedEvent[0].args.baseTokenSwappedAmount
@@ -806,8 +712,6 @@ describe("FixedRateExchange", () => {
       // BT doesn't go to Alice but stays in the fixedRate
       expect(
         exchangeDetails.btBalance
-          .add(args.marketFeeAmount)
-          .add(args.oceanFeeAmount)
       ).to.equal(
         exchangeDetailsBefore.btBalance.sub(
           SwappedEvent[0].args.baseTokenSwappedAmount
@@ -832,63 +736,6 @@ describe("FixedRateExchange", () => {
       );
     });
 
-    it("#16 - MarketFeeCollector updates new address then withdraws fees available on the FixedRate contract", async () => {
-      // only market collector can update the address
 
-      await expectRevert(
-        fixedRateExchange.updateMarketFeeCollector(
-          eventsExchange[0].args.exchangeId,
-          newMarketFeeCollector.address
-        ),
-        "not marketFeeCollector"
-      );
-
-      await fixedRateExchange
-        .connect(marketFeeCollector)
-        .updateMarketFeeCollector(
-          eventsExchange[0].args.exchangeId,
-          newMarketFeeCollector.address
-        );
-
-      const feeInfo = await fixedRateExchange.getFeesInfo(
-        eventsExchange[0].args.exchangeId
-      );
-
-      assert(feeInfo.oceanFeeAvailable == 0);
-
-      assert(feeInfo.marketFeeAvailable == 0);
-
-      expect(feeInfo.marketFeeCollector).to.equal(
-        newMarketFeeCollector.address
-      );
-
-      const btMFCBeforeSwap = await usdcContract.balanceOf(
-        newMarketFeeCollector.address
-      );
-
-      const receipt = await (
-        await fixedRateExchange.collectMarketFee(
-          eventsExchange[0].args.exchangeId
-        )
-      ).wait();
-
-      const Event = receipt.events.filter(
-        (e) => e.event === "MarketFeeCollected"
-      );
-
-      // balance in ocean was transferred
-      expect(
-        await usdcContract.balanceOf(newMarketFeeCollector.address)
-      ).to.equal(btMFCBeforeSwap.add(Event[0].args.feeAmount));
-
-      expect(Event[0].args.feeToken).to.equal(usdcContract.address);
-
-      const feeInfoAfter = await fixedRateExchange.getFeesInfo(
-        eventsExchange[0].args.exchangeId
-      );
-
-      // fee were reset
-      expect(feeInfoAfter.marketFeeAvailable).to.equal(0);
-    });
   });
 });

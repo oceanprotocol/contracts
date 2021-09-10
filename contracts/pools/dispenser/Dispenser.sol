@@ -34,11 +34,6 @@ contract Dispenser {
         uint8 btDecimals;
         uint256 dtBalance;
         uint256 btBalance;
-        uint256 marketFee;
-        address marketFeeCollector;
-        uint256 opfFee;
-        uint256 marketFeeAvailable;
-        uint256 oceanFeeAvailable;
     }
 
     // maps an exchangeId to an exchange
@@ -96,9 +91,7 @@ contract Dispenser {
         address indexed by,
         uint256 baseTokenSwappedAmount,
         uint256 dataTokenSwappedAmount,
-        address tokenOutAddress,
-        uint256 marketFeeAmount,
-        uint256 oceanFeeAmount
+        address tokenOutAddress
     );
 
     event TokenCollected(
@@ -159,13 +152,10 @@ contract Dispenser {
             baseToken != dataToken,
             "FixedRateExchange: Invalid datatoken,  equals basetoken"
         );
-        // require(
-        //     fixedRate != 0,
-        //     "FixedRateExchange: Invalid exchange rate value"
-        // );
+      
         exchangeId = generateExchangeId(baseToken, dataToken, owner);
         require(
-            exchanges[exchangeId].fixedRate == 0,
+            exchanges[exchangeId].active == false,
             "FixedRateExchange: Exchange already exists!"
         );
         // TODO: used for testing fixed price = 0, see if remove it or not
@@ -181,12 +171,7 @@ contract Dispenser {
             dtDecimals: _dtDecimals,
             btDecimals: _btDecimals,
             dtBalance: 0,
-            btBalance: 0,
-            marketFee: marketFee,
-            marketFeeCollector: marketFeeCollector,
-            opfFee: opfFee,
-            marketFeeAvailable: 0,
-            oceanFeeAvailable: 0
+            btBalance: 0
         });
 
         exchangeIds.push(exchangeId);
@@ -228,36 +213,11 @@ contract Dispenser {
         view
         onlyActiveExchange(exchangeId)
         returns (
-            uint256 baseTokenAmount,
-            uint256 baseTokenAmountBeforeFee,
-            uint256 oceanFeeAmount,
-            uint256 marketFeeAmount
+            uint256 baseTokenAmount
         )
     {
-        baseTokenAmountBeforeFee = dataTokenAmount
-            .mul(exchanges[exchangeId].fixedRate)
-            .div(BASE)
-            .mul(10**exchanges[exchangeId].btDecimals)
-            .div(10**exchanges[exchangeId].dtDecimals);
+        baseTokenAmount = 0;
 
-      
-        oceanFeeAmount;
-        if (exchanges[exchangeId].opfFee != 0) {
-            oceanFeeAmount = baseTokenAmountBeforeFee
-                .mul(exchanges[exchangeId].opfFee)
-                .div(BASE);
-        }
-        console.log(oceanFeeAmount, "oceanFeeAmount");
-        marketFeeAmount = baseTokenAmountBeforeFee
-            .mul(exchanges[exchangeId].marketFee)
-            .div(BASE);
-
-        console.log(marketFeeAmount, "marketFeeAmount");
-        baseTokenAmount = baseTokenAmountBeforeFee.add(marketFeeAmount).add(
-            oceanFeeAmount
-        );
-        console.log(baseTokenAmount, "basetokenamount");
-        console.log(baseTokenAmountBeforeFee, "basetokenamount before fee");
     }
 
     /**
@@ -271,37 +231,13 @@ contract Dispenser {
         view
         onlyActiveExchange(exchangeId)
         returns (
-            uint256 baseTokenAmount,
-            uint256 baseTokenAmountBeforeFee,
-            uint256 oceanFeeAmount,
-            uint256 marketFeeAmount
+            uint256 baseTokenAmount
         )
     {
-        baseTokenAmountBeforeFee = dataTokenAmount
-            .mul(exchanges[exchangeId].fixedRate)
-            .div(BASE)
-            .mul(10**exchanges[exchangeId].btDecimals)
-            .div(10**exchanges[exchangeId].dtDecimals);
+        baseTokenAmount= 0;
 
        
-        oceanFeeAmount;
-        if (exchanges[exchangeId].opfFee != 0) {
-            oceanFeeAmount = baseTokenAmountBeforeFee
-                .mul(exchanges[exchangeId].opfFee)
-                .div(BASE);
-        }
-        console.log(oceanFeeAmount, "oceanfeeamount");
-        marketFeeAmount = baseTokenAmountBeforeFee
-            .mul(exchanges[exchangeId].marketFee)
-            .div(BASE);
-
-        console.log(marketFeeAmount, "marketFeeAmount");
-        baseTokenAmount = baseTokenAmountBeforeFee.sub(marketFeeAmount).sub(
-            oceanFeeAmount
-        );
-        console.log(baseTokenAmount, "basetokenamount");
-        console.log(baseTokenAmountBeforeFee, "basetokenamount before fee");
-        //console.log(baseTokenAmount, "baseAmount solidity");
+     
     }
 
     /**
@@ -318,32 +254,12 @@ contract Dispenser {
             dataTokenAmount != 0,
             "FixedRateExchange: zero data token amount"
         );
-        (
-            uint256 baseTokenAmount,
-            uint256 baseTokenAmountBeforeFee,
-            uint256 oceanFeeAmount,
-            uint256 marketFeeAmount
-        ) = calcBaseInGivenOutDT(exchangeId, dataTokenAmount);
+        
+        uint256 baseTokenAmount = 0;
 
-        // we account fees , fees are always collected in basetoken
-        exchanges[exchangeId].oceanFeeAvailable = exchanges[exchangeId]
-            .oceanFeeAvailable
-            .add(oceanFeeAmount);
-        exchanges[exchangeId].marketFeeAvailable = exchanges[exchangeId]
-            .marketFeeAvailable
-            .add(marketFeeAmount);
-        require(
-            IERC20Template(exchanges[exchangeId].baseToken).transferFrom(
-                msg.sender,
-                address(this), // we send basetoken to this address, then exchange owner can withdraw
-                baseTokenAmount
-            ),
-            "FixedRateExchange: transferFrom failed in the baseToken contract"
-        );
+    
 
-        exchanges[exchangeId].btBalance = (exchanges[exchangeId].btBalance).add(
-            baseTokenAmountBeforeFee
-        );
+        exchanges[exchangeId].btBalance = 0;
 
         if (dataTokenAmount > exchanges[exchangeId].dtBalance) {
             require(
@@ -368,9 +284,7 @@ contract Dispenser {
             msg.sender,
             baseTokenAmount,
             dataTokenAmount,
-            exchanges[exchangeId].dataToken,
-            marketFeeAmount,
-            oceanFeeAmount
+            exchanges[exchangeId].dataToken
         );
     }
 
@@ -388,20 +302,10 @@ contract Dispenser {
             dataTokenAmount != 0,
             "FixedRateExchange: zero data token amount"
         );
-        (
-            uint256 baseTokenAmount,
-            uint256 baseTokenAmountBeforeFee,
-            uint256 oceanFeeAmount,
-            uint256 marketFeeAmount
-        ) = calcBaseOutGivenInDT(exchangeId, dataTokenAmount);
+        
+        uint256 baseTokenAmount = 0;
 
-        // we account fees , fees are always collected in basetoken
-        exchanges[exchangeId].oceanFeeAvailable = exchanges[exchangeId]
-            .oceanFeeAvailable
-            .add(oceanFeeAmount);
-        exchanges[exchangeId].marketFeeAvailable = exchanges[exchangeId]
-            .marketFeeAvailable
-            .add(marketFeeAmount);
+       
         require(
             IERC20Template(exchanges[exchangeId].dataToken).transferFrom(
                 msg.sender,
@@ -415,53 +319,35 @@ contract Dispenser {
             dataTokenAmount
         );
 
-        if (baseTokenAmount > exchanges[exchangeId].btBalance) {
-            require(
-                IERC20Template(exchanges[exchangeId].baseToken).transferFrom(
-                    exchanges[exchangeId].exchangeOwner,
-                    msg.sender,
-                    baseTokenAmount
-                ),
-                "FixedRateExchange: transferFrom failed in the baseToken contract"
-            );
-        } else {
-            exchanges[exchangeId].btBalance = (exchanges[exchangeId].btBalance)
-                .sub(baseTokenAmountBeforeFee);
-            IERC20Template(exchanges[exchangeId].baseToken).transfer(
-                msg.sender,
-                baseTokenAmount
-            );
-        }
+     
 
         emit Swapped(
             exchangeId,
             msg.sender,
             baseTokenAmount,
             dataTokenAmount,
-            exchanges[exchangeId].baseToken,
-            marketFeeAmount,
-            oceanFeeAmount
+            exchanges[exchangeId].baseToken
         );
     }
 
-    function collectBT(bytes32 exchangeId)
-        external
-        onlyExchangeOwner(exchangeId)
-    {
-        uint256 amount = exchanges[exchangeId].btBalance;
-        exchanges[exchangeId].btBalance = 0;
-        IERC20Template(exchanges[exchangeId].baseToken).transfer(
-            exchanges[exchangeId].exchangeOwner,
-            amount
-        );
+    // function collectBT(bytes32 exchangeId)
+    //     external
+    //     onlyExchangeOwner(exchangeId)
+    // {
+    //     uint256 amount = exchanges[exchangeId].btBalance;
+    //     exchanges[exchangeId].btBalance = 0;
+    //     IERC20Template(exchanges[exchangeId].baseToken).transfer(
+    //         exchanges[exchangeId].exchangeOwner,
+    //         amount
+    //     );
 
-        emit TokenCollected(
-            exchangeId,
-            exchanges[exchangeId].exchangeOwner,
-            exchanges[exchangeId].baseToken,
-            amount
-        );
-    }
+    //     emit TokenCollected(
+    //         exchangeId,
+    //         exchanges[exchangeId].exchangeOwner,
+    //         exchanges[exchangeId].baseToken,
+    //         amount
+    //     );
+    // }
 
     function collectDT(bytes32 exchangeId)
         external
@@ -482,46 +368,46 @@ contract Dispenser {
         );
     }
 
-    function collectMarketFee(bytes32 exchangeId) external {
-        // TODO: should we limit access to this function?
-        uint256 amount = exchanges[exchangeId].marketFeeAvailable;
-        exchanges[exchangeId].marketFeeAvailable = 0;
-        IERC20Template(exchanges[exchangeId].baseToken).transfer(
-            exchanges[exchangeId].marketFeeCollector,
-            amount
-        );
-        emit MarketFeeCollected(
-            exchangeId,
-            exchanges[exchangeId].baseToken,
-            amount
-        );
-    }
+    // function collectMarketFee(bytes32 exchangeId) external {
+    //     // TODO: should we limit access to this function?
+    //     uint256 amount = exchanges[exchangeId].marketFeeAvailable;
+    //     exchanges[exchangeId].marketFeeAvailable = 0;
+    //     IERC20Template(exchanges[exchangeId].baseToken).transfer(
+    //         exchanges[exchangeId].marketFeeCollector,
+    //         amount
+    //     );
+    //     emit MarketFeeCollected(
+    //         exchangeId,
+    //         exchanges[exchangeId].baseToken,
+    //         amount
+    //     );
+    // }
 
-    function collectOceanFee(bytes32 exchangeId) external {
-        // TODO:should we limit access to this function?
-        uint256 amount = exchanges[exchangeId].oceanFeeAvailable;
-        exchanges[exchangeId].oceanFeeAvailable = 0;
-        IERC20Template(exchanges[exchangeId].baseToken).transfer(
-            opfCollector,
-            amount
-        );
-        emit OceanFeeCollected(
-            exchangeId,
-            exchanges[exchangeId].baseToken,
-            amount
-        );
-    }
+    // function collectOceanFee(bytes32 exchangeId) external {
+    //     // TODO:should we limit access to this function?
+    //     uint256 amount = exchanges[exchangeId].oceanFeeAvailable;
+    //     exchanges[exchangeId].oceanFeeAvailable = 0;
+    //     IERC20Template(exchanges[exchangeId].baseToken).transfer(
+    //         opfCollector,
+    //         amount
+    //     );
+    //     emit OceanFeeCollected(
+    //         exchangeId,
+    //         exchanges[exchangeId].baseToken,
+    //         amount
+    //     );
+    // }
 
-    function updateMarketFeeCollector(
-        bytes32 exchangeId,
-        address _newMarketCollector
-    ) external {
-        require(
-            msg.sender == exchanges[exchangeId].marketFeeCollector,
-            "not marketFeeCollector"
-        );
-        exchanges[exchangeId].marketFeeCollector = _newMarketCollector;
-    }
+    // function updateMarketFeeCollector(
+    //     bytes32 exchangeId,
+    //     address _newMarketCollector
+    // ) external {
+    //     require(
+    //         msg.sender == exchanges[exchangeId].marketFeeCollector,
+    //         "not marketFeeCollector"
+    //     );
+    //     exchanges[exchangeId].marketFeeCollector = _newMarketCollector;
+    // }
 
     /**
      * @dev getNumberOfExchanges
@@ -532,21 +418,21 @@ contract Dispenser {
         return exchangeIds.length;
     }
 
-    /**
-     * @dev setRate
-     *      changes the fixed rate for an exchange with a new rate
-     * @param exchangeId a unique exchange idnetifier
-     * @param newRate new fixed rate value
-     */
-    function setRate(bytes32 exchangeId, uint256 newRate)
-        external
-        onlyExchangeOwner(exchangeId)
-    {
-        require(newRate != 0, "FixedRateExchange: Ratio must be >0");
+    // /**
+    //  * @dev setRate
+    //  *      changes the fixed rate for an exchange with a new rate
+    //  * @param exchangeId a unique exchange idnetifier
+    //  * @param newRate new fixed rate value
+    //  */
+    // function setRate(bytes32 exchangeId, uint256 newRate)
+    //     external
+    //     onlyExchangeOwner(exchangeId)
+    // {
+    //     require(newRate != 0, "FixedRateExchange: Ratio must be >0");
 
-        exchanges[exchangeId].fixedRate = newRate;
-        emit ExchangeRateChanged(exchangeId, msg.sender, newRate);
-    }
+    //     exchanges[exchangeId].fixedRate = newRate;
+    //     emit ExchangeRateChanged(exchangeId, msg.sender, newRate);
+    // }
 
     /**
      * @dev toggleExchangeState
@@ -664,24 +550,24 @@ contract Dispenser {
         btBalance = exchange.btBalance;
     }
 
-    function getFeesInfo(bytes32 exchangeId)
-        external
-        view
-        returns (
-            uint256 marketFee,
-            address marketFeeCollector,
-            uint256 opfFee,
-            uint256 marketFeeAvailable,
-            uint256 oceanFeeAvailable
-        )
-    {
-        Exchange memory exchange = exchanges[exchangeId];
-        marketFee = exchange.marketFee;
-        marketFeeCollector = exchange.marketFeeCollector;
-        opfFee = exchange.opfFee;
-        marketFeeAvailable = exchange.marketFeeAvailable;
-        oceanFeeAvailable = exchange.oceanFeeAvailable;
-    }
+    // function getFeesInfo(bytes32 exchangeId)
+    //     external
+    //     view
+    //     returns (
+    //         uint256 marketFee,
+    //         address marketFeeCollector,
+    //         uint256 opfFee,
+    //         uint256 marketFeeAvailable,
+    //         uint256 oceanFeeAvailable
+    //     )
+    // {
+    //     Exchange memory exchange = exchanges[exchangeId];
+    //     marketFee = exchange.marketFee;
+    //     marketFeeCollector = exchange.marketFeeCollector;
+    //     opfFee = exchange.opfFee;
+    //     marketFeeAvailable = exchange.marketFeeAvailable;
+    //     oceanFeeAvailable = exchange.oceanFeeAvailable;
+    // }
 
     /**
      * @dev getExchanges

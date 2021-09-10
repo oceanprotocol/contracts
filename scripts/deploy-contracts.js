@@ -88,7 +88,7 @@ async function main() {
     if(logging) console.info("Deploying V4 contracts")
      // v4 contracts
     const FixedPriceExchange = await ethers.getContractFactory(
-      "Dispenser"
+      "FixedRateExchange"
     );
 
     const ERC721Template = await ethers.getContractFactory("ERC721Template");
@@ -153,6 +153,7 @@ async function main() {
     addresses.v4.Router = router.address
     addresses.v4.FixedPrice = fixedPriceExchange.address
     addresses.v4.Staking = ssPool.address
+    addresses.v4.poolTemplate = poolTemplate.address
     
     // if (!vaultAddress) {
     //   // WE DEPLOY THE FRIENDLY FORK (BALANCER V1)
