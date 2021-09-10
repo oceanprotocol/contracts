@@ -20,24 +20,24 @@
     </h1>
     <div class='clearfix'>
       <div class='fl pad1y space-right2'>
-        <span class="strong">66.07% </span>
+        <span class="strong">54.46% </span>
         <span class="quiet">Statements</span>
-        <span class='fraction'>74/112</span>
+        <span class='fraction'>61/112</span>
       </div>
       <div class='fl pad1y space-right2'>
-        <span class="strong">42.11% </span>
+        <span class="strong">36.84% </span>
         <span class="quiet">Branches</span>
-        <span class='fraction'>32/76</span>
+        <span class='fraction'>28/76</span>
       </div>
       <div class='fl pad1y space-right2'>
-        <span class="strong">57.89% </span>
+        <span class="strong">52.63% </span>
         <span class="quiet">Functions</span>
-        <span class='fraction'>11/19</span>
+        <span class='fraction'>10/19</span>
       </div>
       <div class='fl pad1y space-right2'>
-        <span class="strong">79.79% </span>
+        <span class="strong">65.96% </span>
         <span class="quiet">Lines</span>
-        <span class='fraction'>75/94</span>
+        <span class='fraction'>62/94</span>
       </div>
     </div>
   </div>
@@ -498,7 +498,7 @@
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-yes">18×</span>
+<span class="cline-any cline-yes">21×</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -640,8 +640,8 @@
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-yes">2×</span>
-<span class="cline-any cline-yes">2×</span>
+<span class="cline-any cline-yes">1×</span>
+<span class="cline-any cline-yes">1×</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -793,7 +793,7 @@
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-yes">1×</span>
+<span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -801,10 +801,10 @@
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-yes">1×</span>
+<span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-yes">1×</span>
-<span class="cline-any cline-yes">1×</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -813,21 +813,21 @@
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-yes">1×</span>
+<span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-yes">1×</span>
-<span class="cline-any cline-yes">1×</span>
-<span class="cline-any cline-yes">1×</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-yes">1×</span>
-<span class="cline-any cline-yes">1×</span>
-<span class="cline-any cline-yes">1×</span>
-<span class="cline-any cline-yes">1×</span>
-<span class="cline-any cline-yes">1×</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -1186,8 +1186,8 @@ contract ssFixedRate {
    
 &nbsp;
     // called by vester to get datatokens
-    function getVesting(address datatokenAddress) public {
-        <span class="missing-if-branch" title="else path not taken" >E</span>require(
+<span class="fstat-no" title="function not covered" >    function getVesting(address datatokenAddress) public {</span>
+<span class="cstat-no" title="statement not covered" >        require(</span>
             _datatokens[datatokenAddress].bound == true,
             "ERR:Invalid datatoken"
         );
@@ -1195,10 +1195,10 @@ contract ssFixedRate {
         // require(msg.sender == _datatokens[datatokenAddress].publisherAddress,'ERR: Only publisher can call this');
 &nbsp;
         //calculate how many tokens we need to vest to publisher&lt;&lt;
-        uint256 blocksPassed;
+<span class="cstat-no" title="statement not covered" >        uint256 blocksPassed;</span>
 &nbsp;
-        <span class="missing-if-branch" title="else path not taken" >E</span>if (_datatokens[datatokenAddress].vestingEndBlock &lt; block.number) {
-            blocksPassed =
+<span class="cstat-no" title="statement not covered" >        if (_datatokens[datatokenAddress].vestingEndBlock &lt; block.number) {</span>
+<span class="cstat-no" title="statement not covered" >            blocksPassed =</span>
                 _datatokens[datatokenAddress].vestingEndBlock -
                 _datatokens[datatokenAddress].vestingLastBlock;
         } else {
@@ -1207,21 +1207,21 @@ contract ssFixedRate {
                 _datatokens[datatokenAddress].vestingLastBlock;
         }
 &nbsp;
-        uint256 vestPerBlock = _datatokens[datatokenAddress].vestingAmount.div(
+<span class="cstat-no" title="statement not covered" >        uint256 vestPerBlock = _datatokens[datatokenAddress].vestingAmount.div(</span>
             _datatokens[datatokenAddress].vestingEndBlock -
                 _datatokens[datatokenAddress].blockDeployed
         );
-        <span class="missing-if-branch" title="if path not taken" >I</span>if (vestPerBlock == 0) <span class="cstat-no" title="statement not covered" >return;</span>
-        uint256 amount = blocksPassed.mul(vestPerBlock);
-        <span class="missing-if-branch" title="else path not taken" >E</span>if (
+<span class="cstat-no" title="statement not covered" >        if (vestPerBlock == 0) <span class="cstat-no" title="statement not covered" >return;</span></span>
+<span class="cstat-no" title="statement not covered" >        uint256 amount = blocksPassed.mul(vestPerBlock);</span>
+<span class="cstat-no" title="statement not covered" >        if (</span>
             amount &gt; 0 &amp;&amp;
             _datatokens[datatokenAddress].datatokenBalance &gt;= amount
         ) {
-            IERC20Template dt = IERC20Template(datatokenAddress);
-            _datatokens[datatokenAddress].vestingLastBlock = block.number;
-            dt.transfer(_datatokens[datatokenAddress].publisherAddress, amount);
-            _datatokens[datatokenAddress].datatokenBalance -= amount;
-            _datatokens[datatokenAddress].vestingAmountSoFar += amount;
+<span class="cstat-no" title="statement not covered" >            IERC20Template dt = IERC20Template(datatokenAddress);</span>
+<span class="cstat-no" title="statement not covered" >            _datatokens[datatokenAddress].vestingLastBlock = block.number</span>;
+<span class="cstat-no" title="statement not covered" >            dt.transfer(_datatokens[datatokenAddress].publisherAddress, amount)</span>;
+<span class="cstat-no" title="statement not covered" >            _datatokens[datatokenAddress].datatokenBalance -= amount</span>;
+<span class="cstat-no" title="statement not covered" >            _datatokens[datatokenAddress].vestingAmountSoFar += amount</span>;
         }
     }
 }
@@ -1231,7 +1231,7 @@ contract ssFixedRate {
 </div><!-- /wrapper -->
 <div class='footer quiet pad2 space-top1 center small'>
   Code coverage
-  generated by <a href="http://istanbul-js.org/" target="_blank">istanbul</a> at Thu Sep 09 2021 06:59:42 GMT-0500 (Colombia Standard Time)
+  generated by <a href="http://istanbul-js.org/" target="_blank">istanbul</a> at Fri Sep 10 2021 15:33:53 GMT-0500 (Colombia Standard Time)
 </div>
 </div>
 <script src="../../../prettify.js"></script>
