@@ -8,14 +8,13 @@ import "@openzeppelin/contracts/utils/math/SafeMath.sol";
 import "hardhat/console.sol";
 
 /**
- * @title FixedRateExchange
- * @dev FixedRateExchange is a fixed rate exchange Contract
- *      Marketplaces uses this contract to allow consumers
- *      exchanging datatokens with ocean token using a fixed
- *      exchange rate.
+ * @title FixedRateExchange CONTRACT modified to be used as a Dispenser (rate = 0 and no base token transfer)
+ * @dev Dispenser is a fixed rate exchange Contract with rate = 0
+ *     
  */
 
 
+// TODO: add maximum number of DT per user or per transaction, in any case set a limit.
 
 contract Dispenser {
     using SafeMath for uint256;
@@ -28,12 +27,9 @@ contract Dispenser {
         bool active;
         address exchangeOwner;
         address dataToken;
-        address baseToken;
         uint256 fixedRate;
         uint8 dtDecimals;
-        uint8 btDecimals;
         uint256 dtBalance;
-        uint256 btBalance;
     }
 
     // maps an exchangeId to an exchange
@@ -44,7 +40,7 @@ contract Dispenser {
         require(
             //exchanges[exchangeId].fixedRate != 0 &&
                 exchanges[exchangeId].active == true,
-            "FixedRateExchange: Exchange does not exist!"
+            "Dispenser: Exchange does not exist!"
         );
         _;
     }
@@ -52,29 +48,23 @@ contract Dispenser {
     modifier onlyExchangeOwner(bytes32 exchangeId) {
         require(
             exchanges[exchangeId].exchangeOwner == msg.sender,
-            "FixedRateExchange: invalid exchange owner"
+            "Dispenser: invalid exchange owner"
         );
         _;
     }
 
     modifier onlyRouter() {
-        require(msg.sender == router, "FixedRateExchange: only router");
+        require(msg.sender == router, "Dispenser: only router");
         _;
     }
 
     event ExchangeCreated(
         bytes32 indexed exchangeId,
-        address indexed baseToken,
         address indexed dataToken,
         address exchangeOwner,
         uint256 fixedRate
     );
 
-    event ExchangeRateChanged(
-        bytes32 indexed exchangeId,
-        address indexed exchangeOwner,
-        uint256 newRate
-    );
 
     event ExchangeActivated(
         bytes32 indexed exchangeId,
@@ -86,11 +76,17 @@ contract Dispenser {
         address indexed exchangeOwner
     );
 
-    event Swapped(
+    event TokenDispensed(
         bytes32 indexed exchangeId,
         address indexed by,
         uint256 dataTokenSwappedAmount
     );
+    
+    event TokenDevolution(
+        bytes32 indexed exchangeId,
+        address indexed by,
+        uint256 dataTokenSwappedAmount);
+
 
     event TokenCollected(
         bytes32 indexed exchangeId,
@@ -99,20 +95,11 @@ contract Dispenser {
         uint256 amount
     );
 
-    event OceanFeeCollected(
-        bytes32 indexed exchangeId,
-        address indexed feeToken,
-        uint256 feeAmount
-    );
-    event MarketFeeCollected(
-        bytes32 indexed exchangeId,
-        address indexed feeToken,
-        uint256 feeAmount
-    );
+
 
     constructor(address _router, address _opfCollector) {
-        require(_router != address(0), "FixedRateExchange: Wrong Router address");
-        require(_opfCollector != address(0), "FixedRateExchange: Wrong OPF address");
+        require(_router != address(0), "Dispenser: Wrong Router address");
+        require(_opfCollector != address(0), "Dispenser: Wrong OPF address");
         router = _router;
         opfCollector = _opfCollector;
     }
@@ -140,43 +127,39 @@ contract Dispenser {
     ) external onlyRouter returns (bytes32 exchangeId) {
         require(
             baseToken != address(0),
-            "FixedRateExchange: Invalid basetoken,  zero address"
+            "Dispenser: BASETOKEN NOT REQUIRED"
         );
         require(
             dataToken != address(0),
-            "FixedRateExchange: Invalid datatoken,  zero address"
+            "Dispenser: Invalid datatoken,  zero address"
         );
         require(
             baseToken != dataToken,
-            "FixedRateExchange: Invalid datatoken,  equals basetoken"
+            "Dispenser: Invalid datatoken,  equals basetoken"
         );
       
-        exchangeId = generateExchangeId(baseToken, dataToken, owner);
+        exchangeId = generateExchangeId(dataToken, owner);
         require(
             exchanges[exchangeId].active == false,
-            "FixedRateExchange: Exchange already exists!"
+            "Dispenser: Exchange already exists!"
         );
-        // TODO: used for testing fixed price = 0, see if remove it or not
-        if(fixedRate == 0){
-            opfFee=0;
-        }
+        // // TODO: used for testing fixed price = 0, see if remove it or not
+        // if(fixedRate == 0){
+        //     opfFee=0;
+        // }
         exchanges[exchangeId] = Exchange({
             active: true,
             exchangeOwner: owner,
             dataToken: dataToken,
-            baseToken: baseToken,
             fixedRate: fixedRate,
             dtDecimals: _dtDecimals,
-            btDecimals: _btDecimals,
-            dtBalance: 0,
-            btBalance: 0
+            dtBalance: 0
         });
 
         exchangeIds.push(exchangeId);
 
         emit ExchangeCreated(
             exchangeId,
-            baseToken,
             dataToken,
             owner,
             fixedRate
@@ -188,16 +171,14 @@ contract Dispenser {
     /**
      * @dev generateExchangeId
      *      creates unique exchange identifier for two token pairs.
-     * @param baseToken refers to a ocean token contract address
      * @param dataToken refers to a data token contract address
      * @param exchangeOwner exchange owner address
      */
     function generateExchangeId(
-        address baseToken,
         address dataToken,
         address exchangeOwner
     ) public pure returns (bytes32) {
-        return keccak256(abi.encode(baseToken, dataToken, exchangeOwner));
+        return keccak256(abi.encode(dataToken, exchangeOwner));
     }
 
    
@@ -215,13 +196,9 @@ contract Dispenser {
     {
         require(
             dataTokenAmount != 0,
-            "FixedRateExchange: zero data token amount"
+            "Dispenser: zero data token amount"
         );
-    
-
-    
-
-        exchanges[exchangeId].btBalance = 0;
+        //require(dataTokenAmount < 10**20); // 100 tokens
 
         if (dataTokenAmount > exchanges[exchangeId].dtBalance) {
             require(
@@ -230,7 +207,7 @@ contract Dispenser {
                     msg.sender,
                     dataTokenAmount
                 ),
-                "FixedRateExchange: transferFrom failed in the dataToken contract"
+                "Dispenser: transferFrom failed in the dataToken contract"
             );
         } else {
             exchanges[exchangeId].dtBalance = (exchanges[exchangeId].dtBalance)
@@ -241,7 +218,7 @@ contract Dispenser {
             );
         }
 
-        emit Swapped(
+        emit TokenDispensed(
             exchangeId,
             msg.sender,
             dataTokenAmount
@@ -260,7 +237,7 @@ contract Dispenser {
     {
         require(
             dataTokenAmount != 0,
-            "FixedRateExchange: zero data token amount"
+            "Dispenser: zero data token amount"
         );
         
 
@@ -271,7 +248,7 @@ contract Dispenser {
                 address(this),
                 dataTokenAmount
             ),
-            "FixedRateExchange: transferFrom failed in the dataToken contract"
+            "Dispenser: transferFrom failed in the dataToken contract"
         );
 
         exchanges[exchangeId].dtBalance = (exchanges[exchangeId].dtBalance).add(
@@ -280,7 +257,7 @@ contract Dispenser {
 
      
 
-        emit Swapped(
+        emit TokenDevolution(
             exchangeId,
             msg.sender,
             dataTokenAmount
@@ -388,8 +365,6 @@ contract Dispenser {
             address exchangeOwner,
             address dataToken,
             uint8 dtDecimals,
-            address baseToken,
-            uint8 btDecimals,
             uint256 fixedRate,
             bool active,
             uint256 dtSupply,
@@ -400,31 +375,12 @@ contract Dispenser {
         exchangeOwner = exchange.exchangeOwner;
         dataToken = exchange.dataToken;
         dtDecimals = exchange.dtDecimals;
-        baseToken = exchange.baseToken;
-        btDecimals = exchange.btDecimals;
         fixedRate = exchange.fixedRate;
         active = exchange.active;
         dtSupply = getDTSupply(exchangeId);
         dtBalance = exchange.dtBalance;
     }
-    // function getFeesInfo(bytes32 exchangeId)
-    //     external
-    //     view
-    //     returns (
-    //         uint256 marketFee,
-    //         address marketFeeCollector,
-    //         uint256 opfFee,
-    //         uint256 marketFeeAvailable,
-    //         uint256 oceanFeeAvailable
-    //     )
-    // {
-    //     Exchange memory exchange = exchanges[exchangeId];
-    //     marketFee = exchange.marketFee;
-    //     marketFeeCollector = exchange.marketFeeCollector;
-    //     opfFee = exchange.opfFee;
-    //     marketFeeAvailable = exchange.marketFeeAvailable;
-    //     oceanFeeAvailable = exchange.oceanFeeAvailable;
-    // }
+  
 
     /**
      * @dev getExchanges

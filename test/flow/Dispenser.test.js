@@ -19,7 +19,7 @@ describe("Dispenser", () => {
   let alice, // DT Owner and exchange Owner
     exchangeOwner,
     bob, // BaseToken Holder
-    fixedRateExchange,
+    dispenser,
     rate,
     MockERC20,
     metadata,
@@ -52,7 +52,7 @@ describe("Dispenser", () => {
 
   before("init contracts for each test", async () => {
     MockERC20 = await ethers.getContractFactory("MockERC20Decimals");
-    const FixedRateExchange = await ethers.getContractFactory(
+    const Dispenser = await ethers.getContractFactory(
       "Dispenser"
     );
 
@@ -101,7 +101,7 @@ describe("Dispenser", () => {
     ssFixedRate = await SSContract.deploy(router.address);
 
 
-    fixedRateExchange = await FixedRateExchange.deploy(
+    dispenser = await Dispenser.deploy(
       router.address,
       opfCollector.address
     );
@@ -126,7 +126,7 @@ describe("Dispenser", () => {
 
     await router.addFactory(factoryERC721.address);
 
-    await router.addFixedRateContract(fixedRateExchange.address);
+    await router.addFixedRateContract(dispenser.address);
 
     await router.addSSContract(ssFixedRate.address)
     
@@ -191,19 +191,19 @@ describe("Dispenser", () => {
     });
 
     it("#2 - create exchange", async () => {
-      rate = 0;
-      rateX = 0; // used to check balances
+      rate = 0
 
+      // interface has not been modified to be compatible with router etc. if this is going to stay, will update that to be more flexible
       receipt = await (
         await mockDT18
           .connect(alice)
           .createFixedRate(
-            usdcAddress,
-            6,
+            usdcAddress, // could be any, not used.
+            6, // same thing
             rate,
             alice.address,
-            marketFee,
-            marketFeeCollector.address
+            marketFee, //same thing
+            marketFeeCollector.address // same thing
           )
       ).wait(); // from exchangeOwner (alice)
 
@@ -213,31 +213,31 @@ describe("Dispenser", () => {
     });
 
     it("#3 - exchange is active", async () => {
-      const isActive = await fixedRateExchange.isActive(
+      const isActive = await dispenser.isActive(
         eventsExchange[0].args.exchangeId
       );
       assert(isActive === true, "Exchange was not activated correctly!");
     });
 
     it("#4 - should check that the exchange has no supply yet", async () => {
-      const exchangeDetails = await fixedRateExchange.getExchange(
+      const exchangeDetails = await dispenser.getExchange(
         eventsExchange[0].args.exchangeId
       );
       expect(exchangeDetails.dtSupply).to.equal(0);
     });
 
-    it("#5 - alice and bob approve contracts to spend tokens", async () => {
+    it("#5 - alice approves Dispenser to spend tokens", async () => {
       // alice approves how many DT tokens wants to sell
       // we only approve an exact amount
       await mockDT18
         .connect(alice)
-        .approve(fixedRateExchange.address, amountDTtoSell);
+        .approve(dispenser.address, amountDTtoSell);
 
     });
 
-    it("#6 - should check that the exchange has supply and fees setup ", async () => {
+    it("#6 - should check that the exchange has supply ", async () => {
       // NOW dtSupply has increased (because alice(exchangeOwner) approved DT). Bob approval has no effect on this
-      const exchangeDetails = await fixedRateExchange.getExchange(
+      const exchangeDetails = await dispenser.getExchange(
         eventsExchange[0].args.exchangeId
       );
       expect(exchangeDetails.dtSupply).to.equal(amountDTtoSell);
@@ -246,27 +246,27 @@ describe("Dispenser", () => {
     });
 
     it("#7 - should get the exchange rate, which is ZERO", async () => {
-      console.log((await fixedRateExchange.getRate(eventsExchange[0].args.exchangeId)
+      console.log((await dispenser.getRate(eventsExchange[0].args.exchangeId)
       ).toString())
 
-      expect(await fixedRateExchange.getRate(eventsExchange[0].args.exchangeId)).to.equal(0)
+      expect(await dispenser.getRate(eventsExchange[0].args.exchangeId)).to.equal(0)
       
     });
 
-    it("#8 - Bob should buy ALL DataTokens available(amount exchangeOwner approved) using the fixed rate exchange contract", async () => {
+    it("#8 - Bob should get ALL DataTokens available(amount exchangeOwner approved) using the fixed rate exchange contract", async () => {
       const dtBobBalanceBeforeSwap = await mockDT18.balanceOf(bob.address);
       expect(dtBobBalanceBeforeSwap).to.equal(0); // BOB HAS NO DT
       
 
-      // BOB is going to buy all DT availables
+      // BOB is going to take all DT availables
       amountDT = amountDTtoSell;
       const receipt = await (
-        await fixedRateExchange
+        await dispenser
           .connect(bob)
           .buyDT(eventsExchange[0].args.exchangeId, amountDT)
       ).wait();
 
-      const SwappedEvent = receipt.events.filter((e) => e.event === "Swapped");
+      const SwappedEvent = receipt.events.filter((e) => e.event === "TokenDispensed");
 
       const args = SwappedEvent[0].args;
    
@@ -279,7 +279,7 @@ describe("Dispenser", () => {
 
 
       // BT are into the FixedRate contract.
-      const exchangeDetails = await fixedRateExchange.getExchange(
+      const exchangeDetails = await dispenser.getExchange(
         eventsExchange[0].args.exchangeId
       );
       
@@ -300,18 +300,18 @@ describe("Dispenser", () => {
       // BOB approves FixedRate to move his DTs
       await mockDT18
         .connect(bob)
-        .approve(fixedRateExchange.address, dtBobBalanceBeforeSwap);
+        .approve(dispenser.address, dtBobBalanceBeforeSwap);
 
       // BOB is going to sell all DTs available
       amountDT = dtBobBalanceBeforeSwap;
 
       const receipt = await (
-        await fixedRateExchange
+        await dispenser
           .connect(bob)
           .sellDT(eventsExchange[0].args.exchangeId, amountDT)
       ).wait();
 
-      const SwappedEvent = receipt.events.filter((e) => e.event === "Swapped");
+      const SwappedEvent = receipt.events.filter((e) => e.event === "TokenDevolution");
       const args = SwappedEvent[0].args;
 
      
@@ -320,8 +320,8 @@ describe("Dispenser", () => {
       expect(await mockDT18.balanceOf(bob.address)).to.equal(0);
   
 
-      // BT are into the FixedRate contract.
-      const exchangeDetails = await fixedRateExchange.getExchange(
+      
+      const exchangeDetails = await dispenser.getExchange(
         eventsExchange[0].args.exchangeId
       );
 
@@ -338,8 +338,8 @@ describe("Dispenser", () => {
      
     });
 
-    it("#10 - Bob changes his mind and buys back 20% of DataTokens available", async () => {
-      const exchangeDetailsBefore = await fixedRateExchange.getExchange(
+    it("#10 - Bob changes his mind and devolves back 20% of DataTokens available", async () => {
+      const exchangeDetailsBefore = await dispenser.getExchange(
         eventsExchange[0].args.exchangeId
       );
 
@@ -352,12 +352,12 @@ describe("Dispenser", () => {
       // BOB is going to buy20% of  all DT availables
       amountDT = web3.utils.toWei("2000");
       const receipt = await (
-        await fixedRateExchange
+        await dispenser
           .connect(bob)
           .buyDT(eventsExchange[0].args.exchangeId, amountDT)
       ).wait();
 
-      const SwappedEvent = receipt.events.filter((e) => e.event === "Swapped");
+      const SwappedEvent = receipt.events.filter((e) => e.event === "TokenDispensed");
       const args = SwappedEvent[0].args;
 
      
@@ -370,8 +370,8 @@ describe("Dispenser", () => {
 
      
 
-      // BT are into the FixedRate contract.
-      const exchangeDetailsAfter = await fixedRateExchange.getExchange(
+
+      const exchangeDetailsAfter = await dispenser.getExchange(
         eventsExchange[0].args.exchangeId
       );
 
@@ -395,8 +395,8 @@ describe("Dispenser", () => {
     });
 
 
-    it("#12 - Bob buys back all DT left (80%) of DataTokens available", async () => {
-      const exchangeDetailsBefore = await fixedRateExchange.getExchange(
+    it("#12 - Bob get back all DT left (80%) of DataTokens available", async () => {
+      const exchangeDetailsBefore = await dispenser.getExchange(
         eventsExchange[0].args.exchangeId
       );
 
@@ -408,12 +408,12 @@ describe("Dispenser", () => {
       // BOB is going to buy 80% of  all DT availables
       amountDT = web3.utils.toWei("8000");
       const receipt = await (
-        await fixedRateExchange
+        await dispenser
           .connect(bob)
           .buyDT(eventsExchange[0].args.exchangeId, amountDT)
       ).wait();
 
-      const SwappedEvent = receipt.events.filter((e) => e.event === "Swapped");
+      const SwappedEvent = receipt.events.filter((e) => e.event === "TokenDispensed");
 
       const args = SwappedEvent[0].args;
      
@@ -426,12 +426,12 @@ describe("Dispenser", () => {
   
 
       // BT are into the FixedRate contract.
-      const exchangeDetailsAfter = await fixedRateExchange.getExchange(
+      const exchangeDetailsAfter = await dispenser.getExchange(
         eventsExchange[0].args.exchangeId
       );
 
    
-      // Bob bought 20% of  DT on sale so now dtSupply decreased
+      // Bob got 20% of  DTs so now dtSupply decreased
       expect(exchangeDetailsAfter.dtSupply).to.equal(
         exchangeDetailsBefore.dtSupply.sub(
           SwappedEvent[0].args.dataTokenSwappedAmount
@@ -450,7 +450,7 @@ describe("Dispenser", () => {
 
 
     it("#14 - Bob attermps to buy more DT but fails, then alice approves more and he succeeds", async () => {
-      const exchangeDetailsBefore = await fixedRateExchange.getExchange(
+      const exchangeDetailsBefore = await dispenser.getExchange(
         eventsExchange[0].args.exchangeId
       );
 
@@ -464,7 +464,7 @@ describe("Dispenser", () => {
       expect(exchangeDetailsBefore.dtSupply).to.equal(0);
 
       await expectRevert(
-        fixedRateExchange
+        dispenser
           .connect(bob)
           .buyDT(eventsExchange[0].args.exchangeId, amountDT),
         "ERC20: transfer amount exceeds allowance"
@@ -474,21 +474,21 @@ describe("Dispenser", () => {
 
       await mockDT18
         .connect(alice)
-        .approve(fixedRateExchange.address, amountDT);
+        .approve(dispenser.address, amountDT);
 
       expect(
-        (await fixedRateExchange.getExchange(eventsExchange[0].args.exchangeId))
+        (await dispenser.getExchange(eventsExchange[0].args.exchangeId))
           .dtSupply
       ).to.equal(amountDT);
 
-      // Now bob can buy
+      // Now bob can get more
       const receipt = await (
-        await fixedRateExchange
+        await dispenser
           .connect(bob)
           .buyDT(eventsExchange[0].args.exchangeId, amountDT)
       ).wait();
 
-      const SwappedEvent = receipt.events.filter((e) => e.event === "Swapped");
+      const SwappedEvent = receipt.events.filter((e) => e.event === "TokenDispensed");
       const args = SwappedEvent[0].args;
       
 
@@ -500,14 +500,12 @@ describe("Dispenser", () => {
 
     
 
-      // BT are into the FixedRate contract.
-      const exchangeDetailsAfter = await fixedRateExchange.getExchange(
+      const exchangeDetailsAfter = await dispenser.getExchange(
         eventsExchange[0].args.exchangeId
       );
 
-    
-
-      // Bob bought again all DT on sale so now dtSupply is 0
+  
+      // Bob got again alls DT on sale so now dtSupply is 0
       expect(exchangeDetailsAfter.dtSupply).to.equal(0);
 
     
@@ -515,8 +513,8 @@ describe("Dispenser", () => {
       expect(exchangeDetailsAfter.dtBalance).to.equal(0);
     });
 
-    it("#15 - Bob sells again some of his DataTokens", async () => {
-      const exchangeDetailsBefore = await fixedRateExchange.getExchange(
+    it("#15 - Bob devolves again some of his DataTokens", async () => {
+      const exchangeDetailsBefore = await dispenser.getExchange(
         eventsExchange[0].args.exchangeId
       );
 
@@ -526,36 +524,35 @@ describe("Dispenser", () => {
      
 
       amountDT = web3.utils.toWei("2000");
-      // BOB approves FixedRate to move his DTs
-      await mockDT18.connect(bob).approve(fixedRateExchange.address, amountDT);
+      // BOB approves Dispenser to move his DTs
+      await mockDT18.connect(bob).approve(dispenser.address, amountDT);
 
       // BOB is going to sell all DTs available
 
       const receipt = await (
-        await fixedRateExchange
+        await dispenser
           .connect(bob)
           .sellDT(eventsExchange[0].args.exchangeId, amountDT)
       ).wait();
 
-      const SwappedEvent = receipt.events.filter((e) => e.event === "Swapped");
+      const SwappedEvent = receipt.events.filter((e) => e.event === "TokenDevolution");
       const args = SwappedEvent[0].args;
 
     
 
-      // BOB's DTbalance is zero, and BT increased as expected
       expect(await mockDT18.balanceOf(bob.address)).to.equal(
         dtBobBalanceBeforeSwap.sub(SwappedEvent[0].args.dataTokenSwappedAmount)
       );
     
 
-      // BT are into the FixedRate contract.
-      const exchangeDetails = await fixedRateExchange.getExchange(
+      
+      const exchangeDetails = await dispenser.getExchange(
         eventsExchange[0].args.exchangeId
       );
 
      
 
-      // Bob sold some of his DTs so now dtSupply increased
+      // Bob devolved some of his DTs so now dtSupply increased
       expect(exchangeDetails.dtSupply).to.equal(
         exchangeDetailsBefore.dtSupply.add(
           SwappedEvent[0].args.dataTokenSwappedAmount
