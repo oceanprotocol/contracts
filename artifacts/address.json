@@ -96,5 +96,13 @@
     "Ocean": "0xdce07662ca8ebc241316a15b611c89711414dd1a",
     "chainId": 56,
     "startBlock": 8114772
+  },
+  "catenaxtestnet": {
+    "DTFactory": "0x2112Eb973af1DBf83a4f11eda82f7a7527D7Fde5",
+    "BFactory": "0x3C5605202eD47C162450AE975415473e73F93072",
+    "FixedRateExchange": "0x30E4CC2C7A9c6aA2b2Ce93586E3Df24a3A00bcDD",
+    "Metadata": "0xDEfD0018969cd2d4E648209F876ADe184815f038",
+    "Dispenser": "0x9C9eE07b8Ce907D2f9244F8317C1Ed29A3193bAe",
+    "Ocean": "0xf26c6C93f9f1d725e149d95f8E7B2334a406aD10"
   }
 }

@@ -33,6 +33,10 @@ module.exports = function(deployer, network, accounts) {
                 communityCollector = '0x2112Eb973af1DBf83a4f11eda82f7a7527D7Fde5'
                 OPFOwner = '0x2112Eb973af1DBf83a4f11eda82f7a7527D7Fde5'
                 break
+            case 'catenaxtestnet':
+                communityCollector = '0x06100AB868206861a4D7936166A91668c2Ce1312'
+                OPFOwner = '0x06100AB868206861a4D7936166A91668c2Ce1312'
+                break
             case 'mumbai':
                 communityCollector = '0x06100AB868206861a4D7936166A91668c2Ce1312'
                 OPFOwner = '0x06100AB868206861a4D7936166A91668c2Ce1312'
@@ -106,6 +110,9 @@ module.exports = function(deployer, network, accounts) {
                 break
             case 'gaiaxtestnet':
                 addresses.Ocean = '0x80E63f73cAc60c1662f27D2DFd2EA834acddBaa8'
+                break
+            case 'catenaxtestnet':
+                addresses.Ocean = '0xf26c6C93f9f1d725e149d95f8E7B2334a406aD10'
                 break
             case 'mumbai':
                 addresses.Ocean = '0xd8992Ed72C445c35Cb4A2be468568Ed1079357c8'
