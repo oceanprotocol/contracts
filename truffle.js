@@ -155,7 +155,16 @@ module.exports = {
             networkCheckTimeout: 400000000,
             from: '0xC7EC1970B09224B317c52d92f37F5e1E4fF6B687',
             gasPrice: utils.toWei('5', 'gwei')
+        },
+        catenaxtestnet: {
+            provider: () => setupWallet('YOUR_RPC_PROVIDER'),
+            network_id: 2021001, // 4
+            gas: 6666666,
+            networkCheckTimeout: 400000000,
+            from: '0xC7EC1970B09224B317c52d92f37F5e1E4fF6B687',
+            gasPrice: utils.toWei('5', 'gwei')
         }
+
     },
     plugins: ['solidity-coverage'],
     // Set default mocha options here, use special reporters etc.
