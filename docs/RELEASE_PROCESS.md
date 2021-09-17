@@ -7,12 +7,12 @@ Releases are managed manually. They are always manually triggered from a develop
 - Create a new local feature branch, e.g. `git checkout -b release/v0.2.5`
 - Generate artifacts:
 ```bash
-yarn compile
+npm run compile
 cp ./build/contracts/* ./artifacts/
 ```
 - Update contracts documentation
 ```bash
-yarn doc:generate
+npm run doc:generate
 git add .
 git commit -m 'prepare for a new release'
 ```
@@ -24,13 +24,7 @@ git commit -m 'prepare for a new release'
   - To bump the major version: `./bumpversion.sh major`
   - Example: if we're on version `v0.2.4` and new version is `v0.2.5`, then run `./bumpversion.sh patch`
 
-- Run:
-```bash
-# Update the version in package-lock.json
-yarn
-```
-
-- Install [auto-changelog](https://github.com/CookPete/auto-changelog, if not done prior: `yarn global add auto-changelog`
+- Install [auto-changelog](https://github.com/CookPete/auto-changelog, if not done prior: `npm install -g auto-changelog`
 - Update the changelog: `auto-changelog -v v0.2.5`
 
 - Commit the missing changes to the feature branch. **Important**: these steps will trigger publishing the release in travis!

@@ -1,6 +1,6 @@
 {
   "name": "@oceanprotocol/contracts",
-  "version": "0.6.5",
+  "version": "0.6.7",
   "description": "Ocean Protocol L1 - DataTokens",
   "bugs": {
     "url": "https://github.com/oceanprotocol/contracts/issues"
@@ -93,13 +93,14 @@
     "solidity-docgen": "^0.5.7",
     "solium": "^1.2.5",
     "solium-plugin-security": "^0.1.1",
-    "web3": "^1.2.9",
+    "web3": "^1.5.2",
     "web3-provider-engine": "~15.0.12"
   },
   "dependencies": {
-    "@truffle/contract": "^4.3.19",
-    "@truffle/hdwallet-provider": "^1.4.0",
-    "truffle": "^5.3.9",
-    "truffle-assertions": "^0.9.2"
+    "@truffle/contract": "^4.3.34",
+    "@truffle/hdwallet-provider": "^1.5.0",
+    "truffle": "^5.4.10",
+    "truffle-assertions": "^0.9.2",
+    "websocket": "^1.0.34"
   }
 }
