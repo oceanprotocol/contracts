@@ -112,6 +112,12 @@ module.exports = {
             gas: 7 * 1000000,
             gasPrice: utils.toWei('8', 'gwei')
         },
+        aurora: {
+            provider: () => setupWallet('https://testnet.aurora.dev'),
+            network_id: 0x4e454153,
+            gas: 10000000,
+            from: '0xC7EC1970B09224B317c52d92f37F5e1E4fF6B687'
+        },
         // pacific the ethereum mainnet
         pacific: {
             provider: () => setupWallet('https://pacific.oceanprotocol.com'),

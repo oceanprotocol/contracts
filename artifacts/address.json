@@ -58,6 +58,15 @@
     "chainId": 1287,
     "startBlock": 281770
   },
+  "aurora": {
+    "DTFactory": "0x079B62430541aa87EF5657FC6C5D8992B21131F8",
+    "BFactory": "0x0b65Df3b271A047a09AD4e03D9FA3d2774a02f91",
+    "FixedRateExchange": "0xa0c5bE6E58706Fc3b6Aeb069FeAad93d0184D296",
+    "Metadata": "0x1ed19511194ba3886EdC573CBfdc3028f27a958F",
+    "Dispenser": "0xa12E1a09373534EeFc49BBEd46E0059658b1D0bD",
+    "chainId": 1313161555,
+    "startBlock": 0
+  },
   "undefined": {
     "DTFactory": "0xC54b688d81b6B3bab9834D9D7afd8655641EEdA7",
     "BFactory": "0x082DD8b8A6eD335364739004280bD4eF41cB6Bd9",
