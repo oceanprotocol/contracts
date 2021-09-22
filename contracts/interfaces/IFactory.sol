@@ -1,5 +1,5 @@
 pragma solidity >=0.5.7;
-
+pragma experimental ABIEncoderV2;
 interface IFactory {
     function initialize(
         string calldata _name,
@@ -46,14 +46,13 @@ interface IFactory {
     function approveMinter() external;
 
     function createToken(
-        string calldata name,
-        string calldata symbol,
-        uint256 cap,
-        //  address erc721address,
         uint256 _templateIndex,
-        address minter,
-        address feeManager
+        string[] calldata strings,
+        address[] calldata addresses,
+        uint256[] calldata uints,
+        bytes[] calldata bytess
     ) external returns (address token);
+    
 
     function addToERC721Registry(address ERC721address) external;
 

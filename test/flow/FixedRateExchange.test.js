@@ -215,13 +215,11 @@ describe("FixedRateExchange", () => {
     let amountDTtoSell = web3.utils.toWei("10000"); // exact amount so that we can check if balances works
     marketFee = 1e15;
     it("#1 - user3 (alice) create a new erc20DT, assigning herself as minter", async () => {
-      const trxERC20 = await tokenERC721.connect(user3).createERC20(
-        "ERC20DT1",
-        "ERC20DT1Symbol",
-        cap,
-        1,
-        user3.address, // minter
-        user6.address // feeManager
+      const trxERC20 = await tokenERC721.connect(user3).createERC20(1,
+        ["ERC20DT1","ERC20DT1Symbol"],
+        [user3.address,user6.address, user3.address,'0x0000000000000000000000000000000000000000'],
+        [cap,0],
+        []
       );
       const trxReceiptERC20 = await trxERC20.wait();
       erc20Address = trxReceiptERC20.events[3].args.erc20Address;
@@ -929,13 +927,11 @@ describe("FixedRateExchange", () => {
       amountDTtoSell = web3.utils.toWei("10000"); // exact amount so that we can check if balances works
 
     it("#1 - user3 (alice) create a new erc20DT, assigning herself as minter", async () => {
-      const trxERC20 = await tokenERC721.connect(user3).createERC20(
-        "ERC20DT1",
-        "ERC20DT1Symbol",
-        cap,
-        1,
-        user3.address, // minter
-        user6.address // feeManager
+      const trxERC20 = await tokenERC721.connect(user3).createERC20(1,
+        ["ERC20DT1","ERC20DT1Symbol"],
+        [user3.address,user6.address, user3.address,'0x0000000000000000000000000000000000000000'],
+        [cap,0],
+        []
       );
       const trxReceiptERC20 = await trxERC20.wait();
       erc20Address = trxReceiptERC20.events[3].args.erc20Address;
@@ -1715,13 +1711,11 @@ describe("FixedRateExchange", () => {
     amountDTtoSell = web3.utils.toWei("10000"); // exact amount so that we can check if balances works
 
     it("#1 - user3 (alice) create a new erc20DT, assigning herself as minter", async () => {
-      const trxERC20 = await tokenERC721.connect(user3).createERC20(
-        "ERC20DT1",
-        "ERC20DT1Symbol",
-        cap,
-        1, // templateIndex
-        user3.address, // minter
-        user6.address // feeManager
+      const trxERC20 = await tokenERC721.connect(user3).createERC20(1,
+        ["ERC20DT1","ERC20DT1Symbol"],
+        [user3.address,user6.address, user3.address,'0x0000000000000000000000000000000000000000'],
+        [cap,0],
+        []
       );
       const trxReceiptERC20 = await trxERC20.wait();
       erc20Address = trxReceiptERC20.events[3].args.erc20Address;
@@ -2422,13 +2416,11 @@ describe("FixedRateExchange", () => {
       amountDTtoSell = web3.utils.toWei("10000"); // exact amount so that we can check if balances works
 
     it("#1 - user3 (alice) create a new erc20DT, assigning herself as minter", async () => {
-      const trxERC20 = await tokenERC721.connect(user3).createERC20(
-        "ERC20DT1",
-        "ERC20DT1Symbol",
-        cap,
-        1, // templateIndex
-        user3.address, // minter
-        user6.address // feeManager
+      const trxERC20 = await tokenERC721.connect(user3).createERC20(1,
+        ["ERC20DT1","ERC20DT1Symbol"],
+        [user3.address,user6.address, user3.address,'0x0000000000000000000000000000000000000000'],
+        [cap,0],
+        []
       );
       const trxReceiptERC20 = await trxERC20.wait();
       erc20Address = trxReceiptERC20.events[3].args.erc20Address;
@@ -3126,13 +3118,11 @@ describe("FixedRateExchange", () => {
     let amountDTtoSell = web3.utils.toWei("10000"); // exact amount so that we can check if balances works
 
     it("#1 - user3 (alice) create a new erc20DT, assigning herself as minter", async () => {
-      const trxERC20 = await tokenERC721.connect(user3).createERC20(
-        "ERC20DT1",
-        "ERC20DT1Symbol",
-        cap,
-        1, // templateIndex
-        user3.address, // minter
-        user6.address // feeManager
+      const trxERC20 = await tokenERC721.connect(user3).createERC20(1,
+        ["ERC20DT1","ERC20DT1Symbol"],
+        [user3.address,user6.address, user3.address,'0x0000000000000000000000000000000000000000'],
+        [cap,0],
+        []
       );
       const trxReceiptERC20 = await trxERC20.wait();
       erc20Address = trxReceiptERC20.events[3].args.erc20Address;
@@ -3837,13 +3827,11 @@ describe("FixedRateExchange", () => {
     amountDTtoSell = web3.utils.toWei("10000"); // exact amount so that we can check if balances works
 
     it("#1 - user3 (alice) create a new erc20DT, assigning herself as minter", async () => {
-      const trxERC20 = await tokenERC721.connect(user3).createERC20(
-        "ERC20DT1",
-        "ERC20DT1Symbol",
-        cap,
-        1, // templateIndex
-        user3.address, // minter
-        user6.address // feeManager
+      const trxERC20 = await tokenERC721.connect(user3).createERC20(1,
+        ["ERC20DT1","ERC20DT1Symbol"],
+        [user3.address,user6.address, user3.address,'0x0000000000000000000000000000000000000000'],
+        [cap,0],
+        []
       );
       const trxReceiptERC20 = await trxERC20.wait();
       erc20Address = trxReceiptERC20.events[3].args.erc20Address;

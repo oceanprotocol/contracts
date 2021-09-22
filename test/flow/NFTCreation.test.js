@@ -133,16 +133,12 @@ describe("NFT Creation, roles and erc20 deployments", () => {
   });
 
   it("#3 - user3 deploys a new erc20DT, assigning himself as minter", async () => {
-    const trxERC20 = await tokenERC721
-      .connect(user3)
-      .createERC20(
-        "ERC20DT1",
-        "ERC20DT1Symbol",
-        web3.utils.toWei("10"),
-        1,
-        user3.address, // minter
-        user4.address // feeManager
-      );
+    const trxERC20 = await tokenERC721.connect(user3).createERC20(1,
+      ["ERC20DT1","ERC20DT1Symbol"],
+      [user3.address,user4.address, user3.address,'0x0000000000000000000000000000000000000000'],
+      [web3.utils.toWei("10"),0],
+      []
+    );
     const trxReceiptERC20 = await trxERC20.wait();
     erc20Address = trxReceiptERC20.events[3].args.erc20Address;
 
@@ -159,16 +155,12 @@ describe("NFT Creation, roles and erc20 deployments", () => {
   });
 
   it("#5 - user3 deploys a new erc20DT, assigning user4 as minter", async () => {
-    const trxERC20 = await tokenERC721
-      .connect(user3)
-      .createERC20(
-        "ERC20DT1",
-        "ERC20DT1Symbol",
-        web3.utils.toWei("10"),
-        1,
-        user4.address,// minter
-        user4.address // feeManager
-              );
+    const trxERC20 = await tokenERC721.connect(user3).createERC20(1,
+      ["ERC20DT1","ERC20DT1Symbol"],
+      [user4.address,user4.address, user4.address,'0x0000000000000000000000000000000000000000'],
+      [web3.utils.toWei("10"),0],
+      []
+    );
     const trxReceiptERC20 = await trxERC20.wait();
     erc20Address = trxReceiptERC20.events[3].args.erc20Address;
 
@@ -247,13 +239,11 @@ describe("NFT Creation, roles and erc20 deployments", () => {
     await expectRevert(
       tokenERC721
         .connect(user3)
-        .createERC20(
-          "ERC20DT2",
-          "ERC20DT2Symbol",
-          web3.utils.toWei("10"),
-          1,
-          user2.address,
-          user3.address
+        .createERC20(1,
+          ["ERC20DT2","ERC20DT2Symbol"],
+          [user2.address,user3.address, user2.address,'0x0000000000000000000000000000000000000000'],
+          [web3.utils.toWei("10"),0],
+          []
         ),
       "ERC721Template: NOT ERC20DEPLOYER_ROLE"
     );
@@ -273,17 +263,14 @@ describe("NFT Creation, roles and erc20 deployments", () => {
     assert(
       (await tokenERC721.getPermissions(newOwner.address)).manager == true
     );
-
     await 
       tokenERC721
         .connect(newOwner)
-        .createERC20(
-          "ERC20DT2",
-          "ERC20DT2Symbol",
-          web3.utils.toWei("10"),
-          1,
-          user2.address,
-          user3.address
+        .createERC20(1,
+          ["ERC20DT2","ERC20DT2Symbol"],
+          [user2.address,user3.address, user2.address,'0x0000000000000000000000000000000000000000'],
+          [web3.utils.toWei("10"),0],
+          []
         ),
      
     await erc20Token.connect(newOwner).addMinter(newOwner.address);

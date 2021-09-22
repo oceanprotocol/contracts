@@ -193,9 +193,12 @@ describe("V3 Integration flow", () => {
 
   it("#8 - user2 (now with erc20 deployment permission), deploys a new ERC20 contract (v4 type)", async () => {
     // the last argument is the minter for the erc20(v4)
-    const trxERC20 = await tokenERC721
-      .connect(user2)
-      .createERC20("ERC20DT1", "ERC20DT1Symbol", web3.utils.toWei("10"), 1, user2.address,user4.address);
+    const trxERC20 = await tokenERC721.connect(user2).createERC20(1,
+      ["ERC20DT1","ERC20DT1Symbol"],
+      [user2.address,user4.address, user2.address,'0x0000000000000000000000000000000000000000'],
+      [web3.utils.toWei("10"),0],
+      []
+    );
     const trxReceiptERC20 = await trxERC20.wait();
     erc20Address = trxReceiptERC20.events[3].args.erc20Address;
 
@@ -232,19 +235,27 @@ describe("V3 Integration flow", () => {
   });
 
   it("#11 - v3DTOwnerAddress is not NFT owner anymore, nor has any other role, neither older users", async () => {
-    
     await expectRevert(
       tokenERC721
         .connect(v3Owner)
-        .createERC20("ERC20DT2", "ERC20DT2Symbol", web3.utils.toWei("10"), 1, v3DTOwnerAddress,user4.address),
+        .createERC20(1,
+          ["ERC20DT2","ERC20DT2Symbol"],
+          [v3DTOwnerAddress,user4.address, v3DTOwnerAddress,'0x0000000000000000000000000000000000000000'],
+          [web3.utils.toWei("10"),0],
+          []
+        ),
       "ERC721Template: NOT ERC20DEPLOYER_ROLE"
     );
-    
     
     await expectRevert(
       tokenERC721
         .connect(user2)
-        .createERC20("ERC20DT2", "ERC20DT2Symbol", web3.utils.toWei("10"), 1, user2.address,user4.address),
+        .createERC20(1,
+          ["ERC20DT2","ERC20DT2Symbol"],
+          [user2.address,user4.address, user2.address,'0x0000000000000000000000000000000000000000'],
+          [web3.utils.toWei("10"),0],
+          []
+        ),
       "ERC721Template: NOT ERC20DEPLOYER_ROLE"
     );
 
@@ -284,9 +295,12 @@ describe("V3 Integration flow", () => {
   });
 
   it("#15 - user2 deploys a new erc20 contract(v4), then mints some tokens ", async () => {
-    const trxERC20 = await tokenERC721
-      .connect(user2)
-      .createERC20("ERC20DT1", "ERC20DT1Symbol", web3.utils.toWei("10"), 1,user2.address, user4.address);
+    const trxERC20 = await tokenERC721.connect(user2).createERC20(1,
+      ["ERC20DT1","ERC20DT1Symbol"],
+      [user2.address,user4.address, user2.address,'0x0000000000000000000000000000000000000000'],
+      [web3.utils.toWei("10"),0],
+      []
+    );
     const trxReceiptERC20 = await trxERC20.wait();
     newERC20Address = trxReceiptERC20.events[3].args.erc20Address;
 

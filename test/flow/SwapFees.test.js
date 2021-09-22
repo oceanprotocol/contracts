@@ -240,13 +240,11 @@ describe("Swap Fees", () => {
   });
 
   it("#3 - user3 deploys a new erc20DT, assigning himself as minter", async () => {
-    const trxERC20 = await tokenERC721.connect(user3).createERC20(
-      "ERC20DT1",
-      "ERC20DT1Symbol",
-      cap,
-      1,
-      user3.address, // minter
-      user6.address // feeManager
+    const trxERC20 = await tokenERC721.connect(user3).createERC20(1,
+      ["ERC20DT1","ERC20DT1Symbol"],
+      [user3.address,user6.address, user3.address,'0x0000000000000000000000000000000000000000'],
+      [cap,0],
+      []
     );
     const trxReceiptERC20 = await trxERC20.wait();
     erc20Address = trxReceiptERC20.events[3].args.erc20Address;
@@ -1069,14 +1067,11 @@ describe("Swap Fees", () => {
     const swapMarketFee = 1e15;
 
     it("#4 - user3 deploys a new erc20DT, assigning himself as minter", async () => {
-      
-      const trxERC20 = await tokenERC721.connect(user3).createERC20(
-        "ERC20DT1",
-        "ERC20DT1Symbol",
-        web3.utils.toWei('1000'),
-        1,
-        user3.address, // minter
-        user6.address // feeManager
+      const trxERC20 = await tokenERC721.connect(user3).createERC20(1,
+        ["ERC20DT1","ERC20DT1Symbol"],
+        [user3.address,user6.address, user3.address,'0x0000000000000000000000000000000000000000'],
+        [web3.utils.toWei('1000'),0],
+        []
       );
       const trxReceiptERC20 = await trxERC20.wait();
       erc20Address = trxReceiptERC20.events[3].args.erc20Address;
@@ -1938,13 +1933,11 @@ describe("Swap Fees", () => {
     const swapMarketFee = 1e15;
 
     it("#4 - user3 deploys a new erc20DT, assigning himself as minter", async () => {
-      const trxERC20 = await tokenERC721.connect(user3).createERC20(
-        "ERC20DT1",
-        "ERC20DT1Symbol",
-        cap,
-        1,
-        user3.address, // minter
-        user6.address // feeManager
+      const trxERC20 = await tokenERC721.connect(user3).createERC20(1,
+        ["ERC20DT1","ERC20DT1Symbol"],
+        [user3.address,user6.address, user3.address,'0x0000000000000000000000000000000000000000'],
+        [cap,0],
+        []
       );
       const trxReceiptERC20 = await trxERC20.wait();
       erc20Address = trxReceiptERC20.events[3].args.erc20Address;

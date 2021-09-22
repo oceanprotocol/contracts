@@ -180,29 +180,40 @@ contract ERC721Template is
         setData(METADATA_KEY, data);
     }
 
+
+
+
+
     /**
      * @dev createERC20
      *        ONLY user with deployERC20 permission (assigned by Manager) can call it
              Creates a new ERC20 datatoken.
             It also adds initial minting and fee management permissions to custom users.
 
-    * @param name_ token name
-    * @param symbol_ token symbol
-    * @param cap the maximum total supply
-    * @param templateIndex template index to deploy
-    * @param minter minter address to be set as initial minter 
-    * @param feeManager feeManager address to be set as initial feeManager (can set who gets the DT consumed)
+     * @param _templateIndex ERC20Template index 
+     * @param strings refers to an array of strings
+     *                      [0] = name
+     *                      [1] = symbol
+     * @param addresses refers to an array of addresses
+     *                     [0]  = minter account who can mint datatokens (can have multiple minters)
+     *                     [1]  = feeManager initial feeManager for this DT
+     *                     [2]  = publishing Market Address
+     *                     [3]  = publishing Market Fee Token
+     * @param uints  refers to an array of uints
+     *                     [0] = cap_ the total ERC20 cap
+     *                     [1] = publishing Market Fee Amount
+     * @param bytess  refers to an array of bytes
+     *                     Currently not used, usefull for future templates
      
      @return ERC20 token address
      */
 
     function createERC20(
-        string calldata name_,
-        string calldata symbol_,
-        uint256 cap,
-        uint256 templateIndex,
-        address minter,
-        address feeManager
+        uint256 _templateIndex,
+        string[] calldata strings,
+        address[] calldata addresses,
+        uint256[] calldata uints,
+        bytes[] calldata bytess
     ) external returns (address) {
         require(
             permissions[msg.sender].deployERC20 == true,
@@ -210,12 +221,11 @@ contract ERC721Template is
         );
 
         address token = IFactory(_tokenFactory).createToken(
-            name_,
-            symbol_,
-            cap,
-            templateIndex,
-            minter,
-            feeManager
+            _templateIndex,
+            strings,
+            addresses,
+            uints,
+            bytess
         );
 
         deployedERC20[token] = true;
