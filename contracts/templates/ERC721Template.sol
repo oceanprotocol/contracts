@@ -85,8 +85,9 @@ contract ERC721Template is
     /**
      * @dev _initialize
      *      Calls private _initialize function. Only if contract is not initialized.
-             This function mints an NFT (tokenId=1) to the owner, creates Metadata for Aqua(emit event on the Metadata contract) 
-             and add owner as Manager Role (Roles admin)
+     *       This function mints an NFT (tokenId=1) to the owner,
+     *       creates Metadata for Aqua(emit event on the Metadata contract) 
+     *       and add owner as Manager Role (Roles admin)
      * @param owner NFT Owner
      * @param name_ NFT name
      * @param symbol_ NFT Symbol
@@ -295,7 +296,8 @@ contract ERC721Template is
      *
      *
      * @param _operation the operation to execute: CALL = 0; DELEGATECALL = 1; CREATE2 = 2; CREATE = 3;
-     * @param _to the smart contract or address to interact with. `_to` will be unused if a contract is created (operation 2 and 3)
+     * @param _to the smart contract or address to interact with. 
+     *          `_to` will be unused if a contract is created (operation 2 and 3)
      * @param _value the value of ETH to transfer
      * @param _data the call data, or the contract data to deploy
     **/
@@ -352,8 +354,9 @@ contract ERC721Template is
        /**
      * @dev setDataV3
      *      ONLY v3Minter role can call it
-            This function allows to store data with a preset key (keccak256(ERC20Address)) into NFT 725 Store, same as setDataERC20 but for v3 DT
-            The DT we'd like to update metadata has to be already wrapped
+     *      This function allows to store data with a preset key (keccak256(ERC20Address))
+     *      into NFT 725 Store, same as setDataERC20 but for v3 DT
+     *      The DT we'd like to update metadata has to be already wrapped
      * @param datatoken datatoken addresss
      * @param _value data to store at the above key
      * @param flags flags for Aquarius
@@ -373,7 +376,9 @@ contract ERC721Template is
         );
         _checkV3DT(datatoken);
 
-        bytes32 key = keccak256(abi.encodePacked(address(datatoken))); // could be any other key, used a simple configuration
+        // could be any other key, used a simple configuration
+        bytes32 key = keccak256(abi.encodePacked(address(datatoken))); 
+
         setData(key, _value); // into the new standard 725Y
         IMetadata(_metadata).update(datatoken, flags, data); // Metadata standard for Aqua (V4 Metadata)
        
@@ -382,9 +387,10 @@ contract ERC721Template is
     /**
      * @dev cleanPermissions
      *      Only NFT Owner  can call it.
-     *      This function allows to remove all ROLES at erc721 level: Managers, ERC20Deployer, MetadataUpdater, StoreUpdater
+     *      This function allows to remove all ROLES at erc721 level: 
+     *              Managers, ERC20Deployer, MetadataUpdater, StoreUpdater
      *      Permissions at erc20 level stay.
-            Even NFT Owner has to readd himself as Manager
+     *       Even NFT Owner has to readd himself as Manager
      */
     
     function cleanPermissions() external onlyNFTOwner {
@@ -394,10 +400,11 @@ contract ERC721Template is
     // // V3 MIGRATION
      /**
      * @dev wrapV3DT
-            Requires to call proposeMinter BEFORE, the proposed minter MUST be the NFT contract address
+     *      Requires to call proposeMinter BEFORE, the proposed minter MUST be the NFT contract address
      *      Only NFT Owner can call it.
      *      This function 'wraps' any v3 datatoken, NFTOwner has to be the actual minter(v3) 
-            After wrapping, the minter() in the v3 datatoken is going to be this contract. To mint new tokens we now need to use mintV3DT
+     *      After wrapping, the minter() in the v3 datatoken is going to be this contract.
+     *      To mint new tokens we now need to use mintV3DT
      * @param datatoken datatoken address we want to wrap
      * @param newMinter new minter address after wrapping
      */

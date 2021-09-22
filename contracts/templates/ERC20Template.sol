@@ -349,7 +349,9 @@ contract ERC20Template is ERC20("test", "testSymbol"), ERC20Roles {
             ),'Failed to transfer publishMarketFee');
             communityFeePublish = publishMarketFeeAmount.div(100); //hardcode 1% goes to OPF
             //send publishMarketFee
-            require(IERC20(publishMarketFeeToken).transfer(publishMarketFeeAddress,publishMarketFeeAmount.sub(communityFeePublish)), 'Failed to transfer fee to publishMarketFeeAddress');
+            require(IERC20(publishMarketFeeToken)
+            .transfer(publishMarketFeeAddress,publishMarketFeeAmount.sub(communityFeePublish))
+            , 'Failed to transfer fee to publishMarketFeeAddress');
         }
 
         // consumeFees
@@ -363,20 +365,26 @@ contract ERC20Template is ERC20("test", "testSymbol"), ERC20Roles {
             ),'Failed to transfer consumeFee');
             communityFeeConsume = consumeFeeAmount.div(100); //hardcode 1% goes to OPF
             //send consumeFee
-            require(IERC20(consumeFeeToken).transfer(consumeFeeAddress,consumeFeeAmount.sub(communityFeeConsume)), 'Failed to transfer fee to consumeFeeAddress');
+            require(IERC20(consumeFeeToken)
+            .transfer(consumeFeeAddress,consumeFeeAmount.sub(communityFeeConsume))
+            , 'Failed to transfer fee to consumeFeeAddress');
         }
         //send fees to OPF
         if(communityFeePublish>0 && communityFeeConsume>0 && consumeFeeToken == publishMarketFeeToken){
             //since both fees are in the same token, have just one transaction for both, to save gas
-            require(IERC20(consumeFeeToken).transfer(_communityFeeCollector,communityFeePublish.sub(communityFeeConsume)), 'Failed to transfer both fees to OPF');
+            require(IERC20(consumeFeeToken)
+            .transfer(_communityFeeCollector,communityFeePublish.sub(communityFeeConsume))
+            , 'Failed to transfer both fees to OPF');
         }
         else{
             //we need to do them one by one
             if(communityFeePublish>0 && publishMarketFeeToken!=address(0)){
-                require(IERC20(publishMarketFeeToken).transfer(_communityFeeCollector,communityFeePublish), 'Failed to transfer publish fees to OPF');
+                require(IERC20(publishMarketFeeToken)
+                .transfer(_communityFeeCollector,communityFeePublish), 'Failed to transfer publish fees to OPF');
             }
             if(communityFeeConsume>0 && consumeFeeToken!=address(0)){
-                require(IERC20(consumeFeeToken).transfer(_communityFeeCollector,communityFeeConsume), 'Failed to transfer consume fee to OPF');
+                require(IERC20(consumeFeeToken)
+                .transfer(_communityFeeCollector,communityFeeConsume), 'Failed to transfer consume fee to OPF');
             }
         }
         // send datatoken to publisher
@@ -467,7 +475,8 @@ contract ERC20Template is ERC20("test", "testSymbol"), ERC20Roles {
      * @dev cleanFrom721() 
      *      OnlyNFT(721) Contract can call it.
      *      This function allows to remove all minters, feeManagers and reset the feeCollector
-            This function is used when transferring an NFT to a new owner, so that permissions at ERC20level (minter,feeManager,feeCollector) can be reset.
+     *       This function is used when transferring an NFT to a new owner,
+     * so that permissions at ERC20level (minter,feeManager,feeCollector) can be reset.
      *      
      */
     function cleanFrom721() external {
@@ -514,7 +523,10 @@ contract ERC20Template is ERC20("test", "testSymbol"), ERC20Roles {
      * @param _publishMarketFeeToken new _publishMarketFeeToken
      * @param _publishMarketFeeAmount new fee amount
      */
-    function setPublishingMarketFee(address _publishMarketFeeAddress, address _publishMarketFeeToken, uint256 _publishMarketFeeAmount) external onlyPublishingMarketFeeAddress {
+    function setPublishingMarketFee(
+        address _publishMarketFeeAddress, 
+        address _publishMarketFeeToken, 
+        uint256 _publishMarketFeeAmount) external onlyPublishingMarketFeeAddress {
         publishMarketFeeAddress = _publishMarketFeeAddress;
         publishMarketFeeToken =  _publishMarketFeeToken;
         publishMarketFeeAmount = _publishMarketFeeAmount;

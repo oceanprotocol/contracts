@@ -86,6 +86,8 @@ interface IERC20Template {
     ) external returns (bytes32 exchangeId);
 
     function getPublishingMarketFee() external view returns (address , address, uint256);
-    function setPublishingMarketFee(address _publishMarketFeeAddress, address _publishMarketFeeToken, uint256 _publishMarketFeeAmount) external;
+    function setPublishingMarketFee(
+        address _publishMarketFeeAddress, address _publishMarketFeeToken, uint256 _publishMarketFeeAmount
+    ) external;
   
 }
