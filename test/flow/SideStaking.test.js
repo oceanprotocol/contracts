@@ -58,7 +58,6 @@ describe("1SS flow", () => {
     const ERC721Factory = await ethers.getContractFactory("ERC721Factory");
    
 
-    const Metadata = await ethers.getContractFactory("Metadata");
     const Router = await ethers.getContractFactory("FactoryRouter");
     const SSContract = await ethers.getContractFactory("ssFixedRate");
     const BPool = await ethers.getContractFactory("BPool");
@@ -140,7 +139,6 @@ describe("1SS flow", () => {
   
     templateERC20 = await ERC20Template.deploy();
 
-    metadata = await Metadata.deploy();
     
     // SETUP ERC721 Factory with template
     templateERC721 = await ERC721Template.deploy();
@@ -148,11 +146,10 @@ describe("1SS flow", () => {
       templateERC721.address,
       templateERC20.address,
       communityFeeCollector,
-      router.address,
-      metadata.address
+      router.address
     );
 
-    await metadata.addTokenFactory(factoryERC721.address)
+    
     // SET REQUIRED ADDRESS
     await router.addFactory(factoryERC721.address);
       
@@ -167,13 +164,11 @@ describe("1SS flow", () => {
     const tx = await factoryERC721.deployERC721Contract(
       "NFT",
       "NFTSYMBOL",
-      data,
-      flags,
       1
     );
     const txReceipt = await tx.wait();
 
-    tokenAddress = txReceipt.events[4].args[0];
+    tokenAddress = txReceipt.events[2].args[0];
     tokenERC721 = await ethers.getContractAt("ERC721Template", tokenAddress);
 
     assert((await tokenERC721.balanceOf(owner.address)) == 1);

@@ -55,7 +55,6 @@ describe("ERC721Factory", () => {
     const ERC721Factory = await ethers.getContractFactory("ERC721Factory");
     const MockErc20 = await ethers.getContractFactory('MockERC20');
     const MockErc20Decimals = await ethers.getContractFactory('MockERC20Decimals');
-    const Metadata = await ethers.getContractFactory("Metadata");
     const Router = await ethers.getContractFactory("FactoryRouter");
     const SSContract = await ethers.getContractFactory("ssFixedRate");
     const BPool = await ethers.getContractFactory("BPool");
@@ -95,8 +94,7 @@ describe("ERC721Factory", () => {
  
    templateERC20 = await ERC20Template.deploy();
  
-   metadata = await Metadata.deploy();
- 
+   
    // SETUP ERC721 Factory with template
    templateERC721 = await ERC721Template.deploy();
    newERC721Template = await ERC721Template.deploy();
@@ -105,13 +103,10 @@ describe("ERC721Factory", () => {
      templateERC721.address,
      templateERC20.address,
      opfCollector.address,
-     router.address,
-     metadata.address
+     router.address
    );
  
    // SET REQUIRED ADDRESS
- 
-   await metadata.addTokenFactory(factoryERC721.address);
  
    await router.addFactory(factoryERC721.address);
  
@@ -124,13 +119,11 @@ describe("ERC721Factory", () => {
     const tx = await factoryERC721.deployERC721Contract(
       "NFT",
       "NFTSYMBOL",
-      data,
-      flags,
       1
     );
     const txReceipt = await tx.wait();
 
-    tokenAddress = txReceipt.events[4].args[0];
+    tokenAddress = txReceipt.events[2].args[0];
     tokenERC721 = await ethers.getContractAt("ERC721Template", tokenAddress);
 
     assert((await tokenERC721.balanceOf(owner.address)) == 1);
@@ -176,13 +169,11 @@ describe("ERC721Factory", () => {
     const tx = await factoryERC721.deployERC721Contract(
       "DT1",
       "DTSYMBOL",
-      data,
-      flags,
       1
     );
     const txReceipt = await tx.wait();
 
-    tokenAddress = txReceipt.events[4].args[0];
+    tokenAddress = txReceipt.events[2].args[0];
     tokenERC721 = await ethers.getContractAt("ERC721Template", tokenAddress);
     symbol = await tokenERC721.symbol();
     name = await tokenERC721.name();
@@ -197,28 +188,26 @@ describe("ERC721Factory", () => {
     const tx = await factoryERC721.deployERC721Contract(
       "DT1",
       "DTSYMBOL",
-      data,
-      flags,
       1
     );
     const txReceipt = await tx.wait();
-    tokenAddress = txReceipt.events[4].args[0];
+    tokenAddress = txReceipt.events[2].args[0];
 
-    assert(txReceipt.events[4].event == "NFTCreated");
-    assert(txReceipt.events[4].args[1] == templateERC721.address);
-    assert(txReceipt.events[4].args[3] == owner.address);
+    assert(txReceipt.events[2].event == "NFTCreated");
+    assert(txReceipt.events[2].args[1] == templateERC721.address);
+    assert(txReceipt.events[2].args[3] == owner.address);
   });
 
   it("#deployERC721Contract - should fail to deploy a new erc721 contract if template index doesn't exist", async () => {
     await expectRevert(
-      factoryERC721.deployERC721Contract("DT1", "DTSYMBOL", data, flags, 7),
+      factoryERC721.deployERC721Contract("DT1", "DTSYMBOL", 7),
       "ERC721DTFactory: Template index doesnt exist"
     );
   });
 
   it("#deployERC721Contract - should fail to deploy a new erc721 contract if template index is ZERO", async () => {
     await expectRevert(
-      factoryERC721.deployERC721Contract("DT1", "DTSYMBOL", data, flags, 0),
+      factoryERC721.deployERC721Contract("DT1", "DTSYMBOL", 0),
       "ERC721DTFactory: Template index doesnt exist"
     );
   });
@@ -229,7 +218,7 @@ describe("ERC721Factory", () => {
     await factoryERC721.disable721TokenTemplate(2);
 
     await expectRevert(
-      factoryERC721.deployERC721Contract("DT1", "DTSYMBOL", data, flags, 2),
+      factoryERC721.deployERC721Contract("DT1", "DTSYMBOL",  2),
       "ERC721DTFactory: ERC721Token Template disabled"
     );
   });
@@ -237,7 +226,7 @@ describe("ERC721Factory", () => {
   it("#getCurrentNFTCount - should return token count", async () => {
     assert((await factoryERC721.getCurrentNFTCount()) == 1);
 
-    await factoryERC721.deployERC721Contract("DT1", "DTSYMBOL", data, flags, 1);
+    await factoryERC721.deployERC721Contract("DT1", "DTSYMBOL",  1);
 
     assert((await factoryERC721.getCurrentNFTCount()) == 2);
   });

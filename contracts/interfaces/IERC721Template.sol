@@ -34,7 +34,26 @@ interface IERC721Template is IERC165 {
         address indexed operator,
         bool approved
     );
-
+    event MetadataCreated(
+        address indexed createdBy,
+        uint8 state,
+        string decryptorUrl,
+        bytes flags,
+        bytes data,
+        string metaDataDecryptorAddress,
+        uint256 timestamp,
+        uint256 blockNumber
+    );
+    event MetadataUpdated(
+        address indexed updatedBy,
+        uint8 state,
+        string decryptorUrl,
+        bytes flags,
+        bytes data,
+        string metaDataDecryptorAddress,
+        uint256 timestamp,
+        uint256 blockNumber
+    );
     /**
      * @dev Returns the number of tokens in ``owner``'s account.
      */
@@ -166,10 +185,7 @@ interface IERC721Template is IERC165 {
         address admin,
         string calldata name,
         string calldata symbol,
-        address metadata,
-        address erc20Factory,
-        bytes calldata _data,
-        bytes calldata flags
+        address erc20Factory
     ) external returns (bool);
 
     function hasRole(bytes32 role, address account)
@@ -188,4 +204,8 @@ interface IERC721Template is IERC165 {
     function getPermissions(address user) external returns (Roles memory);
 
     function setDataERC20(bytes32 _key, bytes calldata _value) external;
+    function setMetaData(uint8 _metaDataState, string calldata _metaDataDecryptorUrl
+        , string calldata _metaDataDecryptorAddress, bytes calldata flags, 
+        bytes calldata data) external;
+    function getMetaData() external view returns (string memory, string memory, uint8, bool);
 }

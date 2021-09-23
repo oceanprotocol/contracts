@@ -24,7 +24,6 @@ contract ERC721Factory is Deployer, Ownable {
     address private communityFeeCollector;
     uint256 private currentNFTCount;
     address private erc20Factory;
-    address private metadata;
     uint256 private nftTemplateCount;
 
     struct Template {
@@ -76,27 +75,23 @@ contract ERC721Factory is Deployer, Ownable {
      * @param _template refers to the address of a deployed DataToken contract.
      * @param _collector refers to the community fee collector address
      * @param _router router contract address
-     * @param _metadata metadata contract address
      */
     constructor(
         address _template721,
         address _template,
         address _collector,
-        address _router,
-        address _metadata
+        address _router
     ) {
         require(
             _template != address(0) &&
                 _collector != address(0) &&
-                _template721 != address(0) &&
-                _metadata != address(0),
+                _template721 != address(0),
             "ERC721DTFactory: Invalid template token/community fee collector address"
         );
         add721TokenTemplate(_template721);
         addTokenTemplate(_template);
         router = _router;
         communityFeeCollector = _collector;
-        metadata = _metadata;
     }
 
 
@@ -105,16 +100,12 @@ contract ERC721Factory is Deployer, Ownable {
      *      
      * @param name NFT name
      * @param symbol NFT Symbol
-     * @param _data data used by Aquarius
-     * @param _flags flags used by Aquarius
      * @param _templateIndex template index we want to use
      */
 
     function deployERC721Contract(
         string memory name,
         string memory symbol,
-        bytes memory _data,
-        bytes memory _flags,
         uint256 _templateIndex
     ) public returns (address token) {
         require(
@@ -143,10 +134,7 @@ contract ERC721Factory is Deployer, Ownable {
                 msg.sender,
                 name,
                 symbol,
-                metadata,
-                address(this),
-                _data,
-                _flags
+                address(this)
             ),
             "ERC721DTFactory: Unable to initialize token instance"
         );
@@ -444,7 +432,7 @@ contract ERC721Factory is Deployer, Ownable {
     }
 
     /**
-     * @dev startTokenOrder
+     * @dev startMultipleTokenOrder
      *      Used as a proxy to order multiple services
      *      Users can have inifinite approvals for fees for factory instead of having one approval/ erc20 contract
      *      Requires previous approval of all :

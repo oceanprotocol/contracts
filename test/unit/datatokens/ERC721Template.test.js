@@ -37,6 +37,10 @@ describe("ERC721Template", () => {
   const daiAddress = "0x6B175474E89094C44Da98b954EedeAC495271d0F";
   const usdcAddress = "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48";
 
+  const metaDataDecryptorUrl = 'http://myprovider:8030';
+  const metaDataDecryptorAddress = "0x123";
+  const metaDataState = 1;
+
   const migrateFromV3 = async (v3DTOwner,v3Datatoken) => {
     // WE IMPERSONATE THE ACTUAL v3DT OWNER and create a new ERC721 Contract, from which we are going to wrap the v3 datatoken
     
@@ -45,13 +49,11 @@ describe("ERC721Template", () => {
     const tx = await factoryERC721.connect(signer).deployERC721Contract(
       "NFT2",
       "NFTSYMBOL",
-      data,
-      flags,
       1
     );
     const txReceipt = await tx.wait();
   
-    tokenAddress = txReceipt.events[4].args[0];
+    tokenAddress = txReceipt.events[2].args[0];
     tokenERC721 = await ethers.getContractAt("ERC721Template", tokenAddress);
     assert(await tokenERC721.v3DT(v3Datatoken) == false)
    
@@ -86,7 +88,6 @@ describe("ERC721Template", () => {
     const ERC20Template = await ethers.getContractFactory("ERC20Template");
     const ERC721Factory = await ethers.getContractFactory("ERC721Factory");
 
-    const Metadata = await ethers.getContractFactory("Metadata");
     const Router = await ethers.getContractFactory("FactoryRouter");
     const SSContract = await ethers.getContractFactory("ssFixedRate");
     const BPool = await ethers.getContractFactory("BPool");
@@ -124,7 +125,7 @@ describe("ERC721Template", () => {
  
    templateERC20 = await ERC20Template.deploy();
  
-   metadata = await Metadata.deploy();
+ 
  
    // SETUP ERC721 Factory with template
    templateERC721 = await ERC721Template.deploy();
@@ -132,14 +133,12 @@ describe("ERC721Template", () => {
      templateERC721.address,
      templateERC20.address,
      opfCollector.address,
-     router.address,
-     metadata.address
+     router.address
    );
  
    // SET REQUIRED ADDRESS
  
-   await metadata.addTokenFactory(factoryERC721.address);
- 
+   
    await router.addFactory(factoryERC721.address);
  
    await router.addFixedRateContract(fixedRateExchange.address); 
@@ -150,13 +149,11 @@ describe("ERC721Template", () => {
     const tx = await factoryERC721.deployERC721Contract(
       "NFT",
       "NFTSYMBOL",
-      data,
-      flags,
       1
     );
     const txReceipt = await tx.wait();
 
-    tokenAddress = txReceipt.events[4].args[0];
+    tokenAddress = txReceipt.events[2].args[0];
     tokenERC721 = await ethers.getContractAt("ERC721Template", tokenAddress);
 
     assert((await tokenERC721.balanceOf(owner.address)) == 1);
@@ -196,10 +193,7 @@ describe("ERC721Template", () => {
         owner.address,
         "NewName",
         "NN",
-        metadata.address,
-        factoryERC721.address,
-        data,
-        flags
+        factoryERC721.address
       ),
       "ERC721Template: token instance already initialized"
     );
@@ -212,26 +206,42 @@ describe("ERC721Template", () => {
 
   it("#updateMetadata - should not be allowed to update the metadata if NOT in MetadataList", async () => {
     assert((await tokenERC721.getPermissions(user6.address)).updateMetadata == false)
-
     await expectRevert(
-      tokenERC721.connect(user6).updateMetadata(data, flags),
+      tokenERC721.connect(user6).setMetaData(metaDataState, metaDataDecryptorUrl, metaDataDecryptorAddress, flags, data),
       "ERC721Template: NOT METADATA_ROLE"
     );
   });
 
-  it("#updateMetadata - should update the metadata, after adding address to MetadataList", async () => {
+  it("#updateMetadata - should create & update the metadata, after adding address to MetadataList", async () => {
     assert((await tokenERC721.getPermissions(user6.address)).updateMetadata == false)
     await tokenERC721.addToMetadataList(user6.address);
+    let metadataInfo = await tokenERC721.getMetaData()
+    assert(metadataInfo[3] === false)
 
-    const keyMetadata = web3.utils.keccak256("METADATA_KEY");
-    assert(await tokenERC721.getData(keyMetadata) == data)
+    let tx = await tokenERC721.connect(user6).setMetaData(metaDataState, metaDataDecryptorUrl, metaDataDecryptorAddress, flags, data);
+    let txReceipt = await tx.wait();
+    tokenAddress = txReceipt.events[0].args[0];
 
-    let newData = web3.utils.asciiToHex('SomeNewData');
-    await tokenERC721.connect(user6).updateMetadata(flags, newData);
+    assert(txReceipt.events[0].event == "MetadataCreated");
+    assert(txReceipt.events[0].args[2] == metaDataDecryptorUrl);
     
-    assert(await tokenERC721.getData(keyMetadata) == newData)
+    metadataInfo = await tokenERC721.getMetaData()
+    assert(metadataInfo[3] === true)
+    assert(metadataInfo[0] == metaDataDecryptorUrl);
+
+    const metaDataDecryptorUrl2 = 'http://someurl';
+    tx = await tokenERC721.connect(user6).setMetaData(metaDataState, metaDataDecryptorUrl2, metaDataDecryptorAddress, flags, data);
+    txReceipt = await tx.wait();
+    console.log(txReceipt.events)
+    tokenAddress = txReceipt.events[0].args[0];
+
+    assert(txReceipt.events[0].event == "MetadataUpdated");
+    assert(txReceipt.events[0].args[2] == metaDataDecryptorUrl2);
     
-   
+    metadataInfo = await tokenERC721.getMetaData()
+    assert(metadataInfo[3] === true)
+    assert(metadataInfo[0] == metaDataDecryptorUrl2);
+
   });
 
   it("#createERC20 - should not allow to create a new ERC20Token if NOT in CreateERC20List", async () => {
@@ -474,13 +484,11 @@ describe("ERC721Template", () => {
     const tx = await factoryERC721.connect(signer).deployERC721Contract(
       "NFT2",
       "NFTSYMBOL",
-      data,
-      flags,
       1
     );
     const txReceipt = await tx.wait();
 
-    tokenAddress = txReceipt.events[4].args[0];
+    tokenAddress = txReceipt.events[2].args[0];
     tokenERC721 = await ethers.getContractAt("ERC721Template", tokenAddress);
     symbol = await tokenERC721.symbol();
     name = await tokenERC721.name();
@@ -531,14 +539,14 @@ describe("ERC721Template", () => {
     const value = web3.utils.asciiToHex('SomeData')
     assert((await tokenERC721.getPermissions(owner.address)).v3Minter == false);
     
-    await expectRevert(tokenERC721.setDataV3(v3Datatoken, value,flags,data),"ERC721Template: NOT v3Minter")
+    await expectRevert(tokenERC721.setDataV3(v3Datatoken, value),"ERC721Template: NOT v3Minter")
     
   });
 
   it("#setDataV3 - should fail to call setDataV3, if it's not v3Datatoken is not wrapped", async () => {
     const value = web3.utils.asciiToHex('SomeData')
     await tokenERC721.addV3Minter(owner.address)
-    await expectRevert(tokenERC721.setDataV3(v3Datatoken, value,flags,data),"ERC721Template: v3Datatoken not WRAPPED")
+    await expectRevert(tokenERC721.setDataV3(v3Datatoken, value),"ERC721Template: v3Datatoken not WRAPPED")
     
   });
 
@@ -549,7 +557,7 @@ describe("ERC721Template", () => {
     const value = web3.utils.asciiToHex('SomeData')
     let newData = web3.utils.asciiToHex('SomeNewData');
 
-    await tokenERC721.connect(signer).setDataV3(v3Datatoken, value,flags,newData)  
+    await tokenERC721.connect(signer).setDataV3(v3Datatoken, value)  
 
     const key = web3.utils.keccak256(v3Datatoken);
     assert(await tokenERC721.getData(key) == value)
@@ -647,18 +655,15 @@ describe("ERC721Template", () => {
     );
 
     await expectRevert(
-      tokenERC721.updateMetadata(flags, data),
+      tokenERC721.connect(user6).setMetaData(metaDataState, metaDataDecryptorUrl, metaDataDecryptorAddress, flags, data),
       "ERC721Template: NOT METADATA_ROLE"
     );
-
-
-    await tokenERC721.connect(user2).updateMetadata(flags, data);
-
-    const keyMetadata = web3.utils.keccak256("METADATA_KEY");
-    assert(await tokenERC721.getData(keyMetadata) == data)
-    let newData = web3.utils.asciiToHex('SomeNewData');
-    await tokenERC721.connect(user2).updateMetadata(flags, newData);
     
-    assert(await tokenERC721.getData(keyMetadata) == newData)
+
+    await tokenERC721.connect(user2).setMetaData(metaDataState, metaDataDecryptorUrl, metaDataDecryptorAddress, flags, data);
+
+    let metadataInfo = await tokenERC721.getMetaData()
+    assert(metadataInfo[3] === true)
+    assert(metadataInfo[0] == metaDataDecryptorUrl);
   });
 });
