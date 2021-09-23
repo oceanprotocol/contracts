@@ -57,7 +57,8 @@ contract ERC20Template is ERC20("test", "testSymbol"), ERC20Roles {
         uint256 serviceId,
         uint256 timestamp,
         address indexed publishMarketAddress,
-        address indexed consumeFeeMarketAddress
+        address indexed consumeFeeMarketAddress,
+        uint256 blockNumber
     );
 
     
@@ -397,7 +398,8 @@ contract ERC20Template is ERC20("test", "testSymbol"), ERC20Roles {
             serviceId,
             block.timestamp,
             publishMarketFeeAddress,
-            consumeFeeAddress
+            consumeFeeAddress,
+            block.number
         );
     }
 
