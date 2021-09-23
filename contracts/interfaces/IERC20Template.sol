@@ -89,5 +89,14 @@ interface IERC20Template {
     function setPublishingMarketFee(
         address _publishMarketFeeAddress, address _publishMarketFeeToken, uint256 _publishMarketFeeAmount
     ) external;
+
+     function startOrder(
+        address consumer,
+        uint256 amount,
+        uint256 serviceId,
+        address consumeFeeAddress,
+        address consumeFeeToken, 
+        uint256 consumeFeeAmount
+     ) external;
   
 }

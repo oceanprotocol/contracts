@@ -432,4 +432,72 @@ contract ERC721Factory is Deployer, Ownable {
     function getCurrentTemplateCount() external view returns (uint256) {
         return templateCount;
     }
+
+    struct tokenOrder {
+        address tokenAddress;
+        address consumer;
+        uint256 amount;
+        uint256 serviceId;
+        address consumeFeeAddress;
+        address consumeFeeToken; // address of the token marketplace wants to add fee on top
+        uint256 consumeFeeAmount;
+    }
+
+    /**
+     * @dev startTokenOrder
+     *      Used as a proxy to order multiple services
+     *      Users can have inifinite approvals for fees for factory instead of having one approval/ erc20 contract
+     *      Requires previous approval of all :
+     *          - consumeFeeTokens
+     *          - publishMarketFeeTokens
+     *          - erc20 datatokens
+     * @param orders an array of struct tokenOrder
+     */
+    function startMultipleTokenOrder(
+        tokenOrder[] memory orders
+    ) external {
+        uint256 ids = orders.length;
+        // TO DO.  We can do better here , by groupping publishMarketFeeTokens and consumeFeeTokens and have a single 
+        // transfer for each one, instead of doing it per dt..
+        for (uint256 i = 0; i < ids; i++) {
+            (address publishMarketFeeAddress, address publishMarketFeeToken, uint256 publishMarketFeeAmount) 
+                = IERC20Template(orders[i].tokenAddress).getPublishingMarketFee();
+            
+            // check if we have publishFees, if so transfer them to us and approve dttemplate to take them
+            if (publishMarketFeeAmount > 0 && publishMarketFeeToken!=address(0) 
+            && publishMarketFeeAddress!=address(0)) {
+                require(IERC20Template(publishMarketFeeToken).transferFrom(
+                    msg.sender,
+                    address(this),
+                    publishMarketFeeAmount
+                ),'Failed to transfer publishFee');
+                IERC20Template(publishMarketFeeToken).approve(orders[i].tokenAddress, publishMarketFeeAmount);
+            }
+            // check if we have consumeFees, if so transfer them to us and approve dttemplate to take them
+            if (orders[i].consumeFeeAmount > 0 && orders[i].consumeFeeToken!=address(0) 
+            && orders[i].consumeFeeAddress!=address(0)) {
+                require(IERC20Template(orders[i].consumeFeeToken).transferFrom(
+                    msg.sender,
+                    address(this),
+                    orders[i].consumeFeeAmount
+                ),'Failed to transfer consumeFee');
+                IERC20Template(orders[i].consumeFeeToken).approve(orders[i].tokenAddress, orders[i].consumeFeeAmount);
+            }
+            // transfer erc20 datatoken from consumer to us
+            require(IERC20Template(orders[i].tokenAddress).transferFrom(
+                msg.sender,
+                address(this),
+                orders[i].amount
+            ),'Failed to transfer datatoken');
+        
+            IERC20Template(orders[i].tokenAddress).startOrder(
+                orders[i].consumer,
+                orders[i].amount,
+                orders[i].serviceId,
+                orders[i].consumeFeeAddress,
+                orders[i].consumeFeeToken,
+                orders[i].consumeFeeAmount
+            );
+        }
+    }
 }
