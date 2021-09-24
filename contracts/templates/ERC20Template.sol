@@ -242,14 +242,14 @@ contract ERC20Template is ERC20("test", "testSymbol"), ERC20Roles {
         uint256[2] memory swapFees,
         address marketFeeCollector,
         address publisherAddress
-    ) external onlyERC20Deployer {
+    ) external onlyERC20Deployer returns (address pool){
         require(totalSupply() == 0, "ERC20Template: tokens already minted");
         _addMinter(controller);
         // TODO: chech this
         require(ssParams[3] > 2426000, 'ERC20Template: minimum blocks not reached');
 
         address[2] memory tokens = [address(this), basetokenAddress];
-        address pool = IFactoryRouter(router).deployPool(
+        pool = IFactoryRouter(router).deployPool(
             controller,
             tokens,
             publisherAddress, // publisherAddress, refers to the erc721 contract

@@ -36,7 +36,12 @@ contract ERC721Template is
 
     mapping(address => bool) private deployedERC20;
 
-    event ERC20Created(address indexed erc20Address);
+    //stored here only for ABI reasons
+    event TokenCreated(
+        address indexed newTokenAddress,
+        address indexed templateAddress,
+        string indexed tokenName
+    );
     event MetadataCreated(
         address indexed createdBy,
         uint8 state,
@@ -78,19 +83,23 @@ contract ERC721Template is
         address owner,
         string calldata name_,
         string calldata symbol_,
-        address tokenFactory
+        address tokenFactory,
+        address additionalERC20Deployer
     ) external returns (bool) {
         require(
             !initialized,
             "ERC721Template: token instance already initialized"
         );
-        return
+        bool initResult = 
             _initialize(
                 owner,
                 name_,
                 symbol_,
                 tokenFactory
             );
+        if(initResult && additionalERC20Deployer != address(0))
+            _addToCreateERC20List(additionalERC20Deployer);
+        return(initResult);
     }
 
     /**
@@ -209,7 +218,7 @@ contract ERC721Template is
         address[] calldata addresses,
         uint256[] calldata uints,
         bytes[] calldata bytess
-    ) external returns (address) {
+    ) external returns (address ) {
         require(
             permissions[msg.sender].deployERC20 == true,
             "ERC721Template: NOT ERC20DEPLOYER_ROLE"
@@ -226,10 +235,6 @@ contract ERC721Template is
         deployedERC20[token] = true;
 
         deployedERC20List.push(token);
-
-        //FOR TEST PURPOSE BUT COULD BE COMPLETED OR REMOVED
-        emit ERC20Created(token);
-
         return token;
     }
 

@@ -119,8 +119,10 @@ describe("ERC721Factory", () => {
     const tx = await factoryERC721.deployERC721Contract(
       "NFT",
       "NFTSYMBOL",
-      1
+      1,
+      "0x0000000000000000000000000000000000000000"
     );
+    
     const txReceipt = await tx.wait();
 
     tokenAddress = txReceipt.events[2].args[0];
@@ -147,7 +149,9 @@ describe("ERC721Factory", () => {
       []
     );
     const trxReceiptERC20 = await trxERC20.wait();
-    erc20Address = trxReceiptERC20.events[3].args.erc20Address;
+    
+    erc20Address = trxReceiptERC20.events[1].args[0];
+    
 
     erc20Token = await ethers.getContractAt("ERC20Template", erc20Address);
     assert((await erc20Token.permissions(user3.address)).minter == true);
@@ -160,7 +164,7 @@ describe("ERC721Factory", () => {
       []
     );
     const trxReceiptERC20WithPublishFee = await trxERC20WithPublishFee.wait();
-    erc20AddressWithPublishFee = trxReceiptERC20WithPublishFee.events[3].args.erc20Address;
+    erc20AddressWithPublishFee = trxReceiptERC20WithPublishFee.events[1].args[0];
     erc20TokenWithPublishFee = await ethers.getContractAt("ERC20Template", erc20AddressWithPublishFee);
     assert((await erc20TokenWithPublishFee.permissions(user3.address)).minter == true);
   });
@@ -169,7 +173,8 @@ describe("ERC721Factory", () => {
     const tx = await factoryERC721.deployERC721Contract(
       "DT1",
       "DTSYMBOL",
-      1
+      1,
+      "0x0000000000000000000000000000000000000000"
     );
     const txReceipt = await tx.wait();
 
@@ -188,7 +193,8 @@ describe("ERC721Factory", () => {
     const tx = await factoryERC721.deployERC721Contract(
       "DT1",
       "DTSYMBOL",
-      1
+      1,
+      "0x0000000000000000000000000000000000000000"
     );
     const txReceipt = await tx.wait();
     tokenAddress = txReceipt.events[2].args[0];
@@ -200,14 +206,16 @@ describe("ERC721Factory", () => {
 
   it("#deployERC721Contract - should fail to deploy a new erc721 contract if template index doesn't exist", async () => {
     await expectRevert(
-      factoryERC721.deployERC721Contract("DT1", "DTSYMBOL", 7),
+      factoryERC721.deployERC721Contract("DT1", "DTSYMBOL", 7,
+      "0x0000000000000000000000000000000000000000"),
       "ERC721DTFactory: Template index doesnt exist"
     );
   });
 
   it("#deployERC721Contract - should fail to deploy a new erc721 contract if template index is ZERO", async () => {
     await expectRevert(
-      factoryERC721.deployERC721Contract("DT1", "DTSYMBOL", 0),
+      factoryERC721.deployERC721Contract("DT1", "DTSYMBOL", 0,
+      "0x0000000000000000000000000000000000000000"),
       "ERC721DTFactory: Template index doesnt exist"
     );
   });
@@ -218,7 +226,8 @@ describe("ERC721Factory", () => {
     await factoryERC721.disable721TokenTemplate(2);
 
     await expectRevert(
-      factoryERC721.deployERC721Contract("DT1", "DTSYMBOL",  2),
+      factoryERC721.deployERC721Contract("DT1", "DTSYMBOL",  2,
+      "0x0000000000000000000000000000000000000000"),
       "ERC721DTFactory: ERC721Token Template disabled"
     );
   });
@@ -226,7 +235,8 @@ describe("ERC721Factory", () => {
   it("#getCurrentNFTCount - should return token count", async () => {
     assert((await factoryERC721.getCurrentNFTCount()) == 1);
 
-    await factoryERC721.deployERC721Contract("DT1", "DTSYMBOL",  1);
+    await factoryERC721.deployERC721Contract("DT1", "DTSYMBOL",  1,
+    "0x0000000000000000000000000000000000000000");
 
     assert((await factoryERC721.getCurrentNFTCount()) == 2);
   });
@@ -522,7 +532,6 @@ describe("ERC721Factory", () => {
       );
       const txReceipt = await tx.wait();
       
-      //erc20Address = trxReceiptERC20.events[3].args.erc20Address;
     assert(
       (await erc20Token.balanceOf(user2.address)) == web3.utils.toWei("9"), 'Invalid user balance, DT was not substracted'
     );
@@ -640,7 +649,6 @@ describe("ERC721Factory", () => {
     const balanceOpf = await Mock20Contract.balanceOf(opfCollector.address)
     const expected = web3.utils.toWei(new BN(consumeFeeAmount)).sub(web3.utils.toWei(new BN(consumeFeeAmount)).div(new BN(100)))
     const expectedOpf = web3.utils.toWei(new BN(consumeFeeAmount)).div(new BN(100))
-    console.log(balance.toString()+" vs "+ expected.toString())
     assert(balance.toString() === expected.toString(),'Invalid consume Fee')
     
     
@@ -796,9 +804,7 @@ describe("ERC721Factory", () => {
     const balanceOpfPublish = await Mock20DecimalContract.balanceOf(opfCollector.address)
     const expectedPublish = new BN(publishFees[2].toString()).sub(new BN(publishFees[2].toString()).div(new BN(100)))
     const expectedOpfPublish = new BN(publishFees[2].toString()).div(new BN(100))
-    console.log(balanceConsume.toString()+" vs "+ expectedConsume.toString())
     assert(balanceConsume.toString() === expectedConsume.toString(),'Invalid consume Fee')
-    console.log(balancePublish.toString()+" vs "+ expectedPublish.toString())
     assert(balancePublish.toString() === expectedPublish.toString(),'Invalid publish Fee')
     
     
@@ -936,4 +942,147 @@ describe("ERC721Factory", () => {
     );
   });
  
+
+  it("#createNftWithErc - should create a new erc721 and new erc20 in one single call and get their addresses", async () => {    
+    const tx = await factoryERC721.createNftWithErc(
+      {
+      "name": "72120Bundle",
+      "symbol": "72Bundle",
+      "templateIndex": 1,  
+      },
+      {
+      "strings":["ERC20B1","ERC20DT1Symbol"],
+      "templateIndex":1,
+      "addresses":[user3.address,user6.address,user3.address,"0x0000000000000000000000000000000000000000"],
+      "uints":[cap,0],
+      "bytess":[]
+      });
+
+    const txReceipt = await tx.wait();
+    const nftAddress = txReceipt.events[2].args[0];
+    const erc20Address = txReceipt.events[4].args[0];
+    const NftContract = await ethers.getContractAt(
+      "contracts/interfaces/IERC721Template.sol:IERC721Template",
+      nftAddress
+    );
+    assert(await NftContract.name() === "72120Bundle");
+    const Erc20ontract = await ethers.getContractAt(
+      "contracts/interfaces/IERC20Template.sol:IERC20Template",
+      erc20Address
+    );
+    assert(await Erc20ontract.name() === "ERC20B1");
+  });
+
+
+  it("#createNftWithErcWithPool - should create a new erc721 and new erc20 and a new Pool in one single call and get their addresses", async () => {    
+    const swapFee = 1e15;
+    const swapMarketFee = 1e15;
+    const initialPoolLiquidy = web3.utils.toWei("12"); // baseToken initial pool liquidity
+    await erc20Token.connect(user3).mint(user3.address,initialPoolLiquidy);
+    await erc20Token.connect(user3).approve(factoryERC721.address,initialPoolLiquidy);
+
+    const tx = await factoryERC721.connect(user3).createNftErcWithPool(
+      {
+      "name": "72120PBundle",
+      "symbol": "72PBundle",
+      "templateIndex": 1,  
+      },
+      {
+      "strings":["ERC20WithPool","ERC20P"],
+      "templateIndex":1,
+      "addresses":[user3.address,user6.address,user3.address,"0x0000000000000000000000000000000000000000"],
+      "uints":[cap,0],
+      "bytess":[]
+      },
+      {
+        "controller":ssFixedRate.address,
+        "basetokenAddress":erc20Token.address,
+        "ssParams":[
+          web3.utils.toWei("1"), // rate
+          18, // basetokenDecimals
+          web3.utils.toWei('10000'),
+          2500000, // vested blocks
+          initialPoolLiquidy, // baseToken initial pool liquidity
+        ],
+        "basetokenSender":user3.address,
+        "swapFees":[
+          swapFee, //
+          swapMarketFee,
+        ],
+        "marketFeeCollector":user6.address,
+        "publisherAddress":user3.address // publisherAddress (get vested amount)
+      }
+      
+      
+      );
+
+    const txReceipt = await tx.wait();
+    const nftAddress = txReceipt.events[4].args[0];
+    const erc20Address = txReceipt.events[6].args[0];
+    const poolAddress = txReceipt.events[24].args.poolAddress;
+    const NftContract = await ethers.getContractAt(
+      "contracts/interfaces/IERC721Template.sol:IERC721Template",
+      nftAddress
+    );
+    assert(await NftContract.name() === "72120PBundle");
+    const Erc20ontract = await ethers.getContractAt(
+      "contracts/interfaces/IERC20Template.sol:IERC20Template",
+      erc20Address
+    );
+    assert(await Erc20ontract.name() === "ERC20WithPool");
+
+    const poolContract = await ethers.getContractAt(
+      "contracts/interfaces/IERC20Template.sol:IERC20Template",
+      poolAddress
+    );
+    const lpShares = await poolContract.balanceOf(user3.address)
+    assert(await poolContract.balanceOf(user3.address) > 0, "Invalid pool share #");
+    
+  });
+
+
+  it("#createNftWithErcWithFixedRate - should create a new erc721 and new erc20 and a FixedRate in one single call and get their addresses/exchangeId", async () => {    
+    const marketFee = 1e15;
+    const rate = web3.utils.toWei("1");
+    const tx = await factoryERC721.createNftErcWithFixedRate(
+      {
+      "name": "72120PBundle",
+      "symbol": "72PBundle",
+      "templateIndex": 1,  
+      },
+      {
+      "strings":["ERC20WithPool","ERC20P"],
+      "templateIndex":1,
+      "addresses":[user3.address,user6.address,user3.address,"0x0000000000000000000000000000000000000000"],
+      "uints":[cap,0],
+      "bytess":[]
+      },
+      {
+
+        "fixedPriceAddress":fixedRateExchange.address,
+        "basetokenAddress":erc20TokenWithPublishFee.address,
+        "basetokenDecimals":18,
+        "fixedRate":rate,
+        "owner":user3.address,
+        "marketFee":marketFee,
+        "marketFeeCollector":user6.address
+      }
+      );
+
+    const txReceipt = await tx.wait();
+    const nftAddress = txReceipt.events[2].args[0];
+    const erc20Address = txReceipt.events[4].args[0];
+    const NftContract = await ethers.getContractAt(
+      "contracts/interfaces/IERC721Template.sol:IERC721Template",
+      nftAddress
+    );
+    assert(await NftContract.name() === "72120PBundle");
+    const Erc20ontract = await ethers.getContractAt(
+      "contracts/interfaces/IERC20Template.sol:IERC20Template",
+      erc20Address
+    );
+    assert(await Erc20ontract.name() === "ERC20WithPool");
+
+    const exchangeId = txReceipt.events[7].args.NewFixedRate;
+  });
 });

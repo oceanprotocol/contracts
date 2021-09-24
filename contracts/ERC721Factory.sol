@@ -53,19 +53,20 @@ contract ERC721Factory is Deployer, Ownable {
     uint256 public templateCount;
     address public router;
 
+  //stored here only for ABI reasons
     event TokenCreated(
         address indexed newTokenAddress,
         address indexed templateAddress,
         string indexed tokenName
+    );  
+    
+    event NewPool(
+        address poolAddress,
+        address ssContract,
+        address basetokenAddress
     );
 
-    event TokenRegistered(
-        address indexed tokenAddress,
-        string tokenName,
-        string tokenSymbol,
-        uint256 tokenCap,
-        address indexed registeredBy
-    );
+    event NewFixedRate(bytes32 exchangeId, address owner, address basetoken);
 
     
 
@@ -101,12 +102,14 @@ contract ERC721Factory is Deployer, Ownable {
      * @param name NFT name
      * @param symbol NFT Symbol
      * @param _templateIndex template index we want to use
+     * @param additionalERC20Deployer if != address(0), we will add it with ERC20Deployer role
      */
 
     function deployERC721Contract(
         string memory name,
         string memory symbol,
-        uint256 _templateIndex
+        uint256 _templateIndex,
+        address additionalERC20Deployer
     ) public returns (address token) {
         require(
             _templateIndex <= nftTemplateCount && _templateIndex != 0,
@@ -134,22 +137,16 @@ contract ERC721Factory is Deployer, Ownable {
                 msg.sender,
                 name,
                 symbol,
-                address(this)
+                address(this),
+                additionalERC20Deployer
             ),
             "ERC721DTFactory: Unable to initialize token instance"
         );
 
         emit NFTCreated(token, tokenTemplate.templateAddress, name, msg.sender);
-        // emit TokenRegistered(
-        //     token,
-        //     name,
-        //     symbol,
-        //
-        //     msg.sender,
-        // );
         currentNFTCount += 1;
     }
-
+    
     /**
      * @dev get the current token count.
      * @return the current token count
@@ -259,7 +256,13 @@ contract ERC721Factory is Deployer, Ownable {
     }
 
  
-
+    struct tokenStruct{
+        string[] strings;
+        address[] addresses;
+        uint256[] uints;
+        bytes[] bytess;
+        address owner;
+    }
     /**
      * @dev Deploys new DataToken proxy contract.
      *      This function is not called directly from here. It's called from the NFT contract.
@@ -276,8 +279,7 @@ contract ERC721Factory is Deployer, Ownable {
      * @param uints  refers to an array of uints
      *                     [0] = cap_ the total ERC20 cap
      *                     [1] = publishing Market Fee Amount
-     * @param bytess  refers to an array of bytes
-     *                     Currently not used, usefull for future templates
+     * @param bytess  refers to an array of bytes, not in use now, left for future templates
      * @return token address of a new proxy DataToken contract
      */
     function createToken(
@@ -285,13 +287,23 @@ contract ERC721Factory is Deployer, Ownable {
         string[] memory strings,
         address[] memory addresses,
         uint256[] memory uints,
-        bytes[] calldata bytess
+        bytes[] memory bytess
     ) public returns (address token) {
         require(
             erc721List[msg.sender] == msg.sender,
             "ERC721Factory: ONLY ERC721 INSTANCE FROM ERC721FACTORY"
         );
-
+        token = _createToken(_templateIndex, strings, addresses, uints, bytess, msg.sender);
+        
+    }
+    function _createToken(
+        uint256 _templateIndex,
+        string[] memory strings,
+        address[] memory addresses,
+        uint256[] memory uints,
+        bytes[] memory bytess,
+        address owner
+    ) internal returns (address token) {
         require(uints[0] != 0, "ERC20Factory: zero cap is not allowed");
         require(
             _templateIndex <= templateCount && _templateIndex != 0,
@@ -303,19 +315,29 @@ contract ERC721Factory is Deployer, Ownable {
             tokenTemplate.isActive == true,
             "ERC20Factory: ERC721Token Template disabled"
         );
-
         token = deploy(tokenTemplate.templateAddress);
-        
         erc20List[token] = true;
 
         require(
             token != address(0),
             "ERC721Factory: Failed to perform minimal deploy of a new token"
         );
+        emit TokenCreated(token, tokenTemplate.templateAddress, strings[0]);
+        currentTokenCount += 1;
+        tokenStruct memory tokenData; 
+        tokenData.strings = strings;
+        tokenData.addresses = addresses;
+        tokenData.uints = uints;
+        tokenData.owner = owner;
+        tokenData.bytess = bytess;
+        _createTokenStep2(token, tokenData);
+    }
 
+    function _createTokenStep2(address token, tokenStruct memory tokenData) internal {
+        
         IERC20Template tokenInstance = IERC20Template(token);
         address[] memory factoryAddresses = new address[](3);
-        factoryAddresses[0] = msg.sender;
+        factoryAddresses[0] = tokenData.owner;
         
         factoryAddresses[1] = communityFeeCollector;
         
@@ -323,18 +345,15 @@ contract ERC721Factory is Deployer, Ownable {
         
         require(
             tokenInstance.initialize(
-                strings,
-                addresses,
+                tokenData.strings,
+                tokenData.addresses,
                 factoryAddresses,
-                uints,
-                bytess
+                tokenData.uints,
+                tokenData.bytess
             ),
             "ERC20Factory: Unable to initialize token instance"
         );
-        emit TokenCreated(token, tokenTemplate.templateAddress, strings[0]);
-        emit TokenRegistered(token, strings[0], strings[1], uints[0], msg.sender);
-
-        currentTokenCount += 1;
+        
     }
 
     /**
@@ -487,5 +506,149 @@ contract ERC721Factory is Deployer, Ownable {
                 orders[i].consumeFeeAmount
             );
         }
+    }
+
+    // helper functions to save number of transactions
+    struct NftCreateData{
+        string name;
+        string symbol;
+        uint256 templateIndex;
+    }
+    struct ErcCreateData{
+        uint256 templateIndex;
+        string[] strings;
+        address[] addresses;
+        uint256[] uints;
+        bytes[] bytess;
+    }
+    
+    
+
+    
+  
+    /**
+     * @dev createNftWithErc
+     *      Creates a new NFT, then a ERC20,all in one call
+     * @param _NftCreateData input data for nft creation
+     * @param _ErcCreateData input data for erc20 creation
+     
+     */
+    function createNftWithErc(
+        NftCreateData calldata _NftCreateData,
+        ErcCreateData calldata _ErcCreateData
+    ) external returns (address erc721Address, address erc20Address){
+        erc721Address = deployERC721Contract(
+            _NftCreateData.name,
+            _NftCreateData.symbol,
+            _NftCreateData.templateIndex,
+            address(0));
+        erc20Address = _createToken(
+            _ErcCreateData.templateIndex,
+            _ErcCreateData.strings,
+            _ErcCreateData.addresses,
+            _ErcCreateData.uints,
+            _ErcCreateData.bytess,
+            erc721Address);
+    }
+
+    struct PoolData{
+        address controller;
+        address basetokenAddress;
+        uint256[] ssParams;
+        address basetokenSender;
+        uint256[2] swapFees;
+        address marketFeeCollector;
+        address publisherAddress;
+    }
+
+    /**
+     * @dev createNftErcWithPool
+     *      Creates a new NFT, then a ERC20, then a Pool, all in one call
+     *      Use this carefully, because if Pool creation fails, you are still going to pay a lot of gas
+     * @param _NftCreateData input data for NFT Creation
+     * @param _ErcCreateData input data for ERC20 Creation
+     * @param _PoolData input data for Pool Creation
+     */
+    function createNftErcWithPool(
+        NftCreateData calldata _NftCreateData,
+        ErcCreateData calldata _ErcCreateData,
+        PoolData calldata _PoolData
+    ) external returns (address erc721Address, address erc20Address, address poolAddress){
+        require(IERC20Template(_PoolData.basetokenAddress).transferFrom(
+                msg.sender,
+                address(this),
+                _PoolData.ssParams[4]
+            ),'Failed to transfer initial pool basetoken liquidity');
+        //we are adding ourselfs as a ERC20 Deployer, because we need it in order to deploy the pool
+        erc721Address = deployERC721Contract(
+            _NftCreateData.name,
+            _NftCreateData.symbol,
+            _NftCreateData.templateIndex,
+            address(this));
+        erc20Address = _createToken(
+            _ErcCreateData.templateIndex,
+            _ErcCreateData.strings,
+            _ErcCreateData.addresses,
+            _ErcCreateData.uints,
+            _ErcCreateData.bytess,
+            erc721Address);
+        // allow router to take the liquidity
+        IERC20Template(_PoolData.basetokenAddress).approve(router,_PoolData.ssParams[4]);
+        poolAddress = IERC20Template(erc20Address).deployPool(
+            _PoolData.controller,
+            _PoolData.basetokenAddress,
+            _PoolData.ssParams,
+            address(this),
+            _PoolData.swapFees,
+            _PoolData.marketFeeCollector,
+            _PoolData.publisherAddress
+        );
+        // TO DO - see if we can remove ourselfs from the ERC20Deployer permission
+    }
+
+    struct FixedData{
+        address fixedPriceAddress;
+        address basetokenAddress;
+        uint8 basetokenDecimals;
+        uint256 fixedRate;
+        address owner;
+        uint256 marketFee;
+        address marketFeeCollector;
+    }
+    /**
+     * @dev createNftErcWithFixedRate
+     *      Creates a new NFT, then a ERC20, then a FixedRateExchange, all in one call
+     *      Use this carefully, because if Fixed Rate creation fails, you are still going to pay a lot of gas
+     * @param _NftCreateData input data for NFT Creation
+     * @param _ErcCreateData input data for ERC20 Creation
+     * @param _FixedData input data for FixedRate Creation
+     */
+    function createNftErcWithFixedRate(
+        NftCreateData calldata _NftCreateData,
+        ErcCreateData calldata _ErcCreateData,
+        FixedData calldata _FixedData
+    ) external returns (address erc721Address, address erc20Address, bytes32 exchangeId){
+        //we are adding ourselfs as a ERC20 Deployer, because we need it in order to deploy the fixedrate
+        erc721Address = deployERC721Contract(
+            _NftCreateData.name,
+            _NftCreateData.symbol,
+            _NftCreateData.templateIndex,
+            address(this));
+        erc20Address = _createToken(
+            _ErcCreateData.templateIndex,
+            _ErcCreateData.strings,
+            _ErcCreateData.addresses,
+            _ErcCreateData.uints,
+            _ErcCreateData.bytess,
+            erc721Address);
+        exchangeId = IERC20Template(erc20Address).createFixedRate(
+            _FixedData.fixedPriceAddress,
+            _FixedData.basetokenAddress,
+            _FixedData.basetokenDecimals,
+            _FixedData.fixedRate,
+            _FixedData.owner,
+            _FixedData.marketFee,
+            _FixedData.marketFeeCollector);
+        // TO DO - see if we can remove ourselfs from the ERC20Deployer permission
     }
 }

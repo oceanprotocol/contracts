@@ -103,7 +103,8 @@ describe("V3 Integration flow", () => {
       .deployERC721Contract(
         "NFT",
         "NFTSYMBOL",
-        1
+        1,
+        "0x0000000000000000000000000000000000000000"
       );
     const txReceipt = await tx.wait();
 

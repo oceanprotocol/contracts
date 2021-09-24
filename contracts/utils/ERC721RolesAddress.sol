@@ -47,6 +47,12 @@ contract ERC721RolesAddress {
         auth.push(_allowedAddress);
     }
 
+    function _addToCreateERC20List(address _allowedAddress) internal {
+        Roles storage user = permissions[_allowedAddress];
+        user.deployERC20 = true;
+        auth.push(_allowedAddress);
+    }
+
     function removeFromCreateERC20List(address _allowedAddress)
         public
         onlyManager

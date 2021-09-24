@@ -71,12 +71,13 @@ interface IERC20Template {
         address basetokenAddress,
         uint256[] memory ssParams,
         address basetokenSender,
-        uint256[] memory swapFees,
+        uint256[2] memory swapFees,
         address marketFeeCollector,
         address publisherAddress
-    ) external;
+    ) external returns (address);
 
     function createFixedRate(
+        address fixedPriceAddress,
         address basetokenAddress,
         uint8 basetokenDecimals,
         uint256 fixedRate,

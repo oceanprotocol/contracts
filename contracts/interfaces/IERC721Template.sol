@@ -58,7 +58,9 @@ interface IERC721Template is IERC165 {
      * @dev Returns the number of tokens in ``owner``'s account.
      */
     function balanceOf(address owner) external view returns (uint256 balance);
+    function name() external view returns (string memory);
 
+    function symbol() external view returns (string memory);
     /**
      * @dev Returns the owner of the `tokenId` token.
      *
@@ -185,7 +187,8 @@ interface IERC721Template is IERC165 {
         address admin,
         string calldata name,
         string calldata symbol,
-        address erc20Factory
+        address erc20Factory,
+        address additionalERC20Deployer
     ) external returns (bool);
 
     function hasRole(bytes32 role, address account)

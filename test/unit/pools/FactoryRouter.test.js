@@ -124,7 +124,8 @@ describe("FactoryRouter", () => {
   const tx = await factoryERC721.deployERC721Contract(
       "DT1",
       "DTSYMBOL",
-      1
+      1,
+      "0x0000000000000000000000000000000000000000"
     );
     const txReceipt = await tx.wait();
 
