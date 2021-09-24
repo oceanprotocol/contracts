@@ -98,7 +98,8 @@ contract FactoryRouter is BFactory {
         }
         // we pull basetoken for creating initial pool and send it to the controller (ssContract)
         IERC20 bt = IERC20(tokens[1]);
-        require(bt.transferFrom(basetokenSender, controller, ssParams[4]),'DeployPool: Failed to transfer initial liquidity');
+        require(bt.transferFrom(basetokenSender, controller, ssParams[4])
+        ,'DeployPool: Failed to transfer initial liquidity');
 
         uint256[3] memory fees;
         fees[0] = swapFees[0];
