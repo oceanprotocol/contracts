@@ -31,7 +31,9 @@ contract Deployer {
       returns (address instance) 
     {
         bytes20 targetBytes = bytes20(_logic);
+        // solhint-disable-next-line max-line-length
         // Follows OpenZeppelin Implementation https://github.com/OpenZeppelin/openzeppelin-sdk/blob/71c9ad77e0326db079e6a643eca8568ab316d4a9/packages/lib/contracts/upgradeability/ProxyFactory.sol
+        // solhint-disable-next-line max-line-length
         // Adapted from https://github.com/optionality/clone-factory/blob/32782f82dfc5a00d103a7e61a17a5dedbd1e8e9d/contracts/CloneFactory.sol
         /* solium-disable-next-line security/no-inline-assembly */
         assembly {

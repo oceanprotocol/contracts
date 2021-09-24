@@ -6,18 +6,14 @@ interface IERC20Template {
         bool minter;
         bool feeManager;
     }
-
     function initialize(
-        string calldata name_,
-        string calldata symbol_,
-        address erc721Address,
-        uint256 cap_,
-        address communityFeeCollector,
-        address minter,
-        address router,
-        address feeManager
+        string[] calldata strings_,
+        address[] calldata addresses_,
+        address[] calldata factoryAddresses_,
+        uint256[] calldata uints_,
+        bytes[] calldata bytes_
     ) external returns (bool);
-
+    
     function name() external pure returns (string memory);
 
     function symbol() external pure returns (string memory);
@@ -75,12 +71,13 @@ interface IERC20Template {
         address basetokenAddress,
         uint256[] memory ssParams,
         address basetokenSender,
-        uint256[] memory swapFees,
+        uint256[2] memory swapFees,
         address marketFeeCollector,
         address publisherAddress
-    ) external;
+    ) external returns (address);
 
     function createFixedRate(
+        address fixedPriceAddress,
         address basetokenAddress,
         uint8 basetokenDecimals,
         uint256 fixedRate,
@@ -88,4 +85,19 @@ interface IERC20Template {
         uint256 marketFee,
         address marketFeeCollector
     ) external returns (bytes32 exchangeId);
+
+    function getPublishingMarketFee() external view returns (address , address, uint256);
+    function setPublishingMarketFee(
+        address _publishMarketFeeAddress, address _publishMarketFeeToken, uint256 _publishMarketFeeAmount
+    ) external;
+
+     function startOrder(
+        address consumer,
+        uint256 amount,
+        uint256 serviceId,
+        address consumeFeeAddress,
+        address consumeFeeToken, 
+        uint256 consumeFeeAmount
+     ) external;
+  
 }

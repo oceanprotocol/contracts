@@ -47,6 +47,16 @@ module.exports = {
           },
         },
       },
+     {
+        version: "0.8.7",
+        settings: {
+          optimizer: {
+            enabled: true,
+            runs: 200,
+          },
+        },
+      },
+
     ],
     overrides: {},
   },
@@ -58,7 +68,7 @@ module.exports = {
           "https://eth-mainnet.alchemyapi.io/v2/eOqKsGAdsiNLCVm846Vgb-6yY3jlcNEo",
         blockNumber: 12545000,
       },
-      gasPrice:0
+      gasPrice:1000000000
     },
   },
 

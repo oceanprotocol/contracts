@@ -58,7 +58,6 @@ describe("Vesting flow", () => {
     const ERC20Template = await ethers.getContractFactory("ERC20Template");
     const ERC721Factory = await ethers.getContractFactory("ERC721Factory");
 
-    const Metadata = await ethers.getContractFactory("Metadata");
     const Router = await ethers.getContractFactory("FactoryRouter");
     const SSContract = await ethers.getContractFactory("ssFixedRate");
     const BPool = await ethers.getContractFactory("BPool");
@@ -137,7 +136,6 @@ describe("Vesting flow", () => {
 
     templateERC20 = await ERC20Template.deploy();
 
-    metadata = await Metadata.deploy();
 
     // SETUP ERC721 Factory with template
     templateERC721 = await ERC721Template.deploy();
@@ -145,14 +143,12 @@ describe("Vesting flow", () => {
       templateERC721.address,
       templateERC20.address,
       opfCollector.address,
-      router.address,
-      metadata.address
+      router.address
     );
 
     // SET REQUIRED ADDRESS
 
-    await metadata.addTokenFactory(factoryERC721.address);
-
+    
     await router.addFactory(factoryERC721.address);
 
     await router.addFixedRateContract(fixedRateExchange.address);
@@ -165,13 +161,12 @@ describe("Vesting flow", () => {
     const tx = await factoryERC721.deployERC721Contract(
       "NFT",
       "NFTSYMBOL",
-      data,
-      flags,
-      1
+      1,
+      "0x0000000000000000000000000000000000000000"
     );
     const txReceipt = await tx.wait();
 
-    tokenAddress = txReceipt.events[4].args[0];
+    tokenAddress = txReceipt.events[2].args[0];
     tokenERC721 = await ethers.getContractAt("ERC721Template", tokenAddress);
 
     assert((await tokenERC721.balanceOf(owner.address)) == 1);
@@ -193,13 +188,11 @@ describe("Vesting flow", () => {
   });
 
   it("#3 - user3 deploys a new erc20DT, assigning himself as minter", async () => {
-    const trxERC20 = await tokenERC721.connect(user3).createERC20(
-      "ERC20DT1",
-      "ERC20DT1Symbol",
-      web3.utils.toWei("100000"),
-      1,
-      user3.address, // minter
-      user6.address // feeManager
+    const trxERC20 = await tokenERC721.connect(user3).createERC20(1,
+      ["ERC20DT1","ERC20DT1Symbol"],
+      [user3.address,user6.address, user3.address,'0x0000000000000000000000000000000000000000'],
+      [web3.utils.toWei("100000"),0],
+      []
     );
     const trxReceiptERC20 = await trxERC20.wait();
     erc20Address = trxReceiptERC20.events[3].args.erc20Address;

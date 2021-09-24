@@ -19,6 +19,7 @@ import "hardhat/console.sol";
  *               - [1] - if >0 , then allowSell=TRUE  (getting back DT for Ocean)
  *               - [2] - vestingAmount  - total # of datatokens to be vested
  *               - [3] - vestingBlocks - how long is the vesting period (in blocks)
+ *               - [4] - basetokenBalance  = initial supply of pool
  *
  */
 contract ssFixedRate {
@@ -314,7 +315,6 @@ contract ssFixedRate {
         uint256 dataTokenWeight = 5 * BASE; //pool weight: 50-50
         uint256 baseTokenAmount = _datatokens[datatokenAddress]
             .basetokenBalance;
-        console.log(baseTokenAmount, "baseTokenamount");
         //given the price, compute dataTokenAmount
 
         uint256 dataTokenAmount = ((_datatokens[datatokenAddress].rate *
@@ -322,7 +322,7 @@ contract ssFixedRate {
             dataTokenWeight) /
             baseTokenWeight /
             BASE) * (10**(18 - decimals));
-        console.log(dataTokenAmount, "datatokenamount");
+        
       
         //approve the tokens and amounts
         IERC20Template dt = IERC20Template(datatokenAddress);
@@ -348,6 +348,12 @@ contract ssFixedRate {
         //substract
         _datatokens[datatokenAddress].basetokenBalance -= baseTokenAmount;
         _datatokens[datatokenAddress].datatokenBalance -= dataTokenAmount;
+        // send 50% of the pool shares back to the publisher
+        IERC20Template lPTokens = IERC20Template(_datatokens[datatokenAddress].poolAddress);
+        uint256 lpBalance = lPTokens.balanceOf(address(this));
+        uint256 balanceToTransfer = lpBalance.div(2);
+        lPTokens.transfer(_datatokens[datatokenAddress].publisherAddress, lpBalance.div(2));
+        
     }
 
    
