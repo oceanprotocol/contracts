@@ -692,4 +692,22 @@ contract ERC20Template is ERC20("test", "testSymbol"), ERC20Roles {
             return feeCollector;
         }
     }
+
+    /**
+     * @dev fallback function
+     *      this is a default fallback function in which receives
+     *      the collected ether.
+     */
+    fallback() external payable {}
+
+    /**
+     * @dev withdrawETH
+     *      transfers all the accumlated ether the collector account
+     */
+    function withdrawETH() 
+        external 
+        payable
+    {
+        payable(getFeeCollector()).transfer(address(this).balance);
+    }
 }

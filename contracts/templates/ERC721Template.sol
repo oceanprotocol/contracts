@@ -536,5 +536,23 @@ contract ERC721Template is
     }
 
 
+     /**
+     * @dev fallback function
+     *      this is a default fallback function in which receives
+     *      the collected ether.
+     */
+    fallback() external payable {}
+
+    /**
+     * @dev withdrawETH
+     *      transfers all the accumlated ether the ownerOf
+     */
+    function withdrawETH() 
+        external 
+        payable
+    {
+        payable(ownerOf(1)).transfer(address(this).balance);
+    }
+
   
 }
