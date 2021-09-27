@@ -3,7 +3,7 @@
 const hre = require("hardhat");
 const { assert, expect } = require("chai");
 const { expectRevert, expectEvent } = require("@openzeppelin/test-helpers");
-
+const {getEventFromTx} = require("../../helpers/utils")
 const { impersonate } = require("../../helpers/impersonate");
 const constants = require("../../helpers/constants");
 const { web3 } = require("@openzeppelin/test-helpers/src/setup");
@@ -128,8 +128,9 @@ describe("FactoryRouter", () => {
       "0x0000000000000000000000000000000000000000"
     );
     const txReceipt = await tx.wait();
-
-    tokenAddress = txReceipt.events[2].args[0];
+    const event = getEventFromTx(txReceipt,'NFTCreated')
+    assert(event, "Cannot find NFTCreated event")
+    tokenAddress = event.args[0];
     tokenERC721 = await ethers.getContractAt("ERC721Template", tokenAddress);
     symbol = await tokenERC721.symbol();
     name = await tokenERC721.name();
