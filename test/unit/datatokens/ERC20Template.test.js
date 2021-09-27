@@ -3,7 +3,7 @@
 const hre = require("hardhat");
 const { assert, expect } = require("chai");
 const { expectRevert, expectEvent, BN } = require("@openzeppelin/test-helpers");
-
+const {getEventFromTx} = require("../../helpers/utils")
 const { impersonate } = require("../../helpers/impersonate");
 const constants = require("../../helpers/constants");
 const { web3 } = require("@openzeppelin/test-helpers/src/setup");
@@ -184,7 +184,9 @@ describe("ERC20Template", () => {
       "0x0000000000000000000000000000000000000000"
     );
     const txReceipt = await tx.wait();
-    tokenAddress = txReceipt.events[2].args[0];
+    let event = getEventFromTx(txReceipt,'NFTCreated')
+    assert(event, "Cannot find NFTCreated event")
+    tokenAddress = event.args[0];
     tokenERC721 = await ethers.getContractAt("ERC721Template", tokenAddress);
 
     assert((await tokenERC721.balanceOf(owner.address)) == 1);
@@ -208,8 +210,10 @@ describe("ERC20Template", () => {
       []
     );
     const trxReceiptERC20 = await trxERC20.wait();
-    erc20Address = trxReceiptERC20.events[1].args[0];
-
+    event = getEventFromTx(trxReceiptERC20,'TokenCreated')
+    assert(event, "Cannot find TokenCreated event")
+    erc20Address = event.args[0];
+    
     erc20Token = await ethers.getContractAt("ERC20Template", erc20Address);
     assert((await erc20Token.permissions(user3.address)).minter == true);
     
@@ -223,8 +227,10 @@ describe("ERC20Template", () => {
       
     );
     const trxReceiptERC20WithPublishFee = await trxERC20WithPublishFee.wait();
-    erc20AddressWithPublishFee = trxReceiptERC20WithPublishFee.events[1].args[0];
-
+    event = getEventFromTx(trxReceiptERC20WithPublishFee,'TokenCreated')
+    assert(event, "Cannot find TokenCreated event")
+    erc20AddressWithPublishFee = event.args[0];
+    
     erc20TokenWithPublishFee = await ethers.getContractAt("ERC20Template", erc20AddressWithPublishFee);
     assert((await erc20TokenWithPublishFee.permissions(user3.address)).minter == true);
     

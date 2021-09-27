@@ -6,6 +6,7 @@ const { expectRevert, expectEvent, BN } = require("@openzeppelin/test-helpers");
 const { impersonate } = require("../../helpers/impersonate");
 const constants = require("../../helpers/constants");
 const { web3 } = require("@openzeppelin/test-helpers/src/setup");
+const {getEventFromTx} = require("../../helpers/utils")
 const ethers = hre.ethers;
 
 describe("ERC721Factory", () => {
@@ -124,8 +125,9 @@ describe("ERC721Factory", () => {
     );
     
     const txReceipt = await tx.wait();
-
-    tokenAddress = txReceipt.events[2].args[0];
+    let event = getEventFromTx(txReceipt,'NFTCreated')
+    assert(event, "Cannot find NFTCreated event")
+    tokenAddress = event.args[0];
     tokenERC721 = await ethers.getContractAt("ERC721Template", tokenAddress);
 
     assert((await tokenERC721.balanceOf(owner.address)) == 1);
@@ -149,8 +151,10 @@ describe("ERC721Factory", () => {
       []
     );
     const trxReceiptERC20 = await trxERC20.wait();
+    event = getEventFromTx(trxReceiptERC20,'TokenCreated')
+    assert(event, "Cannot find TokenCreated event")
+    erc20Address = event.args[0];
     
-    erc20Address = trxReceiptERC20.events[1].args[0];
     
 
     erc20Token = await ethers.getContractAt("ERC20Template", erc20Address);
@@ -164,7 +168,9 @@ describe("ERC721Factory", () => {
       []
     );
     const trxReceiptERC20WithPublishFee = await trxERC20WithPublishFee.wait();
-    erc20AddressWithPublishFee = trxReceiptERC20WithPublishFee.events[1].args[0];
+    event = getEventFromTx(trxReceiptERC20WithPublishFee,'TokenCreated')
+    assert(event, "Cannot find TokenCreated event")
+    erc20AddressWithPublishFee = event.args[0];
     erc20TokenWithPublishFee = await ethers.getContractAt("ERC20Template", erc20AddressWithPublishFee);
     assert((await erc20TokenWithPublishFee.permissions(user3.address)).minter == true);
   });
@@ -177,8 +183,9 @@ describe("ERC721Factory", () => {
       "0x0000000000000000000000000000000000000000"
     );
     const txReceipt = await tx.wait();
-
-    tokenAddress = txReceipt.events[2].args[0];
+    const event = getEventFromTx(txReceipt,'NFTCreated')
+    assert(event, "Cannot find NFTCreated event")
+    tokenAddress = event.args[0];
     tokenERC721 = await ethers.getContractAt("ERC721Template", tokenAddress);
     symbol = await tokenERC721.symbol();
     name = await tokenERC721.name();
@@ -197,11 +204,12 @@ describe("ERC721Factory", () => {
       "0x0000000000000000000000000000000000000000"
     );
     const txReceipt = await tx.wait();
-    tokenAddress = txReceipt.events[2].args[0];
+    const event = getEventFromTx(txReceipt,'NFTCreated')
+    assert(event, "Cannot find NFTCreated event")
+    tokenAddress = event.args[0];
 
-    assert(txReceipt.events[2].event == "NFTCreated");
-    assert(txReceipt.events[2].args[1] == templateERC721.address);
-    assert(txReceipt.events[2].args[3] == owner.address);
+    assert(event.args[1] == templateERC721.address);
+    assert(event.args[3] == owner.address);
   });
 
   it("#deployERC721Contract - should fail to deploy a new erc721 contract if template index doesn't exist", async () => {
@@ -354,6 +362,11 @@ describe("ERC721Factory", () => {
   });
 
   it("#createToken - should not allow to create a new ERC20Token directly if ERC721 contract is not on the list", async () => {
+
+    const transactionHash = await owner.sendTransaction({
+      to: templateERC721.address,
+      value: ethers.utils.parseEther("1.0"), // Sends exactly 1.0 ether
+    });
     // this test will fail when doing solidity coverage because the templateERC721 has no ether and no fallback
     await impersonate(templateERC721.address);
    
@@ -375,6 +388,10 @@ describe("ERC721Factory", () => {
 
   it("#createToken - should not allow to create a new ERC20Token directly from the ERC721Factory even if is a contract", async () => {
       // this test will fail when doing solidity coverage because the templateERC721 has no ether and no fallback
+      const transactionHash = await owner.sendTransaction({
+        to: newERC721Template.address,
+        value: ethers.utils.parseEther("1.0"), // Sends exactly 1.0 ether
+      });
     await impersonate(newERC721Template.address);
     const signer = await ethers.provider.getSigner(newERC721Template.address);
 
@@ -959,8 +976,13 @@ describe("ERC721Factory", () => {
       });
 
     const txReceipt = await tx.wait();
-    const nftAddress = txReceipt.events[2].args[0];
-    const erc20Address = txReceipt.events[4].args[0];
+    let event = getEventFromTx(txReceipt,'NFTCreated')
+    assert(event, "Cannot find NFTCreated event")
+    nftAddress = event.args[0];
+    event = getEventFromTx(txReceipt,'TokenCreated')
+    assert(event, "Cannot find TokenCreated event")
+    erc20Address = event.args[0];
+    
     const NftContract = await ethers.getContractAt(
       "contracts/interfaces/IERC721Template.sol:IERC721Template",
       nftAddress
@@ -1017,9 +1039,18 @@ describe("ERC721Factory", () => {
       );
 
     const txReceipt = await tx.wait();
-    const nftAddress = txReceipt.events[4].args[0];
-    const erc20Address = txReceipt.events[6].args[0];
-    const poolAddress = txReceipt.events[24].args.poolAddress;
+    let event = getEventFromTx(txReceipt,'NFTCreated')
+    assert(event, "Cannot find NFTCreated event")
+    const nftAddress = event.args[0];
+    event = getEventFromTx(txReceipt,'TokenCreated')
+    assert(event, "Cannot find TokenCreated event")
+    const erc20Address = event.args[0];
+
+    
+    event = getEventFromTx(txReceipt,'NewPool')
+    assert(event, "Cannot find NewPool event")
+    const poolAddress = event.args[0];
+    
     const NftContract = await ethers.getContractAt(
       "contracts/interfaces/IERC721Template.sol:IERC721Template",
       nftAddress
@@ -1070,8 +1101,18 @@ describe("ERC721Factory", () => {
       );
 
     const txReceipt = await tx.wait();
-    const nftAddress = txReceipt.events[2].args[0];
-    const erc20Address = txReceipt.events[4].args[0];
+    let event = getEventFromTx(txReceipt,'NFTCreated')
+    assert(event, "Cannot find NFTCreated event")
+    const nftAddress = event.args[0];
+    event = getEventFromTx(txReceipt,'TokenCreated')
+    assert(event, "Cannot find TokenCreated event")
+    const erc20Address = event.args[0];
+
+    
+    event = getEventFromTx(txReceipt,'NewFixedRate')
+    assert(event, "Cannot find NewFixedRate event")
+    const exchangeId = event.args[0];
+    
     const NftContract = await ethers.getContractAt(
       "contracts/interfaces/IERC721Template.sol:IERC721Template",
       nftAddress
@@ -1083,6 +1124,6 @@ describe("ERC721Factory", () => {
     );
     assert(await Erc20ontract.name() === "ERC20WithPool");
 
-    const exchangeId = txReceipt.events[7].args.NewFixedRate;
+    
   });
 });

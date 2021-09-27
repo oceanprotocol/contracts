@@ -3,7 +3,7 @@
 const hre = require("hardhat");
 const { assert, expect } = require("chai");
 const { expectRevert, expectEvent } = require("@openzeppelin/test-helpers");
-
+const {getEventFromTx} = require("../../helpers/utils")
 const { impersonate } = require("../../helpers/impersonate");
 const constants = require("../../helpers/constants");
 const { web3 } = require("@openzeppelin/test-helpers/src/setup");
@@ -53,8 +53,10 @@ describe("ERC721Template", () => {
       "0x0000000000000000000000000000000000000000"
     );
     const txReceipt = await tx.wait();
-  
-    tokenAddress = txReceipt.events[2].args[0];
+    let event = getEventFromTx(txReceipt,'NFTCreated')
+    assert(event, "Cannot find NFTCreated event")
+    tokenAddress = event.args[0];
+
     tokenERC721 = await ethers.getContractAt("ERC721Template", tokenAddress);
     assert(await tokenERC721.v3DT(v3Datatoken) == false)
    
@@ -154,8 +156,9 @@ describe("ERC721Template", () => {
       "0x0000000000000000000000000000000000000000"
     );
     const txReceipt = await tx.wait();
-
-    tokenAddress = txReceipt.events[2].args[0];
+    let event = getEventFromTx(txReceipt,'NFTCreated')
+    assert(event, "Cannot find NFTCreated event")
+    tokenAddress = event.args[0];
     tokenERC721 = await ethers.getContractAt("ERC721Template", tokenAddress);
 
     assert((await tokenERC721.balanceOf(owner.address)) == 1);
@@ -179,7 +182,10 @@ describe("ERC721Template", () => {
       []
     );
     const trxReceiptERC20 = await trxERC20.wait();
-    erc20Address = trxReceiptERC20.events[1].args[0];
+    event = getEventFromTx(trxReceiptERC20,'TokenCreated')
+    assert(event, "Cannot find TokenCreated event")
+    erc20Address = event.args[0];
+    
 
     erc20Token = await ethers.getContractAt("ERC20Template", erc20Address);
     assert((await erc20Token.permissions(user3.address)).minter == true);
@@ -223,10 +229,11 @@ describe("ERC721Template", () => {
 
     let tx = await tokenERC721.connect(user6).setMetaData(metaDataState, metaDataDecryptorUrl, metaDataDecryptorAddress, flags, data);
     let txReceipt = await tx.wait();
-    tokenAddress = txReceipt.events[0].args[0];
-
-    assert(txReceipt.events[0].event == "MetadataCreated");
-    assert(txReceipt.events[0].args[2] == metaDataDecryptorUrl);
+   
+    let event = getEventFromTx(txReceipt,'MetadataCreated')
+    assert(event, "Cannot find MetadataCreated event")
+    tokenAddress = event.args[0];
+    assert(event.args[2] == metaDataDecryptorUrl);
     
     metadataInfo = await tokenERC721.getMetaData()
     assert(metadataInfo[3] === true)
@@ -235,9 +242,9 @@ describe("ERC721Template", () => {
     const metaDataDecryptorUrl2 = 'http://someurl';
     tx = await tokenERC721.connect(user6).setMetaData(metaDataState, metaDataDecryptorUrl2, metaDataDecryptorAddress, flags, data);
     txReceipt = await tx.wait();
-    
-    assert(txReceipt.events[0].event == "MetadataUpdated");
-    assert(txReceipt.events[0].args[2] == metaDataDecryptorUrl2);
+    event = getEventFromTx(txReceipt,'MetadataUpdated')
+    assert(event, "Cannot find MetadataUpdated event")
+    assert(event.args[2] == metaDataDecryptorUrl2);
     
     metadataInfo = await tokenERC721.getMetaData()
     assert(metadataInfo[3] === true)
@@ -489,8 +496,10 @@ describe("ERC721Template", () => {
       "0x0000000000000000000000000000000000000000"
     );
     const txReceipt = await tx.wait();
-
-    tokenAddress = txReceipt.events[2].args[0];
+    let event = getEventFromTx(txReceipt,'NFTCreated')
+    assert(event, "Cannot find NFTCreated event")
+    tokenAddress = event.args[0];
+    
     tokenERC721 = await ethers.getContractAt("ERC721Template", tokenAddress);
     symbol = await tokenERC721.symbol();
     name = await tokenERC721.name();
@@ -618,7 +627,10 @@ describe("ERC721Template", () => {
       []
     );
     const trxReceiptERC20 = await trxERC20.wait();
-    erc20Address = trxReceiptERC20.events[1].args[0];
+    const event = getEventFromTx(trxReceiptERC20,'TokenCreated')
+    assert(event, "Cannot find TokenCreated event")
+    erc20Address = event.args[0];
+    
 
     erc20Token = await ethers.getContractAt("ERC20Template", erc20Address);
 

@@ -9,7 +9,7 @@ const {
 } = require("@openzeppelin/test-helpers");
 
 const BN = require("bn.js");
-
+const {getEventFromTx} = require("../helpers/utils")
 const { impersonate } = require("../helpers/impersonate");
 const constants = require("../helpers/constants");
 const { web3 } = require("@openzeppelin/test-helpers/src/setup");
@@ -212,8 +212,10 @@ describe("Swap Fees", () => {
       "0x0000000000000000000000000000000000000000"
     );
     const txReceipt = await tx.wait();
+    const event = getEventFromTx(txReceipt,'NFTCreated')
+    assert(event, "Cannot find NFTCreated event")
+    tokenAddress = event.args[0];
 
-    tokenAddress = txReceipt.events[2].args[0];
     tokenERC721 = await ethers.getContractAt("ERC721Template", tokenAddress);
 
     assert((await tokenERC721.balanceOf(owner.address)) == 1);
@@ -242,7 +244,9 @@ describe("Swap Fees", () => {
       []
     );
     const trxReceiptERC20 = await trxERC20.wait();
-    erc20Address = trxReceiptERC20.events[1].args[0];
+    const event = getEventFromTx(trxReceiptERC20,'TokenCreated')
+      assert(event, "Cannot find TokenCreated event")
+      erc20Address = event.args[0];
 
     erc20Token = await ethers.getContractAt("ERC20Template", erc20Address);
     assert((await erc20Token.permissions(user3.address)).minter == true);
@@ -1069,8 +1073,10 @@ describe("Swap Fees", () => {
         []
       );
       const trxReceiptERC20 = await trxERC20.wait();
-      erc20Address = trxReceiptERC20.events[1].args[0];
-
+      const event = getEventFromTx(trxReceiptERC20,'TokenCreated')
+      assert(event, "Cannot find TokenCreated event")
+      erc20Address = event.args[0];
+      
       erc20Token = await ethers.getContractAt("ERC20Template", erc20Address);
       assert((await erc20Token.permissions(user3.address)).minter == true);
     });
@@ -1935,7 +1941,9 @@ describe("Swap Fees", () => {
         []
       );
       const trxReceiptERC20 = await trxERC20.wait();
-      erc20Address = trxReceiptERC20.events[1].args[0];
+      const event = getEventFromTx(trxReceiptERC20,'TokenCreated')
+      assert(event, "Cannot find TokenCreated event")
+      erc20Address = event.args[0];
 
       erc20Token = await ethers.getContractAt("ERC20Template", erc20Address);
       assert((await erc20Token.permissions(user3.address)).minter == true);

@@ -8,6 +8,7 @@ const {
   time,
 } = require("@openzeppelin/test-helpers");
 const { impersonate } = require("../helpers/impersonate");
+const {getEventFromTx} = require("../helpers/utils")
 const constants = require("../helpers/constants");
 const { web3, BN } = require("@openzeppelin/test-helpers/src/setup");
 const { keccak256 } = require("@ethersproject/keccak256");
@@ -137,8 +138,9 @@ describe("Dispenser", () => {
       "0x0000000000000000000000000000000000000000"
     );
     const txReceipt = await tx.wait();
-
-    tokenAddress = txReceipt.events[2].args[0];
+    const event = getEventFromTx(txReceipt,'NFTCreated')
+    assert(event, "Cannot find NFTCreated event")
+    tokenAddress = event.args[0];
     tokenERC721 = await ethers.getContractAt("ERC721Template", tokenAddress);
 
     assert((await tokenERC721.balanceOf(owner.address)) == 1);
@@ -172,8 +174,10 @@ describe("Dispenser", () => {
         []
       );
       const trxReceiptERC20 = await trxERC20.wait();
-      erc20Address = trxReceiptERC20.events[1].args[0];
-
+      const event = getEventFromTx(trxReceiptERC20,'TokenCreated')
+      assert(event, "Cannot find TokenCreated event")
+      erc20Address = event.args[0];
+      
       erc20Token = await ethers.getContractAt("ERC20Template", erc20Address);
       assert((await erc20Token.permissions(user3.address)).minter == true);
 
