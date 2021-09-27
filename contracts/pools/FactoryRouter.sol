@@ -99,42 +99,43 @@ contract FactoryRouter is BFactory {
         );
         require(ssParams[1] > 0, 'Wrong decimals');
 
+    
+        // TODO: do we need this? used only for the event?
         bool flag;
-        address pool;
-
         if (oceanTokens[tokens[1]] == true) {
             flag = true;
         }
+
         // we pull basetoken for creating initial pool and send it to the controller (ssContract)
         IERC20 bt = IERC20(tokens[1]);
         bt.transferFrom(basetokenSender, controller, ssParams[4]);
 
-        uint256[3] memory fees;
-        fees[0] = swapFees[0];
-        fees[1] = swapFees[1];
+        // uint256[3] memory fees;
+        // fees[0] = swapFees[0];
+        // fees[1] = swapFees[1];
+        // fees[2] = getOPFFee(tokens[1]);
 
-
-        if (flag == true) {
-            fees[2] = 0;
-            pool = newBPool(
+        // if (flag == true) {
+        //     fees[2] = 0;
+         address pool = newBPool(
                 controller,
                 tokens,
                 publisherAddress,
                 ssParams,
-                fees,
+                swapFees,
                 marketFeeCollector
             );
-        } else {
-            fees[2] = getOPFFee(tokens[1]);
-            pool = newBPool(
-                controller,
-                tokens,
-                publisherAddress,
-                ssParams,
-                fees,
-                marketFeeCollector
-            );
-        }
+        // } else {
+        //     fees[2] = getOPFFee(tokens[1]);
+        //     pool = newBPool(
+        //         controller,
+        //         tokens,
+        //         publisherAddress,
+        //         ssParams,
+        //         fees,
+        //         marketFeeCollector
+        //     );
+        // }
 
         require(pool != address(0), "FAILED TO DEPLOY POOL");
 
@@ -175,11 +176,8 @@ contract FactoryRouter is BFactory {
             "FACTORY ROUTER: NOT ORIGINAL ERC20 TEMPLATE"
         );
 
-        uint256 opfFee;
+        uint256 opfFee = getOPFFee(basetokenAddress);
 
-        if (oceanTokens[basetokenAddress] != true) {
-            opfFee = getOPFFee(basetokenAddress);
-        } 
         require(fixedPrice[fixedPriceAddress] == true, 'FACTORY ROUTER: Invalid FixedPriceContract');
     
             exchangeId = IFixedRateExchange(fixedPriceAddress).createWithDecimals(
