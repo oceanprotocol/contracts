@@ -26,6 +26,7 @@ contract ERC721Factory is Deployer, Ownable {
     address private erc20Factory;
     address private metadata;
     uint256 private nftTemplateCount;
+    uint256 private opfFee;
 
     struct Template {
         address templateAddress;
@@ -424,5 +425,9 @@ contract ERC721Factory is Deployer, Ownable {
     // if templateCount is public we could remove it, or set templateCount to private
     function getCurrentTemplateCount() external view returns (uint256) {
         return templateCount;
+    }
+
+    function getOPFFee() external view returns (uint256) {
+        return opfFee;
     }
 }

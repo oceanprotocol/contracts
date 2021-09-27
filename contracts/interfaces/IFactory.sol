@@ -60,4 +60,6 @@ interface IFactory {
     function erc721List(address ERC721address) external returns (address);
 
     function erc20List(address erc20dt) external view returns(bool);
+
+    function getOPFFee() external view returns (uint256);
 }
