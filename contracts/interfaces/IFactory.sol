@@ -61,5 +61,5 @@ interface IFactory {
 
     function erc20List(address erc20dt) external view returns(bool);
 
-    function getOPFFee() external view returns (uint256);
+
 }

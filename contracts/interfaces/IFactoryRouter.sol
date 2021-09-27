@@ -21,4 +21,6 @@ interface IFactoryRouter {
         uint256 marketFee,
         address marketFeeCollector
     ) external returns (bytes32 exchangeId);
+
+    function getOPFFee(address baseToken) external view returns (uint256);
 }

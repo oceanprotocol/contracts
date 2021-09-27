@@ -15,7 +15,7 @@ contract FactoryRouter is BFactory {
     address public fixedRate;
     address public opfCollector;
 
-    uint256 public constant swapOceanFee = 1e15;
+    uint256 public swapOceanFee = 1e15;
     mapping(address => bool) public oceanTokens;
     mapping(address => bool) public ssContracts;
     mapping(address => bool) public fixedPrice;
@@ -57,6 +57,15 @@ contract FactoryRouter is BFactory {
         fixedPrice[_fixedRate] = true;
     }
 
+    function getOPFFee(address baseToken) public view returns (uint) {
+        if( oceanTokens[baseToken] == true) {
+            return 0;
+        } else return swapOceanFee;
+    }
+
+    function updateOPFFee(uint _newSwapOceanFee) external onlyRouterOwner {
+        swapOceanFee = _newSwapOceanFee;
+    }
     /**
      * @dev Deploys a new `OceanPool` on Ocean Friendly Fork modified for 1SS.
      This function cannot be called directly, but ONLY through the ERC20DT contract from a ERC20DEployer role
@@ -116,7 +125,7 @@ contract FactoryRouter is BFactory {
                 marketFeeCollector
             );
         } else {
-            fees[2] = swapOceanFee;
+            fees[2] = getOPFFee(tokens[1]);
             pool = newBPool(
                 controller,
                 tokens,
@@ -169,7 +178,7 @@ contract FactoryRouter is BFactory {
         uint256 opfFee;
 
         if (oceanTokens[basetokenAddress] != true) {
-            opfFee = swapOceanFee;
+            opfFee = getOPFFee(basetokenAddress);
         } 
         require(fixedPrice[fixedPriceAddress] == true, 'FACTORY ROUTER: Invalid FixedPriceContract');
     

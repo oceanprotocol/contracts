@@ -163,11 +163,13 @@ contract BPool is BMath, BToken {
     ) private returns (bool) {
         _controller = controller;
         _factory = factory;
+        router = factory;
+        baseToken = tokens[1];
         _swapFee = swapFees[0];
         // console.log(swapFees[0], swapFees[1],swapFees[2], 'swapFees');
        
         _swapMarketFee = swapFees[1];
-         _swapOceanFee = swapFees[2];
+       //  _swapOceanFee = swapFees[2];
         _publicSwap = publicSwap;
         _finalized = finalized;
         _datatokenAddress = tokens[0];
@@ -286,6 +288,7 @@ contract BPool is BMath, BToken {
         _marketCollector = _newCollector;
     }
 
+   
     function getDenormalizedWeight(address token)
         external
         view

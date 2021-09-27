@@ -311,7 +311,7 @@ describe("Swap Fees", () => {
         web3.utils.toWei("98000")
       );
 
-      expect(await bPool._swapOceanFee()).to.equal(0);
+      expect(await bPool.getOPFFee()).to.equal(0);
       expect(await bPool._swapMarketFee()).to.equal(swapMarketFee);
 
       expect(await bPool.communityFees(oceanAddress)).to.equal(0);
@@ -1030,7 +1030,7 @@ describe("Swap Fees", () => {
     });
 
     it("#17 - we check again no ocean and market fees were accounted", async () => {
-      expect(await bPool._swapOceanFee()).to.equal(0);
+      expect(await bPool.getOPFFee()).to.equal(0);
       expect(await bPool._swapMarketFee()).to.equal(swapMarketFee);
 
       expect(await bPool.communityFees(oceanAddress)).to.equal(0);
@@ -1135,7 +1135,7 @@ describe("Swap Fees", () => {
       );
 
       expect(await bPool.getSwapFee()).to.equal(swapFee);
-      expect(await bPool._swapOceanFee()).to.equal(1e15);
+      expect(await bPool.getOPFFee()).to.equal(1e15);
       expect(await bPool._swapMarketFee()).to.equal(swapMarketFee);
 
       expect(await bPool.communityFees(daiAddress)).to.equal(0);
@@ -1835,7 +1835,7 @@ describe("Swap Fees", () => {
     });
 
     it("#17 - we check again ocean and market fees were accounted", async () => {
-      expect(await bPool._swapOceanFee()).to.equal(1e15);
+      expect(await bPool.getOPFFee()).to.equal(1e15);
       expect(await bPool._swapMarketFee()).to.equal(swapMarketFee);
 
       // ocean fee actually collected some fees
@@ -2012,7 +2012,7 @@ describe("Swap Fees", () => {
       expect(await ssFixedRate.getDataTokenBalance(erc20Token.address)).to.equal((await erc20Token.balanceOf(ssFixedRate.address)).sub(vestingAmount))
 
       expect(await bPool.getSwapFee()).to.equal(swapFee);
-      expect(await bPool._swapOceanFee()).to.equal(1e15);
+      expect(await bPool.getOPFFee()).to.equal(1e15);
       expect(await bPool._swapMarketFee()).to.equal(swapMarketFee);
 
       expect(await bPool.communityFees(usdcAddress)).to.equal(0);
@@ -2739,7 +2739,7 @@ describe("Swap Fees", () => {
     });
 
     it("#18 - we check again ocean and market fees were accounted", async () => {
-      expect(await bPool._swapOceanFee()).to.equal(1e15);
+      expect(await bPool.getOPFFee()).to.equal(1e15);
       expect(await bPool._swapMarketFee()).to.equal(swapMarketFee);
 
       // ocean fee actually collected some fees
