@@ -179,7 +179,7 @@ describe("ERC721Template", () => {
       []
     );
     const trxReceiptERC20 = await trxERC20.wait();
-    erc20Address = trxReceiptERC20.events[3].args.erc20Address;
+    erc20Address = trxReceiptERC20.events[1].args[0];
 
     erc20Token = await ethers.getContractAt("ERC20Template", erc20Address);
     assert((await erc20Token.permissions(user3.address)).minter == true);
@@ -195,7 +195,8 @@ describe("ERC721Template", () => {
         owner.address,
         "NewName",
         "NN",
-        factoryERC721.address
+        factoryERC721.address,
+        '0x0000000000000000000000000000000000000000'
       ),
       "ERC721Template: token instance already initialized"
     );
@@ -234,9 +235,7 @@ describe("ERC721Template", () => {
     const metaDataDecryptorUrl2 = 'http://someurl';
     tx = await tokenERC721.connect(user6).setMetaData(metaDataState, metaDataDecryptorUrl2, metaDataDecryptorAddress, flags, data);
     txReceipt = await tx.wait();
-    console.log(txReceipt.events)
-    tokenAddress = txReceipt.events[0].args[0];
-
+    
     assert(txReceipt.events[0].event == "MetadataUpdated");
     assert(txReceipt.events[0].args[2] == metaDataDecryptorUrl2);
     
@@ -619,7 +618,7 @@ describe("ERC721Template", () => {
       []
     );
     const trxReceiptERC20 = await trxERC20.wait();
-    erc20Address = trxReceiptERC20.events[3].args.erc20Address;
+    erc20Address = trxReceiptERC20.events[1].args[0];
 
     erc20Token = await ethers.getContractAt("ERC20Template", erc20Address);
 

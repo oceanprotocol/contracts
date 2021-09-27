@@ -136,7 +136,7 @@ describe("NFT Creation, roles and erc20 deployments", () => {
       []
     );
     const trxReceiptERC20 = await trxERC20.wait();
-    erc20Address = trxReceiptERC20.events[3].args.erc20Address;
+    erc20Address = trxReceiptERC20.events[1].args[0];
 
     erc20Token = await ethers.getContractAt("ERC20Template", erc20Address);
     assert((await erc20Token.permissions(user3.address)).minter == true);
@@ -158,7 +158,7 @@ describe("NFT Creation, roles and erc20 deployments", () => {
       []
     );
     const trxReceiptERC20 = await trxERC20.wait();
-    erc20Address = trxReceiptERC20.events[3].args.erc20Address;
+    erc20Address = trxReceiptERC20.events[1].args[0];
 
     erc20Token2 = await ethers.getContractAt("ERC20Template", erc20Address);
     assert((await erc20Token2.permissions(user4.address)).minter == true);

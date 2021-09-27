@@ -172,7 +172,7 @@ describe("Dispenser", () => {
         []
       );
       const trxReceiptERC20 = await trxERC20.wait();
-      erc20Address = trxReceiptERC20.events[3].args.erc20Address;
+      erc20Address = trxReceiptERC20.events[1].args[0];
 
       erc20Token = await ethers.getContractAt("ERC20Template", erc20Address);
       assert((await erc20Token.permissions(user3.address)).minter == true);

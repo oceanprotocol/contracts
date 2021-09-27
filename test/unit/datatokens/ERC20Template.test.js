@@ -208,7 +208,7 @@ describe("ERC20Template", () => {
       []
     );
     const trxReceiptERC20 = await trxERC20.wait();
-    erc20Address = trxReceiptERC20.events[3].args.erc20Address;
+    erc20Address = trxReceiptERC20.events[1].args[0];
 
     erc20Token = await ethers.getContractAt("ERC20Template", erc20Address);
     assert((await erc20Token.permissions(user3.address)).minter == true);
@@ -223,7 +223,7 @@ describe("ERC20Template", () => {
       
     );
     const trxReceiptERC20WithPublishFee = await trxERC20WithPublishFee.wait();
-    erc20AddressWithPublishFee = trxReceiptERC20WithPublishFee.events[3].args.erc20Address;
+    erc20AddressWithPublishFee = trxReceiptERC20WithPublishFee.events[1].args[0];
 
     erc20TokenWithPublishFee = await ethers.getContractAt("ERC20Template", erc20AddressWithPublishFee);
     assert((await erc20TokenWithPublishFee.permissions(user3.address)).minter == true);
