@@ -21,7 +21,6 @@ contract FactoryRouter is BFactory {
     mapping(address => bool) public fixedPrice;
 
     event NewPool(address indexed poolAddress, bool isOcean);
-    
 
     modifier onlyRouterOwner() {
         require(routerOwner == msg.sender, "OceanRouter: NOT OWNER");
@@ -44,6 +43,10 @@ contract FactoryRouter is BFactory {
         oceanTokens[oceanTokenAddress] = true;
     }
 
+    function removeOceanToken(address oceanTokenAddress) public onlyRouterOwner {
+        oceanTokens[oceanTokenAddress] = false;
+    }
+
     function addSSContract(address _ssContract) external onlyRouterOwner {
         ssContracts[_ssContract] = true;
     }
@@ -57,15 +60,17 @@ contract FactoryRouter is BFactory {
         fixedPrice[_fixedRate] = true;
     }
 
-    function getOPFFee(address baseToken) public view returns (uint) {
-        if( oceanTokens[baseToken] == true) {
+    function getOPFFee(address baseToken) public view returns (uint256) {
+        if (oceanTokens[baseToken] == true) {
             return 0;
         } else return swapOceanFee;
     }
 
-    function updateOPFFee(uint _newSwapOceanFee) external onlyRouterOwner {
+    function updateOPFFee(uint256 _newSwapOceanFee) external onlyRouterOwner {
+        // TODO: add a maximum? how much? add event?
         swapOceanFee = _newSwapOceanFee;
     }
+
     /**
      * @dev Deploys a new `OceanPool` on Ocean Friendly Fork modified for 1SS.
      This function cannot be called directly, but ONLY through the ERC20DT contract from a ERC20DEployer role
@@ -97,9 +102,8 @@ contract FactoryRouter is BFactory {
             ssContracts[controller] = true,
             "FACTORY ROUTER: invalid ssContract"
         );
-        require(ssParams[1] > 0, 'Wrong decimals');
+        require(ssParams[1] > 0, "Wrong decimals");
 
-    
         // TODO: do we need this? used only for the event?
         bool flag;
         if (oceanTokens[tokens[1]] == true) {
@@ -110,32 +114,14 @@ contract FactoryRouter is BFactory {
         IERC20 bt = IERC20(tokens[1]);
         bt.transferFrom(basetokenSender, controller, ssParams[4]);
 
-        // uint256[3] memory fees;
-        // fees[0] = swapFees[0];
-        // fees[1] = swapFees[1];
-        // fees[2] = getOPFFee(tokens[1]);
-
-        // if (flag == true) {
-        //     fees[2] = 0;
-         address pool = newBPool(
-                controller,
-                tokens,
-                publisherAddress,
-                ssParams,
-                swapFees,
-                marketFeeCollector
-            );
-        // } else {
-        //     fees[2] = getOPFFee(tokens[1]);
-        //     pool = newBPool(
-        //         controller,
-        //         tokens,
-        //         publisherAddress,
-        //         ssParams,
-        //         fees,
-        //         marketFeeCollector
-        //     );
-        // }
+        address pool = newBPool(
+            controller,
+            tokens,
+            publisherAddress,
+            ssParams,
+            swapFees,
+            marketFeeCollector
+        );
 
         require(pool != address(0), "FAILED TO DEPLOY POOL");
 
@@ -148,7 +134,7 @@ contract FactoryRouter is BFactory {
         return array.length;
     }
 
-     /**
+    /**
      * @dev deployFixedRate
      *      Creates a new FixedRateExchange setup.
      As for deployPool, this function cannot be called directly, but ONLY through the ERC20DT contract from a ERC20DEployer role
@@ -170,27 +156,29 @@ contract FactoryRouter is BFactory {
         address owner,
         uint256 marketFee,
         address marketFeeCollector
-    ) external returns(bytes32 exchangeId) {
+    ) external returns (bytes32 exchangeId) {
         require(
             IFactory(factory).erc20List(msg.sender) == true,
             "FACTORY ROUTER: NOT ORIGINAL ERC20 TEMPLATE"
         );
 
+        require(
+            fixedPrice[fixedPriceAddress] == true,
+            "FACTORY ROUTER: Invalid FixedPriceContract"
+        );
+
         uint256 opfFee = getOPFFee(basetokenAddress);
 
-        require(fixedPrice[fixedPriceAddress] == true, 'FACTORY ROUTER: Invalid FixedPriceContract');
-    
-            exchangeId = IFixedRateExchange(fixedPriceAddress).createWithDecimals(
-                basetokenAddress,
-                msg.sender,
-                basetokenDecimals,
-                18,
-                rate,
-                owner,
-                marketFee,
-                marketFeeCollector,
-                opfFee
-            );
-    
+        exchangeId = IFixedRateExchange(fixedPriceAddress).createWithDecimals(
+            basetokenAddress,
+            msg.sender,
+            basetokenDecimals,
+            18,
+            rate,
+            owner,
+            marketFee,
+            marketFeeCollector,
+            opfFee
+        );
     }
 }

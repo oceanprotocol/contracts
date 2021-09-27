@@ -82,11 +82,10 @@ contract BPool is BMath, BToken {
 
     bool private _mutex;
 
-    address private _factory; // BFactory address to push token exitFee to
+   
     address private _controller; // has CONTROL role
     bool private _publicSwap; // true if PUBLIC can call SWAP functions
-    address private _datatokenAddress; //datatoken address
-    address private _basetokenAddress; //base token address
+   
     address public _marketCollector;
     address public _opfCollector;
     // `setSwapFee` and `finalize` require CONTROL
@@ -163,13 +162,10 @@ contract BPool is BMath, BToken {
     ) private returns (bool) {
         _controller = controller;
         _factory = factory;
-        router = factory;
-        baseToken = tokens[1];
         _swapFee = swapFees[0];
         // console.log(swapFees[0], swapFees[1],swapFees[2], 'swapFees');
        
         _swapMarketFee = swapFees[1];
-       //  _swapOceanFee = swapFees[2];
         _publicSwap = publicSwap;
         _finalized = finalized;
         _datatokenAddress = tokens[0];
@@ -272,7 +268,6 @@ contract BPool is BMath, BToken {
     }
 
     function collectMarketFee(address to) external {
-       // console.log("collectMarkte");
         require(_marketCollector == msg.sender, "ONLY MARKET COLLECTOR");
 
         address[] memory tokens = getFinalTokens();
