@@ -3,6 +3,5 @@ node_modules
 #Hardhat files
 cache
 uncompiled/
-
 artifacts/
 coverage/

@@ -3,7 +3,7 @@
 const hre = require("hardhat");
 const { assert, expect } = require("chai");
 const { expectRevert, expectEvent } = require("@openzeppelin/test-helpers");
-
+const {getEventFromTx} = require("../../helpers/utils")
 const { impersonate } = require("../../helpers/impersonate");
 const constants = require("../../helpers/constants");
 const { web3 } = require("@openzeppelin/test-helpers/src/setup");
@@ -55,7 +55,6 @@ describe("FactoryRouter", () => {
     const ERC20Template = await ethers.getContractFactory("ERC20Template");
     const ERC721Factory = await ethers.getContractFactory("ERC721Factory");
 
-    const Metadata = await ethers.getContractFactory("Metadata");
     const Router = await ethers.getContractFactory("FactoryRouter");
     const SSContract = await ethers.getContractFactory("ssFixedRate");
     const BPool = await ethers.getContractFactory("BPool");
@@ -104,21 +103,17 @@ describe("FactoryRouter", () => {
 
   templateERC20 = await ERC20Template.deploy();
 
-  metadata = await Metadata.deploy();
-
+  
   // SETUP ERC721 Factory with template
   templateERC721 = await ERC721Template.deploy();
   factoryERC721 = await ERC721Factory.deploy(
     templateERC721.address,
     templateERC20.address,
     opfCollector.address,
-    router.address,
-    metadata.address
+    router.address
   );
 
   // SET REQUIRED ADDRESS
-
-  await metadata.addTokenFactory(factoryERC721.address);
 
   await router.addFactory(factoryERC721.address);
 
@@ -129,13 +124,13 @@ describe("FactoryRouter", () => {
   const tx = await factoryERC721.deployERC721Contract(
       "DT1",
       "DTSYMBOL",
-      data,
-      flags,
-      1
+      1,
+      "0x0000000000000000000000000000000000000000"
     );
     const txReceipt = await tx.wait();
-
-    tokenAddress = txReceipt.events[4].args[0];
+    const event = getEventFromTx(txReceipt,'NFTCreated')
+    assert(event, "Cannot find NFTCreated event")
+    tokenAddress = event.args[0];
     tokenERC721 = await ethers.getContractAt("ERC721Template", tokenAddress);
     symbol = await tokenERC721.symbol();
     name = await tokenERC721.name();

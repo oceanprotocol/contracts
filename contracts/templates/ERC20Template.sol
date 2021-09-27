@@ -31,11 +31,14 @@ contract ERC20Template is ERC20("test", "testSymbol"), ERC20Roles {
     bool private initialized = false;
     address private _erc721Address;
     address private feeCollector;
+    address private publishMarketFeeAddress;
+    address private publishMarketFeeToken;
+    uint256 private publishMarketFeeAmount;
     uint8 private constant templateId = 1;
 
     uint256 public constant BASE = 10**18;
-    uint256 public constant BASE_COMMUNITY_FEE_PERCENTAGE = BASE / 1000;
-    uint256 public constant BASE_MARKET_FEE_PERCENTAGE = BASE / 1000;
+    uint256 public constant BASE_COMMUNITY_FEE_PERCENTAGE = BASE / 100;  // == OPF takes 1% of the fees
+    
 
     // EIP 2612 SUPPORT
     bytes32 public DOMAIN_SEPARATOR;
@@ -49,23 +52,16 @@ contract ERC20Template is ERC20("test", "testSymbol"), ERC20Roles {
 
     event OrderStarted(
         address indexed consumer,
-        address indexed payer,
+        address payer,
         uint256 amount,
         uint256 serviceId,
         uint256 timestamp,
-        address indexed mrktFeeCollector,
-        uint256 marketFee
+        address indexed publishMarketAddress,
+        address indexed consumeFeeMarketAddress,
+        uint256 blockNumber
     );
 
-    event OrderFinished(
-        bytes32 orderTxId,
-        address indexed consumer,
-        uint256 amount,
-        uint256 serviceId,
-        address indexed provider,
-        uint256 timestamp
-    );
-
+    
     event MinterProposed(address currentMinter, address newMinter);
 
     event MinterApproved(address currentMinter, address newMinter);
@@ -93,6 +89,14 @@ contract ERC20Template is ERC20("test", "testSymbol"), ERC20Roles {
         _;
     }
 
+    modifier onlyPublishingMarketFeeAddress() {
+        require(
+            msg.sender == publishMarketFeeAddress,
+            "ERC20Template: not publishMarketFeeAddress"
+        );
+        _;
+    }
+
     modifier onlyERC20Deployer() {
         require(
             IERC721Template(_erc721Address)
@@ -107,60 +111,73 @@ contract ERC20Template is ERC20("test", "testSymbol"), ERC20Roles {
      * @dev initialize
      *      Called prior contract initialization (e.g creating new DataToken instance)
      *      Calls private _initialize function. Only if contract is not initialized.
-     * @param name_ refers to a new DataToken name
-     * @param symbol_ refers to a nea DataToken symbol
-     * @param erc721Address refers to the erc721 address 
-     * @param cap_ the total ERC20 cap
-     * @param communityFeeCollector it is the community fee collector address
-       @param minter account who can mint datatokens (can have multiple minters)
-       @param router_ router address
-       @param feeManager initial feeManager for this DT
+     * @param strings_ refers to an array of strings
+     *                      [0] = name token
+     *                      [1] = symbol
+     * @param addresses_ refers to an array of addresses passed by user
+     *                     [0]  = minter account who can mint datatokens (can have multiple minters)
+     *                     [1]  = feeManager initial feeManager for this DT
+     *                     [2]  = publishing Market Address
+     *                     [3]  = publishing Market Fee Token
+     * @param factoryAddresses_ refers to an array of addresses passed by the factory
+     *                     [0]  = erc721Address
+     *                     [1]  = communityFeeCollector it is the community fee collector address
+     *                     [2]  = router address
+     *
+     * @param uints_  refers to an array of uints
+     *                     [0] = cap_ the total ERC20 cap
+     *                     [1] = publishing Market Fee Amount
+     * @param bytes_  refers to an array of bytes
+     *                     Currently not used, usefull for future templates
      */
     function initialize(
-        string calldata name_,
-        string calldata symbol_,
-        address erc721Address,
-        uint256 cap_,
-        address communityFeeCollector,
-        address minter,
-        address router_,
-        address feeManager
+        string[] calldata strings_,
+        address[] calldata addresses_,
+        address[] calldata factoryAddresses_,
+        uint256[] calldata uints_,
+        bytes[] calldata bytes_
     ) external onlyNotInitialized returns (bool) {
         return
             _initialize(
-                name_,
-                symbol_,
-                erc721Address,
-                cap_,
-                communityFeeCollector,
-                minter,
-                router_,
-                feeManager
+                strings_,
+                addresses_,
+                factoryAddresses_,
+                uints_,
+                bytes_
             );
     }
 
     /**
      * @dev _initialize
      *      Private function called on contract initialization.
-     * @param name_ refers to a new DataToken name
-     * @param symbol_ refers to a nea DataToken symbol
-     * @param erc721Address refers to an address that has minter rights
-     * @param cap_ the total ERC20 cap
-     * @param communityFeeCollector it is the community fee collector address
-       @param minter account who can mint datatokens (can have multiple minters)
-       @param router_ router address
-       @param feeManager initial feeManager for this DT
+     * @param strings_ refers to an array of strings
+     *                      [0] = name token
+     *                      [1] = symbol
+     * @param addresses_ refers to an array of addresses passed by user
+     *                     [0]  = minter account who can mint datatokens (can have multiple minters)
+     *                     [1]  = feeManager initial feeManager for this DT
+     *                     [2]  = publishing Market Address
+     *                     [3]  = publishing Market Fee Token
+     * @param factoryAddresses_ refers to an array of addresses passed by the factory
+     *                     [0]  = erc721Address
+     *                     [1]  = communityFeeCollector it is the community fee collector address
+     *                     [2]  = router address
+     *
+     * @param uints_  refers to an array of uints
+     *                     [0] = cap_ the total ERC20 cap
+     *                     [1] = publishing Market Fee Amount
+     * @param bytes_  refers to an array of bytes
+     *                     Currently not used, usefull for future templates
      */
     function _initialize(
-        string memory name_,
-        string memory symbol_,
-        address erc721Address,
-        uint256 cap_,
-        address communityFeeCollector,
-        address minter,
-        address router_,
-        address feeManager
-    ) private returns (bool) {
+        string[] memory strings_,
+        address[] memory addresses_,
+        address[] memory factoryAddresses_,
+        uint256[] memory uints_,
+        bytes[] memory bytes_
+        ) private returns (bool) {
+        address erc721Address = factoryAddresses_[0];
+        address communityFeeCollector = factoryAddresses_[1];
         require(
             erc721Address != address(0),
             "ERC20Template: Invalid minter,  zero address"
@@ -171,17 +188,20 @@ contract ERC20Template is ERC20("test", "testSymbol"), ERC20Roles {
             "ERC20Template: Invalid community fee collector, zero address"
         );
 
-        require(cap_ != 0, "DataTokenTemplate: Invalid cap value");
-        _cap = cap_;
-        _name = name_;
-        _symbol = symbol_;
+        require(uints_[0] != 0, "DataTokenTemplate: Invalid cap value");
+        _cap = uints_[0];
+        _name = strings_[0];
+        _symbol = strings_[1];
         _erc721Address = erc721Address;
-        router = router_;
+        router = factoryAddresses_[2];
         _communityFeeCollector = communityFeeCollector;
         initialized = true;
         // add a default minter, similar to what happens with manager in the 721 contract
-        _addMinter(minter);
-        _addFeeManager(feeManager);
+        _addMinter(addresses_[0]);
+        _addFeeManager(addresses_[1]);
+        publishMarketFeeAddress = addresses_[2];
+        publishMarketFeeToken = addresses_[3];
+        publishMarketFeeAmount = uints_[1];
         uint256 chainId;
         assembly {
             chainId := chainid()
@@ -222,14 +242,14 @@ contract ERC20Template is ERC20("test", "testSymbol"), ERC20Roles {
         uint256[2] memory swapFees,
         address marketFeeCollector,
         address publisherAddress
-    ) external onlyERC20Deployer {
+    ) external onlyERC20Deployer returns (address pool){
         require(totalSupply() == 0, "ERC20Template: tokens already minted");
         _addMinter(controller);
         // TODO: chech this
         require(ssParams[3] > 2426000, 'ERC20Template: minimum blocks not reached');
 
         address[2] memory tokens = [address(this), basetokenAddress];
-        address pool = IFactoryRouter(router).deployPool(
+        pool = IFactoryRouter(router).deployPool(
             controller,
             tokens,
             publisherAddress, // publisherAddress, refers to the erc721 contract
@@ -300,195 +320,91 @@ contract ERC20Template is ERC20("test", "testSymbol"), ERC20Roles {
     /**
      * @dev startOrder
      *      called by payer or consumer prior ordering a service consume on a marketplace.
+     *      Requires previous approval of consumeFeeToken and publishMarketFeeToken
      * @param consumer is the consumer address (payer could be different address)
      * @param amount refers to amount of tokens that is going to be transfered.
      * @param serviceId service index in the metadata
-     * @param marketFeeCollector marketplace fee collector
-       @param feeToken // address of the token marketplace wants to add fee on top
-       @param feeAmount // fee amount on top (in feeToken)
+     * @param consumeFeeAddress consume marketplace fee address
+       @param consumeFeeToken // address of the token marketplace wants to add fee on top
+       @param consumeFeeAmount // fee amount
      */
     function startOrder(
         address consumer,
         uint256 amount,
         uint256 serviceId,
-        address marketFeeCollector,
-        address feeToken, // address of the token marketplace wants to add fee on top
-        uint256 feeAmount // amount to be transfered to marketFeeCollector
+        address consumeFeeAddress,
+        address consumeFeeToken, // address of the token marketplace wants to add fee on top
+        uint256 consumeFeeAmount // amount to be transfered to marketFeeCollector
     ) external {
-        // Requires approval for the specific feeToken
-        if (feeAmount > 0) {
-            IERC20(feeToken).transferFrom(
+        uint256 communityFeeConsume = 0;
+        uint256 communityFeePublish = 0;
+        
+        // publishMarketFees
+        // Requires approval for the publishMarketFeeToken of publishMarketFeeAmount
+        // skip fee if amount == 0 or feeToken == 0x0 address or feeAddress == 0x0 address
+        if (publishMarketFeeAmount > 0 && publishMarketFeeToken!=address(0) && publishMarketFeeAddress!=address(0)) {
+            require(IERC20(publishMarketFeeToken).transferFrom(
                 msg.sender,
-                marketFeeCollector,
-                feeAmount
-            );
+                address(this),
+                publishMarketFeeAmount
+            ),'Failed to transfer publishMarketFee');
+            communityFeePublish = publishMarketFeeAmount.div(100); //hardcode 1% goes to OPF
+            //send publishMarketFee
+            require(IERC20(publishMarketFeeToken)
+            .transfer(publishMarketFeeAddress,publishMarketFeeAmount.sub(communityFeePublish))
+            , 'Failed to transfer fee to publishMarketFeeAddress');
         }
 
-        uint256 marketFee = 0;
-
-        uint256 communityFee = calculateFee(
-            amount,
-            BASE_COMMUNITY_FEE_PERCENTAGE
-        );
-        transfer(_communityFeeCollector, communityFee);
-        if (marketFeeCollector != address(0)) {
-            marketFee = calculateFee(amount, BASE_MARKET_FEE_PERCENTAGE);
-            transfer(marketFeeCollector, marketFee);
+        // consumeFees
+        // Requires approval for the consumeFeeToken of consumeFeeAmount
+        // skip fee if amount == 0 or feeToken == 0x0 address or feeAddress == 0x0 address
+        if (consumeFeeAmount > 0 && consumeFeeToken!=address(0) && consumeFeeAddress!=address(0)) {
+            require(IERC20(consumeFeeToken).transferFrom(
+                msg.sender,
+                address(this),
+                consumeFeeAmount
+            ),'Failed to transfer consumeFee');
+            communityFeeConsume = consumeFeeAmount.div(100); //hardcode 1% goes to OPF
+            //send consumeFee
+            require(IERC20(consumeFeeToken)
+            .transfer(consumeFeeAddress,consumeFeeAmount.sub(communityFeeConsume))
+            , 'Failed to transfer fee to consumeFeeAddress');
         }
-        uint256 totalFee = communityFee.add(marketFee);
-        transfer(getFeeCollector(), amount.sub(totalFee));
-
+        //send fees to OPF
+        if(communityFeePublish>0 && communityFeeConsume>0 && consumeFeeToken == publishMarketFeeToken){
+            //since both fees are in the same token, have just one transaction for both, to save gas
+            require(IERC20(consumeFeeToken)
+            .transfer(_communityFeeCollector,communityFeePublish.sub(communityFeeConsume))
+            , 'Failed to transfer both fees to OPF');
+        }
+        else{
+            //we need to do them one by one
+            if(communityFeePublish>0 && publishMarketFeeToken!=address(0)){
+                require(IERC20(publishMarketFeeToken)
+                .transfer(_communityFeeCollector,communityFeePublish), 'Failed to transfer publish fees to OPF');
+            }
+            if(communityFeeConsume>0 && consumeFeeToken!=address(0)){
+                require(IERC20(consumeFeeToken)
+                .transfer(_communityFeeCollector,communityFeeConsume), 'Failed to transfer consume fee to OPF');
+            }
+        }
+        // send datatoken to publisher
+        transfer(getFeeCollector(), amount);
+        
         emit OrderStarted(
             consumer,
             msg.sender,
             amount,
             serviceId,
             block.timestamp,
-            marketFeeCollector,
-            marketFee
+            publishMarketFeeAddress,
+            consumeFeeAddress,
+            block.number
         );
     }
 
-    /**
-     * @dev startMultipleOrder
-     *      called by payer or consumer prior ordering multiple service consumes on a marketplace.
-     * @param consumers consumers address array (payer could be different address)
-     * @param amounts array of token amounts that are going to be transfered.
-     * @param serviceIds service indexes array in the metadata
-     * @param mrktFeeCollectors marketplace fee collectors array
-       @param feeTokens // feeTokens array
-       @param feeAmounts // fee amounts on top (in feeToken) array
-     */
-
-    function startMultipleOrder(
-        address[] memory consumers,
-        uint256[] memory amounts,
-        uint256[] memory serviceIds,
-        address[] memory mrktFeeCollectors,
-        address[] memory feeTokens,
-        uint256[] memory feeAmounts
-    ) external {
-        uint256 ids = serviceIds.length;
-
-        require(getAddressLength(consumers) == ids, "WRONG ARRAYS FORMAT");
-        require(getUintLength(amounts) == ids, "WRONG ARRAYS FORMAT");
-        require(
-            getAddressLength(mrktFeeCollectors) == ids,
-            "WRONG ARRAYS FORMAT"
-        );
-        require(getUintLength(feeAmounts) == ids, "WRONG ARRAYS FORMAT");
-        require(getAddressLength(feeTokens) == ids, "WRONG ARRAYS FORMAT");
-
-        for (uint256 i = 0; i < ids; i++) {
-            if (feeAmounts[i] > 0) {
-                IERC20(feeTokens[i]).transferFrom(
-                    msg.sender,
-                    mrktFeeCollectors[i],
-                    feeAmounts[i]
-                );
-            }
-
-            uint256 marketFee = 0;
-            uint256 communityFee = calculateFee(
-                amounts[i],
-                BASE_COMMUNITY_FEE_PERCENTAGE
-            );
-            transfer(_communityFeeCollector, communityFee);
-            if (mrktFeeCollectors[i] != address(0)) {
-                marketFee = calculateFee(
-                    amounts[i],
-                    BASE_MARKET_FEE_PERCENTAGE
-                );
-                transfer(mrktFeeCollectors[i], marketFee);
-            }
-            uint256 totalFee = communityFee.add(marketFee);
-            transfer(getFeeCollector(), amounts[i].sub(totalFee));
-
-            emit OrderStarted(
-                consumers[i],
-                msg.sender,
-                amounts[i],
-                serviceIds[i],
-                block.timestamp,
-                mrktFeeCollectors[i],
-                marketFee
-            );
-        }
-    }
-
-    /**
-     * @dev finishOrder
-     *      called by provider prior completing service delivery only
-     *      if there is a partial or full refund.
-     * @param orderTxId refers to the transaction Id  of startOrder acts
-     *                  as a payment reference.
-     * @param consumer refers to an address that has consumed that service.
-     * @param amount refers to amount of tokens that is going to be transfered.
-     * @param serviceId service index in the metadata.
-     */
-    function finishOrder(
-        bytes32 orderTxId,
-        address consumer,
-        uint256 amount,
-        uint256 serviceId
-    ) external {
-        if (amount != 0)
-            require(
-                transfer(consumer, amount),
-                "DataTokenTemplate: failed to finish order"
-            );
-
-        emit OrderFinished(
-            orderTxId,
-            consumer,
-            amount,
-            serviceId,
-            msg.sender,
-            block.timestamp
-        );
-    }
-
-    /**
-     * @dev finishOrder
-     *      called by provider prior completing service delivery only
-     *      if there is a partial or full refund.
-     * @param orderTxIds refers to the transaction Ids  of startOrder acts
-     *                  as a payment reference.
-     * @param consumers refers to addresses that has consumed that service.
-     * @param amounts refers to amounts of tokens that is going to be transfered.
-     * @param serviceIds service indexes in the metadata.
-     */
-
-    function finishMultipleOrder(
-        bytes32[] calldata orderTxIds,
-        address[] calldata consumers,
-        uint256[] calldata amounts,
-        uint256[] calldata serviceIds
-    ) external {
-        uint256 ids = serviceIds.length;
-
-        require(getAddressLength(consumers) == ids, "WRONG ARRAYS FORMAT");
-        require(getUintLength(amounts) == ids, "WRONG ARRAYS FORMAT");
-        require(getBytesLength(orderTxIds) == ids, "WRONG ARRAYS FORMAT");
-
-        for (uint256 i = 0; i < ids; i++) {
-            if (amounts[i] != 0)
-                require(
-                    transfer(consumers[i], amounts[i]),
-                    "DataTokenTemplate: failed to finish order"
-                );
-
-            emit OrderFinished(
-                orderTxIds[i],
-                consumers[i],
-                amounts[i],
-                serviceIds[i],
-                msg.sender,
-                block.timestamp
-            );
-        }
-    }
-
+ 
+    
     /**
      * @dev addMinter
      *      Only ERC20Deployer (at 721 level) can update.
@@ -561,7 +477,8 @@ contract ERC20Template is ERC20("test", "testSymbol"), ERC20Roles {
      * @dev cleanFrom721() 
      *      OnlyNFT(721) Contract can call it.
      *      This function allows to remove all minters, feeManagers and reset the feeCollector
-            This function is used when transferring an NFT to a new owner, so that permissions at ERC20level (minter,feeManager,feeCollector) can be reset.
+     *       This function is used when transferring an NFT to a new owner,
+     * so that permissions at ERC20level (minter,feeManager,feeCollector) can be reset.
      *      
      */
     function cleanFrom721() external {
@@ -589,6 +506,37 @@ contract ERC20Template is ERC20("test", "testSymbol"), ERC20Roles {
         feeCollector = _newFeeCollector;
     }
 
+
+    
+    /**
+     * @dev getPublishingMarketFee
+     *      Get publishingMarket Fees
+     *      This function allows to get the current fee set by the publishing market
+     */
+    function getPublishingMarketFee() external view returns (address , address, uint256) {
+        return (publishMarketFeeAddress, publishMarketFeeToken, publishMarketFeeAmount);
+    }
+
+     /**
+     * @dev setPublishingMarketFee
+     *      Only publishMarketFeeAddress can call it
+     *      This function allows to set the fees required by the publisherMarket            
+     * @param _publishMarketFeeAddress  new _publishMarketFeeAddress
+     * @param _publishMarketFeeToken new _publishMarketFeeToken
+     * @param _publishMarketFeeAmount new fee amount
+     */
+    function setPublishingMarketFee(
+        address _publishMarketFeeAddress, 
+        address _publishMarketFeeToken, 
+        uint256 _publishMarketFeeAmount) external onlyPublishingMarketFeeAddress {
+        publishMarketFeeAddress = _publishMarketFeeAddress;
+        publishMarketFeeToken =  _publishMarketFeeToken;
+        publishMarketFeeAmount = _publishMarketFeeAmount;
+    }
+    /**
+     * @dev getId
+     *      Return template id
+     */
     function getId() external pure returns (uint8) {
         return templateId;
     }
@@ -638,24 +586,6 @@ contract ERC20Template is ERC20("test", "testSymbol"), ERC20Roles {
 
     function isInitialized() external view returns (bool) {
         return initialized;
-    }
-
-    /**
-     * @dev calculateFee
-     *      giving a fee percentage, and amount it calculates the actual fee
-     * @param amount the amount of token
-     * @param feePercentage the fee percentage
-     * @return the token fee.
-     */
-
-    function calculateFee(uint256 amount, uint256 feePercentage)
-        private
-        pure
-        returns (uint256)
-    {
-        if (amount == 0) return 0;
-        if (feePercentage == 0) return 0;
-        return amount.mul(feePercentage).div(BASE);
     }
 
     /**
@@ -761,5 +691,23 @@ contract ERC20Template is ERC20("test", "testSymbol"), ERC20Roles {
         } else {
             return feeCollector;
         }
+    }
+
+    /**
+     * @dev fallback function
+     *      this is a default fallback function in which receives
+     *      the collected ether.
+     */
+    fallback() external payable {}
+
+    /**
+     * @dev withdrawETH
+     *      transfers all the accumlated ether the collector account
+     */
+    function withdrawETH() 
+        external 
+        payable
+    {
+        payable(getFeeCollector()).transfer(address(this).balance);
     }
 }
