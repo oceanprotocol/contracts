@@ -423,4 +423,216 @@ contract ERC721Factory is Deployer, Ownable {
         return templateCount;
     }
 
+    
+    struct tokenOrder {
+        address tokenAddress;
+        address consumer;
+        uint256 amount;
+        uint256 serviceId;
+        address consumeFeeAddress;
+        address consumeFeeToken; // address of the token marketplace wants to add fee on top
+        uint256 consumeFeeAmount;
+    }
+
+    /**
+     * @dev startMultipleTokenOrder
+     *      Used as a proxy to order multiple services
+     *      Users can have inifinite approvals for fees for factory instead of having one approval/ erc20 contract
+     *      Requires previous approval of all :
+     *          - consumeFeeTokens
+     *          - publishMarketFeeTokens
+     *          - erc20 datatokens
+     * @param orders an array of struct tokenOrder
+     */
+    function startMultipleTokenOrder(
+        tokenOrder[] memory orders
+    ) external {
+        uint256 ids = orders.length;
+        // TO DO.  We can do better here , by groupping publishMarketFeeTokens and consumeFeeTokens and have a single 
+        // transfer for each one, instead of doing it per dt..
+        for (uint256 i = 0; i < ids; i++) {
+            (address publishMarketFeeAddress, address publishMarketFeeToken, uint256 publishMarketFeeAmount) 
+                = IERC20Template(orders[i].tokenAddress).getPublishingMarketFee();
+            
+            // check if we have publishFees, if so transfer them to us and approve dttemplate to take them
+            if (publishMarketFeeAmount > 0 && publishMarketFeeToken!=address(0) 
+            && publishMarketFeeAddress!=address(0)) {
+                require(IERC20Template(publishMarketFeeToken).transferFrom(
+                    msg.sender,
+                    address(this),
+                    publishMarketFeeAmount
+                ),'Failed to transfer publishFee');
+                IERC20Template(publishMarketFeeToken).approve(orders[i].tokenAddress, publishMarketFeeAmount);
+            }
+            // check if we have consumeFees, if so transfer them to us and approve dttemplate to take them
+            if (orders[i].consumeFeeAmount > 0 && orders[i].consumeFeeToken!=address(0) 
+            && orders[i].consumeFeeAddress!=address(0)) {
+                require(IERC20Template(orders[i].consumeFeeToken).transferFrom(
+                    msg.sender,
+                    address(this),
+                    orders[i].consumeFeeAmount
+                ),'Failed to transfer consumeFee');
+                IERC20Template(orders[i].consumeFeeToken).approve(orders[i].tokenAddress, orders[i].consumeFeeAmount);
+            }
+            // transfer erc20 datatoken from consumer to us
+            require(IERC20Template(orders[i].tokenAddress).transferFrom(
+                msg.sender,
+                address(this),
+                orders[i].amount
+            ),'Failed to transfer datatoken');
+        
+            IERC20Template(orders[i].tokenAddress).startOrder(
+                orders[i].consumer,
+                orders[i].amount,
+                orders[i].serviceId,
+                orders[i].consumeFeeAddress,
+                orders[i].consumeFeeToken,
+                orders[i].consumeFeeAmount
+            );
+        }
+    }
+
+    // helper functions to save number of transactions
+    struct NftCreateData{
+        string name;
+        string symbol;
+        uint256 templateIndex;
+    }
+    struct ErcCreateData{
+        uint256 templateIndex;
+        string[] strings;
+        address[] addresses;
+        uint256[] uints;
+        bytes[] bytess;
+    }
+    
+    
+
+    
+  
+    /**
+     * @dev createNftWithErc
+     *      Creates a new NFT, then a ERC20,all in one call
+     * @param _NftCreateData input data for nft creation
+     * @param _ErcCreateData input data for erc20 creation
+     
+     */
+    function createNftWithErc(
+        NftCreateData calldata _NftCreateData,
+        ErcCreateData calldata _ErcCreateData
+    ) external returns (address erc721Address, address erc20Address){
+        erc721Address = deployERC721Contract(
+            _NftCreateData.name,
+            _NftCreateData.symbol,
+            _NftCreateData.templateIndex,
+            address(0));
+        erc20Address = _createToken(
+            _ErcCreateData.templateIndex,
+            _ErcCreateData.strings,
+            _ErcCreateData.addresses,
+            _ErcCreateData.uints,
+            _ErcCreateData.bytess,
+            erc721Address);
+    }
+
+    struct PoolData{
+        address controller;
+        address basetokenAddress;
+        uint256[] ssParams;
+        address basetokenSender;
+        uint256[2] swapFees;
+        address marketFeeCollector;
+        address publisherAddress;
+    }
+
+    /**
+     * @dev createNftErcWithPool
+     *      Creates a new NFT, then a ERC20, then a Pool, all in one call
+     *      Use this carefully, because if Pool creation fails, you are still going to pay a lot of gas
+     * @param _NftCreateData input data for NFT Creation
+     * @param _ErcCreateData input data for ERC20 Creation
+     * @param _PoolData input data for Pool Creation
+     */
+    function createNftErcWithPool(
+        NftCreateData calldata _NftCreateData,
+        ErcCreateData calldata _ErcCreateData,
+        PoolData calldata _PoolData
+    ) external returns (address erc721Address, address erc20Address, address poolAddress){
+        require(IERC20Template(_PoolData.basetokenAddress).transferFrom(
+                msg.sender,
+                address(this),
+                _PoolData.ssParams[4]
+            ),'Failed to transfer initial pool basetoken liquidity');
+        //we are adding ourselfs as a ERC20 Deployer, because we need it in order to deploy the pool
+        erc721Address = deployERC721Contract(
+            _NftCreateData.name,
+            _NftCreateData.symbol,
+            _NftCreateData.templateIndex,
+            address(this));
+        erc20Address = _createToken(
+            _ErcCreateData.templateIndex,
+            _ErcCreateData.strings,
+            _ErcCreateData.addresses,
+            _ErcCreateData.uints,
+            _ErcCreateData.bytess,
+            erc721Address);
+        // allow router to take the liquidity
+        IERC20Template(_PoolData.basetokenAddress).approve(router,_PoolData.ssParams[4]);
+        poolAddress = IERC20Template(erc20Address).deployPool(
+            _PoolData.controller,
+            _PoolData.basetokenAddress,
+            _PoolData.ssParams,
+            address(this),
+            _PoolData.swapFees,
+            _PoolData.marketFeeCollector,
+            _PoolData.publisherAddress
+        );
+        // TO DO - see if we can remove ourselfs from the ERC20Deployer permission
+    }
+
+    struct FixedData{
+        address fixedPriceAddress;
+        address basetokenAddress;
+        uint8 basetokenDecimals;
+        uint256 fixedRate;
+        address owner;
+        uint256 marketFee;
+        address marketFeeCollector;
+    }
+    /**
+     * @dev createNftErcWithFixedRate
+     *      Creates a new NFT, then a ERC20, then a FixedRateExchange, all in one call
+     *      Use this carefully, because if Fixed Rate creation fails, you are still going to pay a lot of gas
+     * @param _NftCreateData input data for NFT Creation
+     * @param _ErcCreateData input data for ERC20 Creation
+     * @param _FixedData input data for FixedRate Creation
+     */
+    function createNftErcWithFixedRate(
+        NftCreateData calldata _NftCreateData,
+        ErcCreateData calldata _ErcCreateData,
+        FixedData calldata _FixedData
+    ) external returns (address erc721Address, address erc20Address, bytes32 exchangeId){
+        //we are adding ourselfs as a ERC20 Deployer, because we need it in order to deploy the fixedrate
+        erc721Address = deployERC721Contract(
+            _NftCreateData.name,
+            _NftCreateData.symbol,
+            _NftCreateData.templateIndex,
+            address(this));
+        erc20Address = _createToken(
+            _ErcCreateData.templateIndex,
+            _ErcCreateData.strings,
+            _ErcCreateData.addresses,
+            _ErcCreateData.uints,
+            _ErcCreateData.bytess,
+            erc721Address);
+        exchangeId = IERC20Template(erc20Address).createFixedRate(
+            _FixedData.fixedPriceAddress,
+            _FixedData.basetokenAddress,
+            _FixedData.basetokenDecimals,
+            _FixedData.fixedRate,
+            _FixedData.owner,
+            _FixedData.marketFee,
+            _FixedData.marketFeeCollector);
+        // TO DO - see if we can remove ourselfs from the ERC20Deployer permission
+    }
 }
