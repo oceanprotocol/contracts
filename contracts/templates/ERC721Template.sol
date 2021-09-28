@@ -8,7 +8,6 @@ import "@openzeppelin/contracts/utils/Create2.sol";
 import "solidity-bytes-utils/contracts/BytesLib.sol";
 import "../interfaces/IV3ERC20.sol";
 //import "@openzeppelin/contracts/utils/introspection/ERC165Storage.sol";
-import "../interfaces/IMetadata.sol";
 import "../interfaces/IFactory.sol";
 import "../interfaces/IERC20Template.sol";
 import "../utils/ERC721RolesAddress.sol";
@@ -22,21 +21,47 @@ contract ERC721Template is
     ERC725Ocean,
     V3Integration
 {
-    bytes32 public constant METADATA_KEY = keccak256("METADATA_KEY");
-
+    
     string private _name;
     string private _symbol;
     //uint256 private tokenId = 1;
     bool private initialized;
-    address public _metadata;
+    bool public hasMetaData;
+    string public metaDataDecryptorUrl;
+    string public metaDataDecryptorAddress;
+    uint8 public metaDataState;
     address private _tokenFactory;
     address[] private deployedERC20List;
     address public ssContract;
 
     mapping(address => bool) private deployedERC20;
 
-    event ERC20Created(address indexed erc20Address);
-
+    //stored here only for ABI reasons
+    event TokenCreated(
+        address indexed newTokenAddress,
+        address indexed templateAddress,
+        string indexed tokenName
+    );
+    event MetadataCreated(
+        address indexed createdBy,
+        uint8 state,
+        string decryptorUrl,
+        bytes flags,
+        bytes data,
+        string metaDataDecryptorAddress,
+        uint256 timestamp,
+        uint256 blockNumber
+    );
+    event MetadataUpdated(
+        address indexed updatedBy,
+        uint8 state,
+        string decryptorUrl,
+        bytes flags,
+        bytes data,
+        string metaDataDecryptorAddress,
+        uint256 timestamp,
+        uint256 blockNumber
+    );
     modifier onlyNFTOwner() {
         require(msg.sender == ownerOf(1), "ERC721Template: not NFTOwner");
         _;
@@ -45,14 +70,11 @@ contract ERC721Template is
     /**
      * @dev initialize
      *      Calls private _initialize function. Only if contract is not initialized.
-            This function mints an NFT (tokenId=1) to the owner, creates Metadata for Aqua and add owner as Manager Role
+            This function mints an NFT (tokenId=1) to the owner and add owner as Manager Role
      * @param owner NFT Owner
      * @param name_ NFT name
      * @param symbol_ NFT Symbol
-     * @param metadata metadata address used by Aquarius
      * @param tokenFactory NFT factory address
-     * @param _data data used by Aquarius
-       @param _flags flags used by Aquarius
      
      @return boolean
      */
@@ -61,39 +83,34 @@ contract ERC721Template is
         address owner,
         string calldata name_,
         string calldata symbol_,
-        address metadata,
         address tokenFactory,
-        bytes calldata _data,
-        bytes calldata _flags
+        address additionalERC20Deployer
     ) external returns (bool) {
         require(
             !initialized,
             "ERC721Template: token instance already initialized"
         );
-        return
+        bool initResult = 
             _initialize(
                 owner,
                 name_,
                 symbol_,
-                metadata,
-                tokenFactory,
-                _data,
-                _flags
+                tokenFactory
             );
+        if(initResult && additionalERC20Deployer != address(0))
+            _addToCreateERC20List(additionalERC20Deployer);
+        return(initResult);
     }
 
     /**
      * @dev _initialize
      *      Calls private _initialize function. Only if contract is not initialized.
-             This function mints an NFT (tokenId=1) to the owner, creates Metadata for Aqua(emit event on the Metadata contract) 
-             and add owner as Manager Role (Roles admin)
+     *       This function mints an NFT (tokenId=1) to the owner
+     *       and add owner as Manager Role (Roles admin)
      * @param owner NFT Owner
      * @param name_ NFT name
      * @param symbol_ NFT Symbol
-     * @param metadata metadata address used by Aquarius
      * @param tokenFactory NFT factory address
-     * @param _data data used by Aquarius
-       @param _flags flags used by Aquarius
      
      @return boolean
      */
@@ -102,26 +119,17 @@ contract ERC721Template is
         address owner,
         string memory name_,
         string memory symbol_,
-        address metadata,
-        address tokenFactory,
-        bytes calldata _data,
-        bytes memory _flags
+        address tokenFactory
     ) internal returns (bool) {
         require(
             owner != address(0),
             "ERC721Template:: Invalid minter,  zero address"
         );
-        require(
-            metadata != address(0),
-            "ERC721Template:: Metadata address cannot be zero"
-        );
-        _metadata = metadata;
-
+        
         _name = name_;
         _symbol = symbol_;
         _tokenFactory = tokenFactory;
         initialized = true;
-        _createMetadata(_flags, _data);
         _safeMint(owner, 1);
         _addManager(owner);
 
@@ -135,50 +143,50 @@ contract ERC721Template is
     }
 
     /**
-     * @dev _createMetadata
+     * @dev setMetaData
      *     
-             Creates Metadata for Aqua(emit event on the Metadata contract) when initializing
-             It also set the same data argument into the ERC725 standard (key-value store).
-             The key is prefixed at METADATA_KEY = keccak256("METADATA_KEY");
+             Creates or update Metadata for Aqua(emit event)
+             Also, updates the METADATA_DECRYPTOR key
+     * @param _metaDataState metadata state
+     * @param _metaDataDecryptorUrl decryptor URL
+     * @param _metaDataDecryptorAddress decryptor public key
      * @param flags flags used by Aquarius
      * @param data data used by Aquarius
-    
-     
-
      */
-
-    function _createMetadata(bytes memory flags, bytes calldata data) internal {
-        require(
-            IFactory(_tokenFactory).erc721List(address(this)) == address(this),
-            "ERC721Template: NOT ORIGINAL TEMPLATE"
-        );
-        IMetadata(_metadata).create(address(this), flags, data);
-        // Add metadata to key store with default key
-        setData(METADATA_KEY, data);
-    }
-
-    /**
-     * @dev updateMetadata
-     *        ONLY user with updateMetadata permission (assigned by Manager) can call it
-             Updates Metadata for Aqua(emit event on the Metadata contract)
-             It also updates the same data argument into the ERC725 standard (key-value store).
-             The key is prefixed at METADATA_KEY = keccak256("METADATA_KEY");
-     * @param flags flags used by Aquarius
-     * @param data data used by Aquarius
-    
-     
-     */
-
-    function updateMetadata(bytes calldata flags, bytes calldata data)
-        external
-    {
+    function setMetaData(uint8 _metaDataState, string calldata _metaDataDecryptorUrl
+        , string calldata _metaDataDecryptorAddress, bytes calldata flags, 
+        bytes calldata data) external {
         require(
             permissions[msg.sender].updateMetadata == true,
             "ERC721Template: NOT METADATA_ROLE"
         );
-        IMetadata(_metadata).update(address(this), flags, data);
-        setData(METADATA_KEY, data);
+        metaDataState = _metaDataState;
+        metaDataDecryptorUrl = _metaDataDecryptorUrl;
+        metaDataDecryptorAddress = _metaDataDecryptorAddress;
+        if(hasMetaData == false){
+            emit MetadataCreated(msg.sender, _metaDataState, _metaDataDecryptorUrl,
+            flags, data, _metaDataDecryptorAddress,
+            /* solium-disable-next-line */
+            block.timestamp,
+            block.number);
+            hasMetaData = true;
+        }
+        else
+            emit MetadataUpdated(msg.sender, metaDataState, _metaDataDecryptorUrl,
+            flags, data, _metaDataDecryptorAddress,
+            /* solium-disable-next-line */
+            block.timestamp,
+            block.number);
     }
+
+    /**
+     * @dev getMetaDataDecryptorUrl
+     *      Returns metaDataState, metaDataDecryptorUrl, metaDataDecryptorAddress
+     */
+    function getMetaData() external view returns (string memory, string memory, uint8, bool){
+        return (metaDataDecryptorUrl, metaDataDecryptorAddress, metaDataState, hasMetaData);
+    } 
+
 
     /**
      * @dev createERC20
@@ -186,45 +194,47 @@ contract ERC721Template is
              Creates a new ERC20 datatoken.
             It also adds initial minting and fee management permissions to custom users.
 
-    * @param name_ token name
-    * @param symbol_ token symbol
-    * @param cap the maximum total supply
-    * @param templateIndex template index to deploy
-    * @param minter minter address to be set as initial minter 
-    * @param feeManager feeManager address to be set as initial feeManager (can set who gets the DT consumed)
+     * @param _templateIndex ERC20Template index 
+     * @param strings refers to an array of strings
+     *                      [0] = name
+     *                      [1] = symbol
+     * @param addresses refers to an array of addresses
+     *                     [0]  = minter account who can mint datatokens (can have multiple minters)
+     *                     [1]  = feeManager initial feeManager for this DT
+     *                     [2]  = publishing Market Address
+     *                     [3]  = publishing Market Fee Token
+     * @param uints  refers to an array of uints
+     *                     [0] = cap_ the total ERC20 cap
+     *                     [1] = publishing Market Fee Amount
+     * @param bytess  refers to an array of bytes
+     *                     Currently not used, usefull for future templates
      
      @return ERC20 token address
      */
 
     function createERC20(
-        string calldata name_,
-        string calldata symbol_,
-        uint256 cap,
-        uint256 templateIndex,
-        address minter,
-        address feeManager
-    ) external returns (address) {
+        uint256 _templateIndex,
+        string[] calldata strings,
+        address[] calldata addresses,
+        uint256[] calldata uints,
+        bytes[] calldata bytess
+    ) external returns (address ) {
         require(
             permissions[msg.sender].deployERC20 == true,
             "ERC721Template: NOT ERC20DEPLOYER_ROLE"
         );
 
         address token = IFactory(_tokenFactory).createToken(
-            name_,
-            symbol_,
-            cap,
-            templateIndex,
-            minter,
-            feeManager
+            _templateIndex,
+            strings,
+            addresses,
+            uints,
+            bytess
         );
 
         deployedERC20[token] = true;
 
         deployedERC20List.push(token);
-
-        //FOR TEST PURPOSE BUT COULD BE COMPLETED OR REMOVED
-        emit ERC20Created(token);
-
         return token;
     }
 
@@ -285,7 +295,8 @@ contract ERC721Template is
      *
      *
      * @param _operation the operation to execute: CALL = 0; DELEGATECALL = 1; CREATE2 = 2; CREATE = 3;
-     * @param _to the smart contract or address to interact with. `_to` will be unused if a contract is created (operation 2 and 3)
+     * @param _to the smart contract or address to interact with. 
+     *          `_to` will be unused if a contract is created (operation 2 and 3)
      * @param _value the value of ETH to transfer
      * @param _data the call data, or the contract data to deploy
     **/
@@ -339,55 +350,54 @@ contract ERC721Template is
     }
 
 
-       /**
-     * @dev setDataV3
-     *      ONLY v3Minter role can call it
-            This function allows to store data with a preset key (keccak256(ERC20Address)) into NFT 725 Store, same as setDataERC20 but for v3 DT
-            The DT we'd like to update metadata has to be already wrapped
-     * @param datatoken datatoken addresss
-     * @param _value data to store at the above key
-     * @param flags flags for Aquarius
-     * @param data data for Aquarius
-     */
-
-    // TODO: check if we actually need the value and data or can be the same
-    function setDataV3(
-        address datatoken,
-        bytes calldata _value,
-        bytes calldata flags,
-        bytes calldata data
-    ) external {
-        require(
-            permissions[msg.sender].v3Minter == true,
-            "ERC721Template: NOT v3Minter"
-        );
-        _checkV3DT(datatoken);
-
-        bytes32 key = keccak256(abi.encodePacked(address(datatoken))); // could be any other key, used a simple configuration
-        setData(key, _value); // into the new standard 725Y
-        IMetadata(_metadata).update(datatoken, flags, data); // Metadata standard for Aqua (V4 Metadata)
-       
-    }
-
     /**
      * @dev cleanPermissions
      *      Only NFT Owner  can call it.
-     *      This function allows to remove all ROLES at erc721 level: Managers, ERC20Deployer, MetadataUpdater, StoreUpdater
+     *      This function allows to remove all ROLES at erc721 level: 
+     *              Managers, ERC20Deployer, MetadataUpdater, StoreUpdater
      *      Permissions at erc20 level stay.
-            Even NFT Owner has to readd himself as Manager
+     *       Even NFT Owner has to readd himself as Manager
      */
     
     function cleanPermissions() external onlyNFTOwner {
         _cleanPermissions();
     }
 
+
     // // V3 MIGRATION
+
+    /**
+     * @dev setDataV3
+     *      ONLY v3Minter role can call it
+            This function allows to store data with a preset key
+             (keccak256(ERC20Address)) into NFT 725 Store, same as setDataERC20 but for v3 DT       
+     * @param datatoken datatoken addresss
+     * @param _value data to store at the above key
+     */
+
+    // TODO: check if we actually need the value and data or can be the same
+    function setDataV3(
+        address datatoken,
+        bytes calldata _value
+    ) external {
+        require(
+            permissions[msg.sender].v3Minter == true,
+            "ERC721Template: NOT v3Minter"
+        );
+        _checkV3DT(datatoken);
+        // could be any other key, used a simple configuration
+        bytes32 key = keccak256(abi.encodePacked(address(datatoken))); 
+        setData(key, _value); // into the new standard 725Y
+       
+    }
+
      /**
      * @dev wrapV3DT
-            Requires to call proposeMinter BEFORE, the proposed minter MUST be the NFT contract address
+     *      Requires to call proposeMinter BEFORE, the proposed minter MUST be the NFT contract address
      *      Only NFT Owner can call it.
      *      This function 'wraps' any v3 datatoken, NFTOwner has to be the actual minter(v3) 
-            After wrapping, the minter() in the v3 datatoken is going to be this contract. To mint new tokens we now need to use mintV3DT
+     *      After wrapping, the minter() in the v3 datatoken is going to be this contract.
+     *      To mint new tokens we now need to use mintV3DT
      * @param datatoken datatoken address we want to wrap
      * @param newMinter new minter address after wrapping
      */
@@ -525,6 +535,24 @@ contract ERC721Template is
         }
     }
 
+
+     /**
+     * @dev fallback function
+     *      this is a default fallback function in which receives
+     *      the collected ether.
+     */
+    fallback() external payable {}
+
+    /**
+     * @dev withdrawETH
+     *      transfers all the accumlated ether the ownerOf
+     */
+    function withdrawETH() 
+        external 
+        payable
+    {
+        payable(ownerOf(1)).transfer(address(this).balance);
+    }
 
   
 }

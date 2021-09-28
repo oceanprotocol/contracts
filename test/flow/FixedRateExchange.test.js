@@ -8,6 +8,7 @@ const {
   time,
 } = require("@openzeppelin/test-helpers");
 const { impersonate } = require("../helpers/impersonate");
+const {getEventFromTx} = require("../helpers/utils")
 const constants = require("../helpers/constants");
 const { web3, BN } = require("@openzeppelin/test-helpers/src/setup");
 const { keccak256 } = require("@ethersproject/keccak256");
@@ -60,7 +61,7 @@ describe("FixedRateExchange", () => {
     const ERC20Template = await ethers.getContractFactory("ERC20Template");
     const ERC721Factory = await ethers.getContractFactory("ERC721Factory");
 
-    const Metadata = await ethers.getContractFactory("Metadata");
+    
     const Router = await ethers.getContractFactory("FactoryRouter");
     const SSContract = await ethers.getContractFactory("ssFixedRate");
 
@@ -155,7 +156,7 @@ describe("FixedRateExchange", () => {
 
     templateERC20 = await ERC20Template.deploy();
 
-    metadata = await Metadata.deploy();
+    
 
     // SETUP ERC721 Factory with template
     templateERC721 = await ERC721Template.deploy();
@@ -163,14 +164,12 @@ describe("FixedRateExchange", () => {
       templateERC721.address,
       templateERC20.address,
       opfCollector.address,
-      router.address,
-      metadata.address
+      router.address
     );
 
     // SET REQUIRED ADDRESS
 
-    await metadata.addTokenFactory(factoryERC721.address);
-
+    
     await router.addFactory(factoryERC721.address);
 
     await router.addFixedRateContract(fixedRateExchange.address);
@@ -184,13 +183,15 @@ describe("FixedRateExchange", () => {
     const tx = await factoryERC721.deployERC721Contract(
       "NFT",
       "NFTSYMBOL",
-      data,
-      flags,
-      1
+      1,
+      "0x0000000000000000000000000000000000000000"
     );
     const txReceipt = await tx.wait();
 
-    tokenAddress = txReceipt.events[4].args[0];
+    const event = getEventFromTx(txReceipt,'NFTCreated')
+    assert(event, "Cannot find NFTCreated event")
+    tokenAddress = event.args[0];
+
     tokenERC721 = await ethers.getContractAt("ERC721Template", tokenAddress);
 
     assert((await tokenERC721.balanceOf(owner.address)) == 1);
@@ -215,16 +216,17 @@ describe("FixedRateExchange", () => {
     let amountDTtoSell = web3.utils.toWei("10000"); // exact amount so that we can check if balances works
     marketFee = 1e15;
     it("#1 - user3 (alice) create a new erc20DT, assigning herself as minter", async () => {
-      const trxERC20 = await tokenERC721.connect(user3).createERC20(
-        "ERC20DT1",
-        "ERC20DT1Symbol",
-        cap,
-        1,
-        user3.address, // minter
-        user6.address // feeManager
+      const trxERC20 = await tokenERC721.connect(user3).createERC20(1,
+        ["ERC20DT1","ERC20DT1Symbol"],
+        [user3.address,user6.address, user3.address,'0x0000000000000000000000000000000000000000'],
+        [cap,0],
+        []
       );
       const trxReceiptERC20 = await trxERC20.wait();
-      erc20Address = trxReceiptERC20.events[3].args.erc20Address;
+      const event = getEventFromTx(trxReceiptERC20,'TokenCreated')
+      assert(event, "Cannot find TokenCreated event")
+      erc20Address = event.args[0];
+      
 
       erc20Token = await ethers.getContractAt("ERC20Template", erc20Address);
       assert((await erc20Token.permissions(user3.address)).minter == true);
@@ -929,16 +931,17 @@ describe("FixedRateExchange", () => {
       amountDTtoSell = web3.utils.toWei("10000"); // exact amount so that we can check if balances works
 
     it("#1 - user3 (alice) create a new erc20DT, assigning herself as minter", async () => {
-      const trxERC20 = await tokenERC721.connect(user3).createERC20(
-        "ERC20DT1",
-        "ERC20DT1Symbol",
-        cap,
-        1,
-        user3.address, // minter
-        user6.address // feeManager
+      const trxERC20 = await tokenERC721.connect(user3).createERC20(1,
+        ["ERC20DT1","ERC20DT1Symbol"],
+        [user3.address,user6.address, user3.address,'0x0000000000000000000000000000000000000000'],
+        [cap,0],
+        []
       );
       const trxReceiptERC20 = await trxERC20.wait();
-      erc20Address = trxReceiptERC20.events[3].args.erc20Address;
+      const event = getEventFromTx(trxReceiptERC20,'TokenCreated')
+      assert(event, "Cannot find TokenCreated event")
+      erc20Address = event.args[0];
+      
 
       erc20Token = await ethers.getContractAt("ERC20Template", erc20Address);
       assert((await erc20Token.permissions(user3.address)).minter == true);
@@ -1715,16 +1718,17 @@ describe("FixedRateExchange", () => {
     amountDTtoSell = web3.utils.toWei("10000"); // exact amount so that we can check if balances works
 
     it("#1 - user3 (alice) create a new erc20DT, assigning herself as minter", async () => {
-      const trxERC20 = await tokenERC721.connect(user3).createERC20(
-        "ERC20DT1",
-        "ERC20DT1Symbol",
-        cap,
-        1, // templateIndex
-        user3.address, // minter
-        user6.address // feeManager
+      const trxERC20 = await tokenERC721.connect(user3).createERC20(1,
+        ["ERC20DT1","ERC20DT1Symbol"],
+        [user3.address,user6.address, user3.address,'0x0000000000000000000000000000000000000000'],
+        [cap,0],
+        []
       );
       const trxReceiptERC20 = await trxERC20.wait();
-      erc20Address = trxReceiptERC20.events[3].args.erc20Address;
+      const event = getEventFromTx(trxReceiptERC20,'TokenCreated')
+      assert(event, "Cannot find TokenCreated event")
+      erc20Address = event.args[0];
+      
 
       erc20Token = await ethers.getContractAt("ERC20Template", erc20Address);
       assert((await erc20Token.permissions(user3.address)).minter == true);
@@ -2422,16 +2426,17 @@ describe("FixedRateExchange", () => {
       amountDTtoSell = web3.utils.toWei("10000"); // exact amount so that we can check if balances works
 
     it("#1 - user3 (alice) create a new erc20DT, assigning herself as minter", async () => {
-      const trxERC20 = await tokenERC721.connect(user3).createERC20(
-        "ERC20DT1",
-        "ERC20DT1Symbol",
-        cap,
-        1, // templateIndex
-        user3.address, // minter
-        user6.address // feeManager
+      const trxERC20 = await tokenERC721.connect(user3).createERC20(1,
+        ["ERC20DT1","ERC20DT1Symbol"],
+        [user3.address,user6.address, user3.address,'0x0000000000000000000000000000000000000000'],
+        [cap,0],
+        []
       );
       const trxReceiptERC20 = await trxERC20.wait();
-      erc20Address = trxReceiptERC20.events[3].args.erc20Address;
+      const event = getEventFromTx(trxReceiptERC20,'TokenCreated')
+      assert(event, "Cannot find TokenCreated event")
+      erc20Address = event.args[0];
+      
 
       erc20Token = await ethers.getContractAt("ERC20Template", erc20Address);
       assert((await erc20Token.permissions(user3.address)).minter == true);
@@ -3126,16 +3131,17 @@ describe("FixedRateExchange", () => {
     let amountDTtoSell = web3.utils.toWei("10000"); // exact amount so that we can check if balances works
 
     it("#1 - user3 (alice) create a new erc20DT, assigning herself as minter", async () => {
-      const trxERC20 = await tokenERC721.connect(user3).createERC20(
-        "ERC20DT1",
-        "ERC20DT1Symbol",
-        cap,
-        1, // templateIndex
-        user3.address, // minter
-        user6.address // feeManager
+      const trxERC20 = await tokenERC721.connect(user3).createERC20(1,
+        ["ERC20DT1","ERC20DT1Symbol"],
+        [user3.address,user6.address, user3.address,'0x0000000000000000000000000000000000000000'],
+        [cap,0],
+        []
       );
       const trxReceiptERC20 = await trxERC20.wait();
-      erc20Address = trxReceiptERC20.events[3].args.erc20Address;
+      const event = getEventFromTx(trxReceiptERC20,'TokenCreated')
+      assert(event, "Cannot find TokenCreated event")
+      erc20Address = event.args[0];
+      
 
       erc20Token = await ethers.getContractAt("ERC20Template", erc20Address);
       assert((await erc20Token.permissions(user3.address)).minter == true);
@@ -3837,16 +3843,17 @@ describe("FixedRateExchange", () => {
     amountDTtoSell = web3.utils.toWei("10000"); // exact amount so that we can check if balances works
 
     it("#1 - user3 (alice) create a new erc20DT, assigning herself as minter", async () => {
-      const trxERC20 = await tokenERC721.connect(user3).createERC20(
-        "ERC20DT1",
-        "ERC20DT1Symbol",
-        cap,
-        1, // templateIndex
-        user3.address, // minter
-        user6.address // feeManager
+      const trxERC20 = await tokenERC721.connect(user3).createERC20(1,
+        ["ERC20DT1","ERC20DT1Symbol"],
+        [user3.address,user6.address, user3.address,'0x0000000000000000000000000000000000000000'],
+        [cap,0],
+        []
       );
       const trxReceiptERC20 = await trxERC20.wait();
-      erc20Address = trxReceiptERC20.events[3].args.erc20Address;
+      const event = getEventFromTx(trxReceiptERC20,'TokenCreated')
+      assert(event, "Cannot find TokenCreated event")
+      erc20Address = event.args[0];
+      
 
       erc20Token = await ethers.getContractAt("ERC20Template", erc20Address);
       assert((await erc20Token.permissions(user3.address)).minter == true);
@@ -4545,16 +4552,16 @@ describe("FixedRateExchange", () => {
       amountDTtoSell = web3.utils.toWei("10000"); // exact amount so that we can check if balances works
       
     it("#1 - user3 (alice) create a new erc20DT, assigning herself as minter", async () => {
-      const trxERC20 = await tokenERC721.connect(user3).createERC20(
-        "ERC20DT1",
-        "ERC20DT1Symbol",
-        cap,
-        1,
-        user3.address, // minter
-        user6.address // feeManager
+      const trxERC20 = await tokenERC721.connect(user3).createERC20(1,
+        ["ERC20DT1","ERC20DT1Symbol"],
+        [user3.address,user6.address, user3.address,'0x0000000000000000000000000000000000000000'],
+        [cap,0],
+        []
       );
       const trxReceiptERC20 = await trxERC20.wait();
-      erc20Address = trxReceiptERC20.events[3].args.erc20Address;
+      const event = getEventFromTx(trxReceiptERC20,'TokenCreated')
+      assert(event, "Cannot find TokenCreated event")
+      erc20Address = event.args[0];
 
       erc20Token = await ethers.getContractAt("ERC20Template", erc20Address);
       assert((await erc20Token.permissions(user3.address)).minter == true);

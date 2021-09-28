@@ -11,6 +11,7 @@ const {
 const BN = require("bn.js");
 
 const { impersonate } = require("../helpers/impersonate");
+const {getEventFromTx} = require("../helpers/utils")
 const constants = require("../helpers/constants");
 const { web3 } = require("@openzeppelin/test-helpers/src/setup");
 const { keccak256 } = require("@ethersproject/keccak256");
@@ -58,7 +59,6 @@ describe("1SS flow", () => {
     const ERC721Factory = await ethers.getContractFactory("ERC721Factory");
    
 
-    const Metadata = await ethers.getContractFactory("Metadata");
     const Router = await ethers.getContractFactory("FactoryRouter");
     const SSContract = await ethers.getContractFactory("ssFixedRate");
     const BPool = await ethers.getContractFactory("BPool");
@@ -140,7 +140,6 @@ describe("1SS flow", () => {
   
     templateERC20 = await ERC20Template.deploy();
 
-    metadata = await Metadata.deploy();
     
     // SETUP ERC721 Factory with template
     templateERC721 = await ERC721Template.deploy();
@@ -148,11 +147,10 @@ describe("1SS flow", () => {
       templateERC721.address,
       templateERC20.address,
       communityFeeCollector,
-      router.address,
-      metadata.address
+      router.address
     );
 
-    await metadata.addTokenFactory(factoryERC721.address)
+    
     // SET REQUIRED ADDRESS
     await router.addFactory(factoryERC721.address);
       
@@ -167,13 +165,14 @@ describe("1SS flow", () => {
     const tx = await factoryERC721.deployERC721Contract(
       "NFT",
       "NFTSYMBOL",
-      data,
-      flags,
-      1
+      1,
+      "0x0000000000000000000000000000000000000000"
     );
     const txReceipt = await tx.wait();
+    const event = getEventFromTx(txReceipt,'NFTCreated')
+    assert(event, "Cannot find NFTCreated event")
+    tokenAddress = event.args[0];
 
-    tokenAddress = txReceipt.events[4].args[0];
     tokenERC721 = await ethers.getContractAt("ERC721Template", tokenAddress);
 
     assert((await tokenERC721.balanceOf(owner.address)) == 1);
@@ -195,18 +194,17 @@ describe("1SS flow", () => {
   });
 
   it("#3 - user3 deploys a new erc20DT, assigning himself as minter", async () => {
-    const trxERC20 = await tokenERC721
-      .connect(user3)
-      .createERC20(
-        "ERC20DT1",
-        "ERC20DT1Symbol",
-        cap,
-        1,
-        user3.address, // minter
-        user6.address // feeManager
-      );
+
+    const trxERC20 = await tokenERC721.connect(user3).createERC20(1,
+      ["ERC20DT1","ERC20DT1Symbol"],
+      [user3.address,user6.address, user3.address,'0x0000000000000000000000000000000000000000'],
+      [cap,0],
+      []
+    );
     const trxReceiptERC20 = await trxERC20.wait();
-    erc20Address = trxReceiptERC20.events[3].args.erc20Address;
+    const event = getEventFromTx(trxReceiptERC20,'TokenCreated')
+    assert(event, "Cannot find TokenCreated event")
+    erc20Address = event.args[0];
 
     erc20Token = await ethers.getContractAt("ERC20Template", erc20Address);
     assert((await erc20Token.permissions(user3.address)).minter == true);

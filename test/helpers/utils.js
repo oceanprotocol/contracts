@@ -6,10 +6,10 @@ const Web3 = require('web3')
 
 
 const utils = {
-    getEventArgsFromTx: (txReceipt, eventName) => {
-        return txReceipt.logs.filter((log) => {
+    getEventFromTx: (txReceipt, eventName) => {
+        return txReceipt.events.filter((log) => {
             return log.event === eventName
-        })[0].args
+        })[0]
     },
     getWeb3: () => {
         return new Web3(new Web3.providers.HttpProvider(constants.network.nodeUrl))

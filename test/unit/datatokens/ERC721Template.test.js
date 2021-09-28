@@ -3,7 +3,7 @@
 const hre = require("hardhat");
 const { assert, expect } = require("chai");
 const { expectRevert, expectEvent } = require("@openzeppelin/test-helpers");
-
+const {getEventFromTx} = require("../../helpers/utils")
 const { impersonate } = require("../../helpers/impersonate");
 const constants = require("../../helpers/constants");
 const { web3 } = require("@openzeppelin/test-helpers/src/setup");
@@ -37,6 +37,10 @@ describe("ERC721Template", () => {
   const daiAddress = "0x6B175474E89094C44Da98b954EedeAC495271d0F";
   const usdcAddress = "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48";
 
+  const metaDataDecryptorUrl = 'http://myprovider:8030';
+  const metaDataDecryptorAddress = "0x123";
+  const metaDataState = 1;
+
   const migrateFromV3 = async (v3DTOwner,v3Datatoken) => {
     // WE IMPERSONATE THE ACTUAL v3DT OWNER and create a new ERC721 Contract, from which we are going to wrap the v3 datatoken
     
@@ -45,13 +49,14 @@ describe("ERC721Template", () => {
     const tx = await factoryERC721.connect(signer).deployERC721Contract(
       "NFT2",
       "NFTSYMBOL",
-      data,
-      flags,
-      1
+      1,
+      "0x0000000000000000000000000000000000000000"
     );
     const txReceipt = await tx.wait();
-  
-    tokenAddress = txReceipt.events[4].args[0];
+    let event = getEventFromTx(txReceipt,'NFTCreated')
+    assert(event, "Cannot find NFTCreated event")
+    tokenAddress = event.args[0];
+
     tokenERC721 = await ethers.getContractAt("ERC721Template", tokenAddress);
     assert(await tokenERC721.v3DT(v3Datatoken) == false)
    
@@ -86,7 +91,6 @@ describe("ERC721Template", () => {
     const ERC20Template = await ethers.getContractFactory("ERC20Template");
     const ERC721Factory = await ethers.getContractFactory("ERC721Factory");
 
-    const Metadata = await ethers.getContractFactory("Metadata");
     const Router = await ethers.getContractFactory("FactoryRouter");
     const SSContract = await ethers.getContractFactory("ssFixedRate");
     const BPool = await ethers.getContractFactory("BPool");
@@ -124,7 +128,7 @@ describe("ERC721Template", () => {
  
    templateERC20 = await ERC20Template.deploy();
  
-   metadata = await Metadata.deploy();
+ 
  
    // SETUP ERC721 Factory with template
    templateERC721 = await ERC721Template.deploy();
@@ -132,14 +136,12 @@ describe("ERC721Template", () => {
      templateERC721.address,
      templateERC20.address,
      opfCollector.address,
-     router.address,
-     metadata.address
+     router.address
    );
  
    // SET REQUIRED ADDRESS
  
-   await metadata.addTokenFactory(factoryERC721.address);
- 
+   
    await router.addFactory(factoryERC721.address);
  
    await router.addFixedRateContract(fixedRateExchange.address); 
@@ -150,13 +152,13 @@ describe("ERC721Template", () => {
     const tx = await factoryERC721.deployERC721Contract(
       "NFT",
       "NFTSYMBOL",
-      data,
-      flags,
-      1
+      1,
+      "0x0000000000000000000000000000000000000000"
     );
     const txReceipt = await tx.wait();
-
-    tokenAddress = txReceipt.events[4].args[0];
+    let event = getEventFromTx(txReceipt,'NFTCreated')
+    assert(event, "Cannot find NFTCreated event")
+    tokenAddress = event.args[0];
     tokenERC721 = await ethers.getContractAt("ERC721Template", tokenAddress);
 
     assert((await tokenERC721.balanceOf(owner.address)) == 1);
@@ -173,16 +175,17 @@ describe("ERC721Template", () => {
     assert(
       (await tokenERC721.getPermissions(user3.address)).updateMetadata == true
     );
-    const trxERC20 = await tokenERC721.connect(user3).createERC20(
-      "ERC20DT1",
-      "ERC20DT1Symbol",
-      cap,
-      1,
-      user3.address, // minter
-      user6.address // feeManager
+    const trxERC20 = await tokenERC721.connect(user3).createERC20(1,
+      ["ERC20DT1","ERC20DT1Symbol"],
+      [user3.address,user6.address, user3.address,'0x0000000000000000000000000000000000000000'],
+      [cap,0],
+      []
     );
     const trxReceiptERC20 = await trxERC20.wait();
-    erc20Address = trxReceiptERC20.events[3].args.erc20Address;
+    event = getEventFromTx(trxReceiptERC20,'TokenCreated')
+    assert(event, "Cannot find TokenCreated event")
+    erc20Address = event.args[0];
+    
 
     erc20Token = await ethers.getContractAt("ERC20Template", erc20Address);
     assert((await erc20Token.permissions(user3.address)).minter == true);
@@ -198,10 +201,8 @@ describe("ERC721Template", () => {
         owner.address,
         "NewName",
         "NN",
-        metadata.address,
         factoryERC721.address,
-        data,
-        flags
+        '0x0000000000000000000000000000000000000000'
       ),
       "ERC721Template: token instance already initialized"
     );
@@ -214,39 +215,51 @@ describe("ERC721Template", () => {
 
   it("#updateMetadata - should not be allowed to update the metadata if NOT in MetadataList", async () => {
     assert((await tokenERC721.getPermissions(user6.address)).updateMetadata == false)
-
     await expectRevert(
-      tokenERC721.connect(user6).updateMetadata(data, flags),
+      tokenERC721.connect(user6).setMetaData(metaDataState, metaDataDecryptorUrl, metaDataDecryptorAddress, flags, data),
       "ERC721Template: NOT METADATA_ROLE"
     );
   });
 
-  it("#updateMetadata - should update the metadata, after adding address to MetadataList", async () => {
+  it("#updateMetadata - should create & update the metadata, after adding address to MetadataList", async () => {
     assert((await tokenERC721.getPermissions(user6.address)).updateMetadata == false)
     await tokenERC721.addToMetadataList(user6.address);
+    let metadataInfo = await tokenERC721.getMetaData()
+    assert(metadataInfo[3] === false)
 
-    const keyMetadata = web3.utils.keccak256("METADATA_KEY");
-    assert(await tokenERC721.getData(keyMetadata) == data)
-
-    let newData = web3.utils.asciiToHex('SomeNewData');
-    await tokenERC721.connect(user6).updateMetadata(flags, newData);
-    
-    assert(await tokenERC721.getData(keyMetadata) == newData)
-    
+    let tx = await tokenERC721.connect(user6).setMetaData(metaDataState, metaDataDecryptorUrl, metaDataDecryptorAddress, flags, data);
+    let txReceipt = await tx.wait();
    
+    let event = getEventFromTx(txReceipt,'MetadataCreated')
+    assert(event, "Cannot find MetadataCreated event")
+    tokenAddress = event.args[0];
+    assert(event.args[2] == metaDataDecryptorUrl);
+    
+    metadataInfo = await tokenERC721.getMetaData()
+    assert(metadataInfo[3] === true)
+    assert(metadataInfo[0] == metaDataDecryptorUrl);
+
+    const metaDataDecryptorUrl2 = 'http://someurl';
+    tx = await tokenERC721.connect(user6).setMetaData(metaDataState, metaDataDecryptorUrl2, metaDataDecryptorAddress, flags, data);
+    txReceipt = await tx.wait();
+    event = getEventFromTx(txReceipt,'MetadataUpdated')
+    assert(event, "Cannot find MetadataUpdated event")
+    assert(event.args[2] == metaDataDecryptorUrl2);
+    
+    metadataInfo = await tokenERC721.getMetaData()
+    assert(metadataInfo[3] === true)
+    assert(metadataInfo[0] == metaDataDecryptorUrl2);
+
   });
 
   it("#createERC20 - should not allow to create a new ERC20Token if NOT in CreateERC20List", async () => {
     assert((await tokenERC721.getPermissions(user6.address)).deployERC20 == false)
-
     await expectRevert(
-      tokenERC721.connect(user6).createERC20(
-        "ERC20DT1",
-        "ERC20DT1Symbol",
-        web3.utils.toWei("10"),
-        1,
-        owner.address,
-        user2.address
+      tokenERC721.connect(user6).createERC20(1,
+        ["ERC20DT1","ERC20DT1Symbol"],
+        [owner.address,user2.address, owner.address,'0x0000000000000000000000000000000000000000'],
+        [web3.utils.toWei("10"),0],
+        []
       ),
       "ERC721Template: NOT ERC20DEPLOYER_ROLE"
     );
@@ -255,14 +268,11 @@ describe("ERC721Template", () => {
   it("#createERC20 - owner should create a new ERC20Token, no need to be added into the CreateERC20List", async () => {
     assert((await tokenERC721.getPermissions(owner.address)).deployERC20 == true)
     
-    
-    await tokenERC721.createERC20(
-      "ERC20DT1",
-      "ERC20DT1Symbol",
-      cap,
-      1,
-      owner.address,
-      user2.address // feeManager
+    await tokenERC721.createERC20(1,
+      ["ERC20DT1","ERC20DT1Symbol"],
+      [owner.address,user2.address, owner.address,'0x0000000000000000000000000000000000000000'],
+      [cap,0],
+      []
     );
   });
 
@@ -482,13 +492,14 @@ describe("ERC721Template", () => {
     const tx = await factoryERC721.connect(signer).deployERC721Contract(
       "NFT2",
       "NFTSYMBOL",
-      data,
-      flags,
-      1
+      1,
+      "0x0000000000000000000000000000000000000000"
     );
     const txReceipt = await tx.wait();
-
-    tokenAddress = txReceipt.events[4].args[0];
+    let event = getEventFromTx(txReceipt,'NFTCreated')
+    assert(event, "Cannot find NFTCreated event")
+    tokenAddress = event.args[0];
+    
     tokenERC721 = await ethers.getContractAt("ERC721Template", tokenAddress);
     symbol = await tokenERC721.symbol();
     name = await tokenERC721.name();
@@ -539,14 +550,14 @@ describe("ERC721Template", () => {
     const value = web3.utils.asciiToHex('SomeData')
     assert((await tokenERC721.getPermissions(owner.address)).v3Minter == false);
     
-    await expectRevert(tokenERC721.setDataV3(v3Datatoken, value,flags,data),"ERC721Template: NOT v3Minter")
+    await expectRevert(tokenERC721.setDataV3(v3Datatoken, value),"ERC721Template: NOT v3Minter")
     
   });
 
   it("#setDataV3 - should fail to call setDataV3, if it's not v3Datatoken is not wrapped", async () => {
     const value = web3.utils.asciiToHex('SomeData')
     await tokenERC721.addV3Minter(owner.address)
-    await expectRevert(tokenERC721.setDataV3(v3Datatoken, value,flags,data),"ERC721Template: v3Datatoken not WRAPPED")
+    await expectRevert(tokenERC721.setDataV3(v3Datatoken, value),"ERC721Template: v3Datatoken not WRAPPED")
     
   });
 
@@ -557,7 +568,7 @@ describe("ERC721Template", () => {
     const value = web3.utils.asciiToHex('SomeData')
     let newData = web3.utils.asciiToHex('SomeNewData');
 
-    await tokenERC721.connect(signer).setDataV3(v3Datatoken, value,flags,newData)  
+    await tokenERC721.connect(signer).setDataV3(v3Datatoken, value)  
 
     const key = web3.utils.keccak256(v3Datatoken);
     assert(await tokenERC721.getData(key) == value)
@@ -609,16 +620,17 @@ describe("ERC721Template", () => {
 
   it("#transferNFT - should transfer properly the NFT, now the new user is the owner for ERC721Template and ERC20Template", async () => {
     await tokenERC721.addToCreateERC20List(owner.address);
-    const trxERC20 = await tokenERC721.connect(user3).createERC20(
-      "ERC20DT1",
-      "ERC20DT1Symbol",
-      web3.utils.toWei("10"),
-      1,
-      owner.address,
-      user2.address
+    const trxERC20 = await tokenERC721.connect(user3).createERC20(1,
+      ["ERC20DT1","ERC20DT1Symbol"],
+      [owner.address,user2.address, owner.address,'0x0000000000000000000000000000000000000000'],
+      [web3.utils.toWei("10"),0],
+      []
     );
     const trxReceiptERC20 = await trxERC20.wait();
-    erc20Address = trxReceiptERC20.events[3].args.erc20Address;
+    const event = getEventFromTx(trxReceiptERC20,'TokenCreated')
+    assert(event, "Cannot find TokenCreated event")
+    erc20Address = event.args[0];
+    
 
     erc20Token = await ethers.getContractAt("ERC20Template", erc20Address);
 
@@ -637,14 +649,12 @@ describe("ERC721Template", () => {
     assert((await tokenERC721.ownerOf(1)) == user2.address);
     // when transferred to user2, user2 is already Manager and all other main roles at 721 level.
     assert((await tokenERC721.getPermissions(user2.address)).deployERC20 == true);
-    await tokenERC721.connect(user2).createERC20(
-        "ERC20DT2",
-        "ERC20DT2Symbol",
-        web3.utils.toWei("10"),
-        1,
-        owner.address,
-        user2.address
-      )
+    await tokenERC721.connect(user2).createERC20(1,
+      ["ERC20DT1","ERC20DT1Symbol"],
+      [owner.address,user2.address, owner.address,'0x0000000000000000000000000000000000000000'],
+      [web3.utils.toWei("10"),0],
+      []
+    )
 
     await expectRevert(
       erc20Token.mint(user2.address, web3.utils.toWei("1")),
@@ -659,18 +669,15 @@ describe("ERC721Template", () => {
     );
 
     await expectRevert(
-      tokenERC721.updateMetadata(flags, data),
+      tokenERC721.connect(user6).setMetaData(metaDataState, metaDataDecryptorUrl, metaDataDecryptorAddress, flags, data),
       "ERC721Template: NOT METADATA_ROLE"
     );
-
-
-    await tokenERC721.connect(user2).updateMetadata(flags, data);
-
-    const keyMetadata = web3.utils.keccak256("METADATA_KEY");
-    assert(await tokenERC721.getData(keyMetadata) == data)
-    let newData = web3.utils.asciiToHex('SomeNewData');
-    await tokenERC721.connect(user2).updateMetadata(flags, newData);
     
-    assert(await tokenERC721.getData(keyMetadata) == newData)
+
+    await tokenERC721.connect(user2).setMetaData(metaDataState, metaDataDecryptorUrl, metaDataDecryptorAddress, flags, data);
+
+    let metadataInfo = await tokenERC721.getMetaData()
+    assert(metadataInfo[3] === true)
+    assert(metadataInfo[0] == metaDataDecryptorUrl);
   });
 });

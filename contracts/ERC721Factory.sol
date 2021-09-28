@@ -9,7 +9,7 @@ import "./interfaces/IERC721Template.sol";
 //import "./interfaces/IFactory.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
 import "./interfaces/IERC20Template.sol";
-
+import "hardhat/console.sol";
 /**
  * @title DTFactory contract
  * @author Ocean Protocol Team
@@ -24,7 +24,6 @@ contract ERC721Factory is Deployer, Ownable {
     address private communityFeeCollector;
     uint256 private currentNFTCount;
     address private erc20Factory;
-    address private metadata;
     uint256 private nftTemplateCount;
 
     struct Template {
@@ -51,19 +50,20 @@ contract ERC721Factory is Deployer, Ownable {
     uint256 public templateCount;
     address public router;
 
+  //stored here only for ABI reasons
     event TokenCreated(
         address indexed newTokenAddress,
         address indexed templateAddress,
         string indexed tokenName
+    );  
+    
+    event NewPool(
+        address poolAddress,
+        address ssContract,
+        address basetokenAddress
     );
 
-    event TokenRegistered(
-        address indexed tokenAddress,
-        string tokenName,
-        string tokenSymbol,
-        uint256 tokenCap,
-        address indexed registeredBy
-    );
+    event NewFixedRate(bytes32 exchangeId, address owner, address basetoken);
 
     
 
@@ -73,27 +73,23 @@ contract ERC721Factory is Deployer, Ownable {
      * @param _template refers to the address of a deployed DataToken contract.
      * @param _collector refers to the community fee collector address
      * @param _router router contract address
-     * @param _metadata metadata contract address
      */
     constructor(
         address _template721,
         address _template,
         address _collector,
-        address _router,
-        address _metadata
+        address _router
     ) {
         require(
             _template != address(0) &&
                 _collector != address(0) &&
-                _template721 != address(0) &&
-                _metadata != address(0),
+                _template721 != address(0),
             "ERC721DTFactory: Invalid template token/community fee collector address"
         );
         add721TokenTemplate(_template721);
         addTokenTemplate(_template);
         router = _router;
         communityFeeCollector = _collector;
-        metadata = _metadata;
     }
 
 
@@ -102,17 +98,15 @@ contract ERC721Factory is Deployer, Ownable {
      *      
      * @param name NFT name
      * @param symbol NFT Symbol
-     * @param _data data used by Aquarius
-     * @param _flags flags used by Aquarius
      * @param _templateIndex template index we want to use
+     * @param additionalERC20Deployer if != address(0), we will add it with ERC20Deployer role
      */
 
     function deployERC721Contract(
         string memory name,
         string memory symbol,
-        bytes memory _data,
-        bytes memory _flags,
-        uint256 _templateIndex
+        uint256 _templateIndex,
+        address additionalERC20Deployer
     ) public returns (address token) {
         require(
             _templateIndex <= nftTemplateCount && _templateIndex != 0,
@@ -140,25 +134,16 @@ contract ERC721Factory is Deployer, Ownable {
                 msg.sender,
                 name,
                 symbol,
-                metadata,
                 address(this),
-                _data,
-                _flags
+                additionalERC20Deployer
             ),
             "ERC721DTFactory: Unable to initialize token instance"
         );
 
         emit NFTCreated(token, tokenTemplate.templateAddress, name, msg.sender);
-        // emit TokenRegistered(
-        //     token,
-        //     name,
-        //     symbol,
-        //
-        //     msg.sender,
-        // );
         currentNFTCount += 1;
     }
-
+    
     /**
      * @dev get the current token count.
      * @return the current token count
@@ -268,34 +253,55 @@ contract ERC721Factory is Deployer, Ownable {
     }
 
  
-
+    struct tokenStruct{
+        string[] strings;
+        address[] addresses;
+        uint256[] uints;
+        bytes[] bytess;
+        address owner;
+    }
     /**
      * @dev Deploys new DataToken proxy contract.
      *      This function is not called directly from here. It's called from the NFT contract.
             An NFT contract can deploy multiple ERC20 tokens.
-
-     * @param name token name
-     * @param symbol token symbol
-     * @param cap the maximum total supply
      * @param _templateIndex ERC20Template index 
-     * @param minter account who can mint datatokens (can have multiple minters)
-     
+     * @param strings refers to an array of strings
+     *                      [0] = name
+     *                      [1] = symbol
+     * @param addresses refers to an array of addresses
+     *                     [0]  = minter account who can mint datatokens (can have multiple minters)
+     *                     [1]  = feeManager initial feeManager for this DT
+     *                     [2]  = publishing Market Address
+     *                     [3]  = publishing Market Fee Token
+     * @param uints  refers to an array of uints
+     *                     [0] = cap_ the total ERC20 cap
+     *                     [1] = publishing Market Fee Amount
+     * @param bytess  refers to an array of bytes, not in use now, left for future templates
      * @return token address of a new proxy DataToken contract
      */
     function createToken(
-        string memory name,
-        string memory symbol,
-        uint256 cap,
         uint256 _templateIndex,
-        address minter,
-        address feeManager
+        string[] memory strings,
+        address[] memory addresses,
+        uint256[] memory uints,
+        bytes[] memory bytess
     ) public returns (address token) {
         require(
             erc721List[msg.sender] == msg.sender,
             "ERC721Factory: ONLY ERC721 INSTANCE FROM ERC721FACTORY"
         );
-
-        require(cap != 0, "ERC20Factory: zero cap is not allowed");
+        token = _createToken(_templateIndex, strings, addresses, uints, bytess, msg.sender);
+        
+    }
+    function _createToken(
+        uint256 _templateIndex,
+        string[] memory strings,
+        address[] memory addresses,
+        uint256[] memory uints,
+        bytes[] memory bytess,
+        address owner
+    ) internal returns (address token) {
+        require(uints[0] != 0, "ERC20Factory: zero cap is not allowed");
         require(
             _templateIndex <= templateCount && _templateIndex != 0,
             "ERC20Factory: Template index doesnt exist"
@@ -306,37 +312,45 @@ contract ERC721Factory is Deployer, Ownable {
             tokenTemplate.isActive == true,
             "ERC20Factory: ERC721Token Template disabled"
         );
-
         token = deploy(tokenTemplate.templateAddress);
-
         erc20List[token] = true;
 
         require(
             token != address(0),
             "ERC721Factory: Failed to perform minimal deploy of a new token"
         );
+        emit TokenCreated(token, tokenTemplate.templateAddress, strings[0]);
+        currentTokenCount += 1;
+        tokenStruct memory tokenData; 
+        tokenData.strings = strings;
+        tokenData.addresses = addresses;
+        tokenData.uints = uints;
+        tokenData.owner = owner;
+        tokenData.bytess = bytess;
+        _createTokenStep2(token, tokenData);
+    }
 
+    function _createTokenStep2(address token, tokenStruct memory tokenData) internal {
+        
         IERC20Template tokenInstance = IERC20Template(token);
-
-       
-
+        address[] memory factoryAddresses = new address[](3);
+        factoryAddresses[0] = tokenData.owner;
+        
+        factoryAddresses[1] = communityFeeCollector;
+        
+        factoryAddresses[2] = router;
+        
         require(
             tokenInstance.initialize(
-                name,
-                symbol,
-                msg.sender,
-                cap,
-                communityFeeCollector,
-                minter,
-                router,
-                feeManager
+                tokenData.strings,
+                tokenData.addresses,
+                factoryAddresses,
+                tokenData.uints,
+                tokenData.bytess
             ),
             "ERC20Factory: Unable to initialize token instance"
         );
-        emit TokenCreated(token, tokenTemplate.templateAddress, name);
-        emit TokenRegistered(token, name, symbol, cap, msg.sender);
-
-        currentTokenCount += 1;
+        
     }
 
     /**
@@ -423,7 +437,6 @@ contract ERC721Factory is Deployer, Ownable {
         return templateCount;
     }
 
-    
     struct tokenOrder {
         address tokenAddress;
         address consumer;
