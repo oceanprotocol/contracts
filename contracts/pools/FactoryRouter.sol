@@ -167,7 +167,7 @@ contract FactoryRouter is BFactory {
             "FACTORY ROUTER: Invalid FixedPriceContract"
         );
 
-        uint256 opfFee = getOPFFee(basetokenAddress);
+       // uint256 opfFee = getOPFFee(basetokenAddress);
 
         exchangeId = IFixedRateExchange(fixedPriceAddress).createWithDecimals(
             basetokenAddress,
@@ -177,8 +177,8 @@ contract FactoryRouter is BFactory {
             rate,
             owner,
             marketFee,
-            marketFeeCollector,
-            opfFee
+            marketFeeCollector
+           // opfFee
         );
     }
 }
