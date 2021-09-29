@@ -82,11 +82,10 @@ contract BPool is BMath, BToken {
 
     bool private _mutex;
 
-    address private _factory; // BFactory address to push token exitFee to
+   
     address private _controller; // has CONTROL role
     bool private _publicSwap; // true if PUBLIC can call SWAP functions
-    address private _datatokenAddress; //datatoken address
-    address private _basetokenAddress; //base token address
+   
     address public _marketCollector;
     address public _opfCollector;
     // `setSwapFee` and `finalize` require CONTROL
@@ -127,7 +126,7 @@ contract BPool is BMath, BToken {
     function initialize(
         address controller,
         address factory,
-        uint256[3] calldata swapFees,
+        uint256[2] calldata swapFees,
         bool publicSwap,
         bool finalized,
         address[2] calldata tokens,
@@ -155,7 +154,7 @@ contract BPool is BMath, BToken {
     function _initialize(
         address controller,
         address factory,
-        uint256[3] memory swapFees,
+        uint256[2] memory swapFees,
         bool publicSwap,
         bool finalized,
         address[2] memory tokens,
@@ -167,7 +166,6 @@ contract BPool is BMath, BToken {
         // console.log(swapFees[0], swapFees[1],swapFees[2], 'swapFees');
        
         _swapMarketFee = swapFees[1];
-         _swapOceanFee = swapFees[2];
         _publicSwap = publicSwap;
         _finalized = finalized;
         _datatokenAddress = tokens[0];
@@ -270,7 +268,6 @@ contract BPool is BMath, BToken {
     }
 
     function collectMarketFee(address to) external {
-       // console.log("collectMarkte");
         require(_marketCollector == msg.sender, "ONLY MARKET COLLECTOR");
 
         address[] memory tokens = getFinalTokens();
@@ -286,6 +283,7 @@ contract BPool is BMath, BToken {
         _marketCollector = _newCollector;
     }
 
+   
     function getDenormalizedWeight(address token)
         external
         view

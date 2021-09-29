@@ -256,7 +256,7 @@ describe("Vesting flow", () => {
       web3.utils.toWei("98000")
     );
 
-    expect(await bPool._swapOceanFee()).to.equal(0);
+    expect(await bPool.getOPFFee()).to.equal(0);
     expect(await bPool._swapMarketFee()).to.equal(swapMarketFee);
 
     expect(await bPool.communityFees(oceanAddress)).to.equal(0);

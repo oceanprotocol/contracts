@@ -6,7 +6,7 @@ pragma experimental ABIEncoderV2;
 
 import "./utils/Deployer.sol";
 import "./interfaces/IERC721Template.sol";
-import "./interfaces/IFactory.sol";
+//import "./interfaces/IFactory.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
 import "./interfaces/IERC20Template.sol";
 import "hardhat/console.sol";
@@ -38,9 +38,6 @@ contract ERC721Factory is Deployer, Ownable {
     mapping(address => address) public erc721List;
 
     mapping(address => bool) public erc20List;
-
-    // MAPPING BECAUSE OF MULTIPLE TYPES OF StakingContracts (FRE,DUTCH)
-    mapping(address => bool) private ssContracts;
 
     event NFTCreated(
         address indexed newTokenAddress,

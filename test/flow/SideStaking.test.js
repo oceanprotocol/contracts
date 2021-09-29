@@ -259,7 +259,7 @@ describe("1SS flow", () => {
       await erc20Token.balanceOf(ssFixedRate.address))
        .to.equal(web3.utils.toWei("98000"))
 
-    expect(await bPool._swapOceanFee()).to.equal(0)
+    expect(await bPool.getOPFFee()).to.equal(0)
     expect(await bPool._swapMarketFee()).to.equal(swapMarketFee)
 
     expect(await bPool.communityFees(oceanAddress)).to.equal(0)
@@ -777,7 +777,7 @@ describe("1SS flow", () => {
 
   it("#17 - we check again no ocean and market fees were accounted", async () => {
    
-    expect(await bPool._swapOceanFee()).to.equal(0)
+    expect(await bPool.getOPFFee()).to.equal(0)
     expect(await bPool._swapMarketFee()).to.equal(swapMarketFee)
 
     expect(await bPool.communityFees(oceanAddress)).to.equal(0)

@@ -231,7 +231,59 @@
 186
 187
 188
-189</td><td class="line-coverage quiet"><span class="cline-any cline-neutral">&nbsp;</span>
+189
+190
+191
+192
+193
+194
+195
+196
+197
+198
+199
+200
+201
+202
+203
+204
+205
+206
+207
+208
+209
+210
+211
+212
+213
+214
+215</td><td class="line-coverage quiet"><span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -455,12 +507,33 @@ interface IERC721Template is IERC165 {
         address indexed operator,
         bool approved
     );
-&nbsp;
+    event MetadataCreated(
+        address indexed createdBy,
+        uint8 state,
+        string decryptorUrl,
+        bytes flags,
+        bytes data,
+        string metaDataDecryptorAddress,
+        uint256 timestamp,
+        uint256 blockNumber
+    );
+    event MetadataUpdated(
+        address indexed updatedBy,
+        uint8 state,
+        string decryptorUrl,
+        bytes flags,
+        bytes data,
+        string metaDataDecryptorAddress,
+        uint256 timestamp,
+        uint256 blockNumber
+    );
     /**
      * @dev Returns the number of tokens in ``owner``'s account.
      */
     function balanceOf(address owner) external view returns (uint256 balance);
+    function name() external view returns (string memory);
 &nbsp;
+    function symbol() external view returns (string memory);
     /**
      * @dev Returns the owner of the `tokenId` token.
      *
@@ -479,8 +552,10 @@ interface IERC721Template is IERC165 {
      * - `from` cannot be the zero address.
      * - `to` cannot be the zero address.
      * - `tokenId` token must exist and be owned by `from`.
-     * - If the caller is not `from`, it must be have been allowed to move this token by either {approve} or {setApprovalForAll}.
-     * - If `to` refers to a smart contract, it must implement {IERC721Receiver-onERC721Received}, which is called upon a safe transfer.
+     * - If the caller is not `from`, 
+     * it must be have been allowed to move this token by either {approve} or {setApprovalForAll}.
+     * - If `to` refers to a smart contract, 
+     * it must implement {IERC721Receiver-onERC721Received}, which is called upon a safe transfer.
      *
      * Emits a {Transfer} event.
      */
@@ -568,7 +643,8 @@ interface IERC721Template is IERC165 {
      * - `to` cannot be the zero address.
      * - `tokenId` token must exist and be owned by `from`.
      * - If the caller is not `from`, it must be approved to move this token by either {approve} or {setApprovalForAll}.
-     * - If `to` refers to a smart contract, it must implement {IERC721Receiver-onERC721Received}, which is called upon a safe transfer.
+     * - If `to` refers to a smart contract, 
+     * it must implement {IERC721Receiver-onERC721Received}, which is called upon a safe transfer.
      *
      * Emits a {Transfer} event.
      */
@@ -584,10 +660,8 @@ interface IERC721Template is IERC165 {
         address admin,
         string calldata name,
         string calldata symbol,
-        address metadata,
         address erc20Factory,
-        bytes calldata _data,
-        bytes calldata flags
+        address additionalERC20Deployer
     ) external returns (bool);
 &nbsp;
     function hasRole(bytes32 role, address account)
@@ -606,6 +680,10 @@ interface IERC721Template is IERC165 {
     function getPermissions(address user) external returns (Roles memory);
 &nbsp;
     function setDataERC20(bytes32 _key, bytes calldata _value) external;
+    function setMetaData(uint8 _metaDataState, string calldata _metaDataDecryptorUrl
+        , string calldata _metaDataDecryptorAddress, bytes calldata flags, 
+        bytes calldata data) external;
+    function getMetaData() external view returns (string memory, string memory, uint8, bool);
 }
 &nbsp;</pre></td></tr>
 </table></pre>
@@ -613,7 +691,7 @@ interface IERC721Template is IERC165 {
 </div><!-- /wrapper -->
 <div class='footer quiet pad2 space-top1 center small'>
   Code coverage
-  generated by <a href="http://istanbul-js.org/" target="_blank">istanbul</a> at Fri Sep 10 2021 15:33:53 GMT-0500 (Colombia Standard Time)
+  generated by <a href="http://istanbul-js.org/" target="_blank">istanbul</a> at Mon Sep 27 2021 10:57:41 GMT-0500 (Colombia Standard Time)
 </div>
 </div>
 <script src="../../prettify.js"></script>

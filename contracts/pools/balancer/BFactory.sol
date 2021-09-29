@@ -74,7 +74,7 @@ contract BFactory is BConst, Deployer {
         address[2] memory tokens,
         address publisherAddress, 
         uint256[] memory ssParams,
-        uint256[3] memory swapFees,
+        uint256[2] memory swapFees,
         address marketFeeCollector)
         internal 
         returns (address bpool)

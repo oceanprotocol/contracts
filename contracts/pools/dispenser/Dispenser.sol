@@ -122,8 +122,8 @@ contract Dispenser {
         uint256 fixedRate,
         address owner,
         uint256 marketFee,
-        address marketFeeCollector,
-        uint256 opfFee
+        address marketFeeCollector
+       // uint256 opfFee
     ) external onlyRouter returns (bytes32 exchangeId) {
         require(
             baseToken != address(0),

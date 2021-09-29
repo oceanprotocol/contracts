@@ -120,6 +120,11 @@
       "inputs": [
         {
           "internalType": "address",
+          "name": "fixedPriceAddress",
+          "type": "address"
+        },
+        {
+          "internalType": "address",
           "name": "basetokenAddress",
           "type": "address"
         },
@@ -196,9 +201,9 @@
           "type": "address"
         },
         {
-          "internalType": "uint256[]",
+          "internalType": "uint256[2]",
           "name": "swapFees",
-          "type": "uint256[]"
+          "type": "uint256[2]"
         },
         {
           "internalType": "address",
@@ -212,51 +217,65 @@
         }
       ],
       "name": "deployPool",
-      "outputs": [],
+      "outputs": [
+        {
+          "internalType": "address",
+          "name": "",
+          "type": "address"
+        }
+      ],
       "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "inputs": [],
+      "name": "getPublishingMarketFee",
+      "outputs": [
+        {
+          "internalType": "address",
+          "name": "",
+          "type": "address"
+        },
+        {
+          "internalType": "address",
+          "name": "",
+          "type": "address"
+        },
+        {
+          "internalType": "uint256",
+          "name": "",
+          "type": "uint256"
+        }
+      ],
+      "stateMutability": "view",
       "type": "function"
     },
     {
       "inputs": [
         {
-          "internalType": "string",
-          "name": "name_",
-          "type": "string"
+          "internalType": "string[]",
+          "name": "strings_",
+          "type": "string[]"
         },
         {
-          "internalType": "string",
-          "name": "symbol_",
-          "type": "string"
+          "internalType": "address[]",
+          "name": "addresses_",
+          "type": "address[]"
         },
         {
-          "internalType": "address",
-          "name": "erc721Address",
-          "type": "address"
+          "internalType": "address[]",
+          "name": "factoryAddresses_",
+          "type": "address[]"
         },
         {
-          "internalType": "uint256",
-          "name": "cap_",
-          "type": "uint256"
+          "internalType": "uint256[]",
+          "name": "uints_",
+          "type": "uint256[]"
         },
         {
-          "internalType": "address",
-          "name": "communityFeeCollector",
-          "type": "address"
-        },
-        {
-          "internalType": "address",
-          "name": "minter",
-          "type": "address"
-        },
-        {
-          "internalType": "address",
-          "name": "router",
-          "type": "address"
-        },
-        {
-          "internalType": "address",
-          "name": "feeManager",
-          "type": "address"
+          "internalType": "bytes[]",
+          "name": "bytes_",
+          "type": "bytes[]"
         }
       ],
       "name": "initialize",
@@ -390,6 +409,67 @@
         }
       ],
       "name": "permit",
+      "outputs": [],
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "address",
+          "name": "_publishMarketFeeAddress",
+          "type": "address"
+        },
+        {
+          "internalType": "address",
+          "name": "_publishMarketFeeToken",
+          "type": "address"
+        },
+        {
+          "internalType": "uint256",
+          "name": "_publishMarketFeeAmount",
+          "type": "uint256"
+        }
+      ],
+      "name": "setPublishingMarketFee",
+      "outputs": [],
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "address",
+          "name": "consumer",
+          "type": "address"
+        },
+        {
+          "internalType": "uint256",
+          "name": "amount",
+          "type": "uint256"
+        },
+        {
+          "internalType": "uint256",
+          "name": "serviceId",
+          "type": "uint256"
+        },
+        {
+          "internalType": "address",
+          "name": "consumeFeeAddress",
+          "type": "address"
+        },
+        {
+          "internalType": "address",
+          "name": "consumeFeeToken",
+          "type": "address"
+        },
+        {
+          "internalType": "uint256",
+          "name": "consumeFeeAmount",
+          "type": "uint256"
+        }
+      ],
+      "name": "startOrder",
       "outputs": [],
       "stateMutability": "nonpayable",
       "type": "function"

@@ -20,9 +20,9 @@
     </h1>
     <div class='clearfix'>
       <div class='fl pad1y space-right2'>
-        <span class="strong">54.46% </span>
+        <span class="strong">55.26% </span>
         <span class="quiet">Statements</span>
-        <span class='fraction'>61/112</span>
+        <span class='fraction'>63/114</span>
       </div>
       <div class='fl pad1y space-right2'>
         <span class="strong">36.84% </span>
@@ -35,9 +35,9 @@
         <span class='fraction'>10/19</span>
       </div>
       <div class='fl pad1y space-right2'>
-        <span class="strong">65.96% </span>
+        <span class="strong">66.67% </span>
         <span class="quiet">Lines</span>
-        <span class='fraction'>62/94</span>
+        <span class='fraction'>64/96</span>
       </div>
     </div>
   </div>
@@ -437,7 +437,14 @@
 392
 393
 394
-395</td><td class="line-coverage quiet"><span class="cline-any cline-neutral">&nbsp;</span>
+395
+396
+397
+398
+399
+400
+401</td><td class="line-coverage quiet"><span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -753,31 +760,9 @@
 <span class="cline-any cline-yes">5×</span>
 <span class="cline-any cline-yes">5×</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-yes">5×</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-yes">5×</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-yes">5×</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-yes">5×</span>
-<span class="cline-any cline-yes">5×</span>
-<span class="cline-any cline-yes">5×</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-yes">5×</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-yes">5×</span>
-<span class="cline-any cline-yes">5×</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -787,6 +772,33 @@
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-yes">5×</span>
 <span class="cline-any cline-yes">5×</span>
+<span class="cline-any cline-yes">5×</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">5×</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">5×</span>
+<span class="cline-any cline-yes">5×</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">5×</span>
+<span class="cline-any cline-yes">5×</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">5×</span>
+<span class="cline-any cline-yes">5×</span>
+<span class="cline-any cline-yes">5×</span>
+<span class="cline-any cline-yes">5×</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -852,6 +864,7 @@ import "hardhat/console.sol";
  *               - [1] - if &gt;0 , then allowSell=TRUE  (getting back DT for Ocean)
  *               - [2] - vestingAmount  - total # of datatokens to be vested
  *               - [3] - vestingBlocks - how long is the vesting period (in blocks)
+ *               - [4] - basetokenBalance  = initial supply of pool
  *
  */
 contract ssFixedRate {
@@ -1147,7 +1160,6 @@ contract ssFixedRate {
         uint256 dataTokenWeight = 5 * BASE; //pool weight: 50-50
         uint256 baseTokenAmount = _datatokens[datatokenAddress]
             .basetokenBalance;
-        console.log(baseTokenAmount, "baseTokenamount");
         //given the price, compute dataTokenAmount
 &nbsp;
         uint256 dataTokenAmount = ((_datatokens[datatokenAddress].rate *
@@ -1155,7 +1167,7 @@ contract ssFixedRate {
             dataTokenWeight) /
             baseTokenWeight /
             BASE) * (10**(18 - decimals));
-        console.log(dataTokenAmount, "datatokenamount");
+        
       
         //approve the tokens and amounts
         IERC20Template dt = IERC20Template(datatokenAddress);
@@ -1181,6 +1193,12 @@ contract ssFixedRate {
         //substract
         _datatokens[datatokenAddress].basetokenBalance -= baseTokenAmount;
         _datatokens[datatokenAddress].datatokenBalance -= dataTokenAmount;
+        // send 50% of the pool shares back to the publisher
+        IERC20Template lPTokens = IERC20Template(_datatokens[datatokenAddress].poolAddress);
+        uint256 lpBalance = lPTokens.balanceOf(address(this));
+        uint256 balanceToTransfer = lpBalance.div(2);
+        lPTokens.transfer(_datatokens[datatokenAddress].publisherAddress, lpBalance.div(2));
+        
     }
 &nbsp;
    
@@ -1231,7 +1249,7 @@ contract ssFixedRate {
 </div><!-- /wrapper -->
 <div class='footer quiet pad2 space-top1 center small'>
   Code coverage
-  generated by <a href="http://istanbul-js.org/" target="_blank">istanbul</a> at Fri Sep 10 2021 15:33:53 GMT-0500 (Colombia Standard Time)
+  generated by <a href="http://istanbul-js.org/" target="_blank">istanbul</a> at Mon Sep 27 2021 10:57:41 GMT-0500 (Colombia Standard Time)
 </div>
 </div>
 <script src="../../../prettify.js"></script>

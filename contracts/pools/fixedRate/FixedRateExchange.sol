@@ -4,6 +4,7 @@ pragma solidity >=0.5.7;
 // Code is Apache-2.0 and docs are CC-BY-4.0
 
 import "../../interfaces/IERC20Template.sol";
+import "../../interfaces/IFactoryRouter.sol";
 import "@openzeppelin/contracts/utils/math/SafeMath.sol";
 import "hardhat/console.sol";
 
@@ -36,7 +37,6 @@ contract FixedRateExchange {
         uint256 btBalance;
         uint256 marketFee;
         address marketFeeCollector;
-        uint256 opfFee;
         uint256 marketFeeAvailable;
         uint256 oceanFeeAvailable;
     }
@@ -126,6 +126,10 @@ contract FixedRateExchange {
         opfCollector = _opfCollector;
     }
 
+
+    function getOPFFee(address basetokenAddress) public view returns (uint) {
+        return IFactoryRouter(router).getOPFFee(basetokenAddress);
+    }
   
 
     /**
@@ -144,8 +148,7 @@ contract FixedRateExchange {
         uint256 fixedRate,
         address owner,
         uint256 marketFee,
-        address marketFeeCollector,
-        uint256 opfFee
+        address marketFeeCollector
     ) external onlyRouter returns (bytes32 exchangeId) {
         require(
             baseToken != address(0),
@@ -181,7 +184,6 @@ contract FixedRateExchange {
             btBalance: 0,
             marketFee: marketFee,
             marketFeeCollector: marketFeeCollector,
-            opfFee: opfFee,
             marketFeeAvailable: 0,
             oceanFeeAvailable: 0
         });
@@ -239,9 +241,9 @@ contract FixedRateExchange {
 
       
         oceanFeeAmount;
-        if (exchanges[exchangeId].opfFee != 0) {
+        if (getOPFFee(exchanges[exchangeId].baseToken) != 0) {
             oceanFeeAmount = baseTokenAmountBeforeFee
-                .mul(exchanges[exchangeId].opfFee)
+                .mul(getOPFFee(exchanges[exchangeId].baseToken))
                 .div(BASE);
         }
         console.log(oceanFeeAmount, "oceanFeeAmount");
@@ -282,9 +284,9 @@ contract FixedRateExchange {
 
        
         oceanFeeAmount;
-        if (exchanges[exchangeId].opfFee != 0) {
+        if (getOPFFee(exchanges[exchangeId].baseToken) != 0) {
             oceanFeeAmount = baseTokenAmountBeforeFee
-                .mul(exchanges[exchangeId].opfFee)
+                .mul(getOPFFee(exchanges[exchangeId].baseToken))
                 .div(BASE);
         }
         console.log(oceanFeeAmount, "oceanfeeamount");
@@ -675,7 +677,7 @@ contract FixedRateExchange {
         Exchange memory exchange = exchanges[exchangeId];
         marketFee = exchange.marketFee;
         marketFeeCollector = exchange.marketFeeCollector;
-        opfFee = exchange.opfFee;
+        opfFee = getOPFFee(exchanges[exchangeId].baseToken);
         marketFeeAvailable = exchange.marketFeeAvailable;
         oceanFeeAvailable = exchange.oceanFeeAvailable;
     }
