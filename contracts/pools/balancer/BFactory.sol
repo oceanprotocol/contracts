@@ -119,4 +119,12 @@ contract BFactory is BConst, Deployer {
        
 
     }
+
+     function _addPoolTemplate(address poolTemplate) internal {
+        poolTemplate[poolTemplate] = true;
+    }
+
+    function _removePoolTemplate(address poolTemplate) internal {
+        poolTemplate[poolTemplate] = false;
+    }
 }

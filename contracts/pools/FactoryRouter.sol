@@ -183,4 +183,12 @@ contract FactoryRouter is BFactory {
            // opfFee
         );
     }
+
+    function _addPoolTemplate(address poolTemplate) external onlyRouterOwner {
+        _addPoolTemplate(poolTemplate);
+    }
+
+    function _removePoolTemplate(address poolTemplate) external onlyRouterOwner {
+       _removePoolTemplate(poolTemplate);
+    }
 }
