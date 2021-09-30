@@ -235,6 +235,7 @@ contract ERC20Template is ERC20("test", "testSymbol"), ERC20Roles {
      */
 
     function deployPool(
+        address[] memory addresses,
         address controller,
         address basetokenAddress,
         uint256[] memory ssParams,
