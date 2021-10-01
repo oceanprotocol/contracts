@@ -39,6 +39,9 @@
     "deploy:mumbai": "npm run clean && npm run compile && export NETWORK='mumbai' && truffle migrate --network mumbai && npm run export:artifacts",
     "deploy:bsc": "npm run clean && npm run compile && export NETWORK='bsc' && truffle migrate --network bsc && npm run export:artifacts",
     "deploy:catenaxtestnet": "npm run clean && npm run compile && export NETWORK='catenaxtestnet' && truffle migrate --network catenaxtestnet && npm run export:artifacts",
+    "deploy:celoalfajores": "npm run clean && npm run compile && export NETWORK='celoalfajores' && truffle migrate --network celoalfajores && npm run export:artifacts",
+    "deploy:energyweb": "npm run clean && npm run compile && export NETWORK='energyweb' && truffle migrate --network energyweb && npm run export:artifacts",
+    "deploy:moonriver": "npm run clean && npm run compile && export NETWORK='moonriver' && truffle migrate --network moonriver && npm run export:artifacts",
     "security:slither": "slither . 2>&1 | tee slitherReport.txt"
   },
   "files": [
