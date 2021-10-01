@@ -163,6 +163,30 @@ module.exports = {
             networkCheckTimeout: 400000000,
             from: '0xC7EC1970B09224B317c52d92f37F5e1E4fF6B687',
             gasPrice: utils.toWei('5', 'gwei')
+        },
+        celoalfajores: {
+            provider: () => setupWallet('https://alfajores-forno.celo-testnet.org'),
+            network_id: 44787,
+            gas: 6666666,
+            networkCheckTimeout: 10000,
+            from: '0xC7EC1970B09224B317c52d92f37F5e1E4fF6B687',
+            gasPrice: utils.toWei('2', 'gwei')
+        },
+        energyweb: {
+            provider: () => setupWallet('https://rpc.energyweb.org'),
+            network_id: 0xf6,
+            gas: 6666666,
+            networkCheckTimeout: 10000,
+            from: '0xC7EC1970B09224B317c52d92f37F5e1E4fF6B687',
+            gasPrice: utils.toWei('0.00000001', 'gwei')
+        },
+        moonriver: {
+            provider: () => setupWallet('https://service.elara.patract.io/Moonriver/2ed28cfe45e1c3cfd3c515a294ecf571'),
+            network_id: 1285,
+            gas: 6666666,
+            networkCheckTimeout: 10000,
+            from: '0xC7EC1970B09224B317c52d92f37F5e1E4fF6B687',
+            gasPrice: utils.toWei('2', 'gwei')
         }
 
     },
