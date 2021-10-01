@@ -181,7 +181,7 @@ module.exports = {
             gasPrice: utils.toWei('0.00000001', 'gwei')
         },
         moonriver: {
-            provider: () => setupWallet('https://service.elara.patract.io/Moonriver/2ed28cfe45e1c3cfd3c515a294ecf571'),
+            provider: () => setupWallet('https://moonriver.api.onfinality.io/public'),
             network_id: 1285,
             gas: 6666666,
             networkCheckTimeout: 10000,
