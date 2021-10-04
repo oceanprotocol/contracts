@@ -223,8 +223,8 @@ describe("Vesting flow", () => {
     // we deploy a new pool with burnInEndBlock as 0
     receipt = await (
       await erc20Token.connect(user3).deployPool(
-        ssFixedRate.address,
-        oceanAddress,
+       // ssFixedRate.address,
+       // oceanAddress,
         [
           web3.utils.toWei("1"), // rate
           18, // basetokenDecimals
@@ -232,13 +232,14 @@ describe("Vesting flow", () => {
           2500000, // vested blocks
           initialOceanLiquidity, // baseToken initial pool liquidity
         ],
-        user3.address,
+      //  user3.address,
         [
           swapFee, //
           swapMarketFee,
         ],
-        marketFeeCollector.address,
-        user3.address // publisherAddress (get vested amount)
+       // marketFeeCollector.address,
+       // user3.address // publisherAddress (get vested amount)
+        [ssFixedRate.address,oceanAddress,user3.address,user3.address,marketFeeCollector.address]
       )
     ).wait();
 

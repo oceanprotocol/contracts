@@ -1017,8 +1017,8 @@ describe("ERC721Factory", () => {
       "bytess":[]
       },
       {
-        "controller":ssFixedRate.address,
-        "basetokenAddress":erc20Token.address,
+        "addresses":[ssFixedRate.address,erc20Token.address,factoryERC721.address,user3.address,user6.address],
+        //"basetokenAddress":erc20Token.address,
         "ssParams":[
           web3.utils.toWei("1"), // rate
           18, // basetokenDecimals
@@ -1026,13 +1026,13 @@ describe("ERC721Factory", () => {
           2500000, // vested blocks
           initialPoolLiquidy, // baseToken initial pool liquidity
         ],
-        "basetokenSender":user3.address,
+       // "basetokenSender":user3.address,
         "swapFees":[
           swapFee, //
           swapMarketFee,
         ],
-        "marketFeeCollector":user6.address,
-        "publisherAddress":user3.address // publisherAddress (get vested amount)
+      //  "marketFeeCollector":user6.address,
+     //   "publisherAddress":user3.address // publisherAddress (get vested amount)
       }
       
       

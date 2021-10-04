@@ -24,6 +24,9 @@ contract BFactory is BConst, Deployer {
     address public bpoolTemplate;
     address public opfCollector;
 
+    mapping(address => bool) internal poolTemplates;
+  
+
     event BPoolCreated(
         address indexed newBPoolAddress,
         address indexed registeredBy,
@@ -62,26 +65,31 @@ contract BFactory is BConst, Deployer {
        Template contract address could not be a zero address. 
 
      * @param tokens [datatokenAddress, basetokenAddress]
-     * @param publisherAddress user which will be assigned the vested amount.
+     * publisherAddress user which will be assigned the vested amount.
      * @param ssParams params for the ssContract. 
      * @param swapFees swapFees (swapFee, swapMarketFee,swapOceanFee), swapOceanFee will be set automatically later
-       @param marketFeeCollector marketFeeCollector address
+       marketFeeCollector marketFeeCollector address
        
       @return address of a new proxy BPool contract 
      */
        
-    function newBPool(address controller, 
+    function newBPool(
+       // address controller, 
         address[2] memory tokens,
-        address publisherAddress, 
+      //  address publisherAddress, 
         uint256[] memory ssParams,
-        uint256[2] memory swapFees,
-        address marketFeeCollector)
+        uint256[] memory swapFees,
+     //   address marketFeeCollector,
+        address[] memory addresses  //[controller,basetokenAddress,basetokenSender,publisherAddress, marketFeeCollector]
+        )
         internal 
         returns (address bpool)
     {
         
-        address[2] memory feeCollectors = [marketFeeCollector,opfCollector];
-       
+        address[2] memory feeCollectors = [addresses[4],opfCollector];
+
+        // TODO: add bpoolTemplate selection when refactoring
+
         bpool = deploy(bpoolTemplate);
         //address bpool = _create("");
 
@@ -93,7 +101,7 @@ contract BFactory is BConst, Deployer {
 
         require(
             bpoolInstance.initialize(
-                controller,  // ss is the pool controller
+                addresses[0],  // ss is the pool controller
                 address(this), 
                 swapFees,
                 false,
@@ -107,12 +115,11 @@ contract BFactory is BConst, Deployer {
       //  emit BPoolCreated(bpool, msg.sender,datatokenAddress,basetokenAddress,bpoolTemplate,controller);
         
         // requires approval first from basetokenSender
-        
-        IssFixedRate(controller).newDataTokenCreated(  
+        IssFixedRate(addresses[0]).newDataTokenCreated(  
         tokens[0],
         tokens[1],
         bpool,
-        publisherAddress,
+        addresses[3],//publisherAddress
         ssParams);
         
         return bpool;
@@ -121,10 +128,10 @@ contract BFactory is BConst, Deployer {
     }
 
      function _addPoolTemplate(address poolTemplate) internal {
-        poolTemplate[poolTemplate] = true;
+        poolTemplates[poolTemplate] = true;
     }
 
     function _removePoolTemplate(address poolTemplate) internal {
-        poolTemplate[poolTemplate] = false;
+        poolTemplates[poolTemplate] = false;
     }
 }

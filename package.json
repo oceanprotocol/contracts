@@ -7,7 +7,7 @@
     "test:swap": "npx hardhat test test/flow/SwapFees.test.js ",
     "test:debug": "npx hardhat test test/unit/pools/FactoryRouter.test.js ",
     "test:v3": "npx hardhat test test/flow/V3Integration.test.js ",
-    "test:ERC721Factory": "npx hardhat test test/unit/factories/ERC721Factory.test.js",
+    "test:factory": "npx hardhat test test/unit/factories/ERC721Factory.test.js",
     "test:flow": "npx hardhat test test/flow/*.test.js ",
     "test:unit": "npx hardhat test test/unit/*/*.test.js ",
     "test:full:cover": "npx hardhat coverage"

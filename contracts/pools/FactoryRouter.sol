@@ -75,31 +75,34 @@ contract FactoryRouter is BFactory {
      * @dev Deploys a new `OceanPool` on Ocean Friendly Fork modified for 1SS.
      This function cannot be called directly, but ONLY through the ERC20DT contract from a ERC20DEployer role
 
-     * @param controller ssContract address
-     * @param tokens [datatokenAddress, basetokenAddress]
-     * @param publisherAddress user which will be assigned the vested amount.
+      ssContract address
+     tokens [datatokenAddress, basetokenAddress]
+     publisherAddress user which will be assigned the vested amount.
      * @param ssParams params for the ssContract. 
-     * @param basetokenSender user which will provide the baseToken amount for initial liquidity 
+     basetokenSender user which will provide the baseToken amount for initial liquidity 
      * @param swapFees swapFees (swapFee, swapMarketFee,swapOceanFee), swapOceanFee will be set automatically later
-       @param marketFeeCollector marketFeeCollector address
+     marketFeeCollector marketFeeCollector address
        
         @return pool address
      */
     function deployPool(
-        address controller,
+       // address controller,
         address[2] calldata tokens, // [datatokenAddress, basetokenAddress]
-        address publisherAddress,
+       // address publisherAddress,
         uint256[] calldata ssParams,
-        address basetokenSender,
-        uint256[2] calldata swapFees,
-        address marketFeeCollector
+      //  address basetokenSender,
+        uint256[] calldata swapFees,
+       // address marketFeeCollector,
+
+        address[] calldata addresses //[controller,basetokenAddress,basetokenSender,publisherAddress, marketFeeCollector]
+
     ) external returns (address) {
         require(
             IFactory(factory).erc20List(msg.sender) == true,
             "FACTORY ROUTER: NOT ORIGINAL ERC20 TEMPLATE"
         );
         require(
-            ssContracts[controller] = true,
+            ssContracts[addresses[0]] = true,
             "FACTORY ROUTER: invalid ssContract"
         );
         require(ssParams[1] > 0, "Wrong decimals");
@@ -112,16 +115,17 @@ contract FactoryRouter is BFactory {
 
         // we pull basetoken for creating initial pool and send it to the controller (ssContract)
         IERC20 bt = IERC20(tokens[1]);
-        require(bt.transferFrom(basetokenSender, controller, ssParams[4])
+        require(bt.transferFrom(addresses[2], addresses[0], ssParams[4])
         ,'DeployPool: Failed to transfer initial liquidity');
 
         address pool = newBPool(
-            controller,
+          //  controller,
             tokens,
-            publisherAddress,
+          //  publisherAddress,
             ssParams,
             swapFees,
-            marketFeeCollector
+          //  marketFeeCollector,
+            addresses
         );
 
         require(pool != address(0), "FAILED TO DEPLOY POOL");
@@ -184,11 +188,11 @@ contract FactoryRouter is BFactory {
         );
     }
 
-    function _addPoolTemplate(address poolTemplate) external onlyRouterOwner {
+    function addPoolTemplate(address poolTemplate) external onlyRouterOwner {
         _addPoolTemplate(poolTemplate);
     }
 
-    function _removePoolTemplate(address poolTemplate) external onlyRouterOwner {
+    function removePoolTemplate(address poolTemplate) external onlyRouterOwner {
        _removePoolTemplate(poolTemplate);
     }
 }

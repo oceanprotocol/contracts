@@ -274,8 +274,8 @@ describe("Swap Fees", () => {
       // we deploy a new pool
       receipt = await (
         await erc20Token.connect(user3).deployPool(
-          ssFixedRate.address,
-          oceanAddress,
+        //  ssFixedRate.address,
+        //  oceanAddress,
           [
             web3.utils.toWei("1"), // rate
             18, // basetokenDecimals
@@ -283,13 +283,14 @@ describe("Swap Fees", () => {
             2500000, // vested blocks
             initialOceanLiquidity, // baseToken initial pool liquidity
           ],
-          user3.address,
+       //   user3.address,
           [
             swapFee, //
             swapMarketFee
           ],
-          marketFeeCollector.address,
-          user3.address// publisher address (vested token)
+       //   marketFeeCollector.address,
+      //    user3.address// publisher address (vested token)
+          [ssFixedRate.address,oceanAddress,user3.address,user3.address,marketFeeCollector.address]
         )
       ).wait();
     
@@ -1096,8 +1097,8 @@ describe("Swap Fees", () => {
       // we deploy a new pool 
       receipt = await (
         await erc20Token.connect(user3).deployPool(
-          ssFixedRate.address,
-          daiAddress,
+          //ssFixedRate.address,
+        //  daiAddress,
           [
             web3.utils.toWei("1"), // rate
             18, // basetokenDecimals
@@ -1105,13 +1106,14 @@ describe("Swap Fees", () => {
             2500000, // vested blocks
             initialDAILiquidity, // baseToken initial pool liquidity
           ],
-          user3.address,
+         // user3.address,
           [
             swapFee,
             swapMarketFee
           ],
-          marketFeeCollector.address,
-          user3.address// publisher address (vested token)
+        //  marketFeeCollector.address,
+        //  user3.address// publisher address (vested token)
+          [ssFixedRate.address,daiAddress,user3.address,user3.address,marketFeeCollector.address]
         )
       ).wait();
       
@@ -1964,8 +1966,8 @@ describe("Swap Fees", () => {
       // we deploy a new pool
       receipt = await (
         await erc20Token.connect(user3).deployPool(
-          ssFixedRate.address,
-          usdcAddress,
+         // ssFixedRate.address,
+         // usdcAddress,
           [
             web3.utils.toWei("1"), // rate
             basetokenDecimals, // basetokenDecimals
@@ -1973,13 +1975,14 @@ describe("Swap Fees", () => {
             2500000, // vested blocks
             initialUSDCLiquidity, // baseToken initial pool liquidity
           ],
-          user3.address,
+        //  user3.address,
           [
             swapFee,
             swapMarketFee
           ],
-          marketFeeCollector.address,
-          user3.address// publisher address (vested token)
+         // marketFeeCollector.address,
+        //  user3.address// publisher address (vested token)
+         [ssFixedRate.address,usdcAddress,user3.address,user3.address,marketFeeCollector.address]
         )
       ).wait();
       
@@ -2887,8 +2890,8 @@ describe("Swap Fees", () => {
       // we deploy a new pool
       receipt = await (
         await erc20Token.connect(user3).deployPool(
-          ssFixedRate.address,
-          usdcAddress,
+         // ssFixedRate.address,
+         // usdcAddress,
           [
             web3.utils.toWei("1"), // rate
             basetokenDecimals, // basetokenDecimals
@@ -2896,13 +2899,14 @@ describe("Swap Fees", () => {
             2500000, // vested blocks
             initialUSDCLiquidity, // baseToken initial pool liquidity
           ],
-          user3.address,
+         // user3.address,
           [
             swapFee,
             swapMarketFee
           ],
-          marketFeeCollector.address,
-          user3.address// publisher address (vested token)
+         // marketFeeCollector.address,
+         // user3.address// publisher address (vested token)
+          [ssFixedRate.address,usdcAddress,user3.address,user3.address,marketFeeCollector.address]
         )
       ).wait();
       
@@ -3831,8 +3835,8 @@ describe("Swap Fees", () => {
       // we deploy a new pool 
       receipt = await (
         await erc20Token.connect(user3).deployPool(
-          ssFixedRate.address,
-          daiAddress,
+        //  ssFixedRate.address,
+         // daiAddress,
           [
             web3.utils.toWei("1"), // rate
             18, // basetokenDecimals
@@ -3840,13 +3844,14 @@ describe("Swap Fees", () => {
             2500000, // vested blocks
             initialDAILiquidity, // baseToken initial pool liquidity
           ],
-          user3.address,
+         // user3.address,
           [
             swapFee,
             swapMarketFee
           ],
-          marketFeeCollector.address,
-          user3.address// publisher address (vested token)
+         // marketFeeCollector.address,
+        //  user3.address// publisher address (vested token)
+          [ssFixedRate.address,daiAddress,user3.address,user3.address,marketFeeCollector.address]
         )
       ).wait();
       
