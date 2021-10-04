@@ -56,7 +56,7 @@ describe("FactoryRouter", () => {
     const ERC721Factory = await ethers.getContractFactory("ERC721Factory");
 
     const Router = await ethers.getContractFactory("FactoryRouter");
-    const SSContract = await ethers.getContractFactory("ssFixedRate");
+    const SSContract = await ethers.getContractFactory("SideStaking");
     const BPool = await ethers.getContractFactory("BPool");
     const FixedRateExchange = await ethers.getContractFactory(
       "FixedRateExchange"
@@ -95,7 +95,7 @@ describe("FactoryRouter", () => {
     []
   );
 
-  ssFixedRate = await SSContract.deploy(router.address);
+  sideStaking = await SSContract.deploy(router.address);
 
   fixedRateExchange = await FixedRateExchange.deploy(
     router.address,
@@ -120,7 +120,7 @@ describe("FactoryRouter", () => {
 
   await router.addFixedRateContract(fixedRateExchange.address);
     
-  await router.addSSContract(ssFixedRate.address)
+  await router.addSSContract(sideStaking.address)
   
   const tx = await factoryERC721.deployERC721Contract(
       "DT1",
@@ -231,7 +231,7 @@ describe("FactoryRouter", () => {
   })
 
   it("#ssContracts - should confirm ssContract token has been added to the mapping",async () => {
-    assert(await router.ssContracts(ssFixedRate.address) == true);
+    assert(await router.ssContracts(sideStaking.address) == true);
   })
 
   it("#addSSContract - should add a new ssContract address to the mapping if Router Owner",async () => {
@@ -270,8 +270,34 @@ describe("FactoryRouter", () => {
    
   })
 
+  it("#addPoolTemplate - should fail to add a new pool template contract if NOT Router Owner",async () => {
+    assert(await router.isPoolTemplate(user2.address) ==false)
+    await expectRevert(router.connect(user2).addPoolTemplate(user2.address), "OceanRouter: NOT OWNER")
+    assert(await router.isPoolTemplate(user2.address) ==false)
+   
+  })
 
+      
+  it("#addPoolTemplate - should succeed to add a new pool template contract if Router Owner",async () => {
+    assert(await router.isPoolTemplate(user2.address) ==false)
+    await router.addPoolTemplate(user2.address)
+    assert(await router.isPoolTemplate(user2.address) ==true)
+   
+  })
 
+  it("#removePoolTemplate - should fail to remove pool template contract if NOT Router Owner",async () => {
+    assert(await router.isPoolTemplate(poolTemplate.address) ==true)
+    await expectRevert(router.connect(user2).removePoolTemplate(poolTemplate.address), "OceanRouter: NOT OWNER")
+    assert(await router.isPoolTemplate(poolTemplate.address) ==true)
+   
+  })
+
+  it("#removePoolTemplate - should suceed to remove pool template contract if Router Owner",async () => {
+    assert(await router.isPoolTemplate(poolTemplate.address) ==true)
+    await router.removePoolTemplate(poolTemplate.address)
+    assert(await router.isPoolTemplate(poolTemplate.address) ==false)
+   
+  })
 
 });
 

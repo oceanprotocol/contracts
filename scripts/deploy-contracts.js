@@ -97,7 +97,7 @@ async function main() {
 
     const Metadata = await ethers.getContractFactory("Metadata");
     const Router = await ethers.getContractFactory("FactoryRouter");
-    const SSContract = await ethers.getContractFactory("ssFixedRate");
+    const SSContract = await ethers.getContractFactory("SideStaking");
     const BPool = await ethers.getContractFactory("BPool");
     const Dispenser = await ethers.getContractFactory("Dispenser");
     

@@ -36,7 +36,7 @@ describe("V3 Integration flow", () => {
     const ERC721Factory = await ethers.getContractFactory("ERC721Factory");
 
     const Router = await ethers.getContractFactory("FactoryRouter");
-    const SSContract = await ethers.getContractFactory("ssFixedRate");
+    const SSContract = await ethers.getContractFactory("SideStaking");
     const BPool = await ethers.getContractFactory("BPool");
     const FixedRateExchange = await ethers.getContractFactory(
       "FixedRateExchange"
@@ -65,7 +65,7 @@ describe("V3 Integration flow", () => {
       []
     );  
 
-    ssFixedRate = await SSContract.deploy(router.address);
+    sideStaking = await SSContract.deploy(router.address);
   
     fixedRateExchange = await FixedRateExchange.deploy(
       router.address,
@@ -91,7 +91,7 @@ describe("V3 Integration flow", () => {
     
     await router.addFixedRateContract(fixedRateExchange.address);
    
-    await router.addSSContract(ssFixedRate.address)
+    await router.addSSContract(sideStaking.address)
     
     await impersonate(v3DTOwnerAddress);
     v3Owner = ethers.provider.getSigner(v3DTOwnerAddress);

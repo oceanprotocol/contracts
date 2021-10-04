@@ -36,7 +36,7 @@ describe("Dispenser", () => {
     oceanOPFBalance,
     daiContract,
     usdcContract,
-    ssFixedRate,
+    sideStaking,
     router,
     signer,
     amountDT,
@@ -62,7 +62,7 @@ describe("Dispenser", () => {
     const ERC721Factory = await ethers.getContractFactory("ERC721Factory");
 
     const Router = await ethers.getContractFactory("FactoryRouter");
-    const SSContract = await ethers.getContractFactory("ssFixedRate");
+    const SSContract = await ethers.getContractFactory("SideStaking");
 
     [
       owner, // nft owner, 721 deployer
@@ -98,7 +98,7 @@ describe("Dispenser", () => {
       []
     );
 
-    ssFixedRate = await SSContract.deploy(router.address);
+    sideStaking = await SSContract.deploy(router.address);
 
 
     dispenser = await Dispenser.deploy(
@@ -125,7 +125,7 @@ describe("Dispenser", () => {
 
     await router.addFixedRateContract(dispenser.address);
 
-    await router.addSSContract(ssFixedRate.address)
+    await router.addSSContract(sideStaking.address)
     
   });
 

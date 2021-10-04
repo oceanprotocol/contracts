@@ -5,7 +5,7 @@ pragma solidity 0.5.7;
 
 import "./BToken.sol";
 import "./BMath.sol";
-import "../../interfaces/IssFixedRate.sol";
+import "../../interfaces/ISideStaking.sol";
 import "hardhat/console.sol";
 
 /**
@@ -96,7 +96,7 @@ contract BPool is BMath, BToken {
     address[] private _tokens;
     mapping(address => Record) private _records;
     uint256 private _totalWeight;
-    IssFixedRate ssContract;
+    ISideStaking ssContract;
 
     //-----------------------------------------------------------------------
     //Proxy contract functionality: begin
@@ -173,7 +173,7 @@ contract BPool is BMath, BToken {
         _marketCollector = feeCollectors[0];
         _opfCollector = feeCollectors[1];
         initialized = true;
-        ssContract = IssFixedRate(_controller);
+        ssContract = ISideStaking(_controller);
         return initialized;
     }
 

@@ -36,7 +36,7 @@ describe("FixedRateExchange", () => {
     oceanOPFBalance,
     daiContract,
     usdcContract,
-    ssFixedRate,
+    sideStaking,
     router,
     signer,
     amountDT,
@@ -63,7 +63,7 @@ describe("FixedRateExchange", () => {
 
     
     const Router = await ethers.getContractFactory("FactoryRouter");
-    const SSContract = await ethers.getContractFactory("ssFixedRate");
+    const SSContract = await ethers.getContractFactory("SideStaking");
 
     [
       owner, // nft owner, 721 deployer
@@ -146,7 +146,7 @@ describe("FixedRateExchange", () => {
       []
     );
 
-    ssFixedRate = await SSContract.deploy(router.address);
+    sideStaking = await SSContract.deploy(router.address);
 
 
     fixedRateExchange = await FixedRateExchange.deploy(
@@ -174,7 +174,7 @@ describe("FixedRateExchange", () => {
 
     await router.addFixedRateContract(fixedRateExchange.address);
 
-    await router.addSSContract(ssFixedRate.address)
+    await router.addSSContract(sideStaking.address)
     
   });
 

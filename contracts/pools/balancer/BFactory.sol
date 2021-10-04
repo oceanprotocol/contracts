@@ -7,7 +7,7 @@ import './BPool.sol';
 import './BConst.sol';
 //import './BaseSplitCodeFactory.sol';
 import '../../utils/Deployer.sol';
-import '../../interfaces/IssFixedRate.sol';
+import '../../interfaces/ISideStaking.sol';
 import '../../interfaces/IERC20.sol';
 /*
 * @title BFactory contract
@@ -21,7 +21,7 @@ import '../../interfaces/IERC20.sol';
 */
 contract BFactory is BConst, Deployer {
 
-    address public bpoolTemplate;
+   // address public bpoolTemplate;
     address public opfCollector;
 
     mapping(address => bool) internal poolTemplates;
@@ -51,14 +51,16 @@ contract BFactory is BConst, Deployer {
             _opfCollector != address(0), 
             'BFactory: zero address'
         );
-        bpoolTemplate = _bpoolTemplate;
+      //  bpoolTemplate = _bpoolTemplate;
         opfCollector = _opfCollector;
+        _addPoolTemplate(_bpoolTemplate);
 
         if(_preCreatedPools.length > 0){
             for(uint256 i = 0; i < _preCreatedPools.length; i++){
                 emit BPoolCreated(_preCreatedPools[i], msg.sender,address(0),address(0),address(0),address(0));
             }
         }
+        
     }
     /** 
      * @dev Deploys new BPool proxy contract.
@@ -80,17 +82,17 @@ contract BFactory is BConst, Deployer {
         uint256[] memory ssParams,
         uint256[] memory swapFees,
      //   address marketFeeCollector,
-        address[] memory addresses  //[controller,basetokenAddress,basetokenSender,publisherAddress, marketFeeCollector]
+        address[] memory addresses  //[controller,basetokenAddress,basetokenSender,publisherAddress, marketFeeCollector, poolTemplate address]
         )
         internal 
         returns (address bpool)
     {
-        
+        require(poolTemplates[addresses[5]] == true, 'BFactory: Wrong Pool Template');
         address[2] memory feeCollectors = [addresses[4],opfCollector];
 
         // TODO: add bpoolTemplate selection when refactoring
 
-        bpool = deploy(bpoolTemplate);
+        bpool = deploy(addresses[5]);
         //address bpool = _create("");
 
         require(
@@ -115,7 +117,7 @@ contract BFactory is BConst, Deployer {
       //  emit BPoolCreated(bpool, msg.sender,datatokenAddress,basetokenAddress,bpoolTemplate,controller);
         
         // requires approval first from basetokenSender
-        IssFixedRate(addresses[0]).newDataTokenCreated(  
+        ISideStaking(addresses[0]).newDataTokenCreated(  
         tokens[0],
         tokens[1],
         bpool,
@@ -133,5 +135,9 @@ contract BFactory is BConst, Deployer {
 
     function _removePoolTemplate(address poolTemplate) internal {
         poolTemplates[poolTemplate] = false;
+    }
+
+    function isPoolTemplate(address poolTemplate) external view returns(bool) {
+        return poolTemplates[poolTemplate];
     }
 }

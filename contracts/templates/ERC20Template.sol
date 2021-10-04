@@ -249,7 +249,7 @@ contract ERC20Template is ERC20("test", "testSymbol"), ERC20Roles {
     ) external onlyERC20Deployer returns (address pool){
         require(totalSupply() == 0, "ERC20Template: tokens already minted");
         _addMinter(addresses[0]);
-        // TODO: chech this
+        // TODO: confirm minimum number of blocks required
         require(ssParams[3] > 2426000, 'ERC20Template: minimum blocks not reached');
 
         address[2] memory tokens = [address(this), addresses[1]];

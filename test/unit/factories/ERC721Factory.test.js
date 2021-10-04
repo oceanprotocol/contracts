@@ -57,7 +57,7 @@ describe("ERC721Factory", () => {
     const MockErc20 = await ethers.getContractFactory('MockERC20');
     const MockErc20Decimals = await ethers.getContractFactory('MockERC20Decimals');
     const Router = await ethers.getContractFactory("FactoryRouter");
-    const SSContract = await ethers.getContractFactory("ssFixedRate");
+    const SSContract = await ethers.getContractFactory("SideStaking");
     const BPool = await ethers.getContractFactory("BPool");
     const FixedRateExchange = await ethers.getContractFactory(
       "FixedRateExchange"
@@ -86,7 +86,7 @@ describe("ERC721Factory", () => {
    );
       
 
-   ssFixedRate = await SSContract.deploy(router.address);
+   sideStaking = await SSContract.deploy(router.address);
 
    fixedRateExchange = await FixedRateExchange.deploy(
      router.address,
@@ -113,7 +113,7 @@ describe("ERC721Factory", () => {
  
    await router.addFixedRateContract(fixedRateExchange.address); 
 
-   await router.addSSContract(ssFixedRate.address)
+   await router.addSSContract(sideStaking.address)
     
 
     // by default connect() in ethers goes with the first address (owner in this case)
@@ -1017,7 +1017,7 @@ describe("ERC721Factory", () => {
       "bytess":[]
       },
       {
-        "addresses":[ssFixedRate.address,erc20Token.address,factoryERC721.address,user3.address,user6.address],
+        "addresses":[sideStaking.address,erc20Token.address,factoryERC721.address,user3.address,user6.address,poolTemplate.address],
         //"basetokenAddress":erc20Token.address,
         "ssParams":[
           web3.utils.toWei("1"), // rate

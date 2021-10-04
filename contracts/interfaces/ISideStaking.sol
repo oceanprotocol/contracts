@@ -8,7 +8,7 @@
 
 pragma solidity >=0.5.7;
 
-interface IssFixedRate {
+interface ISideStaking {
 
 
     function newDataTokenCreated(

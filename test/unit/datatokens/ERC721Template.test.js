@@ -92,7 +92,7 @@ describe("ERC721Template", () => {
     const ERC721Factory = await ethers.getContractFactory("ERC721Factory");
 
     const Router = await ethers.getContractFactory("FactoryRouter");
-    const SSContract = await ethers.getContractFactory("ssFixedRate");
+    const SSContract = await ethers.getContractFactory("SideStaking");
     const BPool = await ethers.getContractFactory("BPool");
     const FixedRateExchange = await ethers.getContractFactory(
       "FixedRateExchange"
@@ -119,7 +119,7 @@ describe("ERC721Template", () => {
      []
    );
       
-   ssFixedRate = await SSContract.deploy(router.address);
+   sideStaking = await SSContract.deploy(router.address);
 
    fixedRateExchange = await FixedRateExchange.deploy(
      router.address,
@@ -146,7 +146,7 @@ describe("ERC721Template", () => {
  
    await router.addFixedRateContract(fixedRateExchange.address); 
 
-   await router.addSSContract(ssFixedRate.address); 
+   await router.addSSContract(sideStaking.address); 
 
     // by default connect() in ethers goes with the first address (owner in this case)
     const tx = await factoryERC721.deployERC721Contract(
