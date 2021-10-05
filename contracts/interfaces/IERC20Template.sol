@@ -83,7 +83,7 @@ interface IERC20Template {
     function createFixedRate(
         address fixedPriceAddress,
         address[] memory addresses,
-        uint[] memory units
+        uint[] memory uints
     ) external returns (bytes32);
 
     function getPublishingMarketFee() external view returns (address , address, uint256);

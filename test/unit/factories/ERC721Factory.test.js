@@ -1018,7 +1018,6 @@ describe("ERC721Factory", () => {
       },
       {
         "addresses":[sideStaking.address,erc20Token.address,factoryERC721.address,user3.address,user6.address,poolTemplate.address],
-        //"basetokenAddress":erc20Token.address,
         "ssParams":[
           web3.utils.toWei("1"), // rate
           18, // basetokenDecimals
@@ -1026,13 +1025,10 @@ describe("ERC721Factory", () => {
           2500000, // vested blocks
           initialPoolLiquidy, // baseToken initial pool liquidity
         ],
-       // "basetokenSender":user3.address,
         "swapFees":[
           swapFee, //
           swapMarketFee,
         ],
-      //  "marketFeeCollector":user6.address,
-     //   "publisherAddress":user3.address // publisherAddress (get vested amount)
       }
       
       
@@ -1105,12 +1101,11 @@ describe("ERC721Factory", () => {
     assert(event, "Cannot find TokenCreated event")
     const erc20Address = event.args[0];
 
-    // TODO: follow from here! no event found
     event = getEventFromTx(txReceipt,'NewFixedRate')
-    console.log(event)
+    console.log(txReceipt)
     assert(event, "Cannot find NewFixedRate event")
     const exchangeId = event.args[0];
-    
+
     const NftContract = await ethers.getContractAt(
       "contracts/interfaces/IERC721Template.sol:IERC721Template",
       nftAddress

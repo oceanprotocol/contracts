@@ -14,6 +14,6 @@ interface IFixedRateExchange {
     function createWithDecimals(
         address dataToken,
         address[] calldata addresses, // [baseToken,owner,marketFeeCollector]
-        uint256[] calldata units // [baseTokenDecimals,dataTokenDecimals, fixedRate, marketFee]
+        uint256[] calldata uints // [baseTokenDecimals,dataTokenDecimals, fixedRate, marketFee]
     ) external returns (bytes32 exchangeId);
 }

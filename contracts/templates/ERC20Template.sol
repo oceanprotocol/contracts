@@ -281,12 +281,12 @@ contract ERC20Template is ERC20("test", "testSymbol"), ERC20Roles {
     function createFixedRate(
         address fixedPriceAddress,
         address[] memory addresses,
-        uint[] memory units
+        uint[] memory uints
     ) external onlyERC20Deployer returns (bytes32 exchangeId) {
         exchangeId = IFactoryRouter(router).deployFixedRate(
             fixedPriceAddress,
             addresses,
-            units
+            uints
         );
       
         emit NewFixedRate(exchangeId, addresses[0]);

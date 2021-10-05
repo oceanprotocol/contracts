@@ -17,7 +17,7 @@
         },
         {
           "internalType": "uint256[]",
-          "name": "units",
+          "name": "uints",
           "type": "uint256[]"
         }
       ],

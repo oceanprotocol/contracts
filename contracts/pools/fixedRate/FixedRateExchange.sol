@@ -143,7 +143,7 @@ contract FixedRateExchange {
     function createWithDecimals(
         address dataToken,
         address[] memory addresses, // [baseToken,owner,marketFeeCollector]
-        uint256[] memory units // [baseTokenDecimals,dataTokenDecimals, fixedRate, marketFee]
+        uint256[] memory uints // [baseTokenDecimals,dataTokenDecimals, fixedRate, marketFee]
     ) public onlyRouter returns (bytes32 exchangeId) {
        
         require(
@@ -159,7 +159,7 @@ contract FixedRateExchange {
             "FixedRateExchange: Invalid datatoken,  equals basetoken"
         );
         require(
-            units[2] != 0,
+            uints[2] != 0,
             "FixedRateExchange: Invalid exchange rate value"
         );
         exchangeId = generateExchangeId(addresses[0], dataToken, addresses[1]);
@@ -173,12 +173,12 @@ contract FixedRateExchange {
             exchangeOwner: addresses[1],
             dataToken: dataToken,
             baseToken: addresses[0],
-            fixedRate: units[2],
-            dtDecimals: units[1],
-            btDecimals: units[0],
+            fixedRate: uints[2],
+            dtDecimals: uints[1],
+            btDecimals: uints[0],
             dtBalance: 0,
             btBalance: 0,
-            marketFee: units[3],
+            marketFee: uints[3],
             marketFeeCollector: addresses[2],
             marketFeeAvailable: 0,
             oceanFeeAvailable: 0
@@ -191,7 +191,7 @@ contract FixedRateExchange {
             addresses[0], // 
             dataToken,
             addresses[1],
-            units[2]
+            uints[2]
         );
 
         emit ExchangeActivated(exchangeId, addresses[1]);

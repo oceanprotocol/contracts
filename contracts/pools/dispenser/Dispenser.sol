@@ -117,7 +117,7 @@ contract Dispenser {
     function createWithDecimals(
         address dataToken,
         address[] memory addresses, // [owner]
-        uint256[] memory units // [dataTokenDecimals]
+        uint256[] memory uints // [dataTokenDecimals]
     ) external onlyRouter returns (bytes32 exchangeId) {
         require(
             addresses[0] != address(0),
@@ -142,7 +142,7 @@ contract Dispenser {
             exchangeOwner: addresses[0],
             dataToken: dataToken,
             fixedRate: 0,
-            dtDecimals: units[0],
+            dtDecimals: uints[0],
             dtBalance: 0
         });
 

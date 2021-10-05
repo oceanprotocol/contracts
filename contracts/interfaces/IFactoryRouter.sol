@@ -18,7 +18,7 @@ interface IFactoryRouter {
    function deployFixedRate(
         address fixedPriceAddress,
         address[] calldata addresses,
-        uint[] calldata units
+        uint[] calldata uints
 
     ) external returns (bytes32 exchangeId);
 

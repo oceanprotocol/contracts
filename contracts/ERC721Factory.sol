@@ -63,7 +63,8 @@ contract ERC721Factory is Deployer, Ownable {
         address basetokenAddress
     );
 
-    event NewFixedRate(bytes32 exchangeId, address owner, address basetoken);
+
+    event NewFixedRate(bytes32 exchangeId, address owner);
 
     
 
@@ -646,6 +647,8 @@ contract ERC721Factory is Deployer, Ownable {
             _FixedData.addresses,
             _FixedData.uints
             );
+
+
         // TO DO - see if we can remove ourselfs from the ERC20Deployer permission
     }
 }
