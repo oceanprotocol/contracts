@@ -554,5 +554,11 @@ contract ERC721Template is
         payable(ownerOf(1)).transfer(address(this).balance);
     }
 
-  
+    function getTokensList() external view returns (address[] memory) {
+        return deployedERC20List;
+    }
+    
+    function isDeployed(address datatoken) external view returns (bool) {
+        return deployedERC20[datatoken];
+    }
 }

@@ -680,4 +680,19 @@ describe("ERC721Template", () => {
     assert(metadataInfo[3] === true)
     assert(metadataInfo[0] == metaDataDecryptorUrl);
   });
+
+  it("#getTokensList - should return erc20 tokens list(deployed from the NFT contract)", async () => {
+    result = await tokenERC721.getTokensList();
+    expect(result[0]).to.equal(erc20Token.address)
+   
+  });
+
+  it("#isDeployed - should return true if token has been deployed from this contract", async () => {
+    assert(await tokenERC721.isDeployed(erc20Token.address) == true);
+  });
+
+
+  it("#isDeployed - should return false if token has NOT been deployed from this contract", async () => {
+    assert(await tokenERC721.isDeployed(user3.address) == false);
+  });
 });
