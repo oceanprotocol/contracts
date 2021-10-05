@@ -31,8 +31,8 @@ contract FixedRateExchange {
         address dataToken;
         address baseToken;
         uint256 fixedRate;
-        uint8 dtDecimals;
-        uint8 btDecimals;
+        uint256 dtDecimals;
+        uint256 btDecimals;
         uint256 dtBalance;
         uint256 btBalance;
         uint256 marketFee;
@@ -136,22 +136,18 @@ contract FixedRateExchange {
      * @dev create
      *      creates new exchange pairs between base token
      *      (ocean token) and data tokens.
-     * @param baseToken refers to a ocean token contract address
-     * @param dataToken refers to a data token contract address
-     * @param fixedRate refers to the exact fixed exchange rate in wei
+     * baseToken refers to a ocean token contract address
+     * dataToken refers to a data token contract address
+     * fixedRate refers to the exact fixed exchange rate in wei
      */
     function createWithDecimals(
-        address baseToken,
         address dataToken,
-        uint8 _btDecimals,
-        uint8 _dtDecimals,
-        uint256 fixedRate,
-        address owner,
-        uint256 marketFee,
-        address marketFeeCollector
-    ) external onlyRouter returns (bytes32 exchangeId) {
+        address[] memory addresses, // [baseToken,owner,marketFeeCollector]
+        uint256[] memory units // [baseTokenDecimals,dataTokenDecimals, fixedRate, marketFee]
+    ) public onlyRouter returns (bytes32 exchangeId) {
+       
         require(
-            baseToken != address(0),
+            addresses[0] != address(0),
             "FixedRateExchange: Invalid basetoken,  zero address"
         );
         require(
@@ -159,14 +155,14 @@ contract FixedRateExchange {
             "FixedRateExchange: Invalid datatoken,  zero address"
         );
         require(
-            baseToken != dataToken,
+            addresses[0] != dataToken,
             "FixedRateExchange: Invalid datatoken,  equals basetoken"
         );
         require(
-            fixedRate != 0,
+            units[2] != 0,
             "FixedRateExchange: Invalid exchange rate value"
         );
-        exchangeId = generateExchangeId(baseToken, dataToken, owner);
+        exchangeId = generateExchangeId(addresses[0], dataToken, addresses[1]);
         require(
             exchanges[exchangeId].fixedRate == 0,
             "FixedRateExchange: Exchange already exists!"
@@ -174,16 +170,16 @@ contract FixedRateExchange {
        
         exchanges[exchangeId] = Exchange({
             active: true,
-            exchangeOwner: owner,
+            exchangeOwner: addresses[1],
             dataToken: dataToken,
-            baseToken: baseToken,
-            fixedRate: fixedRate,
-            dtDecimals: _dtDecimals,
-            btDecimals: _btDecimals,
+            baseToken: addresses[0],
+            fixedRate: units[2],
+            dtDecimals: units[1],
+            btDecimals: units[0],
             dtBalance: 0,
             btBalance: 0,
-            marketFee: marketFee,
-            marketFeeCollector: marketFeeCollector,
+            marketFee: units[3],
+            marketFeeCollector: addresses[2],
             marketFeeAvailable: 0,
             oceanFeeAvailable: 0
         });
@@ -192,13 +188,13 @@ contract FixedRateExchange {
 
         emit ExchangeCreated(
             exchangeId,
-            baseToken,
+            addresses[0], // 
             dataToken,
-            owner,
-            fixedRate
+            addresses[1],
+            units[2]
         );
 
-        emit ExchangeActivated(exchangeId, owner);
+        emit ExchangeActivated(exchangeId, addresses[1]);
     }
 
     /**
@@ -638,9 +634,9 @@ contract FixedRateExchange {
         returns (
             address exchangeOwner,
             address dataToken,
-            uint8 dtDecimals,
+            uint256 dtDecimals,
             address baseToken,
-            uint8 btDecimals,
+            uint256 btDecimals,
             uint256 fixedRate,
             bool active,
             uint256 dtSupply,

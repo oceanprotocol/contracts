@@ -72,7 +72,7 @@ contract ERC20Template is ERC20("test", "testSymbol"), ERC20Roles {
         address basetokenAddress
     );
 
-    event NewFixedRate(bytes32 exchangeId, address owner, address basetoken);
+    event NewFixedRate(bytes32 exchangeId, address owner);
 
     modifier onlyNotInitialized() {
         require(
@@ -266,37 +266,30 @@ contract ERC20Template is ERC20("test", "testSymbol"), ERC20Roles {
     /**
      * @dev createFixedRate
      *      Creates a new FixedRateExchange setup.
-     * @param fixedPriceAddress fixedPriceAddress
-     * @param basetokenAddress baseToken for exchange (OCEAN or other)
-     * @param basetokenDecimals baseToken decimals
-     * @param fixedRate rate
-     * @param owner exchangeOwner
-       @param marketFee market Fee 
-       @param marketFeeCollector market fee collector address
+     * fixedPriceAddress fixedPriceAddress
+     * basetokenAddress baseToken for exchange (OCEAN or other)
+     * basetokenDecimals baseToken decimals
+     * fixedRate rate
+     * owner exchangeOwner
+     marketFee market Fee 
+     marketFeeCollector market fee collector address
 
        @return exchangeId
      */
 
+
     function createFixedRate(
         address fixedPriceAddress,
-        address basetokenAddress,
-        uint8 basetokenDecimals,
-        uint256 fixedRate,
-        address owner,
-        uint256 marketFee,
-        address marketFeeCollector
+        address[] memory addresses,
+        uint[] memory units
     ) external onlyERC20Deployer returns (bytes32 exchangeId) {
         exchangeId = IFactoryRouter(router).deployFixedRate(
             fixedPriceAddress,
-            basetokenAddress,
-            basetokenDecimals,
-            fixedRate,
-            owner,
-            marketFee,
-            marketFeeCollector
+            addresses,
+            units
         );
-
-        emit NewFixedRate(exchangeId, owner, basetokenAddress);
+      
+        emit NewFixedRate(exchangeId, addresses[0]);
     }
 
     /**

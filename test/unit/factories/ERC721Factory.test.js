@@ -1091,12 +1091,9 @@ describe("ERC721Factory", () => {
       {
 
         "fixedPriceAddress":fixedRateExchange.address,
-        "basetokenAddress":erc20TokenWithPublishFee.address,
-        "basetokenDecimals":18,
-        "fixedRate":rate,
-        "owner":user3.address,
-        "marketFee":marketFee,
-        "marketFeeCollector":user6.address
+        "addresses":[erc20TokenWithPublishFee.address,user3.address,user6.address],
+        "uints":[18,18,rate,marketFee]
+       
       }
       );
 
@@ -1108,8 +1105,9 @@ describe("ERC721Factory", () => {
     assert(event, "Cannot find TokenCreated event")
     const erc20Address = event.args[0];
 
-    
+    // TODO: follow from here! no event found
     event = getEventFromTx(txReceipt,'NewFixedRate')
+    console.log(event)
     assert(event, "Cannot find NewFixedRate event")
     const exchangeId = event.args[0];
     

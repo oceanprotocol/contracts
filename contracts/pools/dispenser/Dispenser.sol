@@ -28,7 +28,7 @@ contract Dispenser {
         address exchangeOwner;
         address dataToken;
         uint256 fixedRate;
-        uint8 dtDecimals;
+        uint256 dtDecimals;
         uint256 dtBalance;
     }
 
@@ -110,35 +110,25 @@ contract Dispenser {
      * @dev create
      *      creates new exchange pairs between base token
      *      (ocean token) and data tokens.
-     * @param baseToken refers to a ocean token contract address
+     baseToken refers to a ocean token contract address
      * @param dataToken refers to a data token contract address
-     * @param fixedRate refers to the exact fixed exchange rate in wei
+     fixedRate refers to the exact fixed exchange rate in wei
      */
     function createWithDecimals(
-        address baseToken,
         address dataToken,
-        uint8 _btDecimals,
-        uint8 _dtDecimals,
-        uint256 fixedRate,
-        address owner,
-        uint256 marketFee,
-        address marketFeeCollector
-       // uint256 opfFee
+        address[] memory addresses, // [owner]
+        uint256[] memory units // [dataTokenDecimals]
     ) external onlyRouter returns (bytes32 exchangeId) {
         require(
-            baseToken != address(0),
-            "Dispenser: BASETOKEN NOT REQUIRED"
+            addresses[0] != address(0),
+            "Dispenser: OWNER REQUIRED"
         );
         require(
             dataToken != address(0),
             "Dispenser: Invalid datatoken,  zero address"
         );
-        require(
-            baseToken != dataToken,
-            "Dispenser: Invalid datatoken,  equals basetoken"
-        );
       
-        exchangeId = generateExchangeId(dataToken, owner);
+        exchangeId = generateExchangeId(dataToken, addresses[0]);
         require(
             exchanges[exchangeId].active == false,
             "Dispenser: Exchange already exists!"
@@ -149,10 +139,10 @@ contract Dispenser {
         // }
         exchanges[exchangeId] = Exchange({
             active: true,
-            exchangeOwner: owner,
+            exchangeOwner: addresses[0],
             dataToken: dataToken,
-            fixedRate: fixedRate,
-            dtDecimals: _dtDecimals,
+            fixedRate: 0,
+            dtDecimals: units[0],
             dtBalance: 0
         });
 
@@ -161,11 +151,11 @@ contract Dispenser {
         emit ExchangeCreated(
             exchangeId,
             dataToken,
-            owner,
-            fixedRate
+            addresses[0],
+            0
         );
 
-        emit ExchangeActivated(exchangeId, owner);
+        emit ExchangeActivated(exchangeId, addresses[0]);
     }
 
     /**
@@ -364,7 +354,7 @@ contract Dispenser {
         returns (
             address exchangeOwner,
             address dataToken,
-            uint8 dtDecimals,
+            uint256 dtDecimals,
             uint256 fixedRate,
             bool active,
             uint256 dtSupply,

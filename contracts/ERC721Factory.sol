@@ -607,12 +607,13 @@ contract ERC721Factory is Deployer, Ownable {
 
     struct FixedData{
         address fixedPriceAddress;
-        address basetokenAddress;
-        uint8 basetokenDecimals;
-        uint256 fixedRate;
-        address owner;
-        uint256 marketFee;
-        address marketFeeCollector;
+        address[] addresses;
+     //   address basetokenAddress;
+    //    uint8 basetokenDecimals;
+        uint256[] uints;
+     //   address owner;
+    //    uint256 marketFee;
+    //    address marketFeeCollector;
     }
     /**
      * @dev createNftErcWithFixedRate
@@ -642,12 +643,9 @@ contract ERC721Factory is Deployer, Ownable {
             erc721Address);
         exchangeId = IERC20Template(erc20Address).createFixedRate(
             _FixedData.fixedPriceAddress,
-            _FixedData.basetokenAddress,
-            _FixedData.basetokenDecimals,
-            _FixedData.fixedRate,
-            _FixedData.owner,
-            _FixedData.marketFee,
-            _FixedData.marketFeeCollector);
+            _FixedData.addresses,
+            _FixedData.uints
+            );
         // TO DO - see if we can remove ourselfs from the ERC20Deployer permission
     }
 }

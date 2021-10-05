@@ -196,12 +196,8 @@ describe("Dispenser", () => {
           .connect(alice)
           .createFixedRate(
             dispenser.address,
-            usdcAddress, // could be any, not used.
-            6, // same thing
-            rate,
-            alice.address,
-            marketFee, //same thing
-            marketFeeCollector.address // same thing
+            [alice.address],
+            [18]
           )
       ).wait(); // from exchangeOwner (alice)
 

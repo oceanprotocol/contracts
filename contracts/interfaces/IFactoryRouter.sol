@@ -15,14 +15,11 @@ interface IFactoryRouter {
 
     ) external returns (address);
 
-    function deployFixedRate(
+   function deployFixedRate(
         address fixedPriceAddress,
-        address basetokenAddress,
-        uint8 basetokenDecimals,
-        uint256 fixedRate,
-        address owner,
-        uint256 marketFee,
-        address marketFeeCollector
+        address[] calldata addresses,
+        uint[] calldata units
+
     ) external returns (bytes32 exchangeId);
 
     function getOPFFee(address baseToken) external view returns (uint256);

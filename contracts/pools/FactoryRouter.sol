@@ -2,7 +2,7 @@
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 pragma solidity >=0.5.7;
-pragma experimental ABIEncoderV2;
+//pragma experimental ABIEncoderV2;
 
 import "./balancer/BFactory.sol";
 import "../interfaces/IFactory.sol";
@@ -144,24 +144,21 @@ contract FactoryRouter is BFactory {
      *      Creates a new FixedRateExchange setup.
      * As for deployPool, this function cannot be called directly,
      * but ONLY through the ERC20DT contract from a ERC20DEployer role
-     * @param basetokenAddress baseToken for exchange (OCEAN or other)
-     * @param basetokenDecimals baseToken decimals
-     * @param rate rate
-     * @param owner exchangeOwner
-       @param marketFee market Fee 
-       @param marketFeeCollector market fee collector address
+     * basetokenAddress baseToken for exchange (OCEAN or other)
+     * basetokenDecimals baseToken decimals
+     * rate rate
+     * owner exchangeOwner
+       marketFee market Fee 
+       marketFeeCollector market fee collector address
 
        @return exchangeId
      */
 
     function deployFixedRate(
         address fixedPriceAddress,
-        address basetokenAddress,
-        uint8 basetokenDecimals,
-        uint256 rate,
-        address owner,
-        uint256 marketFee,
-        address marketFeeCollector
+        address[] calldata addresses,
+        uint[] calldata units
+
     ) external returns (bytes32 exchangeId) {
         require(
             IFactory(factory).erc20List(msg.sender) == true,
@@ -176,15 +173,10 @@ contract FactoryRouter is BFactory {
        // uint256 opfFee = getOPFFee(basetokenAddress);
 
         exchangeId = IFixedRateExchange(fixedPriceAddress).createWithDecimals(
-            basetokenAddress,
+            //basetokenAddress,
             msg.sender,
-            basetokenDecimals,
-            18,
-            rate,
-            owner,
-            marketFee,
-            marketFeeCollector
-           // opfFee
+            addresses,
+            units
         );
     }
 

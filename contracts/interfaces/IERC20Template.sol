@@ -82,13 +82,9 @@ interface IERC20Template {
 
     function createFixedRate(
         address fixedPriceAddress,
-        address basetokenAddress,
-        uint8 basetokenDecimals,
-        uint256 fixedRate,
-        address owner,
-        uint256 marketFee,
-        address marketFeeCollector
-    ) external returns (bytes32 exchangeId);
+        address[] memory addresses,
+        uint[] memory units
+    ) external returns (bytes32);
 
     function getPublishingMarketFee() external view returns (address , address, uint256);
     function setPublishingMarketFee(
