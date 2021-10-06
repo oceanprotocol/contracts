@@ -27,7 +27,6 @@ contract Dispenser {
         bool active;
         address exchangeOwner;
         address dataToken;
-        uint256 fixedRate;
         uint256 dtDecimals;
         uint256 dtBalance;
     }
@@ -61,8 +60,7 @@ contract Dispenser {
     event ExchangeCreated(
         bytes32 indexed exchangeId,
         address indexed dataToken,
-        address exchangeOwner,
-        uint256 fixedRate
+        address exchangeOwner
     );
 
 
@@ -82,11 +80,6 @@ contract Dispenser {
         uint256 dataTokenSwappedAmount
     );
     
-    event TokenDevolution(
-        bytes32 indexed exchangeId,
-        address indexed by,
-        uint256 dataTokenSwappedAmount);
-
 
     event TokenCollected(
         bytes32 indexed exchangeId,
@@ -112,7 +105,6 @@ contract Dispenser {
      *      (ocean token) and data tokens.
      baseToken refers to a ocean token contract address
      * @param dataToken refers to a data token contract address
-     fixedRate refers to the exact fixed exchange rate in wei
      */
     function createWithDecimals(
         address dataToken,
@@ -133,15 +125,11 @@ contract Dispenser {
             exchanges[exchangeId].active == false,
             "Dispenser: Exchange already exists!"
         );
-        // // TODO: used for testing fixed price = 0, see if remove it or not
-        // if(fixedRate == 0){
-        //     opfFee=0;
-        // }
+     
         exchanges[exchangeId] = Exchange({
             active: true,
             exchangeOwner: addresses[0],
             dataToken: dataToken,
-            fixedRate: 0,
             dtDecimals: uints[0],
             dtBalance: 0
         });
@@ -151,8 +139,7 @@ contract Dispenser {
         emit ExchangeCreated(
             exchangeId,
             dataToken,
-            addresses[0],
-            0
+            addresses[0]
         );
 
         emit ExchangeActivated(exchangeId, addresses[0]);
@@ -175,12 +162,11 @@ contract Dispenser {
   
 
     /**
-     * @dev swap
-     *      atomic swap between two registered fixed rate exchange.
+     * @dev get DT 
      * @param exchangeId a unique exchange idnetifier
      * @param dataTokenAmount the amount of data tokens to be exchanged
      */
-    function buyDT(bytes32 exchangeId, uint256 dataTokenAmount)
+    function getDT(bytes32 exchangeId, uint256 dataTokenAmount)
         external
         onlyActiveExchange(exchangeId)
     {
@@ -188,6 +174,7 @@ contract Dispenser {
             dataTokenAmount != 0,
             "Dispenser: zero data token amount"
         );
+        // TODO: add a maximum amount per user or per transaction
         //require(dataTokenAmount < 10**20); // 100 tokens
 
         if (dataTokenAmount > exchanges[exchangeId].dtBalance) {
@@ -215,44 +202,6 @@ contract Dispenser {
         );
     }
 
-    /**
-     * @dev swap
-     *      atomic swap between two registered fixed rate exchange.
-     * @param exchangeId a unique exchange idnetifier
-     * @param dataTokenAmount the amount of data tokens to be exchanged
-     */
-    function sellDT(bytes32 exchangeId, uint256 dataTokenAmount)
-        external
-        onlyActiveExchange(exchangeId)
-    {
-        require(
-            dataTokenAmount != 0,
-            "Dispenser: zero data token amount"
-        );
-        
-
-       
-        require(
-            IERC20Template(exchanges[exchangeId].dataToken).transferFrom(
-                msg.sender,
-                address(this),
-                dataTokenAmount
-            ),
-            "Dispenser: transferFrom failed in the dataToken contract"
-        );
-
-        exchanges[exchangeId].dtBalance = (exchanges[exchangeId].dtBalance).add(
-            dataTokenAmount
-        );
-
-     
-
-        emit TokenDevolution(
-            exchangeId,
-            msg.sender,
-            dataTokenAmount
-        );
-    }
 
 
     function collectDT(bytes32 exchangeId)
@@ -303,15 +252,6 @@ contract Dispenser {
         }
     }
 
-    /**
-     * @dev getRate
-     *      gets the current fixed rate for an exchange
-     * @param exchangeId a unique exchange idnetifier
-     * @return fixed rate value
-     */
-    function getRate(bytes32 exchangeId) external view returns (uint256) {
-        return exchanges[exchangeId].fixedRate;
-    }
 
     /**
      * @dev getSupply
@@ -355,7 +295,6 @@ contract Dispenser {
             address exchangeOwner,
             address dataToken,
             uint256 dtDecimals,
-            uint256 fixedRate,
             bool active,
             uint256 dtSupply,
             uint256 dtBalance
@@ -365,7 +304,6 @@ contract Dispenser {
         exchangeOwner = exchange.exchangeOwner;
         dataToken = exchange.dataToken;
         dtDecimals = exchange.dtDecimals;
-        fixedRate = exchange.fixedRate;
         active = exchange.active;
         dtSupply = getDTSupply(exchangeId);
         dtBalance = exchange.dtBalance;

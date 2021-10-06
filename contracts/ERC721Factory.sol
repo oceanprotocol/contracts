@@ -594,27 +594,17 @@ contract ERC721Factory is Deployer, Ownable {
         IERC20Template(_PoolData.addresses[1]).approve(router,_PoolData.ssParams[4]);
       
         poolAddress = IERC20Template(erc20Address).deployPool(
-         //   _PoolData.controller,
-         //   _PoolData.basetokenAddress,
             _PoolData.ssParams,
-         //   address(this),
             _PoolData.swapFees,
-         //   _PoolData.marketFeeCollector,
-          //  _PoolData.publisherAddress
            _PoolData.addresses
         );
-        // TO DO - see if we can remove ourselfs from the ERC20Deployer permission
+        // TO DO - see if we can remove ourselfs from the ERC20Deployer permission 
     }
 
     struct FixedData{
         address fixedPriceAddress;
         address[] addresses;
-     //   address basetokenAddress;
-    //    uint8 basetokenDecimals;
         uint256[] uints;
-     //   address owner;
-    //    uint256 marketFee;
-    //    address marketFeeCollector;
     }
     /**
      * @dev createNftErcWithFixedRate

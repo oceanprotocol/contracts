@@ -2,7 +2,7 @@
   "name": "hardhat-project",
   "scripts": {
     "test:full": "npx hardhat test test/unit/*/*.test.js test/flow/*.test.js ",
-    "test:fpe": "npx hardhat test test/flow/FixedRateExchange.test.js ",
+    "test:fpe": "npx hardhat test test/flow/Dispenser.test.js ",
     "test:ss": "npx hardhat test test/flow/SideStaking.test.js ",
     "test:pools": "npx hardhat test test/flow/SwapFees.test.js test/flow/SideStaking.test.js test/flow/Vesting.test.js",
     "test:debug": "npx hardhat test test/unit/pools/FactoryRouter.test.js ",

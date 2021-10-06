@@ -76,12 +76,9 @@ contract BFactory is BConst, Deployer {
      */
        
     function newBPool(
-       // address controller, 
         address[2] memory tokens,
-      //  address publisherAddress, 
         uint256[] memory ssParams,
         uint256[] memory swapFees,
-     //   address marketFeeCollector,
         address[] memory addresses  //[controller,basetokenAddress,basetokenSender,publisherAddress, marketFeeCollector, poolTemplate address]
         )
         internal 
@@ -90,10 +87,9 @@ contract BFactory is BConst, Deployer {
         require(poolTemplates[addresses[5]] == true, 'BFactory: Wrong Pool Template');
         address[2] memory feeCollectors = [addresses[4],opfCollector];
 
-        // TODO: add bpoolTemplate selection when refactoring
+
 
         bpool = deploy(addresses[5]);
-        //address bpool = _create("");
 
         require(
             bpool != address(0), 

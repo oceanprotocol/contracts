@@ -67,17 +67,9 @@ interface IERC20Template {
     function cleanFrom721() external;
 
     function deployPool(
-        // address controller,
-        // address basetokenAddress,
         uint256[] memory ssParams,
-       // address basetokenSender,
         uint256[] memory swapFees,
-       // address marketFeeCollector,
-       // address publisherAddress,
-
-        address[] memory addresses //[controller,basetokenAddress,basetokenSender,publisherAddress, marketFeeCollector]
-      //  uint256[] memory ssParams,
-      //  uint256[] memory swapFees
+        address[] memory addresses 
     ) external returns (address);
 
     function createFixedRate(

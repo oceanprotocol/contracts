@@ -86,14 +86,9 @@ contract FactoryRouter is BFactory {
         @return pool address
      */
     function deployPool(
-       // address controller,
         address[2] calldata tokens, // [datatokenAddress, basetokenAddress]
-       // address publisherAddress,
         uint256[] calldata ssParams,
-      //  address basetokenSender,
         uint256[] calldata swapFees,
-       // address marketFeeCollector,
-
         address[] calldata addresses //[controller,basetokenAddress,basetokenSender,publisherAddress, marketFeeCollector]
 
     ) external returns (address) {
@@ -119,12 +114,9 @@ contract FactoryRouter is BFactory {
         ,'DeployPool: Failed to transfer initial liquidity');
 
         address pool = newBPool(
-          //  controller,
             tokens,
-          //  publisherAddress,
             ssParams,
             swapFees,
-          //  marketFeeCollector,
             addresses
         );
 
@@ -170,10 +162,7 @@ contract FactoryRouter is BFactory {
             "FACTORY ROUTER: Invalid FixedPriceContract"
         );
 
-       // uint256 opfFee = getOPFFee(basetokenAddress);
-
         exchangeId = IFixedRateExchange(fixedPriceAddress).createWithDecimals(
-            //basetokenAddress,
             msg.sender,
             addresses,
             uints
