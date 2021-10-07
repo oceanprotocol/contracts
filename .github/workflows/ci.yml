@@ -9,6 +9,8 @@ on:
   pull_request:
     branches:
       - '**'
+  # This workflow is callable by other workflows
+  workflow_call:
 
 jobs:
   lint:
