@@ -10,9 +10,8 @@ import "hardhat/console.sol";
 /**
  * @title FixedRateExchange CONTRACT modified to be used as a Dispenser (rate = 0 and no base token transfer)
  * @dev Dispenser is a fixed rate exchange Contract with rate = 0
- *     
+ *
  */
-
 
 // TODO: add maximum number of DT per user or per transaction, in any case set a limit.
 
@@ -28,7 +27,6 @@ contract Dispenser {
         address exchangeOwner;
         address dataToken;
         uint256 dtDecimals;
-        uint256 dtBalance;
     }
 
     // maps an exchangeId to an exchange
@@ -38,7 +36,7 @@ contract Dispenser {
     modifier onlyActiveExchange(bytes32 exchangeId) {
         require(
             //exchanges[exchangeId].fixedRate != 0 &&
-                exchanges[exchangeId].active == true,
+            exchanges[exchangeId].active == true,
             "Dispenser: Exchange does not exist!"
         );
         _;
@@ -63,7 +61,6 @@ contract Dispenser {
         address exchangeOwner
     );
 
-
     event ExchangeActivated(
         bytes32 indexed exchangeId,
         address indexed exchangeOwner
@@ -79,16 +76,6 @@ contract Dispenser {
         address indexed by,
         uint256 dataTokenSwappedAmount
     );
-    
-
-    event TokenCollected(
-        bytes32 indexed exchangeId,
-        address indexed to,
-        address indexed token,
-        uint256 amount
-    );
-
-
 
     constructor(address _router, address _opfCollector) {
         require(_router != address(0), "Dispenser: Wrong Router address");
@@ -96,8 +83,6 @@ contract Dispenser {
         router = _router;
         opfCollector = _opfCollector;
     }
-
-  
 
     /**
      * @dev create
@@ -111,36 +96,28 @@ contract Dispenser {
         address[] memory addresses, // [owner]
         uint256[] memory uints // [dataTokenDecimals]
     ) external onlyRouter returns (bytes32 exchangeId) {
-        require(
-            addresses[0] != address(0),
-            "Dispenser: OWNER REQUIRED"
-        );
+        require(addresses[0] != address(0), "Dispenser: OWNER REQUIRED");
         require(
             dataToken != address(0),
             "Dispenser: Invalid datatoken,  zero address"
         );
-      
+
         exchangeId = generateExchangeId(dataToken, addresses[0]);
         require(
             exchanges[exchangeId].active == false,
             "Dispenser: Exchange already exists!"
         );
-     
+
         exchanges[exchangeId] = Exchange({
             active: true,
             exchangeOwner: addresses[0],
             dataToken: dataToken,
-            dtDecimals: uints[0],
-            dtBalance: 0
+            dtDecimals: uints[0]
         });
 
         exchangeIds.push(exchangeId);
 
-        emit ExchangeCreated(
-            exchangeId,
-            dataToken,
-            addresses[0]
-        );
+        emit ExchangeCreated(exchangeId, dataToken, addresses[0]);
 
         emit ExchangeActivated(exchangeId, addresses[0]);
     }
@@ -151,18 +128,16 @@ contract Dispenser {
      * @param dataToken refers to a data token contract address
      * @param exchangeOwner exchange owner address
      */
-    function generateExchangeId(
-        address dataToken,
-        address exchangeOwner
-    ) public pure returns (bytes32) {
+    function generateExchangeId(address dataToken, address exchangeOwner)
+        public
+        pure
+        returns (bytes32)
+    {
         return keccak256(abi.encode(dataToken, exchangeOwner));
     }
 
-   
-  
-
     /**
-     * @dev get DT 
+     * @dev get DT
      * @param exchangeId a unique exchange idnetifier
      * @param dataTokenAmount the amount of data tokens to be exchanged
      */
@@ -170,60 +145,22 @@ contract Dispenser {
         external
         onlyActiveExchange(exchangeId)
     {
-        require(
-            dataTokenAmount != 0,
-            "Dispenser: zero data token amount"
-        );
+        require(dataTokenAmount != 0, "Dispenser: zero data token amount");
         // TODO: add a maximum amount per user or per transaction
         //require(dataTokenAmount < 10**20); // 100 tokens
 
-        if (dataTokenAmount > exchanges[exchangeId].dtBalance) {
-            require(
-                IERC20Template(exchanges[exchangeId].dataToken).transferFrom(
-                    exchanges[exchangeId].exchangeOwner,
-                    msg.sender,
-                    dataTokenAmount
-                ),
-                "Dispenser: transferFrom failed in the dataToken contract"
-            );
-        } else {
-            exchanges[exchangeId].dtBalance = (exchanges[exchangeId].dtBalance)
-                .sub(dataTokenAmount);
-            IERC20Template(exchanges[exchangeId].dataToken).transfer(
+        require(
+            IERC20Template(exchanges[exchangeId].dataToken).transferFrom(
+                exchanges[exchangeId].exchangeOwner,
                 msg.sender,
                 dataTokenAmount
-            );
-        }
-
-        emit TokenDispensed(
-            exchangeId,
-            msg.sender,
-            dataTokenAmount
+            ),
+            "Dispenser: transferFrom failed in the dataToken contract"
         );
+
+        emit TokenDispensed(exchangeId, msg.sender, dataTokenAmount);
     }
 
-
-
-    function collectDT(bytes32 exchangeId)
-        external
-        onlyExchangeOwner(exchangeId)
-    {
-        uint256 amount = exchanges[exchangeId].dtBalance;
-        exchanges[exchangeId].dtBalance = 0;
-        IERC20Template(exchanges[exchangeId].dataToken).transfer(
-            exchanges[exchangeId].exchangeOwner,
-            amount
-        );
-
-        emit TokenCollected(
-            exchangeId,
-            exchanges[exchangeId].exchangeOwner,
-            exchanges[exchangeId].dataToken,
-            amount
-        );
-    }
-
-  
     /**
      * @dev getNumberOfExchanges
      *      gets the total number of registered exchanges
@@ -233,7 +170,6 @@ contract Dispenser {
         return exchangeIds.length;
     }
 
-   
     /**
      * @dev toggleExchangeState
      *      toggles the active state of an existing exchange
@@ -251,7 +187,6 @@ contract Dispenser {
             emit ExchangeActivated(exchangeId, msg.sender);
         }
     }
-
 
     /**
      * @dev getSupply
@@ -272,12 +207,10 @@ contract Dispenser {
             uint256 allowance = IERC20Template(exchanges[exchangeId].dataToken)
                 .allowance(exchanges[exchangeId].exchangeOwner, address(this));
             if (balance < allowance)
-                supply = balance.add(exchanges[exchangeId].dtBalance);
-            else supply = allowance.add(exchanges[exchangeId].dtBalance);
+                supply = balance;
+            else supply = allowance;
         }
     }
-
-   
 
     // /**
     //  * @dev getExchange
@@ -296,8 +229,7 @@ contract Dispenser {
             address dataToken,
             uint256 dtDecimals,
             bool active,
-            uint256 dtSupply,
-            uint256 dtBalance
+            uint256 dtSupply
         )
     {
         Exchange memory exchange = exchanges[exchangeId];
@@ -306,9 +238,7 @@ contract Dispenser {
         dtDecimals = exchange.dtDecimals;
         active = exchange.active;
         dtSupply = getDTSupply(exchangeId);
-        dtBalance = exchange.dtBalance;
     }
-  
 
     /**
      * @dev getExchanges

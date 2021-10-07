@@ -439,9 +439,6 @@ describe("Dispenser", () => {
       // Bob got again alls DT on sale so now dtSupply is 0
       expect(exchangeDetailsAfter.dtSupply).to.equal(0);
 
-    
-      // no DT are available in internal balance
-      expect(exchangeDetailsAfter.dtBalance).to.equal(0);
     });
 
  
