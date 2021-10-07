@@ -5,3 +5,8 @@ cache
 uncompiled/
 artifacts/
 coverage/
+# PyPi package files
+venv/
+dist/
+addresses/__init__.py
+addresses/ocean_contracts.egg-info/
