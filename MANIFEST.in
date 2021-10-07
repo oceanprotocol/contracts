@@ -1,1 +1,2 @@
-recursive-include artifacts *
+graft artifacts
+graft addresses
