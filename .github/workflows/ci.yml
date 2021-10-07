@@ -49,7 +49,7 @@ jobs:
           key: ${{ runner.os }}-test-unit-${{ env.cache-name }}-${{ hashFiles('**/package-lock.json') }}
           restore-keys: ${{ runner.os }}-test-unit-${{ env.cache-name }}-
       - run: npm ci
-      - name: Run Hardhate
+      - name: Run Hardhat
         run: |
           npx hardhat node &
       - run: npm run test:full:cover
