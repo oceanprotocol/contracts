@@ -1,11 +1,11 @@
 node_modules
 .env
-#Hardhat files
+# Hardhat files
 cache
 uncompiled/
 artifacts/
 coverage/
-# PyPi package files
+# Python package files
 venv/
 dist/
 addresses/__init__.py
