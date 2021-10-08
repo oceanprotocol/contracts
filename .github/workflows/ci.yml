@@ -55,7 +55,7 @@ jobs:
       - run: npm run test:full:cover
       - uses: actions/upload-artifact@v2
         with:
-          name: coverage_result
+          name: coverage
           path: coverage/
 
   coverage:
@@ -64,13 +64,16 @@ jobs:
     if: ${{ success() && github.actor != 'dependabot[bot]' }}
     steps:
       - uses: actions/checkout@v2
+      - name: Delete coverage directory
+        run: rm -rf ${{ github.workspace }}/coverage
       - uses: actions/download-artifact@v2
         with:
-          name: coverage_result
+          name: coverage
 
       - uses: paambaati/codeclimate-action@v2.7.5
         env:
           CC_TEST_REPORTER_ID: ${{ secrets.CC_TEST_REPORTER_ID }}
         with:
+
           coverageLocations: |
-            ${{ github.workspace }}/coverage_result/lcov.info:lcov
+            ${{ github.workspace }}/coverage/lcov.info:lcov
