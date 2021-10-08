@@ -74,3 +74,5 @@ jobs:
         with:
           coverageLocations: |
             ${{ github.workspace }}/coverage_result/lcov.info:lcov
+          prefix: |
+            ${{ github.workspace }}/coverage_result
