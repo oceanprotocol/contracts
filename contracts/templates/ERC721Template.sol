@@ -48,7 +48,7 @@ contract ERC721Template is
         string decryptorUrl,
         bytes flags,
         bytes data,
-        string metaDataDecryptorAddress,
+        bytes metaDataHash,
         uint256 timestamp,
         uint256 blockNumber
     );
@@ -58,7 +58,7 @@ contract ERC721Template is
         string decryptorUrl,
         bytes flags,
         bytes data,
-        string metaDataDecryptorAddress,
+        bytes metaDataHash,
         uint256 timestamp,
         uint256 blockNumber
     );
@@ -155,7 +155,7 @@ contract ERC721Template is
      */
     function setMetaData(uint8 _metaDataState, string calldata _metaDataDecryptorUrl
         , string calldata _metaDataDecryptorAddress, bytes calldata flags, 
-        bytes calldata data) external {
+        bytes calldata data,bytes calldata _metaDataHash) external {
         require(
             permissions[msg.sender].updateMetadata == true,
             "ERC721Template: NOT METADATA_ROLE"
@@ -165,7 +165,7 @@ contract ERC721Template is
         metaDataDecryptorAddress = _metaDataDecryptorAddress;
         if(hasMetaData == false){
             emit MetadataCreated(msg.sender, _metaDataState, _metaDataDecryptorUrl,
-            flags, data, _metaDataDecryptorAddress,
+            flags, data, _metaDataHash, 
             /* solium-disable-next-line */
             block.timestamp,
             block.number);
@@ -173,14 +173,14 @@ contract ERC721Template is
         }
         else
             emit MetadataUpdated(msg.sender, metaDataState, _metaDataDecryptorUrl,
-            flags, data, _metaDataDecryptorAddress,
+            flags, data, _metaDataHash,
             /* solium-disable-next-line */
             block.timestamp,
             block.number);
     }
 
     /**
-     * @dev getMetaDataDecryptorUrl
+     * @dev getMetaData
      *      Returns metaDataState, metaDataDecryptorUrl, metaDataDecryptorAddress
      */
     function getMetaData() external view returns (string memory, string memory, uint8, bool){
