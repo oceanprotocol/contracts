@@ -76,6 +76,6 @@ jobs:
         env:
           CC_TEST_REPORTER_ID: ${{ secrets.CC_TEST_REPORTER_ID }}
         with:
-          debug: True
+
           coverageLocations: |
             ${{ github.workspace }}/coverage/lcov.info:lcov
