@@ -152,7 +152,7 @@ contract BMath is BConst, BNum {
         uint tokenAmountIn
         //uint swapFee
     )
-        internal view
+        public view
         returns (uint tokenAmountOut)
     {
         uint weightRatio = bdiv(tokenWeightIn, tokenWeightOut);
@@ -195,7 +195,7 @@ contract BMath is BConst, BNum {
         uint tokenAmountOut
        // uint swapFee
     )
-        internal view
+        public view
         returns (uint tokenAmountIn)
     {
         uint weightRatio = bdiv(tokenWeightOut, tokenWeightIn);

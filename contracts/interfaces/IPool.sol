@@ -7,7 +7,7 @@
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 
-pragma solidity >=0.7.0;
+pragma solidity >=0.5.7;
 
 
 interface IPool {
@@ -22,4 +22,20 @@ interface IPool {
         address baseTokenAddress,
         uint256 baseTokenAmount,
         uint256 baseTokenWeight) external;
+
+     function swapExactAmountIn(
+        address tokenIn,
+        uint256 tokenAmountIn,
+        address tokenOut,
+        uint256 minAmountOut,
+        uint256 maxPrice
+    ) external returns (uint256 tokenAmountOut, uint256 spotPriceAfter);
+
+    function swapExactAmountOut(
+        address tokenIn,
+        uint256 maxAmountIn,
+        address tokenOut,
+        uint256 tokenAmountOut,
+        uint256 maxPrice
+    ) external returns (uint256 tokenAmountIn, uint256 spotPriceAfter);
 }
