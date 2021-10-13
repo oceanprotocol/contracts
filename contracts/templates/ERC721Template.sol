@@ -11,15 +11,14 @@ import "../interfaces/IV3ERC20.sol";
 import "../interfaces/IFactory.sol";
 import "../interfaces/IERC20Template.sol";
 import "../utils/ERC721RolesAddress.sol";
-import "../utils/V3Integration.sol";
+//import "../utils/V3Integration.sol";
 
 //import "hardhat/console.sol";
 
 contract ERC721Template is
     ERC721("Template", "TemplateSymbol"),
     ERC721RolesAddress,
-    ERC725Ocean,
-    V3Integration
+    ERC725Ocean
 {
     
     string private _name;
@@ -364,98 +363,98 @@ contract ERC721Template is
     }
 
 
-    // // V3 MIGRATION
+    // // // V3 MIGRATION
 
-    /**
-     * @dev setDataV3
-     *      ONLY v3Minter role can call it
-            This function allows to store data with a preset key
-             (keccak256(ERC20Address)) into NFT 725 Store, same as setDataERC20 but for v3 DT       
-     * @param datatoken datatoken addresss
-     * @param _value data to store at the above key
-     */
+    // /**
+    //  * @dev setDataV3
+    //  *      ONLY v3Minter role can call it
+    //         This function allows to store data with a preset key
+    //          (keccak256(ERC20Address)) into NFT 725 Store, same as setDataERC20 but for v3 DT       
+    //  * @param datatoken datatoken addresss
+    //  * @param _value data to store at the above key
+    //  */
 
-    // TODO: check if we actually need the value and data or can be the same
-    function setDataV3(
-        address datatoken,
-        bytes calldata _value
-    ) external {
-        require(
-            permissions[msg.sender].v3Minter == true,
-            "ERC721Template: NOT v3Minter"
-        );
-        _checkV3DT(datatoken);
-        // could be any other key, used a simple configuration
-        bytes32 key = keccak256(abi.encodePacked(address(datatoken))); 
-        setData(key, _value); // into the new standard 725Y
+    // // TODO: check if we actually need the value and data or can be the same
+    // function setDataV3(
+    //     address datatoken,
+    //     bytes calldata _value
+    // ) external {
+    //     require(
+    //         permissions[msg.sender].v3Minter == true,
+    //         "ERC721Template: NOT v3Minter"
+    //     );
+    //     _checkV3DT(datatoken);
+    //     // could be any other key, used a simple configuration
+    //     bytes32 key = keccak256(abi.encodePacked(address(datatoken))); 
+    //     setData(key, _value); // into the new standard 725Y
        
-    }
+    // }
 
-     /**
-     * @dev wrapV3DT
-     *      Requires to call proposeMinter BEFORE, the proposed minter MUST be the NFT contract address
-     *      Only NFT Owner can call it.
-     *      This function 'wraps' any v3 datatoken, NFTOwner has to be the actual minter(v3) 
-     *      After wrapping, the minter() in the v3 datatoken is going to be this contract.
-     *      To mint new tokens we now need to use mintV3DT
-     * @param datatoken datatoken address we want to wrap
-     * @param newMinter new minter address after wrapping
-     */
+    //  /**
+    //  * @dev wrapV3DT
+    //  *      Requires to call proposeMinter BEFORE, the proposed minter MUST be the NFT contract address
+    //  *      Only NFT Owner can call it.
+    //  *      This function 'wraps' any v3 datatoken, NFTOwner has to be the actual minter(v3) 
+    //  *      After wrapping, the minter() in the v3 datatoken is going to be this contract.
+    //  *      To mint new tokens we now need to use mintV3DT
+    //  * @param datatoken datatoken address we want to wrap
+    //  * @param newMinter new minter address after wrapping
+    //  */
 
-    function wrapV3DT(address datatoken, address newMinter)
-        external
-        onlyNFTOwner
-    {
-        _wrap(datatoken);
-        _addV3Minter(newMinter);
-    }
+    // function wrapV3DT(address datatoken, address newMinter)
+    //     external
+    //     onlyNFTOwner
+    // {
+    //     _wrap(datatoken);
+    //     _addV3Minter(newMinter);
+    // }
 
-     /**
-     * @dev mintV3DT
-     *      Only user with v3Minter permission can call it.
-     *      This function mints new v3 datatoken if cap is not reached yet.
+    //  /**
+    //  * @dev mintV3DT
+    //  *      Only user with v3Minter permission can call it.
+    //  *      This function mints new v3 datatoken if cap is not reached yet.
      
-     * @param datatoken datatoken address 
-     * @param to address will receive DTs
-     * @param value DT amount to mint   
-     */
+    //  * @param datatoken datatoken address 
+    //  * @param to address will receive DTs
+    //  * @param value DT amount to mint   
+    //  */
 
-    function mintV3DT(
-        address datatoken,
-        address to,
-        uint256 value
-    ) external {
-        require(
-            permissions[msg.sender].v3Minter == true,
-            "ERC721Template: NOT v3 MINTER"
-        );
-        _checkV3DT(datatoken);
-        IV3ERC20(datatoken).mint(to, value);
-    }
+    // function mintV3DT(
+    //     address datatoken,
+    //     address to,
+    //     uint256 value
+    // ) external {
+    //     require(
+    //         permissions[msg.sender].v3Minter == true,
+    //         "ERC721Template: NOT v3 MINTER"
+    //     );
+    //     _checkV3DT(datatoken);
+    //     IV3ERC20(datatoken).mint(to, value);
+    // }
 
-       /**
-     * @dev addV3Minter
-     *      Only Manager (Roles Admin) can call it.
-     *      This function adds a new V3 minter (will work for all v3 DT wrapped into this contract).
-     * @param newMinter new minter address
+    //    /**
+    //  * @dev addV3Minter
+    //  *      Only Manager (Roles Admin) can call it.
+    //  *      This function adds a new V3 minter (will work for all v3 DT wrapped into this contract).
+    //  * @param newMinter new minter address
   
-     */
+    //  */
 
-    function addV3Minter(address newMinter) external onlyManager {
-        _addV3Minter(newMinter);
-    }
+    // function addV3Minter(address newMinter) external onlyManager {
+    //     _addV3Minter(newMinter);
+    // }
 
-      /**
-     * @dev removeV3Minter
-     *      Only Manager (Roles Admin) can call it.
-     *      This function removes a V3 minter.
+    //   /**
+    //  * @dev removeV3Minter
+    //  *      Only Manager (Roles Admin) can call it.
+    //  *      This function removes a V3 minter.
 
-     * @param minter address to revoke
+    //  * @param minter address to revoke
   
-     */
-    function removeV3Minter(address minter) external onlyManager {
-        _removeV3Minter(minter);
-    }
+    //  */
+    // function removeV3Minter(address minter) external onlyManager {
+    //     _removeV3Minter(minter);
+    // }
 
      /**
      * @dev transferFrom 
