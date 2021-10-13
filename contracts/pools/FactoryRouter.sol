@@ -36,7 +36,15 @@ contract FactoryRouter is BFactory {
     ) public BFactory(_bpoolTemplate, _opfCollector, _preCreatedPools) {
         routerOwner = _routerOwner;
         opfCollector = _opfCollector;
-        addOceanToken(_oceanToken);
+        oceanTokens[_oceanToken] = true;
+    }
+
+    function changeRouterOwner(address _routerOwner) public onlyRouterOwner {
+        require(
+            _routerOwner != address(0),
+            'Invalid new router owner'
+        );
+        routerOwner = _routerOwner;
     }
 
     function addOceanToken(address oceanTokenAddress) public onlyRouterOwner {

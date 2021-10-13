@@ -12,7 +12,7 @@ const ethers = hre.ethers;
 require('dotenv').config()
 const shouldDeployV4 = true
 const shouldDeployV3 = false
-const shouldDeployOceanMock = true
+let shouldDeployOceanMock = false
 const shouldDeployOPFCommunity = true
 const logging = true
 async function main() {
@@ -33,24 +33,22 @@ async function main() {
     return null;
   }
   owner = wallet.connect(provider);
+  console.log(owner)
   let oceanAddress
-  let vaultAddress
   let communityCollector
   let OPFOwner
   let balancerV1Factory = null
   switch (network.chainId) {
     default:
       oceanAddress = "0x967da4048cd07ab37855c090aaf366e4ce1b9f48";
-      vaultAddress = "0xBA12222222228d8Ba445958a75a0704d566BF2C8";
-      communityCollector = '0x7DF5273aD9A6fCce64D45c64c1E43cfb6F861725';
       OPFOwner = '0x7DF5273aD9A6fCce64D45c64c1E43cfb6F861725';
-      networkName = 'development'
+      networkName = 'development';
+      shouldDeployOceanMock = true;
       break;
   }
 
   const addressFile = process.env.ADDRESS_FILE
   let oldAddresses
-  let address
   if (addressFile) {
     try {
       oldAddresses = JSON.parse(fs.readFileSync(addressFile))
@@ -60,168 +58,102 @@ async function main() {
     }
     if (!oldAddresses[networkName])
       oldAddresses[networkName] = {}
-      addresses = oldAddresses[networkName]
+    addresses = oldAddresses[networkName]
   }
-  if (!addresses.v4)
-    addresses.v4 = {}
-  if (!addresses.v3)
-    addresses.v3 = {}
-  if(logging)
+  if (logging)
     console.info("Use existing addresses:" + JSON.stringify(addresses, null, 2))
-  
+
   // utils
   const networkDetails = await network
   addresses.chainId = networkDetails.chainId
-  if(shouldDeployOceanMock){
-    if(logging) console.info("Deploying OceanMock")
+  if (shouldDeployOceanMock) {
+    if (logging) console.info("Deploying OceanMock")
     const Ocean = await ethers.getContractFactory('MockOcean', owner)
-    const ocean = await Ocean.deploy(owner.address)
+    const ocean = await Ocean.connect(owner).deploy(owner.address)
     addresses.Ocean = ocean.address
   }
-  if(logging) console.info("Deploying OPF Community Fee")
+  if (logging) console.info("Deploying OPF Community Fee")
   const OPFCommunityFeeCollector = await ethers.getContractFactory("OPFCommunityFeeCollector", owner)
-  const opfcommunityfeecollector = await OPFCommunityFeeCollector.deploy(communityCollector, OPFOwner)
+  const opfcommunityfeecollector = await OPFCommunityFeeCollector.deploy(OPFOwner, OPFOwner)
   addresses.OPFCommunityFeeCollector = opfcommunityfeecollector.address
-  
 
-  if (shouldDeployV4) {
-    if(logging) console.info("Deploying V4 contracts")
-     // v4 contracts
-    const FixedPriceExchange = await ethers.getContractFactory(
-      "FixedRateExchange"
-    );
+  if (logging) console.info("Deploying V4 contracts")
+  // v4 contracts
+  const FixedPriceExchange = await ethers.getContractFactory(
+    "FixedRateExchange"
+  );
 
-    const ERC721Template = await ethers.getContractFactory("ERC721Template");
-    const ERC20Template = await ethers.getContractFactory("ERC20Template");
-    const ERC721Factory = await ethers.getContractFactory("ERC721Factory");
+  const ERC721Template = await ethers.getContractFactory("ERC721Template");
+  const ERC20Template = await ethers.getContractFactory("ERC20Template");
+  const ERC721Factory = await ethers.getContractFactory("ERC721Factory");
 
-    const Metadata = await ethers.getContractFactory("Metadata");
-    const Router = await ethers.getContractFactory("FactoryRouter");
-    const SSContract = await ethers.getContractFactory("ssFixedRate");
-    const BPool = await ethers.getContractFactory("BPool");
-    const Dispenser = await ethers.getContractFactory("Dispenser");
-    
-    if(logging) console.info("Deploying Pool Template")
-    const poolTemplate = await BPool.deploy();
-      
-     // DEPLOY ROUTER, SETTING OWNER
-   
-    if(logging) console.log('Deploying Router')
-    const router = await Router.deploy(
-      owner.address,
-      oceanAddress,
-      poolTemplate.address,
-      addresses.OPFCommunityFeeCollector,
-      []
-    );
-    if(logging) console.info("Deploying FixedPriceExchange")
-    const fixedPriceExchange = await FixedPriceExchange.deploy(
-      router.address,
-      addresses.OPFCommunityFeeCollector
-    );
-    if(logging) console.info("Deploying StakingContract")
-    const ssPool = await SSContract.deploy(router.address);
-    if(logging) console.info("Deploying ERC20 Template")
-    const templateERC20 = await ERC20Template.deploy();
-    if(logging) console.info("Deploying Dispenser")
-    const dispenser = await Dispenser.deploy(
-      router.address,
-      addresses.OPFCommunityFeeCollector
-    );
-    if(logging) console.info("Deploying Metadata")
-    const metadata = await Metadata.deploy();
-    if(logging) console.info("Deploying ERC721 Template")
-    const templateERC721 = await ERC721Template.deploy();
-    
-    if(logging) console.info("Deploying ERC721 Factory")
-    const factoryERC721 = await ERC721Factory.deploy(
-      templateERC721.address,
-      templateERC20.address,
-      addresses.OPFCommunityFeeCollector,
-      router.address,
-      metadata.address
-    );
-    
-   // SET REQUIRED ADDRESS
+  const Router = await ethers.getContractFactory("FactoryRouter");
+  const SSContract = await ethers.getContractFactory("ssFixedRate");
+  const BPool = await ethers.getContractFactory("BPool");
+  const Dispenser = await ethers.getContractFactory("Dispenser");
 
-   await metadata.addTokenFactory(factoryERC721.address);
+  const poolTemplate = await BPool.deploy();
 
-   await router.addFactory(factoryERC721.address);
+  // DEPLOY ROUTER, SETTING OWNER
 
-   await router.addFixedRateContract(fixedPriceExchange.address);
+  if (logging) console.log('Deploying Router')
+  const router = await Router.deploy(
+    owner.address,
+    oceanAddress,
+    poolTemplate.address,
+    addresses.OPFCommunityFeeCollector,
+    []
+  );
+  if (logging) console.info("Deploying FixedPriceExchange")
+  const fixedPriceExchange = await FixedPriceExchange.deploy(
+    router.address,
+    addresses.OPFCommunityFeeCollector
+  );
+  if (logging) console.info("Deploying StakingContract")
+  const ssPool = await SSContract.deploy(router.address);
+  if (logging) console.info("Deploying ERC20 Template")
+  const templateERC20 = await ERC20Template.deploy();
+  if (logging) console.info("Deploying Dispenser")
+  const dispenser = await Dispenser.deploy(
+    router.address,
+    addresses.OPFCommunityFeeCollector
+  );
+  if (logging) console.info("Deploying ERC721 Template")
+  const templateERC721 = await ERC721Template.deploy();
 
-   await router.addFixedRateContract(dispenser.address);
+  if (logging) console.info("Deploying ERC721 Factory")
+  const factoryERC721 = await ERC721Factory.deploy(
+    templateERC721.address,
+    templateERC20.address,
+    addresses.OPFCommunityFeeCollector,
+    router.address
+  );
 
-   await router.addSSContract(ssPool.address)
+  // SET REQUIRED ADDRESS
 
-    addresses.v4.Metadata = metadata.address
-    addresses.v4.ERC721Factory = factoryERC721.address
-    addresses.v4.ERC20Template = templateERC20.address
-    addresses.v4.ERC721Template = templateERC721.address
-    addresses.v4.Router = router.address
-    addresses.v4.FixedPrice = fixedPriceExchange.address
-    addresses.v4.Staking = ssPool.address
-    addresses.v4.poolTemplate = poolTemplate.address
-    
-    // if (!vaultAddress) {
-    //   // WE DEPLOY THE FRIENDLY FORK (BALANCER V1)
-  
-    // }
-    // else{
-    //   // DEPLOY ROUTER, SETTING OWNER
-    //   const Router = await ethers.getContractFactory("OceanPoolFactoryRouter", owner);
-    //   const router = await Router.deploy(owner.address, oceanAddress, vaultAddress);
-    //   addresses.v4.FactoryRouter = router.address
-    //   addresses.v4.OceanPoolFactoryRouter = router.address
-    // }
-    if (balancerV1Factory)
-      addresses.v4.BFactory = balancerV1Factory.address
-  }
+  if (logging) console.info("Adding factoryERC721.address")  
+  await router.connect(owner).addFactory(factoryERC721.address);
+  if (logging) console.info("Adding fixedPriceExchange.address")  
+  await router.connect(owner).addFixedRateContract(fixedPriceExchange.address);
+  if (logging) console.info("Adding dispenser.address")  
+  await router.connect(owner).addFixedRateContract(dispenser.address);
+  if (logging) console.info("Adding ssPool.address")  
+  await router.connect(owner).addSSContract(ssPool.address)
+  if (logging) console.info("Moving Router ownership")  
+  await router.connect(owner).changeRouterOwner(OPFOwner)
 
-  if(shouldDeployV3){
-    if(logging) console.info("Deploying V3 contracts")
-    // v3 contracts
-    const V3DataTokenTemplate = await ethers.getContractFactory("V3DataTokenTemplate", owner);
-    const V3DataTokenFactory = await ethers.getContractFactory("V3DTFactory", owner);
-    if(logging) console.info("Deploying ERC20 Template")
-    const templateERC20 = await V3DataTokenTemplate.deploy(
-            'DataTokenTemplate',
-            'DTT',
-            owner.address,
-            100000,
-            'http://oceanprotocol.com',
-            addresses.OPFCommunityFeeCollector
-    );
-    if(logging) console.info("Deploying ERC20 Factory")
-    const factoryERC20 = await V3DataTokenFactory.deploy(
-      templateERC20.address,
-      addresses.OPFCommunityFeeCollector
-    );
-    addresses.v3.DTFactory= factoryERC20.address
-
-    const ForkFactory = await ethers.getContractFactory("V3DTFactory", owner);
-    const PoolForkTemplate = await ethers.getContractFactory("V3BPool", owner);
-    const poolForkTemplate = await PoolForkTemplate.deploy()
-    V3balancerFactory = await ForkFactory.deploy(poolForkTemplate.address)
-    addresses.v3.BFactory = V3balancerFactory.address
-
-    const FixedRateExchange = await ethers.getContractFactory("FixedRateExchange", owner)
-    const fixedRateExchange = await FixedRateExchange.deploy();
-    addresses.v3.FixedRateExchange = fixedRateExchange.address
-    
-    const Dispenser = await ethers.getContractFactory("Dispenser", owner)
-    const dispenser = await Dispenser.deploy();
-    addresses.v3.Dispenser = dispenser.address
-
-    const V3Metadata = await ethers.getContractFactory("V3Metadata", owner)
-    const metadata = await V3Metadata.deploy();
-    addresses.v3.Metadata = metadata.address
-  }
+  addresses.ERC721Factory = factoryERC721.address
+  addresses.ERC20Template = templateERC20.address
+  addresses.ERC721Template = templateERC721.address
+  addresses.Router = router.address
+  addresses.FixedPrice = fixedPriceExchange.address
+  addresses.Staking = ssPool.address
+  addresses.poolTemplate = poolTemplate.address
 
   if (addressFile) {
     // write address.json if needed
     oldAddresses[networkName] = addresses
-    if(logging) console.info('writing to ' + addressFile + '\r\n' + JSON.stringify(oldAddresses, null, 2))
+    if (logging) console.info('writing to ' + addressFile + '\r\n' + JSON.stringify(oldAddresses, null, 2))
     try {
       fs.writeFileSync(addressFile, JSON.stringify(oldAddresses, null, 2))
     } catch (e) {
