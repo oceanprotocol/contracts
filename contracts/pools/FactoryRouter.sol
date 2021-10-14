@@ -247,7 +247,8 @@ contract FactoryRouter is BFactory {
                     require(IERC20(_operations[i].tokenOut).transfer(msg.sender,amountReceived),'Failed MultiSwap');
                 } else if (_operations[i].operation == operationType.SwapExactOut){
                     // calculate how much amount In we need for exact Out
-                    uint amountIn = IPool(_operations[i].source).getAmountInExactOut(_operations[i].tokenIn,_operations[i].tokenOut,_operations[i].amountsOut);
+                    uint amountIn = IPool(_operations[i].source)
+                    .getAmountInExactOut(_operations[i].tokenIn,_operations[i].tokenOut,_operations[i].amountsOut);
                     // pull amount In from user
                     IERC20(_operations[i].tokenIn).transferFrom(msg.sender,address(this),amountIn);
                     // perform swap
