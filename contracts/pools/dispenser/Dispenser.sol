@@ -77,11 +77,10 @@ contract Dispenser {
         uint256 dataTokenSwappedAmount
     );
 
-    constructor(address _router, address _opfCollector) {
+    constructor(address _router) {
         require(_router != address(0), "Dispenser: Wrong Router address");
-        require(_opfCollector != address(0), "Dispenser: Wrong OPF address");
         router = _router;
-        opfCollector = _opfCollector;
+       
     }
 
     /**

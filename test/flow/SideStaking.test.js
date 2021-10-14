@@ -785,10 +785,7 @@ describe("1SS flow", () => {
     expect(await bPool.communityFees(erc20Token.address)).to.equal(0)
     expect(await bPool.marketFees(oceanAddress)).gt(0)
     expect(await bPool.marketFees(erc20Token.address)).gt(0)
-    // expect(await bPool.feesCollectedMarket(oceanAddress)).to.equal(0)
-    // expect(await bPool.feesCollectedMarket(erc20Token.address)).to.equal(0)
-    // expect(await bPool.feesCollectedOPF(oceanAddress)).to.equal(0)
-    // expect(await bPool.feesCollectedOPF(erc20Token.address)).to.equal(0)
+   
     
   });
 });

@@ -108,7 +108,7 @@ contract FactoryRouter is BFactory {
             "FACTORY ROUTER: NOT ORIGINAL ERC20 TEMPLATE"
         );
         require(
-            ssContracts[addresses[0]] = true,
+            ssContracts[addresses[0]] == true,
             "FACTORY ROUTER: invalid ssContract"
         );
         require(ssParams[1] > 0, "Wrong decimals");
@@ -223,11 +223,12 @@ contract FactoryRouter is BFactory {
         uint256 amountsOut;
         uint256 maxPrice;
     } 
+
+    // require tokenIn approvals for router from user. (except for dispenser operations)
     function buyDTBatch( 
         Operations[] calldata _operations
         ) 
         external {
-
 
             for (uint i= 0; i< _operations.length; i++) {
 
@@ -245,29 +246,36 @@ contract FactoryRouter is BFactory {
                     // transfer token swapped to user
                     require(IERC20(_operations[i].tokenOut).transfer(msg.sender,amountReceived),'Failed MultiSwap');
                 } else if (_operations[i].operation == operationType.SwapExactOut){
-                    // TODO: modify Pool function for getting amountIn before transfer
+                    // calculate how much amount In we need for exact Out
+                    uint amountIn = IPool(_operations[i].source).getAmountInExactOut(_operations[i].tokenIn,_operations[i].tokenOut,_operations[i].amountsOut);
+                    // pull amount In from user
+                    IERC20(_operations[i].tokenIn).transferFrom(msg.sender,address(this),amountIn);
+                    // perform swap
                     IPool(_operations[i].source)
                     .swapExactAmountOut(_operations[i].tokenIn,
                     _operations[i].amountsIn,
                     _operations[i].tokenOut,
                     _operations[i].amountsOut,
                     _operations[i].maxPrice);
+                    // send amount out back to user
                     require(IERC20(_operations[i].tokenOut)
                     .transfer(msg.sender,_operations[i].amountsOut),'Failed MultiSwap');
 
                 } else if (_operations[i].operation ==  operationType.FixedRate) {
-                    (,address datatoken,,address basetoken,,,,,,,) = 
+                    // get datatoken address
+                    (,address datatoken,,,,,,,,,) = 
                     IFixedRateExchange(_operations[i].source).getExchange(_operations[i].exchangeIds);
-
+                    // get tokenIn amount required for dt out
                     (uint baseTokenAmount,,,) = 
                     IFixedRateExchange(_operations[i].source).
                     calcBaseInGivenOutDT(_operations[i].exchangeIds,_operations[i].amountsOut);
 
+                    // pull tokenIn amount
                     IERC20(_operations[i].tokenIn).transferFrom(msg.sender,address(this),baseTokenAmount);
-
+                    // perform swap
                     IFixedRateExchange(_operations[i].source)
                     .buyDT(_operations[i].exchangeIds,_operations[i].amountsOut);
-
+                    // send dt out to user
                     IERC20(datatoken).transfer(msg.sender,_operations[i].amountsOut);
                 
                 } else {

@@ -4,6 +4,35 @@
   "sourceName": "contracts/interfaces/IPool.sol",
   "abi": [
     {
+      "inputs": [
+        {
+          "internalType": "address",
+          "name": "tokenIn",
+          "type": "address"
+        },
+        {
+          "internalType": "address",
+          "name": "tokenOut",
+          "type": "address"
+        },
+        {
+          "internalType": "uint256",
+          "name": "tokenAmountOut",
+          "type": "uint256"
+        }
+      ],
+      "name": "getAmountInExactOut",
+      "outputs": [
+        {
+          "internalType": "uint256",
+          "name": "tokenAmountIn",
+          "type": "uint256"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
       "inputs": [],
       "name": "getBaseTokenAddress",
       "outputs": [

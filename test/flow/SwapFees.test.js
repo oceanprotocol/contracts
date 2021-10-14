@@ -201,6 +201,8 @@ describe("Swap Fees", () => {
   await router.addFactory(factoryERC721.address);
 
   await router.addFixedRateContract(fixedRateExchange.address);
+
+  await router.addSSContract(sideStaking.address)
   });
 
   it("#1 - owner deploys a new ERC721 Contract", async () => {

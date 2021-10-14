@@ -2,13 +2,14 @@
   "name": "hardhat-project",
   "scripts": {
     "test:full": "npx hardhat test test/unit/*/*.test.js test/flow/*.test.js ",
-    "test:fpe": "npx hardhat test test/flow/Dispenser.test.js ",
+    "test:fpe": "npx hardhat test test/flow/FixedRateExchange.test.js ",
     "test:ss": "npx hardhat test test/flow/SideStaking.test.js ",
     "test:pools": "npx hardhat test test/flow/SwapFees.test.js test/flow/SideStaking.test.js test/flow/Vesting.test.js",
     "test:debug": "npx hardhat test test/unit/pools/FactoryRouter.test.js ",
     "test:v3": "npx hardhat test test/flow/V3Integration.test.js ",
     "test:factory": "npx hardhat test test/unit/datatokens/ERC721Template.test.js",
     "test:flow": "npx hardhat test test/flow/*.test.js ",
+    "test:swap": "npx hardhat test test/flow/SwapFees.test.js ",
     "test:unit": "npx hardhat test test/unit/*/*.test.js ",
     "test:full:cover": "npx hardhat coverage"
   },

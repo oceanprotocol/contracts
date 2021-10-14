@@ -38,4 +38,10 @@ interface IPool {
         uint256 tokenAmountOut,
         uint256 maxPrice
     ) external returns (uint256 tokenAmountIn, uint256 spotPriceAfter);
+
+
+    function getAmountInExactOut(address tokenIn, address tokenOut, uint tokenAmountOut)
+        external
+        view
+        returns (uint256 tokenAmountIn);
 }

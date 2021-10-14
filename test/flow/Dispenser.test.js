@@ -100,10 +100,8 @@ describe("Dispenser", () => {
 
     sideStaking = await SSContract.deploy(router.address);
 
-
     dispenser = await Dispenser.deploy(
-      router.address,
-      opfCollector.address
+      router.address
     );
 
     templateERC20 = await ERC20Template.deploy();
@@ -118,7 +116,6 @@ describe("Dispenser", () => {
     );
 
     // SET REQUIRED ADDRESS
-
     
 
     await router.addFactory(factoryERC721.address);

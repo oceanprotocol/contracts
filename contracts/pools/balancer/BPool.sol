@@ -484,26 +484,39 @@ contract BPool is BMath, BToken {
                 //_swapFee
             );
     }
-
-    // function getSpotPriceSansFee(address tokenIn, address tokenOut)
-    //     external
-    //     view
-    // //  _viewlock_
-    //     returns (uint256 spotPrice)
-    // {
-    //     require(_records[tokenIn].bound, "ERR_NOT_BOUND");
-    //     require(_records[tokenOut].bound, "ERR_NOT_BOUND");
-    //     Record storage inRecord = _records[tokenIn];
-    //     Record storage outRecord = _records[tokenOut];
-    //     return
-    //         calcSpotPrice(
-    //             inRecord.balance,
-    //             inRecord.denorm,
-    //             outRecord.balance,
-    //             outRecord.denorm
-    //         );
-    // }
-
+    // view function used for batch buy. useful for frontend
+    function getAmountInExactOut(address tokenIn, address tokenOut, uint tokenAmountOut)
+        external
+        view
+    //  _viewlock_
+        returns (uint256 tokenAmountIn)
+    {
+        require(_records[tokenIn].bound, "ERR_NOT_BOUND");
+        require(_records[tokenOut].bound, "ERR_NOT_BOUND");
+        Record storage inRecord = _records[tokenIn];
+        Record storage outRecord = _records[tokenOut];
+        
+        
+        return
+            calcInGivenOut(inRecord.balance, inRecord.denorm, outRecord.balance, outRecord.denorm, tokenAmountOut);
+    }
+    
+    // view function useful for frontend
+    function getAmountOutExactIn(address tokenIn, address tokenOut, uint tokenAmountIn)
+        external
+        view
+    //  _viewlock_
+        returns (uint256 tokenAmountOut)
+    {
+        require(_records[tokenIn].bound, "ERR_NOT_BOUND");
+        require(_records[tokenOut].bound, "ERR_NOT_BOUND");
+        Record storage inRecord = _records[tokenIn];
+        Record storage outRecord = _records[tokenOut];
+        
+        
+        return
+            calcOutGivenIn(inRecord.balance, inRecord.denorm, outRecord.balance, outRecord.denorm, tokenAmountIn);
+    }
     function joinPool(uint256 poolAmountOut, uint256[] calldata maxAmountsIn)
         external
         _lock_
