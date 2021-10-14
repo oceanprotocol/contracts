@@ -2,24 +2,19 @@ pragma solidity >=0.5.7;
 
 
 interface IFactoryRouter {
-    function deployPool(
-        address controller, 
-        address[2] calldata tokens, 
-        address publisherAddress,
+   function deployPool(
+        address[2] calldata tokens, // [datatokenAddress, basetokenAddress]
         uint256[] calldata ssParams,
-        address basetokenSender,
-        uint256[2] calldata swapFees,
-        address marketFeeCollector
+        uint256[] calldata swapFees,
+        address[] calldata addresses
+
     ) external returns (address);
 
-    function deployFixedRate(
+   function deployFixedRate(
         address fixedPriceAddress,
-        address basetokenAddress,
-        uint8 basetokenDecimals,
-        uint256 fixedRate,
-        address owner,
-        uint256 marketFee,
-        address marketFeeCollector
+        address[] calldata addresses,
+        uint[] calldata uints
+
     ) external returns (bytes32 exchangeId);
 
     function getOPFFee(address baseToken) external view returns (uint256);

@@ -10,9 +10,9 @@ import "@openzeppelin/contracts/utils/math/SafeMath.sol";
 import "hardhat/console.sol";
 
 /**
- * @title ssFixedRate
+ * @title SideStaking
  *
- * @dev ssFixedRate is a contract that during the burn-in period handles DT trades and after that monitors stakings in pools
+ * @dev SideStaking is a contract that during the burn-in period handles DT trades and after that monitors stakings in pools
  *      Called by the pool contract
  *      Every ss newDataTokenCreated function has a ssParams array, which for this contract has the following structure:
  *               - [0] - fixed rate between DT and basetoken
@@ -22,7 +22,7 @@ import "hardhat/console.sol";
  *               - [4] - basetokenBalance  = initial supply of pool
  *
  */
-contract ssFixedRate {
+contract SideStaking {
     using SafeMath for uint256;
     
     address public router;

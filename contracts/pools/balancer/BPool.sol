@@ -1,11 +1,12 @@
-pragma solidity 0.5.7;
+//pragma solidity 0.5.7;
+pragma solidity >=0.6.0;
 // Copyright BigchainDB GmbH and Ocean Protocol contributors
 // SPDX-License-Identifier: (Apache-2.0 AND CC-BY-4.0)
 // Code is Apache-2.0 and docs are CC-BY-4.0
 
 import "./BToken.sol";
 import "./BMath.sol";
-import "../../interfaces/IssFixedRate.sol";
+import "../../interfaces/ISideStaking.sol";
 import "hardhat/console.sol";
 
 /**
@@ -96,7 +97,7 @@ contract BPool is BMath, BToken {
     address[] private _tokens;
     mapping(address => Record) private _records;
     uint256 private _totalWeight;
-    IssFixedRate ssContract;
+    ISideStaking ssContract;
 
     //-----------------------------------------------------------------------
     //Proxy contract functionality: begin
@@ -126,7 +127,7 @@ contract BPool is BMath, BToken {
     function initialize(
         address controller,
         address factory,
-        uint256[2] calldata swapFees,
+        uint256[] calldata swapFees,
         bool publicSwap,
         bool finalized,
         address[2] calldata tokens,
@@ -154,7 +155,7 @@ contract BPool is BMath, BToken {
     function _initialize(
         address controller,
         address factory,
-        uint256[2] memory swapFees,
+        uint256[] memory swapFees,
         bool publicSwap,
         bool finalized,
         address[2] memory tokens,
@@ -173,7 +174,7 @@ contract BPool is BMath, BToken {
         _marketCollector = feeCollectors[0];
         _opfCollector = feeCollectors[1];
         initialized = true;
-        ssContract = IssFixedRate(_controller);
+        ssContract = ISideStaking(_controller);
         return initialized;
     }
 
@@ -483,26 +484,39 @@ contract BPool is BMath, BToken {
                 //_swapFee
             );
     }
-
-    // function getSpotPriceSansFee(address tokenIn, address tokenOut)
-    //     external
-    //     view
-    // //  _viewlock_
-    //     returns (uint256 spotPrice)
-    // {
-    //     require(_records[tokenIn].bound, "ERR_NOT_BOUND");
-    //     require(_records[tokenOut].bound, "ERR_NOT_BOUND");
-    //     Record storage inRecord = _records[tokenIn];
-    //     Record storage outRecord = _records[tokenOut];
-    //     return
-    //         calcSpotPrice(
-    //             inRecord.balance,
-    //             inRecord.denorm,
-    //             outRecord.balance,
-    //             outRecord.denorm
-    //         );
-    // }
-
+    // view function used for batch buy. useful for frontend
+    function getAmountInExactOut(address tokenIn, address tokenOut, uint tokenAmountOut)
+        external
+        view
+    //  _viewlock_
+        returns (uint256 tokenAmountIn)
+    {
+        require(_records[tokenIn].bound, "ERR_NOT_BOUND");
+        require(_records[tokenOut].bound, "ERR_NOT_BOUND");
+        Record storage inRecord = _records[tokenIn];
+        Record storage outRecord = _records[tokenOut];
+        
+        
+        return
+            calcInGivenOut(inRecord.balance, inRecord.denorm, outRecord.balance, outRecord.denorm, tokenAmountOut);
+    }
+    
+    // view function useful for frontend
+    function getAmountOutExactIn(address tokenIn, address tokenOut, uint tokenAmountIn)
+        external
+        view
+    //  _viewlock_
+        returns (uint256 tokenAmountOut)
+    {
+        require(_records[tokenIn].bound, "ERR_NOT_BOUND");
+        require(_records[tokenOut].bound, "ERR_NOT_BOUND");
+        Record storage inRecord = _records[tokenIn];
+        Record storage outRecord = _records[tokenOut];
+        
+        
+        return
+            calcOutGivenIn(inRecord.balance, inRecord.denorm, outRecord.balance, outRecord.denorm, tokenAmountIn);
+    }
     function joinPool(uint256 poolAmountOut, uint256[] calldata maxAmountsIn)
         external
         _lock_
@@ -678,8 +692,9 @@ contract BPool is BMath, BToken {
         );
 
         require(spotPriceBefore <= maxPrice, "ERR_BAD_LIMIT_PRICE");
-
-        uint256 balanceToAdd; // this is the amount we are going to register in balances (only takes account of swapFee, not OPF and market fee, in order to not affect price during following swaps, fee wtihdrawl etc)
+        // this is the amount we are going to register in balances 
+        // (only takes account of swapFee, not OPF and market fee, in order to not affect price during following swaps, fee wtihdrawl etc)
+        uint256 balanceToAdd; 
         uint256[4] memory data = [
             inRecord.balance,
             inRecord.denorm,

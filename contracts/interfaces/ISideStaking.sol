@@ -8,7 +8,7 @@
 
 pragma solidity >=0.5.7;
 
-interface IssFixedRate {
+interface ISideStaking {
 
 
     function newDataTokenCreated(
@@ -97,21 +97,6 @@ interface IssFixedRate {
 
     function notifyFinalize(address datatokenAddress) external;
 
-    // function allowStake(
-    //     address datatokenAddress,
-    //     address basetoken,
-    //     uint256 datatokenAmount,
-    //     uint256 basetokenAmount,
-    //     address userAddress
-    // ) external view returns (bool);
-
-    // function allowUnStake(
-    //     address datatokenAddress,
-    //     address basetoken,
-    //     uint256 datatokenAmount,
-    //     uint256 basetokenAmount,
-    //     address userAddress
-    // ) external view returns (bool);
 
     function swapExactAmountIn(
         address datatokenAddress,

@@ -31,7 +31,7 @@ describe("NFT Creation, roles and erc20 deployments", () => {
     const ERC20Template = await ethers.getContractFactory("ERC20Template");
     const ERC721Factory = await ethers.getContractFactory("ERC721Factory");
     const Router = await ethers.getContractFactory("FactoryRouter");
-    const SSContract = await ethers.getContractFactory("ssFixedRate");
+    const SSContract = await ethers.getContractFactory("SideStaking");
     const BPool = await ethers.getContractFactory("BPool");
 
     [
@@ -59,7 +59,7 @@ describe("NFT Creation, roles and erc20 deployments", () => {
       []
     );
 
-    ssFixedRate = await SSContract.deploy(router.address);
+    sideStaking = await SSContract.deploy(router.address);
 
     templateERC20 = await ERC20Template.deploy();
 
@@ -77,7 +77,7 @@ describe("NFT Creation, roles and erc20 deployments", () => {
     // SET REQUIRED ADDRESS
     await router.addFactory(factoryERC721.address);
 
-    await router.addSSContract(ssFixedRate.address)
+    await router.addSSContract(sideStaking.address)
 
     //await router.addFixedRate()
   });

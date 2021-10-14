@@ -57,7 +57,7 @@ describe("ERC721Factory", () => {
     const MockErc20 = await ethers.getContractFactory('MockERC20');
     const MockErc20Decimals = await ethers.getContractFactory('MockERC20Decimals');
     const Router = await ethers.getContractFactory("FactoryRouter");
-    const SSContract = await ethers.getContractFactory("ssFixedRate");
+    const SSContract = await ethers.getContractFactory("SideStaking");
     const BPool = await ethers.getContractFactory("BPool");
     const FixedRateExchange = await ethers.getContractFactory(
       "FixedRateExchange"
@@ -86,7 +86,7 @@ describe("ERC721Factory", () => {
    );
       
 
-   ssFixedRate = await SSContract.deploy(router.address);
+   sideStaking = await SSContract.deploy(router.address);
 
    fixedRateExchange = await FixedRateExchange.deploy(
      router.address,
@@ -113,7 +113,7 @@ describe("ERC721Factory", () => {
  
    await router.addFixedRateContract(fixedRateExchange.address); 
 
-   await router.addSSContract(ssFixedRate.address)
+   await router.addSSContract(sideStaking.address)
     
 
     // by default connect() in ethers goes with the first address (owner in this case)
@@ -1017,8 +1017,7 @@ describe("ERC721Factory", () => {
       "bytess":[]
       },
       {
-        "controller":ssFixedRate.address,
-        "basetokenAddress":erc20Token.address,
+        "addresses":[sideStaking.address,erc20Token.address,factoryERC721.address,user3.address,user6.address,poolTemplate.address],
         "ssParams":[
           web3.utils.toWei("1"), // rate
           18, // basetokenDecimals
@@ -1026,13 +1025,10 @@ describe("ERC721Factory", () => {
           2500000, // vested blocks
           initialPoolLiquidy, // baseToken initial pool liquidity
         ],
-        "basetokenSender":user3.address,
         "swapFees":[
           swapFee, //
           swapMarketFee,
         ],
-        "marketFeeCollector":user6.address,
-        "publisherAddress":user3.address // publisherAddress (get vested amount)
       }
       
       
@@ -1091,12 +1087,9 @@ describe("ERC721Factory", () => {
       {
 
         "fixedPriceAddress":fixedRateExchange.address,
-        "basetokenAddress":erc20TokenWithPublishFee.address,
-        "basetokenDecimals":18,
-        "fixedRate":rate,
-        "owner":user3.address,
-        "marketFee":marketFee,
-        "marketFeeCollector":user6.address
+        "addresses":[erc20TokenWithPublishFee.address,user3.address,user6.address],
+        "uints":[18,18,rate,marketFee]
+       
       }
       );
 
@@ -1108,11 +1101,11 @@ describe("ERC721Factory", () => {
     assert(event, "Cannot find TokenCreated event")
     const erc20Address = event.args[0];
 
-    
     event = getEventFromTx(txReceipt,'NewFixedRate')
+    console.log(txReceipt)
     assert(event, "Cannot find NewFixedRate event")
     const exchangeId = event.args[0];
-    
+
     const NftContract = await ethers.getContractAt(
       "contracts/interfaces/IERC721Template.sol:IERC721Template",
       nftAddress

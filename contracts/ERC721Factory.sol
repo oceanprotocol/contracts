@@ -63,7 +63,8 @@ contract ERC721Factory is Deployer, Ownable {
         address basetokenAddress
     );
 
-    event NewFixedRate(bytes32 exchangeId, address owner, address basetoken);
+
+    event NewFixedRate(bytes32 exchangeId, address owner);
 
     
 
@@ -549,13 +550,13 @@ contract ERC721Factory is Deployer, Ownable {
     }
 
     struct PoolData{
-        address controller;
-        address basetokenAddress;
+        address[] addresses;
+       // address basetokenAddress;
         uint256[] ssParams;
-        address basetokenSender;
-        uint256[2] swapFees;
-        address marketFeeCollector;
-        address publisherAddress;
+      //  address basetokenSender;
+        uint256[] swapFees;
+      //  address marketFeeCollector;
+     //   address publisherAddress;
     }
 
     /**
@@ -571,7 +572,7 @@ contract ERC721Factory is Deployer, Ownable {
         ErcCreateData calldata _ErcCreateData,
         PoolData calldata _PoolData
     ) external returns (address erc721Address, address erc20Address, address poolAddress){
-        require(IERC20Template(_PoolData.basetokenAddress).transferFrom(
+        require(IERC20Template(_PoolData.addresses[1]).transferFrom(
                 msg.sender,
                 address(this),
                 _PoolData.ssParams[4]
@@ -590,27 +591,20 @@ contract ERC721Factory is Deployer, Ownable {
             _ErcCreateData.bytess,
             erc721Address);
         // allow router to take the liquidity
-        IERC20Template(_PoolData.basetokenAddress).approve(router,_PoolData.ssParams[4]);
+        IERC20Template(_PoolData.addresses[1]).approve(router,_PoolData.ssParams[4]);
+      
         poolAddress = IERC20Template(erc20Address).deployPool(
-            _PoolData.controller,
-            _PoolData.basetokenAddress,
             _PoolData.ssParams,
-            address(this),
             _PoolData.swapFees,
-            _PoolData.marketFeeCollector,
-            _PoolData.publisherAddress
+           _PoolData.addresses
         );
-        // TO DO - see if we can remove ourselfs from the ERC20Deployer permission
+        // TO DO - see if we can remove ourselfs from the ERC20Deployer permission 
     }
 
     struct FixedData{
         address fixedPriceAddress;
-        address basetokenAddress;
-        uint8 basetokenDecimals;
-        uint256 fixedRate;
-        address owner;
-        uint256 marketFee;
-        address marketFeeCollector;
+        address[] addresses;
+        uint256[] uints;
     }
     /**
      * @dev createNftErcWithFixedRate
@@ -640,12 +634,11 @@ contract ERC721Factory is Deployer, Ownable {
             erc721Address);
         exchangeId = IERC20Template(erc20Address).createFixedRate(
             _FixedData.fixedPriceAddress,
-            _FixedData.basetokenAddress,
-            _FixedData.basetokenDecimals,
-            _FixedData.fixedRate,
-            _FixedData.owner,
-            _FixedData.marketFee,
-            _FixedData.marketFeeCollector);
+            _FixedData.addresses,
+            _FixedData.uints
+            );
+
+
         // TO DO - see if we can remove ourselfs from the ERC20Deployer permission
     }
 }

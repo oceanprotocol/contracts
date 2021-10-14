@@ -124,41 +124,21 @@
           "type": "address"
         },
         {
-          "internalType": "address",
-          "name": "basetokenAddress",
-          "type": "address"
+          "internalType": "address[]",
+          "name": "addresses",
+          "type": "address[]"
         },
         {
-          "internalType": "uint8",
-          "name": "basetokenDecimals",
-          "type": "uint8"
-        },
-        {
-          "internalType": "uint256",
-          "name": "fixedRate",
-          "type": "uint256"
-        },
-        {
-          "internalType": "address",
-          "name": "owner",
-          "type": "address"
-        },
-        {
-          "internalType": "uint256",
-          "name": "marketFee",
-          "type": "uint256"
-        },
-        {
-          "internalType": "address",
-          "name": "marketFeeCollector",
-          "type": "address"
+          "internalType": "uint256[]",
+          "name": "uints",
+          "type": "uint256[]"
         }
       ],
       "name": "createFixedRate",
       "outputs": [
         {
           "internalType": "bytes32",
-          "name": "exchangeId",
+          "name": "",
           "type": "bytes32"
         }
       ],
@@ -181,39 +161,19 @@
     {
       "inputs": [
         {
-          "internalType": "address",
-          "name": "controller",
-          "type": "address"
-        },
-        {
-          "internalType": "address",
-          "name": "basetokenAddress",
-          "type": "address"
-        },
-        {
           "internalType": "uint256[]",
           "name": "ssParams",
           "type": "uint256[]"
         },
         {
-          "internalType": "address",
-          "name": "basetokenSender",
-          "type": "address"
-        },
-        {
-          "internalType": "uint256[2]",
+          "internalType": "uint256[]",
           "name": "swapFees",
-          "type": "uint256[2]"
+          "type": "uint256[]"
         },
         {
-          "internalType": "address",
-          "name": "marketFeeCollector",
-          "type": "address"
-        },
-        {
-          "internalType": "address",
-          "name": "publisherAddress",
-          "type": "address"
+          "internalType": "address[]",
+          "name": "addresses",
+          "type": "address[]"
         }
       ],
       "name": "deployPool",

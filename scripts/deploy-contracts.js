@@ -77,6 +77,7 @@ async function main() {
   const opfcommunityfeecollector = await OPFCommunityFeeCollector.deploy(OPFOwner, OPFOwner)
   addresses.OPFCommunityFeeCollector = opfcommunityfeecollector.address
 
+
   if (logging) console.info("Deploying V4 contracts")
   // v4 contracts
   const FixedPriceExchange = await ethers.getContractFactory(
@@ -88,7 +89,7 @@ async function main() {
   const ERC721Factory = await ethers.getContractFactory("ERC721Factory");
 
   const Router = await ethers.getContractFactory("FactoryRouter");
-  const SSContract = await ethers.getContractFactory("ssFixedRate");
+  const SSContract = await ethers.getContractFactory("SideStaking");
   const BPool = await ethers.getContractFactory("BPool");
   const Dispenser = await ethers.getContractFactory("Dispenser");
 

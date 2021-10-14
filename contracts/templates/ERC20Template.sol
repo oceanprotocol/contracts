@@ -72,7 +72,7 @@ contract ERC20Template is ERC20("test", "testSymbol"), ERC20Roles {
         address basetokenAddress
     );
 
-    event NewFixedRate(bytes32 exchangeId, address owner, address basetoken);
+    event NewFixedRate(bytes32 exchangeId, address owner);
 
     modifier onlyNotInitialized() {
         require(
@@ -225,77 +225,71 @@ contract ERC20Template is ERC20("test", "testSymbol"), ERC20Roles {
      * @dev deployPool
      *      Function to deploy new Pool with 1SS. It also has a vesting schedule.
             This function can only be called ONCE and ONLY if no token have been minted yet.
-     * @param controller ssContract address
-     * @param basetokenAddress baseToken for pool (OCEAN or other)
+   controller ssContract address
+     * basetokenAddress baseToken for pool (OCEAN or other)
      * @param ssParams params for the ssContract. 
-     * @param basetokenSender user which will provide the baseToken amount for initial liquidity 
+      basetokenSender user which will provide the baseToken amount for initial liquidity 
      * @param swapFees swapFees (swapFee, swapMarketFee), swapOceanFee will be set automatically later
-       @param marketFeeCollector marketFeeCollector address
-       @param publisherAddress user which will be assigned the vested amount.
+      marketFeeCollector marketFeeCollector address
+      publisherAddress user which will be assigned the vested amount.
      */
 
     function deployPool(
-        address controller,
-        address basetokenAddress,
+        // address controller,
+        // address basetokenAddress,
         uint256[] memory ssParams,
-        address basetokenSender,
-        uint256[2] memory swapFees,
-        address marketFeeCollector,
-        address publisherAddress
+       // address basetokenSender,
+        uint256[] memory swapFees,
+       // address marketFeeCollector,
+       // address publisherAddress,
+
+        address[] memory addresses //[controller,basetokenAddress,basetokenSender,publisherAddress, marketFeeCollector]
+      //  uint256[] memory ssParams,
+      //  uint256[] memory swapFees
     ) external onlyERC20Deployer returns (address pool){
         require(totalSupply() == 0, "ERC20Template: tokens already minted");
-        _addMinter(controller);
-        // TODO: chech this
+        _addMinter(addresses[0]);
+        // TODO: confirm minimum number of blocks required
         require(ssParams[3] > 2426000, 'ERC20Template: minimum blocks not reached');
 
-        address[2] memory tokens = [address(this), basetokenAddress];
+        address[2] memory tokens = [address(this), addresses[1]];
         pool = IFactoryRouter(router).deployPool(
-            controller,
             tokens,
-            publisherAddress, // publisherAddress, refers to the erc721 contract
             ssParams,
-            basetokenSender,
             swapFees,
-            marketFeeCollector
+            addresses //[controller,basetokenAddress,basetokenSender,publisherAddress, marketFeeCollector]
         );
 
-        emit NewPool(pool, controller, basetokenAddress);
+        emit NewPool(pool, addresses[0], addresses[1]);
     }
 
     /**
      * @dev createFixedRate
      *      Creates a new FixedRateExchange setup.
-     * @param fixedPriceAddress fixedPriceAddress
-     * @param basetokenAddress baseToken for exchange (OCEAN or other)
-     * @param basetokenDecimals baseToken decimals
-     * @param fixedRate rate
-     * @param owner exchangeOwner
-       @param marketFee market Fee 
-       @param marketFeeCollector market fee collector address
+     * fixedPriceAddress fixedPriceAddress
+     * basetokenAddress baseToken for exchange (OCEAN or other)
+     * basetokenDecimals baseToken decimals
+     * fixedRate rate
+     * owner exchangeOwner
+     marketFee market Fee 
+     marketFeeCollector market fee collector address
 
        @return exchangeId
      */
 
+
     function createFixedRate(
         address fixedPriceAddress,
-        address basetokenAddress,
-        uint8 basetokenDecimals,
-        uint256 fixedRate,
-        address owner,
-        uint256 marketFee,
-        address marketFeeCollector
+        address[] memory addresses,
+        uint[] memory uints
     ) external onlyERC20Deployer returns (bytes32 exchangeId) {
         exchangeId = IFactoryRouter(router).deployFixedRate(
             fixedPriceAddress,
-            basetokenAddress,
-            basetokenDecimals,
-            fixedRate,
-            owner,
-            marketFee,
-            marketFeeCollector
+            addresses,
+            uints
         );
-
-        emit NewFixedRate(exchangeId, owner, basetokenAddress);
+      
+        emit NewFixedRate(exchangeId, addresses[0]);
     }
 
     /**
