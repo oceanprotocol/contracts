@@ -1,4 +1,5 @@
-pragma solidity 0.5.7;
+//pragma solidity 0.5.7;
+pragma solidity >=0.6.0;
 // Copyright BigchainDB GmbH and Ocean Protocol contributors
 // SPDX-License-Identifier: (Apache-2.0 AND CC-BY-4.0)
 // Code is Apache-2.0 and docs are CC-BY-4.0
@@ -678,8 +679,9 @@ contract BPool is BMath, BToken {
         );
 
         require(spotPriceBefore <= maxPrice, "ERR_BAD_LIMIT_PRICE");
-
-        uint256 balanceToAdd; // this is the amount we are going to register in balances (only takes account of swapFee, not OPF and market fee, in order to not affect price during following swaps, fee wtihdrawl etc)
+        // this is the amount we are going to register in balances 
+        // (only takes account of swapFee, not OPF and market fee, in order to not affect price during following swaps, fee wtihdrawl etc)
+        uint256 balanceToAdd; 
         uint256[4] memory data = [
             inRecord.balance,
             inRecord.denorm,

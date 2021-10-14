@@ -2,7 +2,7 @@
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 pragma solidity >=0.5.7;
-//pragma experimental ABIEncoderV2;
+pragma experimental ABIEncoderV2;
 
 import "./balancer/BFactory.sol";
 import "../interfaces/IFactory.sol";
@@ -15,8 +15,7 @@ contract FactoryRouter is BFactory {
     address public routerOwner;
     address public factory;
     address public fixedRate;
-    address public opfCollector;
-
+    
     uint256 public swapOceanFee = 1e15;
     mapping(address => bool) public oceanTokens;
     mapping(address => bool) public ssContracts;
@@ -96,10 +95,12 @@ contract FactoryRouter is BFactory {
         @return pool address
      */
     function deployPool(
-        address[2] calldata tokens, // [datatokenAddress, basetokenAddress]
+        address[2] calldata tokens, 
+        // [datatokenAddress, basetokenAddress]
         uint256[] calldata ssParams,
         uint256[] calldata swapFees,
-        address[] calldata addresses //[controller,basetokenAddress,basetokenSender,publisherAddress, marketFeeCollector]
+        address[] calldata addresses 
+        //[controller,basetokenAddress,basetokenSender,publisherAddress, marketFeeCollector]
 
     ) external returns (address) {
         require(
@@ -188,12 +189,14 @@ contract FactoryRouter is BFactory {
     }
 
 
-//     If you need to buy multiple DT (let's say for a compute job which has multiple datasets), you have to send one transaction for each DT that you want to buy.
+// If you need to buy multiple DT (let's say for a compute job which has multiple datasets), 
+// you have to send one transaction for each DT that you want to buy.
 
 // We could have a buyDTBatch function in FactoryRouter, that needs the following parameters:
 
 // uint type[] (fixedrate,dispenser,pool)
-// address source[] (fixed rate address , dispenser address, pool address) - depends on type (if fixed rate or dispenser, address can be 0, we can fill it from Factory)
+// address source[] (fixed rate address , dispenser address, pool address) - depends on type
+//                           (if fixed rate or dispenser, address can be 0, we can fill it from Factory)
 // bytes32[] (can be either fixed rate exchangeID, or swapExactAmountOut / swapExactAmountIn for pools)
 // address[] - (only for pools, it's tokenIn)
 // uint256[] - (only for pools, it's maxAmountIn (for swapExactAmountOut) / tokenAmountIn)
@@ -205,86 +208,76 @@ contract FactoryRouter is BFactory {
 // Perks:
 
 // one single call to buy multiple DT for multiple assets (better UX, better gas optimization)
-// built-in support for DT 1 -> DT2 swaps in one call (using intermediary base tokens. IE: DT1 -> Ocean, Ocean -> DT2) (better UX, better gas optimization)
+// built-in support for DT 1 -> DT2 swaps in one call (using intermediary base tokens. 
+// Example IE: DT1 -> Ocean, Ocean -> DT2) (better UX, better gas optimization)
   //  enum Exchange { Pool, FixedRate, Dispenser }
-    enum Operations { SwapExactIn, SwapExactOut, FixedRate, Dispenser}
+    enum operationType { SwapExactIn, SwapExactOut, FixedRate, Dispenser}
 
+    struct Operations{
+        bytes32 exchangeIds;
+        address source;
+        operationType operation;
+        address tokenIn;
+        uint256 amountsIn;
+        address tokenOut;
+        uint256 amountsOut;
+        uint256 maxPrice;
+    } 
     function buyDTBatch( 
-        bytes32[] calldata exchangeIds, 
-        address[] calldata source, 
-        Operations[] calldata operations, 
-        address[] calldata tokenIn, 
-        uint256[] calldata amountsIn, 
-        address[] calldata tokenOut, 
-        uint256[] calldata amountsOut, 
-        uint256[] calldata maxPrice
+        Operations[] calldata _operations
         ) 
         external {
 
 
-            for (uint i= 0; i< getOperationsLentgh(operations); i++) {
+            for (uint i= 0; i< _operations.length; i++) {
 
-                if(operations[i] == Operations.SwapExactIn) {
+                if(_operations[i].operation == operationType.SwapExactIn) {
                     // Get amountIn from user to router
-                    IERC20(tokenIn[i]).transferFrom(msg.sender,address(this),amountsIn[i]);
+                    IERC20(_operations[i].tokenIn).transferFrom(msg.sender,address(this),_operations[i].amountsIn);
                     // Perform swap
-                    (uint amountReceived,) = IPool(source[i]).swapExactAmountIn(tokenIn[i],amountsIn[i],tokenOut[i],amountsOut[i],maxPrice[i]);
+                    (uint amountReceived,) = 
+                    IPool(_operations[i].source)
+                    .swapExactAmountIn(_operations[i].tokenIn,
+                    _operations[i].amountsIn,
+                    _operations[i].tokenOut,
+                    _operations[i].amountsOut,
+                    _operations[i].maxPrice);
                     // transfer token swapped to user
-                    IERC20(tokenOut[i]).transfer(msg.sender,amountReceived);
-                    // check tokens were transferred
-                    require(IERC20(tokenOut[i]).balanceOf(address(this)) == 0,'Failed MultiSwap');
-
-                } else if (operations[i] == Operations.SwapExactOut){
+                    require(IERC20(_operations[i].tokenOut).transfer(msg.sender,amountReceived),'Failed MultiSwap');
+                } else if (_operations[i].operation == operationType.SwapExactOut){
                     // TODO: modify Pool function for getting amountIn before transfer
-                    IPool(source[i]).swapExactAmountOut(tokenIn[i],amountsIn[i],tokenOut[i],amountsOut[i],maxPrice[i]);
+                    IPool(_operations[i].source)
+                    .swapExactAmountOut(_operations[i].tokenIn,
+                    _operations[i].amountsIn,
+                    _operations[i].tokenOut,
+                    _operations[i].amountsOut,
+                    _operations[i].maxPrice);
+                    require(IERC20(_operations[i].tokenOut)
+                    .transfer(msg.sender,_operations[i].amountsOut),'Failed MultiSwap');
 
-                    IERC20(tokenOut[i]).transfer(msg.sender,amountsOut[i]);
-                     // check tokens were transferred
-                    require(IERC20(tokenOut[i]).balanceOf(address(this)) == 0,'Failed MultiSwap');
+                } else if (_operations[i].operation ==  operationType.FixedRate) {
+                    (,address datatoken,,address basetoken,,,,,,,) = 
+                    IFixedRateExchange(_operations[i].source).getExchange(_operations[i].exchangeIds);
 
-                } else if (operations[i] ==  Operations.FixedRate) {
-                    // TODO: stack too deep move to this logic to a new function (), refactor for dispenser too
-                    (,address datatoken,,address basetoken,,,,,,,) = IFixedRateExchange(source[i]).getExchange(exchangeIds[i]);
+                    (uint baseTokenAmount,,,) = 
+                    IFixedRateExchange(_operations[i].source).
+                    calcBaseInGivenOutDT(_operations[i].exchangeIds,_operations[i].amountsOut);
 
-                    (uint baseTokenAmount,,,) = IFixedRateExchange(source[i]).calcBaseInGivenOutDT(exchangeIds[i],amountsOut[i]);
+                    IERC20(_operations[i].tokenIn).transferFrom(msg.sender,address(this),baseTokenAmount);
 
-                    IERC20(tokenIn[i]).transferFrom(msg.sender,address(this),baseTokenAmount);
+                    IFixedRateExchange(_operations[i].source)
+                    .buyDT(_operations[i].exchangeIds,_operations[i].amountsOut);
 
-                    IFixedRateExchange(source[i]).buyDT(exchangeIds[i],amountsOut[i]);
-
-                    IERC20(datatoken).transfer(msg.sender,amountsOut[i]);
+                    IERC20(datatoken).transfer(msg.sender,_operations[i].amountsOut);
                 
                 } else {
 
-                    IDispenser(source[i]).getDT(exchangeIds[i],amountsOut[i]);
-                    (,address datatoken,,,) = IDispenser(source[i]).getExchange(exchangeIds[i]);
-                    IERC20(datatoken).transfer(msg.sender,amountsOut[i]);
+                    IDispenser(_operations[i].source).getDT(_operations[i].exchangeIds,_operations[i].amountsOut);
+                    (,address datatoken,,,) = IDispenser(_operations[i].source).getExchange(_operations[i].exchangeIds);
+                    IERC20(datatoken).transfer(msg.sender,_operations[i].amountsOut);
                 }
             }
 
-    }
-
-    // function buyDTBatchFixed(address[] calldata source, bytes32[] calldata exchangeIds, uint[] calldata datatokenAmount, bool dispenser) internal {
-    //         for (uint i= 0; i< getIdsLength(exchangeIds);i++){
-                
-    //             (,address datatoken,,address basetoken,,,,,,,) = IFixedRateExchange(source[i]).getExchange(exchangeIds[i]);
-
-    //             (uint baseTokenAmount,,,) = IFixedRateExchange(source[i]).calcBaseInGivenOutDT(exchangeIds[i],datatokenAmount[i]);
-
-    //             IERC20(basetoken).transferFrom(msg.sender,address(this), baseTokenAmount);
-
-    //             IFixedRateExchange(source[i]).buyDT(exchangeIds[i],datatokenAmount[i]);
-
-    //             IERC20(datatoken).transfer(msg.sender,datatokenAmount[i]);
-    //         }
-    // }
-
-    function getOperationsLentgh(Operations[] memory array) internal view returns (uint) {
-        return array.length;
-    }
-
-    function getIdsLength(bytes32[] memory array) internal view returns (uint) {
-        return array.length;
     }
 
 

@@ -39,7 +39,8 @@ contract BFactory is BConst, Deployer {
     
     /* @dev Called on contract deployment. Cannot be called with zero address.
        @param _bpoolTemplate -- address of a deployed BPool contract. 
-       @param _preCreatedPools list of pre-created pools. It can be only used in case of migration from an old factory contract.
+       @param _preCreatedPools list of pre-created pools. 
+                          It can be only used in case of migration from an old factory contract.
     */
     constructor(address _bpoolTemplate, address _opfCollector, address[] memory _preCreatedPools)  public 
     {
@@ -72,14 +73,15 @@ contract BFactory is BConst, Deployer {
      * @param swapFees swapFees (swapFee, swapMarketFee,swapOceanFee), swapOceanFee will be set automatically later
        marketFeeCollector marketFeeCollector address
        
-      @return address of a new proxy BPool contract 
+      @return bpool address of a new proxy BPool contract 
      */
        
     function newBPool(
         address[2] memory tokens,
         uint256[] memory ssParams,
         uint256[] memory swapFees,
-        address[] memory addresses  //[controller,basetokenAddress,basetokenSender,publisherAddress, marketFeeCollector, poolTemplate address]
+        address[] memory addresses 
+        //[controller,basetokenAddress,basetokenSender,publisherAddress, marketFeeCollector, poolTemplate address]
         )
         internal 
         returns (address bpool)
