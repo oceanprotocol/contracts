@@ -10,6 +10,7 @@ import "../interfaces/IERC20.sol";
 import "../interfaces/IFixedRateExchange.sol";
 import "../interfaces/IPool.sol";
 import "../interfaces/IDispenser.sol";
+import "hardhat/console.sol";
 
 contract FactoryRouter is BFactory {
     address public routerOwner;
@@ -235,6 +236,8 @@ contract FactoryRouter is BFactory {
                 if(_operations[i].operation == operationType.SwapExactIn) {
                     // Get amountIn from user to router
                     IERC20(_operations[i].tokenIn).transferFrom(msg.sender,address(this),_operations[i].amountsIn);
+                    // we approve pool to pull token from router
+                    IERC20(_operations[i].tokenIn).approve(_operations[i].source,_operations[i].amountsIn);
                     // Perform swap
                     (uint amountReceived,) = 
                     IPool(_operations[i].source)
@@ -244,6 +247,7 @@ contract FactoryRouter is BFactory {
                     _operations[i].amountsOut,
                     _operations[i].maxPrice);
                     // transfer token swapped to user
+                   
                     require(IERC20(_operations[i].tokenOut).transfer(msg.sender,amountReceived),'Failed MultiSwap');
                 } else if (_operations[i].operation == operationType.SwapExactOut){
                     // calculate how much amount In we need for exact Out
@@ -251,6 +255,8 @@ contract FactoryRouter is BFactory {
                     .getAmountInExactOut(_operations[i].tokenIn,_operations[i].tokenOut,_operations[i].amountsOut);
                     // pull amount In from user
                     IERC20(_operations[i].tokenIn).transferFrom(msg.sender,address(this),amountIn);
+                    // we approve pool to pull token from router
+                    IERC20(_operations[i].tokenIn).approve(_operations[i].source,amountIn);
                     // perform swap
                     IPool(_operations[i].source)
                     .swapExactAmountOut(_operations[i].tokenIn,
@@ -273,6 +279,8 @@ contract FactoryRouter is BFactory {
 
                     // pull tokenIn amount
                     IERC20(_operations[i].tokenIn).transferFrom(msg.sender,address(this),baseTokenAmount);
+                     // we approve pool to pull token from router
+                    IERC20(_operations[i].tokenIn).approve(_operations[i].source,baseTokenAmount);
                     // perform swap
                     IFixedRateExchange(_operations[i].source)
                     .buyDT(_operations[i].exchangeIds,_operations[i].amountsOut);
