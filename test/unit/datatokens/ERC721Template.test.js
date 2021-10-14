@@ -102,6 +102,7 @@ describe("ERC721Template", () => {
     [owner, reciever, user2, user3,user4, user5, user6, provider, opfCollector, marketFeeCollector] = await ethers.getSigners();
 
     data = web3.utils.asciiToHex(constants.blob[0]);
+    dataHash = web3.utils.asciiToHex(constants.blob[0]);
     flags = web3.utils.asciiToHex(constants.blob[0]);
 
  // DEPLOY ROUTER, SETTING OWNER
@@ -216,7 +217,7 @@ describe("ERC721Template", () => {
   it("#updateMetadata - should not be allowed to update the metadata if NOT in MetadataList", async () => {
     assert((await tokenERC721.getPermissions(user6.address)).updateMetadata == false)
     await expectRevert(
-      tokenERC721.connect(user6).setMetaData(metaDataState, metaDataDecryptorUrl, metaDataDecryptorAddress, flags, data),
+      tokenERC721.connect(user6).setMetaData(metaDataState, metaDataDecryptorUrl, metaDataDecryptorAddress, flags, data, dataHash),
       "ERC721Template: NOT METADATA_ROLE"
     );
   });
@@ -227,7 +228,7 @@ describe("ERC721Template", () => {
     let metadataInfo = await tokenERC721.getMetaData()
     assert(metadataInfo[3] === false)
 
-    let tx = await tokenERC721.connect(user6).setMetaData(metaDataState, metaDataDecryptorUrl, metaDataDecryptorAddress, flags, data);
+    let tx = await tokenERC721.connect(user6).setMetaData(metaDataState, metaDataDecryptorUrl, metaDataDecryptorAddress, flags, data, dataHash);
     let txReceipt = await tx.wait();
    
     let event = getEventFromTx(txReceipt,'MetadataCreated')
@@ -240,7 +241,7 @@ describe("ERC721Template", () => {
     assert(metadataInfo[0] == metaDataDecryptorUrl);
 
     const metaDataDecryptorUrl2 = 'http://someurl';
-    tx = await tokenERC721.connect(user6).setMetaData(metaDataState, metaDataDecryptorUrl2, metaDataDecryptorAddress, flags, data);
+    tx = await tokenERC721.connect(user6).setMetaData(metaDataState, metaDataDecryptorUrl2, metaDataDecryptorAddress, flags, data, dataHash);
     txReceipt = await tx.wait();
     event = getEventFromTx(txReceipt,'MetadataUpdated')
     assert(event, "Cannot find MetadataUpdated event")
@@ -530,12 +531,12 @@ describe("ERC721Template", () => {
     );
 
     await expectRevert(
-      tokenERC721.connect(user6).setMetaData(metaDataState, metaDataDecryptorUrl, metaDataDecryptorAddress, flags, data),
+      tokenERC721.connect(user6).setMetaData(metaDataState, metaDataDecryptorUrl, metaDataDecryptorAddress, flags, data, dataHash),
       "ERC721Template: NOT METADATA_ROLE"
     );
     
 
-    await tokenERC721.connect(user2).setMetaData(metaDataState, metaDataDecryptorUrl, metaDataDecryptorAddress, flags, data);
+    await tokenERC721.connect(user2).setMetaData(metaDataState, metaDataDecryptorUrl, metaDataDecryptorAddress, flags, data, dataHash);
 
     let metadataInfo = await tokenERC721.getMetaData()
     assert(metadataInfo[3] === true)
