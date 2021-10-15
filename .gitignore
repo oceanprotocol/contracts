@@ -6,3 +6,4 @@ coverage.json
 /dist
 /ocean_contracts.egg-info
 /venv
+.DS_Store
