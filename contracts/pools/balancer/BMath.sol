@@ -14,7 +14,7 @@
 pragma solidity >=0.5.7;
 
 import './BNum.sol';
-import "hardhat/console.sol";
+
 import "../../interfaces/IFactoryRouter.sol";
 
 contract BMath is BConst, BNum {
@@ -57,20 +57,14 @@ contract BMath is BConst, BNum {
         returns (uint spotPrice)
         
     {   
-        // console.log('tokenBalanceIn', tokenBalanceIn);
-        // console.log('tokenBalanceOut', tokenBalanceOut);
-        // console.log(tokenWeightIn, 'tokenWeightIn');
-        // console.log(tokenWeightOut,'tokenWeightOut');
+       
 
         uint numer = bdiv(tokenBalanceIn, tokenWeightIn);
         uint denom = bdiv(tokenBalanceOut, tokenWeightOut);
         uint ratio = bdiv(numer, denom);
-        // console.log(ratio, 'ratio');
-        // console.log(numer, 'numer');
-        // console.log(denom, 'denom');
-       // uint totalFee = _swapFee+_swapMarketFee+_swapOceanFee;
+    
         uint scale = bdiv(BONE, bsub(BONE, _swapFee));
-       // console.log('scale',scale);
+      
         return  (spotPrice = bmul(ratio, scale));
     }
 
@@ -114,9 +108,7 @@ contract BMath is BConst, BNum {
         marketFees[tokenInAddress] = badd(marketFees[tokenInAddress],marketFeeAmount);
 
         uint totalFee = _swapFee+oceanFeeAmount+marketFeeAmount;
-        // console.log(bsub(tokenAmountIn, bmul(tokenAmountIn, bsub(BONE, _swapFee))),'test');
-        // console.log(_swapFee);
-        // console.log(bsub(tokenAmountIn, bmul(tokenAmountIn, bsub(BONE, _swapMarketFee))));
+        
         emit SWAP_FEES(bsub(tokenAmountIn, bmul(tokenAmountIn, bsub(BONE, _swapFee))), oceanFeeAmount, marketFeeAmount,tokenInAddress);
 
         uint adjustedIn = bsub(BONE, totalFee);
@@ -125,9 +117,6 @@ contract BMath is BConst, BNum {
         uint foo = bpow(y, weightRatio);
         uint bar = bsub(BONE, foo);
         
-        
-       // uint swapFeeAmount  = bsub(tokenAmountIn, bmul(tokenAmountIn, bsub(BONE, _swapFee)));
-
 
         tokenAmountOut = bmul(data[2], bar);
 
@@ -245,8 +234,7 @@ contract BMath is BConst, BNum {
         uint oceanFeeAmount =  bsub(tokenAmountIn, bmul(tokenAmountIn, bsub(BONE, getOPFFee())));
          communityFees[tokenInAddress] = badd(communityFees[tokenInAddress],oceanFeeAmount);
         uint marketFeeAmount =  bsub(tokenAmountIn, bmul(tokenAmountIn, bsub(BONE, _swapMarketFee)));
-       //  console.log(marketFeeAmount,'marketFeeAmount');
-        // console.log(oceanFeeAmount,'opfFeeAmount');
+     
 
         marketFees[tokenInAddress] = badd(marketFees[tokenInAddress],marketFeeAmount);
       

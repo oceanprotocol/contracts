@@ -7,7 +7,7 @@ import "../../interfaces/IERC20Template.sol";
 import "../../interfaces/IPool.sol";
 //import "../ssContracts/IPool.sol";
 import "@openzeppelin/contracts/utils/math/SafeMath.sol";
-import "hardhat/console.sol";
+
 
 /**
  * @title SideStaking
@@ -230,8 +230,6 @@ contract SideStaking {
         address stakeToken,
         uint256 amount
     ) public view returns (bool) {
-        //TO DO
-        console.log(amount);
         require(
             msg.sender == _datatokens[datatokenAddress].poolAddress,
             "ERR: Only pool can call this"

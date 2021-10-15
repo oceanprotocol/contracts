@@ -5,7 +5,7 @@ pragma solidity >=0.5.7;
 
 import "../../interfaces/IERC20Template.sol";
 import "@openzeppelin/contracts/utils/math/SafeMath.sol";
-import "hardhat/console.sol";
+
 
 /**
  * @title FixedRateExchange CONTRACT modified to be used as a Dispenser (rate = 0 and no base token transfer)

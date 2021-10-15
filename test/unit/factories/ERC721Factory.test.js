@@ -121,7 +121,8 @@ describe("ERC721Factory", () => {
       "NFT",
       "NFTSYMBOL",
       1,
-      "0x0000000000000000000000000000000000000000"
+      "0x0000000000000000000000000000000000000000",
+      "https://oceanprotocol.com/nft/"
     );
     
     const txReceipt = await tx.wait();
@@ -180,7 +181,8 @@ describe("ERC721Factory", () => {
       "DT1",
       "DTSYMBOL",
       1,
-      "0x0000000000000000000000000000000000000000"
+      "0x0000000000000000000000000000000000000000",
+      "https://oceanprotocol.com/nft/"
     );
     const txReceipt = await tx.wait();
     const event = getEventFromTx(txReceipt,'NFTCreated')
@@ -201,7 +203,8 @@ describe("ERC721Factory", () => {
       "DT1",
       "DTSYMBOL",
       1,
-      "0x0000000000000000000000000000000000000000"
+      "0x0000000000000000000000000000000000000000",
+      "https://oceanprotocol.com/nft/"
     );
     const txReceipt = await tx.wait();
     const event = getEventFromTx(txReceipt,'NFTCreated')
@@ -215,7 +218,8 @@ describe("ERC721Factory", () => {
   it("#deployERC721Contract - should fail to deploy a new erc721 contract if template index doesn't exist", async () => {
     await expectRevert(
       factoryERC721.deployERC721Contract("DT1", "DTSYMBOL", 7,
-      "0x0000000000000000000000000000000000000000"),
+      "0x0000000000000000000000000000000000000000",
+      "https://oceanprotocol.com/nft/"),
       "ERC721DTFactory: Template index doesnt exist"
     );
   });
@@ -223,7 +227,8 @@ describe("ERC721Factory", () => {
   it("#deployERC721Contract - should fail to deploy a new erc721 contract if template index is ZERO", async () => {
     await expectRevert(
       factoryERC721.deployERC721Contract("DT1", "DTSYMBOL", 0,
-      "0x0000000000000000000000000000000000000000"),
+      "0x0000000000000000000000000000000000000000",
+      "https://oceanprotocol.com/nft/"),
       "ERC721DTFactory: Template index doesnt exist"
     );
   });
@@ -235,7 +240,8 @@ describe("ERC721Factory", () => {
 
     await expectRevert(
       factoryERC721.deployERC721Contract("DT1", "DTSYMBOL",  2,
-      "0x0000000000000000000000000000000000000000"),
+      "0x0000000000000000000000000000000000000000",
+      "https://oceanprotocol.com/nft/"),
       "ERC721DTFactory: ERC721Token Template disabled"
     );
   });
@@ -244,7 +250,7 @@ describe("ERC721Factory", () => {
     assert((await factoryERC721.getCurrentNFTCount()) == 1);
 
     await factoryERC721.deployERC721Contract("DT1", "DTSYMBOL",  1,
-    "0x0000000000000000000000000000000000000000");
+    "0x0000000000000000000000000000000000000000","https://oceanprotocol.com/nft/");
 
     assert((await factoryERC721.getCurrentNFTCount()) == 2);
   });
@@ -965,7 +971,9 @@ describe("ERC721Factory", () => {
       {
       "name": "72120Bundle",
       "symbol": "72Bundle",
-      "templateIndex": 1,  
+      "templateIndex": 1,
+      "baseURI":"https://oceanprotocol.com/nft/" 
+
       },
       {
       "strings":["ERC20B1","ERC20DT1Symbol"],
@@ -1007,7 +1015,8 @@ describe("ERC721Factory", () => {
       {
       "name": "72120PBundle",
       "symbol": "72PBundle",
-      "templateIndex": 1,  
+      "templateIndex": 1,
+      "baseURI":"https://oceanprotocol.com/nft/"   
       },
       {
       "strings":["ERC20WithPool","ERC20P"],
@@ -1075,7 +1084,8 @@ describe("ERC721Factory", () => {
       {
       "name": "72120PBundle",
       "symbol": "72PBundle",
-      "templateIndex": 1,  
+      "templateIndex": 1, 
+      "baseURI":"https://oceanprotocol.com/nft/" 
       },
       {
       "strings":["ERC20WithPool","ERC20P"],
@@ -1102,7 +1112,6 @@ describe("ERC721Factory", () => {
     const erc20Address = event.args[0];
 
     event = getEventFromTx(txReceipt,'NewFixedRate')
-    console.log(txReceipt)
     assert(event, "Cannot find NewFixedRate event")
     const exchangeId = event.args[0];
 

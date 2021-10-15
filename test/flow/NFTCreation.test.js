@@ -88,7 +88,8 @@ describe("NFT Creation, roles and erc20 deployments", () => {
       "NFT",
       "NFTSYMBOL",
       1,
-      "0x0000000000000000000000000000000000000000"
+      "0x0000000000000000000000000000000000000000",
+      "https://oceanprotocol.com/nft/"
     );
     const txReceipt = await tx.wait();
     const event = getEventFromTx(txReceipt,'NFTCreated')

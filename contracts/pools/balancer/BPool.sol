@@ -7,7 +7,7 @@ pragma solidity >=0.6.0;
 import "./BToken.sol";
 import "./BMath.sol";
 import "../../interfaces/ISideStaking.sol";
-import "hardhat/console.sol";
+
 
 /**
  * @title BPool
@@ -164,7 +164,7 @@ contract BPool is BMath, BToken {
         _controller = controller;
         _factory = factory;
         _swapFee = swapFees[0];
-        // console.log(swapFees[0], swapFees[1],swapFees[2], 'swapFees');
+      
        
         _swapMarketFee = swapFees[1];
         _publicSwap = publicSwap;
@@ -196,7 +196,6 @@ contract BPool is BMath, BToken {
             baseTokenAddress == _basetokenAddress,
             "ERR_INVALID_BASETOKEN_ADDRESS"
         );
-        // console.log('in setup function');
         // other inputs will be validated prior
         // calling the below functions
         // bind data token
@@ -603,8 +602,7 @@ contract BPool is BMath, BToken {
             outRecord.denorm
             //_swapFee
         );
-        // console.log(spotPriceBefore);
-        // console.log(maxPrice);
+      
         require(spotPriceBefore <= maxPrice, "ERR_BAD_LIMIT_PRICE");
         uint256 balanceInToAdd;
         uint256[4] memory data = [
@@ -618,9 +616,7 @@ contract BPool is BMath, BToken {
             tokenAmountIn,
             tokenIn
         );
-        // console.log('aqui', tokenAmountOut);
-        // console.log('aqui balanceInToAdd', balanceInToAdd);
-        // console.log('aqui tokenAOmunt in', tokenAmountIn);
+      
         require(tokenAmountOut >= minAmountOut, "ERR_LIMIT_OUT");
 
         inRecord.balance = badd(inRecord.balance, balanceInToAdd);
@@ -631,24 +627,16 @@ contract BPool is BMath, BToken {
             inRecord.denorm,
             outRecord.balance,
             outRecord.denorm
-            // _swapFee
         );
-        // console.log("spotPriceAfter", spotPriceAfter);
-        // console.log("spotPricesBefore", spotPriceBefore);
-        // console.log("maxPrice", maxPrice);
+        
         require(spotPriceAfter >= spotPriceBefore, "ERR_MATH_APPROX");
         require(spotPriceAfter <= maxPrice, "ERR_LIMIT_PRICE");
-        //  console.log(tokenAmountIn,tokenAmountOut);
-        //  console.log(bdiv(tokenAmountIn, tokenAmountOut));
-        //  console.log('1');
-        //  console.log(spotPriceBefore, 'aqui 1');
-        //  console.log(bdiv(tokenAmountIn, tokenAmountOut),'aqui2');
+      
         require(
             spotPriceBefore <= bdiv(tokenAmountIn, tokenAmountOut),
             "ERR_MATH_APPROX"
         );
-       // console.log('2');
-
+     
         emit LOG_SWAP(
             msg.sender,
             tokenIn,
@@ -707,9 +695,7 @@ contract BPool is BMath, BToken {
             tokenAmountOut,
             tokenIn
         );
-        // console.log('aqui tokenamount out', tokenAmountOut);
-        // console.log('aqui balanceInToAdd', balanceToAdd);
-        // console.log('aqui tokenAOmunt in', tokenAmountIn);
+        
         
         require(tokenAmountIn <= maxAmountIn, "ERR_LIMIT_IN");
 
@@ -721,7 +707,6 @@ contract BPool is BMath, BToken {
             inRecord.denorm,
             outRecord.balance,
             outRecord.denorm
-            // _swapFee
         );
          
         require(spotPriceAfter >= spotPriceBefore, "ERR_MATH_APPROX");
@@ -821,14 +806,13 @@ contract BPool is BMath, BToken {
             poolAmountOut
             //_swapFee
         );
-       // console.log(ssContract.canStake(_datatokenAddress, ssStakeToken, ssAmountIn), 'canstake');
+     
         if (
             ssContract.canStake(_datatokenAddress, ssStakeToken, ssAmountIn) ==
             true
         ) {
             //call 1ss to approve
-            // console.log(ssStakeToken);
-            //console.log(_datatokenAddress);
+           
 
             ssContract.Stake(_datatokenAddress, ssStakeToken, ssAmountIn);
             //IERC20(_datatokenAddress).transferFrom(_controller,address(this),ssAmountIn);
@@ -990,7 +974,7 @@ contract BPool is BMath, BToken {
 
         emit LOG_EXIT(msg.sender, tokenOut, tokenAmountOut, block.timestamp);
         emit LOG_BPT(poolAmountIn);
-       // console.log("here");
+      
         _pullPoolShare(msg.sender, poolAmountIn);
 
         _burnPoolShare(bsub(poolAmountIn, exitFee));
@@ -1142,9 +1126,9 @@ contract BPool is BMath, BToken {
         address from,
         uint256 amount
     ) internal {
-        // console.log(IERC20(erc20).balanceOf(from), 'antes');
+       
         bool xfer = IERC20(erc20).transferFrom(from, address(this), amount);
-        //   console.log(IERC20(erc20).balanceOf(from),'despues');
+      
 
         require(xfer, "ERR_ERC20_FALSE");
     }

@@ -21,6 +21,9 @@ contract ERC721 is Context, IERC721, IERC721Metadata {
     // Token symbol
     string private _symbol;
 
+    // baseURI
+    string internal defaultBaseURI;
+
     // Mapping from token ID to owner address
     mapping (uint256 => address) private _owners;
 
@@ -33,6 +36,7 @@ contract ERC721 is Context, IERC721, IERC721Metadata {
     // Mapping from owner to operator approvals
     mapping (address => mapping (address => bool)) private _operatorApprovals;
 
+    
     /**
      * @dev Initializes the contract by setting a `name` and a `symbol` to the token collection.
      */
@@ -89,7 +93,7 @@ contract ERC721 is Context, IERC721, IERC721Metadata {
      * in child contracts.
      */
     function _baseURI() internal view virtual returns (string memory) {
-        return "";
+        return defaultBaseURI;
     }
 
     /**
