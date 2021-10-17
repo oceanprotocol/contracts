@@ -116,8 +116,7 @@ async function main() {
   const templateERC20 = await ERC20Template.deploy();
   if (logging) console.info("Deploying Dispenser")
   const dispenser = await Dispenser.deploy(
-    router.address,
-    addresses.OPFCommunityFeeCollector
+    router.address
   );
   if (logging) console.info("Deploying ERC721 Template")
   const templateERC721 = await ERC721Template.deploy();
