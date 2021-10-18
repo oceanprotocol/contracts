@@ -33,7 +33,7 @@ This is in alpha state and you can expect running into problems. If you run into
   - [Publisher Flow](#publisher-flow)
   - [Roles Diagram](#roles-diagram)
   - [Functions you will need](#functions-you-will-need)
-  - [v3 Integration and support](#v3-integration-and-support)
+  <!-- - [v3 Integration and support](#v3-integration-and-support) -->
   
 - [🦑 Development](#-development)
 - [👩‍🔬 Testing](#-testing)
@@ -126,11 +126,11 @@ Selection of most common functions.
 
 [Go to functions](docs/quickstart_functions.md)
 
-### v3 Integration and support
+<!-- ### v3 Integration and support
 
 How to integrate v3 Datatokens into the new contracts.
 
-[Go to v3 integration](docs/quickstart_v3.md)
+[Go to v3 integration](docs/quickstart_v3.md) -->
 
 <!-- ### 📖 Learn more
 
