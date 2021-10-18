@@ -1875,18 +1875,11 @@ describe("Swap Fees", () => {
     it("#19 - OPF collector withdraws fees", async () => {
       // no fees for OPF WERE COLLECTED AT THIS POINT
       
-
-         // only opfCollector can withdraw
-         await expectRevert(
-          bPool.connect(user3).collectOPF(user3.address),
-          "ONLY OPF"
-        );
-
-      // opfCollector withdraws fees
-      await bPool.connect(opfCollector).collectOPF(opfCollector.address);
+      // any user can call collectOPF 
+      await bPool.connect(user3).collectOPF();
 
         
-      assert(await bPool.communityFees(usdcAddress) == 0);
+      assert(await bPool.communityFees(daiAddress) == 0);
       assert(await bPool.communityFees(erc20Token.address) == 0);
 
     
@@ -2777,15 +2770,11 @@ describe("Swap Fees", () => {
 
     it("#20 - OPF collector withdraws fees", async () => {
       // no fees for OPF WERE COLLECTED AT THIS POINT
-       // only opfCollector can withdraw
-       await expectRevert(
-        bPool.connect(user3).collectOPF(user3.address),
-        "ONLY OPF"
-      );
 
-      // opfCollector withdraws fees
-      await bPool.connect(opfCollector).collectOPF(opfCollector.address);
+      // any user can call collectOPF 
+      await bPool.connect(user3).collectOPF();
 
+        
       assert(await bPool.communityFees(usdcAddress) == 0);
       assert(await bPool.communityFees(erc20Token.address) == 0);
 
@@ -2812,7 +2801,7 @@ describe("Swap Fees", () => {
       receipt = await (
         await bPool.connect(user3).joinswapExternAmountIn(
           usdcAddress, //token IN
-          usdcAmountIn, // amount In (dai tokens)
+          usdcAmountIn, // amount In (usdc tokens)
           minBPTOut // BPT token out
         )
       ).wait();
@@ -3720,16 +3709,12 @@ describe("Swap Fees", () => {
     });
 
     it("#222 - OPF collector withdraws fees", async () => {
-      // no fees for OPF WERE COLLECTED AT THIS POINT
-       // only opfCollector can withdraw
-       await expectRevert(
-        bPool.connect(user3).collectOPF(user3.address),
-        "ONLY OPF"
-      );
+       // no fees for OPF WERE COLLECTED AT THIS POINT
+      
+      // any user can call collectOPF 
+      await bPool.connect(user3).collectOPF();
 
-      // opfCollector withdraws fees
-      await bPool.connect(opfCollector).collectOPF(opfCollector.address);
-
+        
       assert(await bPool.communityFees(usdcAddress) == 0);
       assert(await bPool.communityFees(erc20Token.address) == 0);
 
@@ -3756,7 +3741,7 @@ describe("Swap Fees", () => {
       receipt = await (
         await bPool.connect(user3).joinswapExternAmountIn(
           usdcAddress, //token IN
-          usdcAmountIn, // amount In (dai tokens)
+          usdcAmountIn, // amount In (usdc tokens)
           minBPTOut // BPT token out
         )
       ).wait();
@@ -4621,27 +4606,20 @@ describe("Swap Fees", () => {
       await bPool.connect(marketFeeCollector).collectMarketFee(user2.address);
 
      
-      assert(await bPool.marketFees(usdcAddress) == 0);
+      assert(await bPool.marketFees(daiAddress) == 0);
       assert(await bPool.marketFees(erc20Token.address) == 0);
 
     
     });
 
     it("#22 - OPF collector withdraws fees", async () => {
-      // no fees for OPF WERE COLLECTED AT THIS POINT
+        // no fees for OPF WERE COLLECTED AT THIS POINT
       
-
-         // only opfCollector can withdraw
-         await expectRevert(
-          bPool.connect(user3).collectOPF(user3.address),
-          "ONLY OPF"
-        );
-
-      // opfCollector withdraws fees
-      await bPool.connect(opfCollector).collectOPF(opfCollector.address);
+      // any user can call collectOPF 
+      await bPool.connect(user3).collectOPF();
 
         
-      assert(await bPool.communityFees(usdcAddress) == 0);
+      assert(await bPool.communityFees(daiAddress) == 0);
       assert(await bPool.communityFees(erc20Token.address) == 0);
 
     

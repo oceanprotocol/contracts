@@ -6,7 +6,6 @@ pragma experimental ABIEncoderV2;
 
 import "./utils/Deployer.sol";
 import "./interfaces/IERC721Template.sol";
-//import "./interfaces/IFactory.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
 import "./interfaces/IERC20Template.sol";
 
@@ -555,12 +554,8 @@ contract ERC721Factory is Deployer, Ownable {
 
     struct PoolData{
         address[] addresses;
-       // address basetokenAddress;
         uint256[] ssParams;
-      //  address basetokenSender;
         uint256[] swapFees;
-      //  address marketFeeCollector;
-     //   address publisherAddress;
     }
 
     /**
@@ -603,7 +598,7 @@ contract ERC721Factory is Deployer, Ownable {
             _PoolData.swapFees,
            _PoolData.addresses
         );
-        // TO DO - see if we can remove ourselfs from the ERC20Deployer permission 
+    
     }
 
     struct FixedData{

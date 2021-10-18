@@ -86,12 +86,7 @@ contract BMath is BConst, BNum {
     //     ];
     function calcOutGivenInSwap(
         uint[4] memory data,
-        // uint tokenBalanceIn,
-        // uint tokenWeightIn,
-        // uint tokenBalanceOut,
-        // uint tokenWeightOut,
         uint tokenAmountIn,
-       // uint swapFee
         address tokenInAddress
     )
         internal
@@ -211,13 +206,8 @@ contract BMath is BConst, BNum {
     **********************************************************************************************/
     function calcInGivenOutSwap(
         uint[4] memory data,
-        //uint tokenBalanceIn,
-        // uint tokenWeightIn,
-        // uint tokenBalanceOut,
-        // uint tokenWeightOut,
         uint tokenAmountOut,
         address tokenInAddress
-       // uint swapFee
     )
         internal
         returns (uint tokenAmountIn, uint tokenAmountInBalance)
@@ -340,7 +330,6 @@ contract BMath is BConst, BNum {
         uint poolSupply,
         uint totalWeight,
         uint poolAmountIn
-      //  uint swapFee
     )
         internal view
         returns (uint tokenAmountOut)
@@ -388,7 +377,6 @@ contract BMath is BConst, BNum {
         uint poolSupply,
         uint totalWeight,
         uint tokenAmountOut
-        //uint swapFee
     )
         internal view
         returns (uint poolAmountIn)

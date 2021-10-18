@@ -36,10 +36,7 @@ contract SideStaking {
         uint256 datatokenCap; //dt cap
         uint256 basetokenBalance; //current basetoken balance
         uint256 lastPrice; //used for creating the pool
-        // rate options
         uint256 rate; // rate to exchange DT<->BaseToken
-        // bool allowDtSale; //if should allow DT to be swaped for basetoken.  Buying is always accepted
-        // vesting options
         address publisherAddress;
         uint256 blockDeployed; //when this record was created
         uint256 vestingEndBlock; //see below
@@ -306,7 +303,6 @@ contract SideStaking {
         internal
     {
         if (_datatokens[datatokenAddress].bound != true) return;
-        // require(msg.sender == _datatokens[datatokenAddress].poolAddress,'ERR: Only pool can call this');
         if (_datatokens[datatokenAddress].poolFinalized == true) return;
         _datatokens[datatokenAddress].poolFinalized = true;
         uint256 baseTokenWeight = 5 * BASE; //pool weight: 50-50

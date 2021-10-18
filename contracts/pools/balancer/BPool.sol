@@ -257,13 +257,13 @@ contract BPool is BMath, BToken {
         return _tokens;
     }
 
-    function collectOPF(address to) external {
-        require(_opfCollector == msg.sender, "ONLY OPF");
+    function collectOPF() external {
+        //require(_opfCollector == msg.sender, "ONLY OPF");
         address[] memory tokens = getFinalTokens();
         for (uint256 i = 0; i < tokens.length; i++) {
             uint256 amount = communityFees[tokens[i]];
             communityFees[tokens[i]] = 0;
-            IERC20(tokens[i]).transfer(to, amount);
+            IERC20(tokens[i]).transfer(_opfCollector, amount);
         }
     }
 
@@ -747,7 +747,6 @@ contract BPool is BMath, BToken {
             "ERR_MAX_IN_RATIO"
         );
         //ask ssContract
-        bool allowed;
         Record storage ssInRecord = _records[_datatokenAddress];
         address ssStakeToken;
 
@@ -856,7 +855,6 @@ contract BPool is BMath, BToken {
         );
 
         //ask ssContract
-        bool allowed;
         Record storage ssInRecord = _records[_datatokenAddress];
         address ssStakeToken;
 

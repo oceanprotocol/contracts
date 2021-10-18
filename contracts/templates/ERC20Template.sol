@@ -235,17 +235,9 @@ contract ERC20Template is ERC20("test", "testSymbol"), ERC20Roles {
      */
 
     function deployPool(
-        // address controller,
-        // address basetokenAddress,
         uint256[] memory ssParams,
-       // address basetokenSender,
         uint256[] memory swapFees,
-       // address marketFeeCollector,
-       // address publisherAddress,
-
         address[] memory addresses //[controller,basetokenAddress,basetokenSender,publisherAddress, marketFeeCollector]
-      //  uint256[] memory ssParams,
-      //  uint256[] memory swapFees
     ) external onlyERC20Deployer returns (address pool){
         require(totalSupply() == 0, "ERC20Template: tokens already minted");
         _addMinter(addresses[0]);

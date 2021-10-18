@@ -82,8 +82,6 @@ npm install @oceanprotocol/lib
 
 - Help Ocean community: if Ocean is not the basetoken, Ocean Community will receive 0.1% swap fee on pools or fixed price exchange 
 
-- V3 integration: even if you deployed a DT on v3 you can create an NFT, 'wrap' the v3 DT and enjoy all v4 features
-
 - Flexible key-value store in the NFT contract : NFT contract can be used to store custom key-value pairs
 
 - Metadata is also stored in the NFT contract store (even if it still supports Metadata.sol)
