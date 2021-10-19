@@ -30,6 +30,9 @@ jobs:
       run: |
         python -m pip install --upgrade pip
         pip install build
+    - name: Replace `.` with `_` in directory names
+      run: |
+        find artifacts -depth -type d -name '*.sol' -execdir bash -c 'mv -- "$1" "${1//.sol/_sol}"' bash {} \;
     - name: Create __init__.py files
       run: |
         find artifacts -type d -exec touch '{}'/__init__.py ';'
