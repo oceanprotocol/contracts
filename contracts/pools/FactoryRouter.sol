@@ -10,7 +10,7 @@ import "../interfaces/IERC20.sol";
 import "../interfaces/IFixedRateExchange.sol";
 import "../interfaces/IPool.sol";
 import "../interfaces/IDispenser.sol";
-import "hardhat/console.sol";
+
 
 contract FactoryRouter is BFactory {
     address public routerOwner;
@@ -139,7 +139,7 @@ contract FactoryRouter is BFactory {
         return pool;
     }
 
-    function getLength(IERC20[] memory array) private view returns (uint256) {
+    function getLength(IERC20[] memory array) internal pure returns (uint256) {
         return array.length;
     }
 

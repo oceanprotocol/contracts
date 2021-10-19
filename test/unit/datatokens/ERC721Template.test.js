@@ -154,7 +154,8 @@ describe("ERC721Template", () => {
       "NFT",
       "NFTSYMBOL",
       1,
-      "0x0000000000000000000000000000000000000000"
+      "0x0000000000000000000000000000000000000000",
+      "https://oceanprotocol.com/nft/"
     );
     const txReceipt = await tx.wait();
     let event = getEventFromTx(txReceipt,'NFTCreated')
@@ -203,7 +204,8 @@ describe("ERC721Template", () => {
         "NewName",
         "NN",
         factoryERC721.address,
-        '0x0000000000000000000000000000000000000000'
+        '0x0000000000000000000000000000000000000000',
+        "https://oceanprotocol.com/nft/"
       ),
       "ERC721Template: token instance already initialized"
     );
@@ -213,6 +215,11 @@ describe("ERC721Template", () => {
   
     assert((await tokenERC721.balanceOf(owner.address)) == 1);
   });
+
+  it("#tokenURI - should get proper tokenURI", async () => {
+    assert((await tokenERC721.tokenURI(1)) == "https://oceanprotocol.com/nft/1");
+  });
+  
 
   it("#updateMetadata - should not be allowed to update the metadata if NOT in MetadataList", async () => {
     assert((await tokenERC721.getPermissions(user6.address)).updateMetadata == false)
@@ -467,7 +474,7 @@ describe("ERC721Template", () => {
     // ONLY CALLS from ERC20 contract are allowed
     await expectRevert(tokenERC721.connect(user2).setDataERC20(key,value),"ERC721Template: NOT ERC20 Contract" )
     result = await tokenERC721.getData(key)
-   // console.log(result)
+
     assert(await tokenERC721.getData(key) == '0x')
     
   });
@@ -556,5 +563,16 @@ describe("ERC721Template", () => {
 
   it("#isDeployed - should return false if token has NOT been deployed from this contract", async () => {
     assert(await tokenERC721.isDeployed(user3.address) == false);
+  });
+
+  it("#setBaseURI - should fail to update tokenURI if NOT NFT Owner", async () => {
+    await expectRevert(tokenERC721.connect(user3).setBaseURI('https://newurl.com/nft/'),'ERC721Template: not NFTOwner')
+    assert((await tokenERC721.tokenURI(1)) == "https://oceanprotocol.com/nft/1");
+  });
+
+
+  it("#setBaseURI - should update tokenURI if NFT Owner", async () => {
+    await tokenERC721.setBaseURI('https://newurl.com/nft/')
+    assert((await tokenERC721.tokenURI(1)) == "https://newurl.com/nft/1");
   });
 });

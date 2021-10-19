@@ -6,10 +6,9 @@ pragma experimental ABIEncoderV2;
 
 import "./utils/Deployer.sol";
 import "./interfaces/IERC721Template.sol";
-//import "./interfaces/IFactory.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
 import "./interfaces/IERC20Template.sol";
-import "hardhat/console.sol";
+
 /**
  * @title DTFactory contract
  * @author Ocean Protocol Team
@@ -107,7 +106,8 @@ contract ERC721Factory is Deployer, Ownable {
         string memory name,
         string memory symbol,
         uint256 _templateIndex,
-        address additionalERC20Deployer
+        address additionalERC20Deployer,
+        string memory baseURI
     ) public returns (address token) {
         require(
             _templateIndex <= nftTemplateCount && _templateIndex != 0,
@@ -136,7 +136,8 @@ contract ERC721Factory is Deployer, Ownable {
                 name,
                 symbol,
                 address(this),
-                additionalERC20Deployer
+                additionalERC20Deployer,
+                baseURI
             ),
             "ERC721DTFactory: Unable to initialize token instance"
         );
@@ -511,6 +512,7 @@ contract ERC721Factory is Deployer, Ownable {
         string name;
         string symbol;
         uint256 templateIndex;
+        string baseURI;
     }
     struct ErcCreateData{
         uint256 templateIndex;
@@ -539,7 +541,8 @@ contract ERC721Factory is Deployer, Ownable {
             _NftCreateData.name,
             _NftCreateData.symbol,
             _NftCreateData.templateIndex,
-            address(0));
+            address(0),
+            _NftCreateData.baseURI);
         erc20Address = _createToken(
             _ErcCreateData.templateIndex,
             _ErcCreateData.strings,
@@ -551,12 +554,8 @@ contract ERC721Factory is Deployer, Ownable {
 
     struct PoolData{
         address[] addresses;
-       // address basetokenAddress;
         uint256[] ssParams;
-      //  address basetokenSender;
         uint256[] swapFees;
-      //  address marketFeeCollector;
-     //   address publisherAddress;
     }
 
     /**
@@ -582,7 +581,8 @@ contract ERC721Factory is Deployer, Ownable {
             _NftCreateData.name,
             _NftCreateData.symbol,
             _NftCreateData.templateIndex,
-            address(this));
+            address(this),
+             _NftCreateData.baseURI);
         erc20Address = _createToken(
             _ErcCreateData.templateIndex,
             _ErcCreateData.strings,
@@ -598,7 +598,7 @@ contract ERC721Factory is Deployer, Ownable {
             _PoolData.swapFees,
            _PoolData.addresses
         );
-        // TO DO - see if we can remove ourselfs from the ERC20Deployer permission 
+    
     }
 
     struct FixedData{
@@ -624,7 +624,8 @@ contract ERC721Factory is Deployer, Ownable {
             _NftCreateData.name,
             _NftCreateData.symbol,
             _NftCreateData.templateIndex,
-            address(this));
+            address(this),
+             _NftCreateData.baseURI);
         erc20Address = _createToken(
             _ErcCreateData.templateIndex,
             _ErcCreateData.strings,
@@ -637,8 +638,5 @@ contract ERC721Factory is Deployer, Ownable {
             _FixedData.addresses,
             _FixedData.uints
             );
-
-
-        // TO DO - see if we can remove ourselfs from the ERC20Deployer permission
     }
 }

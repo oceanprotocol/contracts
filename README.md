@@ -33,7 +33,7 @@ This is in alpha state and you can expect running into problems. If you run into
   - [Publisher Flow](#publisher-flow)
   - [Roles Diagram](#roles-diagram)
   - [Functions you will need](#functions-you-will-need)
-  - [v3 Integration and support](#v3-integration-and-support)
+  <!-- - [v3 Integration and support](#v3-integration-and-support) -->
   
 - [🦑 Development](#-development)
 - [👩‍🔬 Testing](#-testing)
@@ -82,8 +82,6 @@ npm install @oceanprotocol/lib
 
 - Help Ocean community: if Ocean is not the basetoken, Ocean Community will receive 0.1% swap fee on pools or fixed price exchange 
 
-- V3 integration: even if you deployed a DT on v3 you can create an NFT, 'wrap' the v3 DT and enjoy all v4 features
-
 - Flexible key-value store in the NFT contract : NFT contract can be used to store custom key-value pairs
 
 - Metadata is also stored in the NFT contract store (even if it still supports Metadata.sol)
@@ -126,11 +124,11 @@ Selection of most common functions.
 
 [Go to functions](docs/quickstart_functions.md)
 
-### v3 Integration and support
+<!-- ### v3 Integration and support
 
 How to integrate v3 Datatokens into the new contracts.
 
-[Go to v3 integration](docs/quickstart_v3.md)
+[Go to v3 integration](docs/quickstart_v3.md) -->
 
 <!-- ### 📖 Learn more
 

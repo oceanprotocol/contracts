@@ -6,7 +6,7 @@ pragma solidity >=0.5.7;
 import "../../interfaces/IERC20Template.sol";
 import "../../interfaces/IFactoryRouter.sol";
 import "@openzeppelin/contracts/utils/math/SafeMath.sol";
-import "hardhat/console.sol";
+
 
 /**
  * @title FixedRateExchange
@@ -242,17 +242,16 @@ contract FixedRateExchange {
                 .mul(getOPFFee(exchanges[exchangeId].baseToken))
                 .div(BASE);
         }
-        console.log(oceanFeeAmount, "oceanFeeAmount");
+     
         marketFeeAmount = baseTokenAmountBeforeFee
             .mul(exchanges[exchangeId].marketFee)
             .div(BASE);
 
-        console.log(marketFeeAmount, "marketFeeAmount");
+       
         baseTokenAmount = baseTokenAmountBeforeFee.add(marketFeeAmount).add(
             oceanFeeAmount
         );
-        console.log(baseTokenAmount, "basetokenamount");
-        console.log(baseTokenAmountBeforeFee, "basetokenamount before fee");
+      
     }
 
     /**
@@ -285,18 +284,16 @@ contract FixedRateExchange {
                 .mul(getOPFFee(exchanges[exchangeId].baseToken))
                 .div(BASE);
         }
-        console.log(oceanFeeAmount, "oceanfeeamount");
+      
         marketFeeAmount = baseTokenAmountBeforeFee
             .mul(exchanges[exchangeId].marketFee)
             .div(BASE);
 
-        console.log(marketFeeAmount, "marketFeeAmount");
+    
         baseTokenAmount = baseTokenAmountBeforeFee.sub(marketFeeAmount).sub(
             oceanFeeAmount
         );
-        console.log(baseTokenAmount, "basetokenamount");
-        console.log(baseTokenAmountBeforeFee, "basetokenamount before fee");
-        //console.log(baseTokenAmount, "baseAmount solidity");
+   
     }
 
     /**

@@ -2,18 +2,13 @@ pragma solidity >=0.6.0;
 
 import "../utils/ERC721/ERC721.sol";
 import "../utils/ERC725/ERC725Ocean.sol";
-
-//import "../FlattenERC721.sol";
 import "@openzeppelin/contracts/utils/Create2.sol";
 import "solidity-bytes-utils/contracts/BytesLib.sol";
 import "../interfaces/IV3ERC20.sol";
-//import "@openzeppelin/contracts/utils/introspection/ERC165Storage.sol";
 import "../interfaces/IFactory.sol";
 import "../interfaces/IERC20Template.sol";
 import "../utils/ERC721RolesAddress.sol";
-//import "../utils/V3Integration.sol";
 
-//import "hardhat/console.sol";
 
 contract ERC721Template is
     ERC721("Template", "TemplateSymbol"),
@@ -83,7 +78,8 @@ contract ERC721Template is
         string calldata name_,
         string calldata symbol_,
         address tokenFactory,
-        address additionalERC20Deployer
+        address additionalERC20Deployer,
+        string memory baseURI
     ) external returns (bool) {
         require(
             !initialized,
@@ -94,7 +90,8 @@ contract ERC721Template is
                 owner,
                 name_,
                 symbol_,
-                tokenFactory
+                tokenFactory,
+                baseURI
             );
         if(initResult && additionalERC20Deployer != address(0))
             _addToCreateERC20List(additionalERC20Deployer);
@@ -118,7 +115,8 @@ contract ERC721Template is
         address owner,
         string memory name_,
         string memory symbol_,
-        address tokenFactory
+        address tokenFactory,
+        string memory baseURI
     ) internal returns (bool) {
         require(
             owner != address(0),
@@ -128,6 +126,7 @@ contract ERC721Template is
         _name = name_;
         _symbol = symbol_;
         _tokenFactory = tokenFactory;
+        defaultBaseURI = baseURI;
         initialized = true;
         _safeMint(owner, 1);
         _addManager(owner);
@@ -559,5 +558,9 @@ contract ERC721Template is
     
     function isDeployed(address datatoken) external view returns (bool) {
         return deployedERC20[datatoken];
+    }
+
+    function setBaseURI(string memory _baseURI) external onlyNFTOwner {
+            defaultBaseURI = _baseURI;
     }
 }

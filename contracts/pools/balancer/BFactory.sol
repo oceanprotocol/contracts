@@ -52,7 +52,7 @@ contract BFactory is BConst, Deployer {
             _opfCollector != address(0), 
             'BFactory: zero address'
         );
-      //  bpoolTemplate = _bpoolTemplate;
+     
         opfCollector = _opfCollector;
         _addPoolTemplate(_bpoolTemplate);
 
