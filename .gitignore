@@ -6,6 +6,7 @@ uncompiled/
 artifacts/
 coverage/
 # Python package files
+build/
 venv/
 dist/
 addresses/__init__.py
