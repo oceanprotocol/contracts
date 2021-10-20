@@ -1,14 +1,13 @@
 coverage/
 # Node.js files
-node_modules
-.env
+node_modules/
+.env/
 # Hardhat files
-cache
+cache/
 uncompiled/
 # Python package files
 build/
 venv/
 dist/
 ocean_contracts.egg-info/
-addresses/__init__.py
-addresses/ocean_contracts.egg-info/
+**/__init__.py
