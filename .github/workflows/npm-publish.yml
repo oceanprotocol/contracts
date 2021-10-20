@@ -10,7 +10,7 @@ on:
 
 jobs:
   call-ci-workflow:
-    uses: oceanprotocol/contracts/.github/workflows/ci.yml@v4main
+    uses: oceanprotocol/contracts/.github/workflows/ci.yml@HEAD
 
   publish-npm:
     needs: [call-ci-workflow]
