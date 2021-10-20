@@ -49,7 +49,7 @@ jobs:
       - run: npm ci
       - name: Run Hardhate
         run: |
-          npx hardhat node & 
+          npx hardhat node &
       - run: npm run test:full:cover
       - uses: actions/upload-artifact@v2
         with:
@@ -65,6 +65,7 @@ jobs:
       - uses: actions/download-artifact@v2
         with:
           name: coverage
+          path: coverage/
 
       - uses: paambaati/codeclimate-action@v2.7.5
         env:
