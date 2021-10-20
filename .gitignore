@@ -9,5 +9,6 @@ uncompiled/
 build/
 venv/
 dist/
+ocean_contracts.egg-info/
 addresses/__init__.py
 addresses/ocean_contracts.egg-info/
