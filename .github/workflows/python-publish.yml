@@ -15,7 +15,7 @@ on:
 
 jobs:
   call-ci-workflow:
-    uses: oceanprotocol/contracts/.github/workflows/ci.yml@HEAD
+    uses: oceanprotocol/contracts/.github/workflows/ci.yml@v4main
 
   deploy:
     runs-on: ubuntu-latest
