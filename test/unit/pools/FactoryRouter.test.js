@@ -56,7 +56,7 @@ describe("FactoryRouter", () => {
     const ERC721Factory = await ethers.getContractFactory("ERC721Factory");
 
     const Router = await ethers.getContractFactory("FactoryRouter");
-    const SSContract = await ethers.getContractFactory("ssFixedRate");
+    const SSContract = await ethers.getContractFactory("SideStaking");
     const BPool = await ethers.getContractFactory("BPool");
     const FixedRateExchange = await ethers.getContractFactory(
       "FixedRateExchange"
@@ -74,6 +74,7 @@ describe("FactoryRouter", () => {
       user6,
       marketFeeCollector,
       opfCollector,
+      newToken      
     ] = await ethers.getSigners();
     
     data = web3.utils.asciiToHex("SomeData");
@@ -94,7 +95,7 @@ describe("FactoryRouter", () => {
     []
   );
 
-  ssFixedRate = await SSContract.deploy(router.address);
+  sideStaking = await SSContract.deploy(router.address);
 
   fixedRateExchange = await FixedRateExchange.deploy(
     router.address,
@@ -119,13 +120,14 @@ describe("FactoryRouter", () => {
 
   await router.addFixedRateContract(fixedRateExchange.address);
     
-  await router.addSSContract(ssFixedRate.address)
+  await router.addSSContract(sideStaking.address)
   
   const tx = await factoryERC721.deployERC721Contract(
       "DT1",
       "DTSYMBOL",
       1,
-      "0x0000000000000000000000000000000000000000"
+      "0x0000000000000000000000000000000000000000",
+      "https://oceanprotocol.com/nft/"
     );
     const txReceipt = await tx.wait();
     const event = getEventFromTx(txReceipt,'NFTCreated')
@@ -174,19 +176,63 @@ describe("FactoryRouter", () => {
   })
 
   it("#addOceanToken - should add a new token address to the mapping if Router Owner",async () => {
-    assert(await router.oceanTokens(user2.address) == false);
-    await router.addOceanToken(user2.address)
-    assert(await router.oceanTokens(user2.address) == true);
+    assert(await router.oceanTokens(newToken.address) == false);
+    await router.addOceanToken(newToken.address)
+    assert(await router.oceanTokens(newToken.address) == true);
   })
 
+
   it("#addOceanToken - should fail to add a new token address to the mapping if NOT Router Owner",async () => {
-    await expectRevert(router.connect(user2).addOceanToken(user2.address), "OceanRouter: NOT OWNER")
-    assert(await router.oceanTokens(user2.address) == false);
+    await expectRevert(router.connect(user2).addOceanToken(newToken.address), "OceanRouter: NOT OWNER")
+    assert(await router.oceanTokens(newToken.address) == false);
    
   })
 
+  it("#removeOceanToken - should remove a token previously added if Router Owner, check OPF fee updates properly",async () => {
+    // newToken is not mapped so fee is 1e15
+    assert(await router.oceanTokens(newToken.address) == false);
+    assert(await router.getOPFFee(newToken.address) == 1e15);
+    
+    // router owner adds newToken address
+    await router.addOceanToken(newToken.address)
+    assert(await router.oceanTokens(newToken.address) == true);
+
+    // OPF Fee is ZERO now
+    assert(await router.getOPFFee(newToken.address) == 0);
+
+    // router owner removes newToken address
+    await router.removeOceanToken(newToken.address)
+    assert(await router.oceanTokens(newToken.address) == false);
+
+    // OPF Fee is again the default 1e15 => 0.1%
+    assert(await router.getOPFFee(newToken.address) == 1e15);
+  })
+
+  it("#removeOceanToken - should fail to remove a new token address to the mapping if NOT Router Owner",async () => {
+    await router.addOceanToken(newToken.address)
+    assert(await router.oceanTokens(newToken.address) == true);
+    await expectRevert(router.connect(user2).addOceanToken(newToken.address), "OceanRouter: NOT OWNER")
+    assert(await router.oceanTokens(newToken.address) == true);
+  })
+
+  it("#updateOPFFee - should update opf Fee if router owner",async () => {
+    assert(await router.oceanTokens(newToken.address) == false);
+    assert(await router.getOPFFee(newToken.address) == 1e15);
+    assert(await router.swapOceanFee() == 1e15)
+    await router.updateOPFFee(web3.utils.toWei('0.01'));
+    assert(await router.oceanTokens(newToken.address) == false);
+    assert(await router.getOPFFee(newToken.address) == 1e16);
+    assert(await router.swapOceanFee() == 1e16)
+  })
+
+  it("#updateOPFFee - should fail to update OPF Fee if NOT Router Owner",async () => {
+    assert(await router.swapOceanFee() == 1e15)
+    await expectRevert(router.connect(user2).updateOPFFee(web3.utils.toWei('0.01')), "OceanRouter: NOT OWNER")
+    assert(await router.swapOceanFee() == 1e15)
+  })
+
   it("#ssContracts - should confirm ssContract token has been added to the mapping",async () => {
-    assert(await router.ssContracts(ssFixedRate.address) == true);
+    assert(await router.ssContracts(sideStaking.address) == true);
   })
 
   it("#addSSContract - should add a new ssContract address to the mapping if Router Owner",async () => {
@@ -225,8 +271,34 @@ describe("FactoryRouter", () => {
    
   })
 
+  it("#addPoolTemplate - should fail to add a new pool template contract if NOT Router Owner",async () => {
+    assert(await router.isPoolTemplate(user2.address) ==false)
+    await expectRevert(router.connect(user2).addPoolTemplate(user2.address), "OceanRouter: NOT OWNER")
+    assert(await router.isPoolTemplate(user2.address) ==false)
+   
+  })
 
+      
+  it("#addPoolTemplate - should succeed to add a new pool template contract if Router Owner",async () => {
+    assert(await router.isPoolTemplate(user2.address) ==false)
+    await router.addPoolTemplate(user2.address)
+    assert(await router.isPoolTemplate(user2.address) ==true)
+   
+  })
 
+  it("#removePoolTemplate - should fail to remove pool template contract if NOT Router Owner",async () => {
+    assert(await router.isPoolTemplate(poolTemplate.address) ==true)
+    await expectRevert(router.connect(user2).removePoolTemplate(poolTemplate.address), "OceanRouter: NOT OWNER")
+    assert(await router.isPoolTemplate(poolTemplate.address) ==true)
+   
+  })
+
+  it("#removePoolTemplate - should suceed to remove pool template contract if Router Owner",async () => {
+    assert(await router.isPoolTemplate(poolTemplate.address) ==true)
+    await router.removePoolTemplate(poolTemplate.address)
+    assert(await router.isPoolTemplate(poolTemplate.address) ==false)
+   
+  })
 
 });
 

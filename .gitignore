@@ -1,10 +1,10 @@
+coverage/
+# Node.js files
 node_modules
 .env
 # Hardhat files
 cache
 uncompiled/
-artifacts/
-coverage/
 # Python package files
 build/
 venv/

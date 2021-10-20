@@ -7,12 +7,12 @@ import "../../interfaces/IERC20Template.sol";
 import "../../interfaces/IPool.sol";
 //import "../ssContracts/IPool.sol";
 import "@openzeppelin/contracts/utils/math/SafeMath.sol";
-import "hardhat/console.sol";
+
 
 /**
- * @title ssFixedRate
+ * @title SideStaking
  *
- * @dev ssFixedRate is a contract that during the burn-in period handles DT trades and after that monitors stakings in pools
+ * @dev SideStaking is a contract that during the burn-in period handles DT trades and after that monitors stakings in pools
  *      Called by the pool contract
  *      Every ss newDataTokenCreated function has a ssParams array, which for this contract has the following structure:
  *               - [0] - fixed rate between DT and basetoken
@@ -22,7 +22,7 @@ import "hardhat/console.sol";
  *               - [4] - basetokenBalance  = initial supply of pool
  *
  */
-contract ssFixedRate {
+contract SideStaking {
     using SafeMath for uint256;
     
     address public router;
@@ -36,10 +36,7 @@ contract ssFixedRate {
         uint256 datatokenCap; //dt cap
         uint256 basetokenBalance; //current basetoken balance
         uint256 lastPrice; //used for creating the pool
-        // rate options
         uint256 rate; // rate to exchange DT<->BaseToken
-        // bool allowDtSale; //if should allow DT to be swaped for basetoken.  Buying is always accepted
-        // vesting options
         address publisherAddress;
         uint256 blockDeployed; //when this record was created
         uint256 vestingEndBlock; //see below
@@ -230,8 +227,6 @@ contract ssFixedRate {
         address stakeToken,
         uint256 amount
     ) public view returns (bool) {
-        //TO DO
-        console.log(amount);
         require(
             msg.sender == _datatokens[datatokenAddress].poolAddress,
             "ERR: Only pool can call this"
@@ -308,7 +303,6 @@ contract ssFixedRate {
         internal
     {
         if (_datatokens[datatokenAddress].bound != true) return;
-        // require(msg.sender == _datatokens[datatokenAddress].poolAddress,'ERR: Only pool can call this');
         if (_datatokens[datatokenAddress].poolFinalized == true) return;
         _datatokens[datatokenAddress].poolFinalized = true;
         uint256 baseTokenWeight = 5 * BASE; //pool weight: 50-50

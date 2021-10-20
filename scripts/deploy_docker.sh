@@ -11,7 +11,6 @@ then
     rm -f /ocean-contracts/artifacts/ready
 
     export NETWORK="${NETWORK_NAME:-development}"
-    export ADDRESS_FILE="/ocean-contracts/artifacts/address.json"
     npx hardhat compile
     node scripts/deploy-contracts.js
 

@@ -3,13 +3,14 @@
   "version": "v1.0.0-alpha.1",
   "scripts": {
     "test:full": "npx hardhat test test/unit/*/*.test.js test/flow/*.test.js ",
-    "test:fpe": "npx hardhat test test/flow/Dispenser.test.js ",
+    "test:fpe": "npx hardhat test test/flow/FixedRateExchange.test.js ",
     "test:ss": "npx hardhat test test/flow/SideStaking.test.js ",
-    "test:swap": "npx hardhat test test/flow/SwapFees.test.js ",
-    "test:debug": "npx hardhat test test/unit/datatokens/ERC721Template.test.js ",
+    "test:pools": "npx hardhat test test/flow/SwapFees.test.js test/flow/SideStaking.test.js test/flow/Vesting.test.js",
+    "test:debug": "npx hardhat test test/unit/pools/FactoryRouter.test.js ",
     "test:v3": "npx hardhat test test/flow/V3Integration.test.js ",
-    "test:ERC721Factory": "npx hardhat test test/unit/factories/ERC721Factory.test.js",
+    "test:factory": "npx hardhat test test/unit/datatokens/ERC721Template.test.js",
     "test:flow": "npx hardhat test test/flow/*.test.js ",
+    "test:swap": "npx hardhat test test/flow/SwapFees.test.js ",
     "test:unit": "npx hardhat test test/unit/*/*.test.js ",
     "test:full:cover": "npx hardhat coverage"
   },
@@ -20,6 +21,7 @@
     "ethereum-waffle": "^3.3.0",
     "ethers": "^5.4.7",
     "hardhat": "^2.6.4",
+    "hardhat-gas-reporter": "^1.0.4",
     "solidity-coverage": "^0.7.17"
   },
   "dependencies": {

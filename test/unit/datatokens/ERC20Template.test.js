@@ -117,7 +117,7 @@ describe("ERC20Template", () => {
     const ERC721Factory = await ethers.getContractFactory("ERC721Factory");
 
     const Router = await ethers.getContractFactory("FactoryRouter");
-    const SSContract = await ethers.getContractFactory("ssFixedRate");
+    const SSContract = await ethers.getContractFactory("SideStaking");
     const BPool = await ethers.getContractFactory("BPool");
     const FixedRateExchange = await ethers.getContractFactory(
       "FixedRateExchange"
@@ -147,7 +147,7 @@ describe("ERC20Template", () => {
      []
    );
       
-   ssFixedRate = await SSContract.deploy(router.address);
+   sideStaking = await SSContract.deploy(router.address);
 
    fixedRateExchange = await FixedRateExchange.deploy(
      router.address,
@@ -173,7 +173,7 @@ describe("ERC20Template", () => {
  
    await router.addFixedRateContract(fixedRateExchange.address); // DEPLOY ROUTER, SETTING OWNER
 
-   await router.addSSContract(ssFixedRate.address)
+   await router.addSSContract(sideStaking.address)
  
 
     // by default connect() in ethers goes with the first address (owner in this case)
@@ -181,7 +181,8 @@ describe("ERC20Template", () => {
       "NFT",
       "NFTSYMBOL",
       1,
-      "0x0000000000000000000000000000000000000000"
+      "0x0000000000000000000000000000000000000000",
+      "https://oceanprotocol.com/nft/"
     );
     const txReceipt = await tx.wait();
     let event = getEventFromTx(txReceipt,'NFTCreated')

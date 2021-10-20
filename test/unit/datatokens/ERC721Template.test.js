@@ -92,7 +92,7 @@ describe("ERC721Template", () => {
     const ERC721Factory = await ethers.getContractFactory("ERC721Factory");
 
     const Router = await ethers.getContractFactory("FactoryRouter");
-    const SSContract = await ethers.getContractFactory("ssFixedRate");
+    const SSContract = await ethers.getContractFactory("SideStaking");
     const BPool = await ethers.getContractFactory("BPool");
     const FixedRateExchange = await ethers.getContractFactory(
       "FixedRateExchange"
@@ -102,6 +102,7 @@ describe("ERC721Template", () => {
     [owner, reciever, user2, user3,user4, user5, user6, provider, opfCollector, marketFeeCollector] = await ethers.getSigners();
 
     data = web3.utils.asciiToHex(constants.blob[0]);
+    dataHash = web3.utils.asciiToHex(constants.blob[0]);
     flags = web3.utils.asciiToHex(constants.blob[0]);
 
  // DEPLOY ROUTER, SETTING OWNER
@@ -119,7 +120,7 @@ describe("ERC721Template", () => {
      []
    );
       
-   ssFixedRate = await SSContract.deploy(router.address);
+   sideStaking = await SSContract.deploy(router.address);
 
    fixedRateExchange = await FixedRateExchange.deploy(
      router.address,
@@ -146,14 +147,15 @@ describe("ERC721Template", () => {
  
    await router.addFixedRateContract(fixedRateExchange.address); 
 
-   await router.addSSContract(ssFixedRate.address); 
+   await router.addSSContract(sideStaking.address); 
 
     // by default connect() in ethers goes with the first address (owner in this case)
     const tx = await factoryERC721.deployERC721Contract(
       "NFT",
       "NFTSYMBOL",
       1,
-      "0x0000000000000000000000000000000000000000"
+      "0x0000000000000000000000000000000000000000",
+      "https://oceanprotocol.com/nft/"
     );
     const txReceipt = await tx.wait();
     let event = getEventFromTx(txReceipt,'NFTCreated')
@@ -202,7 +204,8 @@ describe("ERC721Template", () => {
         "NewName",
         "NN",
         factoryERC721.address,
-        '0x0000000000000000000000000000000000000000'
+        '0x0000000000000000000000000000000000000000',
+        "https://oceanprotocol.com/nft/"
       ),
       "ERC721Template: token instance already initialized"
     );
@@ -213,10 +216,15 @@ describe("ERC721Template", () => {
     assert((await tokenERC721.balanceOf(owner.address)) == 1);
   });
 
+  it("#tokenURI - should get proper tokenURI", async () => {
+    assert((await tokenERC721.tokenURI(1)) == "https://oceanprotocol.com/nft/1");
+  });
+  
+
   it("#updateMetadata - should not be allowed to update the metadata if NOT in MetadataList", async () => {
     assert((await tokenERC721.getPermissions(user6.address)).updateMetadata == false)
     await expectRevert(
-      tokenERC721.connect(user6).setMetaData(metaDataState, metaDataDecryptorUrl, metaDataDecryptorAddress, flags, data),
+      tokenERC721.connect(user6).setMetaData(metaDataState, metaDataDecryptorUrl, metaDataDecryptorAddress, flags, data, dataHash),
       "ERC721Template: NOT METADATA_ROLE"
     );
   });
@@ -227,7 +235,7 @@ describe("ERC721Template", () => {
     let metadataInfo = await tokenERC721.getMetaData()
     assert(metadataInfo[3] === false)
 
-    let tx = await tokenERC721.connect(user6).setMetaData(metaDataState, metaDataDecryptorUrl, metaDataDecryptorAddress, flags, data);
+    let tx = await tokenERC721.connect(user6).setMetaData(metaDataState, metaDataDecryptorUrl, metaDataDecryptorAddress, flags, data, dataHash);
     let txReceipt = await tx.wait();
    
     let event = getEventFromTx(txReceipt,'MetadataCreated')
@@ -240,7 +248,7 @@ describe("ERC721Template", () => {
     assert(metadataInfo[0] == metaDataDecryptorUrl);
 
     const metaDataDecryptorUrl2 = 'http://someurl';
-    tx = await tokenERC721.connect(user6).setMetaData(metaDataState, metaDataDecryptorUrl2, metaDataDecryptorAddress, flags, data);
+    tx = await tokenERC721.connect(user6).setMetaData(metaDataState, metaDataDecryptorUrl2, metaDataDecryptorAddress, flags, data, dataHash);
     txReceipt = await tx.wait();
     event = getEventFromTx(txReceipt,'MetadataUpdated')
     assert(event, "Cannot find MetadataUpdated event")
@@ -466,148 +474,9 @@ describe("ERC721Template", () => {
     // ONLY CALLS from ERC20 contract are allowed
     await expectRevert(tokenERC721.connect(user2).setDataERC20(key,value),"ERC721Template: NOT ERC20 Contract" )
     result = await tokenERC721.getData(key)
-   // console.log(result)
+
     assert(await tokenERC721.getData(key) == '0x')
     
-  });
-
-  it("#wrapV3DT - should fail to call wrapV3DT, if NOT NFT owner", async () => {
-   
-    await expectRevert(tokenERC721.connect(user2).wrapV3DT(v3Datatoken,owner.address),"ERC721Template: not NFTOwner" )
-    
-  });
-
-  it("#wrapV3DT - should fail to call wrapV3DT, if caller is NOT ERC20 minter(v3 minter/owner as dt.minter())", async () => {
-    // NOW CALLER IS NFT OWNER BUT IS NOT DT MINTER(V3) / OWNER
-    await expectRevert(tokenERC721.wrapV3DT(v3Datatoken,owner.address),"ERC721Template: NOT ERC20 V3 datatoken owner" )
-    
-  });
-
-
-
-  it("#wrapV3DT - should succed to wrapV3DT, if caller is  v3 minter/owner as dt.minter())", async () => {
-    // v3DTOwner has to deploy a new ERC721Contract which will be the new minter
-    await impersonate(v3DTOwner)
-    signer = ethers.provider.getSigner(v3DTOwner);
-    const tx = await factoryERC721.connect(signer).deployERC721Contract(
-      "NFT2",
-      "NFTSYMBOL",
-      1,
-      "0x0000000000000000000000000000000000000000"
-    );
-    const txReceipt = await tx.wait();
-    let event = getEventFromTx(txReceipt,'NFTCreated')
-    assert(event, "Cannot find NFTCreated event")
-    tokenAddress = event.args[0];
-    
-    tokenERC721 = await ethers.getContractAt("ERC721Template", tokenAddress);
-    symbol = await tokenERC721.symbol();
-    name = await tokenERC721.name();
-    assert(await tokenERC721.v3DT(v3Datatoken) == false)
-   
-    // WE NEED TO PROPOSE MINTER in a different step
-
-    v3DTContract = await ethers.getContractAt("IV3ERC20", v3Datatoken);
-    await v3DTContract.connect(signer).proposeMinter(tokenAddress)
-
-    // V3DTOwner can now call wrapV3DT() to transfer minter permission to the erc721Contract
-    await tokenERC721.connect(signer).wrapV3DT(v3Datatoken,v3DTOwner)
-    assert(await tokenERC721.v3DT(v3Datatoken) == true)
-    assert((await tokenERC721.getPermissions(v3DTOwner)).v3Minter == true);
-  });
-
-  it("#mintV3DT - should succeed to mintV3DT, if caller has v3Minter permission", async () => {
-    
-    tokenERC721 = await migrateFromV3(v3DTOwner,v3Datatoken)
-
-    assert(await v3DTContract.balanceOf(user2.address) == 0)
-    await tokenERC721.connect(signer).mintV3DT(v3Datatoken, user2.address,  web3.utils.toWei("10"))
-    assert(await v3DTContract.balanceOf(user2.address) == web3.utils.toWei("10"))
-  });
-
-  it("#mintV3DT - should fail to mintV3DT, if caller has NO v3Minter permission", async () => {
-    tokenERC721 = await migrateFromV3(v3DTOwner,v3Datatoken)
-
-    assert((await tokenERC721.getPermissions(user2.address)).v3Minter == false);
-
-    assert(await v3DTContract.balanceOf(user2.address) == 0)
-    await expectRevert(tokenERC721.connect(user2).mintV3DT(v3Datatoken, user2.address,  web3.utils.toWei("10")),"ERC721Template: NOT v3 MINTER")
-    assert(await v3DTContract.balanceOf(user2.address) == 0)
-  });
-
-  it("#mintV3DT - should fail to mintV3DT, if v3DT is has not being wrapped", async () => {
-   
-    assert(await tokenERC721.v3DT(v3Datatoken) == false)
-    await tokenERC721.addV3Minter(owner.address)
-    assert((await tokenERC721.getPermissions(owner.address)).v3Minter == true);
-
-    assert(await v3DTContract.balanceOf(user2.address) == 0)
-    await expectRevert(tokenERC721.mintV3DT(v3Datatoken, user2.address,  web3.utils.toWei("10")),"ERC721Template: v3Datatoken not WRAPPED")
-    assert(await v3DTContract.balanceOf(user2.address) == 0)
-  });
-
-  it("#setDataV3 - should fail to call setDataV3, if it's not v3Minter", async () => {
-    const value = web3.utils.asciiToHex('SomeData')
-    assert((await tokenERC721.getPermissions(owner.address)).v3Minter == false);
-    
-    await expectRevert(tokenERC721.setDataV3(v3Datatoken, value),"ERC721Template: NOT v3Minter")
-    
-  });
-
-  it("#setDataV3 - should fail to call setDataV3, if it's not v3Datatoken is not wrapped", async () => {
-    const value = web3.utils.asciiToHex('SomeData')
-    await tokenERC721.addV3Minter(owner.address)
-    await expectRevert(tokenERC721.setDataV3(v3Datatoken, value),"ERC721Template: v3Datatoken not WRAPPED")
-    
-  });
-
-
-  it("#setDataV3 - should succeed to call setDataV3, if token is wrapped and caller has minter role", async () => {
-    tokenERC721 = await migrateFromV3(v3DTOwner,v3Datatoken)
-
-    const value = web3.utils.asciiToHex('SomeData')
-    let newData = web3.utils.asciiToHex('SomeNewData');
-
-    await tokenERC721.connect(signer).setDataV3(v3Datatoken, value)  
-
-    const key = web3.utils.keccak256(v3Datatoken);
-    assert(await tokenERC721.getData(key) == value)
-    
-    // check events on Metadata.sol
-    
-    
-    
-  });
-
-
-
-  it("#addV3Minter - should fail to addV3Minter, if caller has NOT MANAGER", async () => {
-    
-    assert((await tokenERC721.getPermissions(user2.address)).v3Minter == false);
-    await expectRevert(tokenERC721.connect(user4).addV3Minter(user2.address),"ERC721RolesAddress: NOT MANAGER")
-    assert((await tokenERC721.getPermissions(user2.address)).v3Minter == false);
-  });
-
-  it("#addV3Minter - should succeed to addV3Minter, if caller is MANAGER", async () => {
-    
-    assert((await tokenERC721.getPermissions(user2.address)).v3Minter == false);
-    await tokenERC721.connect(user2).addV3Minter(user2.address)
-    assert((await tokenERC721.getPermissions(user2.address)).v3Minter == true);
-   
-  });
-
-  it("#removeV3Minter - should fail to removeV3Minter, if caller has NOT MANAGER", async () => {
-    await tokenERC721.addV3Minter(user2.address)
-    assert((await tokenERC721.getPermissions(user2.address)).v3Minter == true);
-    await expectRevert(tokenERC721.connect(user4).removeV3Minter(user2.address),"ERC721RolesAddress: NOT MANAGER")
-    assert((await tokenERC721.getPermissions(user2.address)).v3Minter == true);
-  });
-
-  it("#removeV3Minter - should succeed to removeV3Minter, if caller is MANAGER", async () => {
-    await tokenERC721.addV3Minter(user2.address)
-    assert((await tokenERC721.getPermissions(user2.address)).v3Minter == true);
-    await tokenERC721.removeV3Minter(user2.address)
-    assert((await tokenERC721.getPermissions(user2.address)).v3Minter == false);
   });
 
   it("#transferNFT - should fail to transfer NFT, if not NFT Owner or approved relayer", async () => {
@@ -669,15 +538,41 @@ describe("ERC721Template", () => {
     );
 
     await expectRevert(
-      tokenERC721.connect(user6).setMetaData(metaDataState, metaDataDecryptorUrl, metaDataDecryptorAddress, flags, data),
+      tokenERC721.connect(user6).setMetaData(metaDataState, metaDataDecryptorUrl, metaDataDecryptorAddress, flags, data, dataHash),
       "ERC721Template: NOT METADATA_ROLE"
     );
     
 
-    await tokenERC721.connect(user2).setMetaData(metaDataState, metaDataDecryptorUrl, metaDataDecryptorAddress, flags, data);
+    await tokenERC721.connect(user2).setMetaData(metaDataState, metaDataDecryptorUrl, metaDataDecryptorAddress, flags, data, dataHash);
 
     let metadataInfo = await tokenERC721.getMetaData()
     assert(metadataInfo[3] === true)
     assert(metadataInfo[0] == metaDataDecryptorUrl);
+  });
+
+  it("#getTokensList - should return erc20 tokens list(deployed from the NFT contract)", async () => {
+    result = await tokenERC721.getTokensList();
+    expect(result[0]).to.equal(erc20Token.address)
+   
+  });
+
+  it("#isDeployed - should return true if token has been deployed from this contract", async () => {
+    assert(await tokenERC721.isDeployed(erc20Token.address) == true);
+  });
+
+
+  it("#isDeployed - should return false if token has NOT been deployed from this contract", async () => {
+    assert(await tokenERC721.isDeployed(user3.address) == false);
+  });
+
+  it("#setBaseURI - should fail to update tokenURI if NOT NFT Owner", async () => {
+    await expectRevert(tokenERC721.connect(user3).setBaseURI('https://newurl.com/nft/'),'ERC721Template: not NFTOwner')
+    assert((await tokenERC721.tokenURI(1)) == "https://oceanprotocol.com/nft/1");
+  });
+
+
+  it("#setBaseURI - should update tokenURI if NFT Owner", async () => {
+    await tokenERC721.setBaseURI('https://newurl.com/nft/')
+    assert((await tokenERC721.tokenURI(1)) == "https://newurl.com/nft/1");
   });
 });
