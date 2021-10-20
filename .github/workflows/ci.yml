@@ -34,7 +34,6 @@ jobs:
 
   tests_full:
     runs-on: ubuntu-latest
-
     steps:
       - uses: actions/checkout@v2
       - uses: actions/setup-node@v2
@@ -64,18 +63,13 @@ jobs:
     if: ${{ success() && github.actor != 'dependabot[bot]' }}
     steps:
       - uses: actions/checkout@v2
-      - name: Delete coverage directory
-        run: rm -rf ${{ github.workspace }}/coverage
       - uses: actions/download-artifact@v2
         with:
           name: coverage
           path: coverage/
-      - name: Print directories
-        run: ls -a
       - uses: paambaati/codeclimate-action@v2.7.5
         env:
           CC_TEST_REPORTER_ID: ${{ secrets.CC_TEST_REPORTER_ID }}
         with:
-
           coverageLocations: |
             ${{ github.workspace }}/coverage/lcov.info:lcov
