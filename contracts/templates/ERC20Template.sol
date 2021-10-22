@@ -386,7 +386,7 @@ contract ERC20Template is ERC20("test", "testSymbol"), ERC20Roles, ERC20Burnable
         if(communityFeePublish>0 && communityFeeConsume>0 && consumeFeeToken == publishMarketFeeToken){
             //since both fees are in the same token, have just one transaction for both, to save gas
             require(IERC20(consumeFeeToken)
-            .transfer(_communityFeeCollector,communityFeePublish.sub(communityFeeConsume))
+            .transfer(_communityFeeCollector,communityFeePublish.add(communityFeeConsume))
             , 'Failed to transfer both fees to OPF');
         }
         else{
