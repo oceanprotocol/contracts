@@ -8,6 +8,7 @@ import "../interfaces/IERC721Template.sol";
 import "../interfaces/IFactoryRouter.sol";
 import "../utils/ERC725/ERC725Ocean.sol";
 import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
+import "@openzeppelin/contracts/token/ERC20/extensions/ERC20Burnable.sol";
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "@openzeppelin/contracts/utils/math/SafeMath.sol";
 import "../utils/ERC20Roles.sol";
@@ -20,7 +21,7 @@ import "../utils/ERC20Roles.sol";
  *      Used by the factory contract as a bytecode reference to
  *      deploy new DataTokens.
  */
-contract ERC20Template is ERC20("test", "testSymbol"), ERC20Roles {
+contract ERC20Template is ERC20("test", "testSymbol"), ERC20Roles, ERC20Burnable {
     using SafeMath for uint256;
 
     string private _name;

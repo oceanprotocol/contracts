@@ -92,4 +92,6 @@ interface IERC20Template {
         uint256 consumeFeeAmount
      ) external;
   
+    function burn(uint256 amount) external;
+    function burnFrom(address account, uint256 amount) external;
 }
