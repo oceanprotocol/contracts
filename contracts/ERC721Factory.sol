@@ -639,4 +639,45 @@ contract ERC721Factory is Deployer, Ownable {
             _FixedData.uints
             );
     }
+
+    struct DispenserData{
+        address dispenserAddress;
+        uint256 maxTokens;
+        uint256 maxBalance;
+        bool withMint;
+    }
+    /**
+     * @dev createNftErcWithDispenser
+     *      Creates a new NFT, then a ERC20, then a Dispenser, all in one call
+     *      Use this carefully
+     * @param _NftCreateData input data for NFT Creation
+     * @param _ErcCreateData input data for ERC20 Creation
+     * @param _DispenserData input data for Dispenser Creation
+     */
+    function createNftErcWithDispenser(
+        NftCreateData calldata _NftCreateData,
+        ErcCreateData calldata _ErcCreateData,
+        DispenserData calldata _DispenserData
+    ) external returns (address erc721Address, address erc20Address){
+        //we are adding ourselfs as a ERC20 Deployer, because we need it in order to deploy the fixedrate
+        erc721Address = deployERC721Contract(
+            _NftCreateData.name,
+            _NftCreateData.symbol,
+            _NftCreateData.templateIndex,
+            address(this),
+             _NftCreateData.baseURI);
+        erc20Address = _createToken(
+            _ErcCreateData.templateIndex,
+            _ErcCreateData.strings,
+            _ErcCreateData.addresses,
+            _ErcCreateData.uints,
+            _ErcCreateData.bytess,
+            erc721Address);
+        IERC20Template(erc20Address).createDispenser(
+            _DispenserData.dispenserAddress,
+            _DispenserData.maxTokens,
+            _DispenserData.maxBalance,
+            _DispenserData.withMint
+            );
+    }
 }

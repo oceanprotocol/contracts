@@ -155,7 +155,7 @@ async function main() {
   if (logging) console.info("Adding fixedPriceExchange.address")  
   await router.connect(owner).addFixedRateContract(fixedPriceExchange.address);
   if (logging) console.info("Adding dispenser.address")  
-  await router.connect(owner).addFixedRateContract(dispenser.address);
+  await router.connect(owner).addDispenserContract(dispenser.address);
   if (logging) console.info("Adding ssPool.address")  
   await router.connect(owner).addSSContract(ssPool.address)
   if (logging) console.info("Moving Router ownership")  

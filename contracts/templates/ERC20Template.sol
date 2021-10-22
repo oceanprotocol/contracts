@@ -280,6 +280,27 @@ contract ERC20Template is ERC20("test", "testSymbol"), ERC20Roles {
     }
 
     /**
+     * @dev createDispenser
+     *      Creates a new Dispenser
+     * @param _dispenser dispenser contract address
+     * @param maxTokens - max tokens to dispense
+     * @param maxBalance - max balance of requester.
+     */
+    function createDispenser(
+        address _dispenser,
+        uint256 maxTokens,
+        uint256 maxBalance,
+        bool withMint
+    ) external onlyERC20Deployer {
+        IFactoryRouter(router).deployDispenser(
+            _dispenser, address(this), maxTokens, maxBalance, msg.sender );
+        // add FixedPriced contract as minter if withMint == true
+        if (withMint == true)
+            _addMinter(_dispenser);
+        
+    }
+
+    /**
      * @dev mint
      *      Only the minter address can call it.
      *      msg.value should be higher than zero and gt or eq minting fee
