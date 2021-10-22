@@ -855,5 +855,57 @@ describe("ERC20Template", () => {
     const templateId = 1;
     assert((await erc20Token.getId()) == templateId);
   });
+  it("#burn - user should succeed to burn tokens", async () => {
+    
+    //MINT SOME DT20 to USER2 so he can try to burn
+    await erc20Token.connect(user3).mint(user2.address, web3.utils.toWei("10"));
+    const burnAmount = web3.utils.toWei("2") 
+    assert(
+      (await erc20Token.balanceOf(user2.address)) == web3.utils.toWei("10")
+      , 'Invalid user balance, DT was not minted'
+    );
+    const totalSupply = await erc20Token.totalSupply()
+    
+    await erc20Token
+      .connect(user2)
+      .burn(burnAmount);
+        
 
+    assert(
+      (await erc20Token.balanceOf(user2.address)) == web3.utils.toWei("8"), 'Invalid user balance, DT was not substracted'
+    );
+    const newTotalSupply = await erc20Token.totalSupply()
+    const expectedSupply = totalSupply.sub(burnAmount)
+    assert(
+      (totalSupply.sub(burnAmount).eq(newTotalSupply))
+      , 'Invalid total supply'
+    );
+  });
+  it("#burnFrom - user3 should succeed to burn some user2's tokens using burnFrom", async () => {
+    
+    //MINT SOME DT20 to USER2 so he can try to burn
+    await erc20Token.connect(user3).mint(user2.address, web3.utils.toWei("10"));
+    const burnAmount = web3.utils.toWei("2")
+    assert(
+      (await erc20Token.balanceOf(user2.address)) == web3.utils.toWei("10")
+      , 'Invalid user balance, DT was not minted'
+    );
+    const totalSupply = await erc20Token.totalSupply()
+    //allow user3 to burn
+    await erc20Token.connect(user2).approve(user3.address, web3.utils.toWei(burnAmount));
+    await erc20Token
+      .connect(user3)
+      .burnFrom(user2.address,burnAmount);
+        
+
+    assert(
+      (await erc20Token.balanceOf(user2.address)) == web3.utils.toWei("8"), 'Invalid user balance, DT were not burned'
+    );
+    const newTotalSupply = await erc20Token.totalSupply()
+    const expectedSupply = totalSupply.sub(burnAmount)
+    assert(
+      (totalSupply.sub(burnAmount).eq(newTotalSupply))
+      , 'Invalid total supply'
+    );
+  });
 });
