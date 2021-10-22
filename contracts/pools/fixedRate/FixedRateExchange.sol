@@ -493,7 +493,7 @@ contract FixedRateExchange {
     }
 
     function collectMarketFee(bytes32 exchangeId) external {
-        // TODO: should we limit access to this function?
+        // anyone call call this function, because funds are sent to the correct address
         uint256 amount = exchanges[exchangeId].marketFeeAvailable;
         exchanges[exchangeId].marketFeeAvailable = 0;
         IERC20Template(exchanges[exchangeId].baseToken).transfer(
@@ -508,7 +508,7 @@ contract FixedRateExchange {
     }
 
     function collectOceanFee(bytes32 exchangeId) external {
-        // TODO:should we limit access to this function?
+        // anyone call call this function, because funds are sent to the correct address
         uint256 amount = exchanges[exchangeId].oceanFeeAvailable;
         exchanges[exchangeId].oceanFeeAvailable = 0;
         IERC20Template(exchanges[exchangeId].baseToken).transfer(
@@ -559,12 +559,12 @@ contract FixedRateExchange {
     }
 
     /**
-     * @dev setWithMint
+     * @dev toggleMintState
      *      toggle withMint state
      * @param exchangeId a unique exchange idnetifier
      * @param withMint new value
      */
-    function setRate(bytes32 exchangeId, bool withMint)
+    function toggleMintState(bytes32 exchangeId, bool withMint)
         external
         onlyExchangeOwner(exchangeId)
     {
