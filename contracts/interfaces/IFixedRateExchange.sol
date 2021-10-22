@@ -1,16 +1,6 @@
 pragma solidity >=0.5.7;
 
 interface IFixedRateExchange {
-    function create(
-        address baseToken,
-        address dataToken,
-        uint256 fixedRate,
-        address owner,
-        uint256 marketFee,
-        address marketFeeCollector,
-        uint256 opfFee
-    ) external returns (bytes32 exchangeId);
-
     function createWithDecimals(
         address dataToken,
         address[] calldata addresses, // [baseToken,owner,marketFeeCollector]
@@ -18,7 +8,7 @@ interface IFixedRateExchange {
     ) external returns (bytes32 exchangeId);
 
     function buyDT(bytes32 exchangeId, uint256 dataTokenAmount) external;
-    
+
     function getExchange(bytes32 exchangeId)
         external
         view
@@ -33,8 +23,22 @@ interface IFixedRateExchange {
             uint256 dtSupply,
             uint256 btSupply,
             uint256 dtBalance,
-            uint256 btBalance
+            uint256 btBalance,
+            bool withMint
         );
+
+    function getFeesInfo(bytes32 exchangeId)
+        external
+        view
+        returns (
+            uint256 marketFee,
+            address marketFeeCollector,
+            uint256 opfFee,
+            uint256 marketFeeAvailable,
+            uint256 oceanFeeAvailable
+        );
+
+    function isActive(bytes32 exchangeId) external view returns (bool);
 
     function calcBaseInGivenOutDT(bytes32 exchangeId, uint256 dataTokenAmount)
         external
