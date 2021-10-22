@@ -8,7 +8,7 @@ const {
   time,
 } = require("@openzeppelin/test-helpers");
 const { impersonate } = require("../helpers/impersonate");
-const {getEventFromTx} = require("../helpers/utils")
+const { getEventFromTx } = require("../helpers/utils")
 const constants = require("../helpers/constants");
 const { web3, BN } = require("@openzeppelin/test-helpers/src/setup");
 const { keccak256 } = require("@ethersproject/keccak256");
@@ -20,6 +20,7 @@ describe("Dispenser", () => {
   let alice, // DT Owner and exchange Owner
     exchangeOwner,
     bob, // BaseToken Holder
+    charlie,
     dispenser,
     rate,
     MockERC20,
@@ -32,6 +33,7 @@ describe("Dispenser", () => {
     templateERC721,
     templateERC20,
     erc20Token,
+    erc20Token2,
     oceanContract,
     oceanOPFBalance,
     daiContract,
@@ -80,10 +82,11 @@ describe("Dispenser", () => {
     alice = user3;
     exchangeOwner = user3;
     bob = user4;
+    charlie = user5;
 
     rate = web3.utils.toWei("1");
 
-   
+
 
 
     data = web3.utils.asciiToHex("SomeData");
@@ -116,14 +119,14 @@ describe("Dispenser", () => {
     );
 
     // SET REQUIRED ADDRESS
-    
+
 
     await router.addFactory(factoryERC721.address);
 
-    await router.addFixedRateContract(dispenser.address);
+    await router.addDispenserContract(dispenser.address);
 
     await router.addSSContract(sideStaking.address)
-    
+
   });
 
   it("#1 - owner deploys a new ERC721 Contract", async () => {
@@ -136,7 +139,7 @@ describe("Dispenser", () => {
       "https://oceanprotocol.com/nft/"
     );
     const txReceipt = await tx.wait();
-    const event = getEventFromTx(txReceipt,'NFTCreated')
+    const event = getEventFromTx(txReceipt, 'NFTCreated')
     assert(event, "Cannot find NFTCreated event")
     tokenAddress = event.args[0];
     tokenERC721 = await ethers.getContractAt("ERC721Template", tokenAddress);
@@ -159,288 +162,148 @@ describe("Dispenser", () => {
     );
   });
 
-  
-  describe("#1 - Exchange with baseToken(USDC) 6 Decimals and dataToken 18 Decimals, RATE = 0", async () => {
-   
+
+  describe("#1 - Dispenser", async () => {
+
     amountDTtoSell = web3.utils.toWei("10000"); // exact amount so that we can check if balances works
     marketFee = 0
     it("#1 - user3 (alice) create a new erc20DT, assigning herself as minter", async () => {
       const trxERC20 = await tokenERC721.connect(user3).createERC20(1,
-        ["ERC20DT1","ERC20DT1Symbol"],
-        [user3.address,user6.address, user3.address,'0x0000000000000000000000000000000000000000'],
-        [cap,0],
+        ["ERC20DT1", "ERC20DT1Symbol"],
+        [user3.address, user6.address, user3.address, '0x0000000000000000000000000000000000000000'],
+        [cap, 0],
         []
       );
       const trxReceiptERC20 = await trxERC20.wait();
-      const event = getEventFromTx(trxReceiptERC20,'TokenCreated')
+      const event = getEventFromTx(trxReceiptERC20, 'TokenCreated')
       assert(event, "Cannot find TokenCreated event")
       erc20Address = event.args[0];
-      
+
       erc20Token = await ethers.getContractAt("ERC20Template", erc20Address);
       assert((await erc20Token.permissions(user3.address)).minter == true);
 
-      await erc20Token.connect(alice).mint(alice.address, cap);
-      expect(await erc20Token.balanceOf(alice.address)).to.equal(cap);
 
       mockDT18 = erc20Token;
     });
 
-    it("#2 - create exchange", async () => {
-      rate = 0
-
-      // interface has been modified a bit to be compatible with router etc. if this is going to stay, will update that to be more flexible
-      receipt = await (
-        await mockDT18
-          .connect(alice)
-          .createFixedRate(
-            dispenser.address,
-            [alice.address],
-            [18]
-          )
-      ).wait(); // from exchangeOwner (alice)
-
-      eventsExchange = receipt.events.filter((e) => e.event === "NewFixedRate");
-
-      expect(eventsExchange[0].args.owner).to.equal(alice.address);
-    });
-
-    it("#3 - exchange is active", async () => {
-      const isActive = await dispenser.isActive(
-        eventsExchange[0].args.exchangeId
+    it("#2 - user3 (alice) create a new erc20DT, assigning herself as minter", async () => {
+      const trxERC20 = await tokenERC721.connect(user3).createERC20(1,
+        ["ERC20DT1", "ERC20DT1Symbol"],
+        [user3.address, user6.address, user3.address, '0x0000000000000000000000000000000000000000'],
+        [cap, 0],
+        []
       );
-      assert(isActive === true, "Exchange was not activated correctly!");
-    });
+      const trxReceiptERC20 = await trxERC20.wait();
+      const event = getEventFromTx(trxReceiptERC20, 'TokenCreated')
+      assert(event, "Cannot find TokenCreated event")
+      erc20Address = event.args[0];
 
-    it("#4 - should check that the exchange has no supply yet", async () => {
-      const exchangeDetails = await dispenser.getExchange(
-        eventsExchange[0].args.exchangeId
-      );
-      expect(exchangeDetails.dtSupply).to.equal(0);
-    });
+      erc20Token2 = await ethers.getContractAt("ERC20Template", erc20Address);
+      assert((await erc20Token2.permissions(user3.address)).minter == true);
 
-    it("#5 - alice approves Dispenser to spend tokens", async () => {
-      // alice approves how many DT tokens wants to sell
-      // we only approve an exact amount
-      await mockDT18
-        .connect(alice)
-        .approve(dispenser.address, amountDTtoSell);
+
 
     });
 
-    it("#6 - should check that the exchange has supply ", async () => {
-      // NOW dtSupply has increased (because alice(exchangeOwner) approved DT). Bob approval has no effect on this
-      const exchangeDetails = await dispenser.getExchange(
-        eventsExchange[0].args.exchangeId
-      );
-      expect(exchangeDetails.dtSupply).to.equal(amountDTtoSell);
-     
-    
-    });
+    it('#2 - Alice creates a dispenser with minter role', async () => {
+      let tx = await erc20Token.connect(alice).createDispenser(
+        dispenser.address, web3.utils.toWei('1'), web3.utils.toWei('1'), true)
+      assert(tx,
+        'Cannot activate dispenser')
+    })
+    it('#3 - Alice gets the dispenser status', async () => {
+      const status = await dispenser.status(erc20Token.address)
+      assert(status.active === true, 'Dispenser not active')
+      assert(status.owner === alice.address, 'Dispenser owner is not alice')
+      assert(status.isMinter === true, 'Dispenser is not a minter')
+    })
 
-
-    it("#7 - Bob should get 50% DataTokens available(50% amount exchangeOwner approved) using the fixed rate exchange contract", async () => {
-      const dtBobBalanceBeforeSwap = await mockDT18.balanceOf(bob.address);
-      expect(dtBobBalanceBeforeSwap).to.equal(0); // BOB HAS NO DT
-      
-
-      // BOB is going to buy 50% of all DT availables
-      amountDT = web3.utils.toWei('5000')
-      const receipt = await (
-        await dispenser
-          .connect(bob)
-          .getDT(eventsExchange[0].args.exchangeId, amountDT)
-      ).wait();
-
-      const SwappedEvent = receipt.events.filter((e) => e.event === "TokenDispensed");
-
-      const args = SwappedEvent[0].args;
-   
-
-      // BOB's DTbalance has increased
-      const dtBobBalanceAfterSwap = await mockDT18.balanceOf(bob.address);
-      expect(dtBobBalanceAfterSwap).to.equal(
-        SwappedEvent[0].args.dataTokenSwappedAmount.add(dtBobBalanceBeforeSwap)
-      );
-
-
-      // BT are into the FixedRate contract.
-      const exchangeDetails = await dispenser.getExchange(
-        eventsExchange[0].args.exchangeId
-      );
-      
-
-      // Bob bought all DT on sale so now dtSupply is half (equal to amountDT)
-      expect(exchangeDetails.dtSupply).to.equal(amountDT);
-
-    
-      
-     
-    });
-
-
-    it("#8- Bob buys  20% of DataTokens available", async () => {
-      const exchangeDetailsBefore = await dispenser.getExchange(
-        eventsExchange[0].args.exchangeId
-      );
-
-      const dtBobBalanceBeforeSwap = await mockDT18.balanceOf(bob.address);
-    
-      console.log(dtBobBalanceBeforeSwap.toString())
-      expect(dtBobBalanceBeforeSwap).to.equal(web3.utils.toWei("5000")); // BOB HAS NO DT
- 
-
-      // BOB is going to buy20% of  all DT availables
-      amountDT = web3.utils.toWei("2000");
-      const receipt = await (
-        await dispenser
-          .connect(bob)
-          .getDT(eventsExchange[0].args.exchangeId, amountDT)
-      ).wait();
-
-      const SwappedEvent = receipt.events.filter((e) => e.event === "TokenDispensed");
-      const args = SwappedEvent[0].args;
-
-     
-
-      // BOB's DTbalance has increased
-      const dtBobBalanceAfterSwap = await mockDT18.balanceOf(bob.address);
-      expect(dtBobBalanceAfterSwap).to.equal(
-        SwappedEvent[0].args.dataTokenSwappedAmount.add(dtBobBalanceBeforeSwap)
-      );
-
-     
-
-
-      const exchangeDetailsAfter = await dispenser.getExchange(
-        eventsExchange[0].args.exchangeId
-      );
-
-     
-
-      // Bob bought 20% of  DT on sale so now dtSupply decreased
-      expect(exchangeDetailsAfter.dtSupply).to.equal(
-        exchangeDetailsBefore.dtSupply.sub(
-          SwappedEvent[0].args.dataTokenSwappedAmount
-        )
-      );
-
-      
-
-    });
-
-
-    it("#9 - Bob get back all DT left (30%) of DataTokens available", async () => {
-      const exchangeDetailsBefore = await dispenser.getExchange(
-        eventsExchange[0].args.exchangeId
-      );
-
-      const dtBobBalanceBeforeSwap = await mockDT18.balanceOf(bob.address);
-   
-      expect(dtBobBalanceBeforeSwap).to.equal(web3.utils.toWei("7000")); // BOB HAS 50% of initial DT available
-    
-
-      // BOB is going to buy 30% of  all DT availables
-      amountDT = web3.utils.toWei("3000");
-      const receipt = await (
-        await dispenser
-          .connect(bob)
-          .getDT(eventsExchange[0].args.exchangeId, amountDT)
-      ).wait();
-
-      const SwappedEvent = receipt.events.filter((e) => e.event === "TokenDispensed");
-
-      const args = SwappedEvent[0].args;
-     
-      // BOB's DTbalance has increased
-      const dtBobBalanceAfterSwap = await mockDT18.balanceOf(bob.address);
-      expect(dtBobBalanceAfterSwap).to.equal(
-        SwappedEvent[0].args.dataTokenSwappedAmount.add(dtBobBalanceBeforeSwap)
-      );
-
-  
-
-      // BT are into the FixedRate contract.
-      const exchangeDetailsAfter = await dispenser.getExchange(
-        eventsExchange[0].args.exchangeId
-      );
-
-   
-      // Bob got 20% of  DTs so now dtSupply decreased
-      expect(exchangeDetailsAfter.dtSupply).to.equal(
-        exchangeDetailsBefore.dtSupply.sub(
-          SwappedEvent[0].args.dataTokenSwappedAmount
-        )
-      );
-
-
-
-   
-    });
-
-
-    it("#10 - Bob attermps to buy more DT but fails, then alice approves more and he succeeds", async () => {
-      const exchangeDetailsBefore = await dispenser.getExchange(
-        eventsExchange[0].args.exchangeId
-      );
-
-      const dtBobBalanceBeforeSwap = await mockDT18.balanceOf(bob.address);
-   
-      expect(dtBobBalanceBeforeSwap).to.equal(amountDTtoSell); // BOB HAS 100% of initial DT available
-   
-      // BOB is going to buy more DT but fails because alice hasn't approved more
-      amountDT = web3.utils.toWei("8000");
-
-      expect(exchangeDetailsBefore.dtSupply).to.equal(0);
-
+    it('#4 - Bob requests more datatokens then allowed', async () => {
       await expectRevert(
         dispenser
           .connect(bob)
-          .getDT(eventsExchange[0].args.exchangeId, amountDT),
-        "ERC20: transfer amount exceeds allowance"
+          .dispense(erc20Token.address, web3.utils.toWei('10')),
+        "Amount too high"
       );
-
-      // now alice approves more DT (8000)
-
-      await mockDT18
-        .connect(alice)
-        .approve(dispenser.address, amountDT);
-
-      expect(
-        (await dispenser.getExchange(eventsExchange[0].args.exchangeId))
-          .dtSupply
-      ).to.equal(amountDT);
-
-      // Now bob can get more
-      const receipt = await (
-        await dispenser
+    })
+    it('Bob requests datatokens', async () => {
+      const tx = await dispenser.connect(bob).dispense(erc20Token.address, web3.utils.toWei('1'))
+      assert(tx,
+        'Bob failed to get 1DT')
+    })
+    it('Bob requests more datatokens but he exceeds maxBalance', async () => {
+      await expectRevert(
+        dispenser
           .connect(bob)
-          .getDT(eventsExchange[0].args.exchangeId, amountDT)
-      ).wait();
-
-      const SwappedEvent = receipt.events.filter((e) => e.event === "TokenDispensed");
-      const args = SwappedEvent[0].args;
-      
-
-      // BOB's DTbalance has increased
-      const dtBobBalanceAfterSwap = await mockDT18.balanceOf(bob.address);
-      expect(dtBobBalanceAfterSwap).to.equal(
-        SwappedEvent[0].args.dataTokenSwappedAmount.add(dtBobBalanceBeforeSwap)
+          .dispense(erc20Token.address, web3.utils.toWei('1')),
+        "Caller balance too high"
       );
-
-    
-
-      const exchangeDetailsAfter = await dispenser.getExchange(
-        eventsExchange[0].args.exchangeId
+    })
+    it('Alice deactivates the dispenser', async () => {
+      await dispenser.connect(alice).deactivate(erc20Token.address)
+      const status = await dispenser.status(erc20Token.address)
+      assert(status.active === false, 'Dispenser is still active')
+    })
+    it('Charlie should fail to get datatokens', async () => {
+      await expectRevert(
+        dispenser
+          .connect(charlie)
+          .dispense(erc20Token.address, web3.utils.toWei('1')),
+        "Dispenser not active"
       );
+    })
 
-  
-      // Bob got again alls DT on sale so now dtSupply is 0
-      expect(exchangeDetailsAfter.dtSupply).to.equal(0);
+    it('Bob should fail to activate a dispenser for a token for he is not a mineter', async () => {
+      await expectRevert(
+        dispenser
+          .connect(bob)
+          .activate(erc20Token.address, web3.utils.toWei('1'), web3.utils.toWei('1')),
+        "Invalid owner"
+      );
+    })
 
-    });
+    it('Alice creates a dispenser without minter role', async () => {
+      const tx = await erc20Token2.connect(alice).createDispenser(
+        dispenser.address, web3.utils.toWei('1'), web3.utils.toWei('1'), false)
+      assert(tx,
+        'Cannot activate dispenser')
+    })
+    it('Bob requests datatokens but there are none', async () => {
+      await expectRevert(
+        dispenser
+          .connect(bob)
+          .dispense(erc20Token2.address, web3.utils.toWei('1')),
+        "Not enough reserves"
+      );
+    })
+    it('Alice mints tokens and transfer them to the dispenser.', async () => {
+      await erc20Token2.connect(alice).mint(dispenser.address, cap)
+      const status = await dispenser.status(erc20Token2.address)
+      assert(status.balance.eq(await erc20Token2.balanceOf(dispenser.address)), 'Balances do not match')
+    })
+    it('Bob requests datatokens', async () => {
+      const tx = await dispenser.connect(bob).dispense(erc20Token2.address, web3.utils.toWei('1'))
+      assert(tx,
+        'Bob failed to get 1DT')
+    })
+    it('Bob tries to withdraw all datatokens', async () => {
+      await expectRevert(
+        dispenser
+          .connect(bob)
+          .ownerWithdraw(erc20Token2.address),
+        "Invalid owner"
+      );
+    })
+    it('Alice withdraws all datatokens', async () => {
+      const tx = await dispenser.connect(alice).ownerWithdraw(erc20Token2.address)
+      assert(tx,
+        'ALice failed to withdraw all datatokens')
+      const status = await dispenser.status(erc20Token2.address)
+      assert(status.balance.eq(0), 'Balance > 0')
+    })
 
- 
 
 
   });
+
 });

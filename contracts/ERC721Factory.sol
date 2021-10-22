@@ -64,7 +64,7 @@ contract ERC721Factory is Deployer, Ownable {
 
 
     event NewFixedRate(bytes32 exchangeId, address owner);
-
+    event DispenserCreated(address indexed datatokenAddress);
     
 
     /**

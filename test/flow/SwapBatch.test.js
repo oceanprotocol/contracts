@@ -195,7 +195,7 @@ describe("Batch Swap", () => {
 
     await router.addFixedRateContract(fixedRateExchange.address);
 
-    await router.addFixedRateContract(dispenser.address);
+    await router.addDispenserContract(dispenser.address);
 
     await router.addSSContract(sideStaking.address);
   });
@@ -613,7 +613,7 @@ describe("Batch Swap", () => {
     });
   });
 
-  describe("#5 - Exchange with baseToken(USDC) 6 Decimals and dataToken 18 Decimals, RATE = 0", async () => {
+  describe("#5 - Dispenser", async () => {
     amountDTtoSell = web3.utils.toWei("10000"); // exact amount so that we can check if balances works
     marketFee = 0;
     it("#1 - user3 create a new erc20DT, assigning herself as minter", async () => {
@@ -639,8 +639,7 @@ describe("Batch Swap", () => {
       erc20Token5 = await ethers.getContractAt("ERC20Template", erc20Address);
       assert((await erc20Token.permissions(user3.address)).minter == true);
 
-      await erc20Token5.connect(user3).mint(user3.address, cap);
-      expect(await erc20Token5.balanceOf(user3.address)).to.equal(cap);
+      
     });
 
     it("#2 - create exchange", async () => {
@@ -650,37 +649,16 @@ describe("Batch Swap", () => {
       receipt = await (
         await erc20Token5
           .connect(user3)
-          .createFixedRate(dispenser.address, [user3.address], [18])
+          .createDispenser(
+            dispenser.address, web3.utils.toWei('1'), web3.utils.toWei('1'), true)
+          
       ).wait(); // from exchangeOwner (user3)
-
-      eventsExchange = receipt.events.filter((e) => e.event === "NewFixedRate");
-
-      expect(eventsExchange[0].args.owner).to.equal(user3.address);
+      const status = await dispenser.status(erc20Token5.address)
+      
+      expect(status.owner).to.equal(user3.address);
+      expect(status.active).to.equal(true);
     });
 
-    it("#3 - exchange is active", async () => {
-      const isActive = await dispenser.isActive(
-        eventsExchange[0].args.exchangeId
-      );
-      exchangeIdDispenser = eventsExchange[0].args.exchangeId
-
-      assert(isActive === true, "Exchange was not activated correctly!");
-    });
-
-    it("#4 - should check that the exchange has no supply yet", async () => {
-      const exchangeDetails = await dispenser.getExchange(
-        eventsExchange[0].args.exchangeId
-      );
-      expect(exchangeDetails.dtSupply).to.equal(0);
-    });
-
-    it("#5 - user3 approves Dispenser to spend tokens", async () => {
-      // user3 approves how many DT tokens wants to sell
-      // we only approve an exact amount
-      await erc20Token5
-        .connect(user3)
-        .approve(dispenser.address, amountDTtoSell);
-    });
   });
 
   describe("user4 attemps to buy 5 different DTs from different type of exchanges", async () => {
@@ -747,12 +725,12 @@ describe("Batch Swap", () => {
       };
 
       const operations5 = {
-        exchangeIds: exchangeIdDispenser,
+        exchangeIds: keccak256("0x00"),
         source: dispenser.address,
         operation: 3, // DISPENSER
         tokenIn: oceanContract.address, // unused in this case
         amountsIn: web3.utils.toWei("10"), // unused in this case
-        tokenOut: erc20Token4.address,
+        tokenOut: erc20Token5.address,
         amountsOut: web3.utils.toWei('1'),  // DT we want to receive
         maxPrice: web3.utils.toWei('100') // unused in this case
       };
