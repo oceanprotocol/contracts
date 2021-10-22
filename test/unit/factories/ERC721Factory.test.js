@@ -62,6 +62,9 @@ describe("ERC721Factory", () => {
     const FixedRateExchange = await ethers.getContractFactory(
       "FixedRateExchange"
     );
+    const Dispenser = await ethers.getContractFactory(
+      "Dispenser"
+    );
 
 
     [owner, reciever, user2, user3,user4, user5, user6, provider, opfCollector, marketFeeCollector, publishMarketAccount] = await ethers.getSigners();
@@ -92,6 +95,10 @@ describe("ERC721Factory", () => {
      router.address,
      opfCollector.address
    );
+
+   dispenser = await Dispenser.deploy(
+    router.address
+  );
  
    templateERC20 = await ERC20Template.deploy();
  
@@ -112,6 +119,7 @@ describe("ERC721Factory", () => {
    await router.addFactory(factoryERC721.address);
  
    await router.addFixedRateContract(fixedRateExchange.address); 
+   await router.addDispenserContract(dispenser.address); 
 
    await router.addSSContract(sideStaking.address)
     
@@ -1098,7 +1106,7 @@ describe("ERC721Factory", () => {
 
         "fixedPriceAddress":fixedRateExchange.address,
         "addresses":[erc20TokenWithPublishFee.address,user3.address,user6.address],
-        "uints":[18,18,rate,marketFee]
+        "uints":[18,18,rate,marketFee,0]
        
       }
       );
@@ -1126,6 +1134,60 @@ describe("ERC721Factory", () => {
     );
     assert(await Erc20ontract.name() === "ERC20WithPool");
 
+    
+  });
+
+  it("#createNftWithErcWithDispenser - should create a new erc721 and new erc20 and a Dispenser in one single call and get their addresses", async () => {    
+    const marketFee = 1e15;
+    const rate = web3.utils.toWei("1");
+    const tx = await factoryERC721.createNftErcWithDispenser(
+      {
+      "name": "72120PBundle",
+      "symbol": "72PBundle",
+      "templateIndex": 1, 
+      "baseURI":"https://oceanprotocol.com/nft/" 
+      },
+      {
+      "strings":["ERC20WithPool","ERC20P"],
+      "templateIndex":1,
+      "addresses":[user3.address,user6.address,user3.address,"0x0000000000000000000000000000000000000000"],
+      "uints":[cap,0],
+      "bytess":[]
+      },
+      {
+        "dispenserAddress":dispenser.address,
+        "maxTokens":web3.utils.toWei("1"),
+        "maxBalance":web3.utils.toWei("1"),
+        "withMint":true
+      }
+      );
+
+    const txReceipt = await tx.wait();
+    let event = getEventFromTx(txReceipt,'NFTCreated')
+    assert(event, "Cannot find NFTCreated event")
+    const nftAddress = event.args[0];
+    event = getEventFromTx(txReceipt,'TokenCreated')
+    assert(event, "Cannot find TokenCreated event")
+    const erc20Address = event.args[0];
+
+    event = getEventFromTx(txReceipt,'DispenserCreated')
+    assert(event, "Cannot find DispenserCreated event")
+    const dispenserToken = event.args[0];
+
+    const NftContract = await ethers.getContractAt(
+      "contracts/interfaces/IERC721Template.sol:IERC721Template",
+      nftAddress
+    );
+    assert(await NftContract.name() === "72120PBundle");
+    const Erc20ontract = await ethers.getContractAt(
+      "contracts/interfaces/IERC20Template.sol:IERC20Template",
+      erc20Address
+    );
+    assert(await Erc20ontract.name() === "ERC20WithPool");
+
+    const dispenserStatus = await dispenser.status(erc20Address)
+    assert(dispenserStatus.active==true)
+    assert(dispenserToken === erc20Address)
     
   });
 });

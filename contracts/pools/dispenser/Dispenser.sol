@@ -22,14 +22,14 @@ contract Dispenser {
     address[] public datatokensList;
     
     
-    event Created(  // emited when a dispenser is created
+    event DispenserCreated(  // emited when a dispenser is created
         address indexed datatokenAddress
     );
-    event Activated(  // emited when a dispenser is activated
+    event DispenserActivated(  // emited when a dispenser is activated
         address indexed datatokenAddress
     );
 
-    event Deactivated( // emited when a dispenser is deactivated
+    event DispenserDeactivated( // emited when a dispenser is deactivated
         address indexed datatokenAddress
     );
 
@@ -103,7 +103,7 @@ contract Dispenser {
         datatokens[datatoken].maxTokens = maxTokens;
         datatokens[datatoken].maxBalance = maxBalance;
         datatokensList.push(datatoken);
-        emit Created(datatoken);
+        emit DispenserCreated(datatoken);
     }
     /**
      * @dev activate
@@ -125,7 +125,7 @@ contract Dispenser {
         datatokens[datatoken].maxTokens = maxTokens;
         datatokens[datatoken].maxBalance = maxBalance;
         datatokensList.push(datatoken);
-        emit Activated(datatoken);
+        emit DispenserActivated(datatoken);
     }
 
     /**
@@ -143,7 +143,7 @@ contract Dispenser {
             'DataToken already activated'
         );
         datatokens[datatoken].active = false;
-        emit Deactivated(datatoken);
+        emit DispenserDeactivated(datatoken);
     }
 
     
