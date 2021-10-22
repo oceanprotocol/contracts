@@ -42,6 +42,8 @@ interface IERC20Template {
     ) external returns (bool);
 
     function mint(address account, uint256 value) external;
+    
+    function isMinter(address account) external view returns (bool);
 
     function DOMAIN_SEPARATOR() external view returns (bytes32);
 

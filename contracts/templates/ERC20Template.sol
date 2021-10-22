@@ -258,18 +258,11 @@ contract ERC20Template is ERC20("test", "testSymbol"), ERC20Roles {
     /**
      * @dev createFixedRate
      *      Creates a new FixedRateExchange setup.
-     * fixedPriceAddress fixedPriceAddress
-     * basetokenAddress baseToken for exchange (OCEAN or other)
-     * basetokenDecimals baseToken decimals
-     * fixedRate rate
-     * owner exchangeOwner
-     marketFee market Fee 
-     marketFeeCollector market fee collector address
-
-       @return exchangeId
+     * @param fixedPriceAddress fixedPriceAddress
+     * @param addresses array of addresses [baseToken,owner,marketFeeCollector]
+     * @param uints array of uints [baseTokenDecimals,dataTokenDecimals, fixedRate, marketFee, withMint]
+     * @return exchangeId
      */
-
-
     function createFixedRate(
         address fixedPriceAddress,
         address[] memory addresses,
@@ -280,7 +273,9 @@ contract ERC20Template is ERC20("test", "testSymbol"), ERC20Roles {
             addresses,
             uints
         );
-      
+        // add FixedPriced contract as minter if withMint == true
+        if (uints[4] > 0)
+            _addMinter(fixedPriceAddress);
         emit NewFixedRate(exchangeId, addresses[0]);
     }
 
@@ -302,7 +297,16 @@ contract ERC20Template is ERC20("test", "testSymbol"), ERC20Roles {
         );
         _mint(account, value);
     }
-
+    
+    /**
+     * @dev isMinter
+     *      Check if an address has the minter role
+     * @param account refers to an address that is checked
+     */
+    function isMinter(address account) public view returns(bool) {
+        return(permissions[account].minter);
+    }
+    
     /**
      * @dev startOrder
      *      called by payer or consumer prior ordering a service consume on a marketplace.

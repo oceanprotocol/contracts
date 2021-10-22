@@ -8,7 +8,7 @@ const {
   time,
 } = require("@openzeppelin/test-helpers");
 const { impersonate } = require("../helpers/impersonate");
-const {getEventFromTx} = require("../helpers/utils")
+const { getEventFromTx } = require("../helpers/utils")
 const constants = require("../helpers/constants");
 const { web3, BN } = require("@openzeppelin/test-helpers/src/setup");
 const { keccak256 } = require("@ethersproject/keccak256");
@@ -61,7 +61,7 @@ describe("FixedRateExchange", () => {
     const ERC20Template = await ethers.getContractFactory("ERC20Template");
     const ERC721Factory = await ethers.getContractFactory("ERC721Factory");
 
-    
+
     const Router = await ethers.getContractFactory("FactoryRouter");
     const SSContract = await ethers.getContractFactory("SideStaking");
 
@@ -84,7 +84,7 @@ describe("FixedRateExchange", () => {
 
     rate = web3.utils.toWei("1");
 
-   
+
     // GET SOME OCEAN TOKEN FROM OUR MAINNET FORK and send them to user3
     const userWithOcean = "0x53aB4a93B31F480d17D3440a6329bDa86869458A";
     await impersonate(userWithOcean);
@@ -99,7 +99,7 @@ describe("FixedRateExchange", () => {
       .connect(signer)
       .transfer(bob.address, ethers.utils.parseEther("1000000"));
 
-    
+
 
     // GET SOME DAI (A NEW TOKEN different from OCEAN)
     const userWithDAI = "0x16de59092dAE5CcF4A1E6439D611fd0653f0Bd01";
@@ -116,7 +116,7 @@ describe("FixedRateExchange", () => {
       .connect(signer)
       .transfer(bob.address, ethers.utils.parseEther("1000000"));
 
-  
+
 
     // GET SOME USDC (token with !18 decimals (6 in this case))
     const userWithUSDC = "0xF977814e90dA44bFA03b6295A0616a897441aceC";
@@ -156,7 +156,7 @@ describe("FixedRateExchange", () => {
 
     templateERC20 = await ERC20Template.deploy();
 
-    
+
 
     // SETUP ERC721 Factory with template
     templateERC721 = await ERC721Template.deploy();
@@ -169,13 +169,13 @@ describe("FixedRateExchange", () => {
 
     // SET REQUIRED ADDRESS
 
-    
+
     await router.addFactory(factoryERC721.address);
 
     await router.addFixedRateContract(fixedRateExchange.address);
 
     await router.addSSContract(sideStaking.address)
-    
+
   });
 
   it("#1 - owner deploys a new ERC721 Contract", async () => {
@@ -189,7 +189,7 @@ describe("FixedRateExchange", () => {
     );
     const txReceipt = await tx.wait();
 
-    const event = getEventFromTx(txReceipt,'NFTCreated')
+    const event = getEventFromTx(txReceipt, 'NFTCreated')
     assert(event, "Cannot find NFTCreated event")
     tokenAddress = event.args[0];
 
@@ -218,16 +218,16 @@ describe("FixedRateExchange", () => {
     marketFee = 1e15;
     it("#1 - user3 (alice) create a new erc20DT, assigning herself as minter", async () => {
       const trxERC20 = await tokenERC721.connect(user3).createERC20(1,
-        ["ERC20DT1","ERC20DT1Symbol"],
-        [user3.address,user6.address, user3.address,'0x0000000000000000000000000000000000000000'],
-        [cap,0],
+        ["ERC20DT1", "ERC20DT1Symbol"],
+        [user3.address, user6.address, user3.address, '0x0000000000000000000000000000000000000000'],
+        [cap, 0],
         []
       );
       const trxReceiptERC20 = await trxERC20.wait();
-      const event = getEventFromTx(trxReceiptERC20,'TokenCreated')
+      const event = getEventFromTx(trxReceiptERC20, 'TokenCreated')
       assert(event, "Cannot find TokenCreated event")
       erc20Address = event.args[0];
-      
+
 
       erc20Token = await ethers.getContractAt("ERC20Template", erc20Address);
       assert((await erc20Token.permissions(user3.address)).minter == true);
@@ -241,15 +241,15 @@ describe("FixedRateExchange", () => {
     it("#2 - create exchange", async () => {
       marketFee = 1e15;
       console.log(marketFee)
-     
+
 
       receipt = await (
         await mockDT18
           .connect(alice)
           .createFixedRate(
             fixedRateExchange.address,
-            [oceanContract.address,alice.address,marketFeeCollector.address],
-            [18,18,rate,marketFee]
+            [oceanContract.address, alice.address, marketFeeCollector.address],
+            [18, 18, rate, marketFee, 0]
             // 18,
             // rate,
             // alice.address,
@@ -259,11 +259,11 @@ describe("FixedRateExchange", () => {
       ).wait(); // from exchangeOwner (alice)
 
       eventsExchange = receipt.events.filter((e) => e.event === "NewFixedRate");
-        
+
       // commented out for now
-     // expect(eventsExchange[0].args.basetoken).to.equal(oceanContract.address);
-     // expect(eventsExchange[0].args.owner).to.equal(alice.address);
-     expect(eventsExchange[0].args.owner).to.equal(oceanContract.address);
+      // expect(eventsExchange[0].args.basetoken).to.equal(oceanContract.address);
+      // expect(eventsExchange[0].args.owner).to.equal(alice.address);
+      expect(eventsExchange[0].args.owner).to.equal(oceanContract.address);
     });
 
     it("#3 - exchange is active", async () => {
@@ -937,16 +937,16 @@ describe("FixedRateExchange", () => {
 
     it("#1 - user3 (alice) create a new erc20DT, assigning herself as minter", async () => {
       const trxERC20 = await tokenERC721.connect(user3).createERC20(1,
-        ["ERC20DT1","ERC20DT1Symbol"],
-        [user3.address,user6.address, user3.address,'0x0000000000000000000000000000000000000000'],
-        [cap,0],
+        ["ERC20DT1", "ERC20DT1Symbol"],
+        [user3.address, user6.address, user3.address, '0x0000000000000000000000000000000000000000'],
+        [cap, 0],
         []
       );
       const trxReceiptERC20 = await trxERC20.wait();
-      const event = getEventFromTx(trxReceiptERC20,'TokenCreated')
+      const event = getEventFromTx(trxReceiptERC20, 'TokenCreated')
       assert(event, "Cannot find TokenCreated event")
       erc20Address = event.args[0];
-      
+
 
       erc20Token = await ethers.getContractAt("ERC20Template", erc20Address);
       assert((await erc20Token.permissions(user3.address)).minter == true);
@@ -963,15 +963,15 @@ describe("FixedRateExchange", () => {
           .connect(alice)
           .createFixedRate(
             fixedRateExchange.address,
-            [daiContract.address,alice.address,marketFeeCollector.address],
-            [18,18,rate,marketFee]
+            [daiContract.address, alice.address, marketFeeCollector.address],
+            [18, 18, rate, marketFee,0]
           )
       ).wait(); // from exchangeOwner (alice)
 
       eventsExchange = receipt.events.filter((e) => e.event === "NewFixedRate");
 
-     // expect(eventsExchange[0].args.basetoken).to.equal(daiContract.address);
-     // expect(eventsExchange[0].args.owner).to.equal(alice.address);
+      // expect(eventsExchange[0].args.basetoken).to.equal(daiContract.address);
+      // expect(eventsExchange[0].args.owner).to.equal(alice.address);
       expect(eventsExchange[0].args.owner).to.equal(daiContract.address);
     });
 
@@ -1721,16 +1721,16 @@ describe("FixedRateExchange", () => {
 
     it("#1 - user3 (alice) create a new erc20DT, assigning herself as minter", async () => {
       const trxERC20 = await tokenERC721.connect(user3).createERC20(1,
-        ["ERC20DT1","ERC20DT1Symbol"],
-        [user3.address,user6.address, user3.address,'0x0000000000000000000000000000000000000000'],
-        [cap,0],
+        ["ERC20DT1", "ERC20DT1Symbol"],
+        [user3.address, user6.address, user3.address, '0x0000000000000000000000000000000000000000'],
+        [cap, 0],
         []
       );
       const trxReceiptERC20 = await trxERC20.wait();
-      const event = getEventFromTx(trxReceiptERC20,'TokenCreated')
+      const event = getEventFromTx(trxReceiptERC20, 'TokenCreated')
       assert(event, "Cannot find TokenCreated event")
       erc20Address = event.args[0];
-      
+
 
       erc20Token = await ethers.getContractAt("ERC20Template", erc20Address);
       assert((await erc20Token.permissions(user3.address)).minter == true);
@@ -1749,15 +1749,15 @@ describe("FixedRateExchange", () => {
           .connect(alice)
           .createFixedRate(
             fixedRateExchange.address,
-            [oceanContract.address,alice.address,marketFeeCollector.address],
-            [18,18,rate,marketFee]
+            [oceanContract.address, alice.address, marketFeeCollector.address],
+            [18, 18, rate, marketFee, 0]
           )
       ).wait(); // from exchangeOwner (alice)
 
       eventsExchange = receipt.events.filter((e) => e.event === "NewFixedRate");
 
-     // expect(eventsExchange[0].args.basetoken).to.equal(oceanContract.address);
-    //  expect(eventsExchange[0].args.owner).to.equal(alice.address);
+      // expect(eventsExchange[0].args.basetoken).to.equal(oceanContract.address);
+      //  expect(eventsExchange[0].args.owner).to.equal(alice.address);
       expect(eventsExchange[0].args.owner).to.equal(oceanContract.address);
     });
 
@@ -2426,16 +2426,16 @@ describe("FixedRateExchange", () => {
 
     it("#1 - user3 (alice) create a new erc20DT, assigning herself as minter", async () => {
       const trxERC20 = await tokenERC721.connect(user3).createERC20(1,
-        ["ERC20DT1","ERC20DT1Symbol"],
-        [user3.address,user6.address, user3.address,'0x0000000000000000000000000000000000000000'],
-        [cap,0],
+        ["ERC20DT1", "ERC20DT1Symbol"],
+        [user3.address, user6.address, user3.address, '0x0000000000000000000000000000000000000000'],
+        [cap, 0],
         []
       );
       const trxReceiptERC20 = await trxERC20.wait();
-      const event = getEventFromTx(trxReceiptERC20,'TokenCreated')
+      const event = getEventFromTx(trxReceiptERC20, 'TokenCreated')
       assert(event, "Cannot find TokenCreated event")
       erc20Address = event.args[0];
-      
+
 
       erc20Token = await ethers.getContractAt("ERC20Template", erc20Address);
       assert((await erc20Token.permissions(user3.address)).minter == true);
@@ -2456,15 +2456,15 @@ describe("FixedRateExchange", () => {
           .connect(alice)
           .createFixedRate(
             fixedRateExchange.address,
-            [daiContract.address,alice.address,marketFeeCollector.address],
-            [18,18,rate,marketFee]
+            [daiContract.address, alice.address, marketFeeCollector.address],
+            [18, 18, rate, marketFee, 0]
           )
       ).wait(); // from exchangeOwner (alice)
 
       eventsExchange = receipt.events.filter((e) => e.event === "NewFixedRate");
 
-     // expect(eventsExchange[0].args.basetoken).to.equal(daiContract.address);
-     // expect(eventsExchange[0].args.owner).to.equal(alice.address);
+      // expect(eventsExchange[0].args.basetoken).to.equal(daiContract.address);
+      // expect(eventsExchange[0].args.owner).to.equal(alice.address);
       expect(eventsExchange[0].args.owner).to.equal(daiContract.address);
     });
 
@@ -3128,16 +3128,16 @@ describe("FixedRateExchange", () => {
 
     it("#1 - user3 (alice) create a new erc20DT, assigning herself as minter", async () => {
       const trxERC20 = await tokenERC721.connect(user3).createERC20(1,
-        ["ERC20DT1","ERC20DT1Symbol"],
-        [user3.address,user6.address, user3.address,'0x0000000000000000000000000000000000000000'],
-        [cap,0],
+        ["ERC20DT1", "ERC20DT1Symbol"],
+        [user3.address, user6.address, user3.address, '0x0000000000000000000000000000000000000000'],
+        [cap, 0],
         []
       );
       const trxReceiptERC20 = await trxERC20.wait();
-      const event = getEventFromTx(trxReceiptERC20,'TokenCreated')
+      const event = getEventFromTx(trxReceiptERC20, 'TokenCreated')
       assert(event, "Cannot find TokenCreated event")
       erc20Address = event.args[0];
-      
+
 
       erc20Token = await ethers.getContractAt("ERC20Template", erc20Address);
       assert((await erc20Token.permissions(user3.address)).minter == true);
@@ -3158,16 +3158,16 @@ describe("FixedRateExchange", () => {
           .connect(alice)
           .createFixedRate(
             fixedRateExchange.address,
-            [usdcContract.address,alice.address,marketFeeCollector.address],
-            [6,18,rate,marketFee]
+            [usdcContract.address, alice.address, marketFeeCollector.address],
+            [6, 18, rate, marketFee, 0]
           )
       ).wait(); // from exchangeOwner (alice)
 
       eventsExchange = receipt.events.filter((e) => e.event === "NewFixedRate");
 
-     // expect(eventsExchange[0].args.basetoken).to.equal(usdcContract.address);
-     // expect(eventsExchange[0].args.owner).to.equal(alice.address);
-     expect(eventsExchange[0].args.owner).to.equal(usdcContract.address);
+      // expect(eventsExchange[0].args.basetoken).to.equal(usdcContract.address);
+      // expect(eventsExchange[0].args.owner).to.equal(alice.address);
+      expect(eventsExchange[0].args.owner).to.equal(usdcContract.address);
     });
 
     it("#3 - exchange is active", async () => {
@@ -3837,16 +3837,16 @@ describe("FixedRateExchange", () => {
 
     it("#1 - user3 (alice) create a new erc20DT, assigning herself as minter", async () => {
       const trxERC20 = await tokenERC721.connect(user3).createERC20(1,
-        ["ERC20DT1","ERC20DT1Symbol"],
-        [user3.address,user6.address, user3.address,'0x0000000000000000000000000000000000000000'],
-        [cap,0],
+        ["ERC20DT1", "ERC20DT1Symbol"],
+        [user3.address, user6.address, user3.address, '0x0000000000000000000000000000000000000000'],
+        [cap, 0],
         []
       );
       const trxReceiptERC20 = await trxERC20.wait();
-      const event = getEventFromTx(trxReceiptERC20,'TokenCreated')
+      const event = getEventFromTx(trxReceiptERC20, 'TokenCreated')
       assert(event, "Cannot find TokenCreated event")
       erc20Address = event.args[0];
-      
+
 
       erc20Token = await ethers.getContractAt("ERC20Template", erc20Address);
       assert((await erc20Token.permissions(user3.address)).minter == true);
@@ -3866,15 +3866,15 @@ describe("FixedRateExchange", () => {
           .connect(alice)
           .createFixedRate(
             fixedRateExchange.address,
-            [usdcContract.address,alice.address,marketFeeCollector.address],
-            [6,18,rate,marketFee]
+            [usdcContract.address, alice.address, marketFeeCollector.address],
+            [6, 18, rate, marketFee, 0]
           )
       ).wait(); // from exchangeOwner (alice)
 
       eventsExchange = receipt.events.filter((e) => e.event === "NewFixedRate");
 
-     // expect(eventsExchange[0].args.basetoken).to.equal(usdcContract.address);
-     // expect(eventsExchange[0].args.owner).to.equal(alice.address);
+      // expect(eventsExchange[0].args.basetoken).to.equal(usdcContract.address);
+      // expect(eventsExchange[0].args.owner).to.equal(alice.address);
       expect(eventsExchange[0].args.owner).to.equal(usdcContract.address);
     });
 
@@ -4536,20 +4536,20 @@ describe("FixedRateExchange", () => {
       expect(feeInfoAfter.marketFeeAvailable).to.equal(0);
     });
   });
-  
+
   describe("#7 - Test flexible OPF fee - Exchange with baseToken(DAI) 18 Decimals and dataToken 18 Decimals RATE = 1 ", async () => {
     let maxAmountBTtoSell = web3.utils.toWei("100000"), // bigger than required amount
       amountDTtoSell = web3.utils.toWei("10000"); // exact amount so that we can check if balances works
-      
+
     it("#1 - user3 (alice) create a new erc20DT, assigning herself as minter", async () => {
       const trxERC20 = await tokenERC721.connect(user3).createERC20(1,
-        ["ERC20DT1","ERC20DT1Symbol"],
-        [user3.address,user6.address, user3.address,'0x0000000000000000000000000000000000000000'],
-        [cap,0],
+        ["ERC20DT1", "ERC20DT1Symbol"],
+        [user3.address, user6.address, user3.address, '0x0000000000000000000000000000000000000000'],
+        [cap, 0],
         []
       );
       const trxReceiptERC20 = await trxERC20.wait();
-      const event = getEventFromTx(trxReceiptERC20,'TokenCreated')
+      const event = getEventFromTx(trxReceiptERC20, 'TokenCreated')
       assert(event, "Cannot find TokenCreated event")
       erc20Address = event.args[0];
 
@@ -4570,16 +4570,16 @@ describe("FixedRateExchange", () => {
           .connect(alice)
           .createFixedRate(
             fixedRateExchange.address,
-            [daiContract.address,alice.address,marketFeeCollector.address],
-            [18,18,rate,marketFee]
+            [daiContract.address, alice.address, marketFeeCollector.address],
+            [18, 18, rate, marketFee, 0]
           )
       ).wait(); // from exchangeOwner (alice)
 
       eventsExchange = receipt.events.filter((e) => e.event === "NewFixedRate");
 
-     // expect(eventsExchange[0].args.basetoken).to.equal(daiContract.address);
-     // expect(eventsExchange[0].args.owner).to.equal(alice.address);
-     expect(eventsExchange[0].args.owner).to.equal(daiContract.address);
+      // expect(eventsExchange[0].args.basetoken).to.equal(daiContract.address);
+      // expect(eventsExchange[0].args.owner).to.equal(alice.address);
+      expect(eventsExchange[0].args.owner).to.equal(daiContract.address);
     });
 
     it("#3 - exchange is active", async () => {
@@ -4644,7 +4644,7 @@ describe("FixedRateExchange", () => {
       const dtBobBalanceBeforeSwap = await mockDT18.balanceOf(bob.address);
       const btAliceBeforeSwap = await daiContract.balanceOf(alice.address);
       expect(dtBobBalanceBeforeSwap).to.equal(0); // BOB HAS NO DT
-     
+
 
       // BOB is going to buy all DT availables
       amountDT = amountDTtoSell;
@@ -4702,7 +4702,7 @@ describe("FixedRateExchange", () => {
       const dtBobBalanceBeforeSwap = await mockDT18.balanceOf(bob.address);
       const btBobBalanceBeforeSwap = await daiContract.balanceOf(bob.address);
       const btAliceBeforeSwap = await daiContract.balanceOf(alice.address);
-    
+
 
       // BOB approves FixedRate to move his DTs
       await mockDT18
@@ -4761,11 +4761,11 @@ describe("FixedRateExchange", () => {
     });
 
     it("#10 - opfFee is updated to 1% from 0.1%", async () => {
-       await router.updateOPFFee(web3.utils.toWei('0.01'))
-       const feeInfo = await fixedRateExchange.getFeesInfo(
+      await router.updateOPFFee(web3.utils.toWei('0.01'))
+      const feeInfo = await fixedRateExchange.getFeesInfo(
         eventsExchange[0].args.exchangeId
-        );
-       expect(feeInfo.opfFee).to.equal(web3.utils.toWei('0.01'));
+      );
+      expect(feeInfo.opfFee).to.equal(web3.utils.toWei('0.01'));
     });
 
 
@@ -4777,7 +4777,7 @@ describe("FixedRateExchange", () => {
       const dtBobBalanceBeforeSwap = await mockDT18.balanceOf(bob.address);
       const btAliceBeforeSwap = await daiContract.balanceOf(alice.address);
       expect(dtBobBalanceBeforeSwap).to.equal(0); // BOB HAS NO DT
-     
+
 
       // BOB is going to buy20% of  all DT availables
       amountDT = web3.utils.toWei("2000");
@@ -4886,10 +4886,10 @@ describe("FixedRateExchange", () => {
     it("#13 - DAI token is added into Ocean List, now opfFee is ZERO", async () => {
       await router.addOceanToken(daiContract.address)
       const feeInfo = await fixedRateExchange.getFeesInfo(
-       eventsExchange[0].args.exchangeId
-       );
+        eventsExchange[0].args.exchangeId
+      );
       expect(feeInfo.opfFee).to.equal(0);
-   });
+    });
 
     it("#14 - Bob buys back all DT left (80%) of DataTokens available", async () => {
       const exchangeDetailsBefore = await fixedRateExchange.getExchange(
@@ -4899,7 +4899,7 @@ describe("FixedRateExchange", () => {
       const dtBobBalanceBeforeSwap = await mockDT18.balanceOf(bob.address);
       const btAliceBeforeSwap = await daiContract.balanceOf(alice.address);
       expect(dtBobBalanceBeforeSwap).to.equal(web3.utils.toWei("2000")); // BOB HAS 20% of initial DT available
-     
+
 
       // BOB is going to buy 80% of  all DT availables
       amountDT = web3.utils.toWei("8000");
@@ -5055,7 +5055,7 @@ describe("FixedRateExchange", () => {
       const dtBobBalanceBeforeSwap = await mockDT18.balanceOf(bob.address);
       const btAliceBeforeSwap = await daiContract.balanceOf(alice.address);
       expect(dtBobBalanceBeforeSwap).to.equal(amountDTtoSell); // BOB HAS 100% of initial DT available
-     
+
 
       // BOB is going to buy more DT but fails because alice hasn't approved more
       amountDT = web3.utils.toWei("8000");
@@ -5149,7 +5149,7 @@ describe("FixedRateExchange", () => {
       const btBobBalanceBeforeSwap = await daiContract.balanceOf(bob.address);
       const btAliceBeforeSwap = await daiContract.balanceOf(alice.address);
       const dtAliceBeforeSwap = await mockDT18.balanceOf(alice.address);
-     
+
 
       amountDT = web3.utils.toWei("2000");
       // BOB approves FixedRate to move his DTs
@@ -5254,7 +5254,7 @@ describe("FixedRateExchange", () => {
       const feeInfo = await fixedRateExchange.getFeesInfo(
         eventsExchange[0].args.exchangeId
       );
-      
+
       // DAI is now on the list, no ocean fee available
       assert(feeInfo.oceanFeeAvailable == 0);
 
@@ -5268,7 +5268,7 @@ describe("FixedRateExchange", () => {
         newMarketFeeCollector.address
       );
 
-  
+
       const receipt = await (
         await fixedRateExchange.collectMarketFee(
           eventsExchange[0].args.exchangeId
@@ -5299,8 +5299,8 @@ describe("FixedRateExchange", () => {
         eventsExchange[0].args.exchangeId
       );
 
-       // DAI is now on the list, no ocean fee available
-       assert(feeInfo.oceanFeeAvailable == 0);
+      // DAI is now on the list, no ocean fee available
+      assert(feeInfo.oceanFeeAvailable == 0);
 
       // opfFeeCollector balance before collecting
       const btOPFBeforeSwap = await daiContract.balanceOf(opfCollector.address);
@@ -5326,5 +5326,104 @@ describe("FixedRateExchange", () => {
 
     });
   });
- 
+  describe("#8 - Fixed Rate Exchange with minting", async () => {
+    let amountToMint = web3.utils.toWei("10000"); // exact amount so that we can check if balances works
+      
+    marketFee = 1e15;
+    it("#1 - user3 (alice) create a new erc20DT, assigning herself as minter", async () => {
+      const trxERC20 = await tokenERC721.connect(user3).createERC20(1,
+        ["ERC20DT1", "ERC20DT1Symbol"],
+        [user3.address, user6.address, user3.address, '0x0000000000000000000000000000000000000000'],
+        [cap, 0],
+        []
+      );
+      const trxReceiptERC20 = await trxERC20.wait();
+      const event = getEventFromTx(trxReceiptERC20, 'TokenCreated')
+      assert(event, "Cannot find TokenCreated event")
+      erc20Address = event.args[0];
+
+
+      erc20Token = await ethers.getContractAt("ERC20Template", erc20Address);
+      assert((await erc20Token.permissions(user3.address)).minter == true);
+
+
+      mockDT18 = erc20Token;
+    });
+    it("#2 - create exchange withMint", async () => {
+      receipt = await (
+        await mockDT18
+          .connect(alice)
+          .createFixedRate(
+            fixedRateExchange.address,
+            [oceanContract.address, alice.address, marketFeeCollector.address],
+            [18, 18, rate, marketFee, 1]
+            // 18,
+            // rate,
+            // alice.address,
+            // marketFee,
+            // marketFeeCollector.address
+          )
+      ).wait(); // from exchangeOwner (alice)
+      eventsExchange = receipt.events.filter((e) => e.event === "NewFixedRate");
+      // commented out for now
+      // expect(eventsExchange[0].args.basetoken).to.equal(oceanContract.address);
+      // expect(eventsExchange[0].args.owner).to.equal(alice.address);
+      expect(eventsExchange[0].args.owner).to.equal(oceanContract.address);
+    });
+
+    it("#3 - exchange is active", async () => {
+      const isActive = await fixedRateExchange.isActive(
+        eventsExchange[0].args.exchangeId
+      );
+      assert(isActive === true, "Exchange was not activated correctly!");
+    });
+    it("#4 - exchange has minter rights", async () => {
+      const isMinter = await mockDT18.isMinter(fixedRateExchange.address)
+      assert(isMinter === true, "Exchange has no minting role!");
+    });
+    
+
+    it("#5 - should check that the exchange has minterRole and it has supply ", async () => {
+      const exchangeDetails = await fixedRateExchange.getExchange(
+        eventsExchange[0].args.exchangeId
+      );
+      assert(exchangeDetails.dtSupply.gt(0),'FixedRateExchange has no supply, altough is a minter')
+      expect(exchangeDetails.btSupply).to.equal(0);
+      assert(exchangeDetails.withMint, 'FixedRateExchange is not configured withMint option')
+    });
+    it("#6 - Bob should buy 1 DataToken using the fixed rate exchange contract", async () => {
+      const dtBobBalanceBeforeSwap = await mockDT18.balanceOf(bob.address);
+      const btAliceBeforeSwap = await oceanContract.balanceOf(alice.address);
+      
+      // BOB is going to buy all DT availables
+      amountDT = web3.utils.toWei('1');
+      const receipt = await (
+        await fixedRateExchange
+          .connect(bob)
+          .buyDT(eventsExchange[0].args.exchangeId, amountDT)
+      ).wait();
+
+      const SwappedEvent = receipt.events.filter((e) => e.event === "Swapped");
+
+      const args = SwappedEvent[0].args;
+
+      // we check that proper amount is being swapped (rate=1)
+      expect(
+        args.baseTokenSwappedAmount
+          .sub(args.oceanFeeAmount)
+          .sub(args.marketFeeAmount)
+      ).to.equal(args.dataTokenSwappedAmount);
+
+      // BOB's DTbalance has increased
+      const dtBobBalanceAfterSwap = await mockDT18.balanceOf(bob.address);
+      expect(dtBobBalanceAfterSwap).to.equal(
+        SwappedEvent[0].args.dataTokenSwappedAmount.add(dtBobBalanceBeforeSwap)
+      );
+
+      // ALICE's BT balance hasn't increasead.
+      expect(await oceanContract.balanceOf(alice.address)).to.equal(
+        btAliceBeforeSwap
+      );
+    });
+  });
 });

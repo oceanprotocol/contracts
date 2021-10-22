@@ -568,7 +568,7 @@ describe("Batch Swap", () => {
         await erc20Token4.connect(user3).createFixedRate(
           fixedRateExchange.address,
           [oceanContract.address, user3.address, marketFeeCollector.address],
-          [18, 18, rate, marketFee]
+          [18, 18, rate, marketFee, 0]
           // 18,
           // rate,
           // user3.address,
