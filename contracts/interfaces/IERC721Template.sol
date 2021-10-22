@@ -70,6 +70,7 @@ interface IERC721Template is IERC165 {
      */
     function ownerOf(uint256 tokenId) external view returns (address owner);
 
+    function isERC20Deployer(address acount) external view returns (bool);
     /**
      * @dev Safely transfers `tokenId` token from `from` to `to`, checking first that contract recipients
      * are aware of the ERC721 protocol to prevent tokens from being forever locked.

@@ -39,6 +39,7 @@ contract FixedRateExchange {
         address marketFeeCollector;
         uint256 marketFeeAvailable;
         uint256 oceanFeeAvailable;
+        bool withMint;
     }
 
     // maps an exchangeId to an exchange
@@ -81,6 +82,13 @@ contract FixedRateExchange {
         uint256 newRate
     );
 
+    //triggered when the withMint state is changed 
+    event ExchangeMintStateChanged(
+        bytes32 indexed exchangeId,
+        address indexed exchangeOwner,
+        bool withMint
+    );
+    
     event ExchangeActivated(
         bytes32 indexed exchangeId,
         address indexed exchangeOwner
@@ -143,7 +151,7 @@ contract FixedRateExchange {
     function createWithDecimals(
         address dataToken,
         address[] memory addresses, // [baseToken,owner,marketFeeCollector]
-        uint256[] memory uints // [baseTokenDecimals,dataTokenDecimals, fixedRate, marketFee]
+        uint256[] memory uints // [baseTokenDecimals,dataTokenDecimals, fixedRate, marketFee, withMint]
     ) public onlyRouter returns (bytes32 exchangeId) {
        
         require(
@@ -167,7 +175,8 @@ contract FixedRateExchange {
             exchanges[exchangeId].fixedRate == 0,
             "FixedRateExchange: Exchange already exists!"
         );
-       
+        bool withMint=true;
+        if(uints[4] == 0) withMint = false;
         exchanges[exchangeId] = Exchange({
             active: true,
             exchangeOwner: addresses[1],
@@ -181,7 +190,8 @@ contract FixedRateExchange {
             marketFee: uints[3],
             marketFeeCollector: addresses[2],
             marketFeeAvailable: 0,
-            oceanFeeAvailable: 0
+            oceanFeeAvailable: 0,
+            withMint: withMint
         });
 
         exchangeIds.push(exchangeId);
@@ -338,14 +348,22 @@ contract FixedRateExchange {
         );
 
         if (dataTokenAmount > exchanges[exchangeId].dtBalance) {
-            require(
-                IERC20Template(exchanges[exchangeId].dataToken).transferFrom(
-                    exchanges[exchangeId].exchangeOwner,
-                    msg.sender,
-                    dataTokenAmount
-                ),
-                "FixedRateExchange: transferFrom failed in the dataToken contract"
-            );
+            //first, let's try to mint
+            if(exchanges[exchangeId].withMint 
+            && IERC20Template(exchanges[exchangeId].dataToken).isMinter(address(this)))
+            {
+                IERC20Template(exchanges[exchangeId].dataToken).mint(msg.sender,dataTokenAmount);
+            }
+            else{
+                require(
+                    IERC20Template(exchanges[exchangeId].dataToken).transferFrom(
+                        exchanges[exchangeId].exchangeOwner,
+                        msg.sender,
+                        dataTokenAmount
+                    ),
+                    "FixedRateExchange: transferFrom failed in the dataToken contract"
+                );
+            }
         } else {
             exchanges[exchangeId].dtBalance = (exchanges[exchangeId].dtBalance)
                 .sub(dataTokenAmount);
@@ -475,7 +493,7 @@ contract FixedRateExchange {
     }
 
     function collectMarketFee(bytes32 exchangeId) external {
-        // TODO: should we limit access to this function?
+        // anyone call call this function, because funds are sent to the correct address
         uint256 amount = exchanges[exchangeId].marketFeeAvailable;
         exchanges[exchangeId].marketFeeAvailable = 0;
         IERC20Template(exchanges[exchangeId].baseToken).transfer(
@@ -490,7 +508,7 @@ contract FixedRateExchange {
     }
 
     function collectOceanFee(bytes32 exchangeId) external {
-        // TODO:should we limit access to this function?
+        // anyone call call this function, because funds are sent to the correct address
         uint256 amount = exchanges[exchangeId].oceanFeeAvailable;
         exchanges[exchangeId].oceanFeeAvailable = 0;
         IERC20Template(exchanges[exchangeId].baseToken).transfer(
@@ -541,6 +559,20 @@ contract FixedRateExchange {
     }
 
     /**
+     * @dev toggleMintState
+     *      toggle withMint state
+     * @param exchangeId a unique exchange idnetifier
+     * @param withMint new value
+     */
+    function toggleMintState(bytes32 exchangeId, bool withMint)
+        external
+        onlyExchangeOwner(exchangeId)
+    {
+        exchanges[exchangeId].withMint = withMint;
+        emit ExchangeMintStateChanged(exchangeId, msg.sender, withMint);
+    }
+
+    /**
      * @dev toggleExchangeState
      *      toggles the active state of an existing exchange
      * @param exchangeId a unique exchange idnetifier
@@ -581,6 +613,11 @@ contract FixedRateExchange {
         returns (uint256 supply)
     {
         if (exchanges[exchangeId].active == false) supply = 0;
+        else if (exchanges[exchangeId].withMint == true
+        && IERC20Template(exchanges[exchangeId].dataToken).isMinter(address(this))){
+            supply = IERC20Template(exchanges[exchangeId].dataToken).cap() 
+            - IERC20Template(exchanges[exchangeId].dataToken).totalSupply();
+        }
         else {
             uint256 balance = IERC20Template(exchanges[exchangeId].dataToken)
                 .balanceOf(exchanges[exchangeId].exchangeOwner);
@@ -639,7 +676,8 @@ contract FixedRateExchange {
             uint256 dtSupply,
             uint256 btSupply,
             uint256 dtBalance,
-            uint256 btBalance
+            uint256 btBalance,
+            bool withMint
         )
     {
         Exchange memory exchange = exchanges[exchangeId];
@@ -654,6 +692,7 @@ contract FixedRateExchange {
         btSupply = getBTSupply(exchangeId);
         dtBalance = exchange.dtBalance;
         btBalance = exchange.btBalance;
+        withMint = exchange.withMint;
     }
 
     function getFeesInfo(bytes32 exchangeId)

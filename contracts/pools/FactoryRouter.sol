@@ -17,10 +17,12 @@ contract FactoryRouter is BFactory {
     address public factory;
     address public fixedRate;
     
+    
     uint256 public swapOceanFee = 1e15;
     mapping(address => bool) public oceanTokens;
     mapping(address => bool) public ssContracts;
     mapping(address => bool) public fixedPrice;
+    mapping(address => bool) public dispenser;
 
     event NewPool(address indexed poolAddress, bool isOcean);
 
@@ -68,6 +70,9 @@ contract FactoryRouter is BFactory {
 
     function addFixedRateContract(address _fixedRate) external onlyRouterOwner {
         fixedPrice[_fixedRate] = true;
+    }
+    function addDispenserContract(address _dispenser) external onlyRouterOwner {
+        dispenser[_dispenser] = true;
     }
 
     function getOPFFee(address baseToken) public view returns (uint256) {
@@ -181,6 +186,36 @@ contract FactoryRouter is BFactory {
         );
     }
 
+    /**
+     * @dev deployDispenser
+     *      Activates a new Dispenser
+     * As for deployPool, this function cannot be called directly,
+     * but ONLY through the ERC20DT contract from a ERC20DEployer role
+     * @param _dispenser dispenser contract address
+     * @param datatoken refers to datatoken address.
+     * @param maxTokens - max tokens to dispense
+     * @param maxBalance - max balance of requester.
+     */
+
+    function deployDispenser(
+        address _dispenser,
+        address datatoken,
+        uint256 maxTokens,
+        uint256 maxBalance,
+        address owner
+    ) external {
+        require(
+            IFactory(factory).erc20List(msg.sender) == true,
+            "FACTORY ROUTER: NOT ORIGINAL ERC20 TEMPLATE"
+        );
+
+        require(
+            dispenser[_dispenser]  == true,
+            "FACTORY ROUTER: Invalid DispenserContract"
+        );
+        IDispenser(_dispenser).create(datatoken, maxTokens, maxBalance, owner);
+    }
+
     function addPoolTemplate(address poolTemplate) external onlyRouterOwner {
         _addPoolTemplate(poolTemplate);
     }
@@ -288,10 +323,8 @@ contract FactoryRouter is BFactory {
                     IERC20(datatoken).transfer(msg.sender,_operations[i].amountsOut);
                 
                 } else {
-
-                    IDispenser(_operations[i].source).getDT(_operations[i].exchangeIds,_operations[i].amountsOut);
-                    (,address datatoken,,,) = IDispenser(_operations[i].source).getExchange(_operations[i].exchangeIds);
-                    IERC20(datatoken).transfer(msg.sender,_operations[i].amountsOut);
+                    IDispenser(_operations[i].source).dispense(_operations[i].tokenOut,_operations[i].amountsOut);
+                    IERC20(_operations[i].tokenOut).transfer(msg.sender,_operations[i].amountsOut);
                 }
             }
 

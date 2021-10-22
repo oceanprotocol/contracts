@@ -237,6 +237,14 @@ contract ERC721Template is
     }
 
     /**
+     * @dev isERC20Deployer
+     * @return true if the account has ERC20 Deploy role
+     */
+    function isERC20Deployer(address account) public view returns (bool) {
+        return permissions[account].deployERC20;
+    }
+    
+    /**
      * @dev name
      *      It returns the token name.
      * @return DataToken name.

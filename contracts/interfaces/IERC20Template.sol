@@ -42,6 +42,8 @@ interface IERC20Template {
     ) external returns (bool);
 
     function mint(address account, uint256 value) external;
+    
+    function isMinter(address account) external view returns (bool);
 
     function DOMAIN_SEPARATOR() external view returns (bytes32);
 
@@ -77,7 +79,12 @@ interface IERC20Template {
         address[] memory addresses,
         uint[] memory uints
     ) external returns (bytes32);
-
+    function createDispenser(
+        address _dispenser,
+        uint256 maxTokens,
+        uint256 maxBalance,
+        bool withMint) external;
+        
     function getPublishingMarketFee() external view returns (address , address, uint256);
     function setPublishingMarketFee(
         address _publishMarketFeeAddress, address _publishMarketFeeToken, uint256 _publishMarketFeeAmount
