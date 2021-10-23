@@ -311,8 +311,9 @@ contract FixedRateExchange {
      *      atomic swap between two registered fixed rate exchange.
      * @param exchangeId a unique exchange idnetifier
      * @param dataTokenAmount the amount of data tokens to be exchanged
+     * @param maxBaseTokenAmount maximum amount of base tokens to pay
      */
-    function buyDT(bytes32 exchangeId, uint256 dataTokenAmount)
+    function buyDT(bytes32 exchangeId, uint256 dataTokenAmount, uint256 maxBaseTokenAmount)
         external
         onlyActiveExchange(exchangeId)
     {
@@ -326,7 +327,10 @@ contract FixedRateExchange {
             uint256 oceanFeeAmount,
             uint256 marketFeeAmount
         ) = calcBaseInGivenOutDT(exchangeId, dataTokenAmount);
-
+        require(
+            baseTokenAmount <= maxBaseTokenAmount,
+            "FixedRateExchange: Too many base tokens"
+        );
         // we account fees , fees are always collected in basetoken
         exchanges[exchangeId].oceanFeeAvailable = exchanges[exchangeId]
             .oceanFeeAvailable
@@ -389,8 +393,9 @@ contract FixedRateExchange {
      *      atomic swap between two registered fixed rate exchange.
      * @param exchangeId a unique exchange idnetifier
      * @param dataTokenAmount the amount of data tokens to be exchanged
+     * @param minBaseTokenAmount minimum amount of base tokens to cash in
      */
-    function sellDT(bytes32 exchangeId, uint256 dataTokenAmount)
+    function sellDT(bytes32 exchangeId, uint256 dataTokenAmount, uint256 minBaseTokenAmount)
         external
         onlyActiveExchange(exchangeId)
     {
@@ -404,7 +409,10 @@ contract FixedRateExchange {
             uint256 oceanFeeAmount,
             uint256 marketFeeAmount
         ) = calcBaseOutGivenInDT(exchangeId, dataTokenAmount);
-
+        require(
+            baseTokenAmount >= minBaseTokenAmount,
+            "FixedRateExchange: Too few base tokens"
+        );
         // we account fees , fees are always collected in basetoken
         exchanges[exchangeId].oceanFeeAvailable = exchanges[exchangeId]
             .oceanFeeAvailable
