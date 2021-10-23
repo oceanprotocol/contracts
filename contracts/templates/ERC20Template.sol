@@ -291,10 +291,11 @@ contract ERC20Template is ERC20("test", "testSymbol"), ERC20Roles, ERC20Burnable
         address _dispenser,
         uint256 maxTokens,
         uint256 maxBalance,
-        bool withMint
+        bool withMint,
+        address allowedSwapper
     ) external onlyERC20Deployer {
         IFactoryRouter(router).deployDispenser(
-            _dispenser, address(this), maxTokens, maxBalance, msg.sender );
+            _dispenser, address(this), maxTokens, maxBalance, msg.sender, allowedSwapper );
         // add FixedPriced contract as minter if withMint == true
         if (withMint == true)
             _addMinter(_dispenser);

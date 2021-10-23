@@ -16,6 +16,7 @@ contract Dispenser {
         address owner; // owner of this dispenser
         uint256 maxTokens; // max tokens to dispense
         uint256 maxBalance; // max balance of requester. 
+        address allowedSwapper;
         //If the balance is higher, the dispense is rejected
     }
     mapping(address => DataToken) datatokens;
@@ -23,7 +24,8 @@ contract Dispenser {
     
     
     event DispenserCreated(  // emited when a dispenser is created
-        address indexed datatokenAddress
+        address indexed datatokenAddress,
+        address indexed allowedSwapper
     );
     event DispenserActivated(  // emited when a dispenser is activated
         address indexed datatokenAddress
@@ -32,7 +34,9 @@ contract Dispenser {
     event DispenserDeactivated( // emited when a dispenser is deactivated
         address indexed datatokenAddress
     );
-
+    event DispenserAllowedSwapperChanged( // emited when allowedSwapper is changed
+        address indexed datatoken,
+        address indexed newAllowedSwapper);
     
     event TokensDispensed( 
         // emited when tokens are dispended
@@ -62,11 +66,12 @@ contract Dispenser {
      * @return maxTokens - max tokens to dispense
      * @return maxBalance - max balance of requester. If the balance is higher, the dispense is rejected
      * @return balance - internal balance of the contract (if any)
+     * @return allowedSwapper - address allowed to request DT if != 0
      */
     function status(address datatoken) 
     external view 
     returns(bool active,address owner,
-    bool isMinter,uint256 maxTokens,uint256 maxBalance, uint256 balance){
+    bool isMinter,uint256 maxTokens,uint256 maxBalance, uint256 balance, address allowedSwapper){
         require(
             datatoken != address(0),
             'Invalid token contract address'
@@ -78,6 +83,7 @@ contract Dispenser {
         IERC20Template tokenInstance = IERC20Template(datatoken);
         balance = tokenInstance.balanceOf(address(this));
         isMinter = tokenInstance.isMinter(address(this));
+        allowedSwapper = datatokens[datatoken].allowedSwapper;
     }
 
     /**
@@ -87,8 +93,9 @@ contract Dispenser {
      * @param maxTokens - max tokens to dispense
      * @param maxBalance - max balance of requester.
      * @param owner - owner
+     * @param allowedSwapper - if !=0, only this address can request DTs
      */
-    function create(address datatoken,uint256 maxTokens, uint256 maxBalance, address owner)
+    function create(address datatoken,uint256 maxTokens, uint256 maxBalance, address owner, address allowedSwapper)
         external {
         require(
             datatoken != address(0),
@@ -102,8 +109,9 @@ contract Dispenser {
         datatokens[datatoken].owner = owner;
         datatokens[datatoken].maxTokens = maxTokens;
         datatokens[datatoken].maxBalance = maxBalance;
+        datatokens[datatoken].allowedSwapper = allowedSwapper;
         datatokensList.push(datatoken);
-        emit DispenserCreated(datatoken);
+        emit DispenserCreated(datatoken, allowedSwapper);
     }
     /**
      * @dev activate
@@ -146,6 +154,25 @@ contract Dispenser {
         emit DispenserDeactivated(datatoken);
     }
 
+    /**
+     * @dev setAllowedSwapper
+     *      Sets a new allowedSwapper
+     * @param datatoken refers to datatoken address.
+     * @param newAllowedSwapper refers to the new allowedSwapper
+     */
+    function setAllowedSwapper(address datatoken, address newAllowedSwapper) external{
+        require(
+            datatoken != address(0),
+            'Invalid token contract address'
+        );
+        require(
+            datatokens[datatoken].owner == msg.sender,
+            'DataToken already activated'
+        );
+        datatokens[datatoken].allowedSwapper= newAllowedSwapper;
+        emit DispenserAllowedSwapperChanged(datatoken, newAllowedSwapper);
+    }
+
     
 
     /**
@@ -173,6 +200,13 @@ contract Dispenser {
             datatokens[datatoken].maxTokens >= amount,
             'Amount too high'
         );
+        if(datatokens[datatoken].allowedSwapper != address(0)){
+            require(
+                datatokens[datatoken].allowedSwapper == msg.sender,
+                "This address is not allowed to request DT"
+            );
+        }
+        
         IERC20Template tokenInstance = IERC20Template(datatoken);
         uint256 callerBalance = tokenInstance.balanceOf(msg.sender);
         require(

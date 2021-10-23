@@ -12,7 +12,7 @@ const { getEventFromTx } = require("../helpers/utils")
 const constants = require("../helpers/constants");
 const { web3, BN } = require("@openzeppelin/test-helpers/src/setup");
 const { keccak256 } = require("@ethersproject/keccak256");
-const { MAX_UINT256 } = require("@openzeppelin/test-helpers/src/constants");
+const { MAX_UINT256, ZERO_ADDRESS } = require("@openzeppelin/test-helpers/src/constants");
 const ethers = hre.ethers;
 
 // TEST NEW FUNCTIONS, FOR UNIT TEST REFER TO V3 CONTRACTS BRANCH
@@ -207,7 +207,7 @@ describe("Dispenser", () => {
 
     it('#2 - Alice creates a dispenser with minter role', async () => {
       let tx = await erc20Token.connect(alice).createDispenser(
-        dispenser.address, web3.utils.toWei('1'), web3.utils.toWei('1'), true)
+        dispenser.address, web3.utils.toWei('1'), web3.utils.toWei('1'), true, ZERO_ADDRESS)
       assert(tx,
         'Cannot activate dispenser')
     })
@@ -264,7 +264,7 @@ describe("Dispenser", () => {
 
     it('Alice creates a dispenser without minter role', async () => {
       const tx = await erc20Token2.connect(alice).createDispenser(
-        dispenser.address, web3.utils.toWei('1'), web3.utils.toWei('1'), false)
+        dispenser.address, web3.utils.toWei('1'), web3.utils.toWei('1'), false, ZERO_ADDRESS)
       assert(tx,
         'Cannot activate dispenser')
     })

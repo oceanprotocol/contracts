@@ -195,6 +195,8 @@ contract FactoryRouter is BFactory {
      * @param datatoken refers to datatoken address.
      * @param maxTokens - max tokens to dispense
      * @param maxBalance - max balance of requester.
+     * @param owner - owner
+     * @param allowedSwapper - if !=0, only this address can request DTs
      */
 
     function deployDispenser(
@@ -202,7 +204,8 @@ contract FactoryRouter is BFactory {
         address datatoken,
         uint256 maxTokens,
         uint256 maxBalance,
-        address owner
+        address owner,
+        address allowedSwapper
     ) external {
         require(
             IFactory(factory).erc20List(msg.sender) == true,
@@ -213,7 +216,7 @@ contract FactoryRouter is BFactory {
             dispenser[_dispenser]  == true,
             "FACTORY ROUTER: Invalid DispenserContract"
         );
-        IDispenser(_dispenser).create(datatoken, maxTokens, maxBalance, owner);
+        IDispenser(_dispenser).create(datatoken, maxTokens, maxBalance, owner, allowedSwapper);
     }
 
     function addPoolTemplate(address poolTemplate) external onlyRouterOwner {

@@ -21,6 +21,7 @@ interface IFactoryRouter {
         address datatoken,
         uint256 maxTokens,
         uint256 maxBalance,
-        address owner
+        address owner,
+        address allowedSwapper
     ) external;
 }
