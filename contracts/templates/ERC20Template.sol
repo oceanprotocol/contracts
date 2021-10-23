@@ -350,7 +350,7 @@ contract ERC20Template is ERC20("test", "testSymbol"), ERC20Roles, ERC20Burnable
     ) external {
         uint256 communityFeeConsume = 0;
         uint256 communityFeePublish = 0;
-        
+        require(balanceOf(msg.sender) >= amount, "Not enough Data Tokens to start Order");
         // publishMarketFees
         // Requires approval for the publishMarketFeeToken of publishMarketFeeAmount
         // skip fee if amount == 0 or feeToken == 0x0 address or feeAddress == 0x0 address
