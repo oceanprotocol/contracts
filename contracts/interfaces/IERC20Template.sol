@@ -83,7 +83,8 @@ interface IERC20Template {
         address _dispenser,
         uint256 maxTokens,
         uint256 maxBalance,
-        bool withMint) external;
+        bool withMint,
+        address allowedSwapper) external;
         
     function getPublishingMarketFee() external view returns (address , address, uint256);
     function setPublishingMarketFee(
