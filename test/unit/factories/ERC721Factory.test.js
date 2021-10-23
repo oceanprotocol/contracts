@@ -6,7 +6,8 @@ const { expectRevert, expectEvent, BN } = require("@openzeppelin/test-helpers");
 const { impersonate } = require("../../helpers/impersonate");
 const constants = require("../../helpers/constants");
 const { web3 } = require("@openzeppelin/test-helpers/src/setup");
-const {getEventFromTx} = require("../../helpers/utils")
+const {getEventFromTx} = require("../../helpers/utils");
+const { ZERO_ADDRESS } = require("@openzeppelin/test-helpers/src/constants");
 const ethers = hre.ethers;
 
 describe("ERC721Factory", () => {
@@ -1105,7 +1106,7 @@ describe("ERC721Factory", () => {
       {
 
         "fixedPriceAddress":fixedRateExchange.address,
-        "addresses":[erc20TokenWithPublishFee.address,user3.address,user6.address],
+        "addresses":[erc20TokenWithPublishFee.address,user3.address,user6.address, ZERO_ADDRESS],
         "uints":[18,18,rate,marketFee,0]
        
       }
@@ -1150,7 +1151,7 @@ describe("ERC721Factory", () => {
       {
       "strings":["ERC20WithPool","ERC20P"],
       "templateIndex":1,
-      "addresses":[user3.address,user6.address,user3.address,"0x0000000000000000000000000000000000000000"],
+      "addresses":[user3.address,user6.address,user3.address,ZERO_ADDRESS],
       "uints":[cap,0],
       "bytess":[]
       },
@@ -1158,7 +1159,8 @@ describe("ERC721Factory", () => {
         "dispenserAddress":dispenser.address,
         "maxTokens":web3.utils.toWei("1"),
         "maxBalance":web3.utils.toWei("1"),
-        "withMint":true
+        "withMint":true,
+        "allowedSwapper": ZERO_ADDRESS
       }
       );
 

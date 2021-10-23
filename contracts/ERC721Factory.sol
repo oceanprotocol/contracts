@@ -645,6 +645,7 @@ contract ERC721Factory is Deployer, Ownable {
         uint256 maxTokens;
         uint256 maxBalance;
         bool withMint;
+        address allowedSwapper;
     }
     /**
      * @dev createNftErcWithDispenser
@@ -677,7 +678,8 @@ contract ERC721Factory is Deployer, Ownable {
             _DispenserData.dispenserAddress,
             _DispenserData.maxTokens,
             _DispenserData.maxBalance,
-            _DispenserData.withMint
+            _DispenserData.withMint,
+            _DispenserData.allowedSwapper
             );
     }
 }
