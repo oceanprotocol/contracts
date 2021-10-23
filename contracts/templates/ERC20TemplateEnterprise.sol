@@ -243,6 +243,8 @@ contract ERC20TemplateEnterprise is ERC20("test", "testSymbol"), ERC20Roles, ERC
         address[] memory addresses,
         uint[] memory uints
     ) external onlyERC20Deployer returns (bytes32 exchangeId) {
+        //force FRE allowedSwapper to this contract address. no one else can swap
+        addresses[3] = address(this);
         exchangeId = IFactoryRouter(router).deployFixedRate(
             fixedPriceAddress,
             addresses,
@@ -267,7 +269,7 @@ contract ERC20TemplateEnterprise is ERC20("test", "testSymbol"), ERC20Roles, ERC
         bool withMint
     ) external onlyERC20Deployer {
         IFactoryRouter(router).deployDispenser(
-            _dispenser, address(this), maxTokens, maxBalance, msg.sender );
+            _dispenser, address(this), maxTokens, maxBalance, msg.sender, address(this) );
         // add FixedPriced contract as minter if withMint == true
         if (withMint == true)
             _addMinter(_dispenser);
@@ -741,6 +743,7 @@ contract ERC20TemplateEnterprise is ERC20("test", "testSymbol"), ERC20Roles, ERC
             ,
             ,
             ,
+            
             
         ) = IFixedRateExchange(_freParams.exchangeContract).getExchange(_freParams.exchangeId);
         // get token amounts needed
