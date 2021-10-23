@@ -121,11 +121,26 @@ async function main() {
   const ssPool = await SSContract.deploy(router.address);
   addresses.Staking = ssPool.address
   
-
+  addresses.ERC20Template={}
   if (logging) console.info("Deploying ERC20 Template")
   const ERC20Template = await ethers.getContractFactory("ERC20Template", owner);
   const templateERC20 = await ERC20Template.deploy();
-  addresses.ERC20Template = templateERC20.address
+  const templateERC20Id = await templateERC20.getId()
+  addresses.ERC20Template[templateERC20Id] = templateERC20.address
+
+  if (logging) console.info("Deploying ERC20 Enterprise Template")
+  const ERC20TemplateEnterprise = await ethers.getContractFactory("ERC20TemplateEnterprise", owner);
+  const templateERC20Enterprise = await ERC20TemplateEnterprise.deploy();
+  const templateERC20EnterpriseId = await templateERC20Enterprise.getId()
+  addresses.ERC20Template[templateERC20EnterpriseId] = templateERC20Enterprise.address
+  
+  addresses.ERC721Template={}
+  if (logging) console.info("Deploying ERC721 Template")
+  const ERC721Template = await ethers.getContractFactory("ERC721Template", owner);
+  const templateERC721 = await ERC721Template.deploy();
+  const templateERC721Id = await templateERC721.getId()
+  addresses.ERC721Template[templateERC721Id] = templateERC721.address
+  
 
   if (logging) console.info("Deploying Dispenser")
   const Dispenser = await ethers.getContractFactory("Dispenser", owner);
@@ -134,10 +149,6 @@ async function main() {
   );
   addresses.Dispenser = dispenser.address
 
-  if (logging) console.info("Deploying ERC721 Template")
-  const ERC721Template = await ethers.getContractFactory("ERC721Template", owner);
-  const templateERC721 = await ERC721Template.deploy();
-  addresses.ERC721Template = templateERC721.address
   
   if (logging) console.info("Deploying ERC721 Factory")
   const ERC721Factory = await ethers.getContractFactory("ERC721Factory", owner);
