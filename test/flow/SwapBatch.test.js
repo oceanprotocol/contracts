@@ -718,9 +718,9 @@ describe("Batch Swap", () => {
         source: fixedRateExchange.address,
         operation: 2, // FIXED RATE EXCHANGE
         tokenIn: oceanContract.address,
-        amountsIn: web3.utils.toWei("10"), // unused in this case
+        amountsIn: web3.utils.toWei("10"), // maximum amount of base tokens to spend
         tokenOut: erc20Token4.address,
-        amountsOut: web3.utils.toWei('1'),  // DT we want to buy
+        amountsOut: web3.utils.toWei('1'),  // how many DT we want to buy
         maxPrice: web3.utils.toWei('100') // unused in this case
       };
 
@@ -729,9 +729,9 @@ describe("Batch Swap", () => {
         source: dispenser.address,
         operation: 3, // DISPENSER
         tokenIn: oceanContract.address, // unused in this case
-        amountsIn: web3.utils.toWei("10"), // unused in this case
+        amountsIn: web3.utils.toWei("10"), // unused
         tokenOut: erc20Token5.address,
-        amountsOut: web3.utils.toWei('1'),  // DT we want to receive
+        amountsOut: web3.utils.toWei('1'),  // how many DT we want to receive
         maxPrice: web3.utils.toWei('100') // unused in this case
       };
 

@@ -305,7 +305,7 @@ contract FactoryRouter is BFactory {
 
                 } else if (_operations[i].operation ==  operationType.FixedRate) {
                     // get datatoken address
-                    (,address datatoken,,,,,,,,,) = 
+                    (,address datatoken,,,,,,,,,,) = 
                     IFixedRateExchange(_operations[i].source).getExchange(_operations[i].exchangeIds);
                     // get tokenIn amount required for dt out
                     (uint baseTokenAmount,,,) = 
@@ -318,7 +318,7 @@ contract FactoryRouter is BFactory {
                     IERC20(_operations[i].tokenIn).approve(_operations[i].source,baseTokenAmount);
                     // perform swap
                     IFixedRateExchange(_operations[i].source)
-                    .buyDT(_operations[i].exchangeIds,_operations[i].amountsOut);
+                    .buyDT(_operations[i].exchangeIds,_operations[i].amountsOut,_operations[i].amountsIn);
                     // send dt out to user
                     IERC20(datatoken).transfer(msg.sender,_operations[i].amountsOut);
                 
