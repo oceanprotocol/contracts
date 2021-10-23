@@ -50,4 +50,6 @@ interface IFixedRateExchange {
             uint256 oceanFeeAmount,
             uint256 marketFeeAmount
         );
+    function updateMarketFee(bytes32 exchangeId, uint256 _newMarketFee) external;
+    function updateMarketFeeCollector(bytes32 exchangeId, address _newMarketCollector) external;
 }

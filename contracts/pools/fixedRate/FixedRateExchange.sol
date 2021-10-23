@@ -541,6 +541,17 @@ contract FixedRateExchange {
         exchanges[exchangeId].marketFeeCollector = _newMarketCollector;
     }
 
+    function updateMarketFee(
+        bytes32 exchangeId,
+        uint256 _newMarketFee
+    ) external {
+        require(
+            msg.sender == exchanges[exchangeId].marketFeeCollector,
+            "not marketFeeCollector"
+        );
+        exchanges[exchangeId].marketFee = _newMarketFee;
+    }
+
     /**
      * @dev getNumberOfExchanges
      *      gets the total number of registered exchanges
