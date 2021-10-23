@@ -100,6 +100,11 @@ contract FixedRateExchange {
         address indexed exchangeOwner
     );
 
+    event ExchangeAllowedSwapperChanged(
+        bytes32 indexed exchangeId,
+        address indexed allowedSwapper
+    );
+    
     event Swapped(
         bytes32 indexed exchangeId,
         address indexed by,
@@ -216,6 +221,7 @@ contract FixedRateExchange {
         );
 
         emit ExchangeActivated(exchangeId, addresses[1]);
+        emit ExchangeAllowedSwapperChanged(exchangeId, addresses[3]);
     }
 
     /**
@@ -617,7 +623,7 @@ contract FixedRateExchange {
     /**
      * @dev toggleExchangeState
      *      toggles the active state of an existing exchange
-     * @param exchangeId a unique exchange idnetifier
+     * @param exchangeId a unique exchange identifier
      */
     function toggleExchangeState(bytes32 exchangeId)
         external
@@ -632,6 +638,18 @@ contract FixedRateExchange {
         }
     }
 
+    /**
+     * @dev setAllowedSwapper
+     *      Sets a new allowedSwapper
+     * @param exchangeId a unique exchange identifier
+     * @param newAllowedSwapper refers to the new allowedSwapper
+     */
+    function setAllowedSwapper(bytes32 exchangeId, address newAllowedSwapper) external
+    onlyExchangeOwner(exchangeId)
+    {
+        exchanges[exchangeId].allowedSwapper = newAllowedSwapper;
+        emit ExchangeAllowedSwapperChanged(exchangeId, newAllowedSwapper);
+    }
     /**
      * @dev getRate
      *      gets the current fixed rate for an exchange
