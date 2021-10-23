@@ -10,6 +10,7 @@ interface IFixedRateExchange {
     function buyDT(bytes32 exchangeId, uint256 dataTokenAmount, uint256 maxBaseTokenAmount) external;
     function sellDT(bytes32 exchangeId, uint256 dataTokenAmount, uint256 minBaseTokenAmount) external;
 
+    function getAllowedSwapper(bytes32 exchangeId) external view returns (address allowedSwapper);
     function getExchange(bytes32 exchangeId)
         external
         view
@@ -26,6 +27,7 @@ interface IFixedRateExchange {
             uint256 dtBalance,
             uint256 btBalance,
             bool withMint
+            //address allowedSwapper
         );
 
     function getFeesInfo(bytes32 exchangeId)
