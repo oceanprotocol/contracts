@@ -159,6 +159,9 @@ async function main() {
     router.address
   );
   addresses.ERC721Factory = factoryERC721.address
+  if (logging) console.info("Adding ERC20Enterprise to ERC721Factory")  
+  await factoryERC721.addTokenTemplate(templateERC20Enterprise.address)
+ 
   // SET REQUIRED ADDRESS
 
   if (logging) console.info("Adding factoryERC721.address")  
