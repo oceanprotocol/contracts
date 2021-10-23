@@ -50,6 +50,9 @@ jobs:
       - name: Run Hardhate
         run: |
           npx hardhat node &
+      - name: Compile contracts
+        run: |
+          npx hardhat compile --force
       - run: npm run test:full:cover
       - uses: actions/upload-artifact@v2
         with:
