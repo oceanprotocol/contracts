@@ -766,6 +766,9 @@ contract ERC20TemplateEnterprise is ERC20("test", "testSymbol"), ERC20Roles, ERC
         //buy DT
         IFixedRateExchange(_freParams.exchangeContract)
         .buyDT(_freParams.exchangeId, _orderParams.amount, baseTokenAmount);
+        require(balanceOf(address(this))>=_orderParams.amount, "Unable to buy DT from FixedRate");
+        //we need the following because startOrder expects msg.sender to have dt
+        transfer(msg.sender,_orderParams.amount);
         //startOrder and burn it
         _startOrder(_orderParams.consumer,_orderParams.amount,_orderParams.serviceId,
         _orderParams.consumeFeeAddress, _orderParams.consumeFeeToken, _orderParams.consumeFeeAmount);
@@ -778,7 +781,8 @@ contract ERC20TemplateEnterprise is ERC20("test", "testSymbol"), ERC20Roles, ERC
     */
     function buyFromDispenserAndOrder(OrderParams memory _orderParams, address dispenserContract) external{
         //get DT
-        IDispenser(dispenserContract).dispense(address(this), _orderParams.amount);
+        IDispenser(dispenserContract).dispense(address(this), _orderParams.amount, msg.sender);
+        require(balanceOf(address(msg.sender))>=_orderParams.amount, "Unable to get DT from Dispenser");
         //startOrder and burn it
         _startOrder(_orderParams.consumer,_orderParams.amount,_orderParams.serviceId,
         _orderParams.consumeFeeAddress, _orderParams.consumeFeeToken, _orderParams.consumeFeeAmount);
