@@ -733,7 +733,7 @@ contract ERC20TemplateEnterprise is ERC20("test", "testSymbol"), ERC20Roles, ERC
         // get exchange info
         (
             ,
-            ,
+            address datatoken,
             ,
             address baseToken,
             ,
@@ -746,6 +746,7 @@ contract ERC20TemplateEnterprise is ERC20("test", "testSymbol"), ERC20Roles, ERC
             
             
         ) = IFixedRateExchange(_freParams.exchangeContract).getExchange(_freParams.exchangeId);
+        require(datatoken == address(this), 'This FixedRate is not providing this DT');
         // get token amounts needed
         (
             uint256 baseTokenAmount,
@@ -768,7 +769,7 @@ contract ERC20TemplateEnterprise is ERC20("test", "testSymbol"), ERC20Roles, ERC
         .buyDT(_freParams.exchangeId, _orderParams.amount, baseTokenAmount);
         require(balanceOf(address(this))>=_orderParams.amount, "Unable to buy DT from FixedRate");
         //we need the following because startOrder expects msg.sender to have dt
-        transfer(msg.sender,_orderParams.amount);
+        _transfer(address(this),msg.sender,_orderParams.amount);
         //startOrder and burn it
         _startOrder(_orderParams.consumer,_orderParams.amount,_orderParams.serviceId,
         _orderParams.consumeFeeAddress, _orderParams.consumeFeeToken, _orderParams.consumeFeeAmount);
