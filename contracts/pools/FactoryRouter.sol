@@ -326,7 +326,8 @@ contract FactoryRouter is BFactory {
                     IERC20(datatoken).transfer(msg.sender,_operations[i].amountsOut);
                 
                 } else {
-                    IDispenser(_operations[i].source).dispense(_operations[i].tokenOut,_operations[i].amountsOut,msg.sender);
+                    IDispenser(_operations[i].source)
+                    .dispense(_operations[i].tokenOut,_operations[i].amountsOut,msg.sender);
                     
                 }
             }
