@@ -244,11 +244,15 @@ describe("ERC721Factory", () => {
 
   it("#deployERC721Contract - should fail if token template is not active", async () => {
     
-    await factoryERC721.add721TokenTemplate(newERC721Template.address);
-    await factoryERC721.disable721TokenTemplate(2);
+    const tx = await factoryERC721.add721TokenTemplate(newERC721Template.address);
+    const txReceipt = await tx.wait();
+    const event = getEventFromTx(txReceipt,'Template721Added')
+    assert(event, "Cannot find Template721Added event")
+    const templateIndex = event.args[1];
+    await factoryERC721.disable721TokenTemplate(templateIndex);
 
     await expectRevert(
-      factoryERC721.deployERC721Contract("DT1", "DTSYMBOL",  2,
+      factoryERC721.deployERC721Contract("DT1", "DTSYMBOL",  templateIndex,
       "0x0000000000000000000000000000000000000000",
       "https://oceanprotocol.com/nft/"),
       "ERC721DTFactory: ERC721Token Template disabled"
