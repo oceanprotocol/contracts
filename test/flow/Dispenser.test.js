@@ -222,12 +222,12 @@ describe("Dispenser", () => {
       await expectRevert(
         dispenser
           .connect(bob)
-          .dispense(erc20Token.address, web3.utils.toWei('10')),
+          .dispense(erc20Token.address, web3.utils.toWei('10'),bob.address),
         "Amount too high"
       );
     })
     it('Bob requests datatokens', async () => {
-      const tx = await dispenser.connect(bob).dispense(erc20Token.address, web3.utils.toWei('1'))
+      const tx = await dispenser.connect(bob).dispense(erc20Token.address, web3.utils.toWei('1'),bob.address)
       assert(tx,
         'Bob failed to get 1DT')
     })
@@ -235,7 +235,7 @@ describe("Dispenser", () => {
       await expectRevert(
         dispenser
           .connect(bob)
-          .dispense(erc20Token.address, web3.utils.toWei('1')),
+          .dispense(erc20Token.address, web3.utils.toWei('1'),bob.address),
         "Caller balance too high"
       );
     })
@@ -248,7 +248,7 @@ describe("Dispenser", () => {
       await expectRevert(
         dispenser
           .connect(charlie)
-          .dispense(erc20Token.address, web3.utils.toWei('1')),
+          .dispense(erc20Token.address, web3.utils.toWei('1'),charlie.address),
         "Dispenser not active"
       );
     })
@@ -272,7 +272,7 @@ describe("Dispenser", () => {
       await expectRevert(
         dispenser
           .connect(bob)
-          .dispense(erc20Token2.address, web3.utils.toWei('1')),
+          .dispense(erc20Token2.address, web3.utils.toWei('1'),bob.address),
         "Not enough reserves"
       );
     })
@@ -282,7 +282,7 @@ describe("Dispenser", () => {
       assert(status.balance.eq(await erc20Token2.balanceOf(dispenser.address)), 'Balances do not match')
     })
     it('Bob requests datatokens', async () => {
-      const tx = await dispenser.connect(bob).dispense(erc20Token2.address, web3.utils.toWei('1'))
+      const tx = await dispenser.connect(bob).dispense(erc20Token2.address, web3.utils.toWei('1'),bob.address)
       assert(tx,
         'Bob failed to get 1DT')
     })

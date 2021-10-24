@@ -181,9 +181,10 @@ contract Dispenser {
      *  The dispenser must be active, hold enough DT (or be able to mint more) 
      *  and respect maxTokens/maxBalance requirements
      * @param datatoken refers to datatoken address.
-     * @param datatoken amount of datatokens required.
+     * @param amount amount of datatokens required.
+     * @param destination refers to who will receive the tokens
      */
-    function dispense(address datatoken, uint256 amount) external payable{
+    function dispense(address datatoken, uint256 amount, address destination) external payable{
         require(
             datatoken != address(0),
             'Invalid token contract address'
@@ -208,7 +209,7 @@ contract Dispenser {
         }
         
         IERC20Template tokenInstance = IERC20Template(datatoken);
-        uint256 callerBalance = tokenInstance.balanceOf(msg.sender);
+        uint256 callerBalance = tokenInstance.balanceOf(destination);
         require(
             callerBalance<datatokens[datatoken].maxBalance,
             'Caller balance too high'
@@ -223,8 +224,8 @@ contract Dispenser {
             ourBalance>=amount,
             'Not enough reserves'
         );
-        tokenInstance.transfer(msg.sender,amount);
-        emit TokensDispensed(datatoken, msg.sender, amount);
+        tokenInstance.transfer(destination,amount);
+        emit TokensDispensed(datatoken, destination, amount);
     }
 
     /**

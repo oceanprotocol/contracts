@@ -11,7 +11,7 @@ interface IDispenser {
     
     function deactivate(address datatoken) external;
     
-    function dispense(address datatoken, uint256 amount) external;
+    function dispense(address datatoken, uint256 amount, address destination) external;
     
     function ownerWithdraw(address datatoken) external;
     function setAllowedSwapper(address datatoken, address newAllowedSwapper) external;
