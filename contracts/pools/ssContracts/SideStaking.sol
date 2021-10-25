@@ -12,14 +12,16 @@ import "@openzeppelin/contracts/utils/math/SafeMath.sol";
 /**
  * @title SideStaking
  *
- * @dev SideStaking is a contract that during the burn-in period handles DT trades and after that monitors stakings in pools
+ * @dev SideStaking is a contract that monitors stakings in pools, 
+        adding or removing dt when only basetoken liquidity is added or removed
  *      Called by the pool contract
- *      Every ss newDataTokenCreated function has a ssParams array, which for this contract has the following structure:
- *               - [0] - fixed rate between DT and basetoken
- *               - [1] - if >0 , then allowSell=TRUE  (getting back DT for Ocean)
- *               - [2] - vestingAmount  - total # of datatokens to be vested
- *               - [3] - vestingBlocks - how long is the vesting period (in blocks)
- *               - [4] - basetokenBalance  = initial supply of pool
+ *      Every ss newDataTokenCreated function has a ssParams array, 
+        which for this contract has the following structure: 
+     *                     [0]  = rate (wei)
+     *                     [1]  = basetoken decimals
+     *                     [2]  = vesting amonunt (wei)
+     *                     [3]  = vested blocks
+     *                     [4]  = initial liquidity in basetoken for pool creation
  *
  */
 contract SideStaking {

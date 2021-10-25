@@ -153,13 +153,9 @@ contract FactoryRouter is BFactory {
      *      Creates a new FixedRateExchange setup.
      * As for deployPool, this function cannot be called directly,
      * but ONLY through the ERC20DT contract from a ERC20DEployer role
-     * basetokenAddress baseToken for exchange (OCEAN or other)
-     * basetokenDecimals baseToken decimals
-     * rate rate
-     * owner exchangeOwner
-       marketFee market Fee 
-       marketFeeCollector market fee collector address
-
+     * @param fixedPriceAddress fixedPriceAddress
+     * @param addresses array of addresses [baseToken,owner,marketFeeCollector]
+     * @param uints array of uints [baseTokenDecimals,dataTokenDecimals, fixedRate, marketFee, withMint]
        @return exchangeId
      */
 
