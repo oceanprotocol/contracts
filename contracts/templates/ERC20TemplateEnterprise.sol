@@ -6,6 +6,8 @@ pragma solidity >=0.6.0;
 import "../interfaces/IERC20Template.sol";
 import "../interfaces/IERC721Template.sol";
 import "../interfaces/IFactoryRouter.sol";
+import "../interfaces/IFixedRateExchange.sol";
+import "../interfaces/IDispenser.sol";
 import "../utils/ERC725/ERC725Ocean.sol";
 import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
 import "@openzeppelin/contracts/token/ERC20/extensions/ERC20Burnable.sol";
@@ -17,11 +19,15 @@ import "../utils/ERC20Roles.sol";
 /**
  * @title DataTokenTemplate
  *
- * @dev DataTokenTemplate is an ERC20 compliant token template
+ * @dev ERC20TemplateEnterprise is an ERC20 compliant token template
  *      Used by the factory contract as a bytecode reference to
  *      deploy new DataTokens.
+ * IMPORTANT CHANGES:
+ *  - buyFromFreAndOrder function:  one call to buy a DT from the minting capable FRE, startOrder and burn the DT
+ *  - buyFromDispenserAndOrder function:  one call to fetch a DT from the Dispenser, startOrder and burn the DT
+ *  - creation of pools is not allowed
  */
-contract ERC20Template is ERC20("test", "testSymbol"), ERC20Roles, ERC20Burnable {
+contract ERC20TemplateEnterprise is ERC20("test", "testSymbol"), ERC20Roles, ERC20Burnable {
     using SafeMath for uint256;
 
     string private _name;
@@ -33,9 +39,9 @@ contract ERC20Template is ERC20("test", "testSymbol"), ERC20Roles, ERC20Burnable
     address private _erc721Address;
     address private feeCollector;
     address private publishMarketFeeAddress;
-    address private publishMarketFeeToken;
+    address private publishMarketFeeToken;  
     uint256 private publishMarketFeeAmount;
-    uint8 private constant templateId = 1;
+    uint8 private constant templateId = 2;
 
     uint256 public constant BASE = 10**18;
     uint256 public constant BASE_COMMUNITY_FEE_PERCENTAGE = BASE / 100;  // == OPF takes 1% of the fees
@@ -48,8 +54,8 @@ contract ERC20Template is ERC20("test", "testSymbol"), ERC20Roles, ERC20Burnable
         0x6e71edae12b1b97f4d1f60370fef10105fa2faae0126114a169c64845d6126c9;
 
     mapping(address => uint256) public nonces;
-
     address public router;
+    
 
     event OrderStarted(
         address indexed consumer,
@@ -222,39 +228,7 @@ contract ERC20Template is ERC20("test", "testSymbol"), ERC20Roles, ERC20Burnable
         return initialized;
     }
 
-    /**
-     * @dev deployPool
-     *      Function to deploy new Pool with 1SS. It also has a vesting schedule.
-            This function can only be called ONCE and ONLY if no token have been minted yet.
-   controller ssContract address
-     * basetokenAddress baseToken for pool (OCEAN or other)
-     * @param ssParams params for the ssContract. 
-      basetokenSender user which will provide the baseToken amount for initial liquidity 
-     * @param swapFees swapFees (swapFee, swapMarketFee), swapOceanFee will be set automatically later
-      marketFeeCollector marketFeeCollector address
-      publisherAddress user which will be assigned the vested amount.
-     */
-
-    function deployPool(
-        uint256[] memory ssParams,
-        uint256[] memory swapFees,
-        address[] memory addresses //[controller,basetokenAddress,basetokenSender,publisherAddress, marketFeeCollector]
-    ) external onlyERC20Deployer returns (address pool){
-        require(totalSupply() == 0, "ERC20Template: tokens already minted");
-        _addMinter(addresses[0]);
-        // TODO: confirm minimum number of blocks required
-        require(ssParams[3] > 2426000, 'ERC20Template: minimum blocks not reached');
-
-        address[2] memory tokens = [address(this), addresses[1]];
-        pool = IFactoryRouter(router).deployPool(
-            tokens,
-            ssParams,
-            swapFees,
-            addresses //[controller,basetokenAddress,basetokenSender,publisherAddress, marketFeeCollector]
-        );
-
-        emit NewPool(pool, addresses[0], addresses[1]);
-    }
+    
 
     /**
      * @dev createFixedRate
@@ -269,12 +243,13 @@ contract ERC20Template is ERC20("test", "testSymbol"), ERC20Roles, ERC20Burnable
         address[] memory addresses,
         uint[] memory uints
     ) external onlyERC20Deployer returns (bytes32 exchangeId) {
+        //force FRE allowedSwapper to this contract address. no one else can swap
+        addresses[3] = address(this);
         exchangeId = IFactoryRouter(router).deployFixedRate(
             fixedPriceAddress,
             addresses,
             uints
         );
-        // add FixedPriced contract as minter if withMint == true
         if (uints[4] > 0)
             _addMinter(fixedPriceAddress);
         emit NewFixedRate(exchangeId, addresses[0]);
@@ -291,11 +266,10 @@ contract ERC20Template is ERC20("test", "testSymbol"), ERC20Roles, ERC20Burnable
         address _dispenser,
         uint256 maxTokens,
         uint256 maxBalance,
-        bool withMint,
-        address allowedSwapper
+        bool withMint
     ) external onlyERC20Deployer {
         IFactoryRouter(router).deployDispenser(
-            _dispenser, address(this), maxTokens, maxBalance, msg.sender, allowedSwapper );
+            _dispenser, address(this), maxTokens, maxBalance, msg.sender, address(this) );
         // add FixedPriced contract as minter if withMint == true
         if (withMint == true)
             _addMinter(_dispenser);
@@ -349,6 +323,17 @@ contract ERC20Template is ERC20("test", "testSymbol"), ERC20Roles, ERC20Burnable
         address consumeFeeToken, // address of the token marketplace wants to add fee on top
         uint256 consumeFeeAmount // amount to be transfered to marketFeeCollector
     ) external {
+        _startOrder(consumer,amount,serviceId,consumeFeeAddress,consumeFeeToken,consumeFeeAmount);
+    }
+
+    function _startOrder(
+        address consumer,
+        uint256 amount,
+        uint256 serviceId,
+        address consumeFeeAddress,
+        address consumeFeeToken, // address of the token marketplace wants to add fee on top
+        uint256 consumeFeeAmount // amount to be transfered to marketFeeCollector
+    ) private {
         uint256 communityFeeConsume = 0;
         uint256 communityFeePublish = 0;
         require(balanceOf(msg.sender) >= amount, "Not enough Data Tokens to start Order");
@@ -401,8 +386,8 @@ contract ERC20Template is ERC20("test", "testSymbol"), ERC20Roles, ERC20Burnable
                 .transfer(_communityFeeCollector,communityFeeConsume), 'Failed to transfer consume fee to OPF');
             }
         }
-        // send datatoken to publisher
-        transfer(getFeeCollector(), amount);
+        // instead of sending datatoken to publisher, we burn them
+        burn(amount);
         
         emit OrderStarted(
             consumer,
@@ -722,5 +707,85 @@ contract ERC20Template is ERC20("test", "testSymbol"), ERC20Roles, ERC20Burnable
         payable
     {
         payable(getFeeCollector()).transfer(address(this).balance);
+    }
+
+
+    
+    struct OrderParams{
+        address consumer;
+        uint256 amount;
+        uint256 serviceId;
+        address consumeFeeAddress;
+        address consumeFeeToken; // address of the token marketplace wants to add fee on top
+        uint256 consumeFeeAmount; 
+    }
+    struct FreParams{
+        address exchangeContract;
+        bytes32 exchangeId;
+        uint256 maxBaseTokenAmount;
+    }
+    
+    /**
+    * @dev buyFromFreAndOrder
+    *      Buys 1 DT from the FRE and then startsOrder, while burning that DT
+    */
+    function buyFromFreAndOrder(OrderParams memory _orderParams,FreParams memory _freParams) external{
+        // get exchange info
+        (
+            ,
+            address datatoken,
+            ,
+            address baseToken,
+            ,
+            ,
+            ,
+            ,
+            ,
+            ,
+            ,
+            
+            
+        ) = IFixedRateExchange(_freParams.exchangeContract).getExchange(_freParams.exchangeId);
+        require(datatoken == address(this), 'This FixedRate is not providing this DT');
+        // get token amounts needed
+        (
+            uint256 baseTokenAmount,
+            ,
+            ,
+            
+        ) = IFixedRateExchange(_freParams.exchangeContract)
+        .calcBaseInGivenOutDT(_freParams.exchangeId, _orderParams.amount);
+        require(baseTokenAmount<=_freParams.maxBaseTokenAmount, 'FixedRateExchange: Too many base tokens');
+        //transfer baseToken to us first
+        require(IERC20(baseToken).transferFrom(
+                msg.sender,
+                address(this),
+                baseTokenAmount
+            ),'Failed to transfer baseTokenAmount');
+        //approve FRE to spend baseTokens
+        IERC20(baseToken).approve(_freParams.exchangeContract, baseTokenAmount);
+        //buy DT
+        IFixedRateExchange(_freParams.exchangeContract)
+        .buyDT(_freParams.exchangeId, _orderParams.amount, baseTokenAmount);
+        require(balanceOf(address(this))>=_orderParams.amount, "Unable to buy DT from FixedRate");
+        //we need the following because startOrder expects msg.sender to have dt
+        _transfer(address(this),msg.sender,_orderParams.amount);
+        //startOrder and burn it
+        _startOrder(_orderParams.consumer,_orderParams.amount,_orderParams.serviceId,
+        _orderParams.consumeFeeAddress, _orderParams.consumeFeeToken, _orderParams.consumeFeeAmount);
+
+    }
+
+    /**
+    * @dev buyFromDispenserAndOrder
+    *      Gets DT from dispenser and then startsOrder, while burning that DT
+    */
+    function buyFromDispenserAndOrder(OrderParams memory _orderParams, address dispenserContract) external{
+        //get DT
+        IDispenser(dispenserContract).dispense(address(this), _orderParams.amount, msg.sender);
+        require(balanceOf(address(msg.sender))>=_orderParams.amount, "Unable to get DT from Dispenser");
+        //startOrder and burn it
+        _startOrder(_orderParams.consumer,_orderParams.amount,_orderParams.serviceId,
+        _orderParams.consumeFeeAddress, _orderParams.consumeFeeToken, _orderParams.consumeFeeAmount);
     }
 }

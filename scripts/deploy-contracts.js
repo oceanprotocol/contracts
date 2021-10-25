@@ -121,11 +121,23 @@ async function main() {
   const ssPool = await SSContract.deploy(router.address);
   addresses.Staking = ssPool.address
   
-
+  addresses.ERC20Template={}
   if (logging) console.info("Deploying ERC20 Template")
   const ERC20Template = await ethers.getContractFactory("ERC20Template", owner);
   const templateERC20 = await ERC20Template.deploy();
-  addresses.ERC20Template = templateERC20.address
+  
+
+  if (logging) console.info("Deploying ERC20 Enterprise Template")
+  const ERC20TemplateEnterprise = await ethers.getContractFactory("ERC20TemplateEnterprise", owner);
+  const templateERC20Enterprise = await ERC20TemplateEnterprise.deploy();
+  
+  
+  addresses.ERC721Template={}
+  if (logging) console.info("Deploying ERC721 Template")
+  const ERC721Template = await ethers.getContractFactory("ERC721Template", owner);
+  const templateERC721 = await ERC721Template.deploy();
+  
+  
 
   if (logging) console.info("Deploying Dispenser")
   const Dispenser = await ethers.getContractFactory("Dispenser", owner);
@@ -134,10 +146,6 @@ async function main() {
   );
   addresses.Dispenser = dispenser.address
 
-  if (logging) console.info("Deploying ERC721 Template")
-  const ERC721Template = await ethers.getContractFactory("ERC721Template", owner);
-  const templateERC721 = await ERC721Template.deploy();
-  addresses.ERC721Template = templateERC721.address
   
   if (logging) console.info("Deploying ERC721 Factory")
   const ERC721Factory = await ethers.getContractFactory("ERC721Factory", owner);
@@ -148,6 +156,21 @@ async function main() {
     router.address
   );
   addresses.ERC721Factory = factoryERC721.address
+  const nftCount = await factoryERC721.getCurrentNFTTemplateCount()
+  const nftTemplate = await factoryERC721.getNFTTemplate(nftCount)
+  addresses.ERC721Template[nftCount.toString()] = templateERC721.address
+
+  let currentTokenCount = await factoryERC721.getCurrentTemplateCount()
+  let tokenTemplate = await factoryERC721.getTokenTemplate(currentTokenCount)
+  addresses.ERC20Template[currentTokenCount.toString()] = templateERC20.address
+
+  
+  if (logging) console.info("Adding ERC20Enterprise to ERC721Factory")  
+  await factoryERC721.addTokenTemplate(templateERC20Enterprise.address)
+  currentTokenCount = await factoryERC721.getCurrentTemplateCount()
+  tokenTemplate = await factoryERC721.getTokenTemplate(currentTokenCount)
+  addresses.ERC20Template[currentTokenCount.toString()] = templateERC20Enterprise.address
+ 
   // SET REQUIRED ADDRESS
 
   if (logging) console.info("Adding factoryERC721.address")  

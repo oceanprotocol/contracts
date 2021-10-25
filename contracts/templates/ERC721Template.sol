@@ -27,7 +27,7 @@ contract ERC721Template is
     address private _tokenFactory;
     address[] private deployedERC20List;
     address public ssContract;
-
+    uint8 private constant templateId = 1;
     mapping(address => bool) private deployedERC20;
 
     //stored here only for ABI reasons
@@ -128,6 +128,7 @@ contract ERC721Template is
         _tokenFactory = tokenFactory;
         defaultBaseURI = baseURI;
         initialized = true;
+        hasMetaData = false;
         _safeMint(owner, 1);
         _addManager(owner);
 
@@ -541,7 +542,13 @@ contract ERC721Template is
         }
     }
 
-
+    /**
+     * @dev getId
+     *      Return template id
+     */
+    function getId() external pure returns (uint8) {
+        return templateId;
+    }
      /**
      * @dev fallback function
      *      this is a default fallback function in which receives

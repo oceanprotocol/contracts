@@ -40,6 +40,7 @@ contract FixedRateExchange {
         uint256 marketFeeAvailable;
         uint256 oceanFeeAvailable;
         bool withMint;
+        address allowedSwapper;
     }
 
     // maps an exchangeId to an exchange
@@ -99,6 +100,11 @@ contract FixedRateExchange {
         address indexed exchangeOwner
     );
 
+    event ExchangeAllowedSwapperChanged(
+        bytes32 indexed exchangeId,
+        address indexed allowedSwapper
+    );
+    
     event Swapped(
         bytes32 indexed exchangeId,
         address indexed by,
@@ -144,14 +150,23 @@ contract FixedRateExchange {
      * @dev create
      *      creates new exchange pairs between base token
      *      (ocean token) and data tokens.
-     * baseToken refers to a ocean token contract address
      * dataToken refers to a data token contract address
-     * fixedRate refers to the exact fixed exchange rate in wei
+     * addresses  - array of addresses with the following struct:
+     *                [0] - baseToken
+     *                [1] - owner
+     *                [2] - marketFeeCollector
+     *                [3] - allowedSwapper - if != address(0), only that is allowed to swap (used for ERC20Enterprise)
+     * uints  - array of uints with the following struct:
+     *                [0] - baseTokenDecimals
+     *                [1] - dataTokenDecimals
+     *                [2] - fixedRate
+     *                [3] - marketFee
+     *                [4] - withMint
      */
     function createWithDecimals(
         address dataToken,
-        address[] memory addresses, // [baseToken,owner,marketFeeCollector]
-        uint256[] memory uints // [baseTokenDecimals,dataTokenDecimals, fixedRate, marketFee, withMint]
+        address[] memory addresses, 
+        uint256[] memory uints 
     ) public onlyRouter returns (bytes32 exchangeId) {
        
         require(
@@ -191,7 +206,8 @@ contract FixedRateExchange {
             marketFeeCollector: addresses[2],
             marketFeeAvailable: 0,
             oceanFeeAvailable: 0,
-            withMint: withMint
+            withMint: withMint,
+            allowedSwapper: addresses[3]
         });
 
         exchangeIds.push(exchangeId);
@@ -205,6 +221,7 @@ contract FixedRateExchange {
         );
 
         emit ExchangeActivated(exchangeId, addresses[1]);
+        emit ExchangeAllowedSwapperChanged(exchangeId, addresses[3]);
     }
 
     /**
@@ -321,6 +338,12 @@ contract FixedRateExchange {
             dataTokenAmount != 0,
             "FixedRateExchange: zero data token amount"
         );
+        if(exchanges[exchangeId].allowedSwapper != address(0)){
+            require(
+                exchanges[exchangeId].allowedSwapper == msg.sender,
+                "FixedRateExchange: This address is not allowed to swap"
+            );
+        }
         (
             uint256 baseTokenAmount,
             uint256 baseTokenAmountBeforeFee,
@@ -403,6 +426,12 @@ contract FixedRateExchange {
             dataTokenAmount != 0,
             "FixedRateExchange: zero data token amount"
         );
+        if(exchanges[exchangeId].allowedSwapper != address(0)){
+            require(
+                exchanges[exchangeId].allowedSwapper == msg.sender,
+                "FixedRateExchange: This address is not allowed to swap"
+            );
+        }
         (
             uint256 baseTokenAmount,
             uint256 baseTokenAmountBeforeFee,
@@ -541,6 +570,17 @@ contract FixedRateExchange {
         exchanges[exchangeId].marketFeeCollector = _newMarketCollector;
     }
 
+    function updateMarketFee(
+        bytes32 exchangeId,
+        uint256 _newMarketFee
+    ) external {
+        require(
+            msg.sender == exchanges[exchangeId].marketFeeCollector,
+            "not marketFeeCollector"
+        );
+        exchanges[exchangeId].marketFee = _newMarketFee;
+    }
+
     /**
      * @dev getNumberOfExchanges
      *      gets the total number of registered exchanges
@@ -583,7 +623,7 @@ contract FixedRateExchange {
     /**
      * @dev toggleExchangeState
      *      toggles the active state of an existing exchange
-     * @param exchangeId a unique exchange idnetifier
+     * @param exchangeId a unique exchange identifier
      */
     function toggleExchangeState(bytes32 exchangeId)
         external
@@ -598,6 +638,18 @@ contract FixedRateExchange {
         }
     }
 
+    /**
+     * @dev setAllowedSwapper
+     *      Sets a new allowedSwapper
+     * @param exchangeId a unique exchange identifier
+     * @param newAllowedSwapper refers to the new allowedSwapper
+     */
+    function setAllowedSwapper(bytes32 exchangeId, address newAllowedSwapper) external
+    onlyExchangeOwner(exchangeId)
+    {
+        exchanges[exchangeId].allowedSwapper = newAllowedSwapper;
+        emit ExchangeAllowedSwapperChanged(exchangeId, newAllowedSwapper);
+    }
     /**
      * @dev getRate
      *      gets the current fixed rate for an exchange
@@ -686,6 +738,7 @@ contract FixedRateExchange {
             uint256 dtBalance,
             uint256 btBalance,
             bool withMint
+           // address allowedSwapper
         )
     {
         Exchange memory exchange = exchanges[exchangeId];
@@ -701,6 +754,24 @@ contract FixedRateExchange {
         dtBalance = exchange.dtBalance;
         btBalance = exchange.btBalance;
         withMint = exchange.withMint;
+       // allowedSwapper = exchange.allowedSwapper;
+    }
+
+    // /**
+    //  * @dev getAllowedSwapper
+    //  *      gets allowedSwapper
+    //  * @param exchangeId a unique exchange idnetifier
+    //  * @return address of allowedSwapper 
+    //  */
+    function getAllowedSwapper(bytes32 exchangeId)
+        external
+        view
+        returns (
+            address allowedSwapper
+        )
+    {
+        Exchange memory exchange = exchanges[exchangeId];
+        allowedSwapper = exchange.allowedSwapper;
     }
 
     function getFeesInfo(bytes32 exchangeId)

@@ -6,7 +6,8 @@ const { expectRevert, expectEvent, BN } = require("@openzeppelin/test-helpers");
 const { impersonate } = require("../../helpers/impersonate");
 const constants = require("../../helpers/constants");
 const { web3 } = require("@openzeppelin/test-helpers/src/setup");
-const {getEventFromTx} = require("../../helpers/utils")
+const {getEventFromTx} = require("../../helpers/utils");
+const { ZERO_ADDRESS } = require("@openzeppelin/test-helpers/src/constants");
 const ethers = hre.ethers;
 
 describe("ERC721Factory", () => {
@@ -243,11 +244,15 @@ describe("ERC721Factory", () => {
 
   it("#deployERC721Contract - should fail if token template is not active", async () => {
     
-    await factoryERC721.add721TokenTemplate(newERC721Template.address);
-    await factoryERC721.disable721TokenTemplate(2);
+    const tx = await factoryERC721.add721TokenTemplate(newERC721Template.address);
+    const txReceipt = await tx.wait();
+    const event = getEventFromTx(txReceipt,'Template721Added')
+    assert(event, "Cannot find Template721Added event")
+    const templateIndex = event.args[1];
+    await factoryERC721.disable721TokenTemplate(templateIndex);
 
     await expectRevert(
-      factoryERC721.deployERC721Contract("DT1", "DTSYMBOL",  2,
+      factoryERC721.deployERC721Contract("DT1", "DTSYMBOL",  templateIndex,
       "0x0000000000000000000000000000000000000000",
       "https://oceanprotocol.com/nft/"),
       "ERC721DTFactory: ERC721Token Template disabled"
@@ -1105,7 +1110,7 @@ describe("ERC721Factory", () => {
       {
 
         "fixedPriceAddress":fixedRateExchange.address,
-        "addresses":[erc20TokenWithPublishFee.address,user3.address,user6.address],
+        "addresses":[erc20TokenWithPublishFee.address,user3.address,user6.address, ZERO_ADDRESS],
         "uints":[18,18,rate,marketFee,0]
        
       }
@@ -1150,7 +1155,7 @@ describe("ERC721Factory", () => {
       {
       "strings":["ERC20WithPool","ERC20P"],
       "templateIndex":1,
-      "addresses":[user3.address,user6.address,user3.address,"0x0000000000000000000000000000000000000000"],
+      "addresses":[user3.address,user6.address,user3.address,ZERO_ADDRESS],
       "uints":[cap,0],
       "bytess":[]
       },
@@ -1158,7 +1163,8 @@ describe("ERC721Factory", () => {
         "dispenserAddress":dispenser.address,
         "maxTokens":web3.utils.toWei("1"),
         "maxBalance":web3.utils.toWei("1"),
-        "withMint":true
+        "withMint":true,
+        "allowedSwapper": ZERO_ADDRESS
       }
       );
 

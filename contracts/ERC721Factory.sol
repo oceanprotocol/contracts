@@ -49,6 +49,8 @@ contract ERC721Factory is Deployer, Ownable {
     uint256 public templateCount;
     address public router;
 
+    event Template721Added(address indexed _templateAddress, uint256 indexed nftTemplateCount);
+    event Template20Added(address indexed _templateAddress, uint256 indexed nftTemplateCount);
   //stored here only for ABI reasons
     event TokenCreated(
         address indexed newTokenAddress,
@@ -174,7 +176,7 @@ contract ERC721Factory is Deployer, Ownable {
      * @param _templateAddress new template address
      * @return the actual template count
      */
-
+    
     function add721TokenTemplate(address _templateAddress)
         public
         onlyOwner
@@ -188,6 +190,7 @@ contract ERC721Factory is Deployer, Ownable {
         nftTemplateCount += 1;
         Template memory template = Template(_templateAddress, true);
         nftTemplateList[nftTemplateCount] = template;
+        emit Template721Added(_templateAddress,nftTemplateCount);
         return nftTemplateCount;
     }
       /**
@@ -389,7 +392,7 @@ contract ERC721Factory is Deployer, Ownable {
      * @return the actual template count
      */
 
-
+    
     function addTokenTemplate(address _templateAddress)
         public
         onlyOwner
@@ -403,6 +406,7 @@ contract ERC721Factory is Deployer, Ownable {
         templateCount += 1;
         Template memory template = Template(_templateAddress, true);
         templateList[templateCount] = template;
+        emit Template20Added(_templateAddress, templateCount);
         return templateCount;
     }
 
@@ -645,6 +649,7 @@ contract ERC721Factory is Deployer, Ownable {
         uint256 maxTokens;
         uint256 maxBalance;
         bool withMint;
+        address allowedSwapper;
     }
     /**
      * @dev createNftErcWithDispenser
@@ -677,7 +682,8 @@ contract ERC721Factory is Deployer, Ownable {
             _DispenserData.dispenserAddress,
             _DispenserData.maxTokens,
             _DispenserData.maxBalance,
-            _DispenserData.withMint
+            _DispenserData.withMint,
+            _DispenserData.allowedSwapper
             );
     }
 }

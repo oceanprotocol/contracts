@@ -567,7 +567,7 @@ describe("Batch Swap", () => {
       receipt = await (
         await erc20Token4.connect(user3).createFixedRate(
           fixedRateExchange.address,
-          [oceanContract.address, user3.address, marketFeeCollector.address],
+          [oceanContract.address, user3.address, marketFeeCollector.address, ZERO_ADDRESS],
           [18, 18, rate, marketFee, 0]
           // 18,
           // rate,
@@ -650,7 +650,7 @@ describe("Batch Swap", () => {
         await erc20Token5
           .connect(user3)
           .createDispenser(
-            dispenser.address, web3.utils.toWei('1'), web3.utils.toWei('1'), true)
+            dispenser.address, web3.utils.toWei('1'), web3.utils.toWei('1'), true, ZERO_ADDRESS)
           
       ).wait(); // from exchangeOwner (user3)
       const status = await dispenser.status(erc20Token5.address)

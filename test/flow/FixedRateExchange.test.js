@@ -12,7 +12,8 @@ const { getEventFromTx } = require("../helpers/utils")
 const constants = require("../helpers/constants");
 const { web3, BN } = require("@openzeppelin/test-helpers/src/setup");
 const { keccak256 } = require("@ethersproject/keccak256");
-const { MAX_UINT256 } = require("@openzeppelin/test-helpers/src/constants");
+const { MAX_UINT256, ZERO_ADDRESS } = require("@openzeppelin/test-helpers/src/constants");
+
 const ethers = hre.ethers;
 
 // TEST NEW FUNCTIONS, FOR UNIT TEST REFER TO V3 CONTRACTS BRANCH
@@ -249,7 +250,7 @@ describe("FixedRateExchange", () => {
           .connect(alice)
           .createFixedRate(
             fixedRateExchange.address,
-            [oceanContract.address, alice.address, marketFeeCollector.address],
+            [oceanContract.address, alice.address, marketFeeCollector.address, ZERO_ADDRESS],
             [18, 18, rate, marketFee, 0]
             // 18,
             // rate,
@@ -976,7 +977,7 @@ describe("FixedRateExchange", () => {
           .connect(alice)
           .createFixedRate(
             fixedRateExchange.address,
-            [daiContract.address, alice.address, marketFeeCollector.address],
+            [daiContract.address, alice.address, marketFeeCollector.address, ZERO_ADDRESS],
             [18, 18, rate, marketFee,0]
           )
       ).wait(); // from exchangeOwner (alice)
@@ -1762,7 +1763,7 @@ describe("FixedRateExchange", () => {
           .connect(alice)
           .createFixedRate(
             fixedRateExchange.address,
-            [oceanContract.address, alice.address, marketFeeCollector.address],
+            [oceanContract.address, alice.address, marketFeeCollector.address, ZERO_ADDRESS],
             [18, 18, rate, marketFee, 0]
           )
       ).wait(); // from exchangeOwner (alice)
@@ -2469,7 +2470,7 @@ describe("FixedRateExchange", () => {
           .connect(alice)
           .createFixedRate(
             fixedRateExchange.address,
-            [daiContract.address, alice.address, marketFeeCollector.address],
+            [daiContract.address, alice.address, marketFeeCollector.address, ZERO_ADDRESS],
             [18, 18, rate, marketFee, 0]
           )
       ).wait(); // from exchangeOwner (alice)
@@ -3171,7 +3172,7 @@ describe("FixedRateExchange", () => {
           .connect(alice)
           .createFixedRate(
             fixedRateExchange.address,
-            [usdcContract.address, alice.address, marketFeeCollector.address],
+            [usdcContract.address, alice.address, marketFeeCollector.address, ZERO_ADDRESS],
             [6, 18, rate, marketFee, 0]
           )
       ).wait(); // from exchangeOwner (alice)
@@ -3879,7 +3880,7 @@ describe("FixedRateExchange", () => {
           .connect(alice)
           .createFixedRate(
             fixedRateExchange.address,
-            [usdcContract.address, alice.address, marketFeeCollector.address],
+            [usdcContract.address, alice.address, marketFeeCollector.address, ZERO_ADDRESS],
             [6, 18, rate, marketFee, 0]
           )
       ).wait(); // from exchangeOwner (alice)
@@ -4583,7 +4584,7 @@ describe("FixedRateExchange", () => {
           .connect(alice)
           .createFixedRate(
             fixedRateExchange.address,
-            [daiContract.address, alice.address, marketFeeCollector.address],
+            [daiContract.address, alice.address, marketFeeCollector.address, ZERO_ADDRESS],
             [18, 18, rate, marketFee, 0]
           )
       ).wait(); // from exchangeOwner (alice)
@@ -5368,7 +5369,7 @@ describe("FixedRateExchange", () => {
           .connect(alice)
           .createFixedRate(
             fixedRateExchange.address,
-            [oceanContract.address, alice.address, marketFeeCollector.address],
+            [oceanContract.address, alice.address, marketFeeCollector.address, ZERO_ADDRESS],
             [18, 18, rate, marketFee, 1]
             // 18,
             // rate,

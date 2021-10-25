@@ -12,7 +12,7 @@ const { getEventFromTx } = require("../helpers/utils")
 const constants = require("../helpers/constants");
 const { web3, BN } = require("@openzeppelin/test-helpers/src/setup");
 const { keccak256 } = require("@ethersproject/keccak256");
-const { MAX_UINT256 } = require("@openzeppelin/test-helpers/src/constants");
+const { MAX_UINT256, ZERO_ADDRESS } = require("@openzeppelin/test-helpers/src/constants");
 const ethers = hre.ethers;
 
 // TEST NEW FUNCTIONS, FOR UNIT TEST REFER TO V3 CONTRACTS BRANCH
@@ -207,7 +207,7 @@ describe("Dispenser", () => {
 
     it('#2 - Alice creates a dispenser with minter role', async () => {
       let tx = await erc20Token.connect(alice).createDispenser(
-        dispenser.address, web3.utils.toWei('1'), web3.utils.toWei('1'), true)
+        dispenser.address, web3.utils.toWei('1'), web3.utils.toWei('1'), true, ZERO_ADDRESS)
       assert(tx,
         'Cannot activate dispenser')
     })
@@ -222,12 +222,12 @@ describe("Dispenser", () => {
       await expectRevert(
         dispenser
           .connect(bob)
-          .dispense(erc20Token.address, web3.utils.toWei('10')),
+          .dispense(erc20Token.address, web3.utils.toWei('10'),bob.address),
         "Amount too high"
       );
     })
     it('Bob requests datatokens', async () => {
-      const tx = await dispenser.connect(bob).dispense(erc20Token.address, web3.utils.toWei('1'))
+      const tx = await dispenser.connect(bob).dispense(erc20Token.address, web3.utils.toWei('1'),bob.address)
       assert(tx,
         'Bob failed to get 1DT')
     })
@@ -235,7 +235,7 @@ describe("Dispenser", () => {
       await expectRevert(
         dispenser
           .connect(bob)
-          .dispense(erc20Token.address, web3.utils.toWei('1')),
+          .dispense(erc20Token.address, web3.utils.toWei('1'),bob.address),
         "Caller balance too high"
       );
     })
@@ -248,7 +248,7 @@ describe("Dispenser", () => {
       await expectRevert(
         dispenser
           .connect(charlie)
-          .dispense(erc20Token.address, web3.utils.toWei('1')),
+          .dispense(erc20Token.address, web3.utils.toWei('1'),charlie.address),
         "Dispenser not active"
       );
     })
@@ -264,7 +264,7 @@ describe("Dispenser", () => {
 
     it('Alice creates a dispenser without minter role', async () => {
       const tx = await erc20Token2.connect(alice).createDispenser(
-        dispenser.address, web3.utils.toWei('1'), web3.utils.toWei('1'), false)
+        dispenser.address, web3.utils.toWei('1'), web3.utils.toWei('1'), false, ZERO_ADDRESS)
       assert(tx,
         'Cannot activate dispenser')
     })
@@ -272,7 +272,7 @@ describe("Dispenser", () => {
       await expectRevert(
         dispenser
           .connect(bob)
-          .dispense(erc20Token2.address, web3.utils.toWei('1')),
+          .dispense(erc20Token2.address, web3.utils.toWei('1'),bob.address),
         "Not enough reserves"
       );
     })
@@ -282,7 +282,7 @@ describe("Dispenser", () => {
       assert(status.balance.eq(await erc20Token2.balanceOf(dispenser.address)), 'Balances do not match')
     })
     it('Bob requests datatokens', async () => {
-      const tx = await dispenser.connect(bob).dispense(erc20Token2.address, web3.utils.toWei('1'))
+      const tx = await dispenser.connect(bob).dispense(erc20Token2.address, web3.utils.toWei('1'),bob.address)
       assert(tx,
         'Bob failed to get 1DT')
     })
