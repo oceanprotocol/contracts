@@ -107,6 +107,7 @@ contract ERC721Template is
      * @param name_ NFT name
      * @param symbol_ NFT Symbol
      * @param tokenFactory NFT factory address
+     * @param baseURI base URI for NFT attributes
      
      @return boolean
      */

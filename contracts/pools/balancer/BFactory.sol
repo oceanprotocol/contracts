@@ -21,7 +21,6 @@ import '../../interfaces/IERC20.sol';
 */
 contract BFactory is BConst, Deployer {
 
-   // address public bpoolTemplate;
     address public opfCollector;
 
     mapping(address => bool) internal poolTemplates;
@@ -64,7 +63,7 @@ contract BFactory is BConst, Deployer {
         
     }
     /** 
-     * @dev Deploys new BPool proxy contract.
+     * @dev Deploys new BPool proxy contract. 
        Template contract address could not be a zero address. 
 
      * @param tokens [datatokenAddress, basetokenAddress]

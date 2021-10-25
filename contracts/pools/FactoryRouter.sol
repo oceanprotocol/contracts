@@ -241,19 +241,6 @@ contract FactoryRouter is BFactory {
 // If you need to buy multiple DT (let's say for a compute job which has multiple datasets), 
 // you have to send one transaction for each DT that you want to buy.
 
-// We could have a buyDTBatch function in FactoryRouter, that needs the following parameters:
-
-// uint type[] (fixedrate,dispenser,pool)
-// address source[] (fixed rate address , dispenser address, pool address) - depends on type
-//                           (if fixed rate or dispenser, address can be 0, we can fill it from Factory)
-// bytes32[] (can be either fixed rate exchangeID, or swapExactAmountOut / swapExactAmountIn for pools)
-// address[] - (only for pools, it's tokenIn)
-// uint256[] - (only for pools, it's maxAmountIn (for swapExactAmountOut) / tokenAmountIn)
-// address[] - (only for pools, it's tokenOut)
-// uint256[] - (fixed rate it's dataTokenAmount, for pools, it's tokenAmountOut(for swapExactAmountOut) / minAmountOut)
-// uint256[] - (only for pools, it's maxPrice)
-// Obviously, the consumer needs to approve the FactoryRouter address as spender of the required input tokens.
-
 // Perks:
 
 // one single call to buy multiple DT for multiple assets (better UX, better gas optimization)
@@ -261,14 +248,14 @@ contract FactoryRouter is BFactory {
     enum operationType { SwapExactIn, SwapExactOut, FixedRate, Dispenser}
 
     struct Operations{
-        bytes32 exchangeIds;
-        address source;
-        operationType operation;
-        address tokenIn;
-        uint256 amountsIn;
-        address tokenOut;
-        uint256 amountsOut;
-        uint256 maxPrice;
+        bytes32 exchangeIds; // used for fixedRate or dispenser
+        address source;// pool, dispenser or fixed rate address
+        operationType operation; // type of operation: enum operationType
+        address tokenIn; // token in address, only for pools
+        uint256 amountsIn; // ExactAmount In for swapExactIn operation, maxAmount In for swapExactOut
+        address tokenOut; // token out address, only for pools
+        uint256 amountsOut; // minAmountOut for swapExactIn or exactAmountOut for swapExactOut
+        uint256 maxPrice; // maxPrice, only for pools
     } 
 
     // require tokenIn approvals for router from user. (except for dispenser operations)

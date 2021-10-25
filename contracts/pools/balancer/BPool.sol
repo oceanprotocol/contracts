@@ -64,11 +64,6 @@ contract BPool is BMath, BToken {
 
     event LOG_BPT(uint256 bptAmount);
 
-    // modifier() {
-    //     emit LOG_CALL(msg.sig, msg.sender, block.timestamp, msg.data);
-    //     _;
-    // }
-
     modifier _lock_() {
         require(!_mutex, "ERR_REENTRY");
         _mutex = true;
@@ -91,7 +86,6 @@ contract BPool is BMath, BToken {
     address public _opfCollector;
     // `setSwapFee` and `finalize` require CONTROL
     // `finalize` sets `PUBLIC can SWAP`, `PUBLIC can JOIN`
-    // uint256 private _swapFee;
     bool private _finalized;
 
     address[] private _tokens;
@@ -131,7 +125,6 @@ contract BPool is BMath, BToken {
         bool publicSwap,
         bool finalized,
         address[2] calldata tokens,
-        //address basetokenAddress,
         address[2] calldata feeCollectors
     ) external returns (bool) {
         require(!initialized, "ERR_ALREADY_INITIALIZED");
@@ -439,7 +432,6 @@ contract BPool is BMath, BToken {
                 inRecord.denorm,
                 outRecord.balance,
                 outRecord.denorm
-                //_swapFee
             );
     }
     // view function used for batch buy. useful for frontend
@@ -629,7 +621,6 @@ contract BPool is BMath, BToken {
             inRecord.denorm,
             outRecord.balance,
             outRecord.denorm
-            //_swapFee
         );
 
         require(spotPriceBefore <= maxPrice, "ERR_BAD_LIMIT_PRICE");
@@ -718,7 +709,6 @@ contract BPool is BMath, BToken {
             _totalSupply,
             _totalWeight,
             tokenAmountIn
-            // _swapFee
         );
 
         require(poolAmountOut >= minPoolAmountOut, "ERR_LIMIT_OUT");
@@ -751,7 +741,6 @@ contract BPool is BMath, BToken {
            
 
             ssContract.Stake(_datatokenAddress, ssStakeToken, ssAmountIn);
-            //IERC20(_datatokenAddress).transferFrom(_controller,address(this),ssAmountIn);
             // follow the same path
             ssInRecord.balance = badd(ssInRecord.balance, ssAmountIn);
             emit LOG_JOIN(
