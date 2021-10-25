@@ -360,7 +360,7 @@ describe("1SS flow", () => {
     ).wait();
 
     const SwapEvent = receipt.events.filter((e) => e.event === "LOG_SWAP");
-    // TODO: continue testing from Swap, check fees
+   
 
     //console.log(SwapEvent)
     assert(

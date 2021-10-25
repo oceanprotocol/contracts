@@ -5,7 +5,6 @@ pragma solidity >=0.6.0;
 
 import "../../interfaces/IERC20Template.sol";
 import "../../interfaces/IPool.sol";
-//import "../ssContracts/IPool.sol";
 import "@openzeppelin/contracts/utils/math/SafeMath.sol";
 
 /**
@@ -347,7 +346,7 @@ contract SideStaking {
             _datatokens[datatokenAddress].poolAddress
         );
         uint256 lpBalance = lPTokens.balanceOf(address(this));
-        uint256 balanceToTransfer = lpBalance.div(2);
+      //  uint256 balanceToTransfer = lpBalance.div(2);
         lPTokens.transfer(
             _datatokens[datatokenAddress].publisherAddress,
             lpBalance.div(2)

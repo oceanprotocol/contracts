@@ -1059,7 +1059,7 @@ describe("Swap Fees", () => {
         "ONLY MARKET COLLECTOR"
       );
 
-      // TODO: add more test
+  
      
     });
   });
@@ -1843,7 +1843,7 @@ describe("Swap Fees", () => {
       assert((await bPool.communityFees(daiAddress)).gt(0) == true);
       assert((await bPool.communityFees(erc20Token.address)).gt(0) == true);
       // market fee actually collected some fees
-      // TODO: add more detailed test on this.
+      
       assert((await bPool.marketFees(daiAddress)).gt(0) == true);
       assert((await bPool.marketFees(erc20Token.address)).gt(0) == true);
 
@@ -1902,7 +1902,7 @@ describe("Swap Fees", () => {
         .connect(user3)
         .approve(bPool.address, web3.utils.toWei("150"));
 
-      const daiAmountIn = web3.utils.toWei('150');  // this require more DT than available but enough in the contract(vesting)). so it shouldn't deposit any DT
+      const daiAmountIn = web3.utils.toWei('150');  // this requires more DT than available but enough in the contract(vesting)). so it shouldn't deposit any DT
       const minBPTOut = web3.utils.toWei("0.001");
 
       receipt = await (
@@ -2741,7 +2741,7 @@ describe("Swap Fees", () => {
       assert((await bPool.communityFees(usdcAddress)).gt(0) == true);
       assert((await bPool.communityFees(erc20Token.address)).gt(0) == true);
       // market fee actually collected some fees
-      // TODO: add more detailed test on this.
+ 
       assert((await bPool.marketFees(usdcAddress)).gt(0) == true);
       assert((await bPool.marketFees(erc20Token.address)).gt(0) == true);
 
@@ -3682,7 +3682,7 @@ describe("Swap Fees", () => {
       assert((await bPool.communityFees(usdcAddress)).gt(0) == true);
       assert((await bPool.communityFees(erc20Token.address)).gt(0) == true);
       // market fee actually collected some fees
-      // TODO: add more detailed test on this.
+    
       assert((await bPool.marketFees(usdcAddress)).gt(0) == true);
       assert((await bPool.marketFees(erc20Token.address)).gt(0) == true);
 
@@ -4584,7 +4584,7 @@ describe("Swap Fees", () => {
       assert((await bPool.communityFees(daiAddress)).gt(0) == true);
       assert((await bPool.communityFees(erc20Token.address)).gt(0) == true);
       // market fee actually collected some fees
-      // TODO: add more detailed test on this.
+      
       assert((await bPool.marketFees(daiAddress)).gt(0) == true);
       assert((await bPool.marketFees(erc20Token.address)).gt(0) == true);
 
