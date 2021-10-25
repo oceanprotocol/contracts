@@ -1,9 +1,14 @@
-node_modules
-.env
-.gitignore
+# Code Climate files
 coverage/
-artifacts/
-#Hardhat files
-cache
+# Node.js files
+node_modules/
+.env/
+# Hardhat files
+cache/
 uncompiled/
-artifacts/
+# Python package files
+build/
+venv/
+dist/
+ocean_contracts.egg-info/
+**/__init__.py

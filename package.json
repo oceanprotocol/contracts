@@ -1,5 +1,6 @@
 {
   "name": "hardhat-project",
+  "version": "v1.0.0-alpha.1",
   "scripts": {
     "test:full": "npx hardhat test test/unit/*/*.test.js test/flow/*.test.js ",
     "test:fpe": "npx hardhat test test/flow/FixedRateExchange.test.js ",

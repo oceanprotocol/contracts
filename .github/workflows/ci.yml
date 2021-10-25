@@ -9,6 +9,8 @@ on:
   pull_request:
     branches:
       - '**'
+  # This workflow is callable by other workflows
+  workflow_call:
 
 jobs:
   lint:
@@ -32,7 +34,6 @@ jobs:
 
   tests_full:
     runs-on: ubuntu-latest
-
     steps:
       - uses: actions/checkout@v2
       - uses: actions/setup-node@v2
@@ -47,7 +48,7 @@ jobs:
           key: ${{ runner.os }}-test-unit-${{ env.cache-name }}-${{ hashFiles('**/package-lock.json') }}
           restore-keys: ${{ runner.os }}-test-unit-${{ env.cache-name }}-
       - run: npm ci
-      - name: Run Hardhate
+      - name: Run Hardhat
         run: |
           npx hardhat node &
       - name: Compile contracts
@@ -69,7 +70,6 @@ jobs:
         with:
           name: coverage
           path: coverage/
-
       - uses: paambaati/codeclimate-action@v2.7.5
         env:
           CC_TEST_REPORTER_ID: ${{ secrets.CC_TEST_REPORTER_ID }}
