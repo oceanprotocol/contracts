@@ -10,7 +10,6 @@ contract ERC721RolesAddress {
         bool deployERC20;
         bool updateMetadata;
         bool store;
-        bool v3Minter;
     }
 
     
@@ -164,31 +163,6 @@ contract ERC721RolesAddress {
     }
 
 
-    event AddedV3Minter(
-        address indexed user,
-        address indexed signer,
-        uint256 timestamp,
-        uint256 blockNumber
-    );
-    event RemovedV3Minter(
-        address indexed user,
-        address indexed signer,
-        uint256 timestamp,
-        uint256 blockNumber
-    );
-    function _addV3Minter(address _minter) internal {
-        Roles storage user = permissions[_minter];
-        user.v3Minter = true;
-        auth.push(_minter);
-        emit AddedV3Minter(_minter,msg.sender,block.timestamp,block.number);
-    }
-
-    function _removeV3Minter(address _minter) internal {
-        Roles storage user = permissions[_minter];
-        user.v3Minter = false;
-        emit RemovedV3Minter(_minter,msg.sender,block.timestamp,block.number);
-    }
-
     event CleanedPermissions(
         address indexed signer,
         uint256 timestamp,
@@ -201,7 +175,6 @@ contract ERC721RolesAddress {
             user.deployERC20 = false;
             user.updateMetadata = false;
             user.store = false;
-            user.v3Minter = false;
         }
 
         delete auth;

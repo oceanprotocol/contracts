@@ -286,6 +286,8 @@ contract ERC20Template is ERC20("test", "testSymbol"), ERC20Roles, ERC20Burnable
      * @param _dispenser dispenser contract address
      * @param maxTokens - max tokens to dispense
      * @param maxBalance - max balance of requester.
+     * @param withMint - true if we want to allow the dispenser to be a minter
+     * @param allowedSwapper - only account that can ask tokens. set address(0) if not required 
      */
     function createDispenser(
         address _dispenser,
