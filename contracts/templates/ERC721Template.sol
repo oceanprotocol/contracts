@@ -128,6 +128,7 @@ contract ERC721Template is
         _tokenFactory = tokenFactory;
         defaultBaseURI = baseURI;
         initialized = true;
+        hasMetaData = false;
         _safeMint(owner, 1);
         _addManager(owner);
 
