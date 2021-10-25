@@ -160,7 +160,6 @@ async function main() {
   const nftTemplate = await factoryERC721.getNFTTemplate(nftCount)
   addresses.ERC721Template[nftCount.toString()] = templateERC721.address
 
-  //TO DO - get Template20Added event and fetch 20template id
   let currentTokenCount = await factoryERC721.getCurrentTemplateCount()
   let tokenTemplate = await factoryERC721.getTokenTemplate(currentTokenCount)
   addresses.ERC20Template[currentTokenCount.toString()] = templateERC20.address
