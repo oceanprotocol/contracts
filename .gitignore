@@ -1,5 +1,4 @@
 .env
-artifacts/
 # Code Climate files
 coverage/
 # Node.js files
