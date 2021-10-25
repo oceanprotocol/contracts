@@ -8,7 +8,6 @@ import "../../interfaces/IPool.sol";
 //import "../ssContracts/IPool.sol";
 import "@openzeppelin/contracts/utils/math/SafeMath.sol";
 
-
 /**
  * @title SideStaking
  *
@@ -19,14 +18,14 @@ import "@openzeppelin/contracts/utils/math/SafeMath.sol";
         which for this contract has the following structure: 
      *                     [0]  = rate (wei)
      *                     [1]  = basetoken decimals
-     *                     [2]  = vesting amonunt (wei)
+     *                     [2]  = vesting amount (wei)
      *                     [3]  = vested blocks
      *                     [4]  = initial liquidity in basetoken for pool creation
  *
  */
 contract SideStaking {
     using SafeMath for uint256;
-    
+
     address public router;
 
     struct Record {
@@ -51,9 +50,10 @@ contract SideStaking {
     uint256 private constant BASE = 10**18;
 
     modifier onlyRouter() {
-        require(msg.sender == router, 'ONLY ROUTER');
+        require(msg.sender == router, "ONLY ROUTER");
         _;
     }
+
     /**
      * @dev constructor
      *      Called on contract deployment.
@@ -62,7 +62,6 @@ contract SideStaking {
         router = _router;
     }
 
-   
     /**
      * @dev newDataTokenCreated
      *      Called when new DataToken is deployed by the DataTokenFactory
@@ -106,7 +105,7 @@ contract SideStaking {
         dt.mint(address(this), dt.cap());
 
         require(dt.balanceOf(address(this)) == dt.totalSupply(), "Mint failed");
-        require(dt.totalSupply().div(10) >= ssParams[2], 'Max vesting 10%');
+        require(dt.totalSupply().div(10) >= ssParams[2], "Max vesting 10%");
         //we are rich :)let's setup the records and we are good to go
         _datatokens[datatokenAddress] = Record({
             bound: true,
@@ -236,7 +235,7 @@ contract SideStaking {
         if (_datatokens[datatokenAddress].bound != true) return (false);
         if (_datatokens[datatokenAddress].basetokenAddress == stakeToken)
             return (false);
-       
+
         //check balances
         if (_datatokens[datatokenAddress].datatokenBalance >= amount)
             return (true);
@@ -318,8 +317,7 @@ contract SideStaking {
             dataTokenWeight) /
             baseTokenWeight /
             BASE) * (10**(18 - decimals));
-        
-      
+
         //approve the tokens and amounts
         IERC20Template dt = IERC20Template(datatokenAddress);
         dt.approve(_datatokens[datatokenAddress].poolAddress, dataTokenAmount);
@@ -330,7 +328,7 @@ contract SideStaking {
             _datatokens[datatokenAddress].poolAddress,
             baseTokenAmount
         );
-       
+
         // call the pool, bind the tokens, set the price, finalize pool
         IPool pool = IPool(_datatokens[datatokenAddress].poolAddress);
         pool.setup(
@@ -345,14 +343,16 @@ contract SideStaking {
         _datatokens[datatokenAddress].basetokenBalance -= baseTokenAmount;
         _datatokens[datatokenAddress].datatokenBalance -= dataTokenAmount;
         // send 50% of the pool shares back to the publisher
-        IERC20Template lPTokens = IERC20Template(_datatokens[datatokenAddress].poolAddress);
+        IERC20Template lPTokens = IERC20Template(
+            _datatokens[datatokenAddress].poolAddress
+        );
         uint256 lpBalance = lPTokens.balanceOf(address(this));
         uint256 balanceToTransfer = lpBalance.div(2);
-        lPTokens.transfer(_datatokens[datatokenAddress].publisherAddress, lpBalance.div(2));
-        
+        lPTokens.transfer(
+            _datatokens[datatokenAddress].publisherAddress,
+            lpBalance.div(2)
+        );
     }
-
-   
 
     // called by vester to get datatokens
     function getVesting(address datatokenAddress) public {

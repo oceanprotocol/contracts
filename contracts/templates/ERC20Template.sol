@@ -230,7 +230,7 @@ contract ERC20Template is ERC20("test", "testSymbol"), ERC20Roles, ERC20Burnable
      * @param ssParams params for the ssContract. 
      *                     [0]  = rate (wei)
      *                     [1]  = basetoken decimals
-     *                     [2]  = vesting amonunt (wei)
+     *                     [2]  = vesting amount (wei)
      *                     [3]  = vested blocks
      *                     [4]  = initial liquidity in basetoken for pool creation
      * @param swapFees swapFees (swapFee, swapMarketFee), swapOceanFee will be set automatically later
