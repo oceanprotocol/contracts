@@ -70,9 +70,10 @@ contract BFactory is BConst, Deployer {
      * @param tokens [datatokenAddress, basetokenAddress]
      * publisherAddress user which will be assigned the vested amount.
      * @param ssParams params for the ssContract. 
-     * @param swapFees swapFees (swapFee, swapMarketFee,swapOceanFee), swapOceanFee will be set automatically later
+     * @param swapFees swapFees (swapFee, swapMarketFee), swapOceanFee will be set automatically later
        marketFeeCollector marketFeeCollector address
-       
+       @param addresses // array of addresses passed by the user
+       [controller,basetokenAddress,basetokenSender,publisherAddress, marketFeeCollector,poolTemplate address]
       @return bpool address of a new proxy BPool contract 
      */
        
@@ -81,7 +82,6 @@ contract BFactory is BConst, Deployer {
         uint256[] memory ssParams,
         uint256[] memory swapFees,
         address[] memory addresses 
-        //[controller,basetokenAddress,basetokenSender,publisherAddress, marketFeeCollector, poolTemplate address]
         )
         internal 
         returns (address bpool)

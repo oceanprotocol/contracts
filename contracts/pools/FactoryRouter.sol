@@ -93,10 +93,24 @@ contract FactoryRouter is BFactory {
       ssContract address
      tokens [datatokenAddress, basetokenAddress]
      publisherAddress user which will be assigned the vested amount.
+     * @param tokens precreated parameter
      * @param ssParams params for the ssContract. 
-     basetokenSender user which will provide the baseToken amount for initial liquidity 
-     * @param swapFees swapFees (swapFee, swapMarketFee,swapOceanFee), swapOceanFee will be set automatically later
-     marketFeeCollector marketFeeCollector address
+     *                     [0]  = rate (wei)
+     *                     [1]  = basetoken decimals
+     *                     [2]  = vesting amount (wei)
+     *                     [3]  = vested blocks
+     *                     [4]  = initial liquidity in basetoken for pool creation
+     * @param swapFees swapFees (swapFee, swapMarketFee), swapOceanFee will be set automatically later
+     *                     [0] = swapFee for LP Providers
+     *                     [1] = swapFee for marketplace runner
+      
+      .
+     * @param addresses refers to an array of addresses passed by user
+     *                     [0]  = side staking contract address
+     *                     [1]  = basetoken address for pool creation(OCEAN or other)
+     *                     [2]  = basetokenSender user which will provide the baseToken amount for initial liquidity
+     *                     [3]  = publisherAddress user which will be assigned the vested amount
+     *                     [4]  = marketFeeCollector marketFeeCollector address
        
         @return pool address
      */
@@ -243,9 +257,7 @@ contract FactoryRouter is BFactory {
 // Perks:
 
 // one single call to buy multiple DT for multiple assets (better UX, better gas optimization)
-// built-in support for DT 1 -> DT2 swaps in one call (using intermediary base tokens. 
-// Example IE: DT1 -> Ocean, Ocean -> DT2) (better UX, better gas optimization)
-  //  enum Exchange { Pool, FixedRate, Dispenser }
+
     enum operationType { SwapExactIn, SwapExactOut, FixedRate, Dispenser}
 
     struct Operations{
