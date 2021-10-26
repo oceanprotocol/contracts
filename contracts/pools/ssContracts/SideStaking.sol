@@ -5,26 +5,26 @@ pragma solidity >=0.6.0;
 
 import "../../interfaces/IERC20Template.sol";
 import "../../interfaces/IPool.sol";
-//import "../ssContracts/IPool.sol";
 import "@openzeppelin/contracts/utils/math/SafeMath.sol";
-
 
 /**
  * @title SideStaking
  *
- * @dev SideStaking is a contract that during the burn-in period handles DT trades and after that monitors stakings in pools
+ * @dev SideStaking is a contract that monitors stakings in pools, 
+        adding or removing dt when only basetoken liquidity is added or removed
  *      Called by the pool contract
- *      Every ss newDataTokenCreated function has a ssParams array, which for this contract has the following structure:
- *               - [0] - fixed rate between DT and basetoken
- *               - [1] - if >0 , then allowSell=TRUE  (getting back DT for Ocean)
- *               - [2] - vestingAmount  - total # of datatokens to be vested
- *               - [3] - vestingBlocks - how long is the vesting period (in blocks)
- *               - [4] - basetokenBalance  = initial supply of pool
+ *      Every ss newDataTokenCreated function has a ssParams array, 
+        which for this contract has the following structure: 
+     *                     [0]  = rate (wei)
+     *                     [1]  = basetoken decimals
+     *                     [2]  = vesting amount (wei)
+     *                     [3]  = vested blocks
+     *                     [4]  = initial liquidity in basetoken for pool creation
  *
  */
 contract SideStaking {
     using SafeMath for uint256;
-    
+
     address public router;
 
     struct Record {
@@ -49,9 +49,10 @@ contract SideStaking {
     uint256 private constant BASE = 10**18;
 
     modifier onlyRouter() {
-        require(msg.sender == router, 'ONLY ROUTER');
+        require(msg.sender == router, "ONLY ROUTER");
         _;
     }
+
     /**
      * @dev constructor
      *      Called on contract deployment.
@@ -60,7 +61,6 @@ contract SideStaking {
         router = _router;
     }
 
-   
     /**
      * @dev newDataTokenCreated
      *      Called when new DataToken is deployed by the DataTokenFactory
@@ -104,7 +104,7 @@ contract SideStaking {
         dt.mint(address(this), dt.cap());
 
         require(dt.balanceOf(address(this)) == dt.totalSupply(), "Mint failed");
-        require(dt.totalSupply().div(10) >= ssParams[2], 'Max vesting 10%');
+        require(dt.totalSupply().div(10) >= ssParams[2], "Max vesting 10%");
         //we are rich :)let's setup the records and we are good to go
         _datatokens[datatokenAddress] = Record({
             bound: true,
@@ -234,7 +234,7 @@ contract SideStaking {
         if (_datatokens[datatokenAddress].bound != true) return (false);
         if (_datatokens[datatokenAddress].basetokenAddress == stakeToken)
             return (false);
-       
+
         //check balances
         if (_datatokens[datatokenAddress].datatokenBalance >= amount)
             return (true);
@@ -316,8 +316,7 @@ contract SideStaking {
             dataTokenWeight) /
             baseTokenWeight /
             BASE) * (10**(18 - decimals));
-        
-      
+
         //approve the tokens and amounts
         IERC20Template dt = IERC20Template(datatokenAddress);
         dt.approve(_datatokens[datatokenAddress].poolAddress, dataTokenAmount);
@@ -328,7 +327,7 @@ contract SideStaking {
             _datatokens[datatokenAddress].poolAddress,
             baseTokenAmount
         );
-       
+
         // call the pool, bind the tokens, set the price, finalize pool
         IPool pool = IPool(_datatokens[datatokenAddress].poolAddress);
         pool.setup(
@@ -343,14 +342,16 @@ contract SideStaking {
         _datatokens[datatokenAddress].basetokenBalance -= baseTokenAmount;
         _datatokens[datatokenAddress].datatokenBalance -= dataTokenAmount;
         // send 50% of the pool shares back to the publisher
-        IERC20Template lPTokens = IERC20Template(_datatokens[datatokenAddress].poolAddress);
+        IERC20Template lPTokens = IERC20Template(
+            _datatokens[datatokenAddress].poolAddress
+        );
         uint256 lpBalance = lPTokens.balanceOf(address(this));
-        uint256 balanceToTransfer = lpBalance.div(2);
-        lPTokens.transfer(_datatokens[datatokenAddress].publisherAddress, lpBalance.div(2));
-        
+      //  uint256 balanceToTransfer = lpBalance.div(2);
+        lPTokens.transfer(
+            _datatokens[datatokenAddress].publisherAddress,
+            lpBalance.div(2)
+        );
     }
-
-   
 
     // called by vester to get datatokens
     function getVesting(address datatokenAddress) public {

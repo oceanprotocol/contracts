@@ -225,14 +225,25 @@ contract ERC20Template is ERC20("test", "testSymbol"), ERC20Roles, ERC20Burnable
     /**
      * @dev deployPool
      *      Function to deploy new Pool with 1SS. It also has a vesting schedule.
-            This function can only be called ONCE and ONLY if no token have been minted yet.
-   controller ssContract address
-     * basetokenAddress baseToken for pool (OCEAN or other)
+     *     This function can only be called ONCE and ONLY if no token have been minted yet.
+     *      Requires basetoken approval
      * @param ssParams params for the ssContract. 
-      basetokenSender user which will provide the baseToken amount for initial liquidity 
+     *                     [0]  = rate (wei)
+     *                     [1]  = basetoken decimals
+     *                     [2]  = vesting amount (wei)
+     *                     [3]  = vested blocks
+     *                     [4]  = initial liquidity in basetoken for pool creation
      * @param swapFees swapFees (swapFee, swapMarketFee), swapOceanFee will be set automatically later
-      marketFeeCollector marketFeeCollector address
-      publisherAddress user which will be assigned the vested amount.
+     *                     [0] = swapFee for LP Providers
+     *                     [1] = swapFee for marketplace runner
+      
+      .
+     * @param addresses refers to an array of addresses passed by user
+     *                     [0]  = side staking contract address
+     *                     [1]  = basetoken address for pool creation(OCEAN or other)
+     *                     [2]  = basetokenSender user which will provide the baseToken amount for initial liquidity
+     *                     [3]  = publisherAddress user which will be assigned the vested amount
+     *                     [4]  = marketFeeCollector marketFeeCollector address
      */
 
     function deployPool(
@@ -286,6 +297,8 @@ contract ERC20Template is ERC20("test", "testSymbol"), ERC20Roles, ERC20Burnable
      * @param _dispenser dispenser contract address
      * @param maxTokens - max tokens to dispense
      * @param maxBalance - max balance of requester.
+     * @param withMint - true if we want to allow the dispenser to be a minter
+     * @param allowedSwapper - only account that can ask tokens. set address(0) if not required 
      */
     function createDispenser(
         address _dispenser,

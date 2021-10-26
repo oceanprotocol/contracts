@@ -1,8 +1,8 @@
+.env
 # Code Climate files
 coverage/
 # Node.js files
 node_modules/
-.env/
 # Hardhat files
 cache/
 uncompiled/
