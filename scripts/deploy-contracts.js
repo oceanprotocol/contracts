@@ -74,6 +74,16 @@ async function main() {
     const Ocean = await ethers.getContractFactory("MockOcean", owner);
     const ocean = await Ocean.connect(owner).deploy(owner.address);
     addresses.Ocean = ocean.address;
+    // DEPLOY DAI and USDC for TEST (barge etc)
+    // owner will already have a 10k balance both for DAI and USDC
+    const ERC20Mock = await ethers.getContractFactory("MockERC20Decimals");
+    if (logging) console.info("Deploying DAI MOCK");
+    const DAI = await ERC20Mock.connect(owner).deploy("DAI", "DAI", 18);
+    addresses.MockDAI = DAI.address;
+    if (logging) console.info("Deploying USDC MOCK");
+    const USDC = await ERC20Mock.connect(owner).deploy("USDC", "USDC", 6);
+    addresses.MockUSDC = USDC.address;
+  
   }
   if (logging) console.info("Deploying OPF Community Fee");
   const OPFCommunityFeeCollector = await ethers.getContractFactory(
@@ -86,15 +96,6 @@ async function main() {
   );
   addresses.OPFCommunityFeeCollector = opfcommunityfeecollector.address;
 
-  // DEPLOY DAI and USDC for TEST (barge etc)
-  // owner will already have a 10k balance both for DAI and USDC
-  const ERC20Mock = await ethers.getContractFactory("MockERC20Decimals");
-  if (logging) console.info("Deploying DAI MOCK");
-  const DAI = await ERC20Mock.connect(owner).deploy("DAI", "DAI", 18);
-  addresses.DAI = DAI.address;
-  if (logging) console.info("Deploying USDC MOCK");
-  const USDC = await ERC20Mock.connect(owner).deploy("USDC", "USDC", 6);
-  addresses.USDC = USDC.address;
   if (logging) console.info("Deploying V4 contracts");
   // v4 contracts
 
