@@ -194,7 +194,7 @@ async function main() {
   await router.connect(owner).addSSContract(ssPool.address);
   // Avoid setting Owner an account we cannot use on barge for now
   if (logging) console.info("Moving Router ownership")
-  await router.connect(owner).changeRouterOwner(routerOwner)
+  if(owner.address != routerOwner.address) await router.connect(owner).changeRouterOwner(routerOwner)
 
   if (addressFile) {
     // write address.json if needed
