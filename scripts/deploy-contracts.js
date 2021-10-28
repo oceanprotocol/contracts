@@ -41,6 +41,7 @@ async function main() {
   let communityCollector;
   let OPFOwner;
   let balancerV1Factory = null;
+  let routerOwner;
   switch (network.chainId) {
     default:
       oceanAddress = "0x967da4048cd07ab37855c090aaf366e4ce1b9f48";
