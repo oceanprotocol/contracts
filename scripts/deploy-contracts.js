@@ -46,6 +46,7 @@ async function main() {
       oceanAddress = "0x967da4048cd07ab37855c090aaf366e4ce1b9f48";
       OPFOwner = "0x7DF5273aD9A6fCce64D45c64c1E43cfb6F861725";
       networkName = "development";
+      routerOwner = owner.address;
       shouldDeployOceanMock = true;
       break;
   }
@@ -191,8 +192,8 @@ async function main() {
   if (logging) console.info("Adding ssPool.address");
   await router.connect(owner).addSSContract(ssPool.address);
   // Avoid setting Owner an account we cannot use on barge for now
-  //if (logging) console.info("Moving Router ownership")
-  //await router.connect(owner).changeRouterOwner(OPFOwner)
+  if (logging) console.info("Moving Router ownership")
+  await router.connect(owner).changeRouterOwner(routerOwner)
 
   if (addressFile) {
     // write address.json if needed
