@@ -8,7 +8,6 @@ import "./BToken.sol";
 import "./BMath.sol";
 import "../../interfaces/ISideStaking.sol";
 
-
 /**
  * @title BPool
  *
@@ -462,8 +461,6 @@ contract BPool is BMath, BToken {
         require(_records[tokenOut].bound, "ERR_NOT_BOUND");
         Record storage inRecord = _records[tokenIn];
         Record storage outRecord = _records[tokenOut];
-        
-        
         return
             calcOutGivenIn(inRecord.balance, inRecord.denorm, outRecord.balance, outRecord.denorm, tokenAmountIn);
     }
@@ -573,10 +570,11 @@ contract BPool is BMath, BToken {
             outRecord.balance,
             outRecord.denorm
         );
+      
         
         require(spotPriceAfter >= spotPriceBefore, "ERR_MATH_APPROX");
         require(spotPriceAfter <= maxPrice, "ERR_LIMIT_PRICE");
-      
+    
         require(
             spotPriceBefore <= bdiv(tokenAmountIn, tokenAmountOut),
             "ERR_MATH_APPROX"

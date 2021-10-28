@@ -51,7 +51,6 @@ contract BMath is BConst, BNum {
         uint tokenWeightIn,
         uint tokenBalanceOut,
         uint tokenWeightOut
-       // uint swapFee
     )
         internal view
         returns (uint spotPrice)
@@ -62,8 +61,7 @@ contract BMath is BConst, BNum {
         uint numer = bdiv(tokenBalanceIn, tokenWeightIn);
         uint denom = bdiv(tokenBalanceOut, tokenWeightOut);
         uint ratio = bdiv(numer, denom);
-    
-        uint scale = bdiv(BONE, bsub(BONE, _swapFee));
+        uint scale = bdiv(BONE, bsub(BONE, _swapFee+getOPFFee()+_swapMarketFee));
       
         return  (spotPrice = bmul(ratio, scale));
     }
@@ -102,19 +100,21 @@ contract BMath is BConst, BNum {
         
         marketFees[tokenInAddress] = badd(marketFees[tokenInAddress],marketFeeAmount);
 
-        uint totalFee = _swapFee+oceanFeeAmount+marketFeeAmount;
-        
+        uint totalFee =_swapFee+getOPFFee()+_swapMarketFee;
+
         emit SWAP_FEES(bsub(tokenAmountIn, bmul(tokenAmountIn, bsub(BONE, _swapFee))), oceanFeeAmount, marketFeeAmount,tokenInAddress);
 
         uint adjustedIn = bsub(BONE, totalFee);
+        
         adjustedIn = bmul(tokenAmountIn, adjustedIn);
+         
         uint y = bdiv(data[0], badd(data[0], adjustedIn));
         uint foo = bpow(y, weightRatio);
         uint bar = bsub(BONE, foo);
         
 
         tokenAmountOut = bmul(data[2], bar);
-
+       
         return (tokenAmountOut, bsub(tokenAmountIn,(oceanFeeAmount+marketFeeAmount)));
     }
 
@@ -134,30 +134,27 @@ contract BMath is BConst, BNum {
         uint tokenBalanceOut,
         uint tokenWeightOut,
         uint tokenAmountIn
-        //uint swapFee
     )
         internal view
         returns (uint tokenAmountOut)
     {
         uint weightRatio = bdiv(tokenWeightIn, tokenWeightOut);
 
-        uint adjustedIn = bsub(BONE, _swapFee);
+     
+        uint totalFee = _swapFee+getOPFFee()+_swapMarketFee;
+        
+        uint adjustedIn = bsub(BONE, totalFee);
+      
         adjustedIn = bmul(tokenAmountIn, adjustedIn);
-
-      //  uint oceanAdjustedIn = bsub(BONE, _swapOceanFee);
-        uint oceanFeeAmount =  bmul(tokenAmountIn,  bsub(BONE, getOPFFee()));
-       
-       // uint marketAdjustedIn = bsub(BONE, _swapMarketFee);
-        uint marketFeeAmount =  bmul(tokenAmountIn, bsub(BONE, _swapMarketFee));
-       
-        uint totalFee =adjustedIn+oceanFeeAmount+marketFeeAmount;
-
-        uint y = bdiv(tokenBalanceIn, badd(tokenBalanceIn, totalFee));
+        
+        uint y = bdiv(tokenBalanceIn, badd(tokenBalanceIn, adjustedIn));
+     
         uint foo = bpow(y, weightRatio);
         uint bar = bsub(BONE, foo);
 
         tokenAmountOut = bmul(tokenBalanceOut, bar);
-
+       
+    
         return tokenAmountOut;
     }
 
@@ -177,7 +174,6 @@ contract BMath is BConst, BNum {
         uint tokenBalanceOut,
         uint tokenWeightOut,
         uint tokenAmountOut
-       // uint swapFee
     )
         internal view
         returns (uint tokenAmountIn)
@@ -190,7 +186,9 @@ contract BMath is BConst, BNum {
         uint totalFee =_swapFee+getOPFFee()+_swapMarketFee;
 
         tokenAmountIn = bsub(BONE, totalFee);
+        
         tokenAmountIn = bdiv(bmul(tokenBalanceIn, foo), tokenAmountIn);
+        
         return tokenAmountIn;
     }
 
@@ -250,7 +248,7 @@ contract BMath is BConst, BNum {
         uint poolSupply,
         uint totalWeight,
         uint tokenAmountIn
-       // uint swapFee
+       
     )
         internal view
         returns (uint poolAmountOut)

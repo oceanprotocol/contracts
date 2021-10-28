@@ -1143,8 +1143,15 @@ describe("Swap Fees", () => {
       expect(await bPool.communityFees(erc20Token.address)).to.equal(0);
       expect(await bPool.marketFees(daiAddress)).to.equal(0);
       expect(await bPool.marketFees(erc20Token.address)).to.equal(0);
-                });
 
+      // console.log((await bPool.getAmountOutExactIn(daiAddress,erc20Token.address,web3.utils.toWei("1"))).toString(),'exact in')
+                
+      // console.log((await bPool.getAmountOutExactIn(erc20Token.address,daiAddress,web3.utils.toWei("1"))).toString(),'exact in')
+              
+      // console.log((await bPool.getAmountInExactOut(erc20Token.address,daiAddress,web3.utils.toWei("1"))).toString(),'exact out')
+
+      // console.log((await bPool.getAmountInExactOut(daiAddress,erc20Token.address,web3.utils.toWei("1"))).toString(),'exact out')
+              });
     it("#6 - user4 buys some DT - exactAmountIn", async () => {
       // pool has initial ocean tokens at the beginning
       assert(
@@ -1208,7 +1215,7 @@ describe("Swap Fees", () => {
       expect(user4DTbalance.add(swapArgs.tokenAmountOut)).to.equal(
         await erc20Token.balanceOf(user4.address)
       );
-
+        console.log(swapArgs.tokenAmountOut.toString(),'amount out')
       expect(swapArgs.tokenAmountIn.div(1e18 / swapMarketFee)).to.be.closeTo(
         args.marketFeeAmount,
         1
@@ -2059,6 +2066,7 @@ describe("Swap Fees", () => {
       expect(1e4).to.equal(args.swapFeeAmount);
 
       // marketFees and opfFees accounting increased as expected , in USDC
+
       console.log(usdcAddress)
       console.log(args.tokenFees)
       expect(usdcAddress).to.equal(args.tokenFees);
