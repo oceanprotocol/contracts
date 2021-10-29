@@ -328,13 +328,13 @@ contract BPool is BMath, BToken {
         return _basetokenAddress;
     }
 
-    // function setSwapFee(uint256 swapFee) public {
-    //     require(!_finalized, "ERR_IS_FINALIZED");
-    //     require(msg.sender == _controller, "ERR_NOT_CONTROLLER");
-    //     require(swapFee >= MIN_FEE, "ERR_MIN_FEE");
-    //     require(swapFee <= MAX_FEE, "ERR_MAX_FEE");
-    //     _swapFee = swapFee;
-    // }
+    function setSwapFee(uint256 swapFee) public {
+        require(!_finalized, "ERR_IS_FINALIZED");
+        require(msg.sender == _controller, "ERR_NOT_CONTROLLER");
+        require(swapFee >= MIN_FEE, "ERR_MIN_FEE");
+        require(swapFee <= MAX_FEE, "ERR_MAX_FEE");
+        _swapFee = swapFee;
+    }
 
     function finalize() internal {
         _finalized = true;
@@ -1063,7 +1063,7 @@ contract BPool is BMath, BToken {
             _totalWeight,
             tokenAmountIn
         );
-        
+
         return poolAmountOut;
     }
 
