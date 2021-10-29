@@ -77,10 +77,9 @@ contract BPool is BMath, BToken {
 
     bool private _mutex;
 
-   
     address private _controller; // has CONTROL role
     bool private _publicSwap; // true if PUBLIC can call SWAP functions
-   
+
     address public _marketCollector;
     address public _opfCollector;
     // `setSwapFee` and `finalize` require CONTROL
@@ -156,8 +155,7 @@ contract BPool is BMath, BToken {
         _controller = controller;
         _factory = factory;
         _swapFee = swapFees[0];
-      
-       
+
         _swapMarketFee = swapFees[1];
         _publicSwap = publicSwap;
         _finalized = finalized;
@@ -274,7 +272,6 @@ contract BPool is BMath, BToken {
         _marketCollector = _newCollector;
     }
 
-   
     function getDenormalizedWeight(address token)
         external
         view
@@ -331,15 +328,13 @@ contract BPool is BMath, BToken {
         return _basetokenAddress;
     }
 
-    function setSwapFee(uint256 swapFee) public {
-        require(!_finalized, "ERR_IS_FINALIZED");
-        require(msg.sender == _controller, "ERR_NOT_CONTROLLER");
-        require(swapFee >= MIN_FEE, "ERR_MIN_FEE");
-        require(swapFee <= MAX_FEE, "ERR_MAX_FEE");
-        _swapFee = swapFee;
-    }
-
-
+    // function setSwapFee(uint256 swapFee) public {
+    //     require(!_finalized, "ERR_IS_FINALIZED");
+    //     require(msg.sender == _controller, "ERR_NOT_CONTROLLER");
+    //     require(swapFee >= MIN_FEE, "ERR_MIN_FEE");
+    //     require(swapFee <= MAX_FEE, "ERR_MAX_FEE");
+    //     _swapFee = swapFee;
+    // }
 
     function finalize() internal {
         _finalized = true;
@@ -407,8 +402,6 @@ contract BPool is BMath, BToken {
         }
     }
 
-    
-
     // Absorb any tokens that have been sent to this contract into the pool
     // function gulp(address token) external _lock_ {
     //     require(_records[token].bound, "ERR_NOT_BOUND");
@@ -433,43 +426,67 @@ contract BPool is BMath, BToken {
                 outRecord.denorm
             );
     }
+
     // view function used for batch buy. useful for frontend
-    function getAmountInExactOut(address tokenIn, address tokenOut, uint tokenAmountOut)
+    function getAmountInExactOut(
+        address tokenIn,
+        address tokenOut,
+        uint256 tokenAmountOut
+    )
         external
         view
-     // _viewlock_
-        returns (uint256 tokenAmountIn)
+        returns (
+            // _viewlock_
+            uint256 tokenAmountIn
+        )
     {
         require(_records[tokenIn].bound, "ERR_NOT_BOUND");
         require(_records[tokenOut].bound, "ERR_NOT_BOUND");
         Record storage inRecord = _records[tokenIn];
         Record storage outRecord = _records[tokenOut];
-        
-        
+
         return
-            calcInGivenOut(inRecord.balance, inRecord.denorm, outRecord.balance, outRecord.denorm, tokenAmountOut);
+            calcInGivenOut(
+                inRecord.balance,
+                inRecord.denorm,
+                outRecord.balance,
+                outRecord.denorm,
+                tokenAmountOut
+            );
     }
-    
+
     // view function useful for frontend
-    function getAmountOutExactIn(address tokenIn, address tokenOut, uint tokenAmountIn)
+    function getAmountOutExactIn(
+        address tokenIn,
+        address tokenOut,
+        uint256 tokenAmountIn
+    )
         external
         view
-    //  _viewlock_
-        returns (uint256 tokenAmountOut)
+        returns (
+            //  _viewlock_
+            uint256 tokenAmountOut
+        )
     {
         require(_records[tokenIn].bound, "ERR_NOT_BOUND");
         require(_records[tokenOut].bound, "ERR_NOT_BOUND");
         Record storage inRecord = _records[tokenIn];
         Record storage outRecord = _records[tokenOut];
         return
-            calcOutGivenIn(inRecord.balance, inRecord.denorm, outRecord.balance, outRecord.denorm, tokenAmountIn);
+            calcOutGivenIn(
+                inRecord.balance,
+                inRecord.denorm,
+                outRecord.balance,
+                outRecord.denorm,
+                tokenAmountIn
+            );
     }
+
     function joinPool(uint256 poolAmountOut, uint256[] calldata maxAmountsIn)
         external
         _lock_
     {
         require(_finalized, "ERR_NOT_FINALIZED");
-
 
         uint256 poolTotal = totalSupply();
         uint256 ratio = bdiv(poolAmountOut, poolTotal);
@@ -493,9 +510,7 @@ contract BPool is BMath, BToken {
         external
         _lock_
     {
-  
         require(_finalized, "ERR_NOT_FINALIZED");
-
 
         uint256 poolTotal = totalSupply();
         uint256 exitFee = bmul(poolAmountIn, EXIT_FEE);
@@ -544,7 +559,7 @@ contract BPool is BMath, BToken {
             outRecord.balance,
             outRecord.denorm
         );
-      
+
         require(spotPriceBefore <= maxPrice, "ERR_BAD_LIMIT_PRICE");
         uint256 balanceInToAdd;
         uint256[4] memory data = [
@@ -558,7 +573,7 @@ contract BPool is BMath, BToken {
             tokenAmountIn,
             tokenIn
         );
-      
+
         require(tokenAmountOut >= minAmountOut, "ERR_LIMIT_OUT");
 
         inRecord.balance = badd(inRecord.balance, balanceInToAdd);
@@ -570,16 +585,15 @@ contract BPool is BMath, BToken {
             outRecord.balance,
             outRecord.denorm
         );
-      
-        
+
         require(spotPriceAfter >= spotPriceBefore, "ERR_MATH_APPROX");
         require(spotPriceAfter <= maxPrice, "ERR_LIMIT_PRICE");
-    
+
         require(
             spotPriceBefore <= bdiv(tokenAmountIn, tokenAmountOut),
             "ERR_MATH_APPROX"
         );
-     
+
         emit LOG_SWAP(
             msg.sender,
             tokenIn,
@@ -622,9 +636,9 @@ contract BPool is BMath, BToken {
         );
 
         require(spotPriceBefore <= maxPrice, "ERR_BAD_LIMIT_PRICE");
-        // this is the amount we are going to register in balances 
+        // this is the amount we are going to register in balances
         // (only takes account of swapFee, not OPF and market fee, in order to not affect price during following swaps, fee wtihdrawl etc)
-        uint256 balanceToAdd; 
+        uint256 balanceToAdd;
         uint256[4] memory data = [
             inRecord.balance,
             inRecord.denorm,
@@ -637,8 +651,7 @@ contract BPool is BMath, BToken {
             tokenAmountOut,
             tokenIn
         );
-        
-        
+
         require(tokenAmountIn <= maxAmountIn, "ERR_LIMIT_IN");
 
         inRecord.balance = badd(inRecord.balance, balanceToAdd);
@@ -650,7 +663,7 @@ contract BPool is BMath, BToken {
             outRecord.balance,
             outRecord.denorm
         );
-         
+
         require(spotPriceAfter >= spotPriceBefore, "ERR_MATH_APPROX");
         require(spotPriceAfter <= maxPrice, "ERR_LIMIT_PRICE");
         require(
@@ -678,7 +691,6 @@ contract BPool is BMath, BToken {
         uint256 tokenAmountIn,
         uint256 minPoolAmountOut
     ) external _lock_ returns (uint256 poolAmountOut) {
-     
         require(_finalized, "ERR_NOT_FINALIZED");
         require(_records[tokenIn].bound, "ERR_NOT_BOUND");
         require(
@@ -691,13 +703,10 @@ contract BPool is BMath, BToken {
 
         if (tokenIn == _datatokenAddress) {
             ssStakeToken = _basetokenAddress;
-            
         } else {
             ssInRecord = _records[_basetokenAddress];
             ssStakeToken = _datatokenAddress;
-          
         }
-        
 
         Record storage inRecord = _records[tokenIn];
 
@@ -730,13 +739,12 @@ contract BPool is BMath, BToken {
             _totalWeight,
             poolAmountOut
         );
-     
+
         if (
             ssContract.canStake(_datatokenAddress, ssStakeToken, ssAmountIn) ==
             true
         ) {
             //call 1ss to approve
-           
 
             ssContract.Stake(_datatokenAddress, ssStakeToken, ssAmountIn);
             // follow the same path
@@ -760,7 +768,6 @@ contract BPool is BMath, BToken {
         uint256 poolAmountOut,
         uint256 maxAmountIn
     ) external _lock_ returns (uint256 tokenAmountIn) {
-        
         require(_finalized, "ERR_NOT_FINALIZED");
         require(_records[tokenIn].bound, "ERR_NOT_BOUND");
 
@@ -780,11 +787,9 @@ contract BPool is BMath, BToken {
 
         if (tokenIn == _datatokenAddress) {
             ssStakeToken = _basetokenAddress;
-         
         } else {
             ssInRecord = _records[_basetokenAddress];
             ssStakeToken = _datatokenAddress;
-        
         }
 
         require(tokenAmountIn != 0, "ERR_MATH_APPROX");
@@ -838,7 +843,6 @@ contract BPool is BMath, BToken {
         uint256 poolAmountIn,
         uint256 minAmountOut
     ) external _lock_ returns (uint256 tokenAmountOut) {
-     
         require(_finalized, "ERR_NOT_FINALIZED");
         require(_records[tokenOut].bound, "ERR_NOT_BOUND");
 
@@ -858,18 +862,15 @@ contract BPool is BMath, BToken {
             tokenAmountOut <= bmul(_records[tokenOut].balance, MAX_OUT_RATIO),
             "ERR_MAX_OUT_RATIO"
         );
-   
+
         address ssStakeToken;
         Record storage ssOutRecord = _records[_datatokenAddress];
         if (tokenOut == _datatokenAddress) {
             ssStakeToken = _basetokenAddress;
-          
         } else {
             ssStakeToken = _datatokenAddress;
             ssOutRecord = _records[_basetokenAddress];
-            
         }
-   
 
         outRecord.balance = bsub(outRecord.balance, tokenAmountOut);
 
@@ -877,7 +878,7 @@ contract BPool is BMath, BToken {
 
         emit LOG_EXIT(msg.sender, tokenOut, tokenAmountOut, block.timestamp);
         emit LOG_BPT(poolAmountIn);
-      
+
         _pullPoolShare(msg.sender, poolAmountIn);
 
         _burnPoolShare(bsub(poolAmountIn, exitFee));
@@ -936,13 +937,11 @@ contract BPool is BMath, BToken {
         Record storage ssOutRecord = _records[_datatokenAddress];
         if (tokenOut == _datatokenAddress) {
             ssStakeToken = _basetokenAddress;
-            
         } else {
             ssStakeToken = _datatokenAddress;
             ssOutRecord = _records[_basetokenAddress];
-       
         }
-       
+
         Record storage outRecord = _records[tokenOut];
 
         poolAmountIn = calcPoolInGivenSingleOut(
@@ -1001,6 +1000,73 @@ contract BPool is BMath, BToken {
         return poolAmountIn;
     }
 
+    function calcSingleOutPoolIn(address tokenOut, uint256 poolAmountIn)
+        external
+        view
+        returns (uint256 tokenAmountOut)
+    {
+        Record memory outRecord = _records[tokenOut];
+
+        tokenAmountOut = calcSingleOutGivenPoolIn(
+            outRecord.balance,
+            outRecord.denorm,
+            _totalSupply,
+            _totalWeight,
+            poolAmountIn
+        );
+        return tokenAmountOut;
+    }
+
+    function calcPoolInSingleOut(address tokenOut, uint256 tokenAmountOut)
+        external
+        view
+        returns (uint256 poolAmountIn)
+    {
+        Record memory outRecord = _records[tokenOut];
+
+        poolAmountIn = calcPoolInGivenSingleOut(
+            outRecord.balance,
+            outRecord.denorm,
+            _totalSupply,
+            _totalWeight,
+            tokenAmountOut
+        );
+        return poolAmountIn;
+    }
+
+    function calcSingleInPoolOut(address tokenIn, uint256 poolAmountOut)
+        external
+        view
+        returns (uint256 tokenAmountIn)
+    {
+        Record memory inRecord = _records[tokenIn];
+
+        tokenAmountIn = calcSingleInGivenPoolOut(
+            inRecord.balance,
+            inRecord.denorm,
+            _totalSupply,
+            _totalWeight,
+            poolAmountOut
+        );
+
+        return tokenAmountIn;
+    }
+
+    function calcPoolOutSingleIn(address tokenIn,uint256 tokenAmountIn) external view returns(uint256 poolAmountOut){
+        
+        Record memory inRecord = _records[tokenIn];
+
+        poolAmountOut = calcPoolOutGivenSingleIn(
+            inRecord.balance,
+            inRecord.denorm,
+            _totalSupply,
+            _totalWeight,
+            tokenAmountIn
+        );
+        
+        return poolAmountOut;
+    }
+
     // ==
     // 'Underlying' token-manipulation functions make external calls but are NOT locked
     // You must `_lock_` or otherwise ensure reentry-safety
@@ -1010,9 +1076,7 @@ contract BPool is BMath, BToken {
         address from,
         uint256 amount
     ) internal {
-       
         bool xfer = IERC20(erc20).transferFrom(from, address(this), amount);
-      
 
         require(xfer, "ERR_ERC20_FALSE");
     }

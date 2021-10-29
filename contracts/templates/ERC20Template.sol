@@ -244,12 +244,13 @@ contract ERC20Template is ERC20("test", "testSymbol"), ERC20Roles, ERC20Burnable
      *                     [2]  = basetokenSender user which will provide the baseToken amount for initial liquidity
      *                     [3]  = publisherAddress user which will be assigned the vested amount
      *                     [4]  = marketFeeCollector marketFeeCollector address
+                           [5] = poolTemplateAddress
      */
 
     function deployPool(
         uint256[] memory ssParams,
         uint256[] memory swapFees,
-        address[] memory addresses //[controller,basetokenAddress,basetokenSender,publisherAddress, marketFeeCollector]
+        address[] memory addresses //[controller,basetokenAddress,basetokenSender,publisherAddress, marketFeeCollector,poolTemplate address]
     ) external onlyERC20Deployer returns (address pool){
         require(totalSupply() == 0, "ERC20Template: tokens already minted");
         _addMinter(addresses[0]);
@@ -261,7 +262,7 @@ contract ERC20Template is ERC20("test", "testSymbol"), ERC20Roles, ERC20Burnable
             tokens,
             ssParams,
             swapFees,
-            addresses //[controller,basetokenAddress,basetokenSender,publisherAddress, marketFeeCollector]
+            addresses //[controller,basetokenAddress,basetokenSender,publisherAddress, marketFeeCollector,poolTemplate address]
         );
 
         emit NewPool(pool, addresses[0], addresses[1]);
