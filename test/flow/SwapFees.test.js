@@ -1170,6 +1170,7 @@ describe("Swap Fees", () => {
       expect(await bPool.marketFees(daiAddress)).to.equal(0);
       expect(await bPool.marketFees(erc20Token.address)).to.equal(0);
 
+      // same amount of token out for dai and dt
       expect(
         await bPool.calcPoolInSingleOut(
           erc20Token.address,
@@ -1178,6 +1179,8 @@ describe("Swap Fees", () => {
       ).to.equal(
         await bPool.calcPoolInSingleOut(daiAddress, web3.utils.toWei("10"))
       );
+
+      // same amount of pool out for dai and dt amount in
       expect(
         await bPool.calcPoolOutSingleIn(
           erc20Token.address,
@@ -1187,6 +1190,7 @@ describe("Swap Fees", () => {
         await bPool.calcPoolOutSingleIn(daiAddress, web3.utils.toWei("10"))
       );
 
+      // same amount of token out for dai and dt exact pool amount in
       expect(
         await bPool.calcSingleOutPoolIn(
           erc20Token.address,
@@ -1195,6 +1199,7 @@ describe("Swap Fees", () => {
       ).to.equal(
         await bPool.calcSingleOutPoolIn(daiAddress, web3.utils.toWei("10"))
       );
+      // same amount of token in for dai and dt to get exact pool amount out
       expect(
         await bPool.calcSingleInPoolOut(
           erc20Token.address,
@@ -1203,13 +1208,34 @@ describe("Swap Fees", () => {
       ).to.equal(
         await bPool.calcSingleInPoolOut(daiAddress, web3.utils.toWei("10"))
       );
-      // console.log((await bPool.getAmountOutExactIn(daiAddress,erc20Token.address,web3.utils.toWei("1"))).toString(),'exact in')
 
-      // console.log((await bPool.getAmountOutExactIn(erc20Token.address,daiAddress,web3.utils.toWei("1"))).toString(),'exact in')
-
-      // console.log((await bPool.getAmountInExactOut(erc20Token.address,daiAddress,web3.utils.toWei("1"))).toString(),'exact out')
-
-      // console.log((await bPool.getAmountInExactOut(daiAddress,erc20Token.address,web3.utils.toWei("1"))).toString(),'exact out')
+      // we check swap math
+      expect(
+        await bPool.getAmountOutExactIn(
+          daiAddress,
+          erc20Token.address,
+          web3.utils.toWei("1")
+        )
+      ).to.equal(
+        await bPool.getAmountOutExactIn(
+          erc20Token.address,
+          daiAddress,
+          web3.utils.toWei("1")
+        )
+      );
+      expect(
+        await bPool.getAmountInExactOut(
+          erc20Token.address,
+          daiAddress,
+          web3.utils.toWei("1")
+        )
+      ).to.equal(
+        await bPool.getAmountInExactOut(
+          daiAddress,
+          erc20Token.address,
+          web3.utils.toWei("1")
+        )
+      );
     });
     it("#6 - user4 buys some DT - exactAmountIn", async () => {
       // pool has initial ocean tokens at the beginning
@@ -2091,38 +2117,73 @@ describe("Swap Fees", () => {
       expect(await bPool.marketFees(usdcAddress)).to.equal(0);
       expect(await bPool.marketFees(erc20Token.address)).to.equal(0);
 
+      // with diff decimals the Pool in slightly different <1e9 in a 18 decimlals token(BPT)
       expect(
         await bPool.calcPoolInSingleOut(
           erc20Token.address,
           web3.utils.toWei("10")
         )
-      ).to.equal(
-        await bPool.calcPoolInSingleOut(usdcAddress, 10*1e6)
+      ).to.be.closeTo(
+        await bPool.calcPoolInSingleOut(usdcAddress, 10 * 1e6),
+        1e9
       );
+
+      // same pool out for same amount In
       expect(
         await bPool.calcPoolOutSingleIn(
           erc20Token.address,
           web3.utils.toWei("10")
         )
-      ).to.equal(
-        await bPool.calcPoolOutSingleIn(usdcAddress, 10*1e6)
-      );
+      ).to.equal(await bPool.calcPoolOutSingleIn(usdcAddress, 10 * 1e6));
 
+      // equivalent token out for pool amount in
       expect(
-        await bPool.calcSingleOutPoolIn(
-          erc20Token.address,
-          web3.utils.toWei("10")
-        )
+        (
+          await bPool.calcSingleOutPoolIn(
+            erc20Token.address,
+            web3.utils.toWei("10")
+          )
+        ).div(1e12)
       ).to.equal(
         await bPool.calcSingleOutPoolIn(usdcAddress, web3.utils.toWei("10"))
       );
+
+      //  almost equal token in (1 unit difference) for exact pool amount out
       expect(
-        await bPool.calcSingleInPoolOut(
+        (
+          await bPool.calcSingleInPoolOut(
+            erc20Token.address,
+            web3.utils.toWei("10")
+          )
+        ).div(1e12)
+      ).to.closeTo(
+        await bPool.calcSingleInPoolOut(usdcAddress, web3.utils.toWei("10")),
+        1
+      );
+      // we check swap math
+      expect(
+        (
+          await bPool.getAmountOutExactIn(usdcAddress, erc20Token.address, 1e6)
+        ).div(1e12)
+      ).to.be.closeTo(
+        await bPool.getAmountOutExactIn(
           erc20Token.address,
-          web3.utils.toWei("10")
-        )
-      ).to.equal(
-        await bPool.calcSingleInPoolOut(usdcAddress, web3.utils.toWei("10"))
+          usdcAddress,
+          web3.utils.toWei("1")
+        ),
+        1
+      );
+      expect(
+        (
+          await bPool.getAmountInExactOut(erc20Token.address, usdcAddress, 1e6)
+        ).div(1e12)
+      ).to.be.closeTo(
+        await bPool.getAmountInExactOut(
+          usdcAddress,
+          erc20Token.address,
+          web3.utils.toWei("1")
+        ),
+        1
       );
     });
 
@@ -3074,6 +3135,32 @@ describe("Swap Fees", () => {
       expect(await bPool.communityFees(erc20Token.address)).to.equal(0);
       expect(await bPool.marketFees(usdcAddress)).to.equal(0);
       expect(await bPool.marketFees(erc20Token.address)).to.equal(0);
+
+      // we check swap math
+      expect(
+        (
+          await bPool.getAmountOutExactIn(usdcAddress, erc20Token.address, 1e6)
+        ).div(1e12)
+      ).to.be.closeTo(
+        await bPool.getAmountOutExactIn(
+          erc20Token.address,
+          usdcAddress,
+          web3.utils.toWei("1")
+        ),
+        1
+      );
+      expect(
+        (
+          await bPool.getAmountInExactOut(erc20Token.address, usdcAddress, 1e6)
+        ).div(1e12)
+      ).to.be.closeTo(
+        await bPool.getAmountInExactOut(
+          usdcAddress,
+          erc20Token.address,
+          web3.utils.toWei("1")
+        ),
+        1
+      );
     });
 
     it("#6 - user4 buys some DT - exactAmountIn", async () => {
