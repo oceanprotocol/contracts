@@ -250,7 +250,7 @@ contract ERC20Template is ERC20("test", "testSymbol"), ERC20Roles, ERC20Burnable
     function deployPool(
         uint256[] memory ssParams,
         uint256[] memory swapFees,
-        address[] memory addresses //[controller,basetokenAddress,basetokenSender,publisherAddress, marketFeeCollector,poolTemplate address]
+        address[] memory addresses 
     ) external onlyERC20Deployer returns (address pool){
         require(totalSupply() == 0, "ERC20Template: tokens already minted");
         _addMinter(addresses[0]);
@@ -262,7 +262,7 @@ contract ERC20Template is ERC20("test", "testSymbol"), ERC20Roles, ERC20Burnable
             tokens,
             ssParams,
             swapFees,
-            addresses //[controller,basetokenAddress,basetokenSender,publisherAddress, marketFeeCollector,poolTemplate address]
+            addresses 
         );
 
         emit NewPool(pool, addresses[0], addresses[1]);
