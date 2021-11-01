@@ -50,6 +50,11 @@ contract Dispenser {
         uint256 amount
     );
 
+    modifier onlyRouter() {
+        require(msg.sender == router, "Dispenser: only router");
+        _;
+    }
+
     constructor(address _router) {
         require(_router != address(0), "Dispenser: Wrong Router address");
         router = _router;
@@ -95,7 +100,7 @@ contract Dispenser {
      * @param allowedSwapper - if !=0, only this address can request DTs
      */
     function create(address datatoken,uint256 maxTokens, uint256 maxBalance, address owner, address allowedSwapper)
-        external {
+        external onlyRouter{
         require(
             datatoken != address(0),
             'Invalid token contract address'
