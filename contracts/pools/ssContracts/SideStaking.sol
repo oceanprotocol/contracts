@@ -130,6 +130,12 @@ contract SideStaking {
     }
 
     //public getters
+    /**
+     *  Returns  (total vesting amount + token released from the contract when adding liquidity)
+     * @param datatokenAddress - datatokenAddress
+
+     */
+
     function getDataTokenCirculatingSupply(address datatokenAddress)
         public
         view
@@ -140,6 +146,31 @@ contract SideStaking {
             _datatokens[datatokenAddress].datatokenBalance);
     }
 
+    /**
+     *  Returns actual dts in circulation (vested token withdrawn from the contract +
+         token released from the contract when adding liquidity)
+     * @param datatokenAddress - datatokenAddress
+
+     */
+
+    function getDataTokenCurrentCirculatingSupply(address datatokenAddress)
+        public
+        view
+        returns (uint256)
+    {
+        if (_datatokens[datatokenAddress].bound != true) return (0);
+        return (_datatokens[datatokenAddress].datatokenCap -
+            _datatokens[datatokenAddress].datatokenBalance -
+            getvestingAmount(datatokenAddress) +
+            getvestingAmountSoFar(datatokenAddress));
+    }
+
+    /**
+     *  Returns publisher address
+     * @param datatokenAddress - datatokenAddress
+
+     */
+
     function getPublisherAddress(address datatokenAddress)
         public
         view
@@ -148,6 +179,12 @@ contract SideStaking {
         if (_datatokens[datatokenAddress].bound != true) return (address(0));
         return (_datatokens[datatokenAddress].publisherAddress);
     }
+
+    /**
+     *  Returns basetoken address
+     * @param datatokenAddress - datatokenAddress
+
+     */
 
     function getBaseTokenAddress(address datatokenAddress)
         public
@@ -158,6 +195,12 @@ contract SideStaking {
         return (_datatokens[datatokenAddress].basetokenAddress);
     }
 
+    /**
+     *  Returns pool address
+     * @param datatokenAddress - datatokenAddress
+
+     */
+
     function getPoolAddress(address datatokenAddress)
         public
         view
@@ -167,6 +210,11 @@ contract SideStaking {
         return (_datatokens[datatokenAddress].poolAddress);
     }
 
+    /**
+     *  Returns basetoken balance in the contract
+     * @param datatokenAddress - datatokenAddress
+
+     */
     function getBaseTokenBalance(address datatokenAddress)
         public
         view
@@ -175,6 +223,12 @@ contract SideStaking {
         if (_datatokens[datatokenAddress].bound != true) return (0);
         return (_datatokens[datatokenAddress].basetokenBalance);
     }
+
+    /**
+     *  Returns datatoken balance in the contract
+     * @param datatokenAddress - datatokenAddress
+
+     */
 
     function getDataTokenBalance(address datatokenAddress)
         public
@@ -185,6 +239,12 @@ contract SideStaking {
         return (_datatokens[datatokenAddress].datatokenBalance);
     }
 
+    /**
+     *  Returns last vesting block
+     * @param datatokenAddress - datatokenAddress
+
+     */
+
     function getvestingEndBlock(address datatokenAddress)
         public
         view
@@ -193,6 +253,12 @@ contract SideStaking {
         if (_datatokens[datatokenAddress].bound != true) return (0);
         return (_datatokens[datatokenAddress].vestingEndBlock);
     }
+
+    /**
+     *  Returns total vesting amount
+     * @param datatokenAddress - datatokenAddress
+
+     */
 
     function getvestingAmount(address datatokenAddress)
         public
@@ -203,6 +269,12 @@ contract SideStaking {
         return (_datatokens[datatokenAddress].vestingAmount);
     }
 
+    /**
+     *  Returns last block when some vesting tokens were collected
+     * @param datatokenAddress - datatokenAddress
+
+     */
+
     function getvestingLastBlock(address datatokenAddress)
         public
         view
@@ -211,6 +283,12 @@ contract SideStaking {
         if (_datatokens[datatokenAddress].bound != true) return (0);
         return (_datatokens[datatokenAddress].vestingLastBlock);
     }
+
+    /**
+     *  Returns amount of vested tokens that have been withdrawn from the contract so far
+     * @param datatokenAddress - datatokenAddress
+
+     */
 
     function getvestingAmountSoFar(address datatokenAddress)
         public
@@ -346,13 +424,17 @@ contract SideStaking {
             _datatokens[datatokenAddress].poolAddress
         );
         uint256 lpBalance = lPTokens.balanceOf(address(this));
-      //  uint256 balanceToTransfer = lpBalance.div(2);
+        //  uint256 balanceToTransfer = lpBalance.div(2);
         lPTokens.transfer(
             _datatokens[datatokenAddress].publisherAddress,
             lpBalance.div(2)
         );
     }
+    /**
+     *  Send available vested tokens to the publisher address, can be called by anyone
+     * @param datatokenAddress - datatokenAddress
 
+     */
     // called by vester to get datatokens
     function getVesting(address datatokenAddress) public {
         require(
