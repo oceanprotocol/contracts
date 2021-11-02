@@ -111,6 +111,7 @@ contract FactoryRouter is BFactory {
      *                     [2]  = basetokenSender user which will provide the baseToken amount for initial liquidity
      *                     [3]  = publisherAddress user which will be assigned the vested amount
      *                     [4]  = marketFeeCollector marketFeeCollector address
+                           [5]  = poolTemplateAddress
        
         @return pool address
      */
@@ -120,7 +121,7 @@ contract FactoryRouter is BFactory {
         uint256[] calldata ssParams,
         uint256[] calldata swapFees,
         address[] calldata addresses 
-        //[controller,basetokenAddress,basetokenSender,publisherAddress, marketFeeCollector]
+        //[controller,basetokenAddress,basetokenSender,publisherAddress, marketFeeCollector,poolTemplateAddress]
 
     ) external returns (address) {
         require(
