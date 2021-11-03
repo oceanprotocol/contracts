@@ -478,10 +478,6 @@ describe("1SS flow", () => {
     
     expect(JoinEvent[1].args.tokenAmountIn).to.equal(sideStakingAmountIn);
 
-   
-
-    // dt amount is slightly higher because we ask for the same amount of BPT but the pool is bigger
-    assert(sideStakingAmountIn.gt(JoinEvent[0].args.tokenAmountIn) == true);
 
     // we check ssContract actually moved DT and got back BPT
     expect(ssContractDTbalance.sub(JoinEvent[1].args.tokenAmountIn)).to.equal(await erc20Token.balanceOf(sideStaking.address))

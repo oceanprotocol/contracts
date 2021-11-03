@@ -364,16 +364,17 @@ contract SideStaking {
     function UnStake(
         address datatokenAddress,
         address stakeToken,
-        uint256 amount
+        uint256 dtAmountIn,
+        uint256 poolAmountOut
     ) public {
         if (_datatokens[datatokenAddress].bound != true) return;
         require(
             msg.sender == _datatokens[datatokenAddress].poolAddress,
             "ERR: Only pool can call this"
         );
-        bool ok = canUnStake(datatokenAddress, stakeToken, amount);
+        bool ok = canUnStake(datatokenAddress, stakeToken, poolAmountOut);
         if (ok != true) return;
-        _datatokens[datatokenAddress].datatokenBalance += amount;
+        _datatokens[datatokenAddress].datatokenBalance += dtAmountIn;
     }
 
     //called by the pool (or by us) when we should finalize the pool
@@ -430,6 +431,7 @@ contract SideStaking {
             lpBalance.div(2)
         );
     }
+
     /**
      *  Send available vested tokens to the publisher address, can be called by anyone
      * @param datatokenAddress - datatokenAddress

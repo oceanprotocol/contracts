@@ -92,7 +92,8 @@ interface ISideStaking {
     function UnStake(
         address datatokenAddress,
         address stakeToken,
-        uint256 amount
+        uint256 amount,
+        uint256 poolAmountIn
     ) external;
 
     function notifyFinalize(address datatokenAddress) external;
