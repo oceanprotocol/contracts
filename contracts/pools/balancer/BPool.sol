@@ -698,16 +698,6 @@ contract BPool is BMath, BToken {
             "ERR_MAX_IN_RATIO"
         );
         //ask ssContract
-        Record storage ssInRecord = _records[_datatokenAddress];
-        address ssStakeToken;
-
-        if (tokenIn == _datatokenAddress) {
-            ssStakeToken = _basetokenAddress;
-        } else {
-            ssInRecord = _records[_basetokenAddress];
-            ssStakeToken = _datatokenAddress;
-        }
-
         Record storage inRecord = _records[tokenIn];
 
         poolAmountOut = calcPoolOutGivenSingleIn(
@@ -731,7 +721,8 @@ contract BPool is BMath, BToken {
 
         //ask the ssContract to stake as well
         //calculate how much should the 1ss stake
-
+        Record storage ssInRecord = _records[_datatokenAddress];
+        address ssStakeToken;
         uint256 ssAmountIn = calcSingleInGivenPoolOut(
             ssInRecord.balance,
             ssInRecord.denorm,
@@ -739,7 +730,12 @@ contract BPool is BMath, BToken {
             _totalWeight,
             poolAmountOut
         );
-
+        if (tokenIn == _datatokenAddress) {
+            ssStakeToken = _basetokenAddress;
+        } else {
+            // ssInRecord = _records[_basetokenAddress];
+            ssStakeToken = _datatokenAddress;
+        }
         if (
             ssContract.canStake(_datatokenAddress, ssStakeToken, ssAmountIn) ==
             true
@@ -782,16 +778,6 @@ contract BPool is BMath, BToken {
         );
 
         //ask ssContract
-        Record storage ssInRecord = _records[_datatokenAddress];
-        address ssStakeToken;
-
-        if (tokenIn == _datatokenAddress) {
-            ssStakeToken = _basetokenAddress;
-        } else {
-            ssInRecord = _records[_basetokenAddress];
-            ssStakeToken = _datatokenAddress;
-        }
-
         require(tokenAmountIn != 0, "ERR_MATH_APPROX");
         require(tokenAmountIn <= maxAmountIn, "ERR_LIMIT_IN");
 
@@ -808,6 +794,7 @@ contract BPool is BMath, BToken {
         _pushPoolShare(msg.sender, poolAmountOut);
         _pullUnderlying(tokenIn, msg.sender, tokenAmountIn);
 
+        Record storage ssInRecord = _records[_datatokenAddress];
         //ask the ssContract to stake as well
         //calculate how much should the 1ss stake
         uint256 ssAmountIn = calcSingleInGivenPoolOut(
@@ -817,6 +804,13 @@ contract BPool is BMath, BToken {
             _totalWeight,
             poolAmountOut
         );
+        address ssStakeToken;
+
+        if (tokenIn == _datatokenAddress) {
+            ssStakeToken = _basetokenAddress;
+        } else {
+            ssStakeToken = _datatokenAddress;
+        }
         if (
             ssContract.canStake(_datatokenAddress, ssStakeToken, ssAmountIn) ==
             true
@@ -863,15 +857,6 @@ contract BPool is BMath, BToken {
             "ERR_MAX_OUT_RATIO"
         );
 
-        address ssStakeToken;
-        Record storage ssOutRecord = _records[_datatokenAddress];
-        if (tokenOut == _datatokenAddress) {
-            ssStakeToken = _basetokenAddress;
-        } else {
-            ssStakeToken = _datatokenAddress;
-            ssOutRecord = _records[_basetokenAddress];
-        }
-
         outRecord.balance = bsub(outRecord.balance, tokenAmountOut);
 
         uint256 exitFee = bmul(poolAmountIn, EXIT_FEE);
@@ -887,14 +872,12 @@ contract BPool is BMath, BToken {
 
         //ask the ssContract to unstake as well
         //calculate how much should the 1ss unstake
-        uint256 ssAmountOut = calcSingleOutGivenPoolIn(
-            ssOutRecord.balance,
-            ssOutRecord.denorm,
-            _totalSupply,
-            _totalWeight,
-            poolAmountIn
-            // _swapFee
-        );
+        address ssStakeToken;
+        if (tokenOut == _datatokenAddress) {
+            ssStakeToken = _basetokenAddress;
+        } else {
+            ssStakeToken = _datatokenAddress;
+        }
 
         if (
             ssContract.canUnStake(
@@ -903,6 +886,15 @@ contract BPool is BMath, BToken {
                 poolAmountIn
             ) == true
         ) {
+            Record storage ssOutRecord = _records[_datatokenAddress];
+            uint256 ssAmountOut = calcSingleOutGivenPoolIn(
+                ssOutRecord.balance,
+                ssOutRecord.denorm,
+                _totalSupply,
+                _totalWeight,
+                poolAmountIn
+            );
+
             ssOutRecord.balance = bsub(ssOutRecord.balance, ssAmountOut);
             exitFee = bmul(poolAmountIn, EXIT_FEE);
             emit LOG_EXIT(
@@ -916,7 +908,12 @@ contract BPool is BMath, BToken {
             _pushPoolShare(_factory, exitFee);
             _pushUnderlying(ssStakeToken, _controller, ssAmountOut);
             //call unstake on 1ss to do cleanup on their side
-            ssContract.UnStake(_datatokenAddress, ssStakeToken, ssAmountOut);
+            ssContract.UnStake(
+                _datatokenAddress,
+                ssStakeToken,
+                ssAmountOut,
+                poolAmountIn
+            );
         }
         return tokenAmountOut;
     }
@@ -932,15 +929,6 @@ contract BPool is BMath, BToken {
             tokenAmountOut <= bmul(_records[tokenOut].balance, MAX_OUT_RATIO),
             "ERR_MAX_OUT_RATIO"
         );
-        //ask ssContract
-        address ssStakeToken;
-        Record storage ssOutRecord = _records[_datatokenAddress];
-        if (tokenOut == _datatokenAddress) {
-            ssStakeToken = _basetokenAddress;
-        } else {
-            ssStakeToken = _datatokenAddress;
-            ssOutRecord = _records[_basetokenAddress];
-        }
 
         Record storage outRecord = _records[tokenOut];
 
@@ -968,20 +956,29 @@ contract BPool is BMath, BToken {
 
         //ask the ssContract to unstake as well
         //calculate how much should the 1ss unstake
-        uint256 ssAmountOut = calcSingleOutGivenPoolIn(
-            ssOutRecord.balance,
-            ssOutRecord.denorm,
-            _totalSupply,
-            _totalWeight,
-            poolAmountIn
-        );
+        //ask ssContract
+        address ssStakeToken;
+
+        if (tokenOut == _datatokenAddress) {
+            ssStakeToken = _basetokenAddress;
+        } else {
+            ssStakeToken = _datatokenAddress;
+        }
         if (
             ssContract.canUnStake(
                 _datatokenAddress,
                 ssStakeToken,
-                ssAmountOut
+                poolAmountIn
             ) == true
         ) {
+            Record storage ssOutRecord = _records[_datatokenAddress];
+            uint256 ssAmountOut = calcSingleOutGivenPoolIn(
+                ssOutRecord.balance,
+                ssOutRecord.denorm,
+                _totalSupply,
+                _totalWeight,
+                poolAmountIn
+            );
             ssOutRecord.balance = bsub(ssOutRecord.balance, ssAmountOut);
             exitFee = bmul(poolAmountIn, EXIT_FEE);
             emit LOG_EXIT(
@@ -995,7 +992,12 @@ contract BPool is BMath, BToken {
             _pushPoolShare(_factory, exitFee);
             _pushUnderlying(ssStakeToken, _controller, ssAmountOut);
             //call unstake on 1ss to do cleanup on their side
-            ssContract.UnStake(_datatokenAddress, ssStakeToken, ssAmountOut);
+            ssContract.UnStake(
+                _datatokenAddress,
+                ssStakeToken,
+                ssAmountOut,
+                poolAmountIn
+            );
         }
         return poolAmountIn;
     }
@@ -1014,7 +1016,7 @@ contract BPool is BMath, BToken {
             _totalWeight,
             poolAmountIn
         );
-        
+
         return tokenAmountOut;
     }
 
@@ -1053,8 +1055,11 @@ contract BPool is BMath, BToken {
         return tokenAmountIn;
     }
 
-    function calcPoolOutSingleIn(address tokenIn,uint256 tokenAmountIn) external view returns(uint256 poolAmountOut){
-        
+    function calcPoolOutSingleIn(address tokenIn, uint256 tokenAmountIn)
+        external
+        view
+        returns (uint256 poolAmountOut)
+    {
         Record memory inRecord = _records[tokenIn];
 
         poolAmountOut = calcPoolOutGivenSingleIn(

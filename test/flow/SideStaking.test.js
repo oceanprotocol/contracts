@@ -159,7 +159,7 @@ describe("1SS flow", () => {
   const swapFee = 1e15;
     const swapOceanFee = 1e15;
     const swapMarketFee = 1e15;
-
+  const vestedBlocks = 2500000
   it("#1 - owner deploys a new ERC721 Contract", async () => {
     // by default connect() in ethers goes with the first address (owner in this case)
     const tx = await factoryERC721.deployERC721Contract(
@@ -232,7 +232,7 @@ describe("1SS flow", () => {
           web3.utils.toWei("1"), // rate
           18, // basetokenDecimals
           web3.utils.toWei('10000'), //vestingAmount max 10% of total cap
-          2500000, // vested blocks
+          vestedBlocks, // vested blocks
           initialOceanLiquidity, // baseToken initial pool liquidity
         ],
        // user3.address,
@@ -245,6 +245,7 @@ describe("1SS flow", () => {
         [sideStaking.address,oceanAddress,user3.address,user3.address,marketFeeCollector.address,poolTemplate.address]
       )
     ).wait();
+    const initialBlockNum = await ethers.provider.getBlockNumber()
     //console.log(receipt)
     const PoolEvent = receipt.events.filter((e) => e.event === "NewPool");
     // console.log(PoolEvent[0].args)
@@ -268,8 +269,20 @@ describe("1SS flow", () => {
     expect(await bPool.communityFees(erc20Token.address)).to.equal(0)
     expect(await bPool.marketFees(oceanAddress)).to.equal(0)
     expect(await bPool.marketFees(erc20Token.address)).to.equal(0)
-   
+    
+    expect(await sideStaking.getDataTokenCirculatingSupply(erc20Token.address)).to.equal(web3.utils.toWei('12000'))
+    expect(await sideStaking.getDataTokenCurrentCirculatingSupply(erc20Token.address) ).to.equal(initialDTLiquidity)
+    expect(await sideStaking.getBaseTokenAddress(erc20Token.address)).to.equal(oceanAddress)
+    expect(await sideStaking.getPoolAddress(erc20Token.address)).to.equal(bPoolAddress)
+    expect(await sideStaking.getPublisherAddress(erc20Token.address)).to.equal(user3.address)
+    expect(await sideStaking.getBaseTokenBalance(oceanAddress)).to.equal(0)
+    expect(await sideStaking.getDataTokenBalance(erc20Token.address)).to.equal(web3.utils.toWei('88000'))
+    expect(await sideStaking.getvestingAmountSoFar(erc20Token.address)).to.equal(0)
+    expect(await sideStaking.getvestingAmount(erc20Token.address)).to.equal(web3.utils.toWei('10000'))
+    expect(await sideStaking.getvestingLastBlock(erc20Token.address)).to.equal(initialBlockNum)
+    expect(await sideStaking.getvestingEndBlock(erc20Token.address)).to.equal(initialBlockNum+vestedBlocks)
 
+    
   });
 
   it("#5 - user3 fails to mints new erc20 tokens even if it's minter", async () => {
@@ -467,8 +480,6 @@ describe("1SS flow", () => {
 
    
 
-    // dt amount is slightly higher because we ask for the same amount of BPT but the pool is bigger
-    assert(sideStakingAmountIn.gt(JoinEvent[0].args.tokenAmountIn) == true);
 
     // we check ssContract actually moved DT and got back BPT
     expect(ssContractDTbalance.sub(JoinEvent[1].args.tokenAmountIn)).to.equal(await erc20Token.balanceOf(sideStaking.address))
