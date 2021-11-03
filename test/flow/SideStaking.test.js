@@ -269,7 +269,8 @@ describe("1SS flow", () => {
     expect(await bPool.communityFees(erc20Token.address)).to.equal(0)
     expect(await bPool.marketFees(oceanAddress)).to.equal(0)
     expect(await bPool.marketFees(erc20Token.address)).to.equal(0)
-      
+    
+    expect(await sideStaking.getDataTokenCirculatingSupply(erc20Token.address)).to.equal(web3.utils.toWei('12000'))
     expect(await sideStaking.getDataTokenCurrentCirculatingSupply(erc20Token.address) ).to.equal(initialDTLiquidity)
     expect(await sideStaking.getBaseTokenAddress(erc20Token.address)).to.equal(oceanAddress)
     expect(await sideStaking.getPoolAddress(erc20Token.address)).to.equal(bPoolAddress)
