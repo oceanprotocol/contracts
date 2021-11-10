@@ -41,7 +41,7 @@ contract ERC721Factory is Deployer, Ownable {
     event NFTCreated(
         address indexed newTokenAddress,
         address indexed templateAddress,
-        string indexed tokenName,
+        string tokenName,
         address admin
     );
 
@@ -55,7 +55,7 @@ contract ERC721Factory is Deployer, Ownable {
     event TokenCreated(
         address indexed newTokenAddress,
         address indexed templateAddress,
-        string indexed tokenName
+        string tokenName
     );  
     
     event NewPool(
