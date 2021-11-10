@@ -56,6 +56,13 @@ contract ERC721Template is
         uint256 timestamp,
         uint256 blockNumber
     );
+    event MetadataState(
+        address indexed updatedBy,
+        uint8 state,
+        uint256 timestamp,
+        uint256 blockNumber
+    );
+
     modifier onlyNFTOwner() {
         require(msg.sender == ownerOf(1), "ERC721Template: not NFTOwner");
         _;
@@ -143,6 +150,23 @@ contract ERC721Template is
     }
 
     /**
+     * @dev setMetaDataState
+     *      Updates metadata state
+     * @param _metaDataState metadata state
+     */
+    function setMetaDataState(uint8 _metaDataState) public {
+        require(
+            permissions[msg.sender].updateMetadata == true,
+            "ERC721Template: NOT METADATA_ROLE"
+        );
+        metaDataState = _metaDataState;
+        emit MetadataState(msg.sender, _metaDataState,
+            /* solium-disable-next-line */
+            block.timestamp,
+            block.number);
+    }
+
+    /**
      * @dev setMetaData
      *     
              Creates or update Metadata for Aqua(emit event)
@@ -160,7 +184,7 @@ contract ERC721Template is
             permissions[msg.sender].updateMetadata == true,
             "ERC721Template: NOT METADATA_ROLE"
         );
-        metaDataState = _metaDataState;
+        setMetaDataState(_metaDataState);
         metaDataDecryptorUrl = _metaDataDecryptorUrl;
         metaDataDecryptorAddress = _metaDataDecryptorAddress;
         if(hasMetaData == false){

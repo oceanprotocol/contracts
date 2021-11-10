@@ -229,6 +229,14 @@ describe("ERC721Template", () => {
     );
   });
 
+  it("#updateMetadata - should not be allowed to update the metadata state if NOT in MetadataList", async () => {
+    assert((await tokenERC721.getPermissions(user6.address)).updateMetadata == false)
+    await expectRevert(
+      tokenERC721.connect(user6).setMetaDataState(metaDataState),
+      "ERC721Template: NOT METADATA_ROLE"
+    );
+  });
+
   it("#updateMetadata - should create & update the metadata, after adding address to MetadataList", async () => {
     assert((await tokenERC721.getPermissions(user6.address)).updateMetadata == false)
     await tokenERC721.addToMetadataList(user6.address);
@@ -258,6 +266,24 @@ describe("ERC721Template", () => {
     assert(metadataInfo[3] === true)
     assert(metadataInfo[0] == metaDataDecryptorUrl2);
 
+  });
+
+  it("#updateMetadata - should be able to update metadata state", async () => {
+    assert((await tokenERC721.getPermissions(user6.address)).updateMetadata == false)
+    await tokenERC721.addToMetadataList(user6.address);
+    let metadataInfo = await tokenERC721.getMetaData()
+    assert(metadataInfo[3] === false)
+
+    let tx = await tokenERC721.connect(user6).setMetaDataState(metaDataState);
+    let txReceipt = await tx.wait();
+   
+    let event = getEventFromTx(txReceipt,'MetadataState')
+    assert(event, "Cannot find MetadataState event")
+    assert(event.args[1] == metaDataState);
+    
+    metadataInfo = await tokenERC721.getMetaData()
+    assert(metadataInfo[2] === metaDataState)
+    
   });
 
   it("#createERC20 - should not allow to create a new ERC20Token if NOT in CreateERC20List", async () => {
