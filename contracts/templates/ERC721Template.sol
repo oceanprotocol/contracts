@@ -184,7 +184,7 @@ contract ERC721Template is
             permissions[msg.sender].updateMetadata == true,
             "ERC721Template: NOT METADATA_ROLE"
         );
-        setMetaDataState(_metaDataState);
+        metaDataState = _metaDataState;
         metaDataDecryptorUrl = _metaDataDecryptorUrl;
         metaDataDecryptorAddress = _metaDataDecryptorAddress;
         if(hasMetaData == false){
