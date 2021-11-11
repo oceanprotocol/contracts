@@ -34,8 +34,11 @@ contract ERC721Template is
     event TokenCreated(
         address indexed newTokenAddress,
         address indexed templateAddress,
-        string tokenName
-    );
+        string name,
+        string symbol,
+        uint256 cap,
+        address creator
+    );  
     event MetadataCreated(
         address indexed createdBy,
         uint8 state,
