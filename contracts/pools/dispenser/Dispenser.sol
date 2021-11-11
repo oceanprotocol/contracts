@@ -28,12 +28,10 @@ contract Dispenser {
         address indexed owner,
         uint256 maxTokens,
         uint256 maxBalance,
-        address allowedSwapper,
-        bool isMinter
+        address allowedSwapper
     );
     event DispenserActivated(  // emited when a dispenser is activated
-        address indexed datatokenAddress,
-        bool isMinter
+        address indexed datatokenAddress
     );
 
     event DispenserDeactivated( // emited when a dispenser is deactivated
@@ -47,8 +45,7 @@ contract Dispenser {
         // emited when tokens are dispended
         address indexed datatokenAddress,
         address indexed userAddress,
-        uint256 amount,
-        bool isMinter
+        uint256 amount
     );
 
     event OwnerWithdrawed(
@@ -122,8 +119,7 @@ contract Dispenser {
         datatokens[datatoken].maxBalance = maxBalance;
         datatokens[datatoken].allowedSwapper = allowedSwapper;
         datatokensList.push(datatoken);
-        emit DispenserCreated(datatoken, owner, maxTokens, maxBalance, allowedSwapper, 
-            IERC20Template(datatoken).isMinter(address(this)));
+        emit DispenserCreated(datatoken, owner, maxTokens, maxBalance, allowedSwapper);
         emit DispenserAllowedSwapperChanged(datatoken, allowedSwapper);
     }
     /**
@@ -146,7 +142,7 @@ contract Dispenser {
         datatokens[datatoken].maxTokens = maxTokens;
         datatokens[datatoken].maxBalance = maxBalance;
         datatokensList.push(datatoken);
-        emit DispenserActivated(datatoken, IERC20Template(datatoken).isMinter(address(this)));
+        emit DispenserActivated(datatoken);
     }
 
     /**
@@ -238,7 +234,7 @@ contract Dispenser {
             'Not enough reserves'
         );
         tokenInstance.transfer(destination,amount);
-        emit TokensDispensed(datatoken, destination, amount, IERC20Template(datatoken).isMinter(address(this)));
+        emit TokensDispensed(datatoken, destination, amount);
     }
 
     /**
