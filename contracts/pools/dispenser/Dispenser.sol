@@ -24,10 +24,16 @@ contract Dispenser {
     
     
     event DispenserCreated(  // emited when a dispenser is created
-        address indexed datatokenAddress
+        address indexed datatokenAddress,
+        address indexed owner,
+        uint256 maxTokens,
+        uint256 maxBalance,
+        address allowedSwapper,
+        bool isMinter
     );
     event DispenserActivated(  // emited when a dispenser is activated
-        address indexed datatokenAddress
+        address indexed datatokenAddress,
+        bool isMinter
     );
 
     event DispenserDeactivated( // emited when a dispenser is deactivated
@@ -41,7 +47,8 @@ contract Dispenser {
         // emited when tokens are dispended
         address indexed datatokenAddress,
         address indexed userAddress,
-        uint256 amount
+        uint256 amount,
+        bool isMinter
     );
 
     event OwnerWithdrawed(
@@ -115,7 +122,8 @@ contract Dispenser {
         datatokens[datatoken].maxBalance = maxBalance;
         datatokens[datatoken].allowedSwapper = allowedSwapper;
         datatokensList.push(datatoken);
-        emit DispenserCreated(datatoken);
+        emit DispenserCreated(datatoken, owner, maxTokens, maxBalance, allowedSwapper, 
+            IERC20Template(datatoken).isMinter(address(this)));
         emit DispenserAllowedSwapperChanged(datatoken, allowedSwapper);
     }
     /**
@@ -138,7 +146,7 @@ contract Dispenser {
         datatokens[datatoken].maxTokens = maxTokens;
         datatokens[datatoken].maxBalance = maxBalance;
         datatokensList.push(datatoken);
-        emit DispenserActivated(datatoken);
+        emit DispenserActivated(datatoken, IERC20Template(datatoken).isMinter(address(this)));
     }
 
     /**
@@ -230,7 +238,7 @@ contract Dispenser {
             'Not enough reserves'
         );
         tokenInstance.transfer(destination,amount);
-        emit TokensDispensed(datatoken, destination, amount);
+        emit TokensDispensed(datatoken, destination, amount, IERC20Template(datatoken).isMinter(address(this)));
     }
 
     /**
