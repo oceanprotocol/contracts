@@ -42,7 +42,8 @@ contract ERC721Factory is Deployer, Ownable {
         address indexed newTokenAddress,
         address indexed templateAddress,
         string tokenName,
-        address admin
+        address admin,
+        string symbol
     );
 
        uint256 private currentTokenCount = 0;
@@ -144,7 +145,7 @@ contract ERC721Factory is Deployer, Ownable {
             "ERC721DTFactory: Unable to initialize token instance"
         );
 
-        emit NFTCreated(token, tokenTemplate.templateAddress, name, msg.sender);
+        emit NFTCreated(token, tokenTemplate.templateAddress, name, msg.sender, symbol);
         currentNFTCount += 1;
     }
     
