@@ -43,7 +43,8 @@ contract ERC721Factory is Deployer, Ownable {
         address indexed templateAddress,
         string tokenName,
         address admin,
-        string symbol
+        string symbol,
+        string tokenURI
     );
 
        uint256 private currentTokenCount = 0;
@@ -110,7 +111,7 @@ contract ERC721Factory is Deployer, Ownable {
         string memory symbol,
         uint256 _templateIndex,
         address additionalERC20Deployer,
-        string memory baseURI
+        string memory tokenURI
     ) public returns (address token) {
         require(
             _templateIndex <= nftTemplateCount && _templateIndex != 0,
@@ -140,12 +141,12 @@ contract ERC721Factory is Deployer, Ownable {
                 symbol,
                 address(this),
                 additionalERC20Deployer,
-                baseURI
+                tokenURI
             ),
             "ERC721DTFactory: Unable to initialize token instance"
         );
 
-        emit NFTCreated(token, tokenTemplate.templateAddress, name, msg.sender, symbol);
+        emit NFTCreated(token, tokenTemplate.templateAddress, name, msg.sender, symbol, tokenURI);
         currentNFTCount += 1;
     }
     
@@ -517,7 +518,7 @@ contract ERC721Factory is Deployer, Ownable {
         string name;
         string symbol;
         uint256 templateIndex;
-        string baseURI;
+        string tokenURI;
     }
     struct ErcCreateData{
         uint256 templateIndex;
@@ -547,7 +548,7 @@ contract ERC721Factory is Deployer, Ownable {
             _NftCreateData.symbol,
             _NftCreateData.templateIndex,
             address(0),
-            _NftCreateData.baseURI);
+            _NftCreateData.tokenURI);
         erc20Address = _createToken(
             _ErcCreateData.templateIndex,
             _ErcCreateData.strings,
@@ -587,7 +588,7 @@ contract ERC721Factory is Deployer, Ownable {
             _NftCreateData.symbol,
             _NftCreateData.templateIndex,
             address(this),
-             _NftCreateData.baseURI);
+             _NftCreateData.tokenURI);
         erc20Address = _createToken(
             _ErcCreateData.templateIndex,
             _ErcCreateData.strings,
@@ -630,7 +631,7 @@ contract ERC721Factory is Deployer, Ownable {
             _NftCreateData.symbol,
             _NftCreateData.templateIndex,
             address(this),
-             _NftCreateData.baseURI);
+             _NftCreateData.tokenURI);
         erc20Address = _createToken(
             _ErcCreateData.templateIndex,
             _ErcCreateData.strings,
@@ -671,7 +672,7 @@ contract ERC721Factory is Deployer, Ownable {
             _NftCreateData.symbol,
             _NftCreateData.templateIndex,
             address(this),
-             _NftCreateData.baseURI);
+             _NftCreateData.tokenURI);
         erc20Address = _createToken(
             _ErcCreateData.templateIndex,
             _ErcCreateData.strings,

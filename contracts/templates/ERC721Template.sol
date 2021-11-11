@@ -63,6 +63,14 @@ contract ERC721Template is
         uint256 blockNumber
     );
 
+    event TokenURIUpdate(
+        address indexed updatedBy,
+        string tokenURI,
+        uint256 tokenID,
+        uint256 timestamp,
+        uint256 blockNumber
+    );
+
     modifier onlyNFTOwner() {
         require(msg.sender == ownerOf(1), "ERC721Template: not NFTOwner");
         _;
@@ -86,7 +94,7 @@ contract ERC721Template is
         string calldata symbol_,
         address tokenFactory,
         address additionalERC20Deployer,
-        string memory baseURI
+        string memory tokenURI
     ) external returns (bool) {
         require(
             !initialized,
@@ -98,7 +106,7 @@ contract ERC721Template is
                 name_,
                 symbol_,
                 tokenFactory,
-                baseURI
+                tokenURI
             );
         if(initResult && additionalERC20Deployer != address(0))
             _addToCreateERC20List(additionalERC20Deployer);
@@ -114,7 +122,7 @@ contract ERC721Template is
      * @param name_ NFT name
      * @param symbol_ NFT Symbol
      * @param tokenFactory NFT factory address
-     * @param baseURI base URI for NFT attributes
+     * @param tokenURI tokenURI for token 1
      
      @return boolean
      */
@@ -124,7 +132,7 @@ contract ERC721Template is
         string memory name_,
         string memory symbol_,
         address tokenFactory,
-        string memory baseURI
+        string memory tokenURI
     ) internal returns (bool) {
         require(
             owner != address(0),
@@ -134,7 +142,7 @@ contract ERC721Template is
         _name = name_;
         _symbol = symbol_;
         _tokenFactory = tokenFactory;
-        defaultBaseURI = baseURI;
+        defaultBaseURI = "";
         initialized = true;
         hasMetaData = false;
         _safeMint(owner, 1);
@@ -146,7 +154,23 @@ contract ERC721Template is
         user.deployERC20 = true;
         user.store = true;
         // no need to push to auth since it has been already added in _addManager()
+        _setTokenURI(1, tokenURI);
+        
         return initialized;
+    }
+
+    /**
+     * @dev setTokenURI
+     *      sets tokenURI for a tokenId
+     * @param tokenId token ID
+     * @param tokenURI token URI
+     */
+    function setTokenURI(uint256 tokenId, string memory tokenURI) external onlyNFTOwner {
+        _setTokenURI(tokenId, tokenURI);
+        emit TokenURIUpdate(msg.sender, tokenURI, tokenId,
+            /* solium-disable-next-line */
+            block.timestamp,
+            block.number);
     }
 
     /**
