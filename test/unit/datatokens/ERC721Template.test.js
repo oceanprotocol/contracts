@@ -217,7 +217,7 @@ describe("ERC721Template", () => {
   });
 
   it("#tokenURI - should get proper tokenURI", async () => {
-    assert((await tokenERC721.tokenURI(1)) == "https://oceanprotocol.com/nft/1");
+    assert((await tokenERC721.tokenURI(1)) == "https://oceanprotocol.com/nft/");
   });
   
 
@@ -593,12 +593,27 @@ describe("ERC721Template", () => {
 
   it("#setBaseURI - should fail to update tokenURI if NOT NFT Owner", async () => {
     await expectRevert(tokenERC721.connect(user3).setBaseURI('https://newurl.com/nft/'),'ERC721Template: not NFTOwner')
-    assert((await tokenERC721.tokenURI(1)) == "https://oceanprotocol.com/nft/1");
+    const tokenURI= await tokenERC721.tokenURI(1)
+    assert(tokenURI == "https://oceanprotocol.com/nft/");
   });
 
 
   it("#setBaseURI - should update tokenURI if NFT Owner", async () => {
     await tokenERC721.setBaseURI('https://newurl.com/nft/')
-    assert((await tokenERC721.tokenURI(1)) == "https://newurl.com/nft/1");
+    const tokenURI= await tokenERC721.tokenURI(1)
+    assert(tokenURI == "https://newurl.com/nft/https://oceanprotocol.com/nft/", 'ERC721Template: TokenURI invalid');
+  });
+
+  it("#setTokenURI - should fail to update tokenURI if NOT NFT Owner", async () => {
+    await expectRevert(tokenERC721.connect(user3).setTokenURI(1,'https://anothernewurl.com/nft/'),'ERC721Template: not NFTOwner')
+    const tokenURI= await tokenERC721.tokenURI(1)
+    assert(tokenURI == "https://oceanprotocol.com/nft/");
+  });
+
+
+  it("#setTokenURI - should update tokenURI if NFT Owner", async () => {
+    await tokenERC721.setTokenURI(1,'https://anothernewurl.com/nft/')
+    const tokenURI= await tokenERC721.tokenURI(1)
+    assert(tokenURI == "https://anothernewurl.com/nft/");
   });
 });
