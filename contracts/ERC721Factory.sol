@@ -57,7 +57,10 @@ contract ERC721Factory is Deployer, Ownable {
     event TokenCreated(
         address indexed newTokenAddress,
         address indexed templateAddress,
-        string tokenName
+        string name,
+        string symbol,
+        uint256 cap,
+        address creator
     );  
     
     event NewPool(
@@ -326,7 +329,7 @@ contract ERC721Factory is Deployer, Ownable {
             token != address(0),
             "ERC721Factory: Failed to perform minimal deploy of a new token"
         );
-        emit TokenCreated(token, tokenTemplate.templateAddress, strings[0]);
+        emit TokenCreated(token, tokenTemplate.templateAddress, strings[0], strings[1], uints[0], owner);
         currentTokenCount += 1;
         tokenStruct memory tokenData; 
         tokenData.strings = strings;
