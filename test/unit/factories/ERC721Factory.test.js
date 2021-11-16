@@ -985,7 +985,7 @@ describe("ERC721Factory", () => {
       "name": "72120Bundle",
       "symbol": "72Bundle",
       "templateIndex": 1,
-      "baseURI":"https://oceanprotocol.com/nft/" 
+      "tokenURI":"https://oceanprotocol.com/nft/" 
 
       },
       {
@@ -1029,7 +1029,7 @@ describe("ERC721Factory", () => {
       "name": "72120PBundle",
       "symbol": "72PBundle",
       "templateIndex": 1,
-      "baseURI":"https://oceanprotocol.com/nft/"   
+      "tokenURI":"https://oceanprotocol.com/nft/"   
       },
       {
       "strings":["ERC20WithPool","ERC20P"],
@@ -1098,7 +1098,7 @@ describe("ERC721Factory", () => {
       "name": "72120PBundle",
       "symbol": "72PBundle",
       "templateIndex": 1, 
-      "baseURI":"https://oceanprotocol.com/nft/" 
+      "tokenURI":"https://oceanprotocol.com/nft/" 
       },
       {
       "strings":["ERC20WithPool","ERC20P"],
@@ -1150,7 +1150,7 @@ describe("ERC721Factory", () => {
       "name": "72120PBundle",
       "symbol": "72PBundle",
       "templateIndex": 1, 
-      "baseURI":"https://oceanprotocol.com/nft/" 
+      "tokenURI":"https://oceanprotocol.com/nft/" 
       },
       {
       "strings":["ERC20WithPool","ERC20P"],

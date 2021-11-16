@@ -36,6 +36,8 @@ contract ERC721 is Context, IERC721, IERC721Metadata {
     // Mapping from owner to operator approvals
     mapping (address => mapping (address => bool)) private _operatorApprovals;
 
+     // Optional mapping for token URIs
+    mapping (uint256 => string) private _tokenURIs;
     
     /**
      * @dev Initializes the contract by setting a `name` and a `symbol` to the token collection.
@@ -76,16 +78,33 @@ contract ERC721 is Context, IERC721, IERC721Metadata {
         return _symbol;
     }
 
+     /**
+     * @dev Sets `_tokenURI` as the tokenURI of `tokenId`.
+     *
+     * Requirements:
+     *
+     * - `tokenId` must exist.
+     */
+    function _setTokenURI(uint256 tokenId, string memory _tokenURI) internal virtual {
+        require(_exists(tokenId), "ERC721URIStorage: URI set of nonexistent token");
+        _tokenURIs[tokenId] = _tokenURI;
+    }
+    
     /**
      * @dev See {IERC721Metadata-tokenURI}.
      */
     function tokenURI(uint256 tokenId) public view virtual override returns (string memory) {
         require(_exists(tokenId), "ERC721Metadata: URI query for nonexistent token");
+        string memory _tokenURI = _tokenURIs[tokenId];
+        string memory base = _baseURI();
 
-        string memory baseURI = _baseURI();
-        return bytes(baseURI).length > 0
-            ? string(abi.encodePacked(baseURI, tokenId.toString()))
-            : '';
+        // If both are set, concatenate the baseURI and tokenURI (via abi.encodePacked).
+        if (bytes(_tokenURI).length > 0) {
+            return string(abi.encodePacked(base, _tokenURI));
+        }
+        else{
+            return _tokenURI;
+        }
     }
 
     /**

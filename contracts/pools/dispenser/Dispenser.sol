@@ -24,7 +24,11 @@ contract Dispenser {
     
     
     event DispenserCreated(  // emited when a dispenser is created
-        address indexed datatokenAddress
+        address indexed datatokenAddress,
+        address indexed owner,
+        uint256 maxTokens,
+        uint256 maxBalance,
+        address allowedSwapper
     );
     event DispenserActivated(  // emited when a dispenser is activated
         address indexed datatokenAddress
@@ -115,7 +119,7 @@ contract Dispenser {
         datatokens[datatoken].maxBalance = maxBalance;
         datatokens[datatoken].allowedSwapper = allowedSwapper;
         datatokensList.push(datatoken);
-        emit DispenserCreated(datatoken);
+        emit DispenserCreated(datatoken, owner, maxTokens, maxBalance, allowedSwapper);
         emit DispenserAllowedSwapperChanged(datatoken, allowedSwapper);
     }
     /**

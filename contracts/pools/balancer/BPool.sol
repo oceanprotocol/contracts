@@ -46,6 +46,15 @@ contract BPool is BMath, BToken {
         uint256 tokenAmountIn,
         uint256 timestamp
     );
+    event LOG_SETUP(
+        address indexed caller,
+        address indexed baseToken,
+        uint256 baseTokenAmountIn,
+        uint256 baseTokenWeight,
+        address indexed dataToken,
+        uint256 dataTokenAmountIn,
+        uint256 dataTokenWeight
+    );
 
     event LOG_EXIT(
         address indexed caller,
@@ -207,6 +216,9 @@ contract BPool is BMath, BToken {
         );
         // finalize
         finalize();
+        emit LOG_SETUP(msg.sender, baseTokenAddress, baseTokenAmount, baseTokenWeight,
+            dataTokenAddress, dataTokenAmount, dataTokenWeight
+        );
     }
 
     //Proxy contract functionality: end

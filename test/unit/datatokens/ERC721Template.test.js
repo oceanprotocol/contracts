@@ -217,7 +217,7 @@ describe("ERC721Template", () => {
   });
 
   it("#tokenURI - should get proper tokenURI", async () => {
-    assert((await tokenERC721.tokenURI(1)) == "https://oceanprotocol.com/nft/1");
+    assert((await tokenERC721.tokenURI(1)) == "https://oceanprotocol.com/nft/");
   });
   
 
@@ -225,6 +225,14 @@ describe("ERC721Template", () => {
     assert((await tokenERC721.getPermissions(user6.address)).updateMetadata == false)
     await expectRevert(
       tokenERC721.connect(user6).setMetaData(metaDataState, metaDataDecryptorUrl, metaDataDecryptorAddress, flags, data, dataHash),
+      "ERC721Template: NOT METADATA_ROLE"
+    );
+  });
+
+  it("#updateMetadata - should not be allowed to update the metadata state if NOT in MetadataList", async () => {
+    assert((await tokenERC721.getPermissions(user6.address)).updateMetadata == false)
+    await expectRevert(
+      tokenERC721.connect(user6).setMetaDataState(metaDataState),
       "ERC721Template: NOT METADATA_ROLE"
     );
   });
@@ -258,6 +266,24 @@ describe("ERC721Template", () => {
     assert(metadataInfo[3] === true)
     assert(metadataInfo[0] == metaDataDecryptorUrl2);
 
+  });
+
+  it("#updateMetadata - should be able to update metadata state", async () => {
+    assert((await tokenERC721.getPermissions(user6.address)).updateMetadata == false)
+    await tokenERC721.addToMetadataList(user6.address);
+    let metadataInfo = await tokenERC721.getMetaData()
+    assert(metadataInfo[3] === false)
+
+    let tx = await tokenERC721.connect(user6).setMetaDataState(metaDataState);
+    let txReceipt = await tx.wait();
+   
+    let event = getEventFromTx(txReceipt,'MetadataState')
+    assert(event, "Cannot find MetadataState event")
+    assert(event.args[1] == metaDataState);
+    
+    metadataInfo = await tokenERC721.getMetaData()
+    assert(metadataInfo[2] === metaDataState)
+    
   });
 
   it("#createERC20 - should not allow to create a new ERC20Token if NOT in CreateERC20List", async () => {
@@ -567,12 +593,27 @@ describe("ERC721Template", () => {
 
   it("#setBaseURI - should fail to update tokenURI if NOT NFT Owner", async () => {
     await expectRevert(tokenERC721.connect(user3).setBaseURI('https://newurl.com/nft/'),'ERC721Template: not NFTOwner')
-    assert((await tokenERC721.tokenURI(1)) == "https://oceanprotocol.com/nft/1");
+    const tokenURI= await tokenERC721.tokenURI(1)
+    assert(tokenURI == "https://oceanprotocol.com/nft/");
   });
 
 
   it("#setBaseURI - should update tokenURI if NFT Owner", async () => {
     await tokenERC721.setBaseURI('https://newurl.com/nft/')
-    assert((await tokenERC721.tokenURI(1)) == "https://newurl.com/nft/1");
+    const tokenURI= await tokenERC721.tokenURI(1)
+    assert(tokenURI == "https://newurl.com/nft/https://oceanprotocol.com/nft/", 'ERC721Template: TokenURI invalid');
+  });
+
+  it("#setTokenURI - should fail to update tokenURI if NOT NFT Owner", async () => {
+    await expectRevert(tokenERC721.connect(user3).setTokenURI(1,'https://anothernewurl.com/nft/'),'ERC721Template: not NFTOwner')
+    const tokenURI= await tokenERC721.tokenURI(1)
+    assert(tokenURI == "https://oceanprotocol.com/nft/");
+  });
+
+
+  it("#setTokenURI - should update tokenURI if NFT Owner", async () => {
+    await tokenERC721.setTokenURI(1,'https://anothernewurl.com/nft/')
+    const tokenURI= await tokenERC721.tokenURI(1)
+    assert(tokenURI == "https://anothernewurl.com/nft/");
   });
 });

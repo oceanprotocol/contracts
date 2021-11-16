@@ -190,7 +190,7 @@ interface IERC721Template is IERC165 {
         string calldata symbol,
         address erc20Factory,
         address additionalERC20Deployer,
-        string calldata baseURI
+        string calldata tokenURI
     ) external returns (bool);
 
     function hasRole(bytes32 role, address account)
