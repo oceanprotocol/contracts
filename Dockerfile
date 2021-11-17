@@ -16,5 +16,5 @@ COPY . /ocean-contracts
 WORKDIR /ocean-contracts
 
 RUN npm install --no-optional && npm cache clean --force
-
+ENV SLEEP_FOR_GANACHE=10
 ENTRYPOINT ["/ocean-contracts/scripts/deploy_docker.sh"]
