@@ -13,6 +13,7 @@ require("dotenv").config();
 const shouldDeployV4 = true;
 const shouldDeployV3 = false;
 let shouldDeployOceanMock = false;
+let shouldDeployOPFCommunityFeeCollector = false;
 const shouldDeployOPFCommunity = true;
 const logging = true;
 async function main() {
@@ -37,14 +38,68 @@ async function main() {
   }
   owner = wallet.connect(provider);
   console.log(owner);
-  let oceanAddress;
-  let communityCollector;
-  let OPFOwner;
-  let balancerV1Factory = null;
+  let OPFOwner = '0x7DF5273aD9A6fCce64D45c64c1E43cfb6F861725';
   let routerOwner;
+  let OPFCommunityFeeCollectorAddress;
+  let productionNetwork = false;
+  let OceanTokenAddress;
   switch (network.chainId) {
+    case 1:
+      networkName = "mainnet";
+      productionNetwork = true;
+      OPFOwner = "0x7DF5273aD9A6fCce64D45c64c1E43cfb6F861725";
+      OceanTokenAddress = "0x967da4048cD07aB37855c090aAF366e4ce1b9F48";
+      break;
+    case 0x3:
+      networkName = "ropsten";
+      OceanTokenAddress = "0x5e8DCB2AfA23844bcc311B00Ad1A0C30025aADE9";
+      break;
+    case 0x4:
+      networkName = "rinkeby";
+      OceanTokenAddress = "0x5e8DCB2AfA23844bcc311B00Ad1A0C30025aADE9";
+      break;
+    case 0x89:
+      networkName = "polygon";
+      productionNetwork = true;
+      OceanTokenAddress = "0x282d8efCe846A88B159800bd4130ad77443Fa1A1";
+      break;
+    case 0x507:
+      networkName = "moonbeamalpha";
+      OPFOwner = '0xd8992Ed72C445c35Cb4A2be468568Ed1079357c8';
+      OceanTokenAddress = "0xF6410bf5d773C7a41ebFf972f38e7463FA242477";
+      break;
+    case 2021000:
+      networkName = "gaiaxtestnet";
+      OPFOwner = '0x2112Eb973af1DBf83a4f11eda82f7a7527D7Fde5'
+      OceanTokenAddress = "0x80E63f73cAc60c1662f27D2DFd2EA834acddBaa8";
+      break;
+    case 8001:
+      networkName = "mumbai";
+      OPFOwner = '0x06100AB868206861a4D7936166A91668c2Ce1312'
+      OceanTokenAddress = "0xd8992Ed72C445c35Cb4A2be468568Ed1079357c8";
+      break;
+    case 0x38:
+      networkName = "bsc";
+      productionNetwork = true;
+      OPFOwner = '0x30E4CC2C7A9c6aA2b2Ce93586E3Df24a3A00bcDD'
+      OceanTokenAddress = "0xdce07662ca8ebc241316a15b611c89711414dd1a";
+      break;
+    case 2021001:
+      networkName = "catenaxtestnet";
+      OPFOwner = '0x06100AB868206861a4D7936166A91668c2Ce1312'
+      OceanTokenAddress = "0xf26c6C93f9f1d725e149d95f8E7B2334a406aD10";
+      break;
+    case 0xf6:
+      networkName = "energyweb";
+      productionNetwork = true;
+      OceanTokenAddress = "0x593122aae80a6fc3183b2ac0c4ab3336debee528";
+      break;
+    case 1285:
+      networkName = "moonriver";
+      productionNetwork = true;
+      OceanTokenAddress = "0x99C409E5f62E4bd2AC142f17caFb6810B8F0BAAE";
+      break;
     default:
-      oceanAddress = "0x967da4048cd07ab37855c090aaf366e4ce1b9f48";
       OPFOwner = "0x7DF5273aD9A6fCce64D45c64c1E43cfb6F861725";
       networkName = "development";
       routerOwner = owner.address;
@@ -84,18 +139,28 @@ async function main() {
     if (logging) console.info("Deploying USDC MOCK");
     const USDC = await ERC20Mock.connect(owner).deploy("USDC", "USDC", 6);
     addresses.MockUSDC = USDC.address;
-  
+
   }
-  if (logging) console.info("Deploying OPF Community Fee");
-  const OPFCommunityFeeCollector = await ethers.getContractFactory(
-    "OPFCommunityFeeCollector",
-    owner
-  );
-  const opfcommunityfeecollector = await OPFCommunityFeeCollector.deploy(
-    OPFOwner,
-    OPFOwner
-  );
-  addresses.OPFCommunityFeeCollector = opfcommunityfeecollector.address;
+  else {
+    addresses.Ocean = OceanTokenAddress;
+  }
+
+  if (shouldDeployOPFCommunityFeeCollector || !OPFCommunityFeeCollectorAddress) {
+    if (logging) console.info("Deploying OPF Community Fee");
+    const OPFCommunityFeeCollector = await ethers.getContractFactory(
+      "OPFCommunityFeeCollector",
+      owner
+    );
+    const opfcommunityfeecollector = await OPFCommunityFeeCollector.deploy(
+      OPFOwner,
+      OPFOwner
+    );
+    addresses.OPFCommunityFeeCollector = opfcommunityfeecollector.address;
+  }
+  else {
+    addresses.OPFCommunityFeeCollector = OPFCommunityFeeCollectorAddress;
+  }
+
 
   if (logging) console.info("Deploying V4 contracts");
   // v4 contracts
@@ -195,7 +260,7 @@ async function main() {
   await router.connect(owner).addSSContract(ssPool.address);
   // Avoid setting Owner an account we cannot use on barge for now
   if (logging) console.info("Moving Router ownership")
-  if(owner.address != routerOwner.address) await router.connect(owner).changeRouterOwner(routerOwner)
+  if (owner.address != routerOwner.address) await router.connect(owner).changeRouterOwner(routerOwner)
 
   if (addressFile) {
     // write address.json if needed
@@ -203,9 +268,9 @@ async function main() {
     if (logging)
       console.info(
         "writing to " +
-          addressFile +
-          "\r\n" +
-          JSON.stringify(oldAddresses, null, 2)
+        addressFile +
+        "\r\n" +
+        JSON.stringify(oldAddresses, null, 2)
       );
     try {
       fs.writeFileSync(addressFile, JSON.stringify(oldAddresses, null, 2));
