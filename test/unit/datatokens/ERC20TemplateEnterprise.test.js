@@ -290,6 +290,11 @@ describe("ERC20TemplateEnterprise", () => {
     assert((await erc20Token.getFeeCollector()) == user2.address);
   });
 
+  it("#getERC721Address - should succeed to get the parent ERC721 address", async () => {
+    const address = await erc20Token.connect(user3).getERC721Address();
+    assert(address, "Not able to get the parent ERC721 address")
+  });
+
   it("#addMinter - should fail to addMinter if not erc20Deployer (permission to deploy the erc20Contract at 721 level)", async () => {
     assert((await erc20Token.permissions(user2.address)).minter == false);
 
@@ -551,7 +556,7 @@ describe("ERC20TemplateEnterprise", () => {
     const consumeFeeAmount = 0; // fee to be collected on top, requires approval
     const consumeFeeToken = mockErc20.address; // token address for the feeAmount, in this case DAI
 
-    await erc20Token
+    const tx = await erc20Token
       .connect(user2)
       .startOrder(
         consumer,
@@ -561,6 +566,9 @@ describe("ERC20TemplateEnterprise", () => {
         consumeFeeToken,
         consumeFeeAmount
       );
+    const txReceipt = await tx.wait();
+    let event = getEventFromTx(txReceipt, 'OrderStarted')
+    assert(event, "Cannot find OrderStarted event")
 
     assert(
       (await erc20Token.balanceOf(user2.address)) == web3.utils.toWei("9"), 'Invalid user balance, DT was not substracted'
@@ -593,7 +601,7 @@ describe("ERC20TemplateEnterprise", () => {
     const consumeFeeAmount = 1; // fee to be collected on top, requires approval
     const consumeFeeToken = addressZero; // token address for the feeAmount, in this case DAI
 
-    await erc20Token
+    const tx = await erc20Token
       .connect(user2)
       .startOrder(
         consumer,
@@ -603,6 +611,9 @@ describe("ERC20TemplateEnterprise", () => {
         consumeFeeToken,
         consumeFeeAmount
       );
+    const txReceipt = await tx.wait();
+    let event = getEventFromTx(txReceipt, 'OrderStarted')
+    assert(event, "Cannot find OrderStarted event")
 
     assert(
       (await erc20Token.balanceOf(user2.address)) == web3.utils.toWei("9"), 'Invalid user balance, DT was not substracted'
@@ -650,7 +661,7 @@ describe("ERC20TemplateEnterprise", () => {
     );
 
 
-    await erc20Token
+    const tx = await erc20Token
       .connect(user2)
       .startOrder(
         consumer,
@@ -660,6 +671,10 @@ describe("ERC20TemplateEnterprise", () => {
         consumeFeeToken,
         web3.utils.toWei(consumeFeeAmount)
       );
+    const txReceipt = await tx.wait();
+    let event = getEventFromTx(txReceipt, 'OrderStarted')
+    assert(event, "Cannot find OrderStarted event")
+
     const balance = await Mock20Contract.balanceOf(consumeFeeAddress)
     const balanceOpf = await Mock20Contract.balanceOf(opfCollector.address)
     const expected = web3.utils.toWei(new BN(consumeFeeAmount)).sub(web3.utils.toWei(new BN(consumeFeeAmount)).div(new BN(100)))
@@ -722,7 +737,7 @@ describe("ERC20TemplateEnterprise", () => {
       .connect(user2)
       .approve(erc20TokenWithPublishFee.address, publishFees[2]);
 
-    await erc20TokenWithPublishFee
+    const tx = await erc20TokenWithPublishFee
       .connect(user2)
       .startOrder(
         consumer,
@@ -732,6 +747,9 @@ describe("ERC20TemplateEnterprise", () => {
         consumeFeeToken,
         consumeFeeAmount
       );
+    const txReceipt = await tx.wait();
+    let event = getEventFromTx(txReceipt, 'OrderStarted')
+    assert(event, "Cannot find OrderStarted event")
 
     assert(
       (await erc20TokenWithPublishFee.balanceOf(user2.address)) == web3.utils.toWei("9"), 'Invalid user balance, DT was not substracted'
@@ -796,7 +814,7 @@ describe("ERC20TemplateEnterprise", () => {
     );
 
 
-    await erc20TokenWithPublishFee
+    const tx = await erc20TokenWithPublishFee
       .connect(user2)
       .startOrder(
         consumer,
@@ -806,6 +824,10 @@ describe("ERC20TemplateEnterprise", () => {
         consumeFeeToken,
         web3.utils.toWei(consumeFeeAmount)
       );
+    const txReceipt = await tx.wait();
+    let event = getEventFromTx(txReceipt, 'OrderStarted')
+    assert(event, "Cannot find OrderStarted event")
+
     const balanceConsume = await Mock20Contract.balanceOf(consumeFeeAddress)
     const balanceOpfConsume = await Mock20Contract.balanceOf(opfCollector.address)
     const expectedConsume = web3.utils.toWei(new BN(consumeFeeAmount)).sub(web3.utils.toWei(new BN(consumeFeeAmount)).div(new BN(100)))
@@ -1030,14 +1052,14 @@ describe("ERC20TemplateEnterprise", () => {
     );
   })
 
- 
+
   it('#Enterprise - buyFromFreAndOrder', async () => {
-    
+
     const Mock20DecimalContract = await ethers.getContractAt(
       "contracts/interfaces/IERC20.sol:IERC20",
       publishMarketFeeToken
     );
-    
+
     // create an ERC20 with publish Fees ( 5 USDC, going to publishMarketAddress)
     const trxEnterpriseERC20 = await tokenERC721.connect(user3).createERC20(1,
       ["ERC20DT1P", "ERC20DT1SymbolP"],
@@ -1052,18 +1074,18 @@ describe("ERC20TemplateEnterprise", () => {
     const erc20Address = event.args[0];
     EnterpriseToken = await ethers.getContractAt("ERC20TemplateEnterprise", erc20Address);
     assert(await EnterpriseToken.totalSupply() == 0, "Invalid Total Supply")
-    
+
     let tx = await EnterpriseToken.connect(user3).createFixedRate(
       fixedRateExchange.address,
-      [publishMarketFeeToken, user3.address, user3.address,ZERO_ADDRESS],
+      [publishMarketFeeToken, user3.address, user3.address, ZERO_ADDRESS],
       ['18', '18', web3.utils.toWei("1"), web3.utils.toWei("0.01"), 1]
     )
 
-    
+
 
     assert(tx,
       'Cannot create fixed rate exchange')
-    
+
     let txReceipt = await tx.wait();
     event = getEventFromTx(txReceipt, 'NewFixedRate')
     const exchangeId = event.args[0]
@@ -1077,7 +1099,7 @@ describe("ERC20TemplateEnterprise", () => {
         .buyDT(exchangeId, web3.utils.toWei('1'), web3.utils.toWei('1')),
       "FixedRateExchange: This address is not allowed to swap"
     );
-    
+
     //let's get publishMarketFees and transfer tokens
     const consumeFeeAmount = '2'
     const consumeFeeAddress = user2.address
@@ -1161,7 +1183,7 @@ describe("ERC20TemplateEnterprise", () => {
       (await EnterpriseToken.balanceOf(await EnterpriseToken.getFeeCollector())) ==
       web3.utils.toWei("0"), 'Invalid publisher reward, we should have burned the DT'
     );
-    
+
   })
 
 });

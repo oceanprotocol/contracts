@@ -558,6 +558,14 @@ contract ERC20TemplateEnterprise is ERC20("test", "testSymbol"), ERC20Roles, ERC
     }
 
     /**
+     * @dev getERC721Address
+     *      It returns the parent ERC721
+     * @return ERC721 address.
+     */
+    function getERC721Address() public view returns (address) {
+        return _erc721Address;
+    }
+    /**
      * @dev decimals
      *      It returns the token decimals.
      *      how many supported decimal points
