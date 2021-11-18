@@ -10,7 +10,7 @@ RUN apk add --no-cache --update\
       krb5-libs\
       krb5\
       make\
-      python
+      python3
 
 COPY . /ocean-contracts
 WORKDIR /ocean-contracts
