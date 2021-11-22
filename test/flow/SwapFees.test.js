@@ -1135,14 +1135,9 @@ describe("Swap Fees", () => {
       expect(await erc20Token.balanceOf(user2.address)).to.equal(0);
       expect(await oceanContract.balanceOf(user2.address)).to.equal(0);
 
-      // marketFeeCollector send fees to another address
-      await bPool.connect(marketFeeCollector).collectMarketFee(user2.address);
+      await bPool.connect(marketFeeCollector).collectMarketFee();
 
-      // only marketCollector can withdraw
-      await expectRevert(
-        bPool.connect(user3).collectMarketFee(user3.address),
-        "ONLY MARKET COLLECTOR"
-      );
+      
     });
   });
 
@@ -1230,8 +1225,8 @@ describe("Swap Fees", () => {
 
       expect(await bPool.getSwapFee()).to.equal(swapFee);
       expect(await bPool.getOPFFee()).to.equal(1e15);
-      expect(await bPool._swapMarketFee()).to.equal(swapMarketFee);
-
+      expect(await bPool.getMarketFee()).to.equal(swapMarketFee);
+      
       expect(await bPool.communityFees(daiAddress)).to.equal(0);
       expect(await bPool.communityFees(erc20Token.address)).to.equal(0);
       expect(await bPool.marketFees(daiAddress)).to.equal(0);
@@ -2036,6 +2031,14 @@ describe("Swap Fees", () => {
       );
     });
 
+    it("Check for fees", async () => {
+      const marketFees = await bPool.getCurrentMarketFees()
+      assert(marketFees[0].length === 2)
+      assert(marketFees[1].length === 2)
+      const opfFees = await bPool.getCurrentOPFFees()
+      assert(opfFees[0].length === 2)
+      assert(opfFees[1].length === 2)
+    });
     it("#17 - we check again ocean and market fees were accounted", async () => {
       expect(await bPool.getOPFFee()).to.equal(1e15);
       expect(await bPool._swapMarketFee()).to.equal(swapMarketFee);
@@ -2055,14 +2058,8 @@ describe("Swap Fees", () => {
       expect(await erc20Token.balanceOf(user2.address)).to.equal(0);
       expect(await daiContract.balanceOf(user2.address)).to.equal(0);
 
-      // only marketCollector can withdraw
-      await expectRevert(
-        bPool.connect(user3).collectMarketFee(user3.address),
-        "ONLY MARKET COLLECTOR"
-      );
-
-      // marketFeeCollector send fees to another address
-      await bPool.connect(marketFeeCollector).collectMarketFee(user2.address);
+      
+      await bPool.connect(marketFeeCollector).collectMarketFee();
 
       assert((await bPool.marketFees(usdcAddress)) == 0);
       assert((await bPool.marketFees(erc20Token.address)) == 0);
@@ -3156,14 +3153,8 @@ describe("Swap Fees", () => {
       expect(await erc20Token.balanceOf(user2.address)).to.equal(0);
       expect(await usdcContract.balanceOf(user2.address)).to.equal(0);
 
-      // only marketCollector can withdraw
-      await expectRevert(
-        bPool.connect(user3).collectMarketFee(user3.address),
-        "ONLY MARKET COLLECTOR"
-      );
-
-      // marketFeeCollector send fees to another address
-      await bPool.connect(marketFeeCollector).collectMarketFee(user2.address);
+      
+      await bPool.connect(marketFeeCollector).collectMarketFee();
 
       assert((await bPool.marketFees(usdcAddress)) == 0);
       assert((await bPool.marketFees(erc20Token.address)) == 0);
@@ -4147,14 +4138,7 @@ describe("Swap Fees", () => {
       // user2 has no DT
       expect(await erc20Token.balanceOf(user2.address)).to.equal(0);
 
-      // only marketCollector can withdraw
-      await expectRevert(
-        bPool.connect(user3).collectMarketFee(user3.address),
-        "ONLY MARKET COLLECTOR"
-      );
-
-      // marketFeeCollector send fees to another address
-      await bPool.connect(marketFeeCollector).collectMarketFee(user2.address);
+      await bPool.connect(marketFeeCollector).collectMarketFee();
 
       assert((await bPool.marketFees(usdcAddress)) == 0);
       assert((await bPool.marketFees(erc20Token.address)) == 0);
@@ -5058,14 +5042,7 @@ describe("Swap Fees", () => {
       // user2 has no DT
       expect(await erc20Token.balanceOf(user2.address)).to.equal(0);
 
-      // only marketCollector can withdraw
-      await expectRevert(
-        bPool.connect(user3).collectMarketFee(user3.address),
-        "ONLY MARKET COLLECTOR"
-      );
-
-      // marketFeeCollector send fees to another address
-      await bPool.connect(marketFeeCollector).collectMarketFee(user2.address);
+      await bPool.connect(marketFeeCollector).collectMarketFee();
 
       assert((await bPool.marketFees(daiAddress)) == 0);
       assert((await bPool.marketFees(erc20Token.address)) == 0);

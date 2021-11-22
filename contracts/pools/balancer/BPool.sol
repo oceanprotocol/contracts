@@ -71,6 +71,11 @@ contract BPool is BMath, BToken {
     );
 
     event LOG_BPT(uint256 bptAmount);
+    event LOG_BPT_SS(uint256 bptAmount); //emitted for SS contract
+
+    event OPFFee(address caller, address OPFWallet, address token, uint256 amount);
+    event MarketFee(address caller, address marketAddress, address token, uint256 amount);
+    event MarketCollectorChanged(address caller, address newMarketCollector);
 
     modifier _lock_() {
         require(!_mutex, "ERR_REENTRY");
@@ -259,29 +264,75 @@ contract BPool is BMath, BToken {
         return _tokens;
     }
 
+    /**
+     * @dev collectOPF
+     *      Collects and send all OPF Fees to _opfCollector.
+     *      This funtion can be called by anyone, because fees are being sent to _opfCollector
+     */
     function collectOPF() external {
         address[] memory tokens = getFinalTokens();
         for (uint256 i = 0; i < tokens.length; i++) {
             uint256 amount = communityFees[tokens[i]];
             communityFees[tokens[i]] = 0;
             IERC20(tokens[i]).transfer(_opfCollector, amount);
+            emit OPFFee(msg.sender, _opfCollector, tokens[i], amount);
         }
     }
+    /**
+     * @dev getCurrentOPFFees
+     *      Get the current amount of fees which can be withdrawned by OPF
+     * @return address[] - array of tokens addresses
+     *         uint256[] - array of amounts
+     */
+    function getCurrentOPFFees() public view returns(address[] memory, uint256[] memory) {
+        address[] memory poolTokens = getFinalTokens();
+        address[] memory tokens = new address[](poolTokens.length);
+        uint256[] memory amounts = new uint256[](poolTokens.length);
+        for (uint256 i = 0; i < poolTokens.length; i++) {
+            tokens[i] = poolTokens[i];
+            amounts[i] = communityFees[poolTokens[i]];
+        }
+        return(tokens, amounts);
+    }
+    /**
+     * @dev getCurrentMarketFees
+     *      Get the current amount of fees which can be withdrawned by OPF
+     * @return address[] - array of tokens addresses
+     *         uint256[] - array of amounts
+     */
+    function getCurrentMarketFees() public view returns(address[] memory, uint256[] memory) {
+        address[] memory poolTokens = getFinalTokens();
+        address[] memory tokens = new address[](poolTokens.length);
+        uint256[] memory amounts = new uint256[](poolTokens.length);
+        for (uint256 i = 0; i < poolTokens.length; i++) {
+            tokens[i] = poolTokens[i];
+            amounts[i] = marketFees[poolTokens[i]];
+        }
+        return(tokens, amounts);
+    }
 
-    function collectMarketFee(address to) external {
-        require(_marketCollector == msg.sender, "ONLY MARKET COLLECTOR");
-
+    /**
+     * @dev collectMarketFee
+     *      Collects and send all Market Fees to _marketCollector.
+     *      This function can be called by anyone, because fees are being sent to _marketCollector
+     */
+    function collectMarketFee() external {
         address[] memory tokens = getFinalTokens();
         for (uint256 i = 0; i < tokens.length; i++) {
             uint256 amount = marketFees[tokens[i]];
             marketFees[tokens[i]] = 0;
-            IERC20(tokens[i]).transfer(to, amount);
+            IERC20(tokens[i]).transfer(_marketCollector, amount);
+            emit MarketFee(msg.sender, _marketCollector, tokens[i], amount);
         }
     }
-
+    /**
+     * @dev updateMarketFeeCollector
+     *      Set _newCollector as _marketCollector
+     */
     function updateMarketFeeCollector(address _newCollector) external {
         require(_marketCollector == msg.sender, "ONLY MARKET COLLECTOR");
         _marketCollector = _newCollector;
+        emit MarketCollectorChanged(msg.sender, _marketCollector);
     }
 
     function getDenormalizedWeight(address token)
@@ -326,6 +377,10 @@ contract BPool is BMath, BToken {
 
     function getSwapFee() external view returns (uint256) {
         return _swapFee;
+    }
+
+    function getMarketFee() external view returns (uint256) {
+        return _swapMarketFee;
     }
 
     function getController() external view returns (address) {
@@ -544,6 +599,7 @@ contract BPool is BMath, BToken {
             emit LOG_EXIT(msg.sender, t, tokenAmountOut, block.timestamp);
             _pushUnderlying(t, msg.sender, tokenAmountOut);
         }
+        emit LOG_BPT(poolAmountIn);
     }
 
     function swapExactAmountIn(
@@ -763,7 +819,7 @@ contract BPool is BMath, BToken {
                 ssAmountIn,
                 block.timestamp
             );
-            emit LOG_BPT(poolAmountOut);
+            emit LOG_BPT_SS(poolAmountOut);
             _mintPoolShare(poolAmountOut);
             _pushPoolShare(_controller, poolAmountOut);
             _pullUnderlying(ssStakeToken, _controller, ssAmountIn);
@@ -840,6 +896,7 @@ contract BPool is BMath, BToken {
             _mintPoolShare(poolAmountOut);
             _pushPoolShare(_controller, poolAmountOut);
             _pullUnderlying(ssStakeToken, _controller, ssAmountIn);
+            emit LOG_BPT_SS(poolAmountOut);
         }
         return tokenAmountIn;
     }
@@ -926,6 +983,7 @@ contract BPool is BMath, BToken {
                 ssAmountOut,
                 poolAmountIn
             );
+            emit LOG_BPT_SS(poolAmountIn);
         }
         return tokenAmountOut;
     }
@@ -1010,6 +1068,7 @@ contract BPool is BMath, BToken {
                 ssAmountOut,
                 poolAmountIn
             );
+            emit LOG_BPT_SS(poolAmountIn);
         }
         return poolAmountIn;
     }
