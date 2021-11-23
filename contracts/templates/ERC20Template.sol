@@ -31,7 +31,7 @@ contract ERC20Template is ERC20("test", "testSymbol"), ERC20Roles, ERC20Burnable
     address private _communityFeeCollector;
     bool private initialized = false;
     address private _erc721Address;
-    address private feeCollector;
+    address private paymentCollector;
     address private publishMarketFeeAddress;
     address private publishMarketFeeToken;
     uint256 private publishMarketFeeAmount;
@@ -62,6 +62,12 @@ contract ERC20Template is ERC20("test", "testSymbol"), ERC20Roles, ERC20Burnable
         uint256 blockNumber
     );
 
+    event OrderMarketFees(
+        address indexed consumeFeeAddress,
+        address indexed consumeFeeToken, 
+        uint256 consumeFeeAmount
+    );
+
     
     event MinterProposed(address currentMinter, address newMinter);
 
@@ -74,6 +80,9 @@ contract ERC20Template is ERC20("test", "testSymbol"), ERC20Roles, ERC20Burnable
     );
 
     event NewFixedRate(bytes32 exchangeId, address owner);
+
+    event NewPaymentCollector(address indexed caller, address indexed _newPaymentCollector,
+        uint256 timestamp, uint256 blockNumber);
 
     modifier onlyNotInitialized() {
         require(
@@ -117,7 +126,7 @@ contract ERC20Template is ERC20("test", "testSymbol"), ERC20Roles, ERC20Burnable
      *                      [1] = symbol
      * @param addresses_ refers to an array of addresses passed by user
      *                     [0]  = minter account who can mint datatokens (can have multiple minters)
-     *                     [1]  = feeManager initial feeManager for this DT
+     *                     [1]  = paymentCollector  initial paymentCollector  for this DT
      *                     [2]  = publishing Market Address
      *                     [3]  = publishing Market Fee Token
      * @param factoryAddresses_ refers to an array of addresses passed by the factory
@@ -156,7 +165,7 @@ contract ERC20Template is ERC20("test", "testSymbol"), ERC20Roles, ERC20Burnable
      *                      [1] = symbol
      * @param addresses_ refers to an array of addresses passed by user
      *                     [0]  = minter account who can mint datatokens (can have multiple minters)
-     *                     [1]  = feeManager initial feeManager for this DT
+     *                     [1]  = paymentCollector  initial paymentCollector  for this DT
      *                     [2]  = publishing Market Address
      *                     [3]  = publishing Market Fee Token
      * @param factoryAddresses_ refers to an array of addresses passed by the factory
@@ -199,7 +208,12 @@ contract ERC20Template is ERC20("test", "testSymbol"), ERC20Roles, ERC20Burnable
         initialized = true;
         // add a default minter, similar to what happens with manager in the 721 contract
         _addMinter(addresses_[0]);
-        _addFeeManager(addresses_[1]);
+        if(addresses_[1] != address(0)){
+            _setPaymentCollector(addresses_[1]);
+            emit NewPaymentCollector(msg.sender,addresses_[1],
+                block.timestamp,
+                block.number);
+        }
         publishMarketFeeAddress = addresses_[2];
         publishMarketFeeToken = addresses_[3];
         publishMarketFeeAmount = uints_[1];
@@ -416,7 +430,7 @@ contract ERC20Template is ERC20("test", "testSymbol"), ERC20Roles, ERC20Burnable
             }
         }
         // send datatoken to publisher
-        transfer(getFeeCollector(), amount);
+        transfer(getPaymentCollector(), amount);
         
         emit OrderStarted(
             consumer,
@@ -427,6 +441,11 @@ contract ERC20Template is ERC20("test", "testSymbol"), ERC20Roles, ERC20Burnable
             publishMarketFeeAddress,
             consumeFeeAddress,
             block.number
+        );
+        emit OrderMarketFees(
+            consumeFeeAddress,
+            consumeFeeToken,
+            consumeFeeAmount
         );
     }
 
@@ -455,25 +474,25 @@ contract ERC20Template is ERC20("test", "testSymbol"), ERC20Roles, ERC20Burnable
     }
 
     /**
-     * @dev addFeeManager (can set who's going to collect fee when consuming orders)
+     * @dev addPaymentManager (can set who's going to collect fee when consuming orders)
      *      Only ERC20Deployer (at 721 level) can update.
-     *      There can be multiple feeManagers
-     * @param _feeManager new minter address
+     *      There can be multiple paymentCollectors
+     * @param _paymentManager new minter address
      */
 
-    function addFeeManager(address _feeManager) external onlyERC20Deployer {
-        _addFeeManager(_feeManager);
+    function addPaymentManager(address _paymentManager) external onlyERC20Deployer {
+        _addPaymentManager(_paymentManager);
     }
 
     /**
-     * @dev removeFeeManager
+     * @dev removePaymentManager
      *      Only ERC20Deployer (at 721 level) can update.
-     *      There can be multiple feeManagers
-     * @param _feeManager feeManager address to remove
+     *      There can be multiple paymentManagers
+     * @param _paymentManager _paymentManager address to remove
      */
 
-    function removeFeeManager(address _feeManager) external onlyERC20Deployer {
-        _removeFeeManager(_feeManager);
+    function removePaymentManager(address _paymentManager) external onlyERC20Deployer {
+        _removePaymentManager(_paymentManager);
     }
 
     /**
@@ -491,21 +510,21 @@ contract ERC20Template is ERC20("test", "testSymbol"), ERC20Roles, ERC20Burnable
     /**
      * @dev cleanPermissions()
      *      Only NFT Owner (at 721 level) can call it.
-     *      This function allows to remove all minters, feeManagers and reset the feeCollector
+     *      This function allows to remove all minters, feeManagers and reset the paymentCollector 
      *
      */
 
     function cleanPermissions() external onlyNFTOwner {
         _cleanPermissions();
-        feeCollector = address(0);
+        paymentCollector = address(0);
     }
 
     /**
      * @dev cleanFrom721() 
      *      OnlyNFT(721) Contract can call it.
-     *      This function allows to remove all minters, feeManagers and reset the feeCollector
+     *      This function allows to remove all minters, feeManagers and reset the paymentCollector 
      *       This function is used when transferring an NFT to a new owner,
-     * so that permissions at ERC20level (minter,feeManager,feeCollector) can be reset.
+     * so that permissions at ERC20level (minter,feeManager,paymentCollector) can be reset.
      *      
      */
     function cleanFrom721() external {
@@ -514,23 +533,37 @@ contract ERC20Template is ERC20("test", "testSymbol"), ERC20Roles, ERC20Burnable
             "ERC20Template: NOT 721 Contract"
         );
         _cleanPermissions();
-        feeCollector = address(0);
+        paymentCollector = address(0);
     }
 
     /**
-     * @dev setFeeCollector
+     * @dev setPaymentCollector
      *      Only feeManager can call it
-     *      This function allows to set a newFeeCollector (receives DT when consuming)
-            If not set the feeCollector is the NFT Owner
-     * @param _newFeeCollector new fee collector 
+     *      This function allows to set a newPaymentCollector (receives DT when consuming)
+            If not set the paymentCollector is the NFT Owner
+     * @param _newPaymentCollector new fee collector 
      */
 
-    function setFeeCollector(address _newFeeCollector) external {
+    function setPaymentCollector(address _newPaymentCollector) external {
         require(
-            permissions[msg.sender].feeManager == true,
-            "ERC20Template: NOT FEE MANAGER"
+            permissions[msg.sender].paymentManager == true || IERC721Template(_erc721Address)
+                .getPermissions(msg.sender)
+                .deployERC20 == true,
+            "ERC20Template: NOT PAYMENT MANAGER or OWNER"
         );
-        feeCollector = _newFeeCollector;
+        _setPaymentCollector(_newPaymentCollector);
+        emit NewPaymentCollector(msg.sender,_newPaymentCollector,
+            block.timestamp,
+            block.number);
+    }
+
+    /**
+     * @dev _setPaymentCollector
+     * @param _newPaymentCollector new fee collector 
+     */
+
+    function _setPaymentCollector(address _newPaymentCollector) internal {
+        paymentCollector = _newPaymentCollector;
     }
 
 
@@ -716,16 +749,16 @@ contract ERC20Template is ERC20("test", "testSymbol"), ERC20Roles, ERC20Burnable
     }
 
     /**
-     * @dev getFeeCollector
-     *      It returns the current feeCollector
-     * @return feeCollector address
+     * @dev getPaymentCollector
+     *      It returns the current paymentCollector
+     * @return paymentCollector address
      */
 
-    function getFeeCollector() public view returns (address) {
-        if (feeCollector == address(0)) {
+    function getPaymentCollector() public view returns (address) {
+        if (paymentCollector == address(0)) {
             return IERC721Template(_erc721Address).ownerOf(1);
         } else {
-            return feeCollector;
+            return paymentCollector;
         }
     }
 
@@ -744,6 +777,6 @@ contract ERC20Template is ERC20("test", "testSymbol"), ERC20Roles, ERC20Burnable
         external 
         payable
     {
-        payable(getFeeCollector()).transfer(address(this).balance);
+        payable(getPaymentCollector()).transfer(address(this).balance);
     }
 }

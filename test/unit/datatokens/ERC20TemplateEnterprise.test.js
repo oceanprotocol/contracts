@@ -275,19 +275,19 @@ describe("ERC20TemplateEnterprise", () => {
     );
   });
 
-  it("#setFeeCollector - should fail to set new FeeCollector if not NFTOwner", async () => {
+  it("#setPaymentCollector - should fail to set new FeeCollector if not NFTOwner", async () => {
     await expectRevert(
-      erc20Token.connect(user2).setFeeCollector(user2.address),
-      "ERC20Template: NOT FEE MANAGER"
+      erc20Token.connect(user2).setPaymentCollector(user2.address),
+      "ERC20Template: NOT PAYMENT MANAGER or OWNER"
     );
   });
 
-  it("#setFeeCollector - should succeed to set new FeeCollector if feeManager", async () => {
-    await erc20Token.connect(user3).addFeeManager(owner.address);
+  it("#setPaymentCollector - should succeed to set new paymentCollector if paymentManager", async () => {
+    await erc20Token.connect(user3).setPaymentCollector(owner.address);
 
-    assert((await erc20Token.getFeeCollector()) == owner.address);
-    await erc20Token.setFeeCollector(user2.address);
-    assert((await erc20Token.getFeeCollector()) == user2.address);
+    assert((await erc20Token.getPaymentCollector()) == owner.address, 'PaymentCollector is not owner');
+    await erc20Token.connect(user3).setPaymentCollector(user2.address);
+    assert((await erc20Token.getPaymentCollector()) == user2.address, 'PaymentCollector is not user2');
   });
 
   it("#getERC721Address - should succeed to get the parent ERC721 address", async () => {
@@ -365,75 +365,75 @@ describe("ERC20TemplateEnterprise", () => {
     assert((await erc20Token.permissions(user2.address)).minter == false);
   });
 
-  it("#addFeeManager - should fail to addFeeManager if not erc20Deployer (permission to deploy the erc20Contract at 721 level)", async () => {
-    assert((await erc20Token.permissions(user2.address)).feeManager == false);
+  it("#addPaymentManager - should fail to addPaymentManager if not erc20Deployer (permission to deploy the erc20Contract at 721 level)", async () => {
+    assert((await erc20Token.permissions(user2.address)).paymentManager == false);
 
     await expectRevert(
-      erc20Token.connect(user2).addFeeManager(user2.address),
+      erc20Token.connect(user2).addPaymentManager(user2.address),
       "ERC20Template: NOT DEPLOYER ROLE"
     );
 
-    assert((await erc20Token.permissions(user2.address)).feeManager == false);
+    assert((await erc20Token.permissions(user2.address)).paymentManager == false);
   });
 
-  it("#addFeeManager - should fail to addFeeManager if it's already feeManager", async () => {
-    assert((await erc20Token.permissions(user2.address)).feeManager == false);
+  it("#addPaymentManager - should fail to addPaymentManager if it's already feeManager", async () => {
+    assert((await erc20Token.permissions(user2.address)).paymentManager == false);
 
-    await erc20Token.connect(user3).addFeeManager(user2.address);
+    await erc20Token.connect(user3).addPaymentManager(user2.address);
 
-    assert((await erc20Token.permissions(user2.address)).feeManager == true);
+    assert((await erc20Token.permissions(user2.address)).paymentManager == true);
 
     await expectRevert(
-      erc20Token.connect(user3).addFeeManager(user2.address),
+      erc20Token.connect(user3).addPaymentManager(user2.address),
       "ERC20Roles:  ALREADY A FEE MANAGER"
     );
   });
 
-  it("#addFeeManager - should succeed to addFeeManager if erc20Deployer (permission to deploy the erc20Contract at 721 level)", async () => {
-    assert((await erc20Token.permissions(user2.address)).feeManager == false);
+  it("#addPaymentManager - should succeed to addPaymentManager if erc20Deployer (permission to deploy the erc20Contract at 721 level)", async () => {
+    assert((await erc20Token.permissions(user2.address)).paymentManager == false);
 
     // owner is already erc20Deployer
-    await erc20Token.connect(user3).addFeeManager(user2.address);
+    await erc20Token.connect(user3).addPaymentManager(user2.address);
 
-    assert((await erc20Token.permissions(user2.address)).feeManager == true);
+    assert((await erc20Token.permissions(user2.address)).paymentManager == true);
   });
 
   it("#removeFeeManager - should fail to removeFeeManager if NOT erc20Deployer", async () => {
-    await erc20Token.connect(user3).addFeeManager(owner.address);
+    await erc20Token.connect(user3).addPaymentManager(owner.address);
 
-    assert((await erc20Token.permissions(owner.address)).feeManager == true);
+    assert((await erc20Token.permissions(owner.address)).paymentManager == true);
 
     await expectRevert(
-      erc20Token.connect(user2).removeFeeManager(owner.address),
+      erc20Token.connect(user2).removePaymentManager(owner.address),
       "ERC20Template: NOT DEPLOYER ROLE"
     );
 
-    assert((await erc20Token.permissions(owner.address)).feeManager == true);
+    assert((await erc20Token.permissions(owner.address)).paymentManager == true);
   });
 
   it("#removeFeeManager - should fail to removeFeeManager even if it's feeManager", async () => {
     // ERC20 deployer role add himself as manager and user2
-    await erc20Token.connect(user3).addFeeManager(owner.address);
-    await erc20Token.connect(user3).addFeeManager(user2.address);
+    await erc20Token.connect(user3).addPaymentManager(owner.address);
+    await erc20Token.connect(user3).addPaymentManager(user2.address);
 
-    assert((await erc20Token.permissions(user2.address)).feeManager == true);
+    assert((await erc20Token.permissions(user2.address)).paymentManager == true);
 
     await expectRevert(
-      erc20Token.connect(user2).removeFeeManager(owner.address),
+      erc20Token.connect(user2).removePaymentManager(owner.address),
       "ERC20Template: NOT DEPLOYER ROLE"
     );
 
-    assert((await erc20Token.permissions(owner.address)).feeManager == true);
+    assert((await erc20Token.permissions(owner.address)).paymentManager == true);
   });
 
   it("#removeFeeManager - should succeed to removeFeeManager if erc20Deployer", async () => {
-    await erc20Token.connect(user3).addFeeManager(user2.address);
+    await erc20Token.connect(user3).addPaymentManager(user2.address);
 
-    assert((await erc20Token.permissions(user2.address)).feeManager == true);
+    assert((await erc20Token.permissions(user2.address)).paymentManager == true);
 
-    await erc20Token.connect(user3).removeFeeManager(user2.address);
+    await erc20Token.connect(user3).removePaymentManager(user2.address);
 
-    assert((await erc20Token.permissions(user2.address)).feeManager == false);
+    assert((await erc20Token.permissions(user2.address)).paymentManager == false);
   });
 
   it("#setData - should fail to setData if NOT erc20Deployer", async () => {
@@ -471,10 +471,10 @@ describe("ERC20TemplateEnterprise", () => {
     // user3 is already minter
 
     assert((await erc20Token.permissions(user3.address)).minter == true);
-    await erc20Token.connect(user3).addFeeManager(owner.address);
+    await erc20Token.connect(user3).addPaymentManager(owner.address);
     // we set a new FeeCollector
-    await erc20Token.connect(owner).setFeeCollector(user2.address);
-    assert((await erc20Token.getFeeCollector()) == user2.address);
+    await erc20Token.connect(owner).setPaymentCollector(user2.address);
+    assert((await erc20Token.getPaymentCollector()) == user2.address);
     // WE add 2 more minters
     await erc20Token.connect(user3).addMinter(user2.address);
     await erc20Token.connect(user3).addMinter(user4.address);
@@ -486,12 +486,12 @@ describe("ERC20TemplateEnterprise", () => {
 
     // check permission were removed
     assert((await erc20Token.permissions(owner.address)).minter == false);
-    assert((await erc20Token.permissions(owner.address)).feeManager == false);
+    assert((await erc20Token.permissions(owner.address)).paymentManager == false);
     assert((await erc20Token.permissions(user2.address)).minter == false);
     assert((await erc20Token.permissions(user3.address)).minter == false);
     assert((await erc20Token.permissions(user4.address)).minter == false);
-    // we reassigned feeCollector to address(0) when cleaning permissions, so now getFeeCollector points to NFT Owner
-    assert((await erc20Token.getFeeCollector()) == owner.address);
+    // we reassigned feeCollector to address(0) when cleaning permissions, so now getPaymentCollector points to NFT Owner
+    assert((await erc20Token.getPaymentCollector()) == owner.address);
   });
 
   it("#permit - should succeed to deposit with permit function", async () => {
@@ -569,7 +569,8 @@ describe("ERC20TemplateEnterprise", () => {
     const txReceipt = await tx.wait();
     let event = getEventFromTx(txReceipt, 'OrderStarted')
     assert(event, "Cannot find OrderStarted event")
-
+    event = getEventFromTx(txReceipt, 'OrderMarketFees')
+    assert(event, "Cannot find OrderMarketFees event")
     assert(
       (await erc20Token.balanceOf(user2.address)) == web3.utils.toWei("9"), 'Invalid user balance, DT was not substracted'
     );
@@ -582,7 +583,7 @@ describe("ERC20TemplateEnterprise", () => {
       (await erc20Token.balanceOf(user3.address)) == web3.utils.toWei("0"), 'Invalid consumeFee, we should have DT as fee'
     );
     assert(
-      (await erc20Token.balanceOf(await erc20Token.getFeeCollector())) ==
+      (await erc20Token.balanceOf(await erc20Token.getPaymentCollector())) ==
       web3.utils.toWei("0"), 'Invalid publisher reward, we should have burned the DT'
     );
   });
@@ -614,7 +615,8 @@ describe("ERC20TemplateEnterprise", () => {
     const txReceipt = await tx.wait();
     let event = getEventFromTx(txReceipt, 'OrderStarted')
     assert(event, "Cannot find OrderStarted event")
-
+    event = getEventFromTx(txReceipt, 'OrderMarketFees')
+    assert(event, "Cannot find OrderMarketFees event")
     assert(
       (await erc20Token.balanceOf(user2.address)) == web3.utils.toWei("9"), 'Invalid user balance, DT was not substracted'
     );
@@ -627,7 +629,7 @@ describe("ERC20TemplateEnterprise", () => {
       (await erc20Token.balanceOf(user3.address)) == web3.utils.toWei("0"), 'Invalid consumeFee, we should have DT as fee'
     );
     assert(
-      (await erc20Token.balanceOf(await erc20Token.getFeeCollector())) ==
+      (await erc20Token.balanceOf(await erc20Token.getPaymentCollector())) ==
       web3.utils.toWei("0"), 'Invalid publisher reward, we should have burned the DT'
     );
   });
@@ -674,7 +676,8 @@ describe("ERC20TemplateEnterprise", () => {
     const txReceipt = await tx.wait();
     let event = getEventFromTx(txReceipt, 'OrderStarted')
     assert(event, "Cannot find OrderStarted event")
-
+    event = getEventFromTx(txReceipt, 'OrderMarketFees')
+    assert(event, "Cannot find OrderMarketFees event")
     const balance = await Mock20Contract.balanceOf(consumeFeeAddress)
     const balanceOpf = await Mock20Contract.balanceOf(opfCollector.address)
     const expected = web3.utils.toWei(new BN(consumeFeeAmount)).sub(web3.utils.toWei(new BN(consumeFeeAmount)).div(new BN(100)))
@@ -690,7 +693,7 @@ describe("ERC20TemplateEnterprise", () => {
       balanceOpf.toString() == expectedOpf.toString(), 'Invalid OPF fee, we should have 1% of the fee'
     );
     assert(
-      (await erc20Token.balanceOf(await erc20Token.getFeeCollector())) ==
+      (await erc20Token.balanceOf(await erc20Token.getPaymentCollector())) ==
       web3.utils.toWei("0"), 'Invalid publisher reward, we should have burned the DT'
     );
   });
@@ -750,7 +753,8 @@ describe("ERC20TemplateEnterprise", () => {
     const txReceipt = await tx.wait();
     let event = getEventFromTx(txReceipt, 'OrderStarted')
     assert(event, "Cannot find OrderStarted event")
-
+    event = getEventFromTx(txReceipt, 'OrderMarketFees')
+    assert(event, "Cannot find OrderMarketFees event")
     assert(
       (await erc20TokenWithPublishFee.balanceOf(user2.address)) == web3.utils.toWei("9"), 'Invalid user balance, DT was not substracted'
     );
@@ -763,7 +767,7 @@ describe("ERC20TemplateEnterprise", () => {
       (await erc20TokenWithPublishFee.balanceOf(user3.address)) == web3.utils.toWei("0"), 'Invalid consumeFee, we should have DT as fee'
     );
     assert(
-      (await erc20TokenWithPublishFee.balanceOf(await erc20TokenWithPublishFee.getFeeCollector())) ==
+      (await erc20TokenWithPublishFee.balanceOf(await erc20TokenWithPublishFee.getPaymentCollector())) ==
       web3.utils.toWei("0"), 'Invalid publisher reward, we should have burned the DT'
     );
   });
@@ -827,7 +831,8 @@ describe("ERC20TemplateEnterprise", () => {
     const txReceipt = await tx.wait();
     let event = getEventFromTx(txReceipt, 'OrderStarted')
     assert(event, "Cannot find OrderStarted event")
-
+    event = getEventFromTx(txReceipt, 'OrderMarketFees')
+    assert(event, "Cannot find OrderMarketFees event")
     const balanceConsume = await Mock20Contract.balanceOf(consumeFeeAddress)
     const balanceOpfConsume = await Mock20Contract.balanceOf(opfCollector.address)
     const expectedConsume = web3.utils.toWei(new BN(consumeFeeAmount)).sub(web3.utils.toWei(new BN(consumeFeeAmount)).div(new BN(100)))
@@ -853,7 +858,7 @@ describe("ERC20TemplateEnterprise", () => {
       balanceOpfPublish.toString() == expectedOpfPublish.toString(), 'Invalid OPF fee, we should have 1% of the publish fee'
     );
     assert(
-      (await erc20TokenWithPublishFee.balanceOf(await erc20TokenWithPublishFee.getFeeCollector())) ==
+      (await erc20TokenWithPublishFee.balanceOf(await erc20TokenWithPublishFee.getPaymentCollector())) ==
       web3.utils.toWei("0"), 'Invalid publisher reward, we should have burned the DT'
     );
   });
@@ -1047,7 +1052,7 @@ describe("ERC20TemplateEnterprise", () => {
       balanceOpfPublish.toString() == expectedOpfPublish.toString(), 'Invalid OPF fee, we should have 1% of the publish fee'
     );
     assert(
-      (await EnterpriseToken.balanceOf(await EnterpriseToken.getFeeCollector())) ==
+      (await EnterpriseToken.balanceOf(await EnterpriseToken.getPaymentCollector())) ==
       web3.utils.toWei("0"), 'Invalid publisher reward, we should have burned the DT'
     );
   })
@@ -1180,7 +1185,7 @@ describe("ERC20TemplateEnterprise", () => {
       balanceOpfPublish.toString() == expectedOpfPublish.toString(), 'Invalid OPF fee, we should have 1% of the publish fee'
     );
     assert(
-      (await EnterpriseToken.balanceOf(await EnterpriseToken.getFeeCollector())) ==
+      (await EnterpriseToken.balanceOf(await EnterpriseToken.getPaymentCollector())) ==
       web3.utils.toWei("0"), 'Invalid publisher reward, we should have burned the DT'
     );
 
