@@ -410,7 +410,8 @@ contract ERC20Template is ERC20("test", "testSymbol"), ERC20Roles, ERC20Burnable
             require(IERC20(publishMarketFeeToken)
             .transfer(publishMarketFeeAddress,publishMarketFeeAmount.sub(communityFeePublish))
             , 'Failed to transfer fee to publishMarketFeeAddress');
-            emit PublishMarketFees(publishMarketFeeAddress, publishMarketFeeToken, publishMarketFeeAmount.sub(communityFeePublish));
+            emit PublishMarketFees(publishMarketFeeAddress, publishMarketFeeToken,
+            publishMarketFeeAmount.sub(communityFeePublish));
         }
 
         // consumeFees
