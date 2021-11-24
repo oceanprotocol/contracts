@@ -430,7 +430,8 @@ contract ERC20Template is ERC20("test", "testSymbol"), ERC20Roles, ERC20Burnable
             emit ConsumeMarketFees(consumeFeeAddress, consumeFeeToken, consumeFeeAmount.sub(communityFeeConsume));
         }
         //send fees to OPF
-        if(communityFeePublish>0 && communityFeeConsume>0 && consumeFeeToken == publishMarketFeeToken){
+        if(communityFeePublish>0 && communityFeeConsume>0 && consumeFeeToken == publishMarketFeeToken
+        && consumeFeeToken != address(0)){
             //since both fees are in the same token, have just one transaction for both, to save gas
             require(IERC20(consumeFeeToken)
             .transfer(_communityFeeCollector,communityFeePublish.add(communityFeeConsume))
@@ -444,13 +445,15 @@ contract ERC20Template is ERC20("test", "testSymbol"), ERC20Roles, ERC20Burnable
             if(communityFeePublish>0 && publishMarketFeeToken!=address(0)){
                 require(IERC20(publishMarketFeeToken)
                 .transfer(_communityFeeCollector,communityFeePublish), 'Failed to transfer publish fees to OPF');
+                emit PublishMarketFees(_communityFeeCollector, publishMarketFeeToken, communityFeePublish);
             }
-            emit PublishMarketFees(_communityFeeCollector, publishMarketFeeToken, communityFeePublish);
+            
             if(communityFeeConsume>0 && consumeFeeToken!=address(0)){
                 require(IERC20(consumeFeeToken)
                 .transfer(_communityFeeCollector,communityFeeConsume), 'Failed to transfer consume fee to OPF');
+                emit ConsumeMarketFees(_communityFeeCollector, consumeFeeToken, communityFeeConsume);
             }
-            emit ConsumeMarketFees(_communityFeeCollector, consumeFeeToken, communityFeeConsume);
+            
         }
         // send datatoken to publisher
         transfer(getPaymentCollector(), amount);
