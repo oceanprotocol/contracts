@@ -62,10 +62,16 @@ contract ERC20Template is ERC20("test", "testSymbol"), ERC20Roles, ERC20Burnable
         uint256 blockNumber
     );
 
-    event OrderMarketFees(
+    event ConsumeMarketFees(
         address indexed consumeFeeAddress,
         address indexed consumeFeeToken, 
         uint256 consumeFeeAmount
+    );
+
+    event PublishMarketFees(
+        address indexed PublishMarketFeeAddress,
+        address indexed PublishMarketFeeToken, 
+        uint256 PublishMarketFeeAmount
     );
 
     
@@ -380,6 +386,16 @@ contract ERC20Template is ERC20("test", "testSymbol"), ERC20Roles, ERC20Burnable
         uint256 communityFeeConsume = 0;
         uint256 communityFeePublish = 0;
         require(balanceOf(msg.sender) >= amount, "Not enough Data Tokens to start Order");
+        emit OrderStarted(
+            consumer,
+            msg.sender,
+            amount,
+            serviceId,
+            block.timestamp,
+            publishMarketFeeAddress,
+            consumeFeeAddress,
+            block.number
+        );
         // publishMarketFees
         // Requires approval for the publishMarketFeeToken of publishMarketFeeAmount
         // skip fee if amount == 0 or feeToken == 0x0 address or feeAddress == 0x0 address
@@ -394,6 +410,7 @@ contract ERC20Template is ERC20("test", "testSymbol"), ERC20Roles, ERC20Burnable
             require(IERC20(publishMarketFeeToken)
             .transfer(publishMarketFeeAddress,publishMarketFeeAmount.sub(communityFeePublish))
             , 'Failed to transfer fee to publishMarketFeeAddress');
+            emit PublishMarketFees(publishMarketFeeAddress, publishMarketFeeToken, publishMarketFeeAmount.sub(communityFeePublish));
         }
 
         // consumeFees
@@ -410,6 +427,7 @@ contract ERC20Template is ERC20("test", "testSymbol"), ERC20Roles, ERC20Burnable
             require(IERC20(consumeFeeToken)
             .transfer(consumeFeeAddress,consumeFeeAmount.sub(communityFeeConsume))
             , 'Failed to transfer fee to consumeFeeAddress');
+            emit ConsumeMarketFees(consumeFeeAddress, consumeFeeToken, consumeFeeAmount.sub(communityFeeConsume));
         }
         //send fees to OPF
         if(communityFeePublish>0 && communityFeeConsume>0 && consumeFeeToken == publishMarketFeeToken){
@@ -417,6 +435,9 @@ contract ERC20Template is ERC20("test", "testSymbol"), ERC20Roles, ERC20Burnable
             require(IERC20(consumeFeeToken)
             .transfer(_communityFeeCollector,communityFeePublish.add(communityFeeConsume))
             , 'Failed to transfer both fees to OPF');
+            emit PublishMarketFees(_communityFeeCollector, consumeFeeToken, communityFeePublish);
+            emit ConsumeMarketFees(_communityFeeCollector, consumeFeeToken, communityFeeConsume);
+            
         }
         else{
             //we need to do them one by one
@@ -424,29 +445,17 @@ contract ERC20Template is ERC20("test", "testSymbol"), ERC20Roles, ERC20Burnable
                 require(IERC20(publishMarketFeeToken)
                 .transfer(_communityFeeCollector,communityFeePublish), 'Failed to transfer publish fees to OPF');
             }
+            emit PublishMarketFees(_communityFeeCollector, publishMarketFeeToken, communityFeePublish);
             if(communityFeeConsume>0 && consumeFeeToken!=address(0)){
                 require(IERC20(consumeFeeToken)
                 .transfer(_communityFeeCollector,communityFeeConsume), 'Failed to transfer consume fee to OPF');
             }
+            emit ConsumeMarketFees(_communityFeeCollector, consumeFeeToken, communityFeeConsume);
         }
         // send datatoken to publisher
         transfer(getPaymentCollector(), amount);
         
-        emit OrderStarted(
-            consumer,
-            msg.sender,
-            amount,
-            serviceId,
-            block.timestamp,
-            publishMarketFeeAddress,
-            consumeFeeAddress,
-            block.number
-        );
-        emit OrderMarketFees(
-            consumeFeeAddress,
-            consumeFeeToken,
-            consumeFeeAmount
-        );
+        
     }
 
  
