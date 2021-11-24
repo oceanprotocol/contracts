@@ -580,18 +580,20 @@ describe("ERC721Factory", () => {
       (await erc20Token.balanceOf(user3.address)) == web3.utils.toWei("0"), 'Invalid consumeFee, we should have DT as fee'
     );
     assert(
-      (await erc20Token.balanceOf(await erc20Token.getFeeCollector())) ==
+      (await erc20Token.balanceOf(await erc20Token.getPaymentCollector())) ==
         web3.utils.toWei("1"), 'Invalid publisher reward, we should have 1 DT'
     );
   });
 
   it("#startMultipleTokenOrder - user should succeed to call startOrder on a ERC20 without publishFees, consumeFeeToken on top is ZERO", async () => {
-    
+    console.log("1")
     //MINT SOME DT20 to USER2 so he can start order
     await erc20Token.connect(user3).mint(user2.address, web3.utils.toWei("10"));
+    console.log("2")
     assert(
       (await erc20Token.balanceOf(user2.address)) == web3.utils.toWei("10")
     );
+    console.log("3")
     const consumer = user2.address; // could be different user
     const dtAmount = web3.utils.toWei("1");
     const serviceId = 1; // dummy index
@@ -602,7 +604,7 @@ describe("ERC721Factory", () => {
     await erc20Token
     .connect(user2)
     .approve(factoryERC721.address, dtAmount);
-    
+    console.log("4")
     const tx = await factoryERC721
       .connect(user2)
       .startMultipleTokenOrder(
@@ -616,6 +618,7 @@ describe("ERC721Factory", () => {
           "consumeFeeAmount":web3.utils.toWei(String(consumeFeeAmount))
         }]
       );
+      console.log("5")
     const txReceipt = await tx.wait();
     assert(
       (await erc20Token.balanceOf(user2.address)) == web3.utils.toWei("9"), 'Invalid user balance, DT was not substracted'
@@ -629,7 +632,7 @@ describe("ERC721Factory", () => {
       (await erc20Token.balanceOf(user3.address)) == web3.utils.toWei("0"), 'Invalid consumeFee, we should have DT as fee'
     );
     assert(
-      (await erc20Token.balanceOf(await erc20Token.getFeeCollector())) ==
+      (await erc20Token.balanceOf(await erc20Token.getPaymentCollector())) ==
         web3.utils.toWei("1"), 'Invalid publisher reward, we should have 1 DT'
     );
   });
@@ -696,7 +699,7 @@ describe("ERC721Factory", () => {
       balanceOpf.toString() == expectedOpf.toString(), 'Invalid OPF fee, we should have 1% of the fee'
     );
     assert(
-      (await erc20Token.balanceOf(await erc20Token.getFeeCollector())) ==
+      (await erc20Token.balanceOf(await erc20Token.getPaymentCollector())) ==
         web3.utils.toWei("1"), 'Invalid publisher reward, he should get 1 DT'
     );
   });
@@ -762,7 +765,7 @@ describe("ERC721Factory", () => {
       (await erc20TokenWithPublishFee.balanceOf(user3.address)) == web3.utils.toWei("0"), 'Invalid consumeFee, we should have DT as fee'
     );
     assert(
-      (await erc20TokenWithPublishFee.balanceOf(await erc20TokenWithPublishFee.getFeeCollector())) ==
+      (await erc20TokenWithPublishFee.balanceOf(await erc20TokenWithPublishFee.getPaymentCollector())) ==
         web3.utils.toWei("1"), 'Invalid publisher reward, we should have 1 DT'
     );
   });
@@ -855,7 +858,7 @@ describe("ERC721Factory", () => {
       balanceOpfPublish.toString() == expectedOpfPublish.toString(), 'Invalid OPF fee, we should have 1% of the publish fee'
     );
     assert(
-      (await erc20TokenWithPublishFee.balanceOf(await erc20TokenWithPublishFee.getFeeCollector())) ==
+      (await erc20TokenWithPublishFee.balanceOf(await erc20TokenWithPublishFee.getPaymentCollector())) ==
         web3.utils.toWei("1"), 'Invalid publisher reward, he should get 1 DT'
     );
   });
@@ -969,11 +972,11 @@ describe("ERC721Factory", () => {
       balanceOpfPublish.toString() == expectedOpfPublish.toString(), 'Invalid OPF fee, we should have 1% of the publish fee'
     );
     assert(
-      (await erc20TokenWithPublishFee.balanceOf(await erc20TokenWithPublishFee.getFeeCollector())) ==
+      (await erc20TokenWithPublishFee.balanceOf(await erc20TokenWithPublishFee.getPaymentCollector())) ==
         web3.utils.toWei("1"), 'Invalid publisher reward, he should get 1 DT'
     );
     assert(
-      (await erc20Token.balanceOf(await erc20Token.getFeeCollector())) ==
+      (await erc20Token.balanceOf(await erc20Token.getPaymentCollector())) ==
         web3.utils.toWei("1"), 'Invalid publisher reward, he should get 1 DT'
     );
   });
