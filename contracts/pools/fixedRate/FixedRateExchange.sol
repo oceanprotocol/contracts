@@ -6,6 +6,7 @@ pragma solidity >=0.5.7;
 import "../../interfaces/IERC20Template.sol";
 import "../../interfaces/IFactoryRouter.sol";
 import "@openzeppelin/contracts/utils/math/SafeMath.sol";
+import "@openzeppelin/contracts/security/ReentrancyGuard.sol";
 
 
 /**
@@ -18,7 +19,7 @@ import "@openzeppelin/contracts/utils/math/SafeMath.sol";
 
 
 
-contract FixedRateExchange {
+contract FixedRateExchange is ReentrancyGuard {
     using SafeMath for uint256;
     uint256 private constant BASE = 10**18;
 
@@ -258,12 +259,12 @@ contract FixedRateExchange {
     {
         baseTokenAmountBeforeFee = dataTokenAmount
             .mul(exchanges[exchangeId].fixedRate)
-            .div(BASE)
             .mul(10**exchanges[exchangeId].btDecimals)
-            .div(10**exchanges[exchangeId].dtDecimals);
+            .div(10**exchanges[exchangeId].dtDecimals)
+            .div(BASE);
 
       
-        oceanFeeAmount;
+        
         if (getOPFFee(exchanges[exchangeId].baseToken) != 0) {
             oceanFeeAmount = baseTokenAmountBeforeFee
                 .mul(getOPFFee(exchanges[exchangeId].baseToken))
@@ -300,12 +301,12 @@ contract FixedRateExchange {
     {
         baseTokenAmountBeforeFee = dataTokenAmount
             .mul(exchanges[exchangeId].fixedRate)
-            .div(BASE)
             .mul(10**exchanges[exchangeId].btDecimals)
-            .div(10**exchanges[exchangeId].dtDecimals);
+            .div(10**exchanges[exchangeId].dtDecimals)
+            .div(BASE);
 
        
-        oceanFeeAmount;
+        
         if (getOPFFee(exchanges[exchangeId].baseToken) != 0) {
             oceanFeeAmount = baseTokenAmountBeforeFee
                 .mul(getOPFFee(exchanges[exchangeId].baseToken))
@@ -333,6 +334,7 @@ contract FixedRateExchange {
     function buyDT(bytes32 exchangeId, uint256 dataTokenAmount, uint256 maxBaseTokenAmount)
         external
         onlyActiveExchange(exchangeId)
+        nonReentrant
     {
         require(
             dataTokenAmount != 0,
@@ -421,6 +423,7 @@ contract FixedRateExchange {
     function sellDT(bytes32 exchangeId, uint256 dataTokenAmount, uint256 minBaseTokenAmount)
         external
         onlyActiveExchange(exchangeId)
+        nonReentrant
     {
         require(
             dataTokenAmount != 0,
@@ -494,6 +497,7 @@ contract FixedRateExchange {
     function collectBT(bytes32 exchangeId)
         external
         onlyExchangeOwner(exchangeId)
+        nonReentrant
     {
         uint256 amount = exchanges[exchangeId].btBalance;
         exchanges[exchangeId].btBalance = 0;
@@ -513,6 +517,7 @@ contract FixedRateExchange {
     function collectDT(bytes32 exchangeId)
         external
         onlyExchangeOwner(exchangeId)
+        nonReentrant
     {
         uint256 amount = exchanges[exchangeId].dtBalance;
         exchanges[exchangeId].dtBalance = 0;
@@ -529,7 +534,7 @@ contract FixedRateExchange {
         );
     }
 
-    function collectMarketFee(bytes32 exchangeId) external {
+    function collectMarketFee(bytes32 exchangeId) external nonReentrant {
         // anyone call call this function, because funds are sent to the correct address
         uint256 amount = exchanges[exchangeId].marketFeeAvailable;
         exchanges[exchangeId].marketFeeAvailable = 0;
@@ -544,7 +549,7 @@ contract FixedRateExchange {
         );
     }
 
-    function collectOceanFee(bytes32 exchangeId) external {
+    function collectOceanFee(bytes32 exchangeId) external nonReentrant {
         // anyone call call this function, because funds are sent to the correct address
         uint256 amount = exchanges[exchangeId].oceanFeeAvailable;
         exchanges[exchangeId].oceanFeeAvailable = 0;

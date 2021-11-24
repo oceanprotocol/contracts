@@ -190,7 +190,7 @@ contract BPool is BMath, BToken {
         address baseTokenAddress,
         uint256 baseTokenAmount,
         uint256 baseTokenWeight
-    ) external {
+    ) external _lock_ {
         require(msg.sender == _controller, "ERR_INVALID_CONTROLLER");
         require(
             dataTokenAddress == _datatokenAddress,

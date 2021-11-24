@@ -264,7 +264,8 @@ contract FactoryRouter is BFactory {
         Operations[] calldata _operations
         ) 
         external {
-
+        // TODO: to avoid DOS attack, we set a limit to maximum orders (50?)
+        require(_operations.length <= 50, 'FactoryRouter: Too Many Operations');
             for (uint i= 0; i< _operations.length; i++) {
 
                 if(_operations[i].operation == operationType.SwapExactIn) {

@@ -6,7 +6,7 @@ pragma solidity >=0.6.0;
 import "../../interfaces/IERC20Template.sol";
 import "../../interfaces/IPool.sol";
 import "@openzeppelin/contracts/utils/math/SafeMath.sol";
-
+import "@openzeppelin/contracts/security/ReentrancyGuard.sol";
 /**
  * @title SideStaking
  *
@@ -22,7 +22,7 @@ import "@openzeppelin/contracts/utils/math/SafeMath.sol";
      *                     [4]  = initial liquidity in basetoken for pool creation
  *
  */
-contract SideStaking {
+contract SideStaking is ReentrancyGuard {
     using SafeMath for uint256;
 
     address public router;
@@ -77,7 +77,7 @@ contract SideStaking {
         address poolAddress,
         address publisherAddress,
         uint256[] memory ssParams
-    ) external onlyRouter returns (bool) {
+    ) external onlyRouter nonReentrant returns (bool) {
         //check if we are the controller of the pool
         require(poolAddress != address(0), "Invalid poolAddress");
         IPool bpool = IPool(poolAddress);
@@ -324,7 +324,7 @@ contract SideStaking {
         address datatokenAddress,
         address stakeToken,
         uint256 amount
-    ) public {
+    ) public nonReentrant {
         if (_datatokens[datatokenAddress].bound != true) return;
         require(
             msg.sender == _datatokens[datatokenAddress].poolAddress,
@@ -366,7 +366,7 @@ contract SideStaking {
         address stakeToken,
         uint256 dtAmountIn,
         uint256 poolAmountOut
-    ) public {
+    ) public nonReentrant{
         if (_datatokens[datatokenAddress].bound != true) return;
         require(
             msg.sender == _datatokens[datatokenAddress].poolAddress,
@@ -395,6 +395,7 @@ contract SideStaking {
             dataTokenWeight) /
             baseTokenWeight /
             BASE) * (10**(18 - decimals));
+
 
         //approve the tokens and amounts
         IERC20Template dt = IERC20Template(datatokenAddress);

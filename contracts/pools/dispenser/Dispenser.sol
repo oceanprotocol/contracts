@@ -5,9 +5,9 @@ pragma solidity >=0.5.7;
 
 import "../../interfaces/IERC20Template.sol";
 import "@openzeppelin/contracts/utils/math/SafeMath.sol";
+import "@openzeppelin/contracts/security/ReentrancyGuard.sol";
 
-
-contract Dispenser {
+contract Dispenser is ReentrancyGuard{
     using SafeMath for uint256;
     address public router;
 
@@ -193,7 +193,7 @@ contract Dispenser {
      * @param amount amount of datatokens required.
      * @param destination refers to who will receive the tokens
      */
-    function dispense(address datatoken, uint256 amount, address destination) external payable{
+    function dispense(address datatoken, uint256 amount, address destination) external nonReentrant payable{
         require(
             datatoken != address(0),
             'Invalid token contract address'
@@ -242,7 +242,7 @@ contract Dispenser {
      *      Allow owner to withdraw all datatokens in this dispenser balance
      * @param datatoken refers to datatoken address.
      */
-    function ownerWithdraw(address datatoken) external{
+    function ownerWithdraw(address datatoken) external nonReentrant {
         require(
             datatoken != address(0),
             'Invalid token contract address'

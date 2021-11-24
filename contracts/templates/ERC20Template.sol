@@ -11,6 +11,7 @@ import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
 import "@openzeppelin/contracts/token/ERC20/extensions/ERC20Burnable.sol";
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "@openzeppelin/contracts/utils/math/SafeMath.sol";
+import "@openzeppelin/contracts/security/ReentrancyGuard.sol";
 import "../utils/ERC20Roles.sol";
 
 
@@ -21,7 +22,7 @@ import "../utils/ERC20Roles.sol";
  *      Used by the factory contract as a bytecode reference to
  *      deploy new DataTokens.
  */
-contract ERC20Template is ERC20("test", "testSymbol"), ERC20Roles, ERC20Burnable {
+contract ERC20Template is ERC20("test", "testSymbol"), ERC20Roles, ERC20Burnable, ReentrancyGuard {
     using SafeMath for uint256;
 
     string private _name;
@@ -280,7 +281,7 @@ contract ERC20Template is ERC20("test", "testSymbol"), ERC20Roles, ERC20Burnable
         address fixedPriceAddress,
         address[] memory addresses,
         uint[] memory uints
-    ) external onlyERC20Deployer returns (bytes32 exchangeId) {
+    ) external onlyERC20Deployer nonReentrant returns (bytes32 exchangeId) {
         exchangeId = IFactoryRouter(router).deployFixedRate(
             fixedPriceAddress,
             addresses,
@@ -307,7 +308,7 @@ contract ERC20Template is ERC20("test", "testSymbol"), ERC20Roles, ERC20Burnable
         uint256 maxBalance,
         bool withMint,
         address allowedSwapper
-    ) external onlyERC20Deployer {
+    ) external onlyERC20Deployer nonReentrant {
         IFactoryRouter(router).deployDispenser(
             _dispenser, address(this), maxTokens, maxBalance, msg.sender, allowedSwapper );
         // add FixedPriced contract as minter if withMint == true
@@ -362,7 +363,7 @@ contract ERC20Template is ERC20("test", "testSymbol"), ERC20Roles, ERC20Burnable
         address consumeFeeAddress,
         address consumeFeeToken, // address of the token marketplace wants to add fee on top
         uint256 consumeFeeAmount // amount to be transfered to marketFeeCollector
-    ) external {
+    ) external nonReentrant {
         uint256 communityFeeConsume = 0;
         uint256 communityFeePublish = 0;
         require(balanceOf(msg.sender) >= amount, "Not enough Data Tokens to start Order");
@@ -645,7 +646,7 @@ contract ERC20Template is ERC20("test", "testSymbol"), ERC20Roles, ERC20Burnable
         bytes32 r,
         bytes32 s
     ) external {
-        require(deadline >= block.timestamp, "ERC20DT: EXPIRED");
+        require(deadline >= block.number, "ERC20DT: EXPIRED");
         bytes32 digest = keccak256(
             abi.encodePacked(
                 "\x19\x01",
