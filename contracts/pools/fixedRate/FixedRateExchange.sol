@@ -168,7 +168,7 @@ contract FixedRateExchange is ReentrancyGuard {
         address dataToken,
         address[] memory addresses, 
         uint256[] memory uints 
-    ) public onlyRouter returns (bytes32 exchangeId) {
+    ) external onlyRouter returns (bytes32 exchangeId) {
        
         require(
             addresses[0] != address(0),

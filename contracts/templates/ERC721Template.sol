@@ -295,7 +295,7 @@ contract ERC721Template is
      * @dev isERC20Deployer
      * @return true if the account has ERC20 Deploy role
      */
-    function isERC20Deployer(address account) public view returns (bool) {
+    function isERC20Deployer(address account) external view returns (bool) {
         return permissions[account].deployERC20;
     }
     
@@ -323,7 +323,7 @@ contract ERC721Template is
      * @return true if the contract is initialized.
      */
 
-    function isInitialized() public view returns (bool) {
+    function isInitialized() external view returns (bool) {
         return initialized;
     }
 
@@ -402,7 +402,7 @@ contract ERC721Template is
      */
 
 
-    function setDataERC20(bytes32 _key, bytes calldata _value) public {
+    function setDataERC20(bytes32 _key, bytes calldata _value) external {
         require(
             deployedERC20[msg.sender] == true,
             "ERC721Template: NOT ERC20 Contract"

@@ -1,5 +1,5 @@
 pragma solidity 0.8.10;
-pragma experimental ABIEncoderV2;
+
 interface IFactory {
     function initialize(
         string calldata _name,

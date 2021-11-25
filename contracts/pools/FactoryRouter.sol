@@ -2,7 +2,6 @@
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 pragma solidity 0.8.10;
-pragma experimental ABIEncoderV2;
 
 import "./balancer/BFactory.sol";
 import "../interfaces/IFactory.sol";
@@ -43,7 +42,7 @@ contract FactoryRouter is BFactory {
         oceanTokens[_oceanToken] = true;
     }
 
-    function changeRouterOwner(address _routerOwner) public onlyRouterOwner {
+    function changeRouterOwner(address _routerOwner) external onlyRouterOwner {
         require(
             _routerOwner != address(0),
             'Invalid new router owner'
@@ -51,11 +50,11 @@ contract FactoryRouter is BFactory {
         routerOwner = _routerOwner;
     }
 
-    function addOceanToken(address oceanTokenAddress) public onlyRouterOwner {
+    function addOceanToken(address oceanTokenAddress) external onlyRouterOwner {
         oceanTokens[oceanTokenAddress] = true;
     }
 
-    function removeOceanToken(address oceanTokenAddress) public onlyRouterOwner {
+    function removeOceanToken(address oceanTokenAddress) external onlyRouterOwner {
         oceanTokens[oceanTokenAddress] = false;
     }
 
