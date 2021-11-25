@@ -2,11 +2,11 @@ pragma solidity >=0.6.0;
 // Copyright BigchainDB GmbH and Ocean Protocol contributors
 // SPDX-License-Identifier: (Apache-2.0 AND CC-BY-4.0)
 // Code is Apache-2.0 and docs are CC-BY-4.0
-
+import "../../interfaces/IERC20.sol";
 import "../../interfaces/IERC20Template.sol";
 import "../../interfaces/IPool.sol";
 import "@openzeppelin/contracts/utils/math/SafeMath.sol";
-
+import "../../utils/SafeERC20.sol";
 /**
  * @title SideStaking
  *
@@ -24,7 +24,7 @@ import "@openzeppelin/contracts/utils/math/SafeMath.sol";
  */
 contract SideStaking {
     using SafeMath for uint256;
-
+    using SafeERC20 for IERC20;
     address public router;
 
     struct Record {
@@ -319,7 +319,8 @@ contract SideStaking {
         return (false);
     }
 
-    //called by pool so 1ss will stake a token (add pool liquidty). Function only needs to approve the amount to be spent by the pool, pool will do the rest
+    //called by pool so 1ss will stake a token (add pool liquidty).
+    // Function only needs to approve the amount to be spent by the pool, pool will do the rest
     function Stake(
         address datatokenAddress,
         address stakeToken,
@@ -332,8 +333,8 @@ contract SideStaking {
         );
         bool ok = canStake(datatokenAddress, stakeToken, amount);
         if (ok != true) return;
-        IERC20Template dt = IERC20Template(datatokenAddress);
-        dt.approve(_datatokens[datatokenAddress].poolAddress, amount);
+        IERC20 dt = IERC20(datatokenAddress);
+        dt.safeIncreaseAllowance(_datatokens[datatokenAddress].poolAddress, amount);
         _datatokens[datatokenAddress].datatokenBalance -= amount;
     }
 
@@ -354,13 +355,14 @@ contract SideStaking {
             return (false);
 
         // we check LPT balance TODO: review this part
-        if (IERC20Template(msg.sender).balanceOf(address(this)) >= lptIn) {
+        if (IERC20(msg.sender).balanceOf(address(this)) >= lptIn) {
             return true;
         }
         return false;
     }
 
-    //called by pool so 1ss will unstake a token (remove pool liquidty). In our case the balancer pool will handle all, this is just a notifier so 1ss can handle internal kitchen
+    //called by pool so 1ss will unstake a token (remove pool liquidty). 
+    // In our case the balancer pool will handle all, this is just a notifier so 1ss can handle internal kitchen
     function UnStake(
         address datatokenAddress,
         address stakeToken,
@@ -397,12 +399,12 @@ contract SideStaking {
             BASE) * (10**(18 - decimals));
 
         //approve the tokens and amounts
-        IERC20Template dt = IERC20Template(datatokenAddress);
-        dt.approve(_datatokens[datatokenAddress].poolAddress, dataTokenAmount);
-        IERC20Template dtBase = IERC20Template(
+        IERC20 dt = IERC20(datatokenAddress);
+        dt.safeIncreaseAllowance(_datatokens[datatokenAddress].poolAddress, dataTokenAmount);
+        IERC20 dtBase = IERC20(
             _datatokens[datatokenAddress].basetokenAddress
         );
-        dtBase.approve(
+        dtBase.safeIncreaseAllowance(
             _datatokens[datatokenAddress].poolAddress,
             baseTokenAmount
         );
@@ -421,12 +423,12 @@ contract SideStaking {
         _datatokens[datatokenAddress].basetokenBalance -= baseTokenAmount;
         _datatokens[datatokenAddress].datatokenBalance -= dataTokenAmount;
         // send 50% of the pool shares back to the publisher
-        IERC20Template lPTokens = IERC20Template(
+        IERC20 lPTokens = IERC20(
             _datatokens[datatokenAddress].poolAddress
         );
         uint256 lpBalance = lPTokens.balanceOf(address(this));
         //  uint256 balanceToTransfer = lpBalance.div(2);
-        lPTokens.transfer(
+        lPTokens.safeTransfer(
             _datatokens[datatokenAddress].publisherAddress,
             lpBalance.div(2)
         );
@@ -469,9 +471,9 @@ contract SideStaking {
             amount > 0 &&
             _datatokens[datatokenAddress].datatokenBalance >= amount
         ) {
-            IERC20Template dt = IERC20Template(datatokenAddress);
+            IERC20 dt = IERC20(datatokenAddress);
             _datatokens[datatokenAddress].vestingLastBlock = block.number;
-            dt.transfer(_datatokens[datatokenAddress].publisherAddress, amount);
+            dt.safeTransfer(_datatokens[datatokenAddress].publisherAddress, amount);
             _datatokens[datatokenAddress].datatokenBalance -= amount;
             _datatokens[datatokenAddress].vestingAmountSoFar += amount;
         }

@@ -13,6 +13,7 @@ import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
 import "@openzeppelin/contracts/token/ERC20/extensions/ERC20Burnable.sol";
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "@openzeppelin/contracts/utils/math/SafeMath.sol";
+import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 import "../utils/ERC20Roles.sol";
 
 
@@ -29,7 +30,7 @@ import "../utils/ERC20Roles.sol";
  */
 contract ERC20TemplateEnterprise is ERC20("test", "testSymbol"), ERC20Roles, ERC20Burnable {
     using SafeMath for uint256;
-
+    using SafeERC20 for IERC20;
     string private _name;
     string private _symbol;
     uint256 private _cap;
@@ -369,16 +370,15 @@ contract ERC20TemplateEnterprise is ERC20("test", "testSymbol"), ERC20Roles, ERC
         // Requires approval for the publishMarketFeeToken of publishMarketFeeAmount
         // skip fee if amount == 0 or feeToken == 0x0 address or feeAddress == 0x0 address
         if (publishMarketFeeAmount > 0 && publishMarketFeeToken!=address(0) && publishMarketFeeAddress!=address(0)) {
-            require(IERC20(publishMarketFeeToken).transferFrom(
+            IERC20(publishMarketFeeToken).safeTransferFrom(
                 msg.sender,
                 address(this),
                 publishMarketFeeAmount
-            ),'Failed to transfer publishMarketFee');
+            );
             communityFeePublish = publishMarketFeeAmount.div(100); //hardcode 1% goes to OPF
             //send publishMarketFee
-            require(IERC20(publishMarketFeeToken)
-            .transfer(publishMarketFeeAddress,publishMarketFeeAmount.sub(communityFeePublish))
-            , 'Failed to transfer fee to publishMarketFeeAddress');
+            IERC20(publishMarketFeeToken)
+            .safeTransfer(publishMarketFeeAddress,publishMarketFeeAmount.sub(communityFeePublish));
             emit PublishMarketFees(publishMarketFeeAddress, publishMarketFeeToken,
             publishMarketFeeAmount.sub(communityFeePublish));
         }
@@ -387,39 +387,37 @@ contract ERC20TemplateEnterprise is ERC20("test", "testSymbol"), ERC20Roles, ERC
         // Requires approval for the consumeFeeToken of consumeFeeAmount
         // skip fee if amount == 0 or feeToken == 0x0 address or feeAddress == 0x0 address
         if (consumeFeeAmount > 0 && consumeFeeToken!=address(0) && consumeFeeAddress!=address(0)) {
-            require(IERC20(consumeFeeToken).transferFrom(
+            IERC20(consumeFeeToken).safeTransferFrom(
                 msg.sender,
                 address(this),
                 consumeFeeAmount
-            ),'Failed to transfer consumeFee');
+            );
             communityFeeConsume = consumeFeeAmount.div(100); //hardcode 1% goes to OPF
             //send consumeFee
-            require(IERC20(consumeFeeToken)
-            .transfer(consumeFeeAddress,consumeFeeAmount.sub(communityFeeConsume))
-            , 'Failed to transfer fee to consumeFeeAddress');
+            IERC20(consumeFeeToken)
+            .safeTransfer(consumeFeeAddress,consumeFeeAmount.sub(communityFeeConsume));
             emit ConsumeMarketFees(consumeFeeAddress, consumeFeeToken, consumeFeeAmount.sub(communityFeeConsume));
         }
         //send fees to OPF
         if(communityFeePublish>0 && communityFeeConsume>0 && consumeFeeToken == publishMarketFeeToken 
         && consumeFeeToken != address(0)){
             //since both fees are in the same token, have just one transaction for both, to save gas
-            require(IERC20(consumeFeeToken)
-            .transfer(_communityFeeCollector,communityFeePublish.add(communityFeeConsume))
-            , 'Failed to transfer both fees to OPF');
+            IERC20(consumeFeeToken)
+            .safeTransfer(_communityFeeCollector,communityFeePublish.add(communityFeeConsume));
             emit PublishMarketFees(_communityFeeCollector, consumeFeeToken, communityFeePublish);
             emit ConsumeMarketFees(_communityFeeCollector, consumeFeeToken, communityFeeConsume);
         }
         else{
             //we need to do them one by one
             if(communityFeePublish>0 && publishMarketFeeToken!=address(0)){
-                require(IERC20(publishMarketFeeToken)
-                .transfer(_communityFeeCollector,communityFeePublish), 'Failed to transfer publish fees to OPF');
+                IERC20(publishMarketFeeToken)
+                .safeTransfer(_communityFeeCollector,communityFeePublish);
                 emit PublishMarketFees(_communityFeeCollector, publishMarketFeeToken, communityFeePublish);
             }
             
             if(communityFeeConsume>0 && consumeFeeToken!=address(0)){
-                require(IERC20(consumeFeeToken)
-                .transfer(_communityFeeCollector,communityFeeConsume), 'Failed to transfer consume fee to OPF');
+                IERC20(consumeFeeToken)
+                .safeTransfer(_communityFeeCollector,communityFeeConsume);
                 emit ConsumeMarketFees(_communityFeeCollector, consumeFeeToken, communityFeeConsume);
             }
             
@@ -806,13 +804,13 @@ contract ERC20TemplateEnterprise is ERC20("test", "testSymbol"), ERC20Roles, ERC
         .calcBaseInGivenOutDT(_freParams.exchangeId, _orderParams.amount);
         require(baseTokenAmount<=_freParams.maxBaseTokenAmount, 'FixedRateExchange: Too many base tokens');
         //transfer baseToken to us first
-        require(IERC20(baseToken).transferFrom(
+        IERC20(baseToken).safeTransferFrom(
                 msg.sender,
                 address(this),
                 baseTokenAmount
-            ),'Failed to transfer baseTokenAmount');
+            );
         //approve FRE to spend baseTokens
-        IERC20(baseToken).approve(_freParams.exchangeContract, baseTokenAmount);
+        IERC20(baseToken).safeIncreaseAllowance(_freParams.exchangeContract, baseTokenAmount);
         //buy DT
         IFixedRateExchange(_freParams.exchangeContract)
         .buyDT(_freParams.exchangeId, _orderParams.amount, baseTokenAmount);

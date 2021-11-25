@@ -3,12 +3,14 @@ pragma solidity >=0.5.7;
 // SPDX-License-Identifier: (Apache-2.0 AND CC-BY-4.0)
 // Code is Apache-2.0 and docs are CC-BY-4.0
 
+import "../../interfaces/IERC20.sol";
 import "../../interfaces/IERC20Template.sol";
 import "@openzeppelin/contracts/utils/math/SafeMath.sol";
-
+import "../../utils/SafeERC20.sol";
 
 contract Dispenser {
     using SafeMath for uint256;
+    using SafeERC20 for IERC20;
     address public router;
 
     struct DataToken {
@@ -233,7 +235,7 @@ contract Dispenser {
             ourBalance>=amount,
             'Not enough reserves'
         );
-        tokenInstance.transfer(destination,amount);
+        IERC20(datatoken).safeTransfer(destination,amount);
         emit TokensDispensed(datatoken, destination, amount);
     }
 
@@ -254,7 +256,7 @@ contract Dispenser {
         IERC20Template tokenInstance = IERC20Template(datatoken);
         uint256 ourBalance = tokenInstance.balanceOf(address(this));
         if(ourBalance>0){
-            tokenInstance.transfer(msg.sender,ourBalance);
+            IERC20(datatoken).safeTransfer(msg.sender,ourBalance);
             emit OwnerWithdrawed(datatoken, msg.sender, ourBalance);
         }
     }

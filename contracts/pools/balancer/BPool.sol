@@ -7,7 +7,7 @@ pragma solidity >=0.6.0;
 import "./BToken.sol";
 import "./BMath.sol";
 import "../../interfaces/ISideStaking.sol";
-
+import "../../utils/SafeERC20.sol";
 /**
  * @title BPool
  *
@@ -24,6 +24,7 @@ import "../../interfaces/ISideStaking.sol";
  *  [1] https://github.com/balancer-labs/balancer-core/contracts/.
  */
 contract BPool is BMath, BToken {
+    using SafeERC20 for IERC20;
     struct Record {
         bool bound; // is token bound to pool
         uint256 index; // private
@@ -274,7 +275,7 @@ contract BPool is BMath, BToken {
         for (uint256 i = 0; i < tokens.length; i++) {
             uint256 amount = communityFees[tokens[i]];
             communityFees[tokens[i]] = 0;
-            IERC20(tokens[i]).transfer(_opfCollector, amount);
+            IERC20(tokens[i]).safeTransfer(_opfCollector, amount);
             emit OPFFee(msg.sender, _opfCollector, tokens[i], amount);
         }
     }
@@ -321,7 +322,7 @@ contract BPool is BMath, BToken {
         for (uint256 i = 0; i < tokens.length; i++) {
             uint256 amount = marketFees[tokens[i]];
             marketFees[tokens[i]] = 0;
-            IERC20(tokens[i]).transfer(_marketCollector, amount);
+            IERC20(tokens[i]).safeTransfer(_marketCollector, amount);
             emit MarketFee(msg.sender, _marketCollector, tokens[i], amount);
         }
     }
@@ -1153,9 +1154,9 @@ contract BPool is BMath, BToken {
         address from,
         uint256 amount
     ) internal {
-        bool xfer = IERC20(erc20).transferFrom(from, address(this), amount);
+        IERC20(erc20).safeTransferFrom(from, address(this), amount);
 
-        require(xfer, "ERR_ERC20_FALSE");
+        //require(xfer, "ERR_ERC20_FALSE");
     }
 
     function _pushUnderlying(
@@ -1163,8 +1164,8 @@ contract BPool is BMath, BToken {
         address to,
         uint256 amount
     ) internal {
-        bool xfer = IERC20(erc20).transfer(to, amount);
-        require(xfer, "ERR_ERC20_FALSE");
+        IERC20(erc20).safeTransfer(to, amount);
+        //require(xfer, "ERR_ERC20_FALSE");
     }
 
     function _pullPoolShare(address from, uint256 amount) internal {

@@ -10,9 +10,11 @@ import "../interfaces/IERC20.sol";
 import "../interfaces/IFixedRateExchange.sol";
 import "../interfaces/IPool.sol";
 import "../interfaces/IDispenser.sol";
+import "../utils/SafeERC20.sol";
 
 
 contract FactoryRouter is BFactory {
+    using SafeERC20 for IERC20;
     address public routerOwner;
     address public factory;
     address public fixedRate;
@@ -142,8 +144,7 @@ contract FactoryRouter is BFactory {
 
         // we pull basetoken for creating initial pool and send it to the controller (ssContract)
         IERC20 bt = IERC20(tokens[1]);
-        require(bt.transferFrom(addresses[2], addresses[0], ssParams[4])
-        ,'DeployPool: Failed to transfer initial liquidity');
+        bt.safeTransferFrom(addresses[2], addresses[0], ssParams[4]);
 
         address pool = newBPool(
             tokens,
@@ -269,9 +270,10 @@ contract FactoryRouter is BFactory {
 
                 if(_operations[i].operation == operationType.SwapExactIn) {
                     // Get amountIn from user to router
-                    IERC20(_operations[i].tokenIn).transferFrom(msg.sender,address(this),_operations[i].amountsIn);
+                    IERC20(_operations[i].tokenIn).safeTransferFrom(msg.sender,address(this),_operations[i].amountsIn);
                     // we approve pool to pull token from router
-                    IERC20(_operations[i].tokenIn).approve(_operations[i].source,_operations[i].amountsIn);
+                    IERC20(_operations[i].tokenIn)
+                    .safeIncreaseAllowance(_operations[i].source,_operations[i].amountsIn);
                     // Perform swap
                     (uint amountReceived,) = 
                     IPool(_operations[i].source)
@@ -282,15 +284,15 @@ contract FactoryRouter is BFactory {
                     _operations[i].maxPrice);
                     // transfer token swapped to user
                    
-                    require(IERC20(_operations[i].tokenOut).transfer(msg.sender,amountReceived),'Failed MultiSwap');
+                    IERC20(_operations[i].tokenOut).safeTransfer(msg.sender,amountReceived);
                 } else if (_operations[i].operation == operationType.SwapExactOut){
                     // calculate how much amount In we need for exact Out
                     uint amountIn = IPool(_operations[i].source)
                     .getAmountInExactOut(_operations[i].tokenIn,_operations[i].tokenOut,_operations[i].amountsOut);
                     // pull amount In from user
-                    IERC20(_operations[i].tokenIn).transferFrom(msg.sender,address(this),amountIn);
+                    IERC20(_operations[i].tokenIn).safeTransferFrom(msg.sender,address(this),amountIn);
                     // we approve pool to pull token from router
-                    IERC20(_operations[i].tokenIn).approve(_operations[i].source,amountIn);
+                    IERC20(_operations[i].tokenIn).safeIncreaseAllowance(_operations[i].source,amountIn);
                     // perform swap
                     IPool(_operations[i].source)
                     .swapExactAmountOut(_operations[i].tokenIn,
@@ -299,8 +301,8 @@ contract FactoryRouter is BFactory {
                     _operations[i].amountsOut,
                     _operations[i].maxPrice);
                     // send amount out back to user
-                    require(IERC20(_operations[i].tokenOut)
-                    .transfer(msg.sender,_operations[i].amountsOut),'Failed MultiSwap');
+                    IERC20(_operations[i].tokenOut)
+                    .safeTransfer(msg.sender,_operations[i].amountsOut);
 
                 } else if (_operations[i].operation ==  operationType.FixedRate) {
                     // get datatoken address
@@ -312,14 +314,14 @@ contract FactoryRouter is BFactory {
                     calcBaseInGivenOutDT(_operations[i].exchangeIds,_operations[i].amountsOut);
 
                     // pull tokenIn amount
-                    IERC20(_operations[i].tokenIn).transferFrom(msg.sender,address(this),baseTokenAmount);
+                    IERC20(_operations[i].tokenIn).safeTransferFrom(msg.sender,address(this),baseTokenAmount);
                      // we approve pool to pull token from router
-                    IERC20(_operations[i].tokenIn).approve(_operations[i].source,baseTokenAmount);
+                    IERC20(_operations[i].tokenIn).safeIncreaseAllowance(_operations[i].source,baseTokenAmount);
                     // perform swap
                     IFixedRateExchange(_operations[i].source)
                     .buyDT(_operations[i].exchangeIds,_operations[i].amountsOut,_operations[i].amountsIn);
                     // send dt out to user
-                    IERC20(datatoken).transfer(msg.sender,_operations[i].amountsOut);
+                    IERC20(datatoken).safeTransfer(msg.sender,_operations[i].amountsOut);
                 
                 } else {
                     IDispenser(_operations[i].source)
