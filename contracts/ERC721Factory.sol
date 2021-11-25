@@ -594,11 +594,10 @@ contract ERC721Factory is Deployer, Ownable, ReentrancyGuard {
         PoolData calldata _PoolData
     ) external nonReentrant returns (address erc721Address, address erc20Address, address poolAddress){
         IERC20(_PoolData.addresses[1]).safeTransferFrom(
-        require(IERC20Template(_PoolData.addresses[1]).transferFrom(
                 msg.sender,
                 address(this),
                 _PoolData.ssParams[4]
-            );
+        );
         //we are adding ourselfs as a ERC20 Deployer, because we need it in order to deploy the pool
         erc721Address = deployERC721Contract(
             _NftCreateData.name,
