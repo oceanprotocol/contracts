@@ -646,7 +646,7 @@ contract ERC20TemplateEnterprise is ERC20("test", "testSymbol"), ERC20Roles, ERC
         bytes32 r,
         bytes32 s
     ) external {
-        require(deadline >= block.timestamp, "ERC20DT: EXPIRED");
+        require(deadline >= block.number, "ERC20DT: EXPIRED");
         bytes32 digest = keccak256(
             abi.encodePacked(
                 "\x19\x01",
