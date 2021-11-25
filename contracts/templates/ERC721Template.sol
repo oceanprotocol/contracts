@@ -1,8 +1,9 @@
-pragma solidity >=0.6.0;
+pragma solidity 0.8.10;
 
 import "../utils/ERC721/ERC721.sol";
 import "../utils/ERC725/ERC725Ocean.sol";
 import "@openzeppelin/contracts/utils/Create2.sol";
+import "@openzeppelin/contracts/security/ReentrancyGuard.sol";
 import "solidity-bytes-utils/contracts/BytesLib.sol";
 import "../interfaces/IV3ERC20.sol";
 import "../interfaces/IFactory.sol";
@@ -13,7 +14,8 @@ import "../utils/ERC721RolesAddress.sol";
 contract ERC721Template is
     ERC721("Template", "TemplateSymbol"),
     ERC721RolesAddress,
-    ERC725Ocean
+    ERC725Ocean,
+    ReentrancyGuard
 {
     
     string private _name;
@@ -269,7 +271,7 @@ contract ERC721Template is
         address[] calldata addresses,
         uint256[] calldata uints,
         bytes[] calldata bytess
-    ) external returns (address ) {
+    ) external nonReentrant returns (address ) {
         require(
             permissions[msg.sender].deployERC20 == true,
             "ERC721Template: NOT ERC20DEPLOYER_ROLE"

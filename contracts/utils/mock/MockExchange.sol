@@ -1,5 +1,4 @@
-pragma solidity ^0.7.0;
-
+pragma solidity 0.8.10;
 import "../../interfaces/IERC20Template.sol";
 
 
