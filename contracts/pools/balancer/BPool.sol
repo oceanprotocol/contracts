@@ -1,5 +1,4 @@
-//pragma solidity 0.5.7;
-pragma solidity >=0.6.0;
+pragma solidity 0.8.10;
 // Copyright BigchainDB GmbH and Ocean Protocol contributors
 // SPDX-License-Identifier: (Apache-2.0 AND CC-BY-4.0)
 // Code is Apache-2.0 and docs are CC-BY-4.0
@@ -191,7 +190,7 @@ contract BPool is BMath, BToken {
         address baseTokenAddress,
         uint256 baseTokenAmount,
         uint256 baseTokenWeight
-    ) external {
+    ) external _lock_ {
         require(msg.sender == _controller, "ERR_INVALID_CONTROLLER");
         require(
             dataTokenAddress == _datatokenAddress,

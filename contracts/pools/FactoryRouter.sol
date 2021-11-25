@@ -1,7 +1,7 @@
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-pragma solidity >=0.5.7;
+pragma solidity 0.8.10;
 pragma experimental ABIEncoderV2;
 
 import "./balancer/BFactory.sol";
@@ -274,7 +274,8 @@ contract FactoryRouter is BFactory {
         Operations[] calldata _operations
         ) 
         external {
-
+        // TODO: to avoid DOS attack, we set a limit to maximum orders (50?)
+        require(_operations.length <= 50, 'FactoryRouter: Too Many Operations');
             for (uint i= 0; i< _operations.length; i++) {
 
                 if(_operations[i].operation == operationType.SwapExactIn) {

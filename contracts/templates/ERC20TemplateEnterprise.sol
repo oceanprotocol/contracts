@@ -1,4 +1,4 @@
-pragma solidity >=0.6.0;
+pragma solidity 0.8.10;
 // Copyright BigchainDB GmbH and Ocean Protocol contributors
 // SPDX-License-Identifier: (Apache-2.0 AND CC-BY-4.0)
 // Code is Apache-2.0 and docs are CC-BY-4.0
@@ -656,7 +656,7 @@ contract ERC20TemplateEnterprise is ERC20("test", "testSymbol"), ERC20Roles, ERC
         bytes32 r,
         bytes32 s
     ) external {
-        require(deadline >= block.timestamp, "ERC20DT: EXPIRED");
+        require(deadline >= block.number, "ERC20DT: EXPIRED");
         bytes32 digest = keccak256(
             abi.encodePacked(
                 "\x19\x01",

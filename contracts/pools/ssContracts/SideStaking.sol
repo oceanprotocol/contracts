@@ -1,4 +1,4 @@
-pragma solidity >=0.6.0;
+pragma solidity 0.8.10;
 // Copyright BigchainDB GmbH and Ocean Protocol contributors
 // SPDX-License-Identifier: (Apache-2.0 AND CC-BY-4.0)
 // Code is Apache-2.0 and docs are CC-BY-4.0
@@ -7,6 +7,7 @@ import "../../interfaces/IERC20Template.sol";
 import "../../interfaces/IPool.sol";
 import "@openzeppelin/contracts/utils/math/SafeMath.sol";
 import "../../utils/SafeERC20.sol";
+import "@openzeppelin/contracts/security/ReentrancyGuard.sol";
 /**
  * @title SideStaking
  *
@@ -22,7 +23,7 @@ import "../../utils/SafeERC20.sol";
      *                     [4]  = initial liquidity in basetoken for pool creation
  *
  */
-contract SideStaking {
+contract SideStaking is ReentrancyGuard {
     using SafeMath for uint256;
     using SafeERC20 for IERC20;
     address public router;
@@ -78,7 +79,7 @@ contract SideStaking {
         address poolAddress,
         address publisherAddress,
         uint256[] memory ssParams
-    ) external onlyRouter returns (bool) {
+    ) external onlyRouter nonReentrant returns (bool) {
         //check if we are the controller of the pool
         require(poolAddress != address(0), "Invalid poolAddress");
         IPool bpool = IPool(poolAddress);
@@ -326,7 +327,7 @@ contract SideStaking {
         address datatokenAddress,
         address stakeToken,
         uint256 amount
-    ) public {
+    ) public nonReentrant {
         if (_datatokens[datatokenAddress].bound != true) return;
         require(
             msg.sender == _datatokens[datatokenAddress].poolAddress,
@@ -369,7 +370,7 @@ contract SideStaking {
         address stakeToken,
         uint256 dtAmountIn,
         uint256 poolAmountOut
-    ) public {
+    ) public nonReentrant{
         if (_datatokens[datatokenAddress].bound != true) return;
         require(
             msg.sender == _datatokens[datatokenAddress].poolAddress,
@@ -398,6 +399,7 @@ contract SideStaking {
             dataTokenWeight) /
             baseTokenWeight /
             BASE) * (10**(18 - decimals));
+
 
         //approve the tokens and amounts
         IERC20 dt = IERC20(datatokenAddress);

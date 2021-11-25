@@ -1,4 +1,4 @@
-pragma solidity >=0.6.0;
+pragma solidity 0.8.10;
 pragma experimental ABIEncoderV2;
 // Copyright BigchainDB GmbH and Ocean Protocol contributors
 // SPDX-License-Identifier: (Apache-2.0 AND CC-BY-4.0)
@@ -10,7 +10,7 @@ import "@openzeppelin/contracts/access/Ownable.sol";
 import "./interfaces/IERC20Template.sol";
 import "./interfaces/IERC20.sol";
 import "./utils/SafeERC20.sol";
-
+import "@openzeppelin/contracts/security/ReentrancyGuard.sol";
 /**
  * @title DTFactory contract
  * @author Ocean Protocol Team
@@ -21,7 +21,7 @@ import "./utils/SafeERC20.sol";
  *      New DataToken proxy contracts are links to the template contract's bytecode.
  *      Proxy contract functionality is based on Ocean Protocol custom implementation of ERC1167 standard.
  */
-contract ERC721Factory is Deployer, Ownable {
+contract ERC721Factory is Deployer, Ownable, ReentrancyGuard {
     using SafeERC20 for IERC20;
     address private communityFeeCollector;
     uint256 private currentNFTCount;
@@ -480,7 +480,9 @@ contract ERC721Factory is Deployer, Ownable {
      */
     function startMultipleTokenOrder(
         tokenOrder[] memory orders
-    ) external {
+    ) external nonReentrant {
+        // TODO: to avoid DOS attack, we set a limit to maximum order (50 ?)
+        require(orders.length <= 50, 'ERC721Factory: Too Many Orders');
         uint256 ids = orders.length;
         // TO DO.  We can do better here , by groupping publishMarketFeeTokens and consumeFeeTokens and have a single 
         // transfer for each one, instead of doing it per dt..
@@ -556,7 +558,7 @@ contract ERC721Factory is Deployer, Ownable {
     function createNftWithErc(
         NftCreateData calldata _NftCreateData,
         ErcCreateData calldata _ErcCreateData
-    ) external returns (address erc721Address, address erc20Address){
+    ) external nonReentrant returns (address erc721Address, address erc20Address){
         erc721Address = deployERC721Contract(
             _NftCreateData.name,
             _NftCreateData.symbol,
@@ -590,8 +592,9 @@ contract ERC721Factory is Deployer, Ownable {
         NftCreateData calldata _NftCreateData,
         ErcCreateData calldata _ErcCreateData,
         PoolData calldata _PoolData
-    ) external returns (address erc721Address, address erc20Address, address poolAddress){
+    ) external nonReentrant returns (address erc721Address, address erc20Address, address poolAddress){
         IERC20(_PoolData.addresses[1]).safeTransferFrom(
+        require(IERC20Template(_PoolData.addresses[1]).transferFrom(
                 msg.sender,
                 address(this),
                 _PoolData.ssParams[4]
@@ -638,7 +641,7 @@ contract ERC721Factory is Deployer, Ownable {
         NftCreateData calldata _NftCreateData,
         ErcCreateData calldata _ErcCreateData,
         FixedData calldata _FixedData
-    ) external returns (address erc721Address, address erc20Address, bytes32 exchangeId){
+    ) external nonReentrant returns (address erc721Address, address erc20Address, bytes32 exchangeId){
         //we are adding ourselfs as a ERC20 Deployer, because we need it in order to deploy the fixedrate
         erc721Address = deployERC721Contract(
             _NftCreateData.name,
@@ -679,7 +682,7 @@ contract ERC721Factory is Deployer, Ownable {
         NftCreateData calldata _NftCreateData,
         ErcCreateData calldata _ErcCreateData,
         DispenserData calldata _DispenserData
-    ) external returns (address erc721Address, address erc20Address){
+    ) external nonReentrant returns (address erc721Address, address erc20Address){
         //we are adding ourselfs as a ERC20 Deployer, because we need it in order to deploy the fixedrate
         erc721Address = deployERC721Contract(
             _NftCreateData.name,
@@ -702,4 +705,28 @@ contract ERC721Factory is Deployer, Ownable {
             _DispenserData.allowedSwapper
             );
     }
+
+
+
+// HAL01 - UNCHECKED TRANSFER Medium -
+// XX HAL02 - MULTIPLE EXTERNAL CALLS  DONE
+// WITHIN LOOP MAY LEADS TO DENIAL OF
+// SERVICE(DOS) Medium -
+// XX HAL03 - RE-ENTRANCY PROTECTION DONE
+// HAL04 - IGNORED RETURN VALUES Low -
+// HAL05 - MISSING ZERO-ADDRESS CHECK Low 
+// XX HAL06 - DIVIDE BEFORE MULTIPLY Low DONE
+// XX HAL07 - USAGE OF BLOCK-TIMESTAMP DONE
+// XX HAL08 - EXPERIMENTAL FEATURES ENABLED - DONE - didn't change anything
+// XX HAL09 - FLOATING PRAGMA Low -
+// HAL10 - OUTDATED DEPENDENCIES Low -
+// XX HAL11 - PRAGMA VERSION DEPRECATED Low -
+// XX HAL12 - MULTIPLE PRAGMA DEFINITIONS Low -
+// HAL13 - REDUNDANT BOOLEAN
+// COMPARISON Informational -
+// HAL14 - USE OF INLINE ASSEMBLY Informational -
+// XX HAL15 - REDUNDANT VARIABLES Informational -DONE
+// XX HAL16 - POSSIBLE MISUSE OF PUBLIC - DONE - didn't change anything
+// FUNCTIONS Informational -
+// HAL17 - POTENTIAL UNSAFE
 }

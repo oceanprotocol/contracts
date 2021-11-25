@@ -65,7 +65,7 @@ const getApprovalDigest = async (
     )
   );
 };
-
+const provider = new ethers.providers.JsonRpcProvider();
 describe("ERC20TemplateEnterprise", () => {
   let name,
     symbol,
@@ -130,7 +130,7 @@ describe("ERC20TemplateEnterprise", () => {
     const MockErc20 = await ethers.getContractFactory('MockERC20');
     const MockErc20Decimals = await ethers.getContractFactory('MockERC20Decimals');
 
-    [owner, reciever, user2, user3, user4, user5, user6, provider, opfCollector, marketFeeCollector, publishMarketAccount] = await ethers.getSigners();
+    [owner, reciever, user2, user3, user4, user5, user6, opfCollector, marketFeeCollector, publishMarketAccount] = await ethers.getSigners();
     publishMarketFeeAddress = publishMarketAccount.address
     data = web3.utils.asciiToHex(constants.blob[0]);
     flags = web3.utils.asciiToHex(constants.blob[0]);
@@ -505,7 +505,7 @@ describe("ERC20TemplateEnterprise", () => {
     const TEST_AMOUNT = ethers.utils.parseEther("10");
     const nonce = await erc20Token.nonces(owner.address);
     const chainId = await owner.getChainId();
-    const deadline = Math.round(new Date().getTime() / 1000 + 600000); // 10 minutes
+    const deadline = (await provider.getBlockNumber()) + 50 // approx 10 minutes
 
     const digest = await getApprovalDigest(
       erc20Token,
