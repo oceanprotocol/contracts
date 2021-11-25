@@ -74,6 +74,7 @@ contract BPool is BMath, BToken {
     event LOG_BPT_SS(uint256 bptAmount); //emitted for SS contract
 
     event OPFFee(address caller, address OPFWallet, address token, uint256 amount);
+    event SwapFeeChanged(address caller, uint256 amount);
     event MarketFee(address caller, address marketAddress, address token, uint256 amount);
     event MarketCollectorChanged(address caller, address newMarketCollector);
 
@@ -402,6 +403,7 @@ contract BPool is BMath, BToken {
         require(swapFee >= MIN_FEE, "ERR_MIN_FEE");
         require(swapFee <= MAX_FEE, "ERR_MAX_FEE");
         _swapFee = swapFee;
+        emit SwapFeeChanged(msg.sender, swapFee);
     }
 
     function finalize() internal {

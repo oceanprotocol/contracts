@@ -27,6 +27,21 @@ contract FactoryRouter is BFactory {
     mapping(address => bool) public dispenser;
 
     event NewPool(address indexed poolAddress, bool isOcean);
+    event RouterChanged(address indexed caller, address indexed newRouter);
+    event FactoryContractChanged(address indexed caller, address indexed contractAddress);
+    event TokenAdded(address indexed caller, address indexed token);
+    event TokenRemoved(address indexed caller, address indexed token);
+    event SSContractAdded(address indexed caller, address indexed contractAddress);
+    event SSContractRemoved(address indexed caller, address indexed contractAddress);
+    event FixedRateContractAdded(address indexed caller, address indexed contractAddress);
+    event FixedRateContractRemoved(address indexed caller, address indexed contractAddress);
+    event DispenserContractAdded(address indexed caller, address indexed contractAddress);
+    event DispenserContractRemoved(address indexed caller, address indexed contractAddress);
+
+    event PoolTemplateAdded(address indexed caller, address indexed contractAddress);
+    event PoolTemplateRemoved(address indexed caller, address indexed contractAddress);
+
+    event OPFFeeChanged(address indexed caller, uint256 newFee);
 
     modifier onlyRouterOwner() {
         require(routerOwner == msg.sender, "OceanRouter: NOT OWNER");
@@ -54,36 +69,59 @@ contract FactoryRouter is BFactory {
             'Invalid new router owner'
         );
         routerOwner = _routerOwner;
+        emit RouterChanged(msg.sender, _routerOwner);
     }
 
     function addOceanToken(address oceanTokenAddress) public onlyRouterOwner {
         require(oceanTokenAddress != address(0), "FactoryRouter: Invalid Ocean Token address");
         oceanTokens[oceanTokenAddress] = true;
+        emit TokenAdded(msg.sender, oceanTokenAddress);
     }
 
     function removeOceanToken(address oceanTokenAddress) public onlyRouterOwner {
         require(oceanTokenAddress != address(0), "FactoryRouter: Invalid Ocean Token address");
         oceanTokens[oceanTokenAddress] = false;
+        emit TokenRemoved(msg.sender, oceanTokenAddress);
     }
 
     function addSSContract(address _ssContract) external onlyRouterOwner {
         require(_ssContract != address(0), "FactoryRouter: Invalid _ssContract address");
         ssContracts[_ssContract] = true;
+        emit SSContractAdded(msg.sender, _ssContract);
+    }
+
+    function removeSSContract(address _ssContract) external onlyRouterOwner {
+        require(_ssContract != address(0), "FactoryRouter: Invalid _ssContract address");
+        ssContracts[_ssContract] = false;
+        emit SSContractRemoved(msg.sender, _ssContract);
     }
 
     function addFactory(address _factory) external onlyRouterOwner {
         require(_factory != address(0), "FactoryRouter: Invalid _factory address");
         require(factory == address(0), "FACTORY ALREADY SET");
         factory = _factory;
+        emit FactoryContractChanged(msg.sender, _factory);
     }
 
     function addFixedRateContract(address _fixedRate) external onlyRouterOwner {
         require(_fixedRate != address(0), "FactoryRouter: Invalid _fixedRate address");
         fixedPrice[_fixedRate] = true;
+        emit FixedRateContractAdded(msg.sender, _fixedRate);
+    }
+    function removeFixedRateContract(address _fixedRate) external onlyRouterOwner {
+        require(_fixedRate != address(0), "FactoryRouter: Invalid _fixedRate address");
+        fixedPrice[_fixedRate] = false;
+        emit FixedRateContractRemoved(msg.sender, _fixedRate);
     }
     function addDispenserContract(address _dispenser) external onlyRouterOwner {
         require(_dispenser != address(0), "FactoryRouter: Invalid _dispenser address");
         dispenser[_dispenser] = true;
+        emit DispenserContractAdded(msg.sender, _dispenser);
+    }
+    function removeDispenserContract(address _dispenser) external onlyRouterOwner {
+        require(_dispenser != address(0), "FactoryRouter: Invalid _dispenser address");
+        dispenser[_dispenser] = false;
+        emit DispenserContractRemoved(msg.sender, _dispenser);
     }
 
     function getOPFFee(address baseToken) public view returns (uint256) {
@@ -95,6 +133,7 @@ contract FactoryRouter is BFactory {
     function updateOPFFee(uint256 _newSwapOceanFee) external onlyRouterOwner {
         // TODO: add a maximum? how much? add event?
         swapOceanFee = _newSwapOceanFee;
+        emit OPFFeeChanged(msg.sender, _newSwapOceanFee);
     }
 
     /**
@@ -242,10 +281,12 @@ contract FactoryRouter is BFactory {
 
     function addPoolTemplate(address poolTemplate) external onlyRouterOwner {
         _addPoolTemplate(poolTemplate);
+        emit PoolTemplateAdded(msg.sender, poolTemplate);
     }
 
     function removePoolTemplate(address poolTemplate) external onlyRouterOwner {
        _removePoolTemplate(poolTemplate);
+       emit PoolTemplateRemoved(msg.sender, poolTemplate);
     }
 
 

@@ -79,7 +79,12 @@ contract ERC20TemplateEnterprise is ERC20("test", "testSymbol"), ERC20Roles, ERC
         address indexed PublishMarketFeeToken, 
         uint256 PublishMarketFeeAmount
     );
-    
+    event PublishMarketFeesChanged(
+        address caller,
+        address PublishMarketFeeAddress,
+        address PublishMarketFeeToken, 
+        uint256 PublishMarketFeeAmount
+    );
     event MinterProposed(address currentMinter, address newMinter);
 
     event MinterApproved(address currentMinter, address newMinter);
@@ -571,6 +576,8 @@ contract ERC20TemplateEnterprise is ERC20("test", "testSymbol"), ERC20Roles, ERC
         publishMarketFeeAddress = _publishMarketFeeAddress;
         publishMarketFeeToken =  _publishMarketFeeToken;
         publishMarketFeeAmount = _publishMarketFeeAmount;
+        emit PublishMarketFeesChanged(msg.sender,
+         _publishMarketFeeAddress,_publishMarketFeeToken, _publishMarketFeeAmount);
     }
     /**
      * @dev getId
