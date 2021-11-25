@@ -563,8 +563,12 @@ describe("ERC20Template", () => {
     const txReceipt = await tx.wait();
     let event = getEventFromTx(txReceipt, 'OrderStarted')
     assert(event, "Cannot find OrderStarted event")
-    event = getEventFromTx(txReceipt, 'OrderMarketFees')
-    assert(event, "Cannot find OrderMarketFees event")
+    //make sure that we don't have 'PublishMarketFees') event
+    event = getEventFromTx(txReceipt, 'PublishMarketFees')
+    assert.typeOf(event, 'undefined',"PublishMarketFees event found")
+    //make sure that we don't have ConsumeMarketFees event
+    event = getEventFromTx(txReceipt, 'ConsumeMarketFees')
+    assert.typeOf(event, 'undefined',"ConsumeMarketFees event found")
 
     assert(
       (await erc20Token.balanceOf(user2.address)) == web3.utils.toWei("9"), 'Invalid user balance, DT was not substracted'
@@ -610,8 +614,13 @@ describe("ERC20Template", () => {
     const txReceipt = await tx.wait();
     let event = getEventFromTx(txReceipt, 'OrderStarted')
     assert(event, "Cannot find OrderStarted event")
-    event = getEventFromTx(txReceipt, 'OrderMarketFees')
-    assert(event, "Cannot find OrderMarketFees event")
+    //make sure that we don't have 'PublishMarketFees') event
+    event = getEventFromTx(txReceipt, 'PublishMarketFees')
+    assert.typeOf(event, 'undefined',"PublishMarketFees event found")
+    //make sure that we don't have ConsumeMarketFees event
+    event = getEventFromTx(txReceipt, 'ConsumeMarketFees')
+    assert.typeOf(event, 'undefined',"ConsumeMarketFees event found")
+
     assert(
       (await erc20Token.balanceOf(user2.address)) == web3.utils.toWei("9"), 'Invalid user balance, DT was not substracted'
     );
@@ -671,8 +680,12 @@ describe("ERC20Template", () => {
     const txReceipt = await tx.wait();
     let event = getEventFromTx(txReceipt, 'OrderStarted')
     assert(event, "Cannot find OrderStarted event")
-    event = getEventFromTx(txReceipt, 'OrderMarketFees')
-    assert(event, "Cannot find OrderMarketFees event")
+    event = getEventFromTx(txReceipt, 'ConsumeMarketFees')
+    assert(event, "Cannot find ConsumeMarketFees event")
+    //make sure that we don't have PublishMarketFees event
+    event = getEventFromTx(txReceipt, 'PublishMarketFees')
+    assert.typeOf(event, 'undefined',"PublishMarketFees event found")
+
     const balance = await Mock20Contract.balanceOf(consumeFeeAddress)
     const balanceOpf = await Mock20Contract.balanceOf(opfCollector.address)
     const expected = web3.utils.toWei(new BN(consumeFeeAmount)).sub(web3.utils.toWei(new BN(consumeFeeAmount)).div(new BN(100)))
@@ -748,8 +761,11 @@ describe("ERC20Template", () => {
     const txReceipt = await tx.wait();
     let event = getEventFromTx(txReceipt, 'OrderStarted')
     assert(event, "Cannot find OrderStarted event")
-    event = getEventFromTx(txReceipt, 'OrderMarketFees')
-    assert(event, "Cannot find OrderMarketFees event")
+    event = getEventFromTx(txReceipt, 'PublishMarketFees')
+    assert(event, "Cannot find PublishMarketFees event")
+    //make sure that we don't have ConsumeMarketFees event
+    event = getEventFromTx(txReceipt, 'ConsumeMarketFees')
+    assert.typeOf(event, 'undefined',"ConsumeMarketFees event found")
     assert(
       (await erc20TokenWithPublishFee.balanceOf(user2.address)) == web3.utils.toWei("9"), 'Invalid user balance, DT was not substracted'
     );
@@ -826,8 +842,10 @@ describe("ERC20Template", () => {
     const txReceipt = await tx.wait();
     let event = getEventFromTx(txReceipt, 'OrderStarted')
     assert(event, "Cannot find OrderStarted event")
-    event = getEventFromTx(txReceipt, 'OrderMarketFees')
-    assert(event, "Cannot find OrderMarketFees event")
+    event = getEventFromTx(txReceipt, 'PublishMarketFees')
+    assert(event, "Cannot find PublishMarketFees event")
+    event = getEventFromTx(txReceipt, 'ConsumeMarketFees')
+    assert(event, "Cannot find ConsumeMarketFees event")
     const balanceConsume = await Mock20Contract.balanceOf(consumeFeeAddress)
     const balanceOpfConsume = await Mock20Contract.balanceOf(opfCollector.address)
     const expectedConsume = web3.utils.toWei(new BN(consumeFeeAmount)).sub(web3.utils.toWei(new BN(consumeFeeAmount)).div(new BN(100)))
