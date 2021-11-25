@@ -102,6 +102,7 @@ contract ERC721Factory is Deployer, Ownable {
                 _template721 != address(0),
             "ERC721DTFactory: Invalid template token/community fee collector address"
         );
+        require(_router != address(0), "ERC721DTFactory: Invalid router address");
         add721TokenTemplate(_template721);
         addTokenTemplate(_template);
         router = _router;

@@ -332,6 +332,7 @@ contract BPool is BMath, BToken {
      */
     function updateMarketFeeCollector(address _newCollector) external {
         require(_marketCollector == msg.sender, "ONLY MARKET COLLECTOR");
+        require(_newCollector != address(0), "Invalid _newCollector address");
         _marketCollector = _newCollector;
         emit MarketCollectorChanged(msg.sender, _marketCollector);
     }

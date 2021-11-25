@@ -556,6 +556,7 @@ contract ERC20Template is ERC20("test", "testSymbol"), ERC20Roles, ERC20Burnable
      */
 
     function setPaymentCollector(address _newPaymentCollector) external {
+        //we allow _newPaymentCollector = address(0), because it means that the collector is nft owner
         require(
             permissions[msg.sender].paymentManager == true || IERC721Template(_erc721Address)
                 .getPermissions(msg.sender)
@@ -600,6 +601,7 @@ contract ERC20Template is ERC20("test", "testSymbol"), ERC20Roles, ERC20Burnable
         address _publishMarketFeeAddress, 
         address _publishMarketFeeToken, 
         uint256 _publishMarketFeeAmount) external onlyPublishingMarketFeeAddress {
+        require(_publishMarketFeeAddress != address(0), "Invalid _publishMarketFeeAddress address");
         publishMarketFeeAddress = _publishMarketFeeAddress;
         publishMarketFeeToken =  _publishMarketFeeToken;
         publishMarketFeeAmount = _publishMarketFeeAmount;

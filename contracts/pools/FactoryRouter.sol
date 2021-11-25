@@ -40,6 +40,9 @@ contract FactoryRouter is BFactory {
         address _opfCollector,
         address[] memory _preCreatedPools
     ) public BFactory(_bpoolTemplate, _opfCollector, _preCreatedPools) {
+        require(_routerOwner != address(0), "FactoryRouter: Invalid router owner");
+        require(_opfCollector != address(0), "FactoryRouter: Invalid opfCollector");
+        require(_oceanToken != address(0), "FactoryRouter: Invalid Ocean Token address");
         routerOwner = _routerOwner;
         opfCollector = _opfCollector;
         oceanTokens[_oceanToken] = true;
@@ -54,26 +57,32 @@ contract FactoryRouter is BFactory {
     }
 
     function addOceanToken(address oceanTokenAddress) public onlyRouterOwner {
+        require(oceanTokenAddress != address(0), "FactoryRouter: Invalid Ocean Token address");
         oceanTokens[oceanTokenAddress] = true;
     }
 
     function removeOceanToken(address oceanTokenAddress) public onlyRouterOwner {
+        require(oceanTokenAddress != address(0), "FactoryRouter: Invalid Ocean Token address");
         oceanTokens[oceanTokenAddress] = false;
     }
 
     function addSSContract(address _ssContract) external onlyRouterOwner {
+        require(_ssContract != address(0), "FactoryRouter: Invalid _ssContract address");
         ssContracts[_ssContract] = true;
     }
 
     function addFactory(address _factory) external onlyRouterOwner {
+        require(_factory != address(0), "FactoryRouter: Invalid _factory address");
         require(factory == address(0), "FACTORY ALREADY SET");
         factory = _factory;
     }
 
     function addFixedRateContract(address _fixedRate) external onlyRouterOwner {
+        require(_fixedRate != address(0), "FactoryRouter: Invalid _fixedRate address");
         fixedPrice[_fixedRate] = true;
     }
     function addDispenserContract(address _dispenser) external onlyRouterOwner {
+        require(_dispenser != address(0), "FactoryRouter: Invalid _dispenser address");
         dispenser[_dispenser] = true;
     }
 

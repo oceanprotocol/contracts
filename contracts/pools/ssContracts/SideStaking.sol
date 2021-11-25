@@ -58,6 +58,7 @@ contract SideStaking {
      *      Called on contract deployment.
      */
     constructor(address _router) public {
+        require(_router != address(0), "Invalid _router address");
         router = _router;
     }
 
