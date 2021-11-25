@@ -52,7 +52,7 @@ contract FixedRateExchange is ReentrancyGuard {
     modifier onlyActiveExchange(bytes32 exchangeId) {
         require(
             //exchanges[exchangeId].fixedRate != 0 &&
-                exchanges[exchangeId].active == true,
+                exchanges[exchangeId].active,
             "FixedRateExchange: Exchange does not exist!"
         );
         _;
@@ -669,7 +669,7 @@ contract FixedRateExchange is ReentrancyGuard {
         returns (uint256 supply)
     {
         if (exchanges[exchangeId].active == false) supply = 0;
-        else if (exchanges[exchangeId].withMint == true
+        else if (exchanges[exchangeId].withMint
         && IERC20Template(exchanges[exchangeId].dataToken).isMinter(address(this))){
             supply = IERC20Template(exchanges[exchangeId].dataToken).cap() 
             - IERC20Template(exchanges[exchangeId].dataToken).totalSupply();

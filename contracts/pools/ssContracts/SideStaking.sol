@@ -99,7 +99,7 @@ contract SideStaking is ReentrancyGuard {
         // check if we are the minter of DT
         IERC20Template dt = IERC20Template(datatokenAddress);
         require(
-            (dt.permissions(address(this))).minter == true,
+            (dt.permissions(address(this))).minter,
             "BaseToken address mismatch"
         );
         // get cap and mint it..
@@ -143,7 +143,7 @@ contract SideStaking is ReentrancyGuard {
         view
         returns (uint256)
     {
-        if (_datatokens[datatokenAddress].bound != true) return (0);
+        if (!_datatokens[datatokenAddress].bound) return (0);
         return (_datatokens[datatokenAddress].datatokenCap -
             _datatokens[datatokenAddress].datatokenBalance);
     }
@@ -160,7 +160,7 @@ contract SideStaking is ReentrancyGuard {
         view
         returns (uint256)
     {
-        if (_datatokens[datatokenAddress].bound != true) return (0);
+        if (!_datatokens[datatokenAddress].bound) return (0);
         return (_datatokens[datatokenAddress].datatokenCap -
             _datatokens[datatokenAddress].datatokenBalance -
             getvestingAmount(datatokenAddress) +
@@ -178,7 +178,7 @@ contract SideStaking is ReentrancyGuard {
         view
         returns (address)
     {
-        if (_datatokens[datatokenAddress].bound != true) return (address(0));
+        if (!_datatokens[datatokenAddress].bound) return (address(0));
         return (_datatokens[datatokenAddress].publisherAddress);
     }
 
@@ -193,7 +193,7 @@ contract SideStaking is ReentrancyGuard {
         view
         returns (address)
     {
-        if (_datatokens[datatokenAddress].bound != true) return (address(0));
+        if (!_datatokens[datatokenAddress].bound) return (address(0));
         return (_datatokens[datatokenAddress].basetokenAddress);
     }
 
@@ -208,7 +208,7 @@ contract SideStaking is ReentrancyGuard {
         view
         returns (address)
     {
-        if (_datatokens[datatokenAddress].bound != true) return (address(0));
+        if (!_datatokens[datatokenAddress].bound) return (address(0));
         return (_datatokens[datatokenAddress].poolAddress);
     }
 
@@ -222,7 +222,7 @@ contract SideStaking is ReentrancyGuard {
         view
         returns (uint256)
     {
-        if (_datatokens[datatokenAddress].bound != true) return (0);
+        if (! _datatokens[datatokenAddress].bound) return (0);
         return (_datatokens[datatokenAddress].basetokenBalance);
     }
 
@@ -237,7 +237,7 @@ contract SideStaking is ReentrancyGuard {
         view
         returns (uint256)
     {
-        if (_datatokens[datatokenAddress].bound != true) return (0);
+        if (! _datatokens[datatokenAddress].bound) return (0);
         return (_datatokens[datatokenAddress].datatokenBalance);
     }
 
@@ -252,7 +252,7 @@ contract SideStaking is ReentrancyGuard {
         view
         returns (uint256)
     {
-        if (_datatokens[datatokenAddress].bound != true) return (0);
+        if (! _datatokens[datatokenAddress].bound) return (0);
         return (_datatokens[datatokenAddress].vestingEndBlock);
     }
 
@@ -267,7 +267,7 @@ contract SideStaking is ReentrancyGuard {
         view
         returns (uint256)
     {
-        if (_datatokens[datatokenAddress].bound != true) return (0);
+        if (! _datatokens[datatokenAddress].bound) return (0);
         return (_datatokens[datatokenAddress].vestingAmount);
     }
 
@@ -282,7 +282,7 @@ contract SideStaking is ReentrancyGuard {
         view
         returns (uint256)
     {
-        if (_datatokens[datatokenAddress].bound != true) return (0);
+        if (!_datatokens[datatokenAddress].bound) return (0);
         return (_datatokens[datatokenAddress].vestingLastBlock);
     }
 
@@ -297,7 +297,7 @@ contract SideStaking is ReentrancyGuard {
         view
         returns (uint256)
     {
-        if (_datatokens[datatokenAddress].bound != true) return (0);
+        if (! _datatokens[datatokenAddress].bound) return (0);
         return (_datatokens[datatokenAddress].vestingAmountSoFar);
     }
 
@@ -311,7 +311,7 @@ contract SideStaking is ReentrancyGuard {
             msg.sender == _datatokens[datatokenAddress].poolAddress,
             "ERR: Only pool can call this"
         );
-        if (_datatokens[datatokenAddress].bound != true) return (false);
+        if (! _datatokens[datatokenAddress].bound) return (false);
         if (_datatokens[datatokenAddress].basetokenAddress == stakeToken)
             return (false);
 
@@ -328,13 +328,13 @@ contract SideStaking is ReentrancyGuard {
         address stakeToken,
         uint256 amount
     ) public nonReentrant {
-        if (_datatokens[datatokenAddress].bound != true) return;
+        if (! _datatokens[datatokenAddress].bound) return;
         require(
             msg.sender == _datatokens[datatokenAddress].poolAddress,
             "ERR: Only pool can call this"
         );
         bool ok = canStake(datatokenAddress, stakeToken, amount);
-        if (ok != true) return;
+        if (!ok) return;
         IERC20 dt = IERC20(datatokenAddress);
         dt.safeIncreaseAllowance(_datatokens[datatokenAddress].poolAddress, amount);
         _datatokens[datatokenAddress].datatokenBalance -= amount;
@@ -347,7 +347,7 @@ contract SideStaking is ReentrancyGuard {
         uint256 lptIn
     ) public view returns (bool) {
         //TO DO
-        if (_datatokens[datatokenAddress].bound != true) return (false);
+        if (! _datatokens[datatokenAddress].bound) return (false);
         require(
             msg.sender == _datatokens[datatokenAddress].poolAddress,
             "ERR: Only pool can call this"
@@ -371,13 +371,13 @@ contract SideStaking is ReentrancyGuard {
         uint256 dtAmountIn,
         uint256 poolAmountOut
     ) public nonReentrant{
-        if (_datatokens[datatokenAddress].bound != true) return;
+        if (! _datatokens[datatokenAddress].bound) return;
         require(
             msg.sender == _datatokens[datatokenAddress].poolAddress,
             "ERR: Only pool can call this"
         );
         bool ok = canUnStake(datatokenAddress, stakeToken, poolAmountOut);
-        if (ok != true) return;
+        if (!ok) return;
         _datatokens[datatokenAddress].datatokenBalance += dtAmountIn;
     }
 
@@ -385,8 +385,8 @@ contract SideStaking is ReentrancyGuard {
     function notifyFinalize(address datatokenAddress, uint256 decimals)
         internal
     {
-        if (_datatokens[datatokenAddress].bound != true) return;
-        if (_datatokens[datatokenAddress].poolFinalized == true) return;
+        if (! _datatokens[datatokenAddress].bound ) return;
+        if (_datatokens[datatokenAddress].poolFinalized) return;
         _datatokens[datatokenAddress].poolFinalized = true;
         uint256 baseTokenWeight = 5 * BASE; //pool weight: 50-50
         uint256 dataTokenWeight = 5 * BASE; //pool weight: 50-50
@@ -445,7 +445,7 @@ contract SideStaking is ReentrancyGuard {
     // called by vester to get datatokens
     function getVesting(address datatokenAddress) public {
         require(
-            _datatokens[datatokenAddress].bound == true,
+            _datatokens[datatokenAddress].bound,
             "ERR:Invalid datatoken"
         );
         // is this needed?

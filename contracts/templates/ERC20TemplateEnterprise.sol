@@ -127,7 +127,7 @@ contract ERC20TemplateEnterprise is ERC20("test", "testSymbol"), ERC20Roles, ERC
         require(
             IERC721Template(_erc721Address)
                 .getPermissions(msg.sender)
-                .deployERC20 == true,
+                .deployERC20,
             "ERC20Template: NOT DEPLOYER ROLE"
         );
         _;
@@ -295,7 +295,7 @@ contract ERC20TemplateEnterprise is ERC20("test", "testSymbol"), ERC20Roles, ERC
         IFactoryRouter(router).deployDispenser(
             _dispenser, address(this), maxTokens, maxBalance, msg.sender, address(this) );
         // add FixedPriced contract as minter if withMint == true
-        if (withMint == true)
+        if (withMint)
             _addMinter(_dispenser);
         
     }
@@ -309,7 +309,7 @@ contract ERC20TemplateEnterprise is ERC20("test", "testSymbol"), ERC20Roles, ERC
      */
     function mint(address account, uint256 value) external {
         require(
-            permissions[msg.sender].minter == true,
+            permissions[msg.sender].minter,
             "ERC20Template: NOT MINTER"
         );
         require(
@@ -529,9 +529,9 @@ contract ERC20TemplateEnterprise is ERC20("test", "testSymbol"), ERC20Roles, ERC
     function setPaymentCollector(address _newPaymentCollector) external {
         //we allow _newPaymentCollector = address(0), because it means that the collector is nft owner
         require(
-            permissions[msg.sender].paymentManager == true || IERC721Template(_erc721Address)
+            permissions[msg.sender].paymentManager || IERC721Template(_erc721Address)
                 .getPermissions(msg.sender)
-                .deployERC20 == true,
+                .deployERC20,
             "ERC20Template: NOT PAYMENT MANAGER or OWNER"
         );
         _setPaymentCollector(_newPaymentCollector);

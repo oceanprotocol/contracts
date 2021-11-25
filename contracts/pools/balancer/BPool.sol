@@ -708,7 +708,8 @@ contract BPool is BMath, BToken {
 
         require(spotPriceBefore <= maxPrice, "ERR_BAD_LIMIT_PRICE");
         // this is the amount we are going to register in balances
-        // (only takes account of swapFee, not OPF and market fee, in order to not affect price during following swaps, fee wtihdrawl etc)
+        // (only takes account of swapFee, not OPF and market fee,
+        //in order to not affect price during following swaps, fee wtihdrawl etc)
         uint256 balanceToAdd;
         uint256[4] memory data = [
             inRecord.balance,
@@ -807,10 +808,7 @@ contract BPool is BMath, BToken {
             // ssInRecord = _records[_basetokenAddress];
             ssStakeToken = _datatokenAddress;
         }
-        if (
-            ssContract.canStake(_datatokenAddress, ssStakeToken, ssAmountIn) ==
-            true
-        ) {
+        if (ssContract.canStake(_datatokenAddress, ssStakeToken, ssAmountIn)) {
             //call 1ss to approve
 
             ssContract.Stake(_datatokenAddress, ssStakeToken, ssAmountIn);
@@ -882,10 +880,7 @@ contract BPool is BMath, BToken {
         } else {
             ssStakeToken = _datatokenAddress;
         }
-        if (
-            ssContract.canStake(_datatokenAddress, ssStakeToken, ssAmountIn) ==
-            true
-        ) {
+        if (ssContract.canStake(_datatokenAddress, ssStakeToken, ssAmountIn)) {
             //call 1ss to approve
             ssContract.Stake(_datatokenAddress, ssStakeToken, ssAmountIn);
             // follow the same path
@@ -951,13 +946,11 @@ contract BPool is BMath, BToken {
             ssStakeToken = _datatokenAddress;
         }
 
-        if (
-            ssContract.canUnStake(
+        if (ssContract.canUnStake(
                 _datatokenAddress,
                 ssStakeToken,
                 poolAmountIn
-            ) == true
-        ) {
+            )) {
             Record storage ssOutRecord = _records[_datatokenAddress];
             uint256 ssAmountOut = calcSingleOutGivenPoolIn(
                 ssOutRecord.balance,
@@ -1042,7 +1035,7 @@ contract BPool is BMath, BToken {
                 _datatokenAddress,
                 ssStakeToken,
                 poolAmountIn
-            ) == true
+            )
         ) {
             Record storage ssOutRecord = _records[_datatokenAddress];
             uint256 ssAmountOut = calcSingleOutGivenPoolIn(

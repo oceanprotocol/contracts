@@ -133,7 +133,7 @@ contract ERC721Factory is Deployer, Ownable, ReentrancyGuard {
         Template memory tokenTemplate = nftTemplateList[_templateIndex];
 
         require(
-            tokenTemplate.isActive == true,
+            tokenTemplate.isActive,
             "ERC721DTFactory: ERC721Token Template disabled"
         );
 
@@ -329,7 +329,7 @@ contract ERC721Factory is Deployer, Ownable, ReentrancyGuard {
         Template memory tokenTemplate = templateList[_templateIndex];
 
         require(
-            tokenTemplate.isActive == true,
+            tokenTemplate.isActive,
             "ERC20Factory: ERC721Token Template disabled"
         );
         token = deploy(tokenTemplate.templateAddress);

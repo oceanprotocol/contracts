@@ -203,7 +203,7 @@ contract Dispenser is ReentrancyGuard{
             'Invalid token contract address'
         );
         require(
-            datatokens[datatoken].active == true,
+            datatokens[datatoken].active,
             'Dispenser not active'
         );
         require(

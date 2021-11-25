@@ -125,7 +125,7 @@ contract FactoryRouter is BFactory {
     }
 
     function getOPFFee(address baseToken) public view returns (uint256) {
-        if (oceanTokens[baseToken] == true) {
+        if (oceanTokens[baseToken]) {
             return 0;
         } else return swapOceanFee;
     }
@@ -175,20 +175,14 @@ contract FactoryRouter is BFactory {
 
     ) external returns (address) {
         require(
-            IFactory(factory).erc20List(msg.sender) == true,
+            IFactory(factory).erc20List(msg.sender),
             "FACTORY ROUTER: NOT ORIGINAL ERC20 TEMPLATE"
         );
         require(
-            ssContracts[addresses[0]] == true,
+            ssContracts[addresses[0]],
             "FACTORY ROUTER: invalid ssContract"
         );
         require(ssParams[1] > 0, "Wrong decimals");
-
-        // TODO: do we need this? used only for the event?
-        bool flag;
-        if (oceanTokens[tokens[1]] == true) {
-            flag = true;
-        }
 
         // we pull basetoken for creating initial pool and send it to the controller (ssContract)
         IERC20 bt = IERC20(tokens[1]);
@@ -202,9 +196,10 @@ contract FactoryRouter is BFactory {
         );
 
         require(pool != address(0), "FAILED TO DEPLOY POOL");
-
-        emit NewPool(pool, flag);
-
+        if (oceanTokens[tokens[1]])
+                emit NewPool(pool, true);
+        else
+                emit NewPool(pool, false);
         return pool;
     }
 
@@ -230,12 +225,12 @@ contract FactoryRouter is BFactory {
 
     ) external returns (bytes32 exchangeId) {
         require(
-            IFactory(factory).erc20List(msg.sender) == true,
+            IFactory(factory).erc20List(msg.sender),
             "FACTORY ROUTER: NOT ORIGINAL ERC20 TEMPLATE"
         );
 
         require(
-            fixedPrice[fixedPriceAddress] == true,
+            fixedPrice[fixedPriceAddress],
             "FACTORY ROUTER: Invalid FixedPriceContract"
         );
 
@@ -268,12 +263,12 @@ contract FactoryRouter is BFactory {
         address allowedSwapper
     ) external {
         require(
-            IFactory(factory).erc20List(msg.sender) == true,
+            IFactory(factory).erc20List(msg.sender),
             "FACTORY ROUTER: NOT ORIGINAL ERC20 TEMPLATE"
         );
 
         require(
-            dispenser[_dispenser]  == true,
+            dispenser[_dispenser],
             "FACTORY ROUTER: Invalid DispenserContract"
         );
         IDispenser(_dispenser).create(datatoken, maxTokens, maxBalance, owner, allowedSwapper);
