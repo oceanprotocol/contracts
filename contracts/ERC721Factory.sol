@@ -1,4 +1,4 @@
-pragma solidity >=0.6.0;
+pragma solidity 0.8.10;
 pragma experimental ABIEncoderV2;
 // Copyright BigchainDB GmbH and Ocean Protocol contributors
 // SPDX-License-Identifier: (Apache-2.0 AND CC-BY-4.0)

@@ -1,4 +1,4 @@
-pragma solidity >=0.6.0;
+pragma solidity 0.8.10;
 
 import "../utils/ERC721/ERC721.sol";
 import "../utils/ERC725/ERC725Ocean.sol";

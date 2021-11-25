@@ -1,4 +1,4 @@
-pragma solidity >=0.5.7;
+pragma solidity 0.8.10;
 pragma experimental ABIEncoderV2;
 interface IFactory {
     function initialize(
