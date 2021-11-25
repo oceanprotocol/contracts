@@ -31,7 +31,7 @@
           "type": "uint256"
         }
       ],
-      "name": "AddedFeeManager",
+      "name": "AddedMinter",
       "type": "event"
     },
     {
@@ -62,7 +62,7 @@
           "type": "uint256"
         }
       ],
-      "name": "AddedMinter",
+      "name": "AddedPaymentManager",
       "type": "event"
     },
     {
@@ -176,6 +176,37 @@
       "anonymous": false,
       "inputs": [
         {
+          "indexed": true,
+          "internalType": "address",
+          "name": "caller",
+          "type": "address"
+        },
+        {
+          "indexed": true,
+          "internalType": "address",
+          "name": "_newPaymentCollector",
+          "type": "address"
+        },
+        {
+          "indexed": false,
+          "internalType": "uint256",
+          "name": "timestamp",
+          "type": "uint256"
+        },
+        {
+          "indexed": false,
+          "internalType": "uint256",
+          "name": "blockNumber",
+          "type": "uint256"
+        }
+      ],
+      "name": "NewPaymentCollector",
+      "type": "event"
+    },
+    {
+      "anonymous": false,
+      "inputs": [
+        {
           "indexed": false,
           "internalType": "address",
           "name": "poolAddress",
@@ -195,6 +226,31 @@
         }
       ],
       "name": "NewPool",
+      "type": "event"
+    },
+    {
+      "anonymous": false,
+      "inputs": [
+        {
+          "indexed": true,
+          "internalType": "address",
+          "name": "consumeFeeAddress",
+          "type": "address"
+        },
+        {
+          "indexed": true,
+          "internalType": "address",
+          "name": "consumeFeeToken",
+          "type": "address"
+        },
+        {
+          "indexed": false,
+          "internalType": "uint256",
+          "name": "consumeFeeAmount",
+          "type": "uint256"
+        }
+      ],
+      "name": "OrderMarketFees",
       "type": "event"
     },
     {
@@ -280,7 +336,7 @@
           "type": "uint256"
         }
       ],
-      "name": "RemovedFeeManager",
+      "name": "RemovedMinter",
       "type": "event"
     },
     {
@@ -311,7 +367,7 @@
           "type": "uint256"
         }
       ],
-      "name": "RemovedMinter",
+      "name": "RemovedPaymentManager",
       "type": "event"
     },
     {
@@ -399,11 +455,11 @@
       "inputs": [
         {
           "internalType": "address",
-          "name": "_feeManager",
+          "name": "_minter",
           "type": "address"
         }
       ],
-      "name": "addFeeManager",
+      "name": "addMinter",
       "outputs": [],
       "stateMutability": "nonpayable",
       "type": "function"
@@ -412,11 +468,11 @@
       "inputs": [
         {
           "internalType": "address",
-          "name": "_minter",
+          "name": "_paymentManager",
           "type": "address"
         }
       ],
-      "name": "addMinter",
+      "name": "addPaymentManager",
       "outputs": [],
       "stateMutability": "nonpayable",
       "type": "function"
@@ -791,19 +847,6 @@
     },
     {
       "inputs": [],
-      "name": "getFeeCollector",
-      "outputs": [
-        {
-          "internalType": "address",
-          "name": "",
-          "type": "address"
-        }
-      ],
-      "stateMutability": "view",
-      "type": "function"
-    },
-    {
-      "inputs": [],
       "name": "getId",
       "outputs": [
         {
@@ -813,6 +856,19 @@
         }
       ],
       "stateMutability": "pure",
+      "type": "function"
+    },
+    {
+      "inputs": [],
+      "name": "getPaymentCollector",
+      "outputs": [
+        {
+          "internalType": "address",
+          "name": "",
+          "type": "address"
+        }
+      ],
+      "stateMutability": "view",
       "type": "function"
     },
     {
@@ -1000,7 +1056,7 @@
         },
         {
           "internalType": "bool",
-          "name": "feeManager",
+          "name": "paymentManager",
           "type": "bool"
         }
       ],
@@ -1054,11 +1110,11 @@
       "inputs": [
         {
           "internalType": "address",
-          "name": "_feeManager",
+          "name": "_minter",
           "type": "address"
         }
       ],
-      "name": "removeFeeManager",
+      "name": "removeMinter",
       "outputs": [],
       "stateMutability": "nonpayable",
       "type": "function"
@@ -1067,11 +1123,11 @@
       "inputs": [
         {
           "internalType": "address",
-          "name": "_minter",
+          "name": "_paymentManager",
           "type": "address"
         }
       ],
-      "name": "removeMinter",
+      "name": "removePaymentManager",
       "outputs": [],
       "stateMutability": "nonpayable",
       "type": "function"
@@ -1106,11 +1162,11 @@
       "inputs": [
         {
           "internalType": "address",
-          "name": "_newFeeCollector",
+          "name": "_newPaymentCollector",
           "type": "address"
         }
       ],
-      "name": "setFeeCollector",
+      "name": "setPaymentCollector",
       "outputs": [],
       "stateMutability": "nonpayable",
       "type": "function"

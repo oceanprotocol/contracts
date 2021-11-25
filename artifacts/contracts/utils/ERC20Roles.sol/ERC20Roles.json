@@ -31,7 +31,7 @@
           "type": "uint256"
         }
       ],
-      "name": "AddedFeeManager",
+      "name": "AddedMinter",
       "type": "event"
     },
     {
@@ -62,7 +62,7 @@
           "type": "uint256"
         }
       ],
-      "name": "AddedMinter",
+      "name": "AddedPaymentManager",
       "type": "event"
     },
     {
@@ -118,7 +118,7 @@
           "type": "uint256"
         }
       ],
-      "name": "RemovedFeeManager",
+      "name": "RemovedMinter",
       "type": "event"
     },
     {
@@ -149,7 +149,7 @@
           "type": "uint256"
         }
       ],
-      "name": "RemovedMinter",
+      "name": "RemovedPaymentManager",
       "type": "event"
     },
     {
@@ -188,7 +188,7 @@
         },
         {
           "internalType": "bool",
-          "name": "feeManager",
+          "name": "paymentManager",
           "type": "bool"
         }
       ],
