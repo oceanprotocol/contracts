@@ -443,7 +443,7 @@ contract SideStaking is ReentrancyGuard {
 
      */
     // called by vester to get datatokens
-    function getVesting(address datatokenAddress) public {
+    function getVesting(address datatokenAddress) public nonReentrant {
         require(
             _datatokens[datatokenAddress].bound,
             "ERR:Invalid datatoken"
