@@ -72,11 +72,13 @@ contract FactoryRouter is BFactory {
     }
 
     function addOceanToken(address oceanTokenAddress) external onlyRouterOwner {
+        require(oceanTokenAddress != address(0), "FactoryRouter: Invalid Ocean Token address");
         oceanTokens[oceanTokenAddress] = true;
         emit TokenAdded(msg.sender, oceanTokenAddress);
     }
 
     function removeOceanToken(address oceanTokenAddress) external onlyRouterOwner {
+        require(oceanTokenAddress != address(0), "FactoryRouter: Invalid Ocean Token address");
         oceanTokens[oceanTokenAddress] = false;
         emit TokenRemoved(msg.sender, oceanTokenAddress);
     }
