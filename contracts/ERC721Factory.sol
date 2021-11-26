@@ -8,6 +8,8 @@ import "./utils/Deployer.sol";
 import "./interfaces/IERC721Template.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
 import "./interfaces/IERC20Template.sol";
+import "./interfaces/IERC20.sol";
+import "./utils/SafeERC20.sol";
 import "@openzeppelin/contracts/security/ReentrancyGuard.sol";
 /**
  * @title DTFactory contract
@@ -20,6 +22,7 @@ import "@openzeppelin/contracts/security/ReentrancyGuard.sol";
  *      Proxy contract functionality is based on Ocean Protocol custom implementation of ERC1167 standard.
  */
 contract ERC721Factory is Deployer, Ownable, ReentrancyGuard {
+    using SafeERC20 for IERC20;
     address private communityFeeCollector;
     uint256 private currentNFTCount;
     address private erc20Factory;
@@ -99,6 +102,7 @@ contract ERC721Factory is Deployer, Ownable, ReentrancyGuard {
                 _template721 != address(0),
             "ERC721DTFactory: Invalid template token/community fee collector address"
         );
+        require(_router != address(0), "ERC721DTFactory: Invalid router address");
         add721TokenTemplate(_template721);
         addTokenTemplate(_template);
         router = _router;
@@ -129,7 +133,7 @@ contract ERC721Factory is Deployer, Ownable, ReentrancyGuard {
         Template memory tokenTemplate = nftTemplateList[_templateIndex];
 
         require(
-            tokenTemplate.isActive == true,
+            tokenTemplate.isActive,
             "ERC721DTFactory: ERC721Token Template disabled"
         );
 
@@ -325,7 +329,7 @@ contract ERC721Factory is Deployer, Ownable, ReentrancyGuard {
         Template memory tokenTemplate = templateList[_templateIndex];
 
         require(
-            tokenTemplate.isActive == true,
+            tokenTemplate.isActive,
             "ERC20Factory: ERC721Token Template disabled"
         );
         token = deploy(tokenTemplate.templateAddress);
@@ -489,29 +493,30 @@ contract ERC721Factory is Deployer, Ownable, ReentrancyGuard {
             // check if we have publishFees, if so transfer them to us and approve dttemplate to take them
             if (publishMarketFeeAmount > 0 && publishMarketFeeToken!=address(0) 
             && publishMarketFeeAddress!=address(0)) {
-                require(IERC20Template(publishMarketFeeToken).transferFrom(
+                IERC20(publishMarketFeeToken).safeTransferFrom(
                     msg.sender,
                     address(this),
                     publishMarketFeeAmount
-                ),'Failed to transfer publishFee');
-                IERC20Template(publishMarketFeeToken).approve(orders[i].tokenAddress, publishMarketFeeAmount);
+                );
+                IERC20(publishMarketFeeToken).safeIncreaseAllowance(orders[i].tokenAddress, publishMarketFeeAmount);
             }
             // check if we have consumeFees, if so transfer them to us and approve dttemplate to take them
             if (orders[i].consumeFeeAmount > 0 && orders[i].consumeFeeToken!=address(0) 
             && orders[i].consumeFeeAddress!=address(0)) {
-                require(IERC20Template(orders[i].consumeFeeToken).transferFrom(
+                IERC20(orders[i].consumeFeeToken).safeTransferFrom(
                     msg.sender,
                     address(this),
                     orders[i].consumeFeeAmount
-                ),'Failed to transfer consumeFee');
-                IERC20Template(orders[i].consumeFeeToken).approve(orders[i].tokenAddress, orders[i].consumeFeeAmount);
+                );
+                IERC20(orders[i].consumeFeeToken)
+                .safeIncreaseAllowance(orders[i].tokenAddress, orders[i].consumeFeeAmount);
             }
             // transfer erc20 datatoken from consumer to us
-            require(IERC20Template(orders[i].tokenAddress).transferFrom(
+            IERC20(orders[i].tokenAddress).safeTransferFrom(
                 msg.sender,
                 address(this),
                 orders[i].amount
-            ),'Failed to transfer datatoken');
+            );
         
             IERC20Template(orders[i].tokenAddress).startOrder(
                 orders[i].consumer,
@@ -588,11 +593,11 @@ contract ERC721Factory is Deployer, Ownable, ReentrancyGuard {
         ErcCreateData calldata _ErcCreateData,
         PoolData calldata _PoolData
     ) external nonReentrant returns (address erc721Address, address erc20Address, address poolAddress){
-        require(IERC20Template(_PoolData.addresses[1]).transferFrom(
+        IERC20(_PoolData.addresses[1]).safeTransferFrom(
                 msg.sender,
                 address(this),
                 _PoolData.ssParams[4]
-            ),'Failed to transfer initial pool basetoken liquidity');
+        );
         //we are adding ourselfs as a ERC20 Deployer, because we need it in order to deploy the pool
         erc721Address = deployERC721Contract(
             _NftCreateData.name,
@@ -608,7 +613,7 @@ contract ERC721Factory is Deployer, Ownable, ReentrancyGuard {
             _ErcCreateData.bytess,
             erc721Address);
         // allow router to take the liquidity
-        IERC20Template(_PoolData.addresses[1]).approve(router,_PoolData.ssParams[4]);
+        IERC20(_PoolData.addresses[1]).safeIncreaseAllowance(router,_PoolData.ssParams[4]);
       
         poolAddress = IERC20Template(erc20Address).deployPool(
             _PoolData.ssParams,

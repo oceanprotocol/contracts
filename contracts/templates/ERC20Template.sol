@@ -11,6 +11,8 @@ import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
 import "@openzeppelin/contracts/token/ERC20/extensions/ERC20Burnable.sol";
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "@openzeppelin/contracts/utils/math/SafeMath.sol";
+
+import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 import "@openzeppelin/contracts/security/ReentrancyGuard.sol";
 import "../utils/ERC20Roles.sol";
 
@@ -24,6 +26,7 @@ import "../utils/ERC20Roles.sol";
  */
 contract ERC20Template is ERC20("test", "testSymbol"), ERC20Roles, ERC20Burnable, ReentrancyGuard {
     using SafeMath for uint256;
+    using SafeERC20 for IERC20;
 
     string private _name;
     string private _symbol;
@@ -75,6 +78,13 @@ contract ERC20Template is ERC20("test", "testSymbol"), ERC20Roles, ERC20Burnable
         uint256 PublishMarketFeeAmount
     );
 
+    event PublishMarketFeesChanged(
+        address caller,
+        address PublishMarketFeeAddress,
+        address PublishMarketFeeToken, 
+        uint256 PublishMarketFeeAmount
+    );
+
     
     event MinterProposed(address currentMinter, address newMinter);
 
@@ -118,7 +128,7 @@ contract ERC20Template is ERC20("test", "testSymbol"), ERC20Roles, ERC20Burnable
         require(
             IERC721Template(_erc721Address)
                 .getPermissions(msg.sender)
-                .deployERC20 == true,
+                .deployERC20,
             "ERC20Template: NOT DEPLOYER ROLE"
         );
         _;
@@ -332,7 +342,7 @@ contract ERC20Template is ERC20("test", "testSymbol"), ERC20Roles, ERC20Burnable
         IFactoryRouter(router).deployDispenser(
             _dispenser, address(this), maxTokens, maxBalance, msg.sender, allowedSwapper );
         // add FixedPriced contract as minter if withMint == true
-        if (withMint == true)
+        if (withMint)
             _addMinter(_dispenser);
         
     }
@@ -346,7 +356,7 @@ contract ERC20Template is ERC20("test", "testSymbol"), ERC20Roles, ERC20Burnable
      */
     function mint(address account, uint256 value) external {
         require(
-            permissions[msg.sender].minter == true,
+            permissions[msg.sender].minter,
             "ERC20Template: NOT MINTER"
         );
         require(
@@ -401,16 +411,16 @@ contract ERC20Template is ERC20("test", "testSymbol"), ERC20Roles, ERC20Burnable
         // Requires approval for the publishMarketFeeToken of publishMarketFeeAmount
         // skip fee if amount == 0 or feeToken == 0x0 address or feeAddress == 0x0 address
         if (publishMarketFeeAmount > 0 && publishMarketFeeToken!=address(0) && publishMarketFeeAddress!=address(0)) {
-            require(IERC20(publishMarketFeeToken).transferFrom(
+            IERC20(publishMarketFeeToken).safeTransferFrom(
                 msg.sender,
                 address(this),
                 publishMarketFeeAmount
-            ),'Failed to transfer publishMarketFee');
+            );
             communityFeePublish = publishMarketFeeAmount.div(100); //hardcode 1% goes to OPF
             //send publishMarketFee
-            require(IERC20(publishMarketFeeToken)
-            .transfer(publishMarketFeeAddress,publishMarketFeeAmount.sub(communityFeePublish))
-            , 'Failed to transfer fee to publishMarketFeeAddress');
+            IERC20(publishMarketFeeToken)
+            .safeTransfer(publishMarketFeeAddress,publishMarketFeeAmount.sub(communityFeePublish));
+            
             emit PublishMarketFees(publishMarketFeeAddress, publishMarketFeeToken,
             publishMarketFeeAmount.sub(communityFeePublish));
         }
@@ -419,25 +429,23 @@ contract ERC20Template is ERC20("test", "testSymbol"), ERC20Roles, ERC20Burnable
         // Requires approval for the consumeFeeToken of consumeFeeAmount
         // skip fee if amount == 0 or feeToken == 0x0 address or feeAddress == 0x0 address
         if (consumeFeeAmount > 0 && consumeFeeToken!=address(0) && consumeFeeAddress!=address(0)) {
-            require(IERC20(consumeFeeToken).transferFrom(
+            IERC20(consumeFeeToken).safeTransferFrom(
                 msg.sender,
                 address(this),
                 consumeFeeAmount
-            ),'Failed to transfer consumeFee');
+            );
             communityFeeConsume = consumeFeeAmount.div(100); //hardcode 1% goes to OPF
             //send consumeFee
-            require(IERC20(consumeFeeToken)
-            .transfer(consumeFeeAddress,consumeFeeAmount.sub(communityFeeConsume))
-            , 'Failed to transfer fee to consumeFeeAddress');
+            IERC20(consumeFeeToken)
+            .safeTransfer(consumeFeeAddress,consumeFeeAmount.sub(communityFeeConsume));
             emit ConsumeMarketFees(consumeFeeAddress, consumeFeeToken, consumeFeeAmount.sub(communityFeeConsume));
         }
         //send fees to OPF
         if(communityFeePublish>0 && communityFeeConsume>0 && consumeFeeToken == publishMarketFeeToken
         && consumeFeeToken != address(0)){
             //since both fees are in the same token, have just one transaction for both, to save gas
-            require(IERC20(consumeFeeToken)
-            .transfer(_communityFeeCollector,communityFeePublish.add(communityFeeConsume))
-            , 'Failed to transfer both fees to OPF');
+            IERC20(consumeFeeToken)
+            .safeTransfer(_communityFeeCollector,communityFeePublish.add(communityFeeConsume));
             emit PublishMarketFees(_communityFeeCollector, consumeFeeToken, communityFeePublish);
             emit ConsumeMarketFees(_communityFeeCollector, consumeFeeToken, communityFeeConsume);
             
@@ -445,22 +453,20 @@ contract ERC20Template is ERC20("test", "testSymbol"), ERC20Roles, ERC20Burnable
         else{
             //we need to do them one by one
             if(communityFeePublish>0 && publishMarketFeeToken!=address(0)){
-                require(IERC20(publishMarketFeeToken)
-                .transfer(_communityFeeCollector,communityFeePublish), 'Failed to transfer publish fees to OPF');
+                IERC20(publishMarketFeeToken)
+                .safeTransfer(_communityFeeCollector,communityFeePublish);
                 emit PublishMarketFees(_communityFeeCollector, publishMarketFeeToken, communityFeePublish);
             }
             
             if(communityFeeConsume>0 && consumeFeeToken!=address(0)){
-                require(IERC20(consumeFeeToken)
-                .transfer(_communityFeeCollector,communityFeeConsume), 'Failed to transfer consume fee to OPF');
+                IERC20(consumeFeeToken)
+                .safeTransfer(_communityFeeCollector,communityFeeConsume);
                 emit ConsumeMarketFees(_communityFeeCollector, consumeFeeToken, communityFeeConsume);
             }
             
         }
         // send datatoken to publisher
-        transfer(getPaymentCollector(), amount);
-        
-        
+        require(transfer(getPaymentCollector(), amount), 'Failed to send DT to publisher');
     }
 
  
@@ -559,10 +565,11 @@ contract ERC20Template is ERC20("test", "testSymbol"), ERC20Roles, ERC20Burnable
      */
 
     function setPaymentCollector(address _newPaymentCollector) external {
+        //we allow _newPaymentCollector = address(0), because it means that the collector is nft owner
         require(
-            permissions[msg.sender].paymentManager == true || IERC721Template(_erc721Address)
+            permissions[msg.sender].paymentManager || IERC721Template(_erc721Address)
                 .getPermissions(msg.sender)
-                .deployERC20 == true,
+                .deployERC20,
             "ERC20Template: NOT PAYMENT MANAGER or OWNER"
         );
         _setPaymentCollector(_newPaymentCollector);
@@ -603,9 +610,13 @@ contract ERC20Template is ERC20("test", "testSymbol"), ERC20Roles, ERC20Burnable
         address _publishMarketFeeAddress, 
         address _publishMarketFeeToken, 
         uint256 _publishMarketFeeAmount) external onlyPublishingMarketFeeAddress {
+        require(_publishMarketFeeAddress != address(0), "Invalid _publishMarketFeeAddress address");
         publishMarketFeeAddress = _publishMarketFeeAddress;
         publishMarketFeeToken =  _publishMarketFeeToken;
         publishMarketFeeAmount = _publishMarketFeeAmount;
+        emit PublishMarketFeesChanged(msg.sender,
+         _publishMarketFeeAddress,_publishMarketFeeToken, _publishMarketFeeAmount);
+
     }
     /**
      * @dev getId
