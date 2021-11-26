@@ -1,6 +1,5 @@
 pragma solidity 0.8.10;
 
-
 interface IERC20Template {
     struct RolesERC20 {
         bool minter;

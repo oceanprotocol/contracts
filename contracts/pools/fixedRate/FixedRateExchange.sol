@@ -2,12 +2,12 @@ pragma solidity 0.8.10;
 // Copyright BigchainDB GmbH and Ocean Protocol contributors
 // SPDX-License-Identifier: (Apache-2.0 AND CC-BY-4.0)
 // Code is Apache-2.0 and docs are CC-BY-4.0
-
+import "../../interfaces/IERC20.sol";
 import "../../interfaces/IERC20Template.sol";
 import "../../interfaces/IFactoryRouter.sol";
 import "@openzeppelin/contracts/utils/math/SafeMath.sol";
+import "../../utils/SafeERC20.sol";
 import "@openzeppelin/contracts/security/ReentrancyGuard.sol";
-
 
 /**
  * @title FixedRateExchange
@@ -21,6 +21,7 @@ import "@openzeppelin/contracts/security/ReentrancyGuard.sol";
 
 contract FixedRateExchange is ReentrancyGuard {
     using SafeMath for uint256;
+    using SafeERC20 for IERC20;
     uint256 private constant BASE = 10**18;
 
     address public router;
@@ -51,7 +52,7 @@ contract FixedRateExchange is ReentrancyGuard {
     modifier onlyActiveExchange(bytes32 exchangeId) {
         require(
             //exchanges[exchangeId].fixedRate != 0 &&
-                exchanges[exchangeId].active == true,
+                exchanges[exchangeId].active,
             "FixedRateExchange: Exchange does not exist!"
         );
         _;
@@ -363,13 +364,10 @@ contract FixedRateExchange is ReentrancyGuard {
         exchanges[exchangeId].marketFeeAvailable = exchanges[exchangeId]
             .marketFeeAvailable
             .add(marketFeeAmount);
-        require(
-            IERC20Template(exchanges[exchangeId].baseToken).transferFrom(
+        IERC20(exchanges[exchangeId].baseToken).safeTransferFrom(
                 msg.sender,
                 address(this), // we send basetoken to this address, then exchange owner can withdraw
                 baseTokenAmount
-            ),
-            "FixedRateExchange: transferFrom failed in the baseToken contract"
         );
 
         exchanges[exchangeId].btBalance = (exchanges[exchangeId].btBalance).add(
@@ -384,19 +382,16 @@ contract FixedRateExchange is ReentrancyGuard {
                 IERC20Template(exchanges[exchangeId].dataToken).mint(msg.sender,dataTokenAmount);
             }
             else{
-                require(
-                    IERC20Template(exchanges[exchangeId].dataToken).transferFrom(
+                    IERC20(exchanges[exchangeId].dataToken).safeTransferFrom(
                         exchanges[exchangeId].exchangeOwner,
                         msg.sender,
                         dataTokenAmount
-                    ),
-                    "FixedRateExchange: transferFrom failed in the dataToken contract"
-                );
+                    );
             }
         } else {
             exchanges[exchangeId].dtBalance = (exchanges[exchangeId].dtBalance)
                 .sub(dataTokenAmount);
-            IERC20Template(exchanges[exchangeId].dataToken).transfer(
+            IERC20(exchanges[exchangeId].dataToken).safeTransfer(
                 msg.sender,
                 dataTokenAmount
             );
@@ -452,32 +447,28 @@ contract FixedRateExchange is ReentrancyGuard {
         exchanges[exchangeId].marketFeeAvailable = exchanges[exchangeId]
             .marketFeeAvailable
             .add(marketFeeAmount);
-        require(
-            IERC20Template(exchanges[exchangeId].dataToken).transferFrom(
+        
+            IERC20(exchanges[exchangeId].dataToken).safeTransferFrom(
                 msg.sender,
                 address(this),
                 dataTokenAmount
-            ),
-            "FixedRateExchange: transferFrom failed in the dataToken contract"
-        );
+            );
 
         exchanges[exchangeId].dtBalance = (exchanges[exchangeId].dtBalance).add(
             dataTokenAmount
         );
 
         if (baseTokenAmount > exchanges[exchangeId].btBalance) {
-            require(
-                IERC20Template(exchanges[exchangeId].baseToken).transferFrom(
+            
+                IERC20(exchanges[exchangeId].baseToken).safeTransferFrom(
                     exchanges[exchangeId].exchangeOwner,
                     msg.sender,
                     baseTokenAmount
-                ),
-                "FixedRateExchange: transferFrom failed in the baseToken contract"
-            );
+                );
         } else {
             exchanges[exchangeId].btBalance = (exchanges[exchangeId].btBalance)
                 .sub(baseTokenAmountBeforeFee);
-            IERC20Template(exchanges[exchangeId].baseToken).transfer(
+            IERC20(exchanges[exchangeId].baseToken).safeTransfer(
                 msg.sender,
                 baseTokenAmount
             );
@@ -501,7 +492,7 @@ contract FixedRateExchange is ReentrancyGuard {
     {
         uint256 amount = exchanges[exchangeId].btBalance;
         exchanges[exchangeId].btBalance = 0;
-        IERC20Template(exchanges[exchangeId].baseToken).transfer(
+        IERC20(exchanges[exchangeId].baseToken).safeTransfer(
             exchanges[exchangeId].exchangeOwner,
             amount
         );
@@ -521,7 +512,7 @@ contract FixedRateExchange is ReentrancyGuard {
     {
         uint256 amount = exchanges[exchangeId].dtBalance;
         exchanges[exchangeId].dtBalance = 0;
-        IERC20Template(exchanges[exchangeId].dataToken).transfer(
+        IERC20(exchanges[exchangeId].dataToken).safeTransfer(
             exchanges[exchangeId].exchangeOwner,
             amount
         );
@@ -538,7 +529,7 @@ contract FixedRateExchange is ReentrancyGuard {
         // anyone call call this function, because funds are sent to the correct address
         uint256 amount = exchanges[exchangeId].marketFeeAvailable;
         exchanges[exchangeId].marketFeeAvailable = 0;
-        IERC20Template(exchanges[exchangeId].baseToken).transfer(
+        IERC20(exchanges[exchangeId].baseToken).safeTransfer(
             exchanges[exchangeId].marketFeeCollector,
             amount
         );
@@ -553,7 +544,7 @@ contract FixedRateExchange is ReentrancyGuard {
         // anyone call call this function, because funds are sent to the correct address
         uint256 amount = exchanges[exchangeId].oceanFeeAvailable;
         exchanges[exchangeId].oceanFeeAvailable = 0;
-        IERC20Template(exchanges[exchangeId].baseToken).transfer(
+        IERC20(exchanges[exchangeId].baseToken).safeTransfer(
             opfCollector,
             amount
         );
@@ -678,7 +669,7 @@ contract FixedRateExchange is ReentrancyGuard {
         returns (uint256 supply)
     {
         if (exchanges[exchangeId].active == false) supply = 0;
-        else if (exchanges[exchangeId].withMint == true
+        else if (exchanges[exchangeId].withMint
         && IERC20Template(exchanges[exchangeId].dataToken).isMinter(address(this))){
             supply = IERC20Template(exchanges[exchangeId].dataToken).cap() 
             - IERC20Template(exchanges[exchangeId].dataToken).totalSupply();
