@@ -59,7 +59,7 @@ contract ERC20Template is ERC20("test", "testSymbol"), ERC20Roles, ERC20Burnable
         address indexed consumer,
         address payer,
         uint256 amount,
-        uint256 serviceId,
+        uint256 serviceIndex,
         uint256 timestamp,
         address indexed publishMarketAddress,
         address indexed consumeFeeMarketAddress,
@@ -381,7 +381,7 @@ contract ERC20Template is ERC20("test", "testSymbol"), ERC20Roles, ERC20Burnable
      *      Requires previous approval of consumeFeeToken and publishMarketFeeToken
      * @param consumer is the consumer address (payer could be different address)
      * @param amount refers to amount of tokens that is going to be transfered.
-     * @param serviceId service index in the metadata
+     * @param serviceIndex service index in the metadata
      * @param consumeFeeAddress consume marketplace fee address
        @param consumeFeeToken // address of the token marketplace wants to add fee on top
        @param consumeFeeAmount // fee amount
@@ -389,7 +389,7 @@ contract ERC20Template is ERC20("test", "testSymbol"), ERC20Roles, ERC20Burnable
     function startOrder(
         address consumer,
         uint256 amount,
-        uint256 serviceId,
+        uint256 serviceIndex,
         address consumeFeeAddress,
         address consumeFeeToken, // address of the token marketplace wants to add fee on top
         uint256 consumeFeeAmount // amount to be transfered to marketFeeCollector
@@ -401,7 +401,7 @@ contract ERC20Template is ERC20("test", "testSymbol"), ERC20Roles, ERC20Burnable
             consumer,
             msg.sender,
             amount,
-            serviceId,
+            serviceIndex,
             block.timestamp,
             publishMarketFeeAddress,
             consumeFeeAddress,

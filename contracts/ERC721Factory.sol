@@ -461,7 +461,7 @@ contract ERC721Factory is Deployer, Ownable, ReentrancyGuard {
         address tokenAddress;
         address consumer;
         uint256 amount;
-        uint256 serviceId;
+        uint256 serviceIndex;
         address consumeFeeAddress;
         address consumeFeeToken; // address of the token marketplace wants to add fee on top
         uint256 consumeFeeAmount;
@@ -520,7 +520,7 @@ contract ERC721Factory is Deployer, Ownable, ReentrancyGuard {
             IERC20Template(orders[i].tokenAddress).startOrder(
                 orders[i].consumer,
                 orders[i].amount,
-                orders[i].serviceId,
+                orders[i].serviceIndex,
                 orders[i].consumeFeeAddress,
                 orders[i].consumeFeeToken,
                 orders[i].consumeFeeAmount

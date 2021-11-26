@@ -62,7 +62,7 @@ contract ERC20TemplateEnterprise is ERC20("test", "testSymbol"), ERC20Roles, ERC
         address indexed consumer,
         address payer,
         uint256 amount,
-        uint256 serviceId,
+        uint256 serviceIndex,
         uint256 timestamp,
         address indexed publishMarketAddress,
         address indexed consumeFeeMarketAddress,
@@ -334,7 +334,7 @@ contract ERC20TemplateEnterprise is ERC20("test", "testSymbol"), ERC20Roles, ERC
      *      Requires previous approval of consumeFeeToken and publishMarketFeeToken
      * @param consumer is the consumer address (payer could be different address)
      * @param amount refers to amount of tokens that is going to be transfered.
-     * @param serviceId service index in the metadata
+     * @param serviceIndex service index in the metadata
      * @param consumeFeeAddress consume marketplace fee address
        @param consumeFeeToken // address of the token marketplace wants to add fee on top
        @param consumeFeeAmount // fee amount
@@ -342,18 +342,18 @@ contract ERC20TemplateEnterprise is ERC20("test", "testSymbol"), ERC20Roles, ERC
     function startOrder(
         address consumer,
         uint256 amount,
-        uint256 serviceId,
+        uint256 serviceIndex,
         address consumeFeeAddress,
         address consumeFeeToken, // address of the token marketplace wants to add fee on top
         uint256 consumeFeeAmount // amount to be transfered to marketFeeCollector
     ) external {
-        _startOrder(consumer,amount,serviceId,consumeFeeAddress,consumeFeeToken,consumeFeeAmount);
+        _startOrder(consumer,amount,serviceIndex,consumeFeeAddress,consumeFeeToken,consumeFeeAmount);
     }
 
     function _startOrder(
         address consumer,
         uint256 amount,
-        uint256 serviceId,
+        uint256 serviceIndex,
         address consumeFeeAddress,
         address consumeFeeToken, // address of the token marketplace wants to add fee on top
         uint256 consumeFeeAmount // amount to be transfered to marketFeeCollector
@@ -365,7 +365,7 @@ contract ERC20TemplateEnterprise is ERC20("test", "testSymbol"), ERC20Roles, ERC
             consumer,
             msg.sender,
             amount,
-            serviceId,
+            serviceIndex,
             block.timestamp,
             publishMarketFeeAddress,
             consumeFeeAddress,
@@ -770,7 +770,7 @@ contract ERC20TemplateEnterprise is ERC20("test", "testSymbol"), ERC20Roles, ERC
     struct OrderParams{
         address consumer;
         uint256 amount;
-        uint256 serviceId;
+        uint256 serviceIndex;
         address consumeFeeAddress;
         address consumeFeeToken; // address of the token marketplace wants to add fee on top
         uint256 consumeFeeAmount; 
@@ -827,7 +827,7 @@ contract ERC20TemplateEnterprise is ERC20("test", "testSymbol"), ERC20Roles, ERC
         //we need the following because startOrder expects msg.sender to have dt
         _transfer(address(this),msg.sender,_orderParams.amount);
         //startOrder and burn it
-        _startOrder(_orderParams.consumer,_orderParams.amount,_orderParams.serviceId,
+        _startOrder(_orderParams.consumer,_orderParams.amount,_orderParams.serviceIndex,
         _orderParams.consumeFeeAddress, _orderParams.consumeFeeToken, _orderParams.consumeFeeAmount);
 
     }
@@ -841,7 +841,7 @@ contract ERC20TemplateEnterprise is ERC20("test", "testSymbol"), ERC20Roles, ERC
         IDispenser(dispenserContract).dispense(address(this), _orderParams.amount, msg.sender);
         require(balanceOf(address(msg.sender))>=_orderParams.amount, "Unable to get DT from Dispenser");
         //startOrder and burn it
-        _startOrder(_orderParams.consumer,_orderParams.amount,_orderParams.serviceId,
+        _startOrder(_orderParams.consumer,_orderParams.amount,_orderParams.serviceIndex,
         _orderParams.consumeFeeAddress, _orderParams.consumeFeeToken, _orderParams.consumeFeeAmount);
     }
 }

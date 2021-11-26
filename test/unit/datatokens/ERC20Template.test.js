@@ -547,7 +547,7 @@ describe("ERC20Template", () => {
     );
     const consumer = user2.address; // could be different user
     const dtAmount = web3.utils.toWei("1");
-    const serviceId = 1; // dummy index
+    const serviceIndex = 1; // dummy index
     const consumeFeeAddress = user3.address; // marketplace fee Collector
     const consumeFeeAmount = 0; // fee to be collected on top, requires approval
     const consumeFeeToken = mockErc20.address; // token address for the feeAmount, in this case DAI
@@ -557,7 +557,7 @@ describe("ERC20Template", () => {
       .startOrder(
         consumer,
         dtAmount,
-        serviceId,
+        serviceIndex,
         consumeFeeAddress,
         consumeFeeToken,
         consumeFeeAmount
@@ -598,7 +598,7 @@ describe("ERC20Template", () => {
     );
     const consumer = user2.address; // could be different user
     const dtAmount = web3.utils.toWei("1");
-    const serviceId = 1; // dummy index
+    const serviceIndex = 1; // dummy index
     const consumeFeeAddress = user3.address; // marketplace fee Collector
     const consumeFeeAmount = 1; // fee to be collected on top, requires approval
     const consumeFeeToken = addressZero; // token address for the feeAmount, in this case DAI
@@ -608,7 +608,7 @@ describe("ERC20Template", () => {
       .startOrder(
         consumer,
         dtAmount,
-        serviceId,
+        serviceIndex,
         consumeFeeAddress,
         consumeFeeToken,
         consumeFeeAmount
@@ -644,7 +644,7 @@ describe("ERC20Template", () => {
     const consumeFeeToken = mockErc20.address; // token address for the feeAmount, in this case mockErc20
     const consumer = user2.address; // could be different user
     const dtAmount = web3.utils.toWei("1");
-    const serviceId = 1; // dummy index
+    const serviceIndex = 1; // dummy index
     const consumeFeeAddress = user3.address; // marketplace fee Collector
     const consumeFeeAmount = "3"; // fee to be collected on top, requires approval
     // GET SOME consumeFeeToken
@@ -674,7 +674,7 @@ describe("ERC20Template", () => {
       .startOrder(
         consumer,
         dtAmount,
-        serviceId,
+        serviceIndex,
         consumeFeeAddress,
         consumeFeeToken,
         web3.utils.toWei(consumeFeeAmount)
@@ -729,7 +729,7 @@ describe("ERC20Template", () => {
     );
     const consumer = user2.address; // could be different user
     const dtAmount = web3.utils.toWei("1");
-    const serviceId = 1; // dummy index
+    const serviceIndex = 1; // dummy index
     const consumeFeeAddress = user3.address; // marketplace fee Collector
     const consumeFeeAmount = 0; // fee to be collected on top, requires approval
     const consumeFeeToken = "0x6b175474e89094c44da98b954eedeac495271d0f"; // token address for the feeAmount, in this case DAI
@@ -755,7 +755,7 @@ describe("ERC20Template", () => {
       .startOrder(
         consumer,
         dtAmount,
-        serviceId,
+        serviceIndex,
         consumeFeeAddress,
         consumeFeeToken,
         consumeFeeAmount
@@ -789,7 +789,7 @@ describe("ERC20Template", () => {
     const consumeFeeToken = mockErc20.address; // token address for the feeAmount, in this case mockErc20
     const consumer = user2.address; // could be different user
     const dtAmount = web3.utils.toWei("1");
-    const serviceId = 1; // dummy index
+    const serviceIndex = 1; // dummy index
     const consumeFeeAddress = user3.address; // marketplace fee Collector
     const consumeFeeAmount = "3"; // fee to be collected on top, requires approval
     const publishFees = await erc20TokenWithPublishFee
@@ -836,7 +836,7 @@ describe("ERC20Template", () => {
       .startOrder(
         consumer,
         dtAmount,
-        serviceId,
+        serviceIndex,
         consumeFeeAddress,
         consumeFeeToken,
         web3.utils.toWei(consumeFeeAmount)
