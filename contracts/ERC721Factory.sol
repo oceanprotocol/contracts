@@ -304,7 +304,7 @@ contract ERC721Factory is Deployer, Ownable, ReentrancyGuard {
         address[] memory addresses,
         uint256[] memory uints,
         bytes[] memory bytess
-    ) public returns (address token) {
+    ) external returns (address token) {
         require(
             erc721List[msg.sender] == msg.sender,
             "ERC721Factory: ONLY ERC721 INSTANCE FROM ERC721FACTORY"
@@ -706,25 +706,5 @@ contract ERC721Factory is Deployer, Ownable, ReentrancyGuard {
 
 
 
-// HAL01 - UNCHECKED TRANSFER Medium -
-// XX HAL02 - MULTIPLE EXTERNAL CALLS  DONE
-// WITHIN LOOP MAY LEADS TO DENIAL OF
-// SERVICE(DOS) Medium -
-// XX HAL03 - RE-ENTRANCY PROTECTION DONE
-// HAL04 - IGNORED RETURN VALUES Low -
-// HAL05 - MISSING ZERO-ADDRESS CHECK Low 
-// XX HAL06 - DIVIDE BEFORE MULTIPLY Low DONE
-// XX HAL07 - USAGE OF BLOCK-TIMESTAMP DONE
-// XX HAL08 - EXPERIMENTAL FEATURES ENABLED - DONE - didn't change anything
-// XX HAL09 - FLOATING PRAGMA Low -
-// HAL10 - OUTDATED DEPENDENCIES Low -
-// XX HAL11 - PRAGMA VERSION DEPRECATED Low -
-// XX HAL12 - MULTIPLE PRAGMA DEFINITIONS Low -
-// HAL13 - REDUNDANT BOOLEAN
-// COMPARISON Informational -
-// HAL14 - USE OF INLINE ASSEMBLY Informational -
-// XX HAL15 - REDUNDANT VARIABLES Informational -DONE
-// XX HAL16 - POSSIBLE MISUSE OF PUBLIC - DONE - didn't change anything
-// FUNCTIONS Informational -
-// HAL17 - POTENTIAL UNSAFE
+
 }

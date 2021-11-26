@@ -324,7 +324,7 @@ contract ERC20TemplateEnterprise is ERC20("test", "testSymbol"), ERC20Roles, ERC
      *      Check if an address has the minter role
      * @param account refers to an address that is checked
      */
-    function isMinter(address account) public view returns(bool) {
+    function isMinter(address account) external view returns(bool) {
         return(permissions[account].minter);
     }
     

@@ -3,7 +3,6 @@
 
 pragma solidity 0.8.10;
 
-
 import "./balancer/BFactory.sol";
 import "../interfaces/IFactory.sol";
 import "../interfaces/IERC20.sol";
@@ -63,7 +62,7 @@ contract FactoryRouter is BFactory {
         oceanTokens[_oceanToken] = true;
     }
 
-    function changeRouterOwner(address _routerOwner) public onlyRouterOwner {
+    function changeRouterOwner(address _routerOwner) external onlyRouterOwner {
         require(
             _routerOwner != address(0),
             'Invalid new router owner'
@@ -72,13 +71,13 @@ contract FactoryRouter is BFactory {
         emit RouterChanged(msg.sender, _routerOwner);
     }
 
-    function addOceanToken(address oceanTokenAddress) public onlyRouterOwner {
+    function addOceanToken(address oceanTokenAddress) external onlyRouterOwner {
         require(oceanTokenAddress != address(0), "FactoryRouter: Invalid Ocean Token address");
         oceanTokens[oceanTokenAddress] = true;
         emit TokenAdded(msg.sender, oceanTokenAddress);
     }
 
-    function removeOceanToken(address oceanTokenAddress) public onlyRouterOwner {
+    function removeOceanToken(address oceanTokenAddress) external onlyRouterOwner {
         require(oceanTokenAddress != address(0), "FactoryRouter: Invalid Ocean Token address");
         oceanTokens[oceanTokenAddress] = false;
         emit TokenRemoved(msg.sender, oceanTokenAddress);

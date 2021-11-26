@@ -139,7 +139,7 @@ contract SideStaking is ReentrancyGuard {
      */
 
     function getDataTokenCirculatingSupply(address datatokenAddress)
-        public
+        external
         view
         returns (uint256)
     {
@@ -156,7 +156,7 @@ contract SideStaking is ReentrancyGuard {
      */
 
     function getDataTokenCurrentCirculatingSupply(address datatokenAddress)
-        public
+        external
         view
         returns (uint256)
     {
@@ -174,7 +174,7 @@ contract SideStaking is ReentrancyGuard {
      */
 
     function getPublisherAddress(address datatokenAddress)
-        public
+        external
         view
         returns (address)
     {
@@ -189,7 +189,7 @@ contract SideStaking is ReentrancyGuard {
      */
 
     function getBaseTokenAddress(address datatokenAddress)
-        public
+        external
         view
         returns (address)
     {
@@ -204,7 +204,7 @@ contract SideStaking is ReentrancyGuard {
      */
 
     function getPoolAddress(address datatokenAddress)
-        public
+        external
         view
         returns (address)
     {
@@ -218,7 +218,7 @@ contract SideStaking is ReentrancyGuard {
 
      */
     function getBaseTokenBalance(address datatokenAddress)
-        public
+        external
         view
         returns (uint256)
     {
@@ -233,7 +233,7 @@ contract SideStaking is ReentrancyGuard {
      */
 
     function getDataTokenBalance(address datatokenAddress)
-        public
+        external
         view
         returns (uint256)
     {
@@ -248,7 +248,7 @@ contract SideStaking is ReentrancyGuard {
      */
 
     function getvestingEndBlock(address datatokenAddress)
-        public
+        external
         view
         returns (uint256)
     {
@@ -278,7 +278,7 @@ contract SideStaking is ReentrancyGuard {
      */
 
     function getvestingLastBlock(address datatokenAddress)
-        public
+        external
         view
         returns (uint256)
     {
@@ -327,8 +327,8 @@ contract SideStaking is ReentrancyGuard {
         address datatokenAddress,
         address stakeToken,
         uint256 amount
-    ) public nonReentrant {
-        if (! _datatokens[datatokenAddress].bound) return;
+    ) external nonReentrant {
+        if (!_datatokens[datatokenAddress].bound) return;
         require(
             msg.sender == _datatokens[datatokenAddress].poolAddress,
             "ERR: Only pool can call this"
@@ -370,7 +370,7 @@ contract SideStaking is ReentrancyGuard {
         address stakeToken,
         uint256 dtAmountIn,
         uint256 poolAmountOut
-    ) public nonReentrant{
+    ) external nonReentrant{
         if (! _datatokens[datatokenAddress].bound) return;
         require(
             msg.sender == _datatokens[datatokenAddress].poolAddress,
@@ -443,7 +443,7 @@ contract SideStaking is ReentrancyGuard {
 
      */
     // called by vester to get datatokens
-    function getVesting(address datatokenAddress) public nonReentrant {
+    function getVesting(address datatokenAddress) external nonReentrant {
         require(
             _datatokens[datatokenAddress].bound,
             "ERR:Invalid datatoken"
