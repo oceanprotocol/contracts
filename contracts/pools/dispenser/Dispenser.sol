@@ -3,12 +3,16 @@ pragma solidity 0.8.10;
 // SPDX-License-Identifier: (Apache-2.0 AND CC-BY-4.0)
 // Code is Apache-2.0 and docs are CC-BY-4.0
 
+import "../../interfaces/IERC20.sol";
 import "../../interfaces/IERC20Template.sol";
 import "@openzeppelin/contracts/utils/math/SafeMath.sol";
+
+import "../../utils/SafeERC20.sol";
 import "@openzeppelin/contracts/security/ReentrancyGuard.sol";
 
 contract Dispenser is ReentrancyGuard{
     using SafeMath for uint256;
+    using SafeERC20 for IERC20;
     address public router;
 
     struct DataToken {
@@ -199,7 +203,7 @@ contract Dispenser is ReentrancyGuard{
             'Invalid token contract address'
         );
         require(
-            datatokens[datatoken].active == true,
+            datatokens[datatoken].active,
             'Dispenser not active'
         );
         require(
@@ -233,7 +237,7 @@ contract Dispenser is ReentrancyGuard{
             ourBalance>=amount,
             'Not enough reserves'
         );
-        tokenInstance.transfer(destination,amount);
+        IERC20(datatoken).safeTransfer(destination,amount);
         emit TokensDispensed(datatoken, destination, amount);
     }
 
@@ -254,7 +258,7 @@ contract Dispenser is ReentrancyGuard{
         IERC20Template tokenInstance = IERC20Template(datatoken);
         uint256 ourBalance = tokenInstance.balanceOf(address(this));
         if(ourBalance>0){
-            tokenInstance.transfer(msg.sender,ourBalance);
+            IERC20(datatoken).safeTransfer(msg.sender,ourBalance);
             emit OwnerWithdrawed(datatoken, msg.sender, ourBalance);
         }
     }
