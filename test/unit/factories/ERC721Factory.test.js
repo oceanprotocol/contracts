@@ -563,7 +563,10 @@ describe("ERC721Factory", () => {
           "serviceIndex":serviceIndex,
           "consumeFeeAddress":consumeFeeAddress,
           "consumeFeeToken":consumeFeeToken,
-          "consumeFeeAmount":web3.utils.toWei(String(consumeFeeAmount))
+          "consumeFeeAmount":web3.utils.toWei(String(consumeFeeAmount)),
+          "providerFeeAddress":consumeFeeAddress,
+          "providerFeeToken":consumeFeeToken,
+          "providerFeeAmount":0
         }]
       );
       const txReceipt = await tx.wait();
@@ -615,7 +618,10 @@ describe("ERC721Factory", () => {
           "serviceIndex":serviceIndex,
           "consumeFeeAddress":consumeFeeAddress,
           "consumeFeeToken":consumeFeeToken,
-          "consumeFeeAmount":web3.utils.toWei(String(consumeFeeAmount))
+          "consumeFeeAmount":web3.utils.toWei(String(consumeFeeAmount)),
+          "providerFeeAddress":consumeFeeAddress,
+          "providerFeeToken":consumeFeeToken,
+          "providerFeeAmount":0
         }]
       );
       console.log("5")
@@ -679,7 +685,10 @@ describe("ERC721Factory", () => {
         "serviceIndex":serviceIndex,
         "consumeFeeAddress":consumeFeeAddress,
         "consumeFeeToken":consumeFeeToken,
-        "consumeFeeAmount":web3.utils.toWei(String(consumeFeeAmount))
+        "consumeFeeAmount":web3.utils.toWei(String(consumeFeeAmount)),
+        "providerFeeAddress":consumeFeeAddress,
+        "providerFeeToken":consumeFeeToken,
+        "providerFeeAmount":0
       }]
       );
     const txReceipt = await tx.wait();
@@ -748,7 +757,10 @@ describe("ERC721Factory", () => {
           "serviceIndex":serviceIndex,
           "consumeFeeAddress":consumeFeeAddress,
           "consumeFeeToken":consumeFeeToken,
-          "consumeFeeAmount":web3.utils.toWei(String(consumeFeeAmount))
+          "consumeFeeAmount":web3.utils.toWei(String(consumeFeeAmount)),
+          "providerFeeAddress":consumeFeeAddress,
+          "providerFeeToken":consumeFeeToken,
+          "providerFeeAmount":0
         }]
       );
     const txReceipt = await tx.wait();
@@ -829,7 +841,10 @@ describe("ERC721Factory", () => {
           "serviceIndex":serviceIndex,
           "consumeFeeAddress":consumeFeeAddress,
           "consumeFeeToken":consumeFeeToken,
-          "consumeFeeAmount":web3.utils.toWei(String(consumeFeeAmount))
+          "consumeFeeAmount":web3.utils.toWei(String(consumeFeeAmount)),
+          "providerFeeAddress":consumeFeeAddress,
+          "providerFeeToken":consumeFeeToken,
+          "providerFeeAmount":0
         }]
       );
     const txReceipt = await tx.wait();
@@ -932,7 +947,10 @@ describe("ERC721Factory", () => {
           "serviceIndex":serviceIndex,
           "consumeFeeAddress":consumeFeeAddress,
           "consumeFeeToken":consumeFeeToken,
-          "consumeFeeAmount":web3.utils.toWei(String(consumeFeeAmount1))
+          "consumeFeeAmount":web3.utils.toWei(String(consumeFeeAmount1)),
+          "providerFeeAddress":consumeFeeAddress,
+          "providerFeeToken":consumeFeeToken,
+          "providerFeeAmount":0
         },
         {
           "tokenAddress":erc20Token.address,
@@ -941,7 +959,10 @@ describe("ERC721Factory", () => {
           "serviceIndex":serviceIndex,
           "consumeFeeAddress":consumeFeeAddress,
           "consumeFeeToken":consumeFeeToken,
-          "consumeFeeAmount":web3.utils.toWei(String(consumeFeeAmount2))
+          "consumeFeeAmount":web3.utils.toWei(String(consumeFeeAmount2)),
+          "providerFeeAddress":consumeFeeAddress,
+          "providerFeeToken":consumeFeeToken,
+          "providerFeeAmount":0
         }]
       );
     const txReceipt = await tx.wait();

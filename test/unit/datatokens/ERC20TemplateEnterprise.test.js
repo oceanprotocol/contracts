@@ -555,6 +555,9 @@ describe("ERC20TemplateEnterprise", () => {
     const consumeFeeAddress = user3.address; // marketplace fee Collector
     const consumeFeeAmount = 0; // fee to be collected on top, requires approval
     const consumeFeeToken = mockErc20.address; // token address for the feeAmount, in this case DAI
+    const providerFeeAddress = user5.address; // marketplace fee Collector
+    const providerFeeAmount = 0; // fee to be collected on top, requires approval
+    const providerFeeToken = mockErc20.address; // token address for the feeAmount, in this case DAI
 
     const tx = await erc20Token
       .connect(user2)
@@ -564,7 +567,10 @@ describe("ERC20TemplateEnterprise", () => {
         serviceIndex,
         consumeFeeAddress,
         consumeFeeToken,
-        consumeFeeAmount
+        consumeFeeAmount,
+        providerFeeAddress,
+        providerFeeToken,
+        providerFeeAmount
       );
     const txReceipt = await tx.wait();
     let event = getEventFromTx(txReceipt, 'OrderStarted')
@@ -575,6 +581,9 @@ describe("ERC20TemplateEnterprise", () => {
     //make sure that we don't have ConsumeMarketFees event
     event = getEventFromTx(txReceipt, 'ConsumeMarketFees')
     assert.typeOf(event, 'undefined',"ConsumeMarketFees event found")
+    //make sure that we don't have ProviderFees event
+    event = getEventFromTx(txReceipt, 'ProviderFees')
+    assert.typeOf(event, 'undefined',"ProviderFees event found")
 
     assert(
       (await erc20Token.balanceOf(user2.address)) == web3.utils.toWei("9"), 'Invalid user balance, DT was not substracted'
@@ -606,7 +615,9 @@ describe("ERC20TemplateEnterprise", () => {
     const consumeFeeAddress = user3.address; // marketplace fee Collector
     const consumeFeeAmount = 1; // fee to be collected on top, requires approval
     const consumeFeeToken = addressZero; // token address for the feeAmount, in this case DAI
-
+    const providerFeeAddress = user5.address; // marketplace fee Collector
+    const providerFeeAmount = 0; // fee to be collected on top, requires approval
+    const providerFeeToken = mockErc20.address; // token address for the feeAmount, in this case DAI
     const tx = await erc20Token
       .connect(user2)
       .startOrder(
@@ -615,7 +626,10 @@ describe("ERC20TemplateEnterprise", () => {
         serviceIndex,
         consumeFeeAddress,
         consumeFeeToken,
-        consumeFeeAmount
+        consumeFeeAmount,
+        providerFeeAddress,
+        providerFeeToken,
+        providerFeeAmount
       );
     const txReceipt = await tx.wait();
     let event = getEventFromTx(txReceipt, 'OrderStarted')
@@ -626,6 +640,9 @@ describe("ERC20TemplateEnterprise", () => {
     //make sure that we don't have ConsumeMarketFees event
     event = getEventFromTx(txReceipt, 'ConsumeMarketFees')
     assert.typeOf(event, 'undefined',"ConsumeMarketFees event found")
+    //make sure that we don't have ProviderFees event
+    event = getEventFromTx(txReceipt, 'ProviderFees')
+    assert.typeOf(event, 'undefined',"ProviderFees event found")
     assert(
       (await erc20Token.balanceOf(user2.address)) == web3.utils.toWei("9"), 'Invalid user balance, DT was not substracted'
     );
@@ -650,6 +667,10 @@ describe("ERC20TemplateEnterprise", () => {
     const serviceIndex = 1; // dummy index
     const consumeFeeAddress = user3.address; // marketplace fee Collector
     const consumeFeeAmount = "3"; // fee to be collected on top, requires approval
+    const providerFeeAddress = user5.address; // marketplace fee Collector
+    const providerFeeAmount = '1'; // fee to be collected on top, requires approval
+    const providerFeeToken = mockErc20.address; // token address for the feeAmount, in this case DAI
+    const totalFee = '4' ;//consumeFeeAmount + providerFeeAmount
     // GET SOME consumeFeeToken
     const Mock20Contract = await ethers.getContractAt(
       "contracts/interfaces/IERC20.sol:IERC20",
@@ -657,13 +678,13 @@ describe("ERC20TemplateEnterprise", () => {
     );
     await Mock20Contract
       .connect(owner)
-      .transfer(user2.address, ethers.utils.parseEther(consumeFeeAmount));
+      .transfer(user2.address, ethers.utils.parseEther(totalFee));
 
     // we approve the erc20Token contract to pull feeAmount (3 DAI)
 
     await Mock20Contract
       .connect(user2)
-      .approve(erc20Token.address, web3.utils.toWei(consumeFeeAmount));
+      .approve(erc20Token.address, web3.utils.toWei(totalFee));
 
     //MINT SOME DT20 to USER2 so he can start order
     await erc20Token.connect(user3).mint(user2.address, web3.utils.toWei("10"));
@@ -680,13 +701,19 @@ describe("ERC20TemplateEnterprise", () => {
         serviceIndex,
         consumeFeeAddress,
         consumeFeeToken,
-        web3.utils.toWei(consumeFeeAmount)
+        web3.utils.toWei(consumeFeeAmount),
+        providerFeeAddress,
+        providerFeeToken,
+        providerFeeAmount
       );
     const txReceipt = await tx.wait();
     let event = getEventFromTx(txReceipt, 'OrderStarted')
     assert(event, "Cannot find OrderStarted event")
     event = getEventFromTx(txReceipt, 'ConsumeMarketFees')
     assert(event, "Cannot find ConsumeMarketFees event")
+    //make sure that we do have PublishMarketFees event
+    event = getEventFromTx(txReceipt, 'PublishMarketFees')
+    assert.typeOf(event, 'undefined', "PublishMarketFees event found")
     //make sure that we don't have PublishMarketFees event
     event = getEventFromTx(txReceipt, 'PublishMarketFees')
     assert.typeOf(event, 'undefined',"PublishMarketFees event found")
@@ -735,6 +762,9 @@ describe("ERC20TemplateEnterprise", () => {
     const consumeFeeAddress = user3.address; // marketplace fee Collector
     const consumeFeeAmount = 0; // fee to be collected on top, requires approval
     const consumeFeeToken = "0x6b175474e89094c44da98b954eedeac495271d0f"; // token address for the feeAmount, in this case DAI
+    const providerFeeAddress = user5.address; // marketplace fee Collector
+    const providerFeeAmount = 0; // fee to be collected on top, requires approval
+    const providerFeeToken = mockErc20.address; // token address for the feeAmount, in this case DAI
     const publishFees = await erc20TokenWithPublishFee
       .connect(user2)
       .getPublishingMarketFee();
@@ -760,7 +790,10 @@ describe("ERC20TemplateEnterprise", () => {
         serviceIndex,
         consumeFeeAddress,
         consumeFeeToken,
-        consumeFeeAmount
+        consumeFeeAmount,
+        providerFeeAddress,
+        providerFeeToken,
+        providerFeeAmount
       );
     const txReceipt = await tx.wait();
     let event = getEventFromTx(txReceipt, 'OrderStarted')
@@ -794,6 +827,10 @@ describe("ERC20TemplateEnterprise", () => {
     const serviceIndex = 1; // dummy index
     const consumeFeeAddress = user3.address; // marketplace fee Collector
     const consumeFeeAmount = "3"; // fee to be collected on top, requires approval
+    const providerFeeAddress = user5.address; // marketplace fee Collector
+    const providerFeeAmount = 0; // fee to be collected on top, requires approval
+    const providerFeeToken = mockErc20.address; // token address for the feeAmount, in this case DAI
+
     const publishFees = await erc20TokenWithPublishFee
       .connect(user2)
       .getPublishingMarketFee();
@@ -841,7 +878,10 @@ describe("ERC20TemplateEnterprise", () => {
         serviceIndex,
         consumeFeeAddress,
         consumeFeeToken,
-        web3.utils.toWei(consumeFeeAmount)
+        web3.utils.toWei(consumeFeeAmount),
+        providerFeeAddress,
+        providerFeeToken,
+        providerFeeAmount
       );
     const txReceipt = await tx.wait();
     let event = getEventFromTx(txReceipt, 'OrderStarted')
@@ -995,6 +1035,8 @@ describe("ERC20TemplateEnterprise", () => {
 
     //let's get publishMarketFees and transfer tokens
     const consumeFeeAmount = '2'
+    const providerFeeAmount = '3'
+    const totalFeeAmount = '5'  // consumeFeeAmount + providerFeeAmount
     const consumeFeeAddress = user2.address
     const publishFees = await EnterpriseToken
       .connect(user2)
@@ -1020,13 +1062,13 @@ describe("ERC20TemplateEnterprise", () => {
     );
     await Mock20Contract
       .connect(owner)
-      .transfer(user3.address, ethers.utils.parseEther(consumeFeeAmount));
+      .transfer(user3.address, ethers.utils.parseEther(totalFeeAmount));
 
-    // we approve the erc20Token contract to pull feeAmount (3 DAI)
+    // we approve the erc20Token contract to pull feeAmount 
 
     await Mock20Contract
       .connect(user3)
-      .approve(EnterpriseToken.address, web3.utils.toWei(consumeFeeAmount));
+      .approve(EnterpriseToken.address, web3.utils.toWei(totalFeeAmount));
 
     //let's order in one click
     tx = await EnterpriseToken.connect(user3).buyFromDispenserAndOrder(
@@ -1036,7 +1078,10 @@ describe("ERC20TemplateEnterprise", () => {
         "serviceIndex": 1,
         "consumeFeeAddress": consumeFeeAddress,
         "consumeFeeToken": mockErc20.address,
-        "consumeFeeAmount": web3.utils.toWei(consumeFeeAmount)
+        "consumeFeeAmount": web3.utils.toWei(consumeFeeAmount),
+        "providerFeeAddress": user5.address,
+        "providerFeeToken": mockErc20.address,
+        "providerFeeAmount": web3.utils.toWei(providerFeeAmount)
       },
       dispenser.address)
     assert(tx,
@@ -1124,6 +1169,8 @@ describe("ERC20TemplateEnterprise", () => {
 
     //let's get publishMarketFees and transfer tokens
     const consumeFeeAmount = '2'
+    const providerFeeAmount = '3'
+    const totalFeeAmount = '5'
     const consumeFeeAddress = user2.address
     const publishFees = await EnterpriseToken
       .connect(user2)
@@ -1149,13 +1196,13 @@ describe("ERC20TemplateEnterprise", () => {
     );
     await Mock20Contract
       .connect(owner)
-      .transfer(user3.address, ethers.utils.parseEther(consumeFeeAmount));
+      .transfer(user3.address, ethers.utils.parseEther(totalFeeAmount));
 
     // we approve the erc20Token contract to pull feeAmount (3 DAI)
 
     await Mock20Contract
       .connect(user3)
-      .approve(EnterpriseToken.address, web3.utils.toWei(consumeFeeAmount));
+      .approve(EnterpriseToken.address, web3.utils.toWei(totalFeeAmount));
     //let's order in one click
     tx = await EnterpriseToken.connect(user3).buyFromFreAndOrder(
       {
@@ -1164,7 +1211,10 @@ describe("ERC20TemplateEnterprise", () => {
         "serviceIndex": 1,
         "consumeFeeAddress": consumeFeeAddress,
         "consumeFeeToken": mockErc20.address,
-        "consumeFeeAmount": web3.utils.toWei(consumeFeeAmount)
+        "consumeFeeAmount": web3.utils.toWei(consumeFeeAmount),
+        "providerFeeAddress": user5.address,
+        "providerFeeToken": mockErc20.address,
+        "providerFeeAmount": web3.utils.toWei(providerFeeAmount)
       },
       {
         "exchangeContract": fixedRateExchange.address,

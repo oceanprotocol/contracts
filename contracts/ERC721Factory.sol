@@ -465,6 +465,9 @@ contract ERC721Factory is Deployer, Ownable, ReentrancyGuard {
         address consumeFeeAddress;
         address consumeFeeToken; // address of the token marketplace wants to add fee on top
         uint256 consumeFeeAmount;
+        address providerFeeAddress;
+        address providerFeeToken; // address of the token marketplace wants to add fee on top
+        uint256 providerFeeAmount;
     }
 
     /**
@@ -510,6 +513,17 @@ contract ERC721Factory is Deployer, Ownable, ReentrancyGuard {
                 IERC20(orders[i].consumeFeeToken)
                 .safeIncreaseAllowance(orders[i].tokenAddress, orders[i].consumeFeeAmount);
             }
+            // check if we have consumeFees, if so transfer them to us and approve dttemplate to take them
+            if (orders[i].providerFeeAmount > 0 && orders[i].providerFeeToken!=address(0) 
+            && orders[i].providerFeeAddress!=address(0)) {
+                IERC20(orders[i].providerFeeToken).safeTransferFrom(
+                    msg.sender,
+                    address(this),
+                    orders[i].providerFeeAmount
+                );
+                IERC20(orders[i].providerFeeToken)
+                .safeIncreaseAllowance(orders[i].tokenAddress, orders[i].providerFeeAmount);
+            }
             // transfer erc20 datatoken from consumer to us
             IERC20(orders[i].tokenAddress).safeTransferFrom(
                 msg.sender,
@@ -523,7 +537,10 @@ contract ERC721Factory is Deployer, Ownable, ReentrancyGuard {
                 orders[i].serviceIndex,
                 orders[i].consumeFeeAddress,
                 orders[i].consumeFeeToken,
-                orders[i].consumeFeeAmount
+                orders[i].consumeFeeAmount,
+                orders[i].providerFeeAddress,
+                orders[i].providerFeeToken,
+                orders[i].providerFeeAmount
             );
         }
     }

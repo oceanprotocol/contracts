@@ -72,6 +72,12 @@ contract ERC20Template is ERC20("test", "testSymbol"), ERC20Roles, ERC20Burnable
         uint256 consumeFeeAmount
     );
 
+    event ProviderFees(
+        address indexed providerFeeAddress,
+        address indexed providerFeeToken, 
+        uint256 providerFeeAmount
+    );
+
     event PublishMarketFees(
         address indexed PublishMarketFeeAddress,
         address indexed PublishMarketFeeToken, 
@@ -383,8 +389,11 @@ contract ERC20Template is ERC20("test", "testSymbol"), ERC20Roles, ERC20Burnable
      * @param amount refers to amount of tokens that is going to be transfered.
      * @param serviceIndex service index in the metadata
      * @param consumeFeeAddress consume marketplace fee address
-       @param consumeFeeToken // address of the token marketplace wants to add fee on top
-       @param consumeFeeAmount // fee amount
+     * @param consumeFeeToken // address of the token marketplace wants to add fee on top
+     * @param consumeFeeAmount // fee amount
+     * @param providerFeeAddress consume marketplace fee address
+     * @param providerFeeToken // address of the token marketplace wants to add fee on top
+     * @param providerFeeAmount // fee amount       
      */
     function startOrder(
         address consumer,
@@ -392,7 +401,11 @@ contract ERC20Template is ERC20("test", "testSymbol"), ERC20Roles, ERC20Burnable
         uint256 serviceIndex,
         address consumeFeeAddress,
         address consumeFeeToken, // address of the token marketplace wants to add fee on top
-        uint256 consumeFeeAmount // amount to be transfered to marketFeeCollector
+        uint256 consumeFeeAmount, // amount to be transfered to marketFeeCollector
+        address providerFeeAddress,
+        address providerFeeToken, // address of the token marketplace wants to add fee on top
+        uint256 providerFeeAmount // amount to be transfered to marketFeeCollector
+
     ) external nonReentrant {
         uint256 communityFeeConsume = 0;
         uint256 communityFeePublish = 0;
@@ -464,6 +477,21 @@ contract ERC20Template is ERC20("test", "testSymbol"), ERC20Roles, ERC20Burnable
                 emit ConsumeMarketFees(_communityFeeCollector, consumeFeeToken, communityFeeConsume);
             }
             
+        }
+        // providerFees
+        // Requires approval for the providerFeeToken of providerFeeAmount
+        // skip fee if amount == 0 or feeToken == 0x0 address or feeAddress == 0x0 address
+        if (providerFeeAmount > 0 && providerFeeToken!=address(0) && providerFeeAddress!=address(0)) {
+            IERC20(providerFeeToken).safeTransferFrom(
+                msg.sender,
+                address(this),
+                providerFeeAmount
+            );
+            //send providerFee
+            IERC20(providerFeeToken)
+            .safeTransfer(providerFeeAddress,providerFeeAmount);
+            //send to OPC
+            emit ProviderFees(providerFeeAddress, providerFeeToken, providerFeeAmount);
         }
         // send datatoken to publisher
         require(transfer(getPaymentCollector(), amount), 'Failed to send DT to publisher');

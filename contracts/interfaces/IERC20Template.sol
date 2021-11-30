@@ -96,7 +96,11 @@ interface IERC20Template {
         uint256 serviceId,
         address consumeFeeAddress,
         address consumeFeeToken, 
-        uint256 consumeFeeAmount
+        uint256 consumeFeeAmount,
+        address providerFeeAddress,
+        address providerFeeToken, 
+        uint256 providerFeeAmount
+
      ) external;
   
     function burn(uint256 amount) external;

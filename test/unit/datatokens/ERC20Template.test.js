@@ -551,7 +551,9 @@ describe("ERC20Template", () => {
     const consumeFeeAddress = user3.address; // marketplace fee Collector
     const consumeFeeAmount = 0; // fee to be collected on top, requires approval
     const consumeFeeToken = mockErc20.address; // token address for the feeAmount, in this case DAI
-
+    const providerFeeAddress = user5.address; // marketplace fee Collector
+    const providerFeeAmount = 0; // fee to be collected on top, requires approval
+    const providerFeeToken = mockErc20.address; // token address for the feeAmount, in this case DAI
     const tx = await erc20Token
       .connect(user2)
       .startOrder(
@@ -560,17 +562,23 @@ describe("ERC20Template", () => {
         serviceIndex,
         consumeFeeAddress,
         consumeFeeToken,
-        consumeFeeAmount
+        consumeFeeAmount,
+        providerFeeAddress,
+        providerFeeToken,
+        providerFeeAmount
       );
     const txReceipt = await tx.wait();
     let event = getEventFromTx(txReceipt, 'OrderStarted')
     assert(event, "Cannot find OrderStarted event")
     //make sure that we don't have 'PublishMarketFees') event
     event = getEventFromTx(txReceipt, 'PublishMarketFees')
-    assert.typeOf(event, 'undefined',"PublishMarketFees event found")
+    assert.typeOf(event, 'undefined', "PublishMarketFees event found")
     //make sure that we don't have ConsumeMarketFees event
     event = getEventFromTx(txReceipt, 'ConsumeMarketFees')
-    assert.typeOf(event, 'undefined',"ConsumeMarketFees event found")
+    assert.typeOf(event, 'undefined', "ConsumeMarketFees event found")
+    //make sure that we don't have ProviderFees event
+    event = getEventFromTx(txReceipt, 'ProviderFees')
+    assert.typeOf(event, 'undefined', "ProviderFees event found")
 
     assert(
       (await erc20Token.balanceOf(user2.address)) == web3.utils.toWei("9"), 'Invalid user balance, DT was not substracted'
@@ -602,7 +610,9 @@ describe("ERC20Template", () => {
     const consumeFeeAddress = user3.address; // marketplace fee Collector
     const consumeFeeAmount = 1; // fee to be collected on top, requires approval
     const consumeFeeToken = addressZero; // token address for the feeAmount, in this case DAI
-
+    const providerFeeAddress = user5.address; // marketplace fee Collector
+    const providerFeeAmount = 1; // fee to be collected on top, requires approval
+    const providerFeeToken = addressZero; // token address for the feeAmount, in this case DAI
     const tx = await erc20Token
       .connect(user2)
       .startOrder(
@@ -611,18 +621,23 @@ describe("ERC20Template", () => {
         serviceIndex,
         consumeFeeAddress,
         consumeFeeToken,
-        consumeFeeAmount
+        consumeFeeAmount,
+        providerFeeAddress,
+        providerFeeToken,
+        providerFeeAmount
       );
     const txReceipt = await tx.wait();
     let event = getEventFromTx(txReceipt, 'OrderStarted')
     assert(event, "Cannot find OrderStarted event")
     //make sure that we don't have 'PublishMarketFees') event
     event = getEventFromTx(txReceipt, 'PublishMarketFees')
-    assert.typeOf(event, 'undefined',"PublishMarketFees event found")
+    assert.typeOf(event, 'undefined', "PublishMarketFees event found")
     //make sure that we don't have ConsumeMarketFees event
     event = getEventFromTx(txReceipt, 'ConsumeMarketFees')
-    assert.typeOf(event, 'undefined',"ConsumeMarketFees event found")
-
+    assert.typeOf(event, 'undefined', "ConsumeMarketFees event found")
+    //make sure that we don't have ProviderFees event
+    event = getEventFromTx(txReceipt, 'ProviderFees')
+    assert.typeOf(event, 'undefined', "ProviderFees event found")
     assert(
       (await erc20Token.balanceOf(user2.address)) == web3.utils.toWei("9"), 'Invalid user balance, DT was not substracted'
     );
@@ -647,6 +662,10 @@ describe("ERC20Template", () => {
     const serviceIndex = 1; // dummy index
     const consumeFeeAddress = user3.address; // marketplace fee Collector
     const consumeFeeAmount = "3"; // fee to be collected on top, requires approval
+    const providerFeeAddress = user5.address; // marketplace fee Collector
+    const providerFeeAmount = '1'; // fee to be collected on top, requires approval
+    const providerFeeToken = mockErc20.address; // token address for the feeAmount, in this case DAI
+    const totalFee = '4' ;//consumeFeeAmount + providerFeeAmount
     // GET SOME consumeFeeToken
     const Mock20Contract = await ethers.getContractAt(
       "contracts/interfaces/IERC20.sol:IERC20",
@@ -654,13 +673,13 @@ describe("ERC20Template", () => {
     );
     await Mock20Contract
       .connect(owner)
-      .transfer(user2.address, ethers.utils.parseEther(consumeFeeAmount));
+      .transfer(user2.address, ethers.utils.parseEther(totalFee));
 
     // we approve the erc20Token contract to pull feeAmount (3 DAI)
 
     await Mock20Contract
       .connect(user2)
-      .approve(erc20Token.address, web3.utils.toWei(consumeFeeAmount));
+      .approve(erc20Token.address, web3.utils.toWei(totalFee));
 
     //MINT SOME DT20 to USER2 so he can start order
     await erc20Token.connect(user3).mint(user2.address, web3.utils.toWei("10"));
@@ -677,16 +696,21 @@ describe("ERC20Template", () => {
         serviceIndex,
         consumeFeeAddress,
         consumeFeeToken,
-        web3.utils.toWei(consumeFeeAmount)
+        web3.utils.toWei(consumeFeeAmount),
+        providerFeeAddress,
+        providerFeeToken,
+        providerFeeAmount
       );
     const txReceipt = await tx.wait();
     let event = getEventFromTx(txReceipt, 'OrderStarted')
     assert(event, "Cannot find OrderStarted event")
     event = getEventFromTx(txReceipt, 'ConsumeMarketFees')
     assert(event, "Cannot find ConsumeMarketFees event")
-    //make sure that we don't have PublishMarketFees event
+    event = getEventFromTx(txReceipt, 'ProviderFees')
+    assert(event, "Cannot find ProviderFees event")
+    //make sure that we do have PublishMarketFees event
     event = getEventFromTx(txReceipt, 'PublishMarketFees')
-    assert.typeOf(event, 'undefined',"PublishMarketFees event found")
+    assert.typeOf(event, 'undefined', "PublishMarketFees event found")
 
     const balance = await Mock20Contract.balanceOf(consumeFeeAddress)
     const balanceOpf = await Mock20Contract.balanceOf(opfCollector.address)
@@ -733,6 +757,9 @@ describe("ERC20Template", () => {
     const consumeFeeAddress = user3.address; // marketplace fee Collector
     const consumeFeeAmount = 0; // fee to be collected on top, requires approval
     const consumeFeeToken = "0x6b175474e89094c44da98b954eedeac495271d0f"; // token address for the feeAmount, in this case DAI
+    const providerFeeAddress = user5.address; // marketplace fee Collector
+    const providerFeeAmount = 0; // fee to be collected on top, requires approval
+    const providerFeeToken = mockErc20.address; // token address for the feeAmount, in this case DAI
     const publishFees = await erc20TokenWithPublishFee
       .connect(user2)
       .getPublishingMarketFee();
@@ -758,7 +785,10 @@ describe("ERC20Template", () => {
         serviceIndex,
         consumeFeeAddress,
         consumeFeeToken,
-        consumeFeeAmount
+        consumeFeeAmount,
+        providerFeeAddress,
+        providerFeeToken,
+        providerFeeAmount
       );
     const txReceipt = await tx.wait();
     let event = getEventFromTx(txReceipt, 'OrderStarted')
@@ -767,7 +797,7 @@ describe("ERC20Template", () => {
     assert(event, "Cannot find PublishMarketFees event")
     //make sure that we don't have ConsumeMarketFees event
     event = getEventFromTx(txReceipt, 'ConsumeMarketFees')
-    assert.typeOf(event, 'undefined',"ConsumeMarketFees event found")
+    assert.typeOf(event, 'undefined', "ConsumeMarketFees event found")
     assert(
       (await erc20TokenWithPublishFee.balanceOf(user2.address)) == web3.utils.toWei("9"), 'Invalid user balance, DT was not substracted'
     );
@@ -792,6 +822,10 @@ describe("ERC20Template", () => {
     const serviceIndex = 1; // dummy index
     const consumeFeeAddress = user3.address; // marketplace fee Collector
     const consumeFeeAmount = "3"; // fee to be collected on top, requires approval
+    const providerFeeAddress = user5.address; // marketplace fee Collector
+    const providerFeeAmount = 0; // fee to be collected on top, requires approval
+    const providerFeeToken = mockErc20.address; // token address for the feeAmount, in this case DAI
+
     const publishFees = await erc20TokenWithPublishFee
       .connect(user2)
       .getPublishingMarketFee();
@@ -839,7 +873,10 @@ describe("ERC20Template", () => {
         serviceIndex,
         consumeFeeAddress,
         consumeFeeToken,
-        web3.utils.toWei(consumeFeeAmount)
+        web3.utils.toWei(consumeFeeAmount),
+        providerFeeAddress,
+        providerFeeToken,
+        providerFeeAmount
       );
     const txReceipt = await tx.wait();
     let event = getEventFromTx(txReceipt, 'OrderStarted')

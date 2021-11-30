@@ -523,6 +523,21 @@
           "internalType": "uint256",
           "name": "consumeFeeAmount",
           "type": "uint256"
+        },
+        {
+          "internalType": "address",
+          "name": "providerFeeAddress",
+          "type": "address"
+        },
+        {
+          "internalType": "address",
+          "name": "providerFeeToken",
+          "type": "address"
+        },
+        {
+          "internalType": "uint256",
+          "name": "providerFeeAmount",
+          "type": "uint256"
         }
       ],
       "name": "startOrder",
