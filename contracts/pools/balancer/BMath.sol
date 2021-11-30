@@ -19,7 +19,7 @@ import "../../interfaces/IFactoryRouter.sol";
 
 contract BMath is BConst, BNum {
 
-    uint internal _swapMarketFee;
+    uint internal _swapMarketFee = 1e15;
     uint internal _swapPublishMarketFee;
     uint internal _swapFee;
   

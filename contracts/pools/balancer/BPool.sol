@@ -170,8 +170,9 @@ contract BPool is BMath, BToken {
         _factory = factory;
         // Swap fees
         _swapFee = swapFees[0];
-        _swapMarketFee = swapFees[1];
-        _swapPublishMarketFee = swapFees[2];
+        _swapPublishMarketFee = swapFees[1];
+
+       
 
         _publicSwap = publicSwap;
         _finalized = finalized;
