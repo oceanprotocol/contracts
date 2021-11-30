@@ -74,6 +74,7 @@ contract BPool is BMath, BToken {
 
     event OPFFee(address caller, address OPFWallet, address token, uint256 amount);
     event MarketFee(address caller, address marketAddress, address token, uint256 amount);
+    event PublishMarketFee(address caller, address marketAddress, address token, uint256 amount);
     event MarketCollectorChanged(address caller, address newMarketCollector);
 
     modifier _lock_() {
@@ -93,7 +94,7 @@ contract BPool is BMath, BToken {
     address private _controller; // has CONTROL role
     bool private _publicSwap; // true if PUBLIC can call SWAP functions
 
-    address public _marketCollector;
+    address public _publishMarketCollector;
     address public _opfCollector;
     // `setSwapFee` and `finalize` require CONTROL
     // `finalize` sets `PUBLIC can SWAP`, `PUBLIC can JOIN`
@@ -167,14 +168,16 @@ contract BPool is BMath, BToken {
     ) private returns (bool) {
         _controller = controller;
         _factory = factory;
+        // Swap fees
         _swapFee = swapFees[0];
-
         _swapMarketFee = swapFees[1];
+        _swapPublishMarketFee = swapFees[2];
+
         _publicSwap = publicSwap;
         _finalized = finalized;
         _datatokenAddress = tokens[0];
         _basetokenAddress = tokens[1];
-        _marketCollector = feeCollectors[0];
+        _publishMarketCollector = feeCollectors[0];
         _opfCollector = feeCollectors[1];
         initialized = true;
         ssContract = ISideStaking(_controller);
@@ -228,13 +231,13 @@ contract BPool is BMath, BToken {
     //Proxy contract functionality: end
     //-----------------------------------------------------------------------
 
-    function isPublicSwap() external view returns (bool) {
-        return _publicSwap;
-    }
+    // function isPublicSwap() external view returns (bool) {
+    //     return _publicSwap;
+    // }
 
-    function isFinalized() external view returns (bool) {
-        return _finalized;
-    }
+    // function isFinalized() external view returns (bool) {
+    //     return _finalized;
+    // }
 
     function isBound(address t) external view returns (bool) {
         return _records[t].bound;
@@ -294,44 +297,61 @@ contract BPool is BMath, BToken {
         return(tokens, amounts);
     }
     /**
-     * @dev getCurrentMarketFees
-     *      Get the current amount of fees which can be withdrawned by OPF
+     * @dev getCurrentPublishMarketFees
+     *      Get the current amount of fees which can be withdrawned by Publish Market
      * @return address[] - array of tokens addresses
      *         uint256[] - array of amounts
      */
-    function getCurrentMarketFees() public view returns(address[] memory, uint256[] memory) {
+    function getCurrentPublishMarketFees() public view returns(address[] memory, uint256[] memory) {
         address[] memory poolTokens = getFinalTokens();
         address[] memory tokens = new address[](poolTokens.length);
         uint256[] memory amounts = new uint256[](poolTokens.length);
         for (uint256 i = 0; i < poolTokens.length; i++) {
             tokens[i] = poolTokens[i];
-            amounts[i] = marketFees[poolTokens[i]];
+            amounts[i] = publishMarketFees[poolTokens[i]];
         }
         return(tokens, amounts);
     }
 
     /**
      * @dev collectMarketFee
-     *      Collects and send all Market Fees to _marketCollector.
-     *      This function can be called by anyone, because fees are being sent to _marketCollector
+     *      Collects and send all Market Fees to _publishMarketCollector.
+     *      This function can be called by anyone, because fees are being sent to _publishMarketCollector
      */
-    function collectMarketFee() external {
+    function collectPublishMarketFee() external {
         address[] memory tokens = getFinalTokens();
         for (uint256 i = 0; i < tokens.length; i++) {
-            uint256 amount = marketFees[tokens[i]];
-            marketFees[tokens[i]] = 0;
-            IERC20(tokens[i]).transfer(_marketCollector, amount);
-            emit MarketFee(msg.sender, _marketCollector, tokens[i], amount);
+            uint256 amount = publishMarketFees[tokens[i]];
+            require(amount > 0,'No fees for publish market collector');
+            publishMarketFees[tokens[i]] = 0;
+            IERC20(tokens[i]).transfer(_publishMarketCollector, amount);
+            emit PublishMarketFee(msg.sender, _publishMarketCollector, tokens[i], amount);
+        }
+    }
+
+     /**
+     * @dev collectMarketFee
+     *      Send fees to 'to' if has any.
+     *      This function can be called by anyone, because fees are being sent to _publishMarketCollector
+     */
+    function collectMarketFee(address to) external {
+        address[] memory tokens = getFinalTokens();
+        for (uint256 i = 0; i < tokens.length; i++) {
+            uint256 amount = marketFees[tokens[i]][to];
+            require(amount > 0,'No fees for this address');
+            marketFees[tokens[i]][to] = 0;
+            IERC20(tokens[i]).transfer(to, amount);
+            emit MarketFee(msg.sender, to, tokens[i], amount);
         }
     }
     /**
      * @dev updateMarketFeeCollector
-     *      Set _newCollector as _marketCollector
+     *      Set _newCollector as _publishMarketCollector
      */
     function updateMarketFeeCollector(address _newCollector) external {
-        require(_marketCollector == msg.sender, "ONLY MARKET COLLECTOR");
-        _marketCollector = _newCollector;
-        emit MarketCollectorChanged(msg.sender, _marketCollector);
+        require(_publishMarketCollector == msg.sender, "ONLY MARKET COLLECTOR");
+        _publishMarketCollector = _newCollector;
+        emit MarketCollectorChanged(msg.sender, _publishMarketCollector);
     }
 
     function getDenormalizedWeight(address token)
@@ -380,6 +400,10 @@ contract BPool is BMath, BToken {
 
     function getMarketFee() external view returns (uint256) {
         return _swapMarketFee;
+    }
+
+    function getPublishMarketFee() external view returns (uint256) {
+        return _swapPublishMarketFee;
     }
 
     function getController() external view returns (address) {
@@ -606,7 +630,8 @@ contract BPool is BMath, BToken {
         uint256 tokenAmountIn,
         address tokenOut,
         uint256 minAmountOut,
-        uint256 maxPrice
+        uint256 maxPrice,
+        address publishMarketFeeAddress
     ) external _lock_ returns (uint256 tokenAmountOut, uint256 spotPriceAfter) {
         require(_finalized, "ERR_NOT_FINALIZED");
 
@@ -638,7 +663,8 @@ contract BPool is BMath, BToken {
         (tokenAmountOut, balanceInToAdd) = calcOutGivenInSwap(
             data,
             tokenAmountIn,
-            tokenIn
+            tokenIn,
+            publishMarketFeeAddress
         );
 
         require(tokenAmountOut >= minAmountOut, "ERR_LIMIT_OUT");
@@ -681,7 +707,8 @@ contract BPool is BMath, BToken {
         uint256 maxAmountIn,
         address tokenOut,
         uint256 tokenAmountOut,
-        uint256 maxPrice
+        uint256 maxPrice,
+        address publishMarketFeeAddress
     ) external _lock_ returns (uint256 tokenAmountIn, uint256 spotPriceAfter) {
         require(_finalized, "ERR_NOT_FINALIZED");
         require(_records[tokenIn].bound, "ERR_NOT_BOUND");
@@ -716,7 +743,8 @@ contract BPool is BMath, BToken {
         (tokenAmountIn, balanceToAdd) = calcInGivenOutSwap(
             data,
             tokenAmountOut,
-            tokenIn
+            tokenIn,
+            publishMarketFeeAddress
         );
 
         require(tokenAmountIn <= maxAmountIn, "ERR_LIMIT_IN");
