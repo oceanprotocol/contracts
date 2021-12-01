@@ -779,6 +779,8 @@ contract ERC20TemplateEnterprise is ERC20("test", "testSymbol"), ERC20Roles, ERC
         address exchangeContract;
         bytes32 exchangeId;
         uint256 maxBaseTokenAmount;
+        uint256 swapMarketFee;
+        address marketFeeAddress;
     }
     
     /**
@@ -806,18 +808,23 @@ contract ERC20TemplateEnterprise is ERC20("test", "testSymbol"), ERC20Roles, ERC
         // get token amounts needed
         (
             uint256 baseTokenAmount,
-            ,
+            uint256 baseTokenAmountBeforeFee,
             ,
             
         ) = IFixedRateExchange(_freParams.exchangeContract)
         .calcBaseInGivenOutDT(_freParams.exchangeId, _orderParams.amount);
         require(baseTokenAmount<=_freParams.maxBaseTokenAmount, 'FixedRateExchange: Too many base tokens');
+         // we calculate the dynamic market fee and add it to the baseTokenAmount to be transferred
+         uint marketFeeAmount = baseTokenAmountBeforeFee*_freParams.swapMarketFee/1e18;
+         baseTokenAmount = baseTokenAmount+marketFeeAmount;
+       
         //transfer baseToken to us first
         IERC20(baseToken).safeTransferFrom(
                 msg.sender,
                 address(this),
                 baseTokenAmount
             );
+       
         //approve FRE to spend baseTokens
         IERC20(baseToken).safeIncreaseAllowance(_freParams.exchangeContract, baseTokenAmount);
         //buy DT
@@ -829,7 +836,9 @@ contract ERC20TemplateEnterprise is ERC20("test", "testSymbol"), ERC20Roles, ERC
         //startOrder and burn it
         _startOrder(_orderParams.consumer,_orderParams.amount,_orderParams.serviceIndex,
         _orderParams.consumeFeeAddress, _orderParams.consumeFeeToken, _orderParams.consumeFeeAmount);
-
+        
+        // Transfer Market Fee to market fee collector
+        IERC20(baseToken).safeTransfer(_freParams.marketFeeAddress, marketFeeAmount);
     }
 
     /**
