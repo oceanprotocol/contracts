@@ -44,4 +44,6 @@ interface IPool {
         external
         view
         returns (uint256 tokenAmountIn);
+
+    function setSwapFee(uint256 swapFee) external;
 }
