@@ -612,22 +612,25 @@ contract BPool is BMath, BToken {
     }
 
     function swapExactAmountIn(
-        address tokenIn,
-        uint256 tokenAmountIn,
-        address tokenOut,
-        uint256 minAmountOut,
-        uint256 maxPrice,
-        uint256 _swapMarketFee
+        // address tokenIn,
+        // uint256 tokenAmountIn,
+        // address tokenOut,
+        // uint256 minAmountOut,
+        // uint256 maxPrice,
+        // uint256 _swapMarketFee,
+        // address marketFeeAddress,
+        address[3] calldata tokenInOutMarket,
+        uint256[4] calldata amountsInOutMaxFee 
     ) external _lock_ returns (uint256 tokenAmountOut, uint256 spotPriceAfter) {
         require(_finalized, "ERR_NOT_FINALIZED");
 
-        require(_records[tokenIn].bound, "ERR_NOT_BOUND");
-        require(_records[tokenOut].bound, "ERR_NOT_BOUND");
-        Record storage inRecord = _records[address(tokenIn)];
-        Record storage outRecord = _records[address(tokenOut)];
+        require(_records[tokenInOutMarket[0]].bound, "ERR_NOT_BOUND");
+        require(_records[tokenInOutMarket[1]].bound, "ERR_NOT_BOUND");
+        Record storage inRecord = _records[address(tokenInOutMarket[0])];
+        Record storage outRecord = _records[address(tokenInOutMarket[1])];
 
         require(
-            tokenAmountIn <= bmul(inRecord.balance, MAX_IN_RATIO),
+            amountsInOutMaxFee[0] <= bmul(inRecord.balance, MAX_IN_RATIO),
             "ERR_MAX_IN_RATIO"
         );
 
@@ -636,10 +639,10 @@ contract BPool is BMath, BToken {
             inRecord.denorm,
             outRecord.balance,
             outRecord.denorm,
-            _swapMarketFee
+            amountsInOutMaxFee[3]
         );
 
-        require(spotPriceBefore <= maxPrice, "ERR_BAD_LIMIT_PRICE");
+        require(spotPriceBefore <= amountsInOutMaxFee[2], "ERR_BAD_LIMIT_PRICE");
         uint256 balanceInToAdd;
         uint256[4] memory data = [
             inRecord.balance,
@@ -649,12 +652,12 @@ contract BPool is BMath, BToken {
         ];
         (tokenAmountOut, balanceInToAdd) = calcOutGivenInSwap(
             data,
-            tokenAmountIn,
-            tokenIn,
-            _swapMarketFee
+            amountsInOutMaxFee[0],
+            tokenInOutMarket[0],
+            amountsInOutMaxFee[3]
         );
 
-        require(tokenAmountOut >= minAmountOut, "ERR_LIMIT_OUT");
+        require(tokenAmountOut >= amountsInOutMaxFee[1], "ERR_LIMIT_OUT");
 
         inRecord.balance = badd(inRecord.balance, balanceInToAdd);
         outRecord.balance = bsub(outRecord.balance, tokenAmountOut);
@@ -664,50 +667,55 @@ contract BPool is BMath, BToken {
             inRecord.denorm,
             outRecord.balance,
             outRecord.denorm,
-            _swapMarketFee
+            amountsInOutMaxFee[3]
         );
 
         require(spotPriceAfter >= spotPriceBefore, "ERR_MATH_APPROX");
-        require(spotPriceAfter <= maxPrice, "ERR_LIMIT_PRICE");
+        require(spotPriceAfter <= amountsInOutMaxFee[2], "ERR_LIMIT_PRICE");
 
         require(
-            spotPriceBefore <= bdiv(tokenAmountIn, tokenAmountOut),
+            spotPriceBefore <= bdiv(amountsInOutMaxFee[0], tokenAmountOut),
             "ERR_MATH_APPROX"
         );
 
         emit LOG_SWAP(
             msg.sender,
-            tokenIn,
-            tokenOut,
-            tokenAmountIn,
+            tokenInOutMarket[0],
+            tokenInOutMarket[1],
+            amountsInOutMaxFee[0],
             tokenAmountOut,
             block.timestamp
         );
 
-        _pullUnderlying(tokenIn, msg.sender, tokenAmountIn);
-        _pushUnderlying(tokenOut, msg.sender, tokenAmountOut);
+        _pullUnderlying(tokenInOutMarket[0], msg.sender, amountsInOutMaxFee[0]);
+        // TODO: update msg.sender below with dynamic marketFeeAddress  //
+        IERC20(tokenInOutMarket[0]).safeTransfer(tokenInOutMarket[2],bsub(amountsInOutMaxFee[0], bmul(amountsInOutMaxFee[0], bsub(BONE, amountsInOutMaxFee[3]))) );
+        _pushUnderlying(tokenInOutMarket[1], msg.sender, tokenAmountOut);
 
         return (tokenAmountOut, spotPriceAfter); //returning spot price 0 because there is no public spotPrice
     }
+     
 
     function swapExactAmountOut(
-        address tokenIn,
-        uint256 maxAmountIn,
-        address tokenOut,
-        uint256 tokenAmountOut,
-        uint256 maxPrice,
-        //address marketFeeAddress,
-        uint256 _swapMarketFee
+        // address tokenIn,
+        // uint256 maxAmountIn,
+        // address tokenOut,
+        // uint256 tokenAmountOut,
+        // uint256 maxPrice,
+        // uint256 _swapMarketFee
+        // address marketFeeAddress
+        address[3] calldata tokenInOutMarket,
+        uint256[4] calldata amountsInOutMaxFee 
     ) external _lock_ returns (uint256 tokenAmountIn, uint256 spotPriceAfter) {
         require(_finalized, "ERR_NOT_FINALIZED");
-        require(_records[tokenIn].bound, "ERR_NOT_BOUND");
-        require(_records[tokenOut].bound, "ERR_NOT_BOUND");
+        require(_records[tokenInOutMarket[0]].bound, "ERR_NOT_BOUND");
+        require(_records[tokenInOutMarket[1]].bound, "ERR_NOT_BOUND");
 
-        Record storage inRecord = _records[address(tokenIn)];
-        Record storage outRecord = _records[address(tokenOut)];
+        Record storage inRecord = _records[address(tokenInOutMarket[0])];
+        Record storage outRecord = _records[address(tokenInOutMarket[1])];
 
         require(
-            tokenAmountOut <= bmul(outRecord.balance, MAX_OUT_RATIO),
+            amountsInOutMaxFee[1] <= bmul(outRecord.balance, MAX_OUT_RATIO),
             "ERR_MAX_OUT_RATIO"
         );
 
@@ -716,10 +724,10 @@ contract BPool is BMath, BToken {
             inRecord.denorm,
             outRecord.balance,
             outRecord.denorm,
-            _swapMarketFee
+            amountsInOutMaxFee[3]
         );
 
-        require(spotPriceBefore <= maxPrice, "ERR_BAD_LIMIT_PRICE");
+        require(spotPriceBefore <= amountsInOutMaxFee[2], "ERR_BAD_LIMIT_PRICE");
         // this is the amount we are going to register in balances
         // (only takes account of swapFee, not OPF and market fee,
         //in order to not affect price during following swaps, fee wtihdrawl etc)
@@ -733,42 +741,44 @@ contract BPool is BMath, BToken {
 
         (tokenAmountIn, balanceToAdd) = calcInGivenOutSwap(
             data,
-            tokenAmountOut,
-            tokenIn,
-            _swapMarketFee
+            amountsInOutMaxFee[1],
+            tokenInOutMarket[0],
+            amountsInOutMaxFee[3]
         );
 
-        require(tokenAmountIn <= maxAmountIn, "ERR_LIMIT_IN");
+        require(tokenAmountIn <= amountsInOutMaxFee[0], "ERR_LIMIT_IN");
 
         inRecord.balance = badd(inRecord.balance, balanceToAdd);
-        outRecord.balance = bsub(outRecord.balance, tokenAmountOut);
+        outRecord.balance = bsub(outRecord.balance, amountsInOutMaxFee[1]);
 
         spotPriceAfter = calcSpotPrice(
             inRecord.balance,
             inRecord.denorm,
             outRecord.balance,
             outRecord.denorm,
-            _swapMarketFee
+            amountsInOutMaxFee[3]
         );
 
         require(spotPriceAfter >= spotPriceBefore, "ERR_MATH_APPROX");
-        require(spotPriceAfter <= maxPrice, "ERR_LIMIT_PRICE");
+        require(spotPriceAfter <= amountsInOutMaxFee[2], "ERR_LIMIT_PRICE");
         require(
-            spotPriceBefore <= bdiv(tokenAmountIn, tokenAmountOut),
+            spotPriceBefore <= bdiv(tokenAmountIn, amountsInOutMaxFee[1]),
             "ERR_MATH_APPROX"
         );
 
         emit LOG_SWAP(
             msg.sender,
-            tokenIn,
-            tokenOut,
+            tokenInOutMarket[0],
+            tokenInOutMarket[1],
             tokenAmountIn,
-            tokenAmountOut,
+            amountsInOutMaxFee[1],
             block.timestamp
         );
 
-        _pullUnderlying(tokenIn, msg.sender, tokenAmountIn);
-        _pushUnderlying(tokenOut, msg.sender, tokenAmountOut);
+        _pullUnderlying(tokenInOutMarket[0], msg.sender, tokenAmountIn);
+        // TODO: update msg.sender below with dynamic marketFeeAddress
+        IERC20(tokenInOutMarket[0]).safeTransfer(tokenInOutMarket[2], bsub(tokenAmountIn, bmul(tokenAmountIn, bsub(BONE, amountsInOutMaxFee[3]))));
+        _pushUnderlying(tokenInOutMarket[1], msg.sender, amountsInOutMaxFee[1]);
 
         return (tokenAmountIn, spotPriceAfter);
     }
