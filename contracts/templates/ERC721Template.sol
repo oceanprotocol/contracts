@@ -185,7 +185,7 @@ contract ERC721Template is
      */
     function setMetaDataState(uint8 _metaDataState) public {
         require(
-            permissions[msg.sender].updateMetadata == true,
+            permissions[msg.sender].updateMetadata,
             "ERC721Template: NOT METADATA_ROLE"
         );
         metaDataState = _metaDataState;
@@ -210,13 +210,13 @@ contract ERC721Template is
         , string calldata _metaDataDecryptorAddress, bytes calldata flags, 
         bytes calldata data,bytes calldata _metaDataHash) external {
         require(
-            permissions[msg.sender].updateMetadata == true,
+            permissions[msg.sender].updateMetadata,
             "ERC721Template: NOT METADATA_ROLE"
         );
         metaDataState = _metaDataState;
         metaDataDecryptorUrl = _metaDataDecryptorUrl;
         metaDataDecryptorAddress = _metaDataDecryptorAddress;
-        if(hasMetaData == false){
+        if(!hasMetaData){
             emit MetadataCreated(msg.sender, _metaDataState, _metaDataDecryptorUrl,
             flags, data, _metaDataHash, 
             /* solium-disable-next-line */
@@ -273,7 +273,7 @@ contract ERC721Template is
         bytes[] calldata bytess
     ) external nonReentrant returns (address ) {
         require(
-            permissions[msg.sender].deployERC20 == true,
+            permissions[msg.sender].deployERC20,
             "ERC721Template: NOT ERC20DEPLOYER_ROLE"
         );
 
@@ -295,7 +295,7 @@ contract ERC721Template is
      * @dev isERC20Deployer
      * @return true if the account has ERC20 Deploy role
      */
-    function isERC20Deployer(address account) public view returns (bool) {
+    function isERC20Deployer(address account) external view returns (bool) {
         return permissions[account].deployERC20;
     }
     
@@ -323,7 +323,7 @@ contract ERC721Template is
      * @return true if the contract is initialized.
      */
 
-    function isInitialized() public view returns (bool) {
+    function isInitialized() external view returns (bool) {
         return initialized;
     }
 
@@ -387,7 +387,7 @@ contract ERC721Template is
 
     function setNewData(bytes32 _key, bytes calldata _value) external {
         require(
-            permissions[msg.sender].store == true,
+            permissions[msg.sender].store,
             "ERC721Template: NOT STORE UPDATER"
         );
         setData(_key, _value);
@@ -402,9 +402,9 @@ contract ERC721Template is
      */
 
 
-    function setDataERC20(bytes32 _key, bytes calldata _value) public {
+    function setDataERC20(bytes32 _key, bytes calldata _value) external {
         require(
-            deployedERC20[msg.sender] == true,
+            deployedERC20[msg.sender],
             "ERC721Template: NOT ERC20 Contract"
         );
         setData(_key, _value);

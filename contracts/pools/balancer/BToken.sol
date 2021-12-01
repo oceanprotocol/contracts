@@ -80,15 +80,15 @@ contract BToken is BTokenBase {
     string  private _symbol   = 'BPT';
     uint8   private _decimals = 18;
 
-    function name() public view returns (string memory) {
+    function name() external view returns (string memory) {
         return _name;
     }
 
-    function symbol() public view returns (string memory) {
+    function symbol() external view returns (string memory) {
         return _symbol;
     }
 
-    function decimals() public view returns(uint8) {
+    function decimals() external view returns(uint8) {
         return _decimals;
     }
 

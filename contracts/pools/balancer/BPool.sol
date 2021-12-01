@@ -6,7 +6,7 @@ pragma solidity 0.8.10;
 import "./BToken.sol";
 import "./BMath.sol";
 import "../../interfaces/ISideStaking.sol";
-
+import "../../utils/SafeERC20.sol";
 /**
  * @title BPool
  *
@@ -23,6 +23,7 @@ import "../../interfaces/ISideStaking.sol";
  *  [1] https://github.com/balancer-labs/balancer-core/contracts/.
  */
 contract BPool is BMath, BToken {
+    using SafeERC20 for IERC20;
     struct Record {
         bool bound; // is token bound to pool
         uint256 index; // private
@@ -73,6 +74,7 @@ contract BPool is BMath, BToken {
     event LOG_BPT_SS(uint256 bptAmount); //emitted for SS contract
 
     event OPFFee(address caller, address OPFWallet, address token, uint256 amount);
+    event SwapFeeChanged(address caller, uint256 amount);
     event MarketFee(address caller, address marketAddress, address token, uint256 amount);
     event PublishMarketFee(address caller, address marketAddress, address token, uint256 amount);
     event MarketCollectorChanged(address caller, address newMarketCollector);
@@ -277,7 +279,7 @@ contract BPool is BMath, BToken {
         for (uint256 i = 0; i < tokens.length; i++) {
             uint256 amount = communityFees[tokens[i]];
             communityFees[tokens[i]] = 0;
-            IERC20(tokens[i]).transfer(_opfCollector, amount);
+            IERC20(tokens[i]).safeTransfer(_opfCollector, amount);
             emit OPFFee(msg.sender, _opfCollector, tokens[i], amount);
         }
     }
@@ -325,7 +327,7 @@ contract BPool is BMath, BToken {
             uint256 amount = publishMarketFees[tokens[i]];
             require(amount > 0,'No fees for publish market collector');
             publishMarketFees[tokens[i]] = 0;
-            IERC20(tokens[i]).transfer(_publishMarketCollector, amount);
+            IERC20(tokens[i]).safeTransfer(_publishMarketCollector, amount);
             emit PublishMarketFee(msg.sender, _publishMarketCollector, tokens[i], amount);
         }
     }
@@ -341,7 +343,7 @@ contract BPool is BMath, BToken {
             uint256 amount = marketFees[tokens[i]][to];
             require(amount > 0,'No fees for this address');
             marketFees[tokens[i]][to] = 0;
-            IERC20(tokens[i]).transfer(to, amount);
+            IERC20(tokens[i]).safeTransfer(to, amount);
             emit MarketFee(msg.sender, to, tokens[i], amount);
         }
     }
@@ -351,6 +353,7 @@ contract BPool is BMath, BToken {
      */
     function updateMarketFeeCollector(address _newCollector) external {
         require(_publishMarketCollector == msg.sender, "ONLY MARKET COLLECTOR");
+        require(_newCollector != address(0), "Invalid _newCollector address");
         _publishMarketCollector = _newCollector;
         emit MarketCollectorChanged(msg.sender, _publishMarketCollector);
     }
@@ -421,6 +424,7 @@ contract BPool is BMath, BToken {
         require(swapFee >= MIN_FEE, "ERR_MIN_FEE");
         require(swapFee <= MAX_FEE, "ERR_MAX_FEE");
         _swapFee = swapFee;
+        emit SwapFeeChanged(msg.sender, swapFee);
     }
 
     function finalize() internal {
@@ -845,10 +849,7 @@ contract BPool is BMath, BToken {
             // ssInRecord = _records[_basetokenAddress];
             ssStakeToken = _datatokenAddress;
         }
-        if (
-            ssContract.canStake(_datatokenAddress, ssStakeToken, ssAmountIn) ==
-            true
-        ) {
+        if (ssContract.canStake(_datatokenAddress, ssStakeToken, ssAmountIn)) {
             //call 1ss to approve
 
             ssContract.Stake(_datatokenAddress, ssStakeToken, ssAmountIn);
@@ -920,10 +921,7 @@ contract BPool is BMath, BToken {
         } else {
             ssStakeToken = _datatokenAddress;
         }
-        if (
-            ssContract.canStake(_datatokenAddress, ssStakeToken, ssAmountIn) ==
-            true
-        ) {
+        if (ssContract.canStake(_datatokenAddress, ssStakeToken, ssAmountIn)) {
             //call 1ss to approve
             ssContract.Stake(_datatokenAddress, ssStakeToken, ssAmountIn);
             // follow the same path
@@ -989,13 +987,11 @@ contract BPool is BMath, BToken {
             ssStakeToken = _datatokenAddress;
         }
 
-        if (
-            ssContract.canUnStake(
+        if (ssContract.canUnStake(
                 _datatokenAddress,
                 ssStakeToken,
                 poolAmountIn
-            ) == true
-        ) {
+            )) {
             Record storage ssOutRecord = _records[_datatokenAddress];
             uint256 ssAmountOut = calcSingleOutGivenPoolIn(
                 ssOutRecord.balance,
@@ -1080,7 +1076,7 @@ contract BPool is BMath, BToken {
                 _datatokenAddress,
                 ssStakeToken,
                 poolAmountIn
-            ) == true
+            )
         ) {
             Record storage ssOutRecord = _records[_datatokenAddress];
             uint256 ssAmountOut = calcSingleOutGivenPoolIn(
@@ -1194,9 +1190,9 @@ contract BPool is BMath, BToken {
         address from,
         uint256 amount
     ) internal {
-        bool xfer = IERC20(erc20).transferFrom(from, address(this), amount);
+        IERC20(erc20).safeTransferFrom(from, address(this), amount);
 
-        require(xfer, "ERR_ERC20_FALSE");
+        //require(xfer, "ERR_ERC20_FALSE");
     }
 
     function _pushUnderlying(
@@ -1204,8 +1200,8 @@ contract BPool is BMath, BToken {
         address to,
         uint256 amount
     ) internal {
-        bool xfer = IERC20(erc20).transfer(to, amount);
-        require(xfer, "ERR_ERC20_FALSE");
+        IERC20(erc20).safeTransfer(to, amount);
+        //require(xfer, "ERR_ERC20_FALSE");
     }
 
     function _pullPoolShare(address from, uint256 amount) internal {
