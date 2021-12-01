@@ -344,7 +344,7 @@ contract BPool is BMath, BToken {
         _viewlock_
         returns (uint256)
     {
-        require(_records[token].bound, "ERR_NOT_BOUND");
+        _checkBound(token);
         return _records[token].denorm;
     }
 
@@ -363,7 +363,7 @@ contract BPool is BMath, BToken {
         _viewlock_
         returns (uint256)
     {
-        require(_records[token].bound, "ERR_NOT_BOUND");
+        _checkBound(token);
         uint256 denorm = _records[token].denorm;
         return bdiv(denorm, _totalWeight);
     }
@@ -374,7 +374,7 @@ contract BPool is BMath, BToken {
         _viewlock_
         returns (uint256)
     {
-        require(_records[token].bound, "ERR_NOT_BOUND");
+        _checkBound(token);
         return _records[token].balance;
     }
 
@@ -473,11 +473,6 @@ contract BPool is BMath, BToken {
         }
     }
 
-    // Absorb any tokens that have been sent to this contract into the pool
-    // function gulp(address token) external _lock_ {
-    //     require(_records[token].bound, "ERR_NOT_BOUND");
-    //     _records[token].balance = IERC20(token).balanceOf(address(this));
-    // }
 
     function getSpotPrice(address tokenIn, address tokenOut,uint256 _swapMarketFee)
         external
@@ -612,20 +607,15 @@ contract BPool is BMath, BToken {
     }
 
     function swapExactAmountIn(
-        // address tokenIn,
-        // uint256 tokenAmountIn,
-        // address tokenOut,
-        // uint256 minAmountOut,
-        // uint256 maxPrice,
-        // uint256 _swapMarketFee,
-        // address marketFeeAddress,
-        address[3] calldata tokenInOutMarket,
-        uint256[4] calldata amountsInOutMaxFee 
+        address[3] calldata tokenInOutMarket, //[tokenIn,tokenOut,marketFeeAddress]
+        uint256[4] calldata amountsInOutMaxFee //[tokenAmountIn,minAmountOut,maxPrice,_swapMarketFee]
     ) external _lock_ returns (uint256 tokenAmountOut, uint256 spotPriceAfter) {
         require(_finalized, "ERR_NOT_FINALIZED");
 
-        require(_records[tokenInOutMarket[0]].bound, "ERR_NOT_BOUND");
-        require(_records[tokenInOutMarket[1]].bound, "ERR_NOT_BOUND");
+        // require(_records[tokenInOutMarket[0]].bound, "ERR_NOT_BOUND");
+        // require(_records[tokenInOutMarket[1]].bound, "ERR_NOT_BOUND");
+         _checkBound(tokenInOutMarket[0]);
+         _checkBound(tokenInOutMarket[1]);
         Record storage inRecord = _records[address(tokenInOutMarket[0])];
         Record storage outRecord = _records[address(tokenInOutMarket[1])];
 
@@ -695,6 +685,9 @@ contract BPool is BMath, BToken {
         return (tokenAmountOut, spotPriceAfter); //returning spot price 0 because there is no public spotPrice
     }
      
+    function _checkBound(address token) internal view {
+        require(_records[token].bound, "ERR_NOT_BOUND");
+    }
 
     function swapExactAmountOut(
         // address tokenIn,
@@ -708,9 +701,10 @@ contract BPool is BMath, BToken {
         uint256[4] calldata amountsInOutMaxFee 
     ) external _lock_ returns (uint256 tokenAmountIn, uint256 spotPriceAfter) {
         require(_finalized, "ERR_NOT_FINALIZED");
-        require(_records[tokenInOutMarket[0]].bound, "ERR_NOT_BOUND");
-        require(_records[tokenInOutMarket[1]].bound, "ERR_NOT_BOUND");
-
+        // require(_records[tokenInOutMarket[0]].bound, "ERR_NOT_BOUND");
+        // require(_records[tokenInOutMarket[1]].bound, "ERR_NOT_BOUND");
+        _checkBound(tokenInOutMarket[0]);
+        _checkBound(tokenInOutMarket[1]);
         Record storage inRecord = _records[address(tokenInOutMarket[0])];
         Record storage outRecord = _records[address(tokenInOutMarket[1])];
 
