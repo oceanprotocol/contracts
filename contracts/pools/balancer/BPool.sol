@@ -696,7 +696,7 @@ contract BPool is BMath, BToken {
         address tokenOut,
         uint256 tokenAmountOut,
         uint256 maxPrice,
-        address marketFeeAddress,
+        //address marketFeeAddress,
         uint256 _swapMarketFee
     ) external _lock_ returns (uint256 tokenAmountIn, uint256 spotPriceAfter) {
         require(_finalized, "ERR_NOT_FINALIZED");
