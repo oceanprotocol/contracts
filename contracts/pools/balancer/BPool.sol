@@ -399,10 +399,6 @@ contract BPool is BMath, BToken {
         return _swapFee;
     }
 
-    function getMarketFee() external view returns (uint256) {
-        return _swapMarketFee;
-    }
-
     function getPublishMarketFee() external view returns (uint256) {
         return _swapPublishMarketFee;
     }
@@ -499,7 +495,7 @@ contract BPool is BMath, BToken {
     //     _records[token].balance = IERC20(token).balanceOf(address(this));
     // }
 
-    function getSpotPrice(address tokenIn, address tokenOut)
+    function getSpotPrice(address tokenIn, address tokenOut,uint _swapMarketFee)
         external
         view
         _viewlock_
@@ -514,7 +510,8 @@ contract BPool is BMath, BToken {
                 inRecord.balance,
                 inRecord.denorm,
                 outRecord.balance,
-                outRecord.denorm
+                outRecord.denorm,
+                _swapMarketFee
             );
     }
 
@@ -522,7 +519,8 @@ contract BPool is BMath, BToken {
     function getAmountInExactOut(
         address tokenIn,
         address tokenOut,
-        uint256 tokenAmountOut
+        uint256 tokenAmountOut,
+        uint _swapMarketFee
     )
         external
         view
@@ -542,7 +540,8 @@ contract BPool is BMath, BToken {
                 inRecord.denorm,
                 outRecord.balance,
                 outRecord.denorm,
-                tokenAmountOut
+                tokenAmountOut,
+                _swapMarketFee
             );
     }
 
@@ -550,7 +549,8 @@ contract BPool is BMath, BToken {
     function getAmountOutExactIn(
         address tokenIn,
         address tokenOut,
-        uint256 tokenAmountIn
+        uint256 tokenAmountIn,
+        uint _swapMarketFee
     )
         external
         view
@@ -569,7 +569,8 @@ contract BPool is BMath, BToken {
                 inRecord.denorm,
                 outRecord.balance,
                 outRecord.denorm,
-                tokenAmountIn
+                tokenAmountIn,
+                _swapMarketFee
             );
     }
 
@@ -631,8 +632,9 @@ contract BPool is BMath, BToken {
         uint256 tokenAmountIn,
         address tokenOut,
         uint256 minAmountOut,
-        uint256 maxPrice,
-        address publishMarketFeeAddress
+        uint256 maxPrice, // [maxPrice,_swapMarketFee]
+        address marketFeeAddress,
+        uint256 _swapMarketFee
     ) external _lock_ returns (uint256 tokenAmountOut, uint256 spotPriceAfter) {
         require(_finalized, "ERR_NOT_FINALIZED");
 
@@ -650,34 +652,40 @@ contract BPool is BMath, BToken {
             inRecord.balance,
             inRecord.denorm,
             outRecord.balance,
-            outRecord.denorm
+            outRecord.denorm,
+            _swapMarketFee
         );
 
         require(spotPriceBefore <= maxPrice, "ERR_BAD_LIMIT_PRICE");
-        uint256 balanceInToAdd;
+      
         uint256[4] memory data = [
             inRecord.balance,
             inRecord.denorm,
             outRecord.balance,
             outRecord.denorm
+           
         ];
-        (tokenAmountOut, balanceInToAdd) = calcOutGivenInSwap(
-            data,
-            tokenAmountIn,
-            tokenIn,
-            publishMarketFeeAddress
-        );
+        // 
+        //  uint256 balanceInToAdd;
+        // (tokenAmountOut, balanceInToAdd) = calcOutGivenInSwap(
+        //     data,
+        //     tokenIn,
+        //     marketFeeAddress,
+        //     tokenAmountIn,
+        //     _swapMarketFee
+        // );
 
-        require(tokenAmountOut >= minAmountOut, "ERR_LIMIT_OUT");
+        // require(tokenAmountOut >= minAmountOut, "ERR_LIMIT_OUT");
 
-        inRecord.balance = badd(inRecord.balance, balanceInToAdd);
-        outRecord.balance = bsub(outRecord.balance, tokenAmountOut);
+        // inRecord.balance = badd(inRecord.balance, balanceInToAdd);
+        // outRecord.balance = bsub(outRecord.balance, tokenAmountOut);
 
         spotPriceAfter = calcSpotPrice(
             inRecord.balance,
             inRecord.denorm,
             outRecord.balance,
-            outRecord.denorm
+            outRecord.denorm,
+            _swapMarketFee
         );
 
         require(spotPriceAfter >= spotPriceBefore, "ERR_MATH_APPROX");
@@ -709,7 +717,8 @@ contract BPool is BMath, BToken {
         address tokenOut,
         uint256 tokenAmountOut,
         uint256 maxPrice,
-        address publishMarketFeeAddress
+        address marketFeeAddress,
+        uint _swapMarketFee
     ) external _lock_ returns (uint256 tokenAmountIn, uint256 spotPriceAfter) {
         require(_finalized, "ERR_NOT_FINALIZED");
         require(_records[tokenIn].bound, "ERR_NOT_BOUND");
@@ -727,37 +736,41 @@ contract BPool is BMath, BToken {
             inRecord.balance,
             inRecord.denorm,
             outRecord.balance,
-            outRecord.denorm
+            outRecord.denorm,
+            _swapMarketFee
         );
 
         require(spotPriceBefore <= maxPrice, "ERR_BAD_LIMIT_PRICE");
         // this is the amount we are going to register in balances
         // (only takes account of swapFee, not OPF and market fee, in order to not affect price during following swaps, fee wtihdrawl etc)
-        uint256 balanceToAdd;
-        uint256[4] memory data = [
-            inRecord.balance,
-            inRecord.denorm,
-            outRecord.balance,
-            outRecord.denorm
-        ];
+        // TODO: ADDED in comments just for compiling reason
+        // uint256 balanceToAdd;
+        // uint256[4] memory data = [
+        //     inRecord.balance,
+        //     inRecord.denorm,
+        //     outRecord.balance,
+        //     outRecord.denorm
+        // ];
 
-        (tokenAmountIn, balanceToAdd) = calcInGivenOutSwap(
-            data,
-            tokenAmountOut,
-            tokenIn,
-            publishMarketFeeAddress
-        );
+        // (tokenAmountIn, balanceToAdd) = calcInGivenOutSwap(
+        //     data,
+        //     tokenAmountOut,
+        //     tokenIn,
+        //     marketFeeAddress,
+        //     _swapMarketFee
+        // );
 
-        require(tokenAmountIn <= maxAmountIn, "ERR_LIMIT_IN");
+        // require(tokenAmountIn <= maxAmountIn, "ERR_LIMIT_IN");
 
-        inRecord.balance = badd(inRecord.balance, balanceToAdd);
-        outRecord.balance = bsub(outRecord.balance, tokenAmountOut);
+        // inRecord.balance = badd(inRecord.balance, balanceToAdd);
+        // outRecord.balance = bsub(outRecord.balance, tokenAmountOut);
 
         spotPriceAfter = calcSpotPrice(
             inRecord.balance,
             inRecord.denorm,
             outRecord.balance,
-            outRecord.denorm
+            outRecord.denorm,
+            _swapMarketFee
         );
 
         require(spotPriceAfter >= spotPriceBefore, "ERR_MATH_APPROX");

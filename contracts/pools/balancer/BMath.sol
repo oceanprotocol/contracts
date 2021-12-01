@@ -19,7 +19,7 @@ import "../../interfaces/IFactoryRouter.sol";
 
 contract BMath is BConst, BNum {
 
-    uint internal _swapMarketFee = 1e15;
+    //uint internal _swapMarketFee = 1e15;
     uint internal _swapPublishMarketFee;
     uint internal _swapFee;
   
@@ -51,7 +51,8 @@ contract BMath is BConst, BNum {
         uint tokenBalanceIn,
         uint tokenWeightIn,
         uint tokenBalanceOut,
-        uint tokenWeightOut
+        uint tokenWeightOut,
+        uint _swapMarketFee
     )
         internal view
         returns (uint spotPrice)
@@ -84,10 +85,11 @@ contract BMath is BConst, BNum {
     //         outRecord.denorm
     //     ];
     function calcOutGivenInSwap(
-        uint[4] memory data,
-        uint tokenAmountIn,
+        uint256[4] memory data,
         address tokenInAddress,
-        address marketFeeAddress
+        address marketFeeAddress,
+        uint256 tokenAmountIn,
+        uint256 _swapFeeMarket
     )
         internal
         returns (uint tokenAmountOut, uint balanceInToAdd)
@@ -102,11 +104,11 @@ contract BMath is BConst, BNum {
         
         publishMarketFees[tokenInAddress] = badd(publishMarketFees[tokenInAddress],publishMarketFeeAmount);
 
-        uint marketFeeAmount = bsub(tokenAmountIn, bmul(tokenAmountIn, bsub(BONE, _swapMarketFee)));
+        uint marketFeeAmount = bsub(tokenAmountIn, bmul(tokenAmountIn, bsub(BONE, _swapFeeMarket)));
 
         marketFees[tokenInAddress][marketFeeAddress] =  badd(marketFees[tokenInAddress][marketFeeAddress],marketFeeAmount);
 
-        uint totalFee =_swapFee+getOPFFee()+_swapMarketFee+_swapPublishMarketFee;
+        uint totalFee =_swapFee+getOPFFee()+_swapFeeMarket+_swapPublishMarketFee;
 
         // TODO : update event
         emit SWAP_FEES(bsub(tokenAmountIn, bmul(tokenAmountIn, bsub(BONE, _swapFee))), oceanFeeAmount, marketFeeAmount,tokenInAddress);
@@ -140,7 +142,8 @@ contract BMath is BConst, BNum {
         uint tokenWeightIn,
         uint tokenBalanceOut,
         uint tokenWeightOut,
-        uint tokenAmountIn
+        uint tokenAmountIn,
+        uint _swapMarketFee
     )
         internal view
         returns (uint tokenAmountOut)
@@ -180,7 +183,8 @@ contract BMath is BConst, BNum {
         uint tokenWeightIn,
         uint tokenBalanceOut,
         uint tokenWeightOut,
-        uint tokenAmountOut
+        uint tokenAmountOut,
+        uint _swapMarketFee
     )
         internal view
         returns (uint tokenAmountIn)
@@ -213,7 +217,8 @@ contract BMath is BConst, BNum {
         uint[4] memory data,
         uint tokenAmountOut,
         address tokenInAddress,
-        address marketFeeAddress
+        address marketFeeAddress,
+        uint _swapMarketFee
     )
         internal
         returns (uint tokenAmountIn, uint tokenAmountInBalance)

@@ -8,7 +8,6 @@ import "../../interfaces/IFactoryRouter.sol";
 import "@openzeppelin/contracts/utils/math/SafeMath.sol";
 import "@openzeppelin/contracts/security/ReentrancyGuard.sol";
 
-
 /**
  * @title FixedRateExchange
  * @dev FixedRateExchange is a fixed rate exchange Contract
@@ -16,8 +15,6 @@ import "@openzeppelin/contracts/security/ReentrancyGuard.sol";
  *      exchanging datatokens with ocean token using a fixed
  *      exchange rate.
  */
-
-
 
 contract FixedRateExchange is ReentrancyGuard {
     using SafeMath for uint256;
@@ -47,11 +44,13 @@ contract FixedRateExchange is ReentrancyGuard {
     // maps an exchangeId to an exchange
     mapping(bytes32 => Exchange) private exchanges;
     bytes32[] private exchangeIds;
+    // maps basetoken to consumeMarketAddress to consumeFeeAmount
+    mapping(address => mapping(address => uint256)) public consumeFees;
 
     modifier onlyActiveExchange(bytes32 exchangeId) {
         require(
             //exchanges[exchangeId].fixedRate != 0 &&
-                exchanges[exchangeId].active == true,
+            exchanges[exchangeId].active == true,
             "FixedRateExchange: Exchange does not exist!"
         );
         _;
@@ -84,13 +83,13 @@ contract FixedRateExchange is ReentrancyGuard {
         uint256 newRate
     );
 
-    //triggered when the withMint state is changed 
+    //triggered when the withMint state is changed
     event ExchangeMintStateChanged(
         bytes32 indexed exchangeId,
         address indexed exchangeOwner,
         bool withMint
     );
-    
+
     event ExchangeActivated(
         bytes32 indexed exchangeId,
         address indexed exchangeOwner
@@ -105,7 +104,7 @@ contract FixedRateExchange is ReentrancyGuard {
         bytes32 indexed exchangeId,
         address indexed allowedSwapper
     );
-    
+
     event Swapped(
         bytes32 indexed exchangeId,
         address indexed by,
@@ -135,17 +134,21 @@ contract FixedRateExchange is ReentrancyGuard {
     );
 
     constructor(address _router, address _opfCollector) {
-        require(_router != address(0), "FixedRateExchange: Wrong Router address");
-        require(_opfCollector != address(0), "FixedRateExchange: Wrong OPF address");
+        require(
+            _router != address(0),
+            "FixedRateExchange: Wrong Router address"
+        );
+        require(
+            _opfCollector != address(0),
+            "FixedRateExchange: Wrong OPF address"
+        );
         router = _router;
         opfCollector = _opfCollector;
     }
 
-
-    function getOPFFee(address basetokenAddress) public view returns (uint) {
+    function getOPFFee(address basetokenAddress) public view returns (uint256) {
         return IFactoryRouter(router).getOPFFee(basetokenAddress);
     }
-  
 
     /**
      * @dev create
@@ -161,15 +164,14 @@ contract FixedRateExchange is ReentrancyGuard {
      *                [0] - baseTokenDecimals
      *                [1] - dataTokenDecimals
      *                [2] - fixedRate
-     *                [3] - marketFee
+     *                [3] - publishMarketFee
      *                [4] - withMint
      */
     function createWithDecimals(
         address dataToken,
-        address[] memory addresses, 
-        uint256[] memory uints 
+        address[] memory addresses,
+        uint256[] memory uints
     ) public onlyRouter returns (bytes32 exchangeId) {
-       
         require(
             addresses[0] != address(0),
             "FixedRateExchange: Invalid basetoken,  zero address"
@@ -191,8 +193,8 @@ contract FixedRateExchange is ReentrancyGuard {
             exchanges[exchangeId].fixedRate == 0,
             "FixedRateExchange: Exchange already exists!"
         );
-        bool withMint=true;
-        if(uints[4] == 0) withMint = false;
+        bool withMint = true;
+        if (uints[4] == 0) withMint = false;
         exchanges[exchangeId] = Exchange({
             active: true,
             exchangeOwner: addresses[1],
@@ -215,7 +217,7 @@ contract FixedRateExchange is ReentrancyGuard {
 
         emit ExchangeCreated(
             exchangeId,
-            addresses[0], // 
+            addresses[0], //
             dataToken,
             addresses[1],
             uints[2]
@@ -246,7 +248,11 @@ contract FixedRateExchange is ReentrancyGuard {
      * @param exchangeId a unique exchange idnetifier
      * @param dataTokenAmount the amount of data tokens to be exchanged
      */
-    function calcBaseInGivenOutDT(bytes32 exchangeId, uint256 dataTokenAmount)
+    function calcBaseInGivenOutDT(
+        bytes32 exchangeId,
+        uint256 dataTokenAmount,
+        uint256 consumeFee
+    )
         public
         view
         onlyActiveExchange(exchangeId)
@@ -254,32 +260,33 @@ contract FixedRateExchange is ReentrancyGuard {
             uint256 baseTokenAmount,
             uint256 baseTokenAmountBeforeFee,
             uint256 oceanFeeAmount,
-            uint256 marketFeeAmount
+            uint256 marketFeeAmount,
+            uint256 consumeFeeAmount
         )
     {
+        //TODO: SET A LIMIT FOR CONSUME FEE
         baseTokenAmountBeforeFee = dataTokenAmount
             .mul(exchanges[exchangeId].fixedRate)
             .mul(10**exchanges[exchangeId].btDecimals)
             .div(10**exchanges[exchangeId].dtDecimals)
             .div(BASE);
 
-      
-        
         if (getOPFFee(exchanges[exchangeId].baseToken) != 0) {
             oceanFeeAmount = baseTokenAmountBeforeFee
                 .mul(getOPFFee(exchanges[exchangeId].baseToken))
                 .div(BASE);
         }
-     
+
         marketFeeAmount = baseTokenAmountBeforeFee
             .mul(exchanges[exchangeId].marketFee)
             .div(BASE);
 
-       
-        baseTokenAmount = baseTokenAmountBeforeFee.add(marketFeeAmount).add(
-            oceanFeeAmount
-        );
-      
+        consumeFeeAmount = baseTokenAmountBeforeFee.mul(consumeFee).div(BASE);
+
+        baseTokenAmount = baseTokenAmountBeforeFee
+            .add(marketFeeAmount)
+            .add(oceanFeeAmount)
+            .add(consumeFeeAmount);
     }
 
     /**
@@ -305,23 +312,19 @@ contract FixedRateExchange is ReentrancyGuard {
             .div(10**exchanges[exchangeId].dtDecimals)
             .div(BASE);
 
-       
-        
         if (getOPFFee(exchanges[exchangeId].baseToken) != 0) {
             oceanFeeAmount = baseTokenAmountBeforeFee
                 .mul(getOPFFee(exchanges[exchangeId].baseToken))
                 .div(BASE);
         }
-      
+
         marketFeeAmount = baseTokenAmountBeforeFee
             .mul(exchanges[exchangeId].marketFee)
             .div(BASE);
 
-    
         baseTokenAmount = baseTokenAmountBeforeFee.sub(marketFeeAmount).sub(
             oceanFeeAmount
         );
-   
     }
 
     /**
@@ -331,16 +334,19 @@ contract FixedRateExchange is ReentrancyGuard {
      * @param dataTokenAmount the amount of data tokens to be exchanged
      * @param maxBaseTokenAmount maximum amount of base tokens to pay
      */
-    function buyDT(bytes32 exchangeId, uint256 dataTokenAmount, uint256 maxBaseTokenAmount)
-        external
-        onlyActiveExchange(exchangeId)
-        nonReentrant
-    {
+    function buyDT(
+        bytes32 exchangeId,
+        uint256 dataTokenAmount,
+        uint256 maxBaseTokenAmount,
+        uint256 consumeFee,
+        address consumeMarketAddress
+    ) external onlyActiveExchange(exchangeId) nonReentrant {
+        // TODO: set a limit for consumeFee?
         require(
             dataTokenAmount != 0,
             "FixedRateExchange: zero data token amount"
         );
-        if(exchanges[exchangeId].allowedSwapper != address(0)){
+        if (exchanges[exchangeId].allowedSwapper != address(0)) {
             require(
                 exchanges[exchangeId].allowedSwapper == msg.sender,
                 "FixedRateExchange: This address is not allowed to swap"
@@ -350,19 +356,21 @@ contract FixedRateExchange is ReentrancyGuard {
             uint256 baseTokenAmount,
             uint256 baseTokenAmountBeforeFee,
             uint256 oceanFeeAmount,
-            uint256 marketFeeAmount
-        ) = calcBaseInGivenOutDT(exchangeId, dataTokenAmount);
+            uint256 marketFeeAmount,
+            uint256 consumeFeeAmount
+        ) = calcBaseInGivenOutDT(exchangeId, dataTokenAmount, consumeFee);
         require(
             baseTokenAmount <= maxBaseTokenAmount,
             "FixedRateExchange: Too many base tokens"
         );
-        // we account fees , fees are always collected in basetoken
-        exchanges[exchangeId].oceanFeeAvailable = exchanges[exchangeId]
-            .oceanFeeAvailable
-            .add(oceanFeeAmount);
-        exchanges[exchangeId].marketFeeAvailable = exchanges[exchangeId]
-            .marketFeeAvailable
-            .add(marketFeeAmount);
+      
+        _accountFees(
+            exchangeId,
+            oceanFeeAmount,
+            marketFeeAmount,
+            consumeFeeAmount,
+            consumeMarketAddress
+        );
         require(
             IERC20Template(exchanges[exchangeId].baseToken).transferFrom(
                 msg.sender,
@@ -378,18 +386,24 @@ contract FixedRateExchange is ReentrancyGuard {
 
         if (dataTokenAmount > exchanges[exchangeId].dtBalance) {
             //first, let's try to mint
-            if(exchanges[exchangeId].withMint 
-            && IERC20Template(exchanges[exchangeId].dataToken).isMinter(address(this)))
-            {
-                IERC20Template(exchanges[exchangeId].dataToken).mint(msg.sender,dataTokenAmount);
-            }
-            else{
+            if (
+                exchanges[exchangeId].withMint &&
+                IERC20Template(exchanges[exchangeId].dataToken).isMinter(
+                    address(this)
+                )
+            ) {
+                IERC20Template(exchanges[exchangeId].dataToken).mint(
+                    msg.sender,
+                    dataTokenAmount
+                );
+            } else {
                 require(
-                    IERC20Template(exchanges[exchangeId].dataToken).transferFrom(
-                        exchanges[exchangeId].exchangeOwner,
-                        msg.sender,
-                        dataTokenAmount
-                    ),
+                    IERC20Template(exchanges[exchangeId].dataToken)
+                        .transferFrom(
+                            exchanges[exchangeId].exchangeOwner,
+                            msg.sender,
+                            dataTokenAmount
+                        ),
                     "FixedRateExchange: transferFrom failed in the dataToken contract"
                 );
             }
@@ -401,16 +415,36 @@ contract FixedRateExchange is ReentrancyGuard {
                 dataTokenAmount
             );
         }
+        // TODO: update event
+        // emit Swapped(
+        //     exchangeId,
+        //     msg.sender,
+        //     baseTokenAmount,
+        //     dataTokenAmount,
+        //     exchanges[exchangeId].dataToken,
+        //     marketFeeAmount,
+        //     oceanFeeAmount
+        // );
+    }
 
-        emit Swapped(
-            exchangeId,
-            msg.sender,
-            baseTokenAmount,
-            dataTokenAmount,
-            exchanges[exchangeId].dataToken,
-            marketFeeAmount,
-            oceanFeeAmount
-        );
+    function _accountFees(
+        bytes32 exchangeId,
+        uint256 oceanFeeAmount,
+        uint256 marketFeeAmount,
+        uint256 consumeFeeAmount,
+        address consumeMarketAddress
+    ) internal {
+          // we account fees , fees are always collected in basetoken
+        exchanges[exchangeId].oceanFeeAvailable = exchanges[exchangeId]
+            .oceanFeeAvailable
+            .add(oceanFeeAmount);
+        exchanges[exchangeId].marketFeeAvailable = exchanges[exchangeId]
+            .marketFeeAvailable
+            .add(marketFeeAmount);
+        consumeFees[exchanges[exchangeId].baseToken][
+            consumeMarketAddress
+        ] = consumeFees[exchanges[exchangeId].baseToken][consumeMarketAddress]
+            .add(consumeFeeAmount);
     }
 
     /**
@@ -420,16 +454,16 @@ contract FixedRateExchange is ReentrancyGuard {
      * @param dataTokenAmount the amount of data tokens to be exchanged
      * @param minBaseTokenAmount minimum amount of base tokens to cash in
      */
-    function sellDT(bytes32 exchangeId, uint256 dataTokenAmount, uint256 minBaseTokenAmount)
-        external
-        onlyActiveExchange(exchangeId)
-        nonReentrant
-    {
+    function sellDT(
+        bytes32 exchangeId,
+        uint256 dataTokenAmount,
+        uint256 minBaseTokenAmount
+    ) external onlyActiveExchange(exchangeId) nonReentrant {
         require(
             dataTokenAmount != 0,
             "FixedRateExchange: zero data token amount"
         );
-        if(exchanges[exchangeId].allowedSwapper != address(0)){
+        if (exchanges[exchangeId].allowedSwapper != address(0)) {
             require(
                 exchanges[exchangeId].allowedSwapper == msg.sender,
                 "FixedRateExchange: This address is not allowed to swap"
@@ -575,10 +609,9 @@ contract FixedRateExchange is ReentrancyGuard {
         exchanges[exchangeId].marketFeeCollector = _newMarketCollector;
     }
 
-    function updateMarketFee(
-        bytes32 exchangeId,
-        uint256 _newMarketFee
-    ) external {
+    function updateMarketFee(bytes32 exchangeId, uint256 _newMarketFee)
+        external
+    {
         require(
             msg.sender == exchanges[exchangeId].marketFeeCollector,
             "not marketFeeCollector"
@@ -649,12 +682,14 @@ contract FixedRateExchange is ReentrancyGuard {
      * @param exchangeId a unique exchange identifier
      * @param newAllowedSwapper refers to the new allowedSwapper
      */
-    function setAllowedSwapper(bytes32 exchangeId, address newAllowedSwapper) external
-    onlyExchangeOwner(exchangeId)
+    function setAllowedSwapper(bytes32 exchangeId, address newAllowedSwapper)
+        external
+        onlyExchangeOwner(exchangeId)
     {
         exchanges[exchangeId].allowedSwapper = newAllowedSwapper;
         emit ExchangeAllowedSwapperChanged(exchangeId, newAllowedSwapper);
     }
+
     /**
      * @dev getRate
      *      gets the current fixed rate for an exchange
@@ -678,12 +713,16 @@ contract FixedRateExchange is ReentrancyGuard {
         returns (uint256 supply)
     {
         if (exchanges[exchangeId].active == false) supply = 0;
-        else if (exchanges[exchangeId].withMint == true
-        && IERC20Template(exchanges[exchangeId].dataToken).isMinter(address(this))){
-            supply = IERC20Template(exchanges[exchangeId].dataToken).cap() 
-            - IERC20Template(exchanges[exchangeId].dataToken).totalSupply();
-        }
-        else {
+        else if (
+            exchanges[exchangeId].withMint == true &&
+            IERC20Template(exchanges[exchangeId].dataToken).isMinter(
+                address(this)
+            )
+        ) {
+            supply =
+                IERC20Template(exchanges[exchangeId].dataToken).cap() -
+                IERC20Template(exchanges[exchangeId].dataToken).totalSupply();
+        } else {
             uint256 balance = IERC20Template(exchanges[exchangeId].dataToken)
                 .balanceOf(exchanges[exchangeId].exchangeOwner);
             uint256 allowance = IERC20Template(exchanges[exchangeId].dataToken)
@@ -743,8 +782,8 @@ contract FixedRateExchange is ReentrancyGuard {
             uint256 dtBalance,
             uint256 btBalance,
             bool withMint
-           // address allowedSwapper
         )
+    // address allowedSwapper
     {
         Exchange memory exchange = exchanges[exchangeId];
         exchangeOwner = exchange.exchangeOwner;
@@ -759,21 +798,19 @@ contract FixedRateExchange is ReentrancyGuard {
         dtBalance = exchange.dtBalance;
         btBalance = exchange.btBalance;
         withMint = exchange.withMint;
-       // allowedSwapper = exchange.allowedSwapper;
+        // allowedSwapper = exchange.allowedSwapper;
     }
 
     // /**
     //  * @dev getAllowedSwapper
     //  *      gets allowedSwapper
     //  * @param exchangeId a unique exchange idnetifier
-    //  * @return address of allowedSwapper 
+    //  * @return address of allowedSwapper
     //  */
     function getAllowedSwapper(bytes32 exchangeId)
         external
         view
-        returns (
-            address allowedSwapper
-        )
+        returns (address allowedSwapper)
     {
         Exchange memory exchange = exchanges[exchangeId];
         allowedSwapper = exchange.allowedSwapper;
