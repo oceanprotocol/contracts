@@ -17,8 +17,7 @@ contract FactoryRouter is BFactory {
     address public routerOwner;
     address public factory;
     address public fixedRate;
-    
-    
+
     uint256 public swapOceanFee = 1e15;
     mapping(address => bool) public oceanTokens;
     mapping(address => bool) public ssContracts;
@@ -27,18 +26,45 @@ contract FactoryRouter is BFactory {
 
     event NewPool(address indexed poolAddress, bool isOcean);
     event RouterChanged(address indexed caller, address indexed newRouter);
-    event FactoryContractChanged(address indexed caller, address indexed contractAddress);
+    event FactoryContractChanged(
+        address indexed caller,
+        address indexed contractAddress
+    );
     event TokenAdded(address indexed caller, address indexed token);
     event TokenRemoved(address indexed caller, address indexed token);
-    event SSContractAdded(address indexed caller, address indexed contractAddress);
-    event SSContractRemoved(address indexed caller, address indexed contractAddress);
-    event FixedRateContractAdded(address indexed caller, address indexed contractAddress);
-    event FixedRateContractRemoved(address indexed caller, address indexed contractAddress);
-    event DispenserContractAdded(address indexed caller, address indexed contractAddress);
-    event DispenserContractRemoved(address indexed caller, address indexed contractAddress);
+    event SSContractAdded(
+        address indexed caller,
+        address indexed contractAddress
+    );
+    event SSContractRemoved(
+        address indexed caller,
+        address indexed contractAddress
+    );
+    event FixedRateContractAdded(
+        address indexed caller,
+        address indexed contractAddress
+    );
+    event FixedRateContractRemoved(
+        address indexed caller,
+        address indexed contractAddress
+    );
+    event DispenserContractAdded(
+        address indexed caller,
+        address indexed contractAddress
+    );
+    event DispenserContractRemoved(
+        address indexed caller,
+        address indexed contractAddress
+    );
 
-    event PoolTemplateAdded(address indexed caller, address indexed contractAddress);
-    event PoolTemplateRemoved(address indexed caller, address indexed contractAddress);
+    event PoolTemplateAdded(
+        address indexed caller,
+        address indexed contractAddress
+    );
+    event PoolTemplateRemoved(
+        address indexed caller,
+        address indexed contractAddress
+    );
 
     event OPFFeeChanged(address indexed caller, uint256 newFee);
 
@@ -54,71 +80,116 @@ contract FactoryRouter is BFactory {
         address _opfCollector,
         address[] memory _preCreatedPools
     ) public BFactory(_bpoolTemplate, _opfCollector, _preCreatedPools) {
-        require(_routerOwner != address(0), "FactoryRouter: Invalid router owner");
-        require(_opfCollector != address(0), "FactoryRouter: Invalid opfCollector");
-        require(_oceanToken != address(0), "FactoryRouter: Invalid Ocean Token address");
+        require(
+            _routerOwner != address(0),
+            "FactoryRouter: Invalid router owner"
+        );
+        require(
+            _opfCollector != address(0),
+            "FactoryRouter: Invalid opfCollector"
+        );
+        require(
+            _oceanToken != address(0),
+            "FactoryRouter: Invalid Ocean Token address"
+        );
         routerOwner = _routerOwner;
         opfCollector = _opfCollector;
         oceanTokens[_oceanToken] = true;
     }
 
     function changeRouterOwner(address _routerOwner) external onlyRouterOwner {
-        require(
-            _routerOwner != address(0),
-            'Invalid new router owner'
-        );
+        require(_routerOwner != address(0), "Invalid new router owner");
         routerOwner = _routerOwner;
         emit RouterChanged(msg.sender, _routerOwner);
     }
 
     function addOceanToken(address oceanTokenAddress) external onlyRouterOwner {
-        require(oceanTokenAddress != address(0), "FactoryRouter: Invalid Ocean Token address");
+        require(
+            oceanTokenAddress != address(0),
+            "FactoryRouter: Invalid Ocean Token address"
+        );
         oceanTokens[oceanTokenAddress] = true;
         emit TokenAdded(msg.sender, oceanTokenAddress);
     }
 
-    function removeOceanToken(address oceanTokenAddress) external onlyRouterOwner {
-        require(oceanTokenAddress != address(0), "FactoryRouter: Invalid Ocean Token address");
+    function removeOceanToken(address oceanTokenAddress)
+        external
+        onlyRouterOwner
+    {
+        require(
+            oceanTokenAddress != address(0),
+            "FactoryRouter: Invalid Ocean Token address"
+        );
         oceanTokens[oceanTokenAddress] = false;
         emit TokenRemoved(msg.sender, oceanTokenAddress);
     }
 
     function addSSContract(address _ssContract) external onlyRouterOwner {
-        require(_ssContract != address(0), "FactoryRouter: Invalid _ssContract address");
+        require(
+            _ssContract != address(0),
+            "FactoryRouter: Invalid _ssContract address"
+        );
         ssContracts[_ssContract] = true;
         emit SSContractAdded(msg.sender, _ssContract);
     }
 
     function removeSSContract(address _ssContract) external onlyRouterOwner {
-        require(_ssContract != address(0), "FactoryRouter: Invalid _ssContract address");
+        require(
+            _ssContract != address(0),
+            "FactoryRouter: Invalid _ssContract address"
+        );
         ssContracts[_ssContract] = false;
         emit SSContractRemoved(msg.sender, _ssContract);
     }
 
     function addFactory(address _factory) external onlyRouterOwner {
-        require(_factory != address(0), "FactoryRouter: Invalid _factory address");
+        require(
+            _factory != address(0),
+            "FactoryRouter: Invalid _factory address"
+        );
         require(factory == address(0), "FACTORY ALREADY SET");
         factory = _factory;
         emit FactoryContractChanged(msg.sender, _factory);
     }
 
     function addFixedRateContract(address _fixedRate) external onlyRouterOwner {
-        require(_fixedRate != address(0), "FactoryRouter: Invalid _fixedRate address");
+        require(
+            _fixedRate != address(0),
+            "FactoryRouter: Invalid _fixedRate address"
+        );
         fixedPrice[_fixedRate] = true;
         emit FixedRateContractAdded(msg.sender, _fixedRate);
     }
-    function removeFixedRateContract(address _fixedRate) external onlyRouterOwner {
-        require(_fixedRate != address(0), "FactoryRouter: Invalid _fixedRate address");
+
+    function removeFixedRateContract(address _fixedRate)
+        external
+        onlyRouterOwner
+    {
+        require(
+            _fixedRate != address(0),
+            "FactoryRouter: Invalid _fixedRate address"
+        );
         fixedPrice[_fixedRate] = false;
         emit FixedRateContractRemoved(msg.sender, _fixedRate);
     }
+
     function addDispenserContract(address _dispenser) external onlyRouterOwner {
-        require(_dispenser != address(0), "FactoryRouter: Invalid _dispenser address");
+        require(
+            _dispenser != address(0),
+            "FactoryRouter: Invalid _dispenser address"
+        );
         dispenser[_dispenser] = true;
         emit DispenserContractAdded(msg.sender, _dispenser);
     }
-    function removeDispenserContract(address _dispenser) external onlyRouterOwner {
-        require(_dispenser != address(0), "FactoryRouter: Invalid _dispenser address");
+
+    function removeDispenserContract(address _dispenser)
+        external
+        onlyRouterOwner
+    {
+        require(
+            _dispenser != address(0),
+            "FactoryRouter: Invalid _dispenser address"
+        );
         dispenser[_dispenser] = false;
         emit DispenserContractRemoved(msg.sender, _dispenser);
     }
@@ -165,14 +236,19 @@ contract FactoryRouter is BFactory {
         @return pool address
      */
     function deployPool(
-        address[2] calldata tokens, 
+        address[2] calldata tokens,
         // [datatokenAddress, basetokenAddress]
         uint256[] calldata ssParams,
         uint256[] calldata swapFees,
-        address[] calldata addresses 
-        //[controller,basetokenAddress,basetokenSender,publisherAddress, marketFeeCollector,poolTemplateAddress]
+        address[] calldata addresses
+    )
+        external
+        returns (
+            //[controller,basetokenAddress,basetokenSender,publisherAddress, marketFeeCollector,poolTemplateAddress]
 
-    ) external returns (address) {
+            address
+        )
+    {
         require(
             IFactory(factory).erc20List(msg.sender),
             "FACTORY ROUTER: NOT ORIGINAL ERC20 TEMPLATE"
@@ -186,19 +262,12 @@ contract FactoryRouter is BFactory {
         // we pull basetoken for creating initial pool and send it to the controller (ssContract)
         IERC20 bt = IERC20(tokens[1]);
         bt.safeTransferFrom(addresses[2], addresses[0], ssParams[4]);
-          
-        address pool = newBPool(
-            tokens,
-            ssParams,
-            swapFees,
-            addresses
-        );
+
+        address pool = newBPool(tokens, ssParams, swapFees, addresses);
 
         require(pool != address(0), "FAILED TO DEPLOY POOL");
-        if (oceanTokens[tokens[1]])
-                emit NewPool(pool, true);
-        else
-                emit NewPool(pool, false);
+        if (oceanTokens[tokens[1]]) emit NewPool(pool, true);
+        else emit NewPool(pool, false);
         return pool;
     }
 
@@ -220,8 +289,7 @@ contract FactoryRouter is BFactory {
     function deployFixedRate(
         address fixedPriceAddress,
         address[] calldata addresses,
-        uint[] calldata uints
-
+        uint256[] calldata uints
     ) external returns (bytes32 exchangeId) {
         require(
             IFactory(factory).erc20List(msg.sender),
@@ -270,7 +338,13 @@ contract FactoryRouter is BFactory {
             dispenser[_dispenser],
             "FACTORY ROUTER: Invalid DispenserContract"
         );
-        IDispenser(_dispenser).create(datatoken, maxTokens, maxBalance, owner, allowedSwapper);
+        IDispenser(_dispenser).create(
+            datatoken,
+            maxTokens,
+            maxBalance,
+            owner,
+            allowedSwapper
+        );
     }
 
     function addPoolTemplate(address poolTemplate) external onlyRouterOwner {
@@ -279,23 +353,27 @@ contract FactoryRouter is BFactory {
     }
 
     function removePoolTemplate(address poolTemplate) external onlyRouterOwner {
-       _removePoolTemplate(poolTemplate);
-       emit PoolTemplateRemoved(msg.sender, poolTemplate);
+        _removePoolTemplate(poolTemplate);
+        emit PoolTemplateRemoved(msg.sender, poolTemplate);
     }
 
+    // If you need to buy multiple DT (let's say for a compute job which has multiple datasets),
+    // you have to send one transaction for each DT that you want to buy.
 
-// If you need to buy multiple DT (let's say for a compute job which has multiple datasets), 
-// you have to send one transaction for each DT that you want to buy.
+    // Perks:
 
-// Perks:
+    // one single call to buy multiple DT for multiple assets (better UX, better gas optimization)
 
-// one single call to buy multiple DT for multiple assets (better UX, better gas optimization)
+    enum operationType {
+        SwapExactIn,
+        SwapExactOut,
+        FixedRate,
+        Dispenser
+    }
 
-    enum operationType { SwapExactIn, SwapExactOut, FixedRate, Dispenser}
-
-    struct Operations{
+    struct Operations {
         bytes32 exchangeIds; // used for fixedRate or dispenser
-        address source;// pool, dispenser or fixed rate address
+        address source; // pool, dispenser or fixed rate address
         operationType operation; // type of operation: enum operationType
         address tokenIn; // token in address, only for pools
         uint256 amountsIn; // ExactAmount In for swapExactIn operation, maxAmount In for swapExactOut
@@ -304,77 +382,121 @@ contract FactoryRouter is BFactory {
         uint256 maxPrice; // maxPrice, only for pools
         uint256 swapMarketFee;
         address marketFeeAddress;
-    } 
-
-    // require tokenIn approvals for router from user. (except for dispenser operations)
-    function buyDTBatch( 
-        Operations[] calldata _operations
-        ) 
-        external {
-        // TODO: to avoid DOS attack, we set a limit to maximum orders (50?)
-        require(_operations.length <= 50, 'FactoryRouter: Too Many Operations');
-            for (uint i= 0; i< _operations.length; i++) {
-               // address[] memory tokenInOutMarket = new address[](3);
-                address[3] memory tokenInOutMarket = [_operations[i].tokenIn,_operations[i].tokenOut,_operations[i].marketFeeAddress];
-                uint256[4] memory amountsInOutMaxFee = [_operations[i].amountsIn,_operations[i].amountsOut,_operations[i].maxPrice,_operations[i].swapMarketFee];
-            
-               // tokenInOutMarket[0] =
-                if(_operations[i].operation == operationType.SwapExactIn) {
-                    // Get amountIn from user to router
-                    IERC20(_operations[i].tokenIn).safeTransferFrom(msg.sender,address(this),_operations[i].amountsIn);
-                    // we approve pool to pull token from router
-                    IERC20(_operations[i].tokenIn)
-                    .safeIncreaseAllowance(_operations[i].source,_operations[i].amountsIn);
-                    
-                    // Perform swap
-                    (uint amountReceived,) = 
-                    IPool(_operations[i].source)
-                    .swapExactAmountIn(tokenInOutMarket,amountsInOutMaxFee);
-                    // transfer token swapped to user
-                   
-                    IERC20(_operations[i].tokenOut).safeTransfer(msg.sender,amountReceived);
-                } else if (_operations[i].operation == operationType.SwapExactOut){
-                    // calculate how much amount In we need for exact Out
-                    uint amountIn = IPool(_operations[i].source)
-                    .getAmountInExactOut(_operations[i].tokenIn,_operations[i].tokenOut,_operations[i].amountsOut,_operations[i].swapMarketFee);
-                    // pull amount In from user
-                    IERC20(_operations[i].tokenIn).safeTransferFrom(msg.sender,address(this),amountIn);
-                    // we approve pool to pull token from router
-                    IERC20(_operations[i].tokenIn).safeIncreaseAllowance(_operations[i].source,amountIn);
-                    // perform swap
-                    IPool(_operations[i].source)
-                    .swapExactAmountOut(tokenInOutMarket,amountsInOutMaxFee);
-                    // send amount out back to user
-                    IERC20(_operations[i].tokenOut)
-                    .safeTransfer(msg.sender,_operations[i].amountsOut);
-
-                } else if (_operations[i].operation ==  operationType.FixedRate) {
-                    // get datatoken address
-                    (,address datatoken,,,,,,,,,,) = 
-                    IFixedRateExchange(_operations[i].source).getExchange(_operations[i].exchangeIds);
-                    // get tokenIn amount required for dt out
-                    (uint baseTokenAmount,,,) = 
-                    IFixedRateExchange(_operations[i].source).
-                    calcBaseInGivenOutDT(_operations[i].exchangeIds,_operations[i].amountsOut);
-
-                    // pull tokenIn amount
-                    IERC20(_operations[i].tokenIn).safeTransferFrom(msg.sender,address(this),baseTokenAmount);
-                     // we approve pool to pull token from router
-                    IERC20(_operations[i].tokenIn).safeIncreaseAllowance(_operations[i].source,baseTokenAmount);
-                    // perform swap
-                    IFixedRateExchange(_operations[i].source)
-                    .buyDT(_operations[i].exchangeIds,_operations[i].amountsOut,_operations[i].amountsIn);
-                    // send dt out to user
-                    IERC20(datatoken).safeTransfer(msg.sender,_operations[i].amountsOut);
-                
-                } else {
-                    IDispenser(_operations[i].source)
-                    .dispense(_operations[i].tokenOut,_operations[i].amountsOut,msg.sender);
-                    
-                }
-            }
-
     }
 
+    // require tokenIn approvals for router from user. (except for dispenser operations)
+    function buyDTBatch(Operations[] calldata _operations) external {
+        // TODO: to avoid DOS attack, we set a limit to maximum orders (50?)
+        require(_operations.length <= 50, "FactoryRouter: Too Many Operations");
+        for (uint256 i = 0; i < _operations.length; i++) {
+            // address[] memory tokenInOutMarket = new address[](3);
+            address[3] memory tokenInOutMarket = [
+                _operations[i].tokenIn,
+                _operations[i].tokenOut,
+                _operations[i].marketFeeAddress
+            ];
+            uint256[4] memory amountsInOutMaxFee = [
+                _operations[i].amountsIn,
+                _operations[i].amountsOut,
+                _operations[i].maxPrice,
+                _operations[i].swapMarketFee
+            ];
 
+            // tokenInOutMarket[0] =
+            if (_operations[i].operation == operationType.SwapExactIn) {
+                // Get amountIn from user to router
+                IERC20(_operations[i].tokenIn).safeTransferFrom(
+                    msg.sender,
+                    address(this),
+                    _operations[i].amountsIn
+                );
+                // we approve pool to pull token from router
+                IERC20(_operations[i].tokenIn).safeIncreaseAllowance(
+                    _operations[i].source,
+                    _operations[i].amountsIn
+                );
+
+                // Perform swap
+                (uint256 amountReceived, ) = IPool(_operations[i].source)
+                    .swapExactAmountIn(tokenInOutMarket, amountsInOutMaxFee);
+                // transfer token swapped to user
+
+                IERC20(_operations[i].tokenOut).safeTransfer(
+                    msg.sender,
+                    amountReceived
+                );
+            } else if (_operations[i].operation == operationType.SwapExactOut) {
+                // calculate how much amount In we need for exact Out
+                uint256 amountIn = IPool(_operations[i].source)
+                    .getAmountInExactOut(
+                        _operations[i].tokenIn,
+                        _operations[i].tokenOut,
+                        _operations[i].amountsOut,
+                        _operations[i].swapMarketFee
+                    );
+                // pull amount In from user
+                IERC20(_operations[i].tokenIn).safeTransferFrom(
+                    msg.sender,
+                    address(this),
+                    amountIn
+                );
+                // we approve pool to pull token from router
+                IERC20(_operations[i].tokenIn).safeIncreaseAllowance(
+                    _operations[i].source,
+                    amountIn
+                );
+                // perform swap
+                IPool(_operations[i].source).swapExactAmountOut(
+                    tokenInOutMarket,
+                    amountsInOutMaxFee
+                );
+                // send amount out back to user
+                IERC20(_operations[i].tokenOut).safeTransfer(
+                    msg.sender,
+                    _operations[i].amountsOut
+                );
+            } else if (_operations[i].operation == operationType.FixedRate) {
+                // get datatoken address
+                (, address datatoken, , , , , , , , , , ) = IFixedRateExchange(
+                    _operations[i].source
+                ).getExchange(_operations[i].exchangeIds);
+                // get tokenIn amount required for dt out
+                (uint256 baseTokenAmount, , , ) = IFixedRateExchange(
+                    _operations[i].source
+                ).calcBaseInGivenOutDT(
+                        _operations[i].exchangeIds,
+                        _operations[i].amountsOut
+                    );
+
+                // pull tokenIn amount
+                IERC20(_operations[i].tokenIn).safeTransferFrom(
+                    msg.sender,
+                    address(this),
+                    baseTokenAmount
+                );
+                // we approve pool to pull token from router
+                IERC20(_operations[i].tokenIn).safeIncreaseAllowance(
+                    _operations[i].source,
+                    baseTokenAmount
+                );
+                // perform swap
+                IFixedRateExchange(_operations[i].source).buyDT(
+                    _operations[i].exchangeIds,
+                    _operations[i].amountsOut,
+                    _operations[i].amountsIn
+                );
+                // send dt out to user
+                IERC20(datatoken).safeTransfer(
+                    msg.sender,
+                    _operations[i].amountsOut
+                );
+            } else {
+                IDispenser(_operations[i].source).dispense(
+                    _operations[i].tokenOut,
+                    _operations[i].amountsOut,
+                    msg.sender
+                );
+            }
+        }
+    }
 }
