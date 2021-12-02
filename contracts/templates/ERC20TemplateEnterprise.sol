@@ -100,6 +100,8 @@ contract ERC20TemplateEnterprise is ERC20("test", "testSymbol"), ERC20Roles, ERC
     event NewPaymentCollector(address indexed caller, address indexed _newPaymentCollector,
         uint256 timestamp, uint256 blockNumber);
 
+    event BuyAndOrder(address buyer,uint baseTokenAmount, uint marketFeeAmount);
+    
     modifier onlyNotInitialized() {
         require(
             !initialized,
@@ -839,6 +841,8 @@ contract ERC20TemplateEnterprise is ERC20("test", "testSymbol"), ERC20Roles, ERC
         
         // Transfer Market Fee to market fee collector
         IERC20(baseToken).safeTransfer(_freParams.marketFeeAddress, marketFeeAmount);
+
+        emit BuyAndOrder(msg.sender,baseTokenAmount,marketFeeAmount);
     }
 
     /**
