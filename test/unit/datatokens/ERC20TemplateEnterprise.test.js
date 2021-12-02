@@ -1188,7 +1188,7 @@ describe("ERC20TemplateEnterprise", () => {
     const args = event[0].args;
     // balance increasead as expected, dynamic market fee has been received
     expect(await Mock20DecimalContract.balanceOf(user5.address)).to.equal(user5BalBeforBuy.add(args.marketFeeAmount))
-
+    expect(args.marketFeeAmount).to.equal(0)
     const balanceConsume = await Mock20Contract.balanceOf(consumeFeeAddress)
     const balanceOpfConsume = await Mock20Contract.balanceOf(opfCollector.address)
     const expectedConsume = web3.utils.toWei(new BN(consumeFeeAmount)).sub(web3.utils.toWei(new BN(consumeFeeAmount)).div(new BN(100)))
@@ -1329,7 +1329,9 @@ describe("ERC20TemplateEnterprise", () => {
     event = txReceipt.events.filter((e) => e.event === "BuyAndOrder");
     const args = event[0].args;
     expect(await Mock20DecimalContract.balanceOf(user5.address)).to.equal(user5BalBeforBuy.add(args.marketFeeAmount))
-
+    // 0.1% of 1 token => 0.001 token
+    expect(args.marketFeeAmount).to.equal(web3.utils.toWei('0.001'))
+    
     const balanceConsume = await Mock20Contract.balanceOf(consumeFeeAddress)
     const balanceOpfConsume = await Mock20Contract.balanceOf(opfCollector.address)
     const expectedConsume = web3.utils.toWei(new BN(consumeFeeAmount)).sub(web3.utils.toWei(new BN(consumeFeeAmount)).div(new BN(100)))
