@@ -186,7 +186,7 @@ contract FactoryRouter is BFactory {
         // we pull basetoken for creating initial pool and send it to the controller (ssContract)
         IERC20 bt = IERC20(tokens[1]);
         bt.safeTransferFrom(addresses[2], addresses[0], ssParams[4]);
-
+          
         address pool = newBPool(
             tokens,
             ssParams,
