@@ -7,6 +7,7 @@ import "./BToken.sol";
 import "./BMath.sol";
 import "../../interfaces/ISideStaking.sol";
 import "../../utils/SafeERC20.sol";
+import "hardhat/console.sol";
 /**
  * @title BPool
  *
@@ -618,7 +619,7 @@ contract BPool is BMath, BToken {
          _checkBound(tokenInOutMarket[1]);
         Record storage inRecord = _records[address(tokenInOutMarket[0])];
         Record storage outRecord = _records[address(tokenInOutMarket[1])];
-
+        
         require(
             amountsInOutMaxFee[0] <= bmul(inRecord.balance, MAX_IN_RATIO),
             "ERR_MAX_IN_RATIO"
@@ -679,7 +680,9 @@ contract BPool is BMath, BToken {
 
         _pullUnderlying(tokenInOutMarket[0], msg.sender, amountsInOutMaxFee[0]);
         // TODO: update msg.sender below with dynamic marketFeeAddress  //
+      
         IERC20(tokenInOutMarket[0]).safeTransfer(tokenInOutMarket[2],bsub(amountsInOutMaxFee[0], bmul(amountsInOutMaxFee[0], bsub(BONE, amountsInOutMaxFee[3]))) );
+     
         _pushUnderlying(tokenInOutMarket[1], msg.sender, tokenAmountOut);
 
         return (tokenAmountOut, spotPriceAfter); //returning spot price 0 because there is no public spotPrice
@@ -703,6 +706,7 @@ contract BPool is BMath, BToken {
         require(_finalized, "ERR_NOT_FINALIZED");
         // require(_records[tokenInOutMarket[0]].bound, "ERR_NOT_BOUND");
         // require(_records[tokenInOutMarket[1]].bound, "ERR_NOT_BOUND");
+        console.log('until here');
         _checkBound(tokenInOutMarket[0]);
         _checkBound(tokenInOutMarket[1]);
         Record storage inRecord = _records[address(tokenInOutMarket[0])];
@@ -712,7 +716,7 @@ contract BPool is BMath, BToken {
             amountsInOutMaxFee[1] <= bmul(outRecord.balance, MAX_OUT_RATIO),
             "ERR_MAX_OUT_RATIO"
         );
-
+      
         uint256 spotPriceBefore = calcSpotPrice(
             inRecord.balance,
             inRecord.denorm,
@@ -732,7 +736,7 @@ contract BPool is BMath, BToken {
             outRecord.balance,
             outRecord.denorm
         ];
-
+        
         (tokenAmountIn, balanceToAdd) = calcInGivenOutSwap(
             data,
             amountsInOutMaxFee[1],
@@ -770,10 +774,13 @@ contract BPool is BMath, BToken {
         );
 
         _pullUnderlying(tokenInOutMarket[0], msg.sender, tokenAmountIn);
+        
         // TODO: update msg.sender below with dynamic marketFeeAddress
-        IERC20(tokenInOutMarket[0]).safeTransfer(tokenInOutMarket[2], bsub(tokenAmountIn, bmul(tokenAmountIn, bsub(BONE, amountsInOutMaxFee[3]))));
+        if (amountsInOutMaxFee[3] > 0){
+            IERC20(tokenInOutMarket[0]).safeTransfer(tokenInOutMarket[2], bsub(tokenAmountIn, bmul(tokenAmountIn, bsub(BONE, amountsInOutMaxFee[3]))));
+        }
         _pushUnderlying(tokenInOutMarket[1], msg.sender, amountsInOutMaxFee[1]);
-
+            
         return (tokenAmountIn, spotPriceAfter);
     }
 

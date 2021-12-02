@@ -291,7 +291,7 @@ describe("Batch Swap", () => {
           //   user3.address,
           [
             swapFee, //
-            swapMarketFee,
+            swapMarketFee, // publishMarketFee
           ],
           //   marketFeeCollector.address,
           //    user3.address// publisher address (vested token)
@@ -321,12 +321,12 @@ describe("Batch Swap", () => {
       );
 
       expect(await bPool.getOPFFee()).to.equal(0);
-      expect(await bPool._swapMarketFee()).to.equal(swapMarketFee);
+      expect(await bPool._swapPublishMarketFee()).to.equal(swapMarketFee);
 
       expect(await bPool.communityFees(oceanAddress)).to.equal(0);
       expect(await bPool.communityFees(erc20Token.address)).to.equal(0);
-      expect(await bPool.marketFees(oceanAddress)).to.equal(0);
-      expect(await bPool.marketFees(erc20Token.address)).to.equal(0);
+      expect(await bPool.publishMarketFees(oceanAddress)).to.equal(0);
+      expect(await bPool.publishMarketFees(erc20Token.address)).to.equal(0);
     });
   });
 
@@ -414,12 +414,12 @@ describe("Batch Swap", () => {
 
       expect(await bPool2.getSwapFee()).to.equal(swapFee);
       expect(await bPool2.getOPFFee()).to.equal(1e15);
-      expect(await bPool2._swapMarketFee()).to.equal(swapMarketFee);
+      expect(await bPool2._swapPublishMarketFee()).to.equal(swapMarketFee);
 
       expect(await bPool2.communityFees(daiAddress)).to.equal(0);
       expect(await bPool2.communityFees(erc20Token.address)).to.equal(0);
-      expect(await bPool2.marketFees(daiAddress)).to.equal(0);
-      expect(await bPool2.marketFees(erc20Token2.address)).to.equal(0);
+      expect(await bPool2.publishMarketFees(daiAddress)).to.equal(0);
+      expect(await bPool2.publishMarketFees(erc20Token2.address)).to.equal(0);
     });
   });
 
@@ -520,12 +520,12 @@ describe("Batch Swap", () => {
 
       expect(await bPool3.getSwapFee()).to.equal(swapFee);
       expect(await bPool3.getOPFFee()).to.equal(1e15);
-      expect(await bPool3._swapMarketFee()).to.equal(swapMarketFee);
+      expect(await bPool3._swapPublishMarketFee()).to.equal(swapMarketFee);
 
       expect(await bPool3.communityFees(usdcAddress)).to.equal(0);
       expect(await bPool3.communityFees(erc20Token3.address)).to.equal(0);
-      expect(await bPool3.marketFees(usdcAddress)).to.equal(0);
-      expect(await bPool3.marketFees(erc20Token.address)).to.equal(0);
+      expect(await bPool3.publishMarketFees(usdcAddress)).to.equal(0);
+      expect(await bPool3.publishMarketFees(erc20Token.address)).to.equal(0);
     });
   });
 
@@ -688,7 +688,9 @@ describe("Batch Swap", () => {
         amountsIn: web3.utils.toWei("1"), // when swapExactAmountIn is EXACT amount IN
         tokenOut: erc20Token.address,
         amountsOut: web3.utils.toWei('0.001'), // when swapExactAmountIn is MIN amount OUT
-        maxPrice: web3.utils.toWei('100') // max price (only for pools)
+        maxPrice: web3.utils.toWei('100'), // max price (only for pools)
+        swapMarketFee:0,
+        marketFeeAddress:user5.address
       };
       
       const operations2 = {
@@ -699,7 +701,9 @@ describe("Batch Swap", () => {
         amountsIn: web3.utils.toWei("10"), // when swapExactAmountOut is MAX amount IN
         tokenOut: erc20Token2.address,
         amountsOut: web3.utils.toWei('1'),  // when swapExactAmountOut is EXACT amount OUT
-        maxPrice: web3.utils.toWei('100') // max price (only for pools) but has to be filled in any case
+        maxPrice: web3.utils.toWei('100'), // max price (only for pools) but has to be filled in any case,
+        swapMarketFee:0,
+        marketFeeAddress:user5.address
       };
 
       const operations3 = {
@@ -710,7 +714,9 @@ describe("Batch Swap", () => {
         amountsIn: web3.utils.toWei("10"), // when swapExactAmountOut is MAX amount IN
         tokenOut: erc20Token3.address,
         amountsOut: web3.utils.toWei('1'),  // when swapExactAmountOut is EXACT amount OUT
-        maxPrice: web3.utils.toWei('100') // max price (only for pools) but has to be filled in any case
+        maxPrice: web3.utils.toWei('100'), // max price (only for pools) but has to be filled in any case,
+        swapMarketFee:0,
+        marketFeeAddress:user5.address
       };
 
       const operations4 = {
@@ -721,7 +727,9 @@ describe("Batch Swap", () => {
         amountsIn: web3.utils.toWei("10"), // maximum amount of base tokens to spend
         tokenOut: erc20Token4.address,
         amountsOut: web3.utils.toWei('1'),  // how many DT we want to buy
-        maxPrice: web3.utils.toWei('100') // unused in this case
+        maxPrice: web3.utils.toWei('100'), // unused in this case,
+        swapMarketFee:0,
+        marketFeeAddress:user5.address
       };
 
       const operations5 = {
@@ -732,7 +740,9 @@ describe("Batch Swap", () => {
         amountsIn: web3.utils.toWei("10"), // unused
         tokenOut: erc20Token5.address,
         amountsOut: web3.utils.toWei('1'),  // how many DT we want to receive
-        maxPrice: web3.utils.toWei('100') // unused in this case
+        maxPrice: web3.utils.toWei('100'), // unused in this case,
+        swapMarketFee:0,
+        marketFeeAddress:user5.address
       };
 
       expect(await erc20Token.balanceOf(user4.address)).to.equal(0)

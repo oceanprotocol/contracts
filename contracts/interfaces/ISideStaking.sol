@@ -99,21 +99,5 @@ interface ISideStaking {
     function notifyFinalize(address datatokenAddress) external;
 
 
-    function swapExactAmountIn(
-        address datatokenAddress,
-        address userAddress,
-        address tokenIn,
-        uint256 tokenAmountIn,
-        address tokenOut,
-        uint256 minAmountOut
-    ) external returns (uint256 tokenAmountOut);
-
-    function swapExactAmountOut(
-        address datatokenAddress,
-        address userAddress,
-        address tokenIn,
-        uint256 maxTokenAmountIn,
-        address tokenOut,
-        uint256 amountOut
-    ) external returns (uint256 tokenAmountIn);
+  
 }

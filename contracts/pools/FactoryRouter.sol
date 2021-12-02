@@ -10,7 +10,7 @@ import "../interfaces/IFixedRateExchange.sol";
 import "../interfaces/IPool.sol";
 import "../interfaces/IDispenser.sol";
 import "../utils/SafeERC20.sol";
-
+import "hardhat/console.sol";
 
 contract FactoryRouter is BFactory {
     using SafeERC20 for IERC20;
@@ -302,6 +302,8 @@ contract FactoryRouter is BFactory {
         address tokenOut; // token out address, only for pools
         uint256 amountsOut; // minAmountOut for swapExactIn or exactAmountOut for swapExactOut
         uint256 maxPrice; // maxPrice, only for pools
+        uint256 swapMarketFee;
+        address marketFeeAddress;
     } 
 
     // require tokenIn approvals for router from user. (except for dispenser operations)
@@ -312,39 +314,36 @@ contract FactoryRouter is BFactory {
         // TODO: to avoid DOS attack, we set a limit to maximum orders (50?)
         require(_operations.length <= 50, 'FactoryRouter: Too Many Operations');
             for (uint i= 0; i< _operations.length; i++) {
-
+               // address[] memory tokenInOutMarket = new address[](3);
+                address[3] memory tokenInOutMarket = [_operations[i].tokenIn,_operations[i].tokenOut,_operations[i].marketFeeAddress];
+                uint256[4] memory amountsInOutMaxFee = [_operations[i].amountsIn,_operations[i].amountsOut,_operations[i].maxPrice,_operations[i].swapMarketFee];
+            
+               // tokenInOutMarket[0] =
                 if(_operations[i].operation == operationType.SwapExactIn) {
                     // Get amountIn from user to router
                     IERC20(_operations[i].tokenIn).safeTransferFrom(msg.sender,address(this),_operations[i].amountsIn);
                     // we approve pool to pull token from router
                     IERC20(_operations[i].tokenIn)
                     .safeIncreaseAllowance(_operations[i].source,_operations[i].amountsIn);
+                    
                     // Perform swap
                     (uint amountReceived,) = 
                     IPool(_operations[i].source)
-                    .swapExactAmountIn(_operations[i].tokenIn,
-                    _operations[i].amountsIn,
-                    _operations[i].tokenOut,
-                    _operations[i].amountsOut,
-                    _operations[i].maxPrice);
+                    .swapExactAmountIn(tokenInOutMarket,amountsInOutMaxFee);
                     // transfer token swapped to user
                    
                     IERC20(_operations[i].tokenOut).safeTransfer(msg.sender,amountReceived);
                 } else if (_operations[i].operation == operationType.SwapExactOut){
                     // calculate how much amount In we need for exact Out
                     uint amountIn = IPool(_operations[i].source)
-                    .getAmountInExactOut(_operations[i].tokenIn,_operations[i].tokenOut,_operations[i].amountsOut);
+                    .getAmountInExactOut(_operations[i].tokenIn,_operations[i].tokenOut,_operations[i].amountsOut,_operations[i].swapMarketFee);
                     // pull amount In from user
                     IERC20(_operations[i].tokenIn).safeTransferFrom(msg.sender,address(this),amountIn);
                     // we approve pool to pull token from router
                     IERC20(_operations[i].tokenIn).safeIncreaseAllowance(_operations[i].source,amountIn);
                     // perform swap
                     IPool(_operations[i].source)
-                    .swapExactAmountOut(_operations[i].tokenIn,
-                    _operations[i].amountsIn,
-                    _operations[i].tokenOut,
-                    _operations[i].amountsOut,
-                    _operations[i].maxPrice);
+                    .swapExactAmountOut(tokenInOutMarket,amountsInOutMaxFee);
                     // send amount out back to user
                     IERC20(_operations[i].tokenOut)
                     .safeTransfer(msg.sender,_operations[i].amountsOut);

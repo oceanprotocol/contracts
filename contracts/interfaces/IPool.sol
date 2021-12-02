@@ -24,24 +24,31 @@ interface IPool {
         uint256 baseTokenWeight) external;
 
      function swapExactAmountIn(
-        address tokenIn,
-        uint256 tokenAmountIn,
-        address tokenOut,
-        uint256 minAmountOut,
-        uint256 maxPrice
+         address[3] calldata tokenInOutMarket, //[tokenIn,tokenOut,marketFeeAddress]
+        uint256[4] calldata amountsInOutMaxFee //[tokenAmountIn,minAmountOut,maxPrice,_swapMarketFee]
     ) external returns (uint256 tokenAmountOut, uint256 spotPriceAfter);
 
     function swapExactAmountOut(
-        address tokenIn,
-        uint256 maxAmountIn,
-        address tokenOut,
-        uint256 tokenAmountOut,
-        uint256 maxPrice
+        address[3] calldata tokenInOutMarket, // [tokenIn,tokenOut,marketFeeAddress]
+        uint256[4] calldata amountsInOutMaxFee // [maxAmountIn,tokenAmountOut,maxPrice,_swapMarketFee]
     ) external returns (uint256 tokenAmountIn, uint256 spotPriceAfter);
 
 
-    function getAmountInExactOut(address tokenIn, address tokenOut, uint tokenAmountOut)
+    function getAmountInExactOut(address tokenIn, address tokenOut, uint tokenAmountOut,uint256 _swapMarketFee)
         external
         view
         returns (uint256 tokenAmountIn);
+
+    function getAmountOutExactIn(
+        address tokenIn,
+        address tokenOut,
+        uint256 tokenAmountIn,
+        uint256 _swapMarketFee
+    )
+        external
+        view
+        returns (
+            //  _viewlock_
+            uint256 tokenAmountOut
+        );
 }
