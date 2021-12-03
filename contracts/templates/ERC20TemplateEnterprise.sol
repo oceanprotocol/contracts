@@ -844,4 +844,13 @@ contract ERC20TemplateEnterprise is ERC20("test", "testSymbol"), ERC20Roles, ERC
         _startOrder(_orderParams.consumer,_orderParams.amount,_orderParams.serviceIndex,
         _orderParams.consumeFeeAddress, _orderParams.consumeFeeToken, _orderParams.consumeFeeAmount);
     }
+
+     /**
+     * @dev isERC20Deployer
+     *      returns true if address has deployERC20 role
+     */
+    function isERC20Deployer(address user) public returns(bool deployer){
+        deployer = IERC721Template(_erc721Address).getPermissions(user).deployERC20;
+        return(deployer);
+    }
 }
