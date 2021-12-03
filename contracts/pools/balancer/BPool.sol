@@ -82,12 +82,15 @@ contract BPool is BMath, BToken {
         uint256 amount
     );
     event SwapFeeChanged(address caller, uint256 amount);
-    event MarketFee(
+    event PublishMarketFee(
         address caller,
         address marketAddress,
         address token,
         uint256 amount
     );
+
+    event MarketFees(address to, address token, uint256 amount);
+
     event MarketCollectorChanged(address caller, address newMarketCollector);
 
     modifier _lock_() {
@@ -126,21 +129,6 @@ contract BPool is BMath, BToken {
     function isInitialized() external view returns (bool) {
         return initialized;
     }
-
-    // Called prior to contract deployment
-    // constructor() public {
-
-    //     // _initialize(
-    //     //     msg.sender,
-    //     //     msg.sender,
-    //     //     MIN_FEE,
-    //     //     0,
-    //     //     false,
-    //     //     false,
-    //     //     msg.sender,
-    //     //     msg.sender
-    //     // );
-    // }
 
     // Called prior to contract initialization (e.g creating new BPool instance)
     // Calls private _initialize function. Only if contract is not initialized.
@@ -352,7 +340,7 @@ contract BPool is BMath, BToken {
             uint256 amount = publishMarketFees[tokens[i]];
             publishMarketFees[tokens[i]] = 0;
             IERC20(tokens[i]).safeTransfer(_publishMarketCollector, amount);
-            emit MarketFee(
+            emit PublishMarketFee(
                 msg.sender,
                 _publishMarketCollector,
                 tokens[i],
@@ -642,9 +630,6 @@ contract BPool is BMath, BToken {
         uint256[4] calldata amountsInOutMaxFee //[tokenAmountIn,minAmountOut,maxPrice,_swapMarketFee]
     ) external _lock_ returns (uint256 tokenAmountOut, uint256 spotPriceAfter) {
         require(_finalized, "ERR_NOT_FINALIZED");
-
-        // require(_records[tokenInOutMarket[0]].bound, "ERR_NOT_BOUND");
-        // require(_records[tokenInOutMarket[1]].bound, "ERR_NOT_BOUND");
         _checkBound(tokenInOutMarket[0]);
         _checkBound(tokenInOutMarket[1]);
         Record storage inRecord = _records[address(tokenInOutMarket[0])];
@@ -712,15 +697,20 @@ contract BPool is BMath, BToken {
         );
 
         _pullUnderlying(tokenInOutMarket[0], msg.sender, amountsInOutMaxFee[0]);
-   
-        if (amountsInOutMaxFee[3] > 0) {
-        IERC20(tokenInOutMarket[0]).safeTransfer(
-            tokenInOutMarket[2],
-            bsub(
-                amountsInOutMaxFee[0],
-                bmul(amountsInOutMaxFee[0], bsub(BONE, amountsInOutMaxFee[3]))
-            )
+        uint256 marketFeeAmount = bsub(
+            amountsInOutMaxFee[0],
+            bmul(amountsInOutMaxFee[0], bsub(BONE, amountsInOutMaxFee[3]))
         );
+        if (amountsInOutMaxFee[3] > 0) {
+            IERC20(tokenInOutMarket[0]).safeTransfer(
+                tokenInOutMarket[2],
+                marketFeeAmount
+            );
+            emit MarketFees(
+                tokenInOutMarket[2],
+                tokenInOutMarket[0],
+                marketFeeAmount
+            );
         }
         _pushUnderlying(tokenInOutMarket[1], msg.sender, tokenAmountOut);
 
@@ -732,20 +722,10 @@ contract BPool is BMath, BToken {
     }
 
     function swapExactAmountOut(
-        // address tokenIn,
-        // uint256 maxAmountIn,
-        // address tokenOut,
-        // uint256 tokenAmountOut,
-        // uint256 maxPrice,
-        // uint256 _swapMarketFee
-        // address marketFeeAddress
         address[3] calldata tokenInOutMarket, // [tokenIn,tokenOut,marketFeeAddress]
         uint256[4] calldata amountsInOutMaxFee // [maxAmountIn,tokenAmountOut,maxPrice,_swapMarketFee]
     ) external _lock_ returns (uint256 tokenAmountIn, uint256 spotPriceAfter) {
         require(_finalized, "ERR_NOT_FINALIZED");
-        // require(_records[tokenInOutMarket[0]].bound, "ERR_NOT_BOUND");
-        // require(_records[tokenInOutMarket[1]].bound, "ERR_NOT_BOUND");
-        console.log("until here");
         _checkBound(tokenInOutMarket[0]);
         _checkBound(tokenInOutMarket[1]);
         Record storage inRecord = _records[address(tokenInOutMarket[0])];
@@ -816,14 +796,19 @@ contract BPool is BMath, BToken {
         );
 
         _pullUnderlying(tokenInOutMarket[0], msg.sender, tokenAmountIn);
-
+        uint256 marketFeeAmount = bsub(
+            tokenAmountIn,
+            bmul(tokenAmountIn, bsub(BONE, amountsInOutMaxFee[3]))
+        );
         if (amountsInOutMaxFee[3] > 0) {
             IERC20(tokenInOutMarket[0]).safeTransfer(
-                tokenInOutMarket[2],
-                bsub(
-                    tokenAmountIn,
-                    bmul(tokenAmountIn, bsub(BONE, amountsInOutMaxFee[3]))
-                )
+                tokenInOutMarket[2],// market address
+                marketFeeAmount
+            );
+            emit MarketFees(
+                tokenInOutMarket[2], // to (market address)
+                tokenInOutMarket[0], // token
+                marketFeeAmount
             );
         }
         _pushUnderlying(tokenInOutMarket[1], msg.sender, amountsInOutMaxFee[1]);
