@@ -527,21 +527,6 @@
           "internalType": "uint256",
           "name": "serviceId",
           "type": "uint256"
-        },
-        {
-          "internalType": "address",
-          "name": "consumeFeeAddress",
-          "type": "address"
-        },
-        {
-          "internalType": "address",
-          "name": "consumeFeeToken",
-          "type": "address"
-        },
-        {
-          "internalType": "uint256",
-          "name": "consumeFeeAmount",
-          "type": "uint256"
         }
       ],
       "name": "startOrder",

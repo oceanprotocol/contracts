@@ -462,9 +462,6 @@ contract ERC721Factory is Deployer, Ownable, ReentrancyGuard {
         address consumer;
         uint256 amount;
         uint256 serviceIndex;
-        address consumeFeeAddress;
-        address consumeFeeToken; // address of the token marketplace wants to add fee on top
-        uint256 consumeFeeAmount;
     }
 
     /**
@@ -499,17 +496,17 @@ contract ERC721Factory is Deployer, Ownable, ReentrancyGuard {
                 );
                 IERC20(publishMarketFeeToken).safeIncreaseAllowance(orders[i].tokenAddress, publishMarketFeeAmount);
             }
-            // check if we have consumeFees, if so transfer them to us and approve dttemplate to take them
-            if (orders[i].consumeFeeAmount > 0 && orders[i].consumeFeeToken!=address(0) 
-            && orders[i].consumeFeeAddress!=address(0)) {
-                IERC20(orders[i].consumeFeeToken).safeTransferFrom(
-                    msg.sender,
-                    address(this),
-                    orders[i].consumeFeeAmount
-                );
-                IERC20(orders[i].consumeFeeToken)
-                .safeIncreaseAllowance(orders[i].tokenAddress, orders[i].consumeFeeAmount);
-            }
+            // // check if we have consumeFees, if so transfer them to us and approve dttemplate to take them
+            // if (orders[i].consumeFeeAmount > 0 && orders[i].consumeFeeToken!=address(0) 
+            // && orders[i].consumeFeeAddress!=address(0)) {
+            //     IERC20(orders[i].consumeFeeToken).safeTransferFrom(
+            //         msg.sender,
+            //         address(this),
+            //         orders[i].consumeFeeAmount
+            //     );
+            //     IERC20(orders[i].consumeFeeToken)
+            //     .safeIncreaseAllowance(orders[i].tokenAddress, orders[i].consumeFeeAmount);
+            // }
             // transfer erc20 datatoken from consumer to us
             IERC20(orders[i].tokenAddress).safeTransferFrom(
                 msg.sender,
@@ -520,10 +517,10 @@ contract ERC721Factory is Deployer, Ownable, ReentrancyGuard {
             IERC20Template(orders[i].tokenAddress).startOrder(
                 orders[i].consumer,
                 orders[i].amount,
-                orders[i].serviceIndex,
-                orders[i].consumeFeeAddress,
-                orders[i].consumeFeeToken,
-                orders[i].consumeFeeAmount
+                orders[i].serviceIndex
+                // orders[i].consumeFeeAddress,
+                // orders[i].consumeFeeToken,
+                // orders[i].consumeFeeAmount
             );
         }
     }
