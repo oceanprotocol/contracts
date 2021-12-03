@@ -481,4 +481,30 @@ contract SideStaking is ReentrancyGuard {
             _datatokens[datatokenAddress].vestingAmountSoFar += amount;
         }
     }
+
+
+    /**
+     *  Change pool fee
+     * @param datatokenAddress - datatokenAddress
+     * @param poolAddress - poolAddress
+     * @param swapFee - new fee
+
+     */
+    // called by ERC20 Deployer of datatoken
+    function setPoolSwapFee(address datatokenAddress, address poolAddress, uint256 swapFee) external nonReentrant {
+        require(poolAddress != address(0), "Invalid poolAddress");
+        IPool bpool = IPool(poolAddress);
+        require(
+            bpool.getController() == address(this),
+            "We are not the pool controller"
+        );
+        //check if the tokens are bound
+        require(
+            bpool.getDataTokenAddress() == datatokenAddress,
+            "DataToken address missmatch"
+        );
+         IERC20Template dt = IERC20Template(datatokenAddress);
+        require(dt.isERC20Deployer(msg.sender), "Not ERC20 Deployer");
+        bpool.setSwapFee(swapFee);
+    }
 }

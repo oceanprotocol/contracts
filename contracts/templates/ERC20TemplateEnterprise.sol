@@ -995,4 +995,13 @@ contract ERC20TemplateEnterprise is
             _orderParams.consumeFeeAmount
         );
     }
+
+     /**
+     * @dev isERC20Deployer
+     *      returns true if address has deployERC20 role
+     */
+    function isERC20Deployer(address user) public returns(bool deployer){
+        deployer = IERC721Template(_erc721Address).getPermissions(user).deployERC20;
+        return(deployer);
+    }
 }

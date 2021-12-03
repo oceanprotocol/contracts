@@ -1171,6 +1171,12 @@ describe("Swap Fees", () => {
 
       await bPool.connect(marketFeeCollector).collectMarketFee();
     });
+    it("#19 - can change fees", async () => {
+      expect(await bPool.getSwapFee()).to.equal(swapFee);
+      const newSwapFee = 2e15;
+      await sideStaking.connect(user3).setPoolSwapFee(erc20Token.address,bPool.address, newSwapFee);
+      expect(await bPool.getSwapFee()).to.equal(newSwapFee);
+    });
   });
 
   describe(" Pool with NO Ocean token (DAI 18 decimals) and Publish Market fee 0.1%", async () => {

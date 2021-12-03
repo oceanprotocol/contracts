@@ -433,7 +433,6 @@ contract BPool is BMath, BToken {
     }
 
     function setSwapFee(uint256 swapFee) public {
-        require(!_finalized, "ERR_IS_FINALIZED");
         require(msg.sender == _controller, "ERR_NOT_CONTROLLER");
         require(swapFee >= MIN_FEE, "ERR_MIN_FEE");
         require(swapFee <= MAX_FEE, "ERR_MAX_FEE");

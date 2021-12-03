@@ -102,4 +102,5 @@ interface IERC20Template {
     function burn(uint256 amount) external;
     function burnFrom(address account, uint256 amount) external;
     function getERC721Address() external view returns (address);
+    function isERC20Deployer(address user) external returns(bool);
 }
