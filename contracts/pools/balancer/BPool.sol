@@ -511,8 +511,8 @@ contract BPool is BMath, BToken {
         address tokenOut,
         uint256 _swapMarketFee
     ) external view _viewlock_ returns (uint256 spotPrice) {
-        require(_records[tokenIn].bound, "ERR_NOT_BOUND");
-        require(_records[tokenOut].bound, "ERR_NOT_BOUND");
+        _checkBound(tokenIn);
+        _checkBound(tokenOut);
         Record storage inRecord = _records[tokenIn];
         Record storage outRecord = _records[tokenOut];
         return
@@ -539,8 +539,8 @@ contract BPool is BMath, BToken {
             uint256 tokenAmountIn
         )
     {
-        require(_records[tokenIn].bound, "ERR_NOT_BOUND");
-        require(_records[tokenOut].bound, "ERR_NOT_BOUND");
+        _checkBound(tokenIn);
+        _checkBound(tokenOut);
         Record storage inRecord = _records[tokenIn];
         Record storage outRecord = _records[tokenOut];
 
@@ -569,8 +569,8 @@ contract BPool is BMath, BToken {
             uint256 tokenAmountOut
         )
     {
-        require(_records[tokenIn].bound, "ERR_NOT_BOUND");
-        require(_records[tokenOut].bound, "ERR_NOT_BOUND");
+        _checkBound(tokenIn);
+        _checkBound(tokenOut);
         Record storage inRecord = _records[tokenIn];
         Record storage outRecord = _records[tokenOut];
         return
@@ -712,7 +712,7 @@ contract BPool is BMath, BToken {
         );
 
         _pullUnderlying(tokenInOutMarket[0], msg.sender, amountsInOutMaxFee[0]);
-        // TODO: update msg.sender below with dynamic marketFeeAddress  //
+   
         if (amountsInOutMaxFee[3] > 0) {
         IERC20(tokenInOutMarket[0]).safeTransfer(
             tokenInOutMarket[2],
@@ -837,7 +837,7 @@ contract BPool is BMath, BToken {
         uint256 minPoolAmountOut
     ) external _lock_ returns (uint256 poolAmountOut) {
         require(_finalized, "ERR_NOT_FINALIZED");
-        require(_records[tokenIn].bound, "ERR_NOT_BOUND");
+        _checkBound(tokenIn);
         require(
             tokenAmountIn <= bmul(_records[tokenIn].balance, MAX_IN_RATIO),
             "ERR_MAX_IN_RATIO"
@@ -907,7 +907,7 @@ contract BPool is BMath, BToken {
         uint256 maxAmountIn
     ) external _lock_ returns (uint256 tokenAmountIn) {
         require(_finalized, "ERR_NOT_FINALIZED");
-        require(_records[tokenIn].bound, "ERR_NOT_BOUND");
+        _checkBound(tokenIn);
 
         Record storage inRecord = _records[tokenIn];
 
@@ -978,7 +978,7 @@ contract BPool is BMath, BToken {
         uint256 minAmountOut
     ) external _lock_ returns (uint256 tokenAmountOut) {
         require(_finalized, "ERR_NOT_FINALIZED");
-        require(_records[tokenOut].bound, "ERR_NOT_BOUND");
+        _checkBound(tokenOut);
 
         Record storage outRecord = _records[tokenOut];
 
@@ -1061,7 +1061,7 @@ contract BPool is BMath, BToken {
         uint256 maxPoolAmountIn
     ) external _lock_ returns (uint256 poolAmountIn) {
         require(_finalized, "ERR_NOT_FINALIZED");
-        require(_records[tokenOut].bound, "ERR_NOT_BOUND");
+        _checkBound(tokenOut);
         require(
             tokenAmountOut <= bmul(_records[tokenOut].balance, MAX_OUT_RATIO),
             "ERR_MAX_OUT_RATIO"

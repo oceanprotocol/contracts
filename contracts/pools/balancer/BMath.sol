@@ -232,7 +232,7 @@ contract BMath is BConst, BNum {
         uint publishMarketFeeAmount =  bsub(tokenAmountIn, bmul(tokenAmountIn, bsub(BONE, _swapPublishMarketFee)));
      
          publishMarketFees[tokenInAddress] = badd(publishMarketFees[tokenInAddress],publishMarketFeeAmount);
-       // marketFees[tokenInAddress] = badd(marketFees[tokenInAddress],marketFeeAmount);
+     
       
         tokenAmountInBalance = bdiv(bmul(data[0], foo), bsub(BONE, _swapFee));
       
