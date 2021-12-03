@@ -62,15 +62,9 @@ contract ERC20Template is ERC20("test", "testSymbol"), ERC20Roles, ERC20Burnable
         uint256 serviceIndex,
         uint256 timestamp,
         address indexed publishMarketAddress,
-        address indexed consumeFeeMarketAddress,
         uint256 blockNumber
     );
 
-    event ConsumeMarketFees(
-        address indexed consumeFeeAddress,
-        address indexed consumeFeeToken, 
-        uint256 consumeFeeAmount
-    );
 
     event PublishMarketFees(
         address indexed PublishMarketFeeAddress,
@@ -382,19 +376,16 @@ contract ERC20Template is ERC20("test", "testSymbol"), ERC20Roles, ERC20Burnable
      * @param consumer is the consumer address (payer could be different address)
      * @param amount refers to amount of tokens that is going to be transfered.
      * @param serviceIndex service index in the metadata
-     * @param consumeFeeAddress consume marketplace fee address
-       @param consumeFeeToken // address of the token marketplace wants to add fee on top
-       @param consumeFeeAmount // fee amount
      */
     function startOrder(
         address consumer,
         uint256 amount,
-        uint256 serviceIndex,
-        address consumeFeeAddress,
-        address consumeFeeToken, // address of the token marketplace wants to add fee on top
-        uint256 consumeFeeAmount // amount to be transfered to marketFeeCollector
+        uint256 serviceIndex
+        // address consumeFeeAddress,
+        // address consumeFeeToken, // address of the token marketplace wants to add fee on top
+        // uint256 consumeFeeAmount // amount to be transfered to marketFeeCollector
     ) external nonReentrant {
-        uint256 communityFeeConsume = 0;
+       // uint256 communityFeeConsume = 0;
         uint256 communityFeePublish = 0;
         require(balanceOf(msg.sender) >= amount, "Not enough Data Tokens to start Order");
         emit OrderStarted(
@@ -404,7 +395,6 @@ contract ERC20Template is ERC20("test", "testSymbol"), ERC20Roles, ERC20Burnable
             serviceIndex,
             block.timestamp,
             publishMarketFeeAddress,
-            consumeFeeAddress,
             block.number
         );
         // publishMarketFees
@@ -426,45 +416,16 @@ contract ERC20Template is ERC20("test", "testSymbol"), ERC20Roles, ERC20Burnable
         }
 
         // consumeFees
-        // Requires approval for the consumeFeeToken of consumeFeeAmount
-        // skip fee if amount == 0 or feeToken == 0x0 address or feeAddress == 0x0 address
-        if (consumeFeeAmount > 0 && consumeFeeToken!=address(0) && consumeFeeAddress!=address(0)) {
-            IERC20(consumeFeeToken).safeTransferFrom(
-                msg.sender,
-                address(this),
-                consumeFeeAmount
-            );
-            communityFeeConsume = consumeFeeAmount.div(100); //hardcode 1% goes to OPF
-            //send consumeFee
-            IERC20(consumeFeeToken)
-            .safeTransfer(consumeFeeAddress,consumeFeeAmount.sub(communityFeeConsume));
-            emit ConsumeMarketFees(consumeFeeAddress, consumeFeeToken, consumeFeeAmount.sub(communityFeeConsume));
-        }
         //send fees to OPF
-        if(communityFeePublish>0 && communityFeeConsume>0 && consumeFeeToken == publishMarketFeeToken
-        && consumeFeeToken != address(0)){
+        if(communityFeePublish>0){
             //since both fees are in the same token, have just one transaction for both, to save gas
-            IERC20(consumeFeeToken)
-            .safeTransfer(_communityFeeCollector,communityFeePublish.add(communityFeeConsume));
-            emit PublishMarketFees(_communityFeeCollector, consumeFeeToken, communityFeePublish);
-            emit ConsumeMarketFees(_communityFeeCollector, consumeFeeToken, communityFeeConsume);
+            IERC20(publishMarketFeeToken)
+            .safeTransfer(_communityFeeCollector,communityFeePublish);
+            emit PublishMarketFees(_communityFeeCollector, publishMarketFeeToken, communityFeePublish);
+         
             
         }
-        else{
-            //we need to do them one by one
-            if(communityFeePublish>0 && publishMarketFeeToken!=address(0)){
-                IERC20(publishMarketFeeToken)
-                .safeTransfer(_communityFeeCollector,communityFeePublish);
-                emit PublishMarketFees(_communityFeeCollector, publishMarketFeeToken, communityFeePublish);
-            }
-            
-            if(communityFeeConsume>0 && consumeFeeToken!=address(0)){
-                IERC20(consumeFeeToken)
-                .safeTransfer(_communityFeeCollector,communityFeeConsume);
-                emit ConsumeMarketFees(_communityFeeCollector, consumeFeeToken, communityFeeConsume);
-            }
-            
-        }
+       
         // send datatoken to publisher
         require(transfer(getPaymentCollector(), amount), 'Failed to send DT to publisher');
     }
