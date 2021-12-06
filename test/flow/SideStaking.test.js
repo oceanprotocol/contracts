@@ -11,7 +11,7 @@ const {
 const BN = require("bn.js");
 
 const { impersonate } = require("../helpers/impersonate");
-const {getEventFromTx} = require("../helpers/utils")
+const { getEventFromTx } = require("../helpers/utils");
 const constants = require("../helpers/constants");
 const { web3 } = require("@openzeppelin/test-helpers/src/setup");
 const { keccak256 } = require("@ethersproject/keccak256");
@@ -57,7 +57,6 @@ describe("1SS flow", () => {
     const ERC721Template = await ethers.getContractFactory("ERC721Template");
     const ERC20Template = await ethers.getContractFactory("ERC20Template");
     const ERC721Factory = await ethers.getContractFactory("ERC721Factory");
-   
 
     const Router = await ethers.getContractFactory("FactoryRouter");
     const SSContract = await ethers.getContractFactory("SideStaking");
@@ -70,17 +69,14 @@ describe("1SS flow", () => {
       reciever,
       user2, // 721Contract manager
       user3, // pool creator and liquidity provider
-      user4, // user that swaps in POOL1
-      user5, // user that swaps in POOL2
+      user4,
+      user5,
       user6,
-      marketFeeCollector, // POOL1
-      newMarketFeeCollector, // POOL1
+      marketFeeCollector,
+      newMarketFeeCollector,
       pool2MarketFeeCollector,
-      opfCollector // POOL2
+      opfCollector,
     ] = await ethers.getSigners();
-
-  
-
 
     // GET SOME OCEAN TOKEN FROM OUR MAINNET FORK and send them to user3
     const userWithOcean = "0x53aB4a93B31F480d17D3440a6329bDa86869458A";
@@ -98,7 +94,6 @@ describe("1SS flow", () => {
     await oceanContract
       .connect(signer)
       .transfer(user4.address, ethers.utils.parseEther("10000"));
-
 
     // GET SOME DAI (A NEW TOKEN different from OCEAN)
     const userWithDAI = "0xB09cD60ad551cE7fF6bc97458B483A8D50489Ee7";
@@ -137,10 +132,8 @@ describe("1SS flow", () => {
 
     sideStaking = await SSContract.deploy(router.address);
 
-  
     templateERC20 = await ERC20Template.deploy();
 
-    
     // SETUP ERC721 Factory with template
     templateERC721 = await ERC721Template.deploy();
     factoryERC721 = await ERC721Factory.deploy(
@@ -150,16 +143,15 @@ describe("1SS flow", () => {
       router.address
     );
 
-    
     // SET REQUIRED ADDRESS
     await router.addFactory(factoryERC721.address);
-      
-    await router.addSSContract(sideStaking.address)
+
+    await router.addSSContract(sideStaking.address);
   });
   const swapFee = 1e15;
-    const swapOceanFee = 1e15;
-    const swapMarketFee = 1e15;
-  const vestedBlocks = 2500000
+  const swapOceanFee = 1e15;
+  const swapMarketFee = 1e15;
+  const vestedBlocks = 2500000;
   it("#1 - owner deploys a new ERC721 Contract", async () => {
     // by default connect() in ethers goes with the first address (owner in this case)
     const tx = await factoryERC721.deployERC721Contract(
@@ -170,8 +162,8 @@ describe("1SS flow", () => {
       "https://oceanprotocol.com/nft/"
     );
     const txReceipt = await tx.wait();
-    const event = getEventFromTx(txReceipt,'NFTCreated')
-    assert(event, "Cannot find NFTCreated event")
+    const event = getEventFromTx(txReceipt, "NFTCreated");
+    assert(event, "Cannot find NFTCreated event");
     tokenAddress = event.args[0];
 
     tokenERC721 = await ethers.getContractAt("ERC721Template", tokenAddress);
@@ -195,16 +187,23 @@ describe("1SS flow", () => {
   });
 
   it("#3 - user3 deploys a new erc20DT, assigning himself as minter", async () => {
-
-    const trxERC20 = await tokenERC721.connect(user3).createERC20(1,
-      ["ERC20DT1","ERC20DT1Symbol"],
-      [user3.address,user6.address, user3.address,'0x0000000000000000000000000000000000000000'],
-      [cap,0],
-      []
-    );
+    const trxERC20 = await tokenERC721
+      .connect(user3)
+      .createERC20(
+        1,
+        ["ERC20DT1", "ERC20DT1Symbol"],
+        [
+          user3.address,
+          user6.address,
+          user3.address,
+          "0x0000000000000000000000000000000000000000",
+        ],
+        [cap, 0],
+        []
+      );
     const trxReceiptERC20 = await trxERC20.wait();
-    const event = getEventFromTx(trxReceiptERC20,'TokenCreated')
-    assert(event, "Cannot find TokenCreated event")
+    const event = getEventFromTx(trxReceiptERC20, "TokenCreated");
+    assert(event, "Cannot find TokenCreated event");
     erc20Address = event.args[0];
 
     erc20Token = await ethers.getContractAt("ERC20Template", erc20Address);
@@ -212,40 +211,46 @@ describe("1SS flow", () => {
   });
 
   it("#4 - user3 calls deployPool() and check ocean and market fee", async () => {
-    
-    const ssDTBalance = await erc20Token.balanceOf(sideStaking.address)
-    
-    const initialOceanLiquidity = web3.utils.toWei("2000")
-    const initialDTLiquidity = initialOceanLiquidity
+    const ssDTBalance = await erc20Token.balanceOf(sideStaking.address);
+
+    const initialOceanLiquidity = web3.utils.toWei("2000");
+    const initialDTLiquidity = initialOceanLiquidity;
     // approve exact amount
     await oceanContract
       .connect(user3)
       .approve(router.address, web3.utils.toWei("2000"));
 
     // we deploy a new pool with burnInEndBlock as 0
-     // we deploy a new pool
-     receipt = await (
+    // we deploy a new pool
+    receipt = await (
       await erc20Token.connect(user3).deployPool(
-      //  sideStaking.address,
-       // oceanAddress,
+        //  sideStaking.address,
+        // oceanAddress,
         [
           web3.utils.toWei("1"), // rate
           18, // basetokenDecimals
-          web3.utils.toWei('10000'), //vestingAmount max 10% of total cap
+          web3.utils.toWei("10000"), //vestingAmount max 10% of total cap
           vestedBlocks, // vested blocks
           initialOceanLiquidity, // baseToken initial pool liquidity
         ],
-       // user3.address,
+        // user3.address,
         [
           swapFee, //
           swapMarketFee,
         ],
-       // marketFeeCollector.address,
-      //  user3.address// publisher address (vested token)
-        [sideStaking.address,oceanAddress,user3.address,user3.address,marketFeeCollector.address,poolTemplate.address]
+        // marketFeeCollector.address,
+        //  user3.address// publisher address (vested token)
+        [
+          sideStaking.address,
+          oceanAddress,
+          user3.address,
+          user3.address,
+          marketFeeCollector.address,
+          poolTemplate.address,
+        ]
       )
     ).wait();
-    const initialBlockNum = await ethers.provider.getBlockNumber()
+    const initialBlockNum = await ethers.provider.getBlockNumber();
     //console.log(receipt)
     const PoolEvent = receipt.events.filter((e) => e.event === "NewPool");
     // console.log(PoolEvent[0].args)
@@ -258,31 +263,49 @@ describe("1SS flow", () => {
 
     assert((await bPool.isFinalized()) == true);
 
+    expect(await erc20Token.balanceOf(sideStaking.address)).to.equal(
+      web3.utils.toWei("98000")
+    );
+
+    expect(await bPool.getOPFFee()).to.equal(0);
+    expect(await bPool._swapPublishMarketFee()).to.equal(swapMarketFee);
+
+    expect(await bPool.communityFees(oceanAddress)).to.equal(0);
+    expect(await bPool.communityFees(erc20Token.address)).to.equal(0);
+    expect(await bPool.publishMarketFees(oceanAddress)).to.equal(0);
+    expect(await bPool.publishMarketFees(erc20Token.address)).to.equal(0);
+
     expect(
-      await erc20Token.balanceOf(sideStaking.address))
-       .to.equal(web3.utils.toWei("98000"))
-
-    expect(await bPool.getOPFFee()).to.equal(0)
-    expect(await bPool._swapMarketFee()).to.equal(swapMarketFee)
-
-    expect(await bPool.communityFees(oceanAddress)).to.equal(0)
-    expect(await bPool.communityFees(erc20Token.address)).to.equal(0)
-    expect(await bPool.marketFees(oceanAddress)).to.equal(0)
-    expect(await bPool.marketFees(erc20Token.address)).to.equal(0)
-    
-    expect(await sideStaking.getDataTokenCirculatingSupply(erc20Token.address)).to.equal(web3.utils.toWei('12000'))
-    expect(await sideStaking.getDataTokenCurrentCirculatingSupply(erc20Token.address) ).to.equal(initialDTLiquidity)
-    expect(await sideStaking.getBaseTokenAddress(erc20Token.address)).to.equal(oceanAddress)
-    expect(await sideStaking.getPoolAddress(erc20Token.address)).to.equal(bPoolAddress)
-    expect(await sideStaking.getPublisherAddress(erc20Token.address)).to.equal(user3.address)
-    expect(await sideStaking.getBaseTokenBalance(oceanAddress)).to.equal(0)
-    expect(await sideStaking.getDataTokenBalance(erc20Token.address)).to.equal(web3.utils.toWei('88000'))
-    expect(await sideStaking.getvestingAmountSoFar(erc20Token.address)).to.equal(0)
-    expect(await sideStaking.getvestingAmount(erc20Token.address)).to.equal(web3.utils.toWei('10000'))
-    expect(await sideStaking.getvestingLastBlock(erc20Token.address)).to.equal(initialBlockNum)
-    expect(await sideStaking.getvestingEndBlock(erc20Token.address)).to.equal(initialBlockNum+vestedBlocks)
-
-    
+      await sideStaking.getDataTokenCirculatingSupply(erc20Token.address)
+    ).to.equal(web3.utils.toWei("12000"));
+    expect(
+      await sideStaking.getDataTokenCurrentCirculatingSupply(erc20Token.address)
+    ).to.equal(initialDTLiquidity);
+    expect(await sideStaking.getBaseTokenAddress(erc20Token.address)).to.equal(
+      oceanAddress
+    );
+    expect(await sideStaking.getPoolAddress(erc20Token.address)).to.equal(
+      bPoolAddress
+    );
+    expect(await sideStaking.getPublisherAddress(erc20Token.address)).to.equal(
+      user3.address
+    );
+    expect(await sideStaking.getBaseTokenBalance(oceanAddress)).to.equal(0);
+    expect(await sideStaking.getDataTokenBalance(erc20Token.address)).to.equal(
+      web3.utils.toWei("88000")
+    );
+    expect(
+      await sideStaking.getvestingAmountSoFar(erc20Token.address)
+    ).to.equal(0);
+    expect(await sideStaking.getvestingAmount(erc20Token.address)).to.equal(
+      web3.utils.toWei("10000")
+    );
+    expect(await sideStaking.getvestingLastBlock(erc20Token.address)).to.equal(
+      initialBlockNum
+    );
+    expect(await sideStaking.getvestingEndBlock(erc20Token.address)).to.equal(
+      initialBlockNum + vestedBlocks
+    );
   });
 
   it("#5 - user3 fails to mints new erc20 tokens even if it's minter", async () => {
@@ -296,7 +319,6 @@ describe("1SS flow", () => {
     assert((await erc20Token.balanceOf(user3.address)) == 0);
   });
 
-
   it("#6 - user4 buys some DT after burnIn period- exactAmountIn", async () => {
     // pool has initial ocean tokens at the beginning
     assert(
@@ -308,18 +330,19 @@ describe("1SS flow", () => {
       .connect(user4)
       .approve(bPoolAddress, web3.utils.toWei("10000"));
 
-  
     // user4 has no DT before swap
     assert((await erc20Token.balanceOf(user4.address)) == 0);
+    // we prepare the arrays, user5 is going to receive the dynamic market fee
+    amountIn = web3.utils.toWei("10");
+    minAmountOut = web3.utils.toWei("1");
+    maxPrice = web3.utils.toWei("10");
+    marketFee = 0;
+    const tokenInOutMarket = [oceanAddress, erc20Token.address, user5.address]; // [tokenIn,tokenOut,marketFeeAddress]
+    const amountsInOutMaxFee = [amountIn, minAmountOut, maxPrice, marketFee]; // [exactAmountIn,minAmountOut,maxPrice,_swapMarketFee]
 
-    
-    await bPool.connect(user4).swapExactAmountIn(
-      oceanAddress, // tokenIn
-      web3.utils.toWei("10"), // tokenAmountIn
-      erc20Token.address, // tokenOut
-      web3.utils.toWei("1"), //minAmountOut
-      web3.utils.toWei("100") //maxPrice
-    );
+    await bPool
+      .connect(user4)
+      .swapExactAmountIn(tokenInOutMarket, amountsInOutMaxFee);
 
     // user4 got his DT
     assert((await erc20Token.balanceOf(user4.address)) > 0);
@@ -332,14 +355,17 @@ describe("1SS flow", () => {
     const user4DTbalance = await erc20Token.balanceOf(user4.address);
     console.log(user4DTbalance.toString());
 
-    
-    await bPool.connect(user4).swapExactAmountOut(
-      oceanAddress, // tokenIn
-      web3.utils.toWei("100"), // maxAmountIn
-      erc20Token.address, // tokenOut
-      web3.utils.toWei("10"), // tokenAmountOut
-      web3.utils.toWei("10") // maxPrice
-    );
+    // we prepare the arrays, user5 is going to receive the dynamic market fee
+    maxAmountIn = web3.utils.toWei("100");
+    amountOut = web3.utils.toWei("10");
+    maxPrice = web3.utils.toWei("10");
+    marketFee = 0;
+    const tokenInOutMarket = [oceanAddress, erc20Token.address, user5.address]; // [tokenIn,tokenOut,marketFeeAddress]
+    const amountsInOutMaxFee = [maxAmountIn, amountOut, maxPrice, marketFee]; // [maxAmountIn,exactAmountOut,maxPrice,_swapMarketFee]
+
+    await bPool
+      .connect(user4)
+      .swapExactAmountOut(tokenInOutMarket, amountsInOutMaxFee);
 
     // user4 got his DT
     console.log((await erc20Token.balanceOf(user4.address)).toString());
@@ -359,21 +385,21 @@ describe("1SS flow", () => {
     const user4DTbalance = await erc20Token.balanceOf(user4.address);
 
     const user4Oceanbalance = await oceanContract.balanceOf(user4.address);
+    // we prepare the arrays, user5 is going to receive the dynamic market fee
+    amountIn = web3.utils.toWei("10");
+    minAmountOut = web3.utils.toWei("1");
+    maxPrice = web3.utils.toWei("10");
+    marketFee = 0;
+    const tokenInOutMarket = [erc20Token.address, oceanAddress, user5.address]; // [tokenIn,tokenOut,marketFeeAddress]
+    const amountsInOutMaxFee = [amountIn, minAmountOut, maxPrice, marketFee]; // [exactAmountIn,minAmountOut,maxPrice,_swapMarketFee]
 
     receipt = await (
       await bPool
         .connect(user4)
-        .swapExactAmountIn(
-          erc20Token.address,
-          web3.utils.toWei("10"),
-          oceanAddress,
-          web3.utils.toWei("1"),
-          web3.utils.toWei("10")
-        )
+        .swapExactAmountIn(tokenInOutMarket, amountsInOutMaxFee)
     ).wait();
 
     const SwapEvent = receipt.events.filter((e) => e.event === "LOG_SWAP");
-   
 
     //console.log(SwapEvent)
     assert(
@@ -470,29 +496,29 @@ describe("1SS flow", () => {
 
     expect(JoinEvent[0].args.tokenAmountIn).to.equal(oceanAmountIn);
 
-    expect(JoinEvent[1].args.tokenIn).to.equal(erc20Token.address)
-    
+    expect(JoinEvent[1].args.tokenIn).to.equal(erc20Token.address);
+
     const sideStakingAmountIn = ssContractDTbalance.sub(
       await erc20Token.balanceOf(sideStaking.address)
     );
-    
+
     expect(JoinEvent[1].args.tokenAmountIn).to.equal(sideStakingAmountIn);
 
-   
-
-
     // we check ssContract actually moved DT and got back BPT
-    expect(ssContractDTbalance.sub(JoinEvent[1].args.tokenAmountIn)).to.equal(await erc20Token.balanceOf(sideStaking.address))
-  
-    expect(ssContractDTbalance.sub(sideStakingAmountIn))
-    
+    expect(ssContractDTbalance.sub(JoinEvent[1].args.tokenAmountIn)).to.equal(
+      await erc20Token.balanceOf(sideStaking.address)
+    );
+
+    expect(ssContractDTbalance.sub(sideStakingAmountIn));
+
     const BPTEvent = receipt.events.filter((e) => e.event === "LOG_BPT");
 
-    expect(BPTEvent[0].args.bptAmount.add(ssContractBPTbalance)).to.equal(await bPool.balanceOf(sideStaking.address))
-   
+    expect(BPTEvent[0].args.bptAmount.add(ssContractBPTbalance)).to.equal(
+      await bPool.balanceOf(sideStaking.address)
+    );
+
     // no dt token where taken from user3
-    expect(await erc20Token.balanceOf(user3.address)).to.equal(user3DTbalance)
-    
+    expect(await erc20Token.balanceOf(user3.address)).to.equal(user3DTbalance);
   });
 
   it("#11 - user3 adds more liquidity with joinswapPoolAmountOut (only OCEAN)", async () => {
@@ -539,11 +565,12 @@ describe("1SS flow", () => {
     );
 
     // and also that DT balance lowered in the ssContract
-    expect(ssContractDTbalance.sub( JoinEvent[1].args.tokenAmountIn)).to.equal(await erc20Token.balanceOf(sideStaking.address))
-    
+    expect(ssContractDTbalance.sub(JoinEvent[1].args.tokenAmountIn)).to.equal(
+      await erc20Token.balanceOf(sideStaking.address)
+    );
+
     // no token where taken from user3.
-    expect(user3DTbalance).to.equal(await erc20Token.balanceOf(user3.address))
-    
+    expect(user3DTbalance).to.equal(await erc20Token.balanceOf(user3.address));
   });
   it("#12 - user3 removes liquidity with JoinPool, receiving both tokens", async () => {
     const user3DTbalance = await erc20Token.balanceOf(user3.address);
@@ -612,9 +639,7 @@ describe("1SS flow", () => {
       )
     ).wait();
 
-    expect(
-      await erc20Token.balanceOf(user3.address)).to.equal(user3DTbalance)
-  
+    expect(await erc20Token.balanceOf(user3.address)).to.equal(user3DTbalance);
 
     // LOOK FOR EXIT EVENT
     const ExitEvent = receipt.events.filter((e) => e.event === "LOG_EXIT");
@@ -637,9 +662,9 @@ describe("1SS flow", () => {
       (await bPool.balanceOf(sideStaking.address)).add(BPTAmountIn)
     );
     // and that ssContract got back his dt when redeeeming BPT
-    expect(
-      ssContractDTbalance.add(ExitEvent[1].args.tokenAmountOut)).to.equal(await erc20Token.balanceOf(sideStaking.address))
-    
+    expect(ssContractDTbalance.add(ExitEvent[1].args.tokenAmountOut)).to.equal(
+      await erc20Token.balanceOf(sideStaking.address)
+    );
   });
 
   it("#14 - user3 removes liquidity with exitswapPoolAmountIn, receiving only DT tokens", async () => {
@@ -661,11 +686,14 @@ describe("1SS flow", () => {
       )
     ).wait();
 
-    expect(await oceanContract.balanceOf(user3.address)).to.equal(user3Oceanbalance)
-        
+    expect(await oceanContract.balanceOf(user3.address)).to.equal(
+      user3Oceanbalance
+    );
+
     const BPTEvent = receipt.events.filter((e) => e.event === "LOG_BPT");
 
-    expect(await bPool.balanceOf(user3.address)).to.equal(user3BPTbalance.sub((BPTEvent[0].args.bptAmount))
+    expect(await bPool.balanceOf(user3.address)).to.equal(
+      user3BPTbalance.sub(BPTEvent[0].args.bptAmount)
     );
 
     // LOOK FOR EXIT EVENT
@@ -713,13 +741,13 @@ describe("1SS flow", () => {
       )
     ).wait();
 
-    expect(
-     await erc20Token.balanceOf(user3.address)).to.equal(user3DTbalance)
-    
+    expect(await erc20Token.balanceOf(user3.address)).to.equal(user3DTbalance);
+
     const BPTEvent = receipt.events.filter((e) => e.event === "LOG_BPT");
 
-    expect(await bPool.balanceOf(user3.address)).to.equal(user3BPTbalance.sub(BPTEvent[0].args.bptAmount))
-    
+    expect(await bPool.balanceOf(user3.address)).to.equal(
+      user3BPTbalance.sub(BPTEvent[0].args.bptAmount)
+    );
 
     // LOOK FOR EXIT EVENT
     const ExitEvent = receipt.events.filter((e) => e.event === "LOG_EXIT");
@@ -734,10 +762,13 @@ describe("1SS flow", () => {
     );
 
     // NOW we check the ssContract BPT balance
-    expect(ssContractBPTbalance.sub(BPTEvent[0].args.bptAmount)).to.equal(await bPool.balanceOf(sideStaking.address))
+    expect(ssContractBPTbalance.sub(BPTEvent[0].args.bptAmount)).to.equal(
+      await bPool.balanceOf(sideStaking.address)
+    );
     // and that we got back some dt when redeeeming BPT
-    expect(ssContractDTbalance.add(ExitEvent[1].args.tokenAmountOut)).to.equal(await erc20Token.balanceOf(sideStaking.address))
-    
+    expect(ssContractDTbalance.add(ExitEvent[1].args.tokenAmountOut)).to.equal(
+      await erc20Token.balanceOf(sideStaking.address)
+    );
   });
 
   it("#16 - user3 removes liquidity with exitswapExternAmountOut, receiving only DT tokens", async () => {
@@ -759,12 +790,15 @@ describe("1SS flow", () => {
     ).wait();
 
     // OCEAN BALANCE DOESN"T CHANGE
-    expect(await oceanContract.balanceOf(user3.address)).to.equal(user3Oceanbalance);
+    expect(await oceanContract.balanceOf(user3.address)).to.equal(
+      user3Oceanbalance
+    );
 
     const BPTEvent = receipt.events.filter((e) => e.event === "LOG_BPT");
     // BPT balance decrease
-    expect(await bPool.balanceOf(user3.address)).to.equal(user3BPTbalance.sub(BPTEvent[0].args.bptAmount))
-    
+    expect(await bPool.balanceOf(user3.address)).to.equal(
+      user3BPTbalance.sub(BPTEvent[0].args.bptAmount)
+    );
 
     // LOOK FOR EXIT EVENT
     const ExitEvent = receipt.events.filter((e) => e.event === "LOG_EXIT");
@@ -789,15 +823,12 @@ describe("1SS flow", () => {
   });
 
   it("#17 - we check again no ocean and market fees were accounted", async () => {
-   
-    expect(await bPool.getOPFFee()).to.equal(0)
-    expect(await bPool._swapMarketFee()).to.equal(swapMarketFee)
+    expect(await bPool.getOPFFee()).to.equal(0);
+    expect(await bPool._swapPublishMarketFee()).to.equal(swapMarketFee);
 
-    expect(await bPool.communityFees(oceanAddress)).to.equal(0)
-    expect(await bPool.communityFees(erc20Token.address)).to.equal(0)
-    expect(await bPool.marketFees(oceanAddress)).gt(0)
-    expect(await bPool.marketFees(erc20Token.address)).gt(0)
-   
-    
+    expect(await bPool.communityFees(oceanAddress)).to.equal(0);
+    expect(await bPool.communityFees(erc20Token.address)).to.equal(0);
+    expect(await bPool.publishMarketFees(oceanAddress)).gt(0);
+    expect(await bPool.publishMarketFees(erc20Token.address)).gt(0);
   });
 });

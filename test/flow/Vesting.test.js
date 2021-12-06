@@ -207,7 +207,7 @@ describe("Vesting flow", () => {
 
   const swapFee = 1e15;
   const swapOceanFee = 1e15;
-  const swapMarketFee = 1e15;
+  const swapPublishMarketFee = 1e15;
 
   it("#4 - user3 calls deployPool(), we then check ocean and market fee", async () => {
     // user3 hasn't minted any token so he can call deployPool()
@@ -236,7 +236,7 @@ describe("Vesting flow", () => {
       //  user3.address,
         [
           swapFee, //
-          swapMarketFee,
+          swapPublishMarketFee,
         ],
        // marketFeeCollector.address,
        // user3.address // publisherAddress (get vested amount)
@@ -259,12 +259,12 @@ describe("Vesting flow", () => {
     );
 
     expect(await bPool.getOPFFee()).to.equal(0);
-    expect(await bPool._swapMarketFee()).to.equal(swapMarketFee);
+    expect(await bPool._swapPublishMarketFee()).to.equal(swapPublishMarketFee);
 
     expect(await bPool.communityFees(oceanAddress)).to.equal(0);
     expect(await bPool.communityFees(erc20Token.address)).to.equal(0);
-    expect(await bPool.marketFees(oceanAddress)).to.equal(0);
-    expect(await bPool.marketFees(erc20Token.address)).to.equal(0);
+    expect(await bPool.publishMarketFees(oceanAddress)).to.equal(0);
+    expect(await bPool.publishMarketFees(erc20Token.address)).to.equal(0);
   });
 
   it("#5 - user3 fails to mints new erc20 tokens even if it's minter", async () => {
