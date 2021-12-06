@@ -37,13 +37,13 @@ async function main() {
     return null;
   }
   owner = wallet.connect(provider);
-  console.log(owner);
   let OPFOwner = '0x7DF5273aD9A6fCce64D45c64c1E43cfb6F861725';
   let routerOwner;
   let OPFCommunityFeeCollectorAddress;
   let productionNetwork = false;
   let OceanTokenAddress;
-  switch (network.chainId) {
+  console.log("Using chain "+networkDetails.chainId);
+  switch (networkDetails.chainId) {
     case 1:
       networkName = "mainnet";
       productionNetwork = true;
@@ -57,6 +57,9 @@ async function main() {
     case 0x4:
       networkName = "rinkeby";
       OceanTokenAddress = "0x5e8DCB2AfA23844bcc311B00Ad1A0C30025aADE9";
+      OPFOwner = "0x0e901bC5D49636eC75B3B4fB88238698E5322dE6";
+      routerOwner = "0x0e901bC5D49636eC75B3B4fB88238698E5322dE6";
+      shouldDeployOceanMock = false;
       break;
     case 0x89:
       networkName = "polygon";
@@ -170,6 +173,7 @@ async function main() {
   if (logging) console.info("Deploying BPool");
   const BPool = await ethers.getContractFactory("BPool", owner);
   const poolTemplate = await BPool.deploy();
+  await poolTemplate.deployTransaction.wait();
   addresses.poolTemplate = poolTemplate.address;
 
   if (logging) console.log("Deploying Router");
@@ -181,6 +185,7 @@ async function main() {
     addresses.OPFCommunityFeeCollector,
     []
   );
+  await router.deployTransaction.wait();
   addresses.Router = router.address;
 
   if (logging) console.info("Deploying FixedrateExchange");
@@ -192,25 +197,27 @@ async function main() {
     router.address,
     addresses.OPFCommunityFeeCollector
   );
+  await fixedPriceExchange.deployTransaction.wait();
   addresses.FixedPrice = fixedPriceExchange.address;
 
   if (logging) console.info("Deploying StakingContract");
   const SSContract = await ethers.getContractFactory("SideStaking", owner);
   const ssPool = await SSContract.deploy(router.address);
+  await ssPool.deployTransaction.wait();
   addresses.Staking = ssPool.address;
 
   addresses.ERC20Template = {};
   if (logging) console.info("Deploying ERC20 Template");
   const ERC20Template = await ethers.getContractFactory("ERC20Template", owner);
   const templateERC20 = await ERC20Template.deploy();
-
+  await templateERC20.deployTransaction.wait();
   if (logging) console.info("Deploying ERC20 Enterprise Template");
   const ERC20TemplateEnterprise = await ethers.getContractFactory(
     "ERC20TemplateEnterprise",
     owner
   );
   const templateERC20Enterprise = await ERC20TemplateEnterprise.deploy();
-
+  await templateERC20Enterprise.deployTransaction.wait();
   addresses.ERC721Template = {};
   if (logging) console.info("Deploying ERC721 Template");
   const ERC721Template = await ethers.getContractFactory(
@@ -218,13 +225,24 @@ async function main() {
     owner
   );
   const templateERC721 = await ERC721Template.deploy();
-
+  await templateERC721.deployTransaction.wait();
   if (logging) console.info("Deploying Dispenser");
   const Dispenser = await ethers.getContractFactory("Dispenser", owner);
   const dispenser = await Dispenser.deploy(router.address);
+  await dispenser.deployTransaction.wait();
   addresses.Dispenser = dispenser.address;
 
-  if (logging) console.info("Deploying ERC721 Factory");
+  if (logging) {
+    const params = {
+
+    "ERC721": templateERC721.address,
+    "ERC20": templateERC20.address,
+    "OPFCommunityFeeCollector": addresses.OPFCommunityFeeCollector,
+    "Router": router.address
+    }
+    console.info("Deploying ERC721 Factory");
+    console.info(params)
+  }
   const ERC721Factory = await ethers.getContractFactory("ERC721Factory", owner);
   const factoryERC721 = await ERC721Factory.deploy(
     templateERC721.address,
@@ -232,6 +250,7 @@ async function main() {
     addresses.OPFCommunityFeeCollector,
     router.address
   );
+  await factoryERC721.deployTransaction.wait();
   addresses.ERC721Factory = factoryERC721.address;
   const nftCount = await factoryERC721.getCurrentNFTTemplateCount();
   const nftTemplate = await factoryERC721.getNFTTemplate(nftCount);
@@ -260,7 +279,7 @@ async function main() {
   await router.connect(owner).addSSContract(ssPool.address);
   // Avoid setting Owner an account we cannot use on barge for now
   if (logging) console.info("Moving Router ownership")
-  if (owner.address != routerOwner.address) await router.connect(owner).changeRouterOwner(routerOwner)
+  if (owner.address != routerOwner) await router.connect(owner).changeRouterOwner(routerOwner)
 
   if (addressFile) {
     // write address.json if needed
