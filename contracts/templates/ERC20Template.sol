@@ -78,7 +78,11 @@ contract ERC20Template is ERC20("test", "testSymbol"), ERC20Roles, ERC20Burnable
         address PublishMarketFeeToken, 
         uint256 PublishMarketFeeAmount
     );
-
+    event ProviderFees(
+        address indexed providerFeeAddress,
+        address indexed providerFeeToken, 
+        uint256 providerFeeAmount
+    );
     
     event MinterProposed(address currentMinter, address newMinter);
 
@@ -376,14 +380,18 @@ contract ERC20Template is ERC20("test", "testSymbol"), ERC20Roles, ERC20Burnable
      * @param consumer is the consumer address (payer could be different address)
      * @param amount refers to amount of tokens that is going to be transfered.
      * @param serviceIndex service index in the metadata
+     * @param providerFeeAddress consume marketplace fee address
+     * @param providerFeeToken // address of the token marketplace wants to add fee on top
+     * @param providerFeeAmount // fee amount   
      */
     function startOrder(
         address consumer,
         uint256 amount,
-        uint256 serviceIndex
-        // address consumeFeeAddress,
-        // address consumeFeeToken, // address of the token marketplace wants to add fee on top
-        // uint256 consumeFeeAmount // amount to be transfered to marketFeeCollector
+        uint256 serviceIndex,
+        address providerFeeAddress,
+        address providerFeeToken, // address of the token marketplace wants to add fee on top
+        uint256 providerFeeAmount // amount to be transfered to marketFeeCollector
+        
     ) external nonReentrant {
        // uint256 communityFeeConsume = 0;
         uint256 communityFeePublish = 0;
@@ -413,19 +421,30 @@ contract ERC20Template is ERC20("test", "testSymbol"), ERC20Roles, ERC20Burnable
             
             emit PublishMarketFees(publishMarketFeeAddress, publishMarketFeeToken,
             publishMarketFeeAmount.sub(communityFeePublish));
+            //send fees to OPF
+            if(communityFeePublish>0){
+                //since both fees are in the same token, have just one transaction for both, to save gas
+                IERC20(publishMarketFeeToken)
+                .safeTransfer(_communityFeeCollector,communityFeePublish);
+                emit PublishMarketFees(_communityFeeCollector, publishMarketFeeToken, communityFeePublish);
+            }
         }
 
-        // consumeFees
-        //send fees to OPF
-        if(communityFeePublish>0){
-            //since both fees are in the same token, have just one transaction for both, to save gas
-            IERC20(publishMarketFeeToken)
-            .safeTransfer(_communityFeeCollector,communityFeePublish);
-            emit PublishMarketFees(_communityFeeCollector, publishMarketFeeToken, communityFeePublish);
-         
-            
+        // providerFees
+        // Requires approval for the providerFeeToken of providerFeeAmount
+        // skip fee if amount == 0 or feeToken == 0x0 address or feeAddress == 0x0 address
+        if (providerFeeAmount > 0 && providerFeeToken!=address(0) && providerFeeAddress!=address(0)) {
+            IERC20(providerFeeToken).safeTransferFrom(
+                msg.sender,
+                address(this),
+                providerFeeAmount
+            );
+            //send providerFee
+            IERC20(providerFeeToken)
+            .safeTransfer(providerFeeAddress,providerFeeAmount);
+            //send to OPC
+            emit ProviderFees(providerFeeAddress, providerFeeToken, providerFeeAmount);
         }
-       
         // send datatoken to publisher
         require(transfer(getPaymentCollector(), amount), 'Failed to send DT to publisher');
     }

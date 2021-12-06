@@ -546,6 +546,8 @@ describe("ERC721Factory", () => {
     const consumer = user2.address; // could be different user
     const dtAmount = web3.utils.toWei("1");
     const serviceIndex = 1; // dummy index
+    const providerFeeAddress = user3.address; // marketplace fee Collector
+    const providerFeeToken = mockErc20.address; 
    
     
     await erc20Token
@@ -558,7 +560,10 @@ describe("ERC721Factory", () => {
           "tokenAddress":erc20Token.address,
           "consumer":consumer,
           "amount":dtAmount,
-          "serviceIndex":serviceIndex
+          "serviceIndex":serviceIndex,
+          "providerFeeAddress":providerFeeAddress,
+          "providerFeeToken": providerFeeToken,
+          "providerFeeAmount":0
         }]
       );
       const txReceipt = await tx.wait();
@@ -592,6 +597,8 @@ describe("ERC721Factory", () => {
     const consumer = user2.address; // could be different user
     const dtAmount = web3.utils.toWei("1");
     const serviceIndex = 1; // dummy index
+    const providerFeeAddress = user3.address; // marketplace fee Collector
+    const providerFeeToken = mockErc20.address; 
    
     
     await erc20Token
@@ -605,7 +612,10 @@ describe("ERC721Factory", () => {
           "tokenAddress":erc20Token.address,
           "consumer":consumer,
           "amount":dtAmount,
-          "serviceIndex":serviceIndex
+          "serviceIndex":serviceIndex,
+          "providerFeeAddress":providerFeeAddress,
+          "providerFeeToken": providerFeeToken,
+          "providerFeeAmount":0
         }]
       );
       console.log("5")
@@ -632,6 +642,8 @@ describe("ERC721Factory", () => {
     const consumer = user2.address; // could be different user
     const dtAmount = web3.utils.toWei("1");
     const serviceIndex = 1; // dummy index
+    const providerFeeAddress = user3.address; // marketplace fee Collector
+    const providerFeeToken = mockErc20.address; 
    
 
     //MINT SOME DT20 to USER2 so he can start order
@@ -651,7 +663,10 @@ describe("ERC721Factory", () => {
         "tokenAddress":erc20Token.address,
         "consumer":consumer,
         "amount":dtAmount,
-        "serviceIndex":serviceIndex
+        "serviceIndex":serviceIndex,
+        "providerFeeAddress":providerFeeAddress,
+        "providerFeeToken": providerFeeToken,
+        "providerFeeAmount":0
       }]
       );
     const txReceipt = await tx.wait();
@@ -681,6 +696,8 @@ describe("ERC721Factory", () => {
     const consumer = user2.address; // could be different user
     const dtAmount = web3.utils.toWei("1");
     const serviceIndex = 1; // dummy index
+    const providerFeeAddress = user3.address; // marketplace fee Collector
+    const providerFeeToken = mockErc20.address; 
    
     const publishFees = await erc20TokenWithPublishFee
      .connect(user2)
@@ -709,7 +726,10 @@ describe("ERC721Factory", () => {
           "tokenAddress":erc20TokenWithPublishFee.address,
           "consumer":consumer,
           "amount":dtAmount,
-          "serviceIndex":serviceIndex
+          "serviceIndex":serviceIndex,
+          "providerFeeAddress":providerFeeAddress,
+          "providerFeeToken": providerFeeToken,
+          "providerFeeAmount":0
         }]
       );
     const txReceipt = await tx.wait();
@@ -734,7 +754,9 @@ describe("ERC721Factory", () => {
     const consumer = user2.address; // could be different user
     const dtAmount = web3.utils.toWei("1");
     const serviceIndex = 1; // dummy index
-  
+    const providerFeeAddress = user3.address; // marketplace fee Collector
+    const providerFeeToken = mockErc20.address; 
+
     const publishFees = await erc20TokenWithPublishFee
      .connect(user2)
      .getPublishingMarketFee();
@@ -770,7 +792,10 @@ describe("ERC721Factory", () => {
           "tokenAddress":erc20TokenWithPublishFee.address,
           "consumer":consumer,
           "amount":dtAmount,
-          "serviceIndex":serviceIndex
+          "serviceIndex":serviceIndex,
+          "providerFeeAddress":providerFeeAddress,
+          "providerFeeToken": providerFeeToken,
+          "providerFeeAmount":0
         }]
       );
     const txReceipt = await tx.wait();
@@ -804,7 +829,8 @@ describe("ERC721Factory", () => {
     const consumer = user2.address; // could be different user
     const dtAmount = web3.utils.toWei("1");
     const serviceIndex = 1; // dummy index
-   
+    const providerFeeAddress = user3.address; // marketplace fee Collector
+    const providerFeeToken = mockErc20.address; 
    
     const publishFees = await erc20TokenWithPublishFee
      .connect(user2)
@@ -850,13 +876,19 @@ describe("ERC721Factory", () => {
           "tokenAddress":erc20TokenWithPublishFee.address,
           "consumer":consumer,
           "amount":dtAmount,
-          "serviceIndex":serviceIndex
+          "serviceIndex":serviceIndex,
+          "providerFeeAddress":providerFeeAddress,
+          "providerFeeToken": providerFeeToken,
+          "providerFeeAmount":0
         },
         {
           "tokenAddress":erc20Token.address,
           "consumer":consumer,
           "amount":dtAmount,
-          "serviceIndex":serviceIndex
+          "serviceIndex":serviceIndex,
+          "providerFeeAddress":providerFeeAddress,
+          "providerFeeToken": providerFeeToken,
+          "providerFeeAmount":0
         }]
       );
     const txReceipt = await tx.wait();
