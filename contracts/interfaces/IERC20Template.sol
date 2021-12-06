@@ -93,7 +93,10 @@ interface IERC20Template {
      function startOrder(
         address consumer,
         uint256 amount,
-        uint256 serviceId
+        uint256 serviceId,
+        address providerFeeAddress,
+        address providerFeeToken, 
+        uint256 providerFeeAmount
      ) external;
   
     function burn(uint256 amount) external;
