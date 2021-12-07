@@ -36,7 +36,7 @@ contract BMath is BConst, BNum {
     function getOPFFee() public view returns (uint) {
         return IFactoryRouter(_factory).getOPFFee(_basetokenAddress);
     }
-    event SWAP_FEES(uint swapFeeAmount, uint oceanFeeAmount, uint marketFeeAmount, address tokenFees);
+    event SWAP_FEES(uint swapFeeAmount, uint oceanFeeAmount, uint publishMarketFeeAmount, address tokenFees);
     /**********************************************************************************************
     // calcSpotPrice                                                                             //
     // sP = spotPrice                                                                            //
