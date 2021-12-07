@@ -373,21 +373,21 @@ describe("Swap Fees", () => {
       const user4OceanBalance = await oceanContract.balanceOf(user4.address);
       const dtMarketFeeBal = await bPool.publishMarketFees(erc20Token.address);
       const oceanMarketFeeBal = await bPool.publishMarketFees(oceanAddress);
-     
+
       // we prepare the arrays, user5 is going to receive the dynamic market fee
       amountIn = web3.utils.toWei("10");
       minAmountOut = web3.utils.toWei("1");
       maxPrice = web3.utils.toWei("10");
-     
+
       const tokenInOutMarket = [
         oceanAddress,
         erc20Token.address,
         user5.address,
       ]; // [tokenIn,tokenOut,marketFeeAddress]
-       
+
       // we set a dynamic market fee and store marketFee receiver balance(user5)
-       marketFee = web3.utils.toWei('0.002'); //0.2%
-       const user5tokenInBal = await oceanContract.balanceOf(user5.address)
+      marketFee = web3.utils.toWei("0.002"); //0.2%
+      const user5tokenInBal = await oceanContract.balanceOf(user5.address);
 
       const amountsInOutMaxFee = [amountIn, minAmountOut, maxPrice, marketFee]; // [exactAmountIn,minAmountOut,maxPrice,_swapMarketFee]
 
@@ -413,7 +413,9 @@ describe("Swap Fees", () => {
         await bPool.publishMarketFees(args.tokenFees)
       );
       // check user5 balance (market fee receiver)
-      expect(await oceanContract.balanceOf(user5.address)).to.equal(web3.utils.toWei("0.02"))
+      expect(await oceanContract.balanceOf(user5.address)).to.equal(
+        web3.utils.toWei("0.02")
+      );
 
       SwapEvent = receipt.events.filter((e) => e.event === "LOG_SWAP");
       const swapArgs = SwapEvent[0].args;
@@ -433,13 +435,15 @@ describe("Swap Fees", () => {
       // CHECK MARKET FEES:
       MarketFeeEvent = receipt.events.filter((e) => e.event === "MarketFees");
       const marketFeeArgs = MarketFeeEvent[0].args;
-      expect(marketFeeArgs.to).to.equal(user5.address)
-      expect(marketFeeArgs.token).to.equal(oceanAddress)
-     
-      expect(user5tokenInBal.add(marketFeeArgs.amount)).to.equal(await oceanContract.balanceOf(user5.address))
-        // FEE is 0.2% 
-     expect(marketFeeArgs.amount.mul(500)).to.be.equal(swapArgs.tokenAmountIn)
-     expect(marketFeeArgs.amount).to.equal(web3.utils.toWei('0.02'))
+      expect(marketFeeArgs.to).to.equal(user5.address);
+      expect(marketFeeArgs.token).to.equal(oceanAddress);
+
+      expect(user5tokenInBal.add(marketFeeArgs.amount)).to.equal(
+        await oceanContract.balanceOf(user5.address)
+      );
+      // FEE is 0.2%
+      expect(marketFeeArgs.amount.mul(500)).to.be.equal(swapArgs.tokenAmountIn);
+      expect(marketFeeArgs.amount).to.equal(web3.utils.toWei("0.02"));
     });
 
     it("#6 - user4 buys some DT - exactAmountOut", async () => {
@@ -452,7 +456,7 @@ describe("Swap Fees", () => {
       const dtMarketFeeBal = await bPool.publishMarketFees(erc20Token.address);
       const oceanMarketFeeBal = await bPool.publishMarketFees(oceanAddress);
 
-      const user5BalBefore = await oceanContract.balanceOf(user5.address)
+      const user5BalBefore = await oceanContract.balanceOf(user5.address);
       // we prepare the arrays, user5 is going to receive the dynamic market fee
       maxAmountIn = web3.utils.toWei("100");
       amountOut = web3.utils.toWei("10");
@@ -473,8 +477,6 @@ describe("Swap Fees", () => {
 
       SwapEvent = receipt.events.filter((e) => e.event === "LOG_SWAP");
       const swapArgs = SwapEvent[0].args;
-      
-      
 
       // CHECK SWAP BALANCES
       // user 4 DT balance increased properly
@@ -487,7 +489,7 @@ describe("Swap Fees", () => {
       );
 
       // check user5 balance (market fee receiver)
-      expect(await oceanContract.balanceOf(user5.address)).gt(user5BalBefore)
+      expect(await oceanContract.balanceOf(user5.address)).gt(user5BalBefore);
 
       // WE NOW CHECK FEES
       SwapFeesEvent = receipt.events.filter((e) => e.event === "SWAP_FEES");
@@ -514,14 +516,19 @@ describe("Swap Fees", () => {
         1
       );
 
-       // CHECK MARKET FEES:
-       MarketFeeEvent = receipt.events.filter((e) => e.event === "MarketFees");
-       const marketFeeArgs = MarketFeeEvent[0].args;
-       expect(marketFeeArgs.to).to.equal(user5.address)
-       expect(marketFeeArgs.token).to.equal(oceanAddress)
-       expect(marketFeeArgs.amount).to.equal((await oceanContract.balanceOf(user5.address)).sub(user5BalBefore))
-        // FEE is 0.2% 
-        expect(marketFeeArgs.amount.mul(500)).to.be.closeTo(swapArgs.tokenAmountIn,100)
+      // CHECK MARKET FEES:
+      MarketFeeEvent = receipt.events.filter((e) => e.event === "MarketFees");
+      const marketFeeArgs = MarketFeeEvent[0].args;
+      expect(marketFeeArgs.to).to.equal(user5.address);
+      expect(marketFeeArgs.token).to.equal(oceanAddress);
+      expect(marketFeeArgs.amount).to.equal(
+        (await oceanContract.balanceOf(user5.address)).sub(user5BalBefore)
+      );
+      // FEE is 0.2%
+      expect(marketFeeArgs.amount.mul(500)).to.be.closeTo(
+        swapArgs.tokenAmountIn,
+        100
+      );
     });
 
     it("#7 - user4 swaps some DT back to Ocean with swapExactAmountIn, check swap custom fees", async () => {
@@ -548,6 +555,7 @@ describe("Swap Fees", () => {
       minAmountOut = web3.utils.toWei("1");
       maxPrice = web3.utils.toWei("10");
       marketFee = web3.utils.toWei("0.01"); //1% 1e16
+      const user5BalBefore = await erc20Token.balanceOf(user5.address);
       const tokenInOutMarket = [
         erc20Token.address,
         oceanAddress,
@@ -563,8 +571,10 @@ describe("Swap Fees", () => {
 
       SwapFeesEvent = receipt.events.filter((e) => e.event === "SWAP_FEES");
 
-       // check user5 balance (market fee receiver)
-       expect(await erc20Token.balanceOf(user5.address)).to.equal(web3.utils.toWei("0.1"))
+      // check user5 balance (market fee receiver)
+      expect(await erc20Token.balanceOf(user5.address)).to.equal(
+        web3.utils.toWei("0.1")
+      );
 
       const args = SwapFeesEvent[0].args;
 
@@ -599,15 +609,18 @@ describe("Swap Fees", () => {
         1
       );
 
-       // CHECK MARKET FEES:
-       MarketFeeEvent = receipt.events.filter((e) => e.event === "MarketFees");
-       const marketFeeArgs = MarketFeeEvent[0].args;
-       expect(marketFeeArgs.to).to.equal(user5.address)
-       expect(marketFeeArgs.token).to.equal(erc20Token.address)
-       expect(marketFeeArgs.amount).to.equal(web3.utils.toWei("0.1"))
-          // FEE is 0.2% 
-     expect(marketFeeArgs.amount.mul(100)).to.be.equal(swapArgs.tokenAmountIn)
-     expect(marketFeeArgs.amount).to.equal(web3.utils.toWei('0.1'))
+      // CHECK MARKET FEES:
+      MarketFeeEvent = receipt.events.filter((e) => e.event === "MarketFees");
+      const marketFeeArgs = MarketFeeEvent[0].args;
+      expect(marketFeeArgs.to).to.equal(user5.address);
+      expect(marketFeeArgs.token).to.equal(erc20Token.address);
+      expect(marketFeeArgs.amount).to.equal(web3.utils.toWei("0.1"));
+      // FEE is 0.2%
+      expect(marketFeeArgs.amount.mul(100)).to.be.equal(swapArgs.tokenAmountIn);
+      expect(marketFeeArgs.amount).to.equal(web3.utils.toWei("0.1"));
+      expect(await erc20Token.balanceOf(user5.address)).to.equal(
+        user5BalBefore.add(marketFeeArgs.amount)
+      );
     });
 
     it("#8 - user4 swaps some DT back to Ocean with swapExactAmountOut, check swap custom fees", async () => {
@@ -622,7 +635,7 @@ describe("Swap Fees", () => {
       const dtMarketFeeBal = await bPool.publishMarketFees(erc20Token.address);
       const oceanMarketFeeBal = await bPool.publishMarketFees(oceanAddress);
 
-      const user5BalBefore = await erc20Token.balanceOf(user5.address)
+      const user5BalBefore = await erc20Token.balanceOf(user5.address);
       expect(await bPool.communityFees(oceanAddress)).to.equal(0);
       expect(await bPool.communityFees(erc20Token.address)).to.equal(0);
 
@@ -648,8 +661,8 @@ describe("Swap Fees", () => {
 
       const args = SwapFeesEvent[0].args;
 
-         // check user5 balance (market fee receiver)
-       expect(await erc20Token.balanceOf(user5.address)).gt(user5BalBefore)
+      // check user5 balance (market fee receiver)
+      expect(await erc20Token.balanceOf(user5.address)).gt(user5BalBefore);
       // publishMarketFees accounting increased as expected
       expect(dtMarketFeeBal.add(args.publishMarketFeeAmount)).to.equal(
         await bPool.publishMarketFees(args.tokenFees)
@@ -676,14 +689,19 @@ describe("Swap Fees", () => {
         args.swapFeeAmount,
         1
       );
-       // CHECK MARKET FEES:
-       MarketFeeEvent = receipt.events.filter((e) => e.event === "MarketFees");
-       const marketFeeArgs = MarketFeeEvent[0].args;
-       expect(marketFeeArgs.to).to.equal(user5.address)
-       expect(marketFeeArgs.token).to.equal(erc20Token.address)
-       expect(marketFeeArgs.amount).to.equal((await erc20Token.balanceOf(user5.address)).sub(user5BalBefore))
-       // FEE is 10% 
-       expect(marketFeeArgs.amount.mul(10)).to.be.closeTo(swapArgs.tokenAmountIn,5)
+      // CHECK MARKET FEES:
+      MarketFeeEvent = receipt.events.filter((e) => e.event === "MarketFees");
+      const marketFeeArgs = MarketFeeEvent[0].args;
+      expect(marketFeeArgs.to).to.equal(user5.address);
+      expect(marketFeeArgs.token).to.equal(erc20Token.address);
+      expect(marketFeeArgs.amount).to.equal(
+        (await erc20Token.balanceOf(user5.address)).sub(user5BalBefore)
+      );
+      // FEE is 10%
+      expect(marketFeeArgs.amount.mul(10)).to.be.closeTo(
+        swapArgs.tokenAmountIn,
+        5
+      );
     });
 
     it("#9 - user4 adds more liquidity with joinPool() (adding both tokens)", async () => {
@@ -1218,7 +1236,9 @@ describe("Swap Fees", () => {
     it("#19 - can change fees", async () => {
       expect(await bPool.getSwapFee()).to.equal(swapFee);
       const newSwapFee = 2e15;
-      await sideStaking.connect(user3).setPoolSwapFee(erc20Token.address,bPool.address, newSwapFee);
+      await sideStaking
+        .connect(user3)
+        .setPoolSwapFee(erc20Token.address, bPool.address, newSwapFee);
       expect(await bPool.getSwapFee()).to.equal(newSwapFee);
     });
   });
@@ -1406,16 +1426,16 @@ describe("Swap Fees", () => {
       const daiMarketFeeBal = await bPool.publishMarketFees(daiAddress);
       const dtOPFFeeBal = await bPool.communityFees(erc20Token.address);
       const daiOPFFeeBal = await bPool.communityFees(daiAddress);
-   
+
       // we prepare the arrays, user5 is going to receive the dynamic market fee
       amountIn = web3.utils.toWei("10");
       minAmountOut = web3.utils.toWei("1");
       maxPrice = web3.utils.toWei("10");
       marketFee = 0;
-      const user5tokenInBal = await daiContract.balanceOf(user5.address)
+      const user5tokenInBal = await daiContract.balanceOf(user5.address);
       const tokenInOutMarket = [daiAddress, erc20Token.address, user5.address]; // [tokenIn,tokenOut,marketFeeAddress]
       const amountsInOutMaxFee = [amountIn, minAmountOut, maxPrice, marketFee]; // [exactAmountIn,minAmountOut,maxPrice,_swapMarketFee]
-      
+
       receipt = await (
         await bPool
           .connect(user4)
@@ -1467,11 +1487,11 @@ describe("Swap Fees", () => {
         1
       );
 
-       
-       // CONSUME FEE is ZERO 
-        expect(user5tokenInBal).to.equal(await daiContract.balanceOf(user5.address))
-          
-      })
+      // CONSUME FEE is ZERO
+      expect(user5tokenInBal).to.equal(
+        await daiContract.balanceOf(user5.address)
+      );
+    });
 
     it("#7 - user4 buys some DT  - exactAmountOut", async () => {
       // we already approved pool to withdraw Ocean tokens
@@ -1488,7 +1508,7 @@ describe("Swap Fees", () => {
       amountOut = web3.utils.toWei("10");
       maxPrice = web3.utils.toWei("10");
       marketFee = 0;
-      const user5tokenInBal = await daiContract.balanceOf(user5.address)
+      const user5tokenInBal = await daiContract.balanceOf(user5.address);
       const tokenInOutMarket = [daiAddress, erc20Token.address, user5.address]; // [tokenIn,tokenOut,marketFeeAddress]
       const amountsInOutMaxFee = [maxAmountIn, amountOut, maxPrice, marketFee]; // [maxAmountIn,exactAmountOut,maxPrice,_swapMarketFee]
 
@@ -1537,8 +1557,10 @@ describe("Swap Fees", () => {
         await erc20Token.balanceOf(user4.address)
       );
 
-       // CONSUME FEE is ZERO 
-       expect(user5tokenInBal).to.equal(await daiContract.balanceOf(user5.address))
+      // CONSUME FEE is ZERO
+      expect(user5tokenInBal).to.equal(
+        await daiContract.balanceOf(user5.address)
+      );
     });
 
     it("#8 - user4 swaps some DT back to DAI swapExactAmountIn", async () => {
@@ -1557,8 +1579,8 @@ describe("Swap Fees", () => {
       minAmountOut = web3.utils.toWei("1");
       maxPrice = web3.utils.toWei("10");
       marketFee = web3.utils.toWei("0.01"); //1% 1e16
-      const user5BalBefore = await erc20Token.balanceOf(user5.address)
-      
+      const user5BalBefore = await erc20Token.balanceOf(user5.address);
+
       const tokenInOutMarket = [erc20Token.address, daiAddress, user5.address]; // [tokenIn,tokenOut,marketFeeAddress]
       const amountsInOutMaxFee = [amountIn, minAmountOut, maxPrice, marketFee]; // [exactAmountIn,minAmountOut,maxPrice,_swapMarketFee]
 
@@ -1595,14 +1617,19 @@ describe("Swap Fees", () => {
         args.swapFeeAmount,
         1
       );
-        // CHECK MARKET FEES:
-        MarketFeeEvent = receipt.events.filter((e) => e.event === "MarketFees");
-        const marketFeeArgs = MarketFeeEvent[0].args;
-        expect(marketFeeArgs.to).to.equal(user5.address)
-        expect(marketFeeArgs.token).to.equal(erc20Token.address)
-        expect(marketFeeArgs.amount).to.equal((await erc20Token.balanceOf(user5.address)).sub(user5BalBefore))
-        // FEE is 1% 
-        expect(marketFeeArgs.amount.mul(100)).to.be.closeTo(swapArgs.tokenAmountIn,5)
+      // CHECK MARKET FEES:
+      MarketFeeEvent = receipt.events.filter((e) => e.event === "MarketFees");
+      const marketFeeArgs = MarketFeeEvent[0].args;
+      expect(marketFeeArgs.to).to.equal(user5.address);
+      expect(marketFeeArgs.token).to.equal(erc20Token.address);
+      expect(marketFeeArgs.amount).to.equal(
+        (await erc20Token.balanceOf(user5.address)).sub(user5BalBefore)
+      );
+      // FEE is 1%
+      expect(marketFeeArgs.amount.mul(100)).to.be.closeTo(
+        swapArgs.tokenAmountIn,
+        5
+      );
     });
 
     it("#9 - user4 swaps some DT back to DAI swapExactAmountOut", async () => {
@@ -1621,7 +1648,7 @@ describe("Swap Fees", () => {
       amountOut = web3.utils.toWei("1");
       maxPrice = web3.utils.toWei("10");
       marketFee = 5e15; // 0.5%
-      const user5BalBefore = await erc20Token.balanceOf(user5.address)
+      const user5BalBefore = await erc20Token.balanceOf(user5.address);
 
       const tokenInOutMarket = [erc20Token.address, daiAddress, user5.address]; // [tokenIn,tokenOut,marketFeeAddress]
       const amountsInOutMaxFee = [maxAmountIn, amountOut, maxPrice, marketFee]; // [maxAmountIn,exactAmountOut,maxPrice,_swapMarketFee]
@@ -1659,14 +1686,19 @@ describe("Swap Fees", () => {
         args.swapFeeAmount,
         1
       );
-        // CHECK MARKET FEES:
-        MarketFeeEvent = receipt.events.filter((e) => e.event === "MarketFees");
-        const marketFeeArgs = MarketFeeEvent[0].args;
-        expect(marketFeeArgs.to).to.equal(user5.address)
-        expect(marketFeeArgs.token).to.equal(erc20Token.address)
-        expect(marketFeeArgs.amount).to.equal((await erc20Token.balanceOf(user5.address)).sub(user5BalBefore))
-        // FEE is 0.5% 
-        expect(marketFeeArgs.amount.mul(200)).to.be.closeTo(swapArgs.tokenAmountIn,100)
+      // CHECK MARKET FEES:
+      MarketFeeEvent = receipt.events.filter((e) => e.event === "MarketFees");
+      const marketFeeArgs = MarketFeeEvent[0].args;
+      expect(marketFeeArgs.to).to.equal(user5.address);
+      expect(marketFeeArgs.token).to.equal(erc20Token.address);
+      expect(marketFeeArgs.amount).to.equal(
+        (await erc20Token.balanceOf(user5.address)).sub(user5BalBefore)
+      );
+      // FEE is 0.5%
+      expect(marketFeeArgs.amount.mul(200)).to.be.closeTo(
+        swapArgs.tokenAmountIn,
+        100
+      );
     });
 
     it("#9 - user4 adds more liquidity with joinPool() (adding both tokens)", async () => {
@@ -2463,7 +2495,9 @@ describe("Swap Fees", () => {
 
       minAmountOut = web3.utils.toWei("1");
       maxPrice = web3.utils.toWei("5");
-      marketFee = 0;
+      // we set a dynamic market fee and store marketFee receiver balance(user5)
+      marketFee = web3.utils.toWei("0.002"); //0.2%
+      const user5tokenInBal = await usdcContract.balanceOf(user5.address);
       const tokenInOutMarket = [usdcAddress, erc20Token.address, user5.address]; // [tokenIn,tokenOut,marketFeeAddress]
       const amountsInOutMaxFee = [
         usdcAmountIn,
@@ -2553,6 +2587,19 @@ describe("Swap Fees", () => {
         ethers.utils.formatEther(tokenBalanceDT),
         "after swap dt balance"
       );
+
+      // CHECK MARKET FEES:
+      MarketFeeEvent = receipt.events.filter((e) => e.event === "MarketFees");
+      const marketFeeArgs = MarketFeeEvent[0].args;
+      expect(marketFeeArgs.to).to.equal(user5.address);
+      expect(marketFeeArgs.token).to.equal(usdcAddress);
+
+      expect(user5tokenInBal.add(marketFeeArgs.amount)).to.equal(
+        await usdcContract.balanceOf(user5.address)
+      );
+      // FEE is 0.2%
+      expect(marketFeeArgs.amount.mul(500)).to.be.equal(swapArgs.tokenAmountIn);
+      expect(marketFeeArgs.amount).to.equal(0.02 * 1e6);
     });
 
     it("#7 - user4 buys some DT  - exactAmountOut", async () => {
@@ -2568,7 +2615,9 @@ describe("Swap Fees", () => {
       maxAmountIn = 1e8;
       amountOut = web3.utils.toWei("10");
       maxPrice = web3.utils.toWei("10");
-      marketFee = 0;
+      // we set a dynamic market fee and store marketFee receiver balance(user5)
+      marketFee = web3.utils.toWei("0.05"); //5%
+      const user5BalBefore = await usdcContract.balanceOf(user5.address);
       const tokenInOutMarket = [usdcAddress, erc20Token.address, user5.address]; // [tokenIn,tokenOut,marketFeeAddress]
       const amountsInOutMaxFee = [maxAmountIn, amountOut, maxPrice, marketFee]; // [maxAmountIn,exactAmountOut,maxPrice,_swapMarketFee]
 
@@ -2636,6 +2685,19 @@ describe("Swap Fees", () => {
         ethers.utils.formatEther(swapArgs.tokenAmountOut.toString()),
         "dt"
       );
+      // CHECK MARKET FEES:
+      MarketFeeEvent = receipt.events.filter((e) => e.event === "MarketFees");
+      const marketFeeArgs = MarketFeeEvent[0].args;
+      expect(marketFeeArgs.to).to.equal(user5.address);
+      expect(marketFeeArgs.token).to.equal(usdcAddress);
+      expect(marketFeeArgs.amount).to.equal(
+        (await usdcContract.balanceOf(user5.address)).sub(user5BalBefore)
+      );
+      // FEE is 5%
+      expect(marketFeeArgs.amount.mul(20)).to.be.closeTo(
+        swapArgs.tokenAmountIn,
+        50
+      );
     });
 
     it("#8 - user4 swaps some DT back to USDC swapExactAmountIn", async () => {
@@ -2653,7 +2715,9 @@ describe("Swap Fees", () => {
       amountIn = web3.utils.toWei("10");
       (minAmountOut = 1e6), // minAmountOut 1 USDC
         (maxPrice = web3.utils.toWei("10000000000000")); // maxPrice;
-      marketFee = 0;
+      // we set a dynamic market fee and store marketFee receiver balance(user5)
+      marketFee = web3.utils.toWei("0.02"); //2%
+      const user5BalBefore = await erc20Token.balanceOf(user5.address);
       const tokenInOutMarket = [erc20Token.address, usdcAddress, user5.address]; // [tokenIn,tokenOut,marketFeeAddress]
       const amountsInOutMaxFee = [amountIn, minAmountOut, maxPrice, marketFee]; // [exactAmountIn,minAmountOut,maxPrice,_swapMarketFee]
 
@@ -2696,6 +2760,19 @@ describe("Swap Fees", () => {
         "dt"
       );
       console.log(swapArgs.tokenAmountOut.toString(), "usdc");
+
+      // CHECK MARKET FEES:
+      MarketFeeEvent = receipt.events.filter((e) => e.event === "MarketFees");
+      const marketFeeArgs = MarketFeeEvent[0].args;
+      expect(marketFeeArgs.to).to.equal(user5.address);
+      expect(marketFeeArgs.token).to.equal(erc20Token.address);
+      expect(marketFeeArgs.amount).to.equal(web3.utils.toWei("0.2"));
+      // FEE is 2%
+      expect(marketFeeArgs.amount.mul(50)).to.be.equal(swapArgs.tokenAmountIn);
+      expect(marketFeeArgs.amount).to.equal(web3.utils.toWei("0.2"));
+      expect(await erc20Token.balanceOf(user5.address)).to.equal(
+        user5BalBefore.add(marketFeeArgs.amount)
+      );
     });
 
     it("#9 - user4 swaps some DT back to USDC swapExactAmountOut", async () => {
@@ -2714,6 +2791,7 @@ describe("Swap Fees", () => {
       const maxPrice = web3.utils.toWei("10000000000000");
       // we prepare the arrays, user5 is going to receive the dynamic market fee
       marketFee = 0;
+      const user5tokenInBal = await erc20Token.balanceOf(user5.address);
       const tokenInOutMarket = [erc20Token.address, usdcAddress, user5.address]; // [tokenIn,tokenOut,marketFeeAddress]
       const amountsInOutMaxFee = [maxAmountIn, amountOut, maxPrice, marketFee]; // [maxAmountIn,exactAmountOut,maxPrice,_swapMarketFee]
 
@@ -2750,6 +2828,10 @@ describe("Swap Fees", () => {
       expect(swapArgs.tokenAmountIn.div(1e18 / swapFee)).to.be.closeTo(
         args.swapFeeAmount,
         1
+      );
+      // CONSUME FEE is ZERO
+      expect(user5tokenInBal).to.equal(
+        await erc20Token.balanceOf(user5.address)
       );
     });
 
@@ -3557,7 +3639,9 @@ describe("Swap Fees", () => {
 
       minAmountOut = web3.utils.toWei("1");
       maxPrice = web3.utils.toWei("5");
-      marketFee = 0;
+      // we set a dynamic market fee and store marketFee receiver balance(user5)
+      marketFee = web3.utils.toWei("0.002"); //0.2%
+      const user5tokenInBal = await usdcContract.balanceOf(user5.address);
       const tokenInOutMarket = [usdcAddress, erc20Token.address, user5.address]; // [tokenIn,tokenOut,marketFeeAddress]
       const amountsInOutMaxFee = [
         usdcAmountIn,
@@ -3646,6 +3730,19 @@ describe("Swap Fees", () => {
         ethers.utils.formatEther(tokenBalanceDT),
         "after swap dt balance"
       );
+
+      // CHECK MARKET FEES:
+      MarketFeeEvent = receipt.events.filter((e) => e.event === "MarketFees");
+      const marketFeeArgs = MarketFeeEvent[0].args;
+      expect(marketFeeArgs.to).to.equal(user5.address);
+      expect(marketFeeArgs.token).to.equal(usdcAddress);
+
+      expect(user5tokenInBal.add(marketFeeArgs.amount)).to.equal(
+        await usdcContract.balanceOf(user5.address)
+      );
+      // FEE is 0.2%
+      expect(marketFeeArgs.amount.mul(500)).to.be.equal(swapArgs.tokenAmountIn);
+      expect(marketFeeArgs.amount).to.equal(0.02 * 1e6);
     });
 
     it("#7 - opfFee is updated to 1% (1e16)", async () => {
@@ -3673,6 +3770,7 @@ describe("Swap Fees", () => {
       amountOut = web3.utils.toWei("10");
       maxPrice = web3.utils.toWei("10");
       marketFee = 0;
+      const user5BalBefore = await daiContract.balanceOf(user5.address);
       const tokenInOutMarket = [usdcAddress, erc20Token.address, user5.address]; // [tokenIn,tokenOut,marketFeeAddress]
       const amountsInOutMaxFee = [maxAmountIn, amountOut, maxPrice, marketFee]; // [maxAmountIn,exactAmountOut,maxPrice,_swapMarketFee]
 
@@ -3741,6 +3839,11 @@ describe("Swap Fees", () => {
         ethers.utils.formatEther(swapArgs.tokenAmountOut.toString()),
         "dt"
       );
+
+      // CONSUME FEE is ZERO
+      expect(user5BalBefore).to.equal(
+        await daiContract.balanceOf(user5.address)
+      );
     });
 
     it("#9 - user4 swaps some DT back to USDC swapExactAmountIn", async () => {
@@ -3758,7 +3861,8 @@ describe("Swap Fees", () => {
       amountIn = web3.utils.toWei("10");
       (minAmountOut = 1e6), // minAmountOut 1 USDC
         (maxPrice = web3.utils.toWei("10000000000000")); // maxPrice;
-      marketFee = 0;
+        marketFee = web3.utils.toWei("0.04"); //4% 4e16
+        const user5BalBefore = await erc20Token.balanceOf(user5.address);
       const tokenInOutMarket = [erc20Token.address, usdcAddress, user5.address]; // [tokenIn,tokenOut,marketFeeAddress]
       const amountsInOutMaxFee = [amountIn, minAmountOut, maxPrice, marketFee]; // [exactAmountIn,minAmountOut,maxPrice,_swapMarketFee]
 
@@ -3801,6 +3905,19 @@ describe("Swap Fees", () => {
         "dt"
       );
       console.log(swapArgs.tokenAmountOut.toString(), "usdc");
+        // CHECK MARKET FEES:
+        MarketFeeEvent = receipt.events.filter((e) => e.event === "MarketFees");
+        const marketFeeArgs = MarketFeeEvent[0].args;
+        expect(marketFeeArgs.to).to.equal(user5.address);
+        expect(marketFeeArgs.token).to.equal(erc20Token.address);
+        expect(marketFeeArgs.amount).to.equal(
+          (await erc20Token.balanceOf(user5.address)).sub(user5BalBefore)
+        );
+        // FEE is 1%
+        expect(marketFeeArgs.amount.mul(25)).to.be.closeTo(
+          swapArgs.tokenAmountIn,
+          5
+        );
     });
 
     it("#10 - USDC token is added as ocean tokens list, now opfFee will be ZERO", async () => {
@@ -3829,7 +3946,9 @@ describe("Swap Fees", () => {
       const amountOut = 1e6;
       const maxPrice = web3.utils.toWei("10000000000000");
       // we prepare the arrays, user5 is going to receive the dynamic market fee
-      marketFee = 0;
+      marketFee = 5e15; // 0.5%
+      const user5BalBefore = await erc20Token.balanceOf(user5.address);
+
       const tokenInOutMarket = [erc20Token.address, usdcAddress, user5.address]; // [tokenIn,tokenOut,marketFeeAddress]
       const amountsInOutMaxFee = [maxAmountIn, amountOut, maxPrice, marketFee]; // [maxAmountIn,exactAmountOut,maxPrice,_swapMarketFee]
 
@@ -3867,6 +3986,19 @@ describe("Swap Fees", () => {
         args.swapFeeAmount,
         1
       );
+       // CHECK MARKET FEES:
+       MarketFeeEvent = receipt.events.filter((e) => e.event === "MarketFees");
+       const marketFeeArgs = MarketFeeEvent[0].args;
+       expect(marketFeeArgs.to).to.equal(user5.address);
+       expect(marketFeeArgs.token).to.equal(erc20Token.address);
+       expect(marketFeeArgs.amount).to.equal(
+         (await erc20Token.balanceOf(user5.address)).sub(user5BalBefore)
+       );
+       // FEE is 0.5%
+       expect(marketFeeArgs.amount.mul(200)).to.be.closeTo(
+         swapArgs.tokenAmountIn,
+         100
+       );
     });
 
     it("#12 - user4 adds more liquidity with joinPool() (adding both tokens)", async () => {
@@ -4545,6 +4677,7 @@ describe("Swap Fees", () => {
       minAmountOut = web3.utils.toWei("1");
       maxPrice = web3.utils.toWei("10");
       marketFee = 0;
+      const user5tokenInBal = await daiContract.balanceOf(user5.address);
       const tokenInOutMarket = [daiAddress, erc20Token.address, user5.address]; // [tokenIn,tokenOut,marketFeeAddress]
       const amountsInOutMaxFee = [amountIn, minAmountOut, maxPrice, marketFee]; // [exactAmountIn,minAmountOut,maxPrice,_swapMarketFee]
 
@@ -4597,6 +4730,11 @@ describe("Swap Fees", () => {
         args.swapFeeAmount,
         1
       );
+
+       // CONSUME FEE is ZERO
+       expect(user5tokenInBal).to.equal(
+        await daiContract.balanceOf(user5.address)
+      );
     });
 
     it("#7 - opfFee is updated to 0.1% (1e15) again, set to 0.1% in previous test", async () => {
@@ -4624,7 +4762,8 @@ describe("Swap Fees", () => {
       maxAmountIn = web3.utils.toWei("100");
       amountOut = web3.utils.toWei("10");
       maxPrice = web3.utils.toWei("10");
-      marketFee = 0;
+      marketFee = web3.utils.toWei("0.01"); //1% 1e16
+      const user5BalBefore = await daiContract.balanceOf(user5.address);
       const tokenInOutMarket = [daiAddress, erc20Token.address, user5.address]; // [tokenIn,tokenOut,marketFeeAddress]
       const amountsInOutMaxFee = [maxAmountIn, amountOut, maxPrice, marketFee]; // [maxAmountIn,exactAmountOut,maxPrice,_swapMarketFee]
 
@@ -4672,6 +4811,20 @@ describe("Swap Fees", () => {
       expect(user4DTbalance.add(swapArgs.tokenAmountOut)).to.equal(
         await erc20Token.balanceOf(user4.address)
       );
+
+        // CHECK MARKET FEES:
+        MarketFeeEvent = receipt.events.filter((e) => e.event === "MarketFees");
+        const marketFeeArgs = MarketFeeEvent[0].args;
+        expect(marketFeeArgs.to).to.equal(user5.address);
+        expect(marketFeeArgs.token).to.equal(daiContract.address);
+        expect(marketFeeArgs.amount).to.equal(
+          (await daiContract.balanceOf(user5.address)).sub(user5BalBefore)
+        );
+        // FEE is 1%
+        expect(marketFeeArgs.amount.mul(100)).to.be.closeTo(
+          swapArgs.tokenAmountIn,
+          50
+        );
     });
 
     it("#9 - user4 swaps some DT back to DAI swapExactAmountIn", async () => {
@@ -4689,7 +4842,8 @@ describe("Swap Fees", () => {
       amountIn = web3.utils.toWei("10");
       minAmountOut = web3.utils.toWei("1");
       maxPrice = web3.utils.toWei("10");
-      marketFee = 0;
+      marketFee = web3.utils.toWei("0.01"); //1% 1e16
+      const user5BalBefore = await erc20Token.balanceOf(user5.address);
       const tokenInOutMarket = [erc20Token.address, daiAddress, user5.address]; // [tokenIn,tokenOut,marketFeeAddress]
       const amountsInOutMaxFee = [amountIn, minAmountOut, maxPrice, marketFee]; // [exactAmountIn,minAmountOut,maxPrice,_swapMarketFee]
 
@@ -4726,6 +4880,19 @@ describe("Swap Fees", () => {
         args.swapFeeAmount,
         1
       );
+        // CHECK MARKET FEES:
+        MarketFeeEvent = receipt.events.filter((e) => e.event === "MarketFees");
+        const marketFeeArgs = MarketFeeEvent[0].args;
+        expect(marketFeeArgs.to).to.equal(user5.address);
+        expect(marketFeeArgs.token).to.equal(erc20Token.address);
+        expect(marketFeeArgs.amount).to.equal(
+          (await erc20Token.balanceOf(user5.address)).sub(user5BalBefore)
+        );
+        // FEE is 1%
+        expect(marketFeeArgs.amount.mul(100)).to.be.closeTo(
+          swapArgs.tokenAmountIn,
+          5
+        );
     });
 
     it("#10 - DAI token is added as ocean tokens list, now opfFee will be ZERO", async () => {
