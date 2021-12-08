@@ -870,6 +870,7 @@ contract ERC20TemplateEnterprise is
         // we calculate the dynamic market fee and add it to the baseTokenAmount to be transferred
         uint256 marketFeeAmount = (baseTokenAmountBeforeFee *
             _freParams.swapMarketFee) / 1e18;
+        uint baseAmount = baseTokenAmount;
         baseTokenAmount = baseTokenAmount + marketFeeAmount;
 
         //transfer baseToken to us first
@@ -882,7 +883,7 @@ contract ERC20TemplateEnterprise is
         //approve FRE to spend baseTokens
         IERC20(baseToken).safeIncreaseAllowance(
             _freParams.exchangeContract,
-            baseTokenAmount
+            baseAmount
         );
         //buy DT
         IFixedRateExchange(_freParams.exchangeContract).buyDT(
