@@ -150,7 +150,6 @@ describe("Swap Fees", () => {
     flags = web3.utils.asciiToHex(constants.blob[0]);
 
     // DEPLOY ROUTER, SETTING OWNER
-
     poolTemplate = await BPool.deploy();
 
     router = await Router.deploy(
