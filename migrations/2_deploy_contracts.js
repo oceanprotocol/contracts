@@ -88,6 +88,8 @@ module.exports = function(deployer, network, accounts) {
             Metadata
         )
         addresses.Metadata = Metadata.address
+        const metadataTransaction = await web3.eth.getTransaction(Metadata.transactionHash);
+        addresses.metadataStartBlock = metadataTransaction.blockNumber;
         await deployer.deploy(
             Dispenser
         )
