@@ -81,7 +81,8 @@ contract ERC20Template is ERC20("test", "testSymbol"), ERC20Roles, ERC20Burnable
     event ProviderFees(
         address indexed providerFeeAddress,
         address indexed providerFeeToken, 
-        uint256 providerFeeAmount
+        uint256 providerFeeAmount,
+        bytes providerData
     );
     
     event MinterProposed(address currentMinter, address newMinter);
@@ -378,22 +379,28 @@ contract ERC20Template is ERC20("test", "testSymbol"), ERC20Roles, ERC20Burnable
      *      called by payer or consumer prior ordering a service consume on a marketplace.
      *      Requires previous approval of consumeFeeToken and publishMarketFeeToken
      * @param consumer is the consumer address (payer could be different address)
-     * @param amount refers to amount of tokens that is going to be transfered.
      * @param serviceIndex service index in the metadata
      * @param providerFeeAddress consume marketplace fee address
      * @param providerFeeToken // address of the token marketplace wants to add fee on top
      * @param providerFeeAmount // fee amount   
+     * @param v // v of provider signed message
+     * @param r // r of provider signed message   
+     * @param s // s of provider signed message
+     * @param providerData // data encoded by provider
      */
     function startOrder(
         address consumer,
-        uint256 amount,
         uint256 serviceIndex,
         address providerFeeAddress,
         address providerFeeToken, // address of the token marketplace wants to add fee on top
-        uint256 providerFeeAmount // amount to be transfered to marketFeeCollector
+        uint256 providerFeeAmount, // amount to be transfered to marketFeeCollector
+        uint8 v, // v of provider signed message
+        bytes32 r, // r of provider signed message
+        bytes32 s, // s of provider signed message
+        bytes memory providerData //data encoded by provider
         
     ) external nonReentrant {
-       // uint256 communityFeeConsume = 0;
+        uint256 amount = 1e18;  // we always pay 1 DT. No more, no less
         uint256 communityFeePublish = 0;
         require(balanceOf(msg.sender) >= amount, "Not enough Data Tokens to start Order");
         emit OrderStarted(
@@ -434,6 +441,16 @@ contract ERC20Template is ERC20("test", "testSymbol"), ERC20Roles, ERC20Burnable
         // Requires approval for the providerFeeToken of providerFeeAmount
         // skip fee if amount == 0 or feeToken == 0x0 address or feeAddress == 0x0 address
         if (providerFeeAmount > 0 && providerFeeToken!=address(0) && providerFeeAddress!=address(0)) {
+            bytes32 message = keccak256(
+                abi.encodePacked(
+                    providerData,
+                    providerFeeAddress,
+                    providerFeeToken,
+                    providerFeeAmount
+                )
+            );
+            address signer = ecrecover(message, v, r, s);
+            require(signer == providerFeeAddress, "Invalid provider fee");
             IERC20(providerFeeToken).safeTransferFrom(
                 msg.sender,
                 address(this),
@@ -443,7 +460,7 @@ contract ERC20Template is ERC20("test", "testSymbol"), ERC20Roles, ERC20Burnable
             IERC20(providerFeeToken)
             .safeTransfer(providerFeeAddress,providerFeeAmount);
             //send to OPC
-            emit ProviderFees(providerFeeAddress, providerFeeToken, providerFeeAmount);
+            emit ProviderFees(providerFeeAddress, providerFeeToken, providerFeeAmount, providerData);
         }
         // send datatoken to publisher
         require(transfer(getPaymentCollector(), amount), 'Failed to send DT to publisher');

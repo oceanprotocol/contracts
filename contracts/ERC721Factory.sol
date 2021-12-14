@@ -460,11 +460,14 @@ contract ERC721Factory is Deployer, Ownable, ReentrancyGuard {
     struct tokenOrder {
         address tokenAddress;
         address consumer;
-        uint256 amount;
         uint256 serviceIndex;
         address providerFeeAddress;
         address providerFeeToken; // address of the token marketplace wants to add fee on top
         uint256 providerFeeAmount;
+        uint8 v; // v of provider signed message
+        bytes32 r; // r of provider signed message
+        bytes32 s; // s of provider signed message
+        bytes providerData;
     }
 
     /**
@@ -482,10 +485,9 @@ contract ERC721Factory is Deployer, Ownable, ReentrancyGuard {
     ) external nonReentrant {
         // TODO: to avoid DOS attack, we set a limit to maximum order (50 ?)
         require(orders.length <= 50, 'ERC721Factory: Too Many Orders');
-        uint256 ids = orders.length;
         // TO DO.  We can do better here , by groupping publishMarketFeeTokens and consumeFeeTokens and have a single 
         // transfer for each one, instead of doing it per dt..
-        for (uint256 i = 0; i < ids; i++) {
+        for (uint256 i = 0; i < orders.length; i++) {
             (address publishMarketFeeAddress, address publishMarketFeeToken, uint256 publishMarketFeeAmount) 
                 = IERC20Template(orders[i].tokenAddress).getPublishingMarketFee();
             
@@ -514,16 +516,19 @@ contract ERC721Factory is Deployer, Ownable, ReentrancyGuard {
             IERC20(orders[i].tokenAddress).safeTransferFrom(
                 msg.sender,
                 address(this),
-                orders[i].amount
-            );
+                1e18
+            ); // we always pay 1 DT. No more, no less
         
             IERC20Template(orders[i].tokenAddress).startOrder(
                 orders[i].consumer,
-                orders[i].amount,
                 orders[i].serviceIndex,
                 orders[i].providerFeeAddress,
                 orders[i].providerFeeToken,
-                orders[i].providerFeeAmount
+                orders[i].providerFeeAmount,
+                orders[i].v,
+                orders[i].r,
+                orders[i].s,
+                orders[i].providerData
             );
         }
     }
