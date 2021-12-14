@@ -25,6 +25,10 @@ contract ERC20Roles {
         uint256 blockNumber
     );
 
+    function getPermissions(address user) public view returns (RolesERC20 memory) {
+        return permissions[user];
+    }
+
     function _addMinter(address _minter) internal {
         RolesERC20 storage user = permissions[_minter];
         require(user.minter == false, "ERC20Roles:  ALREADY A MINTER");
