@@ -754,7 +754,7 @@ describe("ERC721Factory", () => {
     const consumer = user2.address; // could be different user
     const dtAmount = web3.utils.toWei("1");
     const serviceIndex = 1; // dummy index
-    const providerFeeAddress = user5.address; // marketplace fee Collector
+    const providerFeeAddress = user3.address; // marketplace fee Collector
     const providerFeeToken = mockErc20.address; 
     const providerFeeAmount = "0"
     const publishFees = await erc20TokenWithPublishFee
@@ -785,7 +785,7 @@ describe("ERC721Factory", () => {
       [
         ethers.utils.hexlify(ethers.utils.toUtf8Bytes(providerData)),
         providerFeeAddress,
-        addressZero,
+        providerFeeToken,
         providerFeeAmount
       ]
     );
@@ -867,7 +867,7 @@ describe("ERC721Factory", () => {
       [
         ethers.utils.hexlify(ethers.utils.toUtf8Bytes(providerData)),
         providerFeeAddress,
-        addressZero,
+        providerFeeToken,
         providerFeeAmount
       ]
     );
