@@ -84,7 +84,8 @@ contract ERC20TemplateEnterprise is
     event ProviderFees(
         address indexed providerFeeAddress,
         address indexed providerFeeToken, 
-        uint256 providerFeeAmount
+        uint256 providerFeeAmount,
+        bytes providerData
     );
 
     event MinterProposed(address currentMinter, address newMinter);
@@ -346,33 +347,41 @@ contract ERC20TemplateEnterprise is
      *      called by payer or consumer prior ordering a service consume on a marketplace.
      *      Requires previous approval of consumeFeeToken and publishMarketFeeToken
      * @param consumer is the consumer address (payer could be different address)
-     * @param amount refers to amount of tokens that is going to be transfered.
      * @param serviceIndex service index in the metadata
      * @param providerFeeAddress consume marketplace fee address
      * @param providerFeeToken // address of the token marketplace wants to add fee on top
-     * @param providerFeeAmount // fee amount       
+     * @param providerFeeAmount // fee amount 
+     * @param v // v of provider signed message
+     * @param r // r of provider signed message   
+     * @param s // s of provider signed message     
      */
     function startOrder(
         address consumer,
-        uint256 amount,
         uint256 serviceIndex,
         address providerFeeAddress,
         address providerFeeToken, // address of the token marketplace wants to add fee on top
-        uint256 providerFeeAmount // amount to be transfered to marketFeeCollector 
+        uint256 providerFeeAmount, // amount to be transfered to marketFeeCollector 
+        uint8 v, // v of provider signed message
+        bytes32 r, // r of provider signed message
+        bytes32 s, // s of provider signed message
+        bytes memory providerData //data encoded by provider
     ) external {
-        _startOrder(consumer, amount, serviceIndex,
-        providerFeeAddress,providerFeeToken,providerFeeAmount);
+        _startOrder(consumer, serviceIndex,
+        providerFeeAddress,providerFeeToken,providerFeeAmount, v, r, s, providerData);
     }
 
     function _startOrder(
         address consumer,
-        uint256 amount,
         uint256 serviceIndex,
         address providerFeeAddress,
         address providerFeeToken, // address of the token marketplace wants to add fee on top
-        uint256 providerFeeAmount // amount to be transfered to marketFeeCollector 
+        uint256 providerFeeAmount, // amount to be transfered to marketFeeCollector 
+        uint8 v, // v of provider signed message
+        bytes32 r, // r of provider signed message
+        bytes32 s, // s of provider signed message
+        bytes memory providerData //data encoded by provider
     ) private {
-       
+        uint256 amount = 1e18; // we always pay 1 DT. No more, no less
         uint256 communityFeePublish = 0;
         require(
             balanceOf(msg.sender) >= amount,
@@ -432,6 +441,16 @@ contract ERC20TemplateEnterprise is
         // Requires approval for the providerFeeToken of providerFeeAmount
         // skip fee if amount == 0 or feeToken == 0x0 address or feeAddress == 0x0 address
         if (providerFeeAmount > 0 && providerFeeToken!=address(0) && providerFeeAddress!=address(0)) {
+            bytes32 message = keccak256(
+                abi.encodePacked(
+                    providerData,
+                    providerFeeAddress,
+                    providerFeeToken,
+                    providerFeeAmount
+                )
+            );
+            address signer = ecrecover(message, v, r, s);
+            require(signer == providerFeeAddress, "Invalid provider fee");
             IERC20(providerFeeToken).safeTransferFrom(
                 msg.sender,
                 address(this),
@@ -441,7 +460,7 @@ contract ERC20TemplateEnterprise is
             IERC20(providerFeeToken)
             .safeTransfer(providerFeeAddress,providerFeeAmount);
             //send to OPC
-            emit ProviderFees(providerFeeAddress, providerFeeToken, providerFeeAmount);
+            emit ProviderFees(providerFeeAddress, providerFeeToken, providerFeeAmount, providerData);
         }   
         
         // instead of sending datatoken to publisher, we burn them
@@ -809,11 +828,14 @@ contract ERC20TemplateEnterprise is
 
     struct OrderParams {
         address consumer;
-        uint256 amount;
         uint256 serviceIndex;
         address providerFeeAddress;
         address providerFeeToken; // address of the token marketplace wants to add fee on top
         uint256 providerFeeAmount; 
+        uint8 v; // v of provider signed message
+        bytes32 r; // r of provider signed message
+        bytes32 s; // s of provider signed message
+        bytes providerData; //data encoded by provider
     }
     struct FreParams {
         address exchangeContract;
@@ -861,7 +883,7 @@ contract ERC20TemplateEnterprise is
         ) = IFixedRateExchange(_freParams.exchangeContract)
                 .calcBaseInGivenOutDT(
                     _freParams.exchangeId,
-                    _orderParams.amount
+                    1e18  // we always take 1 DT
                 );
         require(
             baseTokenAmount <= _freParams.maxBaseTokenAmount,
@@ -887,21 +909,20 @@ contract ERC20TemplateEnterprise is
         //buy DT
         IFixedRateExchange(_freParams.exchangeContract).buyDT(
             _freParams.exchangeId,
-            _orderParams.amount,
+            1e18, // we always take 1 dt
             baseTokenAmount
         );
         require(
-            balanceOf(address(this)) >= _orderParams.amount,
+            balanceOf(address(this)) >= 1e18,
             "Unable to buy DT from FixedRate"
         );
         //we need the following because startOrder expects msg.sender to have dt
-        _transfer(address(this), msg.sender, _orderParams.amount);
+        _transfer(address(this), msg.sender, 1e18);
         //startOrder and burn it
         _startOrder(
-            _orderParams.consumer,
-            _orderParams.amount,
-            _orderParams.serviceIndex,
-        _orderParams.providerFeeAddress, _orderParams.providerFeeToken, _orderParams.providerFeeAmount);
+            _orderParams.consumer, _orderParams.serviceIndex,
+            _orderParams.providerFeeAddress, _orderParams.providerFeeToken, _orderParams.providerFeeAmount,
+            _orderParams.v, _orderParams.r, _orderParams.s, _orderParams.providerData);
 
         // Transfer Market Fee to market fee collector
         if (marketFeeAmount > 0) {
@@ -922,22 +943,22 @@ contract ERC20TemplateEnterprise is
         OrderParams memory _orderParams,
         address dispenserContract
     ) external {
+        uint256 amount = 1e18;
         //get DT
         IDispenser(dispenserContract).dispense(
             address(this),
-            _orderParams.amount,
+            amount,
             msg.sender
         );
         require(
-            balanceOf(address(msg.sender)) >= _orderParams.amount,
+            balanceOf(address(msg.sender)) >= amount,
             "Unable to get DT from Dispenser"
         );
         //startOrder and burn it
         _startOrder(
-            _orderParams.consumer,
-            _orderParams.amount,
-            _orderParams.serviceIndex,
-        _orderParams.providerFeeAddress, _orderParams.providerFeeToken, _orderParams.providerFeeAmount);
+            _orderParams.consumer, _orderParams.serviceIndex,
+            _orderParams.providerFeeAddress, _orderParams.providerFeeToken, _orderParams.providerFeeAmount,
+            _orderParams.v, _orderParams.r, _orderParams.s, _orderParams.providerData);
     }
 
      /**
