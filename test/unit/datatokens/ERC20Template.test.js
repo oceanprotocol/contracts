@@ -589,9 +589,9 @@ describe("ERC20Template", () => {
     //make sure that we don't have 'PublishMarketFees') event
     event = getEventFromTx(txReceipt, 'PublishMarketFees')
     assert.typeOf(event, 'undefined',"PublishMarketFees event found")
-    //make sure that we don't have ProviderFees event
+    //make sure that we have ProviderFees event
     event = getEventFromTx(txReceipt, 'ProviderFees')
-    assert.typeOf(event, 'undefined', "ProviderFees event found")
+    assert(event, "Cannot find ProviderFees event")
 
     assert(
       (await erc20Token.balanceOf(user2.address)) == web3.utils.toWei("9"), 'Invalid user balance, DT was not substracted'
@@ -827,9 +827,9 @@ describe("ERC20Template", () => {
     assert(event, "Cannot find OrderStarted event")
     event = getEventFromTx(txReceipt, 'PublishMarketFees')
     assert(event, "Cannot find PublishMarketFees event")
-    //make sure that we don't have ProviderFees event
+    //make sure that we have ProviderFees event
     event = getEventFromTx(txReceipt, 'ProviderFees')
-    assert.typeOf(event, 'undefined', "ProviderFees event found")
+    assert(event, "Cannot find ProviderFees event")
     assert(
       (await erc20TokenWithPublishFee.balanceOf(user2.address)) == web3.utils.toWei("9"), 'Invalid user balance, DT was not substracted'
     );
@@ -920,7 +920,7 @@ describe("ERC20Template", () => {
     assert(event, "Cannot find OrderStarted event")
     event = getEventFromTx(txReceipt, 'PublishMarketFees')
     assert(event, "Cannot find PublishMarketFees event")
-    //make sure that we don't have ProviderFees event
+    //make sure that we have ProviderFees event
     event = getEventFromTx(txReceipt, 'ProviderFees')
     assert(event, "Cannot find ProviderFees event")
     assert(
