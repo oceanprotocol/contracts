@@ -437,30 +437,35 @@ contract ERC20TemplateEnterprise is
        
         
 
-        // providerFees
-        // Requires approval for the providerFeeToken of providerFeeAmount
+        // providerFees - check if they are signed
+        bytes32 message = keccak256(
+            abi.encodePacked(
+                providerData,
+                providerFeeAddress,
+                providerFeeToken,
+                providerFeeAmount
+            )
+        );
+        address signer = ecrecover(message, v, r, s);
+        require(signer == providerFeeAddress, "Invalid provider fee");
+        emit ProviderFees(
+            providerFeeAddress,
+            providerFeeToken,
+            providerFeeAmount,
+            providerData
+        );
         // skip fee if amount == 0 or feeToken == 0x0 address or feeAddress == 0x0 address
-        if (providerFeeAmount > 0 && providerFeeToken!=address(0) && providerFeeAddress!=address(0)) {
-            bytes32 message = keccak256(
-                abi.encodePacked(
-                    providerData,
-                    providerFeeAddress,
-                    providerFeeToken,
-                    providerFeeAmount
-                )
-            );
-            address signer = ecrecover(message, v, r, s);
-            require(signer == providerFeeAddress, "Invalid provider fee");
+        // Requires approval for the providerFeeToken of providerFeeAmount
+        if (
+            providerFeeAmount > 0 &&
+            providerFeeToken != address(0) &&
+            providerFeeAddress != address(0)
+        ) {
             IERC20(providerFeeToken).safeTransferFrom(
                 msg.sender,
-                address(this),
+                providerFeeAddress,
                 providerFeeAmount
             );
-            //send providerFee
-            IERC20(providerFeeToken)
-            .safeTransfer(providerFeeAddress,providerFeeAmount);
-            //send to OPC
-            emit ProviderFees(providerFeeAddress, providerFeeToken, providerFeeAmount, providerData);
         }   
         
         // instead of sending datatoken to publisher, we burn them
