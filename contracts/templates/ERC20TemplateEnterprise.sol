@@ -85,7 +85,10 @@ contract ERC20TemplateEnterprise is
         address indexed providerFeeAddress,
         address indexed providerFeeToken, 
         uint256 providerFeeAmount,
-        bytes providerData
+        bytes providerData,
+        uint8 v, 
+        bytes32 r, 
+        bytes32 s
     );
 
     event MinterProposed(address currentMinter, address newMinter);
@@ -452,7 +455,8 @@ contract ERC20TemplateEnterprise is
             providerFeeAddress,
             providerFeeToken,
             providerFeeAmount,
-            providerData
+            providerData,
+            v, r, s
         );
         // skip fee if amount == 0 or feeToken == 0x0 address or feeAddress == 0x0 address
         // Requires approval for the providerFeeToken of providerFeeAmount
