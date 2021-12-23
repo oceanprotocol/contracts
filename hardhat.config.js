@@ -46,8 +46,8 @@ module.exports = {
       gasPrice:1000000000
     },
     rinkeby: {
-      url: 
-        process.env.NETWORK_RPC_URL !== undefined ? [process.env.NETWORK_RPC_URL] : "",
+      url:
+        process.env.NETWORK_RPC_URL !== undefined ? process.env.NETWORK_RPC_URL : "",
       accounts:
         process.env.PRIVATE_KEY !== undefined ? [process.env.PRIVATE_KEY] : [],
     },
