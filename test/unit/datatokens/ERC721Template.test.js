@@ -8,9 +8,20 @@ const { impersonate } = require("../../helpers/impersonate");
 const constants = require("../../helpers/constants");
 const { web3 } = require("@openzeppelin/test-helpers/src/setup");
 const { keccak256 } = require("@ethersproject/keccak256");
+const { sha256 } = require("@ethersproject/sha2");
+const { ZERO_ADDRESS } = require("@openzeppelin/test-helpers/src/constants");
+const { ecsign } = require("ethereumjs-util");
 const ethers = hre.ethers;
 
 
+
+function signMessage(message, privateKey) {
+  const { v, r, s } = ecsign(
+    Buffer.from(message.slice(2), "hex"),
+    Buffer.from(privateKey, "hex")
+  );
+  return { v, r, s };
+}
 
 
 describe("ERC721Template", () => {
@@ -102,7 +113,7 @@ describe("ERC721Template", () => {
     [owner, reciever, user2, user3,user4, user5, user6, provider, opfCollector, marketFeeCollector] = await ethers.getSigners();
 
     data = web3.utils.asciiToHex(constants.blob[0]);
-    dataHash = web3.utils.asciiToHex(constants.blob[0]);
+    dataHash = sha256(data);
     flags = web3.utils.asciiToHex(constants.blob[0]);
 
  // DEPLOY ROUTER, SETTING OWNER
@@ -224,7 +235,7 @@ describe("ERC721Template", () => {
   it("#updateMetadata - should not be allowed to update the metadata if NOT in MetadataList", async () => {
     assert((await tokenERC721.getPermissions(user6.address)).updateMetadata == false)
     await expectRevert(
-      tokenERC721.connect(user6).setMetaData(metaDataState, metaDataDecryptorUrl, metaDataDecryptorAddress, flags, data, dataHash),
+      tokenERC721.connect(user6).setMetaData(metaDataState, metaDataDecryptorUrl, metaDataDecryptorAddress, flags, data, dataHash,[]),
       "ERC721Template: NOT METADATA_ROLE"
     );
   });
@@ -243,7 +254,7 @@ describe("ERC721Template", () => {
     let metadataInfo = await tokenERC721.getMetaData()
     assert(metadataInfo[3] === false)
 
-    let tx = await tokenERC721.connect(user6).setMetaData(metaDataState, metaDataDecryptorUrl, metaDataDecryptorAddress, flags, data, dataHash);
+    let tx = await tokenERC721.connect(user6).setMetaData(metaDataState, metaDataDecryptorUrl, metaDataDecryptorAddress, flags, data, dataHash,[]);
     let txReceipt = await tx.wait();
    
     let event = getEventFromTx(txReceipt,'MetadataCreated')
@@ -256,7 +267,7 @@ describe("ERC721Template", () => {
     assert(metadataInfo[0] == metaDataDecryptorUrl);
 
     const metaDataDecryptorUrl2 = 'http://someurl';
-    tx = await tokenERC721.connect(user6).setMetaData(metaDataState, metaDataDecryptorUrl2, metaDataDecryptorAddress, flags, data, dataHash);
+    tx = await tokenERC721.connect(user6).setMetaData(metaDataState, metaDataDecryptorUrl2, metaDataDecryptorAddress, flags, data, dataHash,[]);
     txReceipt = await tx.wait();
     event = getEventFromTx(txReceipt,'MetadataUpdated')
     assert(event, "Cannot find MetadataUpdated event")
@@ -266,6 +277,78 @@ describe("ERC721Template", () => {
     assert(metadataInfo[3] === true)
     assert(metadataInfo[0] == metaDataDecryptorUrl2);
 
+  });
+
+  it("#updateMetadata - should create & update the metadata, vith valid signature", async () => {
+    assert((await tokenERC721.getPermissions(user6.address)).updateMetadata == false)
+    await tokenERC721.addToMetadataList(user6.address);
+    let metadataInfo = await tokenERC721.getMetaData()
+    assert(metadataInfo[3] === false)
+
+    const signedMessage = signMessage(dataHash, "8b3a350cf5c34c9194ca85829a2df0ec3153be0318b5e2d3348e872092edffba");
+    const validators = [
+      {
+        "validatorAddress": user5.address,
+        "v": signedMessage.v,
+        "r": signedMessage.r,
+        "s": signedMessage.s,
+      }
+    ]
+    let tx = await tokenERC721.connect(user6).setMetaData(metaDataState, metaDataDecryptorUrl, metaDataDecryptorAddress, flags, data, dataHash,validators);
+    let txReceipt = await tx.wait();
+   
+    let event = getEventFromTx(txReceipt,'MetadataValidated')
+    assert(event, "Cannot find MetadataValidated event")
+    assert(event.args[0] === user5.address, 'Invalid validator address')
+    event = getEventFromTx(txReceipt,'MetadataCreated')
+    assert(event, "Cannot find MetadataCreated event")
+    
+  });
+
+  it("#updateMetadata - should create & update the metadata, vith signature address ZERO", async () => {
+    assert((await tokenERC721.getPermissions(user6.address)).updateMetadata == false)
+    await tokenERC721.addToMetadataList(user6.address);
+    let metadataInfo = await tokenERC721.getMetaData()
+    assert(metadataInfo[3] === false)
+
+    const signedMessage = signMessage(dataHash, "8b3a350cf5c34c9194ca85829a2df0ec3153be0318b5e2d3348e872092edffba");
+    const validators = [
+      {
+        "validatorAddress": ZERO_ADDRESS,
+        "v": signedMessage.v,
+        "r": signedMessage.r,
+        "s": signedMessage.s,
+      }
+    ]
+    let tx = await tokenERC721.connect(user6).setMetaData(metaDataState, metaDataDecryptorUrl, metaDataDecryptorAddress, flags, data, dataHash,validators);
+    let txReceipt = await tx.wait();
+   
+    let event = getEventFromTx(txReceipt,'MetadataValidated')
+    assert(event, "Cannot find MetadataValidated event")
+    assert(event.args[0] === ZERO_ADDRESS, 'Invalid validator address')
+    event = getEventFromTx(txReceipt,'MetadataCreated')
+    assert(event, "Cannot find MetadataCreated event")
+    
+  });
+
+  it("#updateMetadata - should fail to create & update the metadata if signature is not valid", async () => {
+    assert((await tokenERC721.getPermissions(user6.address)).updateMetadata == false)
+    await tokenERC721.addToMetadataList(user6.address);
+    let metadataInfo = await tokenERC721.getMetaData()
+    assert(metadataInfo[3] === false)
+
+    const signedMessage = signMessage(dataHash, "8b3a350cf5c34c9194ca85829a2df0ec3153be0318b5e2d3348e872092edffba");
+    const validators = [
+      {
+        "validatorAddress": user3.address,
+        "v": signedMessage.v,
+        "r": signedMessage.r,
+        "s": signedMessage.s,
+      }
+    ]
+    await expectRevert(tokenERC721.connect(user6).setMetaData(metaDataState, metaDataDecryptorUrl, metaDataDecryptorAddress, flags, data, dataHash,validators),
+    'Invalid proof signer');
+    
   });
 
   it("#updateMetadata - should be able to update metadata state", async () => {
@@ -564,12 +647,12 @@ describe("ERC721Template", () => {
     );
 
     await expectRevert(
-      tokenERC721.connect(user6).setMetaData(metaDataState, metaDataDecryptorUrl, metaDataDecryptorAddress, flags, data, dataHash),
+      tokenERC721.connect(user6).setMetaData(metaDataState, metaDataDecryptorUrl, metaDataDecryptorAddress, flags, data, dataHash,[]),
       "ERC721Template: NOT METADATA_ROLE"
     );
     
 
-    await tokenERC721.connect(user2).setMetaData(metaDataState, metaDataDecryptorUrl, metaDataDecryptorAddress, flags, data, dataHash);
+    await tokenERC721.connect(user2).setMetaData(metaDataState, metaDataDecryptorUrl, metaDataDecryptorAddress, flags, data, dataHash,[]);
 
     let metadataInfo = await tokenERC721.getMetaData()
     assert(metadataInfo[3] === true)

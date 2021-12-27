@@ -205,12 +205,17 @@ interface IERC721Template is IERC165 {
         bool store;
     }
 
-
+    struct metaDataProof {
+        address validatorAddress;
+        uint8 v; // v of validator signed message
+        bytes32 r; // r of validator signed message
+        bytes32 s; // s of validator signed message
+    }
     function getPermissions(address user) external returns (Roles memory);
 
     function setDataERC20(bytes32 _key, bytes calldata _value) external;
     function setMetaData(uint8 _metaDataState, string calldata _metaDataDecryptorUrl
         , string calldata _metaDataDecryptorAddress, bytes calldata flags, 
-        bytes calldata data) external;
+        bytes calldata data,bytes32 _metaDataHash, metaDataProof[] memory _metadataProofs) external;
     function getMetaData() external view returns (string memory, string memory, uint8, bool);
 }
