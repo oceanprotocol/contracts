@@ -47,7 +47,7 @@ contract ERC721Template is
         string decryptorUrl,
         bytes flags,
         bytes data,
-        bytes metaDataHash,
+        bytes32 metaDataHash,
         uint256 timestamp,
         uint256 blockNumber
     );
@@ -57,9 +57,16 @@ contract ERC721Template is
         string decryptorUrl,
         bytes flags,
         bytes data,
-        bytes metaDataHash,
+        bytes32 metaDataHash,
         uint256 timestamp,
         uint256 blockNumber
+    );
+    event MetadataValidated(
+        address indexed validator,
+        bytes32 metaDataHash,
+        uint8 v, 
+        bytes32 r, 
+        bytes32 s
     );
     event MetadataState(
         address indexed updatedBy,
@@ -195,6 +202,12 @@ contract ERC721Template is
             block.number);
     }
 
+    struct metaDataProof {
+        address validatorAddress;
+        uint8 v; // v of validator signed message
+        bytes32 r; // r of validator signed message
+        bytes32 s; // s of validator signed message
+    }
     /**
      * @dev setMetaData
      *     
@@ -205,10 +218,12 @@ contract ERC721Template is
      * @param _metaDataDecryptorAddress decryptor public key
      * @param flags flags used by Aquarius
      * @param data data used by Aquarius
+     * @param _metaDataHash hash of clear data (before the encryption, if any)
+     * @param _metadataProofs optional signatures of entitys who validated data (before the encryption, if any)
      */
     function setMetaData(uint8 _metaDataState, string calldata _metaDataDecryptorUrl
         , string calldata _metaDataDecryptorAddress, bytes calldata flags, 
-        bytes calldata data,bytes calldata _metaDataHash) external {
+        bytes calldata data,bytes32 _metaDataHash, metaDataProof[] memory _metadataProofs) external {
         require(
             permissions[msg.sender].updateMetadata,
             "ERC721Template: NOT METADATA_ROLE"
@@ -230,6 +245,18 @@ contract ERC721Template is
             /* solium-disable-next-line */
             block.timestamp,
             block.number);
+        //check proofs and emit an event for each proof
+        require(_metadataProofs.length <= 50, 'Too Many Proofs');
+        for (uint256 i = 0; i < _metadataProofs.length; i++) {
+            if(_metadataProofs[i].validatorAddress != address(0)){
+                    address signer = ecrecover(_metaDataHash,
+                    _metadataProofs[i].v, _metadataProofs[i].r, _metadataProofs[i].s);
+                    require(signer == _metadataProofs[i].validatorAddress, "Invalid proof signer");
+            }
+            emit MetadataValidated(_metadataProofs[i].validatorAddress, 
+            _metaDataHash, 
+            _metadataProofs[i].v, _metadataProofs[i].r, _metadataProofs[i].s);
+        }
     }
 
     /**
