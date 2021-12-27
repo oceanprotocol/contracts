@@ -212,8 +212,7 @@ async function main() {
     console.log("\t[]\n'");
     console.log("\t];");
     console.log("\tCTRL+D");
-    console.log("\tnpx hardhat verify --network "+networkName+" -constructor-args args1.js "+addresses.Router+" "+owner.address+" "+addresses.Ocean
-    +" "+poolTemplate.address+" "+addresses.OPFCommunityFeeCollector+" []")
+    console.log("\tnpx hardhat verify --network "+networkName+" -constructor-args args1.js "+addresses.Router)
   }
 
   if (logging) console.info("Deploying FixedrateExchange");
