@@ -247,9 +247,11 @@ contract ERC721Template is
             block.number);
         //check proofs and emit an event for each proof
         require(_metadataProofs.length <= 50, 'Too Many Proofs');
+        bytes memory prefix = "\x19Ethereum Signed Message:\n32";
         for (uint256 i = 0; i < _metadataProofs.length; i++) {
             if(_metadataProofs[i].validatorAddress != address(0)){
-                    address signer = ecrecover(_metaDataHash,
+                    bytes32 prefixedHash = keccak256(abi.encodePacked(prefix, _metaDataHash));
+                    address signer = ecrecover(prefixedHash,
                     _metadataProofs[i].v, _metadataProofs[i].r, _metadataProofs[i].s);
                     require(signer == _metadataProofs[i].validatorAddress, "Invalid proof signer");
             }

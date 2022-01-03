@@ -12,12 +12,20 @@ const ethers = hre.ethers;
 const { ecsign } = require("ethereumjs-util");
 
 
-function signMessage(message, privateKey) {
-  const { v, r, s } = ecsign(
+async function signMessage(message, address) {
+  let signedMessage = await web3.eth.sign(message, address)
+    signedMessage = signedMessage.substr(2) // remove 0x
+    const r = '0x' + signedMessage.slice(0, 64)
+    const s = '0x' + signedMessage.slice(64, 128)
+    const v = '0x' + signedMessage.slice(128, 130)
+    const vDecimal = web3.utils.hexToNumber(v)
+    return { v,r,s };
+  /*const { v, r, s } = ecsign(
     Buffer.from(message.slice(2), "hex"),
     Buffer.from(privateKey, "hex")
   );
   return { v, r, s };
+  */
 }
 
 
@@ -571,7 +579,7 @@ describe("ERC721Factory", () => {
         providerFeeAmount
       ]
     );
-    const signedMessage = signMessage(message, "7c852118294e51e653712a81e05800f419141751be58f605c371e15141b007a6");
+    const signedMessage = await signMessage(message, providerFeeAddress);
     await erc20Token
       .connect(user2)
       .approve(factoryERC721.address, web3.utils.toWei(dtAmount));
@@ -637,8 +645,7 @@ describe("ERC721Factory", () => {
         providerFeeAmount
       ]
     );
-    const signedMessage = signMessage(message, "7c852118294e51e653712a81e05800f419141751be58f605c371e15141b007a6"); 
-    
+    const signedMessage = await signMessage(message, providerFeeAddress);
     await erc20Token
     .connect(user2)
     .approve(factoryERC721.address, dtAmount);
@@ -709,7 +716,7 @@ describe("ERC721Factory", () => {
           providerFeeAmount
         ]
       );
-    const signedMessage = signMessage(message, "7c852118294e51e653712a81e05800f419141751be58f605c371e15141b007a6"); 
+    const signedMessage = await signMessage(message, providerFeeAddress);
     const tx = await factoryERC721
     .connect(user2)
     .startMultipleTokenOrder(
@@ -789,7 +796,7 @@ describe("ERC721Factory", () => {
         providerFeeAmount
       ]
     );
-    const signedMessage = signMessage(message, "7c852118294e51e653712a81e05800f419141751be58f605c371e15141b007a6"); 
+    const signedMessage = await signMessage(message, providerFeeAddress);
     const tx = await factoryERC721
       .connect(user2)
       .startMultipleTokenOrder(
@@ -871,7 +878,7 @@ describe("ERC721Factory", () => {
         providerFeeAmount
       ]
     );
-    const signedMessage = signMessage(message, "7c852118294e51e653712a81e05800f419141751be58f605c371e15141b007a6"); 
+    const signedMessage = await signMessage(message, providerFeeAddress);
     const tx = await factoryERC721
       .connect(user2)
       .startMultipleTokenOrder(
@@ -970,7 +977,7 @@ describe("ERC721Factory", () => {
         providerFeeAmount
       ]
     );
-    const signedMessage = signMessage(message, "7c852118294e51e653712a81e05800f419141751be58f605c371e15141b007a6"); 
+    const signedMessage = await signMessage(message, providerFeeAddress);
     const tx = await factoryERC721
       .connect(user2)
       .startMultipleTokenOrder(
