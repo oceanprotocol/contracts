@@ -14,7 +14,6 @@ const { ecsign } = require("ethereumjs-util");
 
 async function signMessage(message, address) {
   let signedMessage = await web3.eth.sign(message, address)
-    console.log(signedMessage)
     signedMessage = signedMessage.substr(2) // remove 0x
     const r = '0x' + signedMessage.slice(0, 64)
     const s = '0x' + signedMessage.slice(64, 128)
@@ -580,7 +579,6 @@ describe("ERC721Factory", () => {
         providerFeeAmount
       ]
     );
-    //const signedMessage = await signMessage(message, "7c852118294e51e653712a81e05800f419141751be58f605c371e15141b007a6");
     const signedMessage = await signMessage(message, providerFeeAddress);
     await erc20Token
       .connect(user2)
@@ -647,7 +645,6 @@ describe("ERC721Factory", () => {
         providerFeeAmount
       ]
     );
-    //const signedMessage = await signMessage(message, "7c852118294e51e653712a81e05800f419141751be58f605c371e15141b007a6"); 
     const signedMessage = await signMessage(message, providerFeeAddress);
     await erc20Token
     .connect(user2)
@@ -719,7 +716,6 @@ describe("ERC721Factory", () => {
           providerFeeAmount
         ]
       );
-    //const signedMessage = await signMessage(message, "7c852118294e51e653712a81e05800f419141751be58f605c371e15141b007a6"); 
     const signedMessage = await signMessage(message, providerFeeAddress);
     const tx = await factoryERC721
     .connect(user2)
@@ -800,7 +796,6 @@ describe("ERC721Factory", () => {
         providerFeeAmount
       ]
     );
-    //const signedMessage = await signMessage(message, "7c852118294e51e653712a81e05800f419141751be58f605c371e15141b007a6"); 
     const signedMessage = await signMessage(message, providerFeeAddress);
     const tx = await factoryERC721
       .connect(user2)
@@ -883,7 +878,6 @@ describe("ERC721Factory", () => {
         providerFeeAmount
       ]
     );
-    //const signedMessage = await signMessage(message, "7c852118294e51e653712a81e05800f419141751be58f605c371e15141b007a6"); 
     const signedMessage = await signMessage(message, providerFeeAddress);
     const tx = await factoryERC721
       .connect(user2)
@@ -983,7 +977,6 @@ describe("ERC721Factory", () => {
         providerFeeAmount
       ]
     );
-    //const signedMessage = await signMessage(message, "7c852118294e51e653712a81e05800f419141751be58f605c371e15141b007a6"); 
     const signedMessage = await signMessage(message, providerFeeAddress);
     const tx = await factoryERC721
       .connect(user2)

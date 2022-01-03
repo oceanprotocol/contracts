@@ -17,7 +17,6 @@ const ethers = hre.ethers;
 
 async function signMessage(message, address) {
   let signedMessage = await web3.eth.sign(message, address)
-    console.log(signedMessage)
     signedMessage = signedMessage.substr(2) // remove 0x
     const r = '0x' + signedMessage.slice(0, 64)
     const s = '0x' + signedMessage.slice(64, 128)
@@ -294,7 +293,6 @@ describe("ERC721Template", () => {
     let metadataInfo = await tokenERC721.getMetaData()
     assert(metadataInfo[3] === false)
 
-    //const signedMessage = await signMessage(dataHash, "8b3a350cf5c34c9194ca85829a2df0ec3153be0318b5e2d3348e872092edffba");
     const signedMessage = await signMessage(dataHash, user5.address);
     const validators = [
       {
@@ -321,7 +319,6 @@ describe("ERC721Template", () => {
     let metadataInfo = await tokenERC721.getMetaData()
     assert(metadataInfo[3] === false)
 
-    //const signedMessage = await signMessage(dataHash, "8b3a350cf5c34c9194ca85829a2df0ec3153be0318b5e2d3348e872092edffba");
     const signedMessage = await signMessage(dataHash, user5.address);
     const validators = [
       {
@@ -348,7 +345,6 @@ describe("ERC721Template", () => {
     let metadataInfo = await tokenERC721.getMetaData()
     assert(metadataInfo[3] === false)
 
-    //const signedMessage = await signMessage(dataHash, "8b3a350cf5c34c9194ca85829a2df0ec3153be0318b5e2d3348e872092edffba");
     //we will use user5 to sign
     const signedMessage = await signMessage(dataHash, user5.address);
     const validators = [
