@@ -470,12 +470,17 @@ contract ERC20Template is
         }
 
         // providerFees - check if they are signed
+        bytes memory prefix = "\x19Ethereum Signed Message:\n32";
         bytes32 message = keccak256(
-            abi.encodePacked(
-                providerData,
-                providerFeeAddress,
-                providerFeeToken,
-                providerFeeAmount
+            abi.encodePacked(prefix,
+                keccak256(
+                    abi.encodePacked(
+                        providerData,
+                        providerFeeAddress,
+                        providerFeeToken,
+                        providerFeeAmount
+                    )
+                )
             )
         );
         address signer = ecrecover(message, v, r, s);

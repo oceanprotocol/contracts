@@ -66,14 +66,24 @@ const getApprovalDigest = async (
   );
 };
 
-
-function signMessage(message, privateKey) {
-  const { v, r, s } = ecsign(
+async function signMessage(message, address) {
+  let signedMessage = await web3.eth.sign(message, address)
+    console.log(signedMessage)
+    signedMessage = signedMessage.substr(2) // remove 0x
+    const r = '0x' + signedMessage.slice(0, 64)
+    const s = '0x' + signedMessage.slice(64, 128)
+    const v = '0x' + signedMessage.slice(128, 130)
+    const vDecimal = web3.utils.hexToNumber(v)
+    return { v,r,s };
+  /*const { v, r, s } = ecsign(
     Buffer.from(message.slice(2), "hex"),
     Buffer.from(privateKey, "hex")
   );
   return { v, r, s };
+  */
 }
+
+
 
 
 const provider = new ethers.providers.JsonRpcProvider();
@@ -577,7 +587,8 @@ describe("ERC20TemplateEnterprise", () => {
         providerFeeAmount
       ]
     );
-    const signedMessage = signMessage(message, "8b3a350cf5c34c9194ca85829a2df0ec3153be0318b5e2d3348e872092edffba");
+    //const signedMessage = await signMessage(message, "8b3a350cf5c34c9194ca85829a2df0ec3153be0318b5e2d3348e872092edffba");
+    const signedMessage = await signMessage(message, providerFeeAddress);
     const tx = await erc20Token
       .connect(user2)
       .startOrder(
@@ -658,7 +669,8 @@ describe("ERC20TemplateEnterprise", () => {
         providerFeeAmount
       ]
     );
-    const signedMessage = signMessage(message, "8b3a350cf5c34c9194ca85829a2df0ec3153be0318b5e2d3348e872092edffba");
+    //const signedMessage = await signMessage(message, "8b3a350cf5c34c9194ca85829a2df0ec3153be0318b5e2d3348e872092edffba");
+    const signedMessage = await signMessage(message, providerFeeAddress);
     const tx = await erc20Token
       .connect(user2)
       .startOrder(
@@ -739,7 +751,8 @@ describe("ERC20TemplateEnterprise", () => {
       ]
     );
     // providerFeeAddress is user3, but we are signing using user5 private key, so it should fail
-    const signedMessage = signMessage(message, "8b3a350cf5c34c9194ca85829a2df0ec3153be0318b5e2d3348e872092edffba");
+    //const signedMessage = await signMessage(message, "8b3a350cf5c34c9194ca85829a2df0ec3153be0318b5e2d3348e872092edffba");
+    const signedMessage = await signMessage(message, user5.address);
 
     await expectRevert(
       erc20Token
@@ -813,7 +826,8 @@ describe("ERC20TemplateEnterprise", () => {
         providerFeeAmount
       ]
     );
-    const signedMessage = signMessage(message, "8b3a350cf5c34c9194ca85829a2df0ec3153be0318b5e2d3348e872092edffba");
+    //const signedMessage = await signMessage(message, "8b3a350cf5c34c9194ca85829a2df0ec3153be0318b5e2d3348e872092edffba");
+    const signedMessage = await signMessage(message, providerFeeAddress);
     const tx = await erc20TokenWithPublishFee
       .connect(user2)
       .startOrder(
@@ -905,7 +919,8 @@ describe("ERC20TemplateEnterprise", () => {
         providerFeeAmount
       ]
     );
-    const signedMessage = signMessage(message, "8b3a350cf5c34c9194ca85829a2df0ec3153be0318b5e2d3348e872092edffba");
+    //const signedMessage = await signMessage(message, "8b3a350cf5c34c9194ca85829a2df0ec3153be0318b5e2d3348e872092edffba");
+    const signedMessage = await signMessage(message, providerFeeAddress);
     const tx = await erc20TokenWithPublishFee
       .connect(user2)
       .startOrder(
@@ -1089,7 +1104,8 @@ describe("ERC20TemplateEnterprise", () => {
         providerFeeAmount
       ]
     );
-    const signedMessage = signMessage(message, "8b3a350cf5c34c9194ca85829a2df0ec3153be0318b5e2d3348e872092edffba");  
+    //const signedMessage = await signMessage(message, "8b3a350cf5c34c9194ca85829a2df0ec3153be0318b5e2d3348e872092edffba");  
+    const signedMessage = await signMessage(message, providerFeeAddress);
 
     //let's order in one click
     tx = await EnterpriseToken.connect(user3).buyFromDispenserAndOrder(
@@ -1220,7 +1236,8 @@ describe("ERC20TemplateEnterprise", () => {
         providerFeeAmount
       ]
     );
-    const signedMessage = signMessage(message, "8b3a350cf5c34c9194ca85829a2df0ec3153be0318b5e2d3348e872092edffba");
+    //const signedMessage = await signMessage(message, "8b3a350cf5c34c9194ca85829a2df0ec3153be0318b5e2d3348e872092edffba");
+    const signedMessage = await signMessage(message, providerFeeAddress);
     //let's order in one click
     tx = await EnterpriseToken.connect(user3).buyFromFreAndOrder(
       {
@@ -1364,7 +1381,8 @@ describe("ERC20TemplateEnterprise", () => {
         providerFeeAmount
       ]
     );
-    const signedMessage = signMessage(message, "8b3a350cf5c34c9194ca85829a2df0ec3153be0318b5e2d3348e872092edffba");
+    //const signedMessage = await signMessage(message, "8b3a350cf5c34c9194ca85829a2df0ec3153be0318b5e2d3348e872092edffba");
+    const signedMessage = await signMessage(message, providerFeeAddress);
     tx = await EnterpriseToken.connect(user3).buyFromFreAndOrder(
       {
         "consumer": user2.address,
