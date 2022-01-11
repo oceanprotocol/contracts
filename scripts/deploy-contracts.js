@@ -61,7 +61,7 @@ async function main() {
       break;
     case 0x4:
       networkName = "rinkeby";
-      OceanTokenAddress = "0x5e8DCB2AfA23844bcc311B00Ad1A0C30025aADE9";
+      OceanTokenAddress = "0x8967bcf84170c91b0d24d4302c2376283b0b3a07";
       OPFOwner = "0x0e901bC5D49636eC75B3B4fB88238698E5322dE6";
       routerOwner = "0x0e901bC5D49636eC75B3B4fB88238698E5322dE6";
       shouldDeployOceanMock = false;
