@@ -113,7 +113,7 @@ contract SideStaking is ReentrancyGuard {
             basetokenAddress: basetokenAddress,
             poolAddress: poolAddress,
             poolFinalized: false,
-            datatokenBalance: dt.totalSupply() - ssParams[2], // We need to remove the vesting amount from that
+            datatokenBalance: dt.totalSupply(),
             datatokenCap: dt.cap(),
             basetokenBalance: ssParams[4],
             lastPrice: 0,
