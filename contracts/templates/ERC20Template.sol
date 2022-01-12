@@ -298,8 +298,8 @@ contract ERC20Template is
         _addMinter(addresses[0]);
         // TODO: confirm minimum number of blocks required
         require(
-            ssParams[3] > 2426000,
-            "ERC20Template: minimum blocks not reached"
+            ssParams[3] >= IFactoryRouter(router).getMinVestingPeriod(),
+            "ERC20Template: Vesting period too low. See FactoryRouter.minVestingPeriodInBlocks"
         );
 
         address[2] memory tokens = [address(this), addresses[1]];
