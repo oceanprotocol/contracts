@@ -208,8 +208,43 @@ describe("Vesting flow", () => {
   const swapFee = 1e15;
   const swapOceanFee = 1e15;
   const swapPublishMarketFee = 1e15;
+  
+  it("#4 - user3 calls deployPool(), but with a low vesting period. It should fail", async () => {
+    // user3 hasn't minted any token so he can call deployPool()
 
-  it("#4 - user3 calls deployPool(), we then check ocean and market fee", async () => {
+    const ssDTBalance = await erc20Token.balanceOf(sideStaking.address);
+
+    const initialOceanLiquidity = web3.utils.toWei("2000");
+    const initialDTLiquidity = initialOceanLiquidity;
+    // approve exact amount
+    await oceanContract
+      .connect(user3)
+      .approve(router.address, web3.utils.toWei("2000"));
+
+    // we deploy a new pool with burnInEndBlock as 0
+    
+    await expectRevert(erc20Token.connect(user3).deployPool(
+       // sideStaking.address,
+       // oceanAddress,
+        [
+          web3.utils.toWei("1"), // rate
+          18, // basetokenDecimals
+          web3.utils.toWei('10000'),
+          20, // vested blocks  - this is our failure point
+          initialOceanLiquidity, // baseToken initial pool liquidity
+        ],
+      //  user3.address,
+        [
+          swapFee, //
+          swapPublishMarketFee,
+        ],
+       // marketFeeCollector.address,
+       // user3.address // publisherAddress (get vested amount)
+        [sideStaking.address,oceanAddress,user3.address,user3.address,marketFeeCollector.address,poolTemplate.address]
+      ), "ERC20Template: Vesting period too low. See FactoryRouter.minVestingPeriodInBlocks");
+  });
+  
+  it("#5 - user3 calls deployPool(), we then check ocean and market fee", async () => {
     // user3 hasn't minted any token so he can call deployPool()
 
     const ssDTBalance = await erc20Token.balanceOf(sideStaking.address);
@@ -267,7 +302,7 @@ describe("Vesting flow", () => {
     expect(await bPool.publishMarketFees(erc20Token.address)).to.equal(0);
   });
 
-  it("#5 - user3 fails to mints new erc20 tokens even if it's minter", async () => {
+  it("#6 - user3 fails to mints new erc20 tokens even if it's minter", async () => {
     assert((await erc20Token.permissions(user3.address)).minter == true);
 
     await expectRevert(
@@ -278,7 +313,7 @@ describe("Vesting flow", () => {
     assert((await erc20Token.balanceOf(user3.address)) == 0);
   });
 
-  it("#6 - we check vesting amount is correct", async () => {
+  it("#7 - we check vesting amount is correct", async () => {
     expect(await sideStaking.getvestingAmount(erc20Token.address)).to.equal(
       vestingAmount
     );
@@ -289,7 +324,7 @@ describe("Vesting flow", () => {
     // console.log((await time.latestBlock()).toString());
   });
 
-  xit("#7 - we check vesting amount is correct", async () => {
+  xit("#8 - we check vesting amount is correct", async () => {
     const pubDTbalBEFORE = await erc20Token.balanceOf(tokenERC721.address);
     expect(await sideStaking.getvestingAmount(erc20Token.address)).to.equal(
       vestingAmount

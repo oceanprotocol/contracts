@@ -47,7 +47,7 @@ describe("Swap Fees", () => {
     SwapFeesEvent,
     fixedRateExchange,
     basetokenDecimals,
-    vestingAmount = web3.utils.toWei("10000"),
+    vestingAmount = web3.utils.toWei("1000"),
     SwapEvent;
   (dtIndex = null),
     (oceanIndex = null),
@@ -3297,7 +3297,7 @@ describe("Swap Fees", () => {
         .connect(user3)
         .approve(bPool.address, web3.utils.toWei("100"));
 
-      const usdcAmountIn = 2500 * 1e6; // 2500 USDC  amount big enough so that the staking contract won't stake
+      const usdcAmountIn = 25000 * 1e6; // 25000 USDC  amount big enough so that the staking contract won't stake
       const minBPTOut = web3.utils.toWei("0.001");
 
       receipt = await (
@@ -4323,7 +4323,7 @@ describe("Swap Fees", () => {
         .connect(user3)
         .approve(bPool.address, web3.utils.toWei("100"));
 
-      const usdcAmountIn = 2000 * 1e6; // 2000 USDC  this amount is more than the dt available for staking
+      const usdcAmountIn = 20000 * 1e6; // 20000 USDC  this amount is more than the dt available for staking
       const minBPTOut = web3.utils.toWei("0.001");
 
       receipt = await (
