@@ -113,7 +113,7 @@ contract SideStaking is ReentrancyGuard {
             basetokenAddress: basetokenAddress,
             poolAddress: poolAddress,
             poolFinalized: false,
-            datatokenBalance: dt.totalSupply() - ssParams[2], // We need to remove the vesting amount from that
+            datatokenBalance: dt.totalSupply(),
             datatokenCap: dt.cap(),
             basetokenBalance: ssParams[4],
             lastPrice: 0,
@@ -163,8 +163,7 @@ contract SideStaking is ReentrancyGuard {
         if (!_datatokens[datatokenAddress].bound) return (0);
         return (_datatokens[datatokenAddress].datatokenCap -
             _datatokens[datatokenAddress].datatokenBalance -
-            getvestingAmount(datatokenAddress) +
-            getvestingAmountSoFar(datatokenAddress));
+            _datatokens[datatokenAddress].vestingAmountSoFar);
     }
 
     /**
@@ -439,21 +438,13 @@ contract SideStaking is ReentrancyGuard {
         );
     }
 
-    /**
-     *  Send available vested tokens to the publisher address, can be called by anyone
+     /**
+     *  Get available vesting now
      * @param datatokenAddress - datatokenAddress
 
      */
-    // called by vester to get datatokens
-    function getVesting(address datatokenAddress) external nonReentrant {
-        require(
-            _datatokens[datatokenAddress].bound,
-            "ERR:Invalid datatoken"
-        );
-        // is this needed?
-        // require(msg.sender == _datatokens[datatokenAddress].publisherAddress,'ERR: Only publisher can call this');
-
-        //calculate how many tokens we need to vest to publisher<<
+    function getAvailableVesting(address datatokenAddress) public view returns (uint256) {
+        uint256 amount = 0;
         uint256 blocksPassed;
 
         if (_datatokens[datatokenAddress].vestingEndBlock < block.number) {
@@ -470,8 +461,21 @@ contract SideStaking is ReentrancyGuard {
             _datatokens[datatokenAddress].vestingEndBlock -
                 _datatokens[datatokenAddress].blockDeployed
         );
-        if (vestPerBlock == 0) return;
-        uint256 amount = blocksPassed.mul(vestPerBlock);
+        if (vestPerBlock == 0) return 0;
+        return(blocksPassed.mul(vestPerBlock));
+    }
+    /**
+     *  Send available vested tokens to the publisher address, can be called by anyone
+     * @param datatokenAddress - datatokenAddress
+
+     */
+    // called by vester to get datatokens
+    function getVesting(address datatokenAddress) external nonReentrant {
+        require(
+            _datatokens[datatokenAddress].bound,
+            "ERR:Invalid datatoken"
+        );
+        uint256 amount = getAvailableVesting(datatokenAddress);
         if (
             amount > 0 &&
             _datatokens[datatokenAddress].datatokenBalance >= amount

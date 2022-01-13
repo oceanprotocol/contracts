@@ -2179,11 +2179,12 @@ describe("Swap Fees", () => {
 
       await daiContract
         .connect(user3)
-        .approve(bPool.address, web3.utils.toWei("150"));
+        .approve(bPool.address, web3.utils.toWei("250"));
 
-      const daiAmountIn = web3.utils.toWei("150"); // this requires more DT than available but enough in the contract(vesting)). so it shouldn't deposit any DT
+      const daiAmountIn = web3.utils.toWei("250"); // this requires more DT than available but enough in the contract(vesting)). so it shouldn't deposit any DT
       const minBPTOut = web3.utils.toWei("0.001");
-
+        console.log("daiAMountIn:"+daiAmountIn)
+        console.log("dtSSContractBalance:"+dtSSContractBalance)
       assert(daiAmountIn > dtSSContractBalance);
       receipt = await (
         await bPool.connect(user3).joinswapExternAmountIn(
@@ -2299,7 +2300,7 @@ describe("Swap Fees", () => {
       expect(
         await sideStaking.getDataTokenBalance(erc20Token.address)
       ).to.equal(
-        (await erc20Token.balanceOf(sideStaking.address)).sub(vestingAmount)
+        (await erc20Token.balanceOf(sideStaking.address))
       );
 
       expect(await bPool.getSwapFee()).to.equal(swapFee);
@@ -3436,7 +3437,7 @@ describe("Swap Fees", () => {
       expect(
         await sideStaking.getDataTokenBalance(erc20Token.address)
       ).to.equal(
-        (await erc20Token.balanceOf(sideStaking.address)).sub(vestingAmount)
+        (await erc20Token.balanceOf(sideStaking.address))
       );
 
       expect(await bPool.getSwapFee()).to.equal(swapFee);

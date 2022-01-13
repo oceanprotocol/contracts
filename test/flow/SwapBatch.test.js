@@ -510,12 +510,12 @@ describe("Batch Swap", () => {
         web3.utils.toWei("88000")
       );
 
-      // check the dt balance available for adding liquidity doesn't account for vesting amount
+      // check the dt balance available for adding liquidity, which includes vesting amount left 
 
       expect(
         await sideStaking.getDataTokenBalance(erc20Token3.address)
       ).to.equal(
-        (await erc20Token3.balanceOf(sideStaking.address)).sub(vestingAmount)
+        (await erc20Token3.balanceOf(sideStaking.address))
       );
 
       expect(await bPool3.getSwapFee()).to.equal(swapFee);
