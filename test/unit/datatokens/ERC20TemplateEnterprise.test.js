@@ -1051,7 +1051,7 @@ describe("ERC20TemplateEnterprise", () => {
     EnterpriseToken = await ethers.getContractAt("ERC20TemplateEnterprise", erc20Address);
     assert(await EnterpriseToken.totalSupply() == 0, "Invalid Total Supply")
     let tx = await EnterpriseToken.connect(user3).createDispenser(
-      dispenser.address, web3.utils.toWei('1'), web3.utils.toWei('1'), true)
+      dispenser.address, web3.utils.toWei('1'), web3.utils.toWei('1'), true,addressZero)
     assert(tx,
       'Cannot activate dispenser')
     let txReceipt = await tx.wait();

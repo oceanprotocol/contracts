@@ -301,12 +301,15 @@ contract ERC20TemplateEnterprise is
      * @param _dispenser dispenser contract address
      * @param maxTokens - max tokens to dispense
      * @param maxBalance - max balance of requester.
+     * @param withMint - with MinterRole
+     * @param allowedSwapper - have it here for compat reasons, will be overwritten
      */
     function createDispenser(
         address _dispenser,
         uint256 maxTokens,
         uint256 maxBalance,
-        bool withMint
+        bool withMint,
+        address allowedSwapper
     ) external onlyERC20Deployer {
         IFactoryRouter(router).deployDispenser(
             _dispenser,
