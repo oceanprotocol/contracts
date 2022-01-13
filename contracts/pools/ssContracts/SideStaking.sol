@@ -163,8 +163,7 @@ contract SideStaking is ReentrancyGuard {
         if (!_datatokens[datatokenAddress].bound) return (0);
         return (_datatokens[datatokenAddress].datatokenCap -
             _datatokens[datatokenAddress].datatokenBalance -
-            getvestingAmount(datatokenAddress) +
-            getvestingAmountSoFar(datatokenAddress));
+            _datatokens[datatokenAddress].vestingAmountSoFar);
     }
 
     /**

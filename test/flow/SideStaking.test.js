@@ -274,10 +274,10 @@ describe("1SS flow", () => {
     expect(await bPool.communityFees(erc20Token.address)).to.equal(0);
     expect(await bPool.publishMarketFees(oceanAddress)).to.equal(0);
     expect(await bPool.publishMarketFees(erc20Token.address)).to.equal(0);
-
+    // we should have a circulating supply of 2k  (100k cap  - 98k ss balance - 2k in pool = 0)
     expect(
       await sideStaking.getDataTokenCirculatingSupply(erc20Token.address)
-    ).to.equal(web3.utils.toWei("12000"));
+    ).to.equal(web3.utils.toWei("2000"),'getDataTokenCirculatingSupply missmatch');
     expect(
       await sideStaking.getDataTokenCurrentCirculatingSupply(erc20Token.address)
     ).to.equal(initialDTLiquidity);
@@ -292,7 +292,7 @@ describe("1SS flow", () => {
     );
     expect(await sideStaking.getBaseTokenBalance(oceanAddress)).to.equal(0);
     expect(await sideStaking.getDataTokenBalance(erc20Token.address)).to.equal(
-      web3.utils.toWei("88000")
+      web3.utils.toWei("98000")
     );
     expect(
       await sideStaking.getvestingAmountSoFar(erc20Token.address)
