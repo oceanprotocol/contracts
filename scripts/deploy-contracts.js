@@ -205,14 +205,14 @@ async function main() {
     console.log("\tRun the following to verify on etherscan");
     console.log("\tcat > args1.js\n");
     console.log("\tmodule.exports=[\n");
-    console.log("\t'"+owner.address+"',\n'");
-    console.log("\t'"+addresses.Ocean+"',\n'");
+    console.log("\t'"+owner.address+"',\n");
+    console.log("\t'"+addresses.Ocean+"',\n");
     console.log("\t'"+poolTemplate.address+"',\n'");
-    console.log("\t'"+addresses.OPFCommunityFeeCollector+"',\n'");
-    console.log("\t[]\n'");
+    console.log("\t'"+addresses.OPFCommunityFeeCollector+"',\n");
+    console.log("\t[]\n");
     console.log("\t];");
     console.log("\tCTRL+D");
-    console.log("\tnpx hardhat verify --network "+networkName+" -constructor-args args1.js "+addresses.Router)
+    console.log("\tnpx hardhat verify --network "+networkName+" --constructor-args args1.js "+addresses.Router)
   }
 
   if (logging) console.info("Deploying FixedrateExchange");
