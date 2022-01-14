@@ -177,7 +177,7 @@ contract ERC721Template is
      * @param tokenId token ID
      * @param tokenURI token URI
      */
-    function setTokenURI(uint256 tokenId, string memory tokenURI) public {
+    function setTokenURI(uint256 tokenId, string memory tokenURI) external {
         require(msg.sender == ownerOf(tokenId), "ERC721Template: not NFTOwner");
         _setTokenURI(tokenId, tokenURI);
         emit TokenURIUpdate(msg.sender, tokenURI, tokenId,
