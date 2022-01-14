@@ -218,4 +218,18 @@ interface IERC721Template is IERC165 {
         , string calldata _metaDataDecryptorAddress, bytes calldata flags, 
         bytes calldata data,bytes32 _metaDataHash, metaDataProof[] memory _metadataProofs) external;
     function getMetaData() external view returns (string memory, string memory, uint8, bool);
+
+    function createERC20(
+        uint256 _templateIndex,
+        string[] calldata strings,
+        address[] calldata addresses,
+        uint256[] calldata uints,
+        bytes[] calldata bytess
+    ) external returns (address);
+
+
+    function removeFromCreateERC20List(address _allowedAddress) external;
+    function addToCreateERC20List(address _allowedAddress) external;
+    function addToMetadataList(address _allowedAddress) external;
+    function removeFromMetadataList(address _allowedAddress) external;
 }

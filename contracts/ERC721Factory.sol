@@ -7,6 +7,7 @@ import "./utils/Deployer.sol";
 import "./interfaces/IERC721Template.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
 import "./interfaces/IERC20Template.sol";
+import "./interfaces/IERC721Template.sol";
 import "./interfaces/IERC20.sol";
 import "./utils/SafeERC20.sol";
 import "@openzeppelin/contracts/security/ReentrancyGuard.sol";
@@ -563,19 +564,22 @@ contract ERC721Factory is Deployer, Ownable, ReentrancyGuard {
         NftCreateData calldata _NftCreateData,
         ErcCreateData calldata _ErcCreateData
     ) external nonReentrant returns (address erc721Address, address erc20Address){
+        //we are adding ourselfs as a ERC20 Deployer, because we need it in order to deploy the pool
         erc721Address = deployERC721Contract(
             _NftCreateData.name,
             _NftCreateData.symbol,
             _NftCreateData.templateIndex,
-            address(0),
+            address(this),
             _NftCreateData.tokenURI);
-        erc20Address = _createToken(
+        erc20Address = IERC721Template(erc721Address).createERC20(
             _ErcCreateData.templateIndex,
             _ErcCreateData.strings,
             _ErcCreateData.addresses,
             _ErcCreateData.uints,
-            _ErcCreateData.bytess,
-            erc721Address);
+            _ErcCreateData.bytess
+        );
+        // remove our selfs from the erc20DeployerRole
+        IERC721Template(erc721Address).removeFromCreateERC20List(address(this));
     }
 
     struct PoolData{
@@ -609,13 +613,13 @@ contract ERC721Factory is Deployer, Ownable, ReentrancyGuard {
             _NftCreateData.templateIndex,
             address(this),
              _NftCreateData.tokenURI);
-        erc20Address = _createToken(
+        erc20Address = IERC721Template(erc721Address).createERC20(
             _ErcCreateData.templateIndex,
             _ErcCreateData.strings,
             _ErcCreateData.addresses,
             _ErcCreateData.uints,
-            _ErcCreateData.bytess,
-            erc721Address);
+            _ErcCreateData.bytess
+        );
         // allow router to take the liquidity
         IERC20(_PoolData.addresses[1]).safeIncreaseAllowance(router,_PoolData.ssParams[4]);
       
@@ -624,6 +628,8 @@ contract ERC721Factory is Deployer, Ownable, ReentrancyGuard {
             _PoolData.swapFees,
            _PoolData.addresses
         );
+        // remove our selfs from the erc20DeployerRole
+        IERC721Template(erc721Address).removeFromCreateERC20List(address(this));
     
     }
 
@@ -652,18 +658,20 @@ contract ERC721Factory is Deployer, Ownable, ReentrancyGuard {
             _NftCreateData.templateIndex,
             address(this),
              _NftCreateData.tokenURI);
-        erc20Address = _createToken(
+        erc20Address = IERC721Template(erc721Address).createERC20(
             _ErcCreateData.templateIndex,
             _ErcCreateData.strings,
             _ErcCreateData.addresses,
             _ErcCreateData.uints,
-            _ErcCreateData.bytess,
-            erc721Address);
+            _ErcCreateData.bytess
+        );
         exchangeId = IERC20Template(erc20Address).createFixedRate(
             _FixedData.fixedPriceAddress,
             _FixedData.addresses,
             _FixedData.uints
             );
+        // remove our selfs from the erc20DeployerRole
+        IERC721Template(erc721Address).removeFromCreateERC20List(address(this));
     }
 
     struct DispenserData{
@@ -693,13 +701,13 @@ contract ERC721Factory is Deployer, Ownable, ReentrancyGuard {
             _NftCreateData.templateIndex,
             address(this),
              _NftCreateData.tokenURI);
-        erc20Address = _createToken(
+        erc20Address = IERC721Template(erc721Address).createERC20(
             _ErcCreateData.templateIndex,
             _ErcCreateData.strings,
             _ErcCreateData.addresses,
             _ErcCreateData.uints,
-            _ErcCreateData.bytess,
-            erc721Address);
+            _ErcCreateData.bytess
+        );
         IERC20Template(erc20Address).createDispenser(
             _DispenserData.dispenserAddress,
             _DispenserData.maxTokens,
@@ -707,6 +715,8 @@ contract ERC721Factory is Deployer, Ownable, ReentrancyGuard {
             _DispenserData.withMint,
             _DispenserData.allowedSwapper
             );
+        // remove our selfs from the erc20DeployerRole
+        IERC721Template(erc721Address).removeFromCreateERC20List(address(this));
     }
 
 
