@@ -15,10 +15,10 @@ import "@openzeppelin/contracts/security/ReentrancyGuard.sol";
  * @title DTFactory contract
  * @author Ocean Protocol Team
  *
- * @dev Implementation of Ocean DataTokens Factory
+ * @dev Implementation of Ocean datatokens Factory
  *
- *      DTFactory deploys DataToken proxy contracts.
- *      New DataToken proxy contracts are links to the template contract's bytecode.
+ *      DTFactory deploys datatoken proxy contracts.
+ *      New datatoken proxy contracts are links to the template contract's bytecode.
  *      Proxy contract functionality is based on Ocean Protocol custom implementation of ERC1167 standard.
  */
 contract ERC721Factory is Deployer, Ownable, ReentrancyGuard {
@@ -86,7 +86,7 @@ contract ERC721Factory is Deployer, Ownable, ReentrancyGuard {
     /**
      * @dev constructor
      *      Called on contract deployment. Could not be called with zero address parameters.
-     * @param _template refers to the address of a deployed DataToken contract.
+     * @param _template refers to the address of a deployed datatoken contract.
      * @param _collector refers to the community fee collector address
      * @param _router router contract address
      */
@@ -281,7 +281,7 @@ contract ERC721Factory is Deployer, Ownable, ReentrancyGuard {
         address owner;
     }
     /**
-     * @dev Deploys new DataToken proxy contract.
+     * @dev Deploys new datatoken proxy contract.
      *      This function is not called directly from here. It's called from the NFT contract.
             An NFT contract can deploy multiple ERC20 tokens.
      * @param _templateIndex ERC20Template index 
@@ -297,7 +297,7 @@ contract ERC721Factory is Deployer, Ownable, ReentrancyGuard {
      *                     [0] = cap_ the total ERC20 cap
      *                     [1] = publishing Market Fee Amount
      * @param bytess  refers to an array of bytes, not in use now, left for future templates
-     * @return token address of a new proxy DataToken contract
+     * @return token address of a new proxy datatoken contract
      */
     function createToken(
         uint256 _templateIndex,

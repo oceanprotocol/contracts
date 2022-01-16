@@ -1081,7 +1081,7 @@ describe("ERC721Factory", () => {
   it("#createNftWithErcWithPool - should create a new erc721 and new erc20 and a new Pool in one single call and get their addresses", async () => {    
     const swapFee = 1e15;
     const swapMarketFee = 1e15;
-    const initialPoolLiquidy = web3.utils.toWei("12"); // baseToken initial pool liquidity
+    const initialPoolLiquidy = web3.utils.toWei("12"); // basetoken initial pool liquidity
     await erc20Token.connect(user3).mint(user3.address,initialPoolLiquidy);
     await erc20Token.connect(user3).approve(factoryERC721.address,initialPoolLiquidy);
 
@@ -1106,7 +1106,7 @@ describe("ERC721Factory", () => {
           18, // basetokenDecimals
           web3.utils.toWei('10000'),
           2500000, // vested blocks
-          initialPoolLiquidy, // baseToken initial pool liquidity
+          initialPoolLiquidy, // basetoken initial pool liquidity
         ],
         "swapFees":[
           swapFee, //

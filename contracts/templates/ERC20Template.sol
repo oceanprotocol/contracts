@@ -17,11 +17,11 @@ import "@openzeppelin/contracts/security/ReentrancyGuard.sol";
 import "../utils/ERC20Roles.sol";
 
 /**
- * @title DataTokenTemplate
+ * @title DatatokenTemplate
  *
- * @dev DataTokenTemplate is an ERC20 compliant token template
+ * @dev DatatokenTemplate is an ERC20 compliant token template
  *      Used by the factory contract as a bytecode reference to
- *      deploy new DataTokens.
+ *      deploy new Datatokens.
  */
 contract ERC20Template is
     ERC20("test", "testSymbol"),
@@ -144,7 +144,7 @@ contract ERC20Template is
 
     /**
      * @dev initialize
-     *      Called prior contract initialization (e.g creating new DataToken instance)
+     *      Called prior contract initialization (e.g creating new Datatoken instance)
      *      Calls private _initialize function. Only if contract is not initialized.
      * @param strings_ refers to an array of strings
      *                      [0] = name token
@@ -223,7 +223,7 @@ contract ERC20Template is
             "ERC20Template: Invalid community fee collector, zero address"
         );
 
-        require(uints_[0] != 0, "DataTokenTemplate: Invalid cap value");
+        require(uints_[0] != 0, "DatatokenTemplate: Invalid cap value");
         _cap = uints_[0];
         _name = strings_[0];
         _symbol = strings_[1];
@@ -283,7 +283,7 @@ contract ERC20Template is
      * @param addresses refers to an array of addresses passed by user
      *                     [0]  = side staking contract address
      *                     [1]  = basetoken address for pool creation(OCEAN or other)
-     *                     [2]  = basetokenSender user which will provide the baseToken amount for initial liquidity
+     *                     [2]  = basetokenSender user which will provide the basetoken amount for initial liquidity
      *                     [3]  = publisherAddress user which will be assigned the vested amount
      *                     [4]  = marketFeeCollector marketFeeCollector address
                            [5] = poolTemplateAddress
@@ -317,8 +317,8 @@ contract ERC20Template is
      * @dev createFixedRate
      *      Creates a new FixedRateExchange setup.
      * @param fixedPriceAddress fixedPriceAddress
-     * @param addresses array of addresses [baseToken,owner,marketFeeCollector]
-     * @param uints array of uints [baseTokenDecimals,dataTokenDecimals, fixedRate, marketFee, withMint]
+     * @param addresses array of addresses [basetoken,owner,marketFeeCollector]
+     * @param uints array of uints [basetokenDecimals,dataTokenDecimals, fixedRate, marketFee, withMint]
      * @return exchangeId
      */
     function createFixedRate(
@@ -375,7 +375,7 @@ contract ERC20Template is
         require(permissions[msg.sender].minter, "ERC20Template: NOT MINTER");
         require(
             totalSupply().add(value) <= _cap,
-            "DataTokenTemplate: cap exceeded"
+            "DatatokenTemplate: cap exceeded"
         );
         _mint(account, value);
     }
@@ -698,7 +698,7 @@ contract ERC20Template is
     /**
      * @dev name
      *      It returns the token name.
-     * @return DataToken name.
+     * @return Datatoken name.
      */
     function name() public view override returns (string memory) {
         return _name;
@@ -707,7 +707,7 @@ contract ERC20Template is
     /**
      * @dev symbol
      *      It returns the token symbol.
-     * @return DataToken symbol.
+     * @return Datatoken symbol.
      */
     function symbol() public view override returns (string memory) {
         return _symbol;
@@ -726,7 +726,7 @@ contract ERC20Template is
      * @dev decimals
      *      It returns the token decimals.
      *      how many supported decimal points
-     * @return DataToken decimals.
+     * @return Datatoken decimals.
      */
     function decimals() public pure override returns (uint8) {
         return _decimals;
@@ -735,7 +735,7 @@ contract ERC20Template is
     /**
      * @dev cap
      *      it returns the capital.
-     * @return DataToken cap.
+     * @return Datatoken cap.
      */
     function cap() external view returns (uint256) {
         return _cap;

@@ -30,8 +30,8 @@ contract FixedRateExchange is ReentrancyGuard {
     struct Exchange {
         bool active;
         address exchangeOwner;
-        address dataToken;
-        address baseToken;
+        address datatoken;
+        address basetoken;
         uint256 fixedRate;
         uint256 dtDecimals;
         uint256 btDecimals;
@@ -73,8 +73,8 @@ contract FixedRateExchange is ReentrancyGuard {
 
     event ExchangeCreated(
         bytes32 indexed exchangeId,
-        address indexed baseToken,
-        address indexed dataToken,
+        address indexed basetoken,
+        address indexed datatoken,
         address exchangeOwner,
         uint256 fixedRate
     );
@@ -110,8 +110,8 @@ contract FixedRateExchange is ReentrancyGuard {
     event Swapped(
         bytes32 indexed exchangeId,
         address indexed by,
-        uint256 baseTokenSwappedAmount,
-        uint256 dataTokenSwappedAmount,
+        uint256 basetokenSwappedAmount,
+        uint256 datatokenSwappedAmount,
         address tokenOutAddress,
         uint256 marketFeeAmount,
         uint256 oceanFeeAmount
@@ -152,21 +152,21 @@ contract FixedRateExchange is ReentrancyGuard {
      * @dev create
      *      creates new exchange pairs between base token
      *      (ocean token) and data tokens.
-     * dataToken refers to a data token contract address
+     * datatoken refers to a data token contract address
      * addresses  - array of addresses with the following struct:
-     *                [0] - baseToken
+     *                [0] - basetoken
      *                [1] - owner
      *                [2] - marketFeeCollector
      *                [3] - allowedSwapper - if != address(0), only that is allowed to swap (used for ERC20Enterprise)
      * uints  - array of uints with the following struct:
-     *                [0] - baseTokenDecimals
-     *                [1] - dataTokenDecimals
+     *                [0] - basetokenDecimals
+     *                [1] - datatokenDecimals
      *                [2] - fixedRate
      *                [3] - marketFee
      *                [4] - withMint
      */
     function createWithDecimals(
-        address dataToken,
+        address datatoken,
         address[] memory addresses, 
         uint256[] memory uints 
     ) external onlyRouter returns (bytes32 exchangeId) {
@@ -176,18 +176,18 @@ contract FixedRateExchange is ReentrancyGuard {
             "FixedRateExchange: Invalid basetoken,  zero address"
         );
         require(
-            dataToken != address(0),
+            datatoken != address(0),
             "FixedRateExchange: Invalid datatoken,  zero address"
         );
         require(
-            addresses[0] != dataToken,
+            addresses[0] != datatoken,
             "FixedRateExchange: Invalid datatoken,  equals basetoken"
         );
         require(
             uints[2] != 0,
             "FixedRateExchange: Invalid exchange rate value"
         );
-        exchangeId = generateExchangeId(addresses[0], dataToken, addresses[1]);
+        exchangeId = generateExchangeId(addresses[0], datatoken, addresses[1]);
         require(
             exchanges[exchangeId].fixedRate == 0,
             "FixedRateExchange: Exchange already exists!"
@@ -197,8 +197,8 @@ contract FixedRateExchange is ReentrancyGuard {
         exchanges[exchangeId] = Exchange({
             active: true,
             exchangeOwner: addresses[1],
-            dataToken: dataToken,
-            baseToken: addresses[0],
+            datatoken: datatoken,
+            basetoken: addresses[0],
             fixedRate: uints[2],
             dtDecimals: uints[1],
             btDecimals: uints[0],
@@ -217,7 +217,7 @@ contract FixedRateExchange is ReentrancyGuard {
         emit ExchangeCreated(
             exchangeId,
             addresses[0], // 
-            dataToken,
+            datatoken,
             addresses[1],
             uints[2]
         );
@@ -229,36 +229,36 @@ contract FixedRateExchange is ReentrancyGuard {
     /**
      * @dev generateExchangeId
      *      creates unique exchange identifier for two token pairs.
-     * @param baseToken refers to a ocean token contract address
-     * @param dataToken refers to a data token contract address
+     * @param basetoken refers to a ocean token contract address
+     * @param datatoken refers to a data token contract address
      * @param exchangeOwner exchange owner address
      */
     function generateExchangeId(
-        address baseToken,
-        address dataToken,
+        address basetoken,
+        address datatoken,
         address exchangeOwner
     ) public pure returns (bytes32) {
-        return keccak256(abi.encode(baseToken, dataToken, exchangeOwner));
+        return keccak256(abi.encode(basetoken, datatoken, exchangeOwner));
     }
 
     /**
      * @dev CalcInGivenOut
      *      Calculates how many basetokens are needed to get specifyed amount of datatokens
      * @param exchangeId a unique exchange idnetifier
-     * @param dataTokenAmount the amount of data tokens to be exchanged
+     * @param datatokenAmount the amount of data tokens to be exchanged
      */
-    function calcBaseInGivenOutDT(bytes32 exchangeId, uint256 dataTokenAmount)
+    function calcBaseInGivenOutDT(bytes32 exchangeId, uint256 datatokenAmount)
         public
         view
         onlyActiveExchange(exchangeId)
         returns (
-            uint256 baseTokenAmount,
-            uint256 baseTokenAmountBeforeFee,
+            uint256 basetokenAmount,
+            uint256 basetokenAmountBeforeFee,
             uint256 oceanFeeAmount,
             uint256 marketFeeAmount
         )
     {
-        baseTokenAmountBeforeFee = dataTokenAmount
+        basetokenAmountBeforeFee = datatokenAmount
             .mul(exchanges[exchangeId].fixedRate)
             .mul(10**exchanges[exchangeId].btDecimals)
             .div(10**exchanges[exchangeId].dtDecimals)
@@ -266,18 +266,18 @@ contract FixedRateExchange is ReentrancyGuard {
 
       
         
-        if (getOPFFee(exchanges[exchangeId].baseToken) != 0) {
-            oceanFeeAmount = baseTokenAmountBeforeFee
-                .mul(getOPFFee(exchanges[exchangeId].baseToken))
+        if (getOPFFee(exchanges[exchangeId].basetoken) != 0) {
+            oceanFeeAmount = basetokenAmountBeforeFee
+                .mul(getOPFFee(exchanges[exchangeId].basetoken))
                 .div(BASE);
         }
      
-        marketFeeAmount = baseTokenAmountBeforeFee
+        marketFeeAmount = basetokenAmountBeforeFee
             .mul(exchanges[exchangeId].marketFee)
             .div(BASE);
 
        
-        baseTokenAmount = baseTokenAmountBeforeFee.add(marketFeeAmount).add(
+        basetokenAmount = basetokenAmountBeforeFee.add(marketFeeAmount).add(
             oceanFeeAmount
         );
       
@@ -287,20 +287,20 @@ contract FixedRateExchange is ReentrancyGuard {
      * @dev CalcInGivenOut
      *      Calculates how many basetokens are needed to get specifyed amount of datatokens
      * @param exchangeId a unique exchange idnetifier
-     * @param dataTokenAmount the amount of data tokens to be exchanged
+     * @param datatokenAmount the amount of data tokens to be exchanged
      */
-    function calcBaseOutGivenInDT(bytes32 exchangeId, uint256 dataTokenAmount)
+    function calcBaseOutGivenInDT(bytes32 exchangeId, uint256 datatokenAmount)
         public
         view
         onlyActiveExchange(exchangeId)
         returns (
-            uint256 baseTokenAmount,
-            uint256 baseTokenAmountBeforeFee,
+            uint256 basetokenAmount,
+            uint256 basetokenAmountBeforeFee,
             uint256 oceanFeeAmount,
             uint256 marketFeeAmount
         )
     {
-        baseTokenAmountBeforeFee = dataTokenAmount
+        basetokenAmountBeforeFee = datatokenAmount
             .mul(exchanges[exchangeId].fixedRate)
             .mul(10**exchanges[exchangeId].btDecimals)
             .div(10**exchanges[exchangeId].dtDecimals)
@@ -308,18 +308,18 @@ contract FixedRateExchange is ReentrancyGuard {
 
        
         
-        if (getOPFFee(exchanges[exchangeId].baseToken) != 0) {
-            oceanFeeAmount = baseTokenAmountBeforeFee
-                .mul(getOPFFee(exchanges[exchangeId].baseToken))
+        if (getOPFFee(exchanges[exchangeId].basetoken) != 0) {
+            oceanFeeAmount = basetokenAmountBeforeFee
+                .mul(getOPFFee(exchanges[exchangeId].basetoken))
                 .div(BASE);
         }
       
-        marketFeeAmount = baseTokenAmountBeforeFee
+        marketFeeAmount = basetokenAmountBeforeFee
             .mul(exchanges[exchangeId].marketFee)
             .div(BASE);
 
     
-        baseTokenAmount = baseTokenAmountBeforeFee.sub(marketFeeAmount).sub(
+        basetokenAmount = basetokenAmountBeforeFee.sub(marketFeeAmount).sub(
             oceanFeeAmount
         );
    
@@ -329,16 +329,16 @@ contract FixedRateExchange is ReentrancyGuard {
      * @dev swap
      *      atomic swap between two registered fixed rate exchange.
      * @param exchangeId a unique exchange idnetifier
-     * @param dataTokenAmount the amount of data tokens to be exchanged
-     * @param maxBaseTokenAmount maximum amount of base tokens to pay
+     * @param datatokenAmount the amount of data tokens to be exchanged
+     * @param maxBasetokenAmount maximum amount of base tokens to pay
      */
-    function buyDT(bytes32 exchangeId, uint256 dataTokenAmount, uint256 maxBaseTokenAmount)
+    function buyDT(bytes32 exchangeId, uint256 datatokenAmount, uint256 maxBasetokenAmount)
         external
         onlyActiveExchange(exchangeId)
         nonReentrant
     {
         require(
-            dataTokenAmount != 0,
+            datatokenAmount != 0,
             "FixedRateExchange: zero data token amount"
         );
         if(exchanges[exchangeId].allowedSwapper != address(0)){
@@ -348,13 +348,13 @@ contract FixedRateExchange is ReentrancyGuard {
             );
         }
         (
-            uint256 baseTokenAmount,
-            uint256 baseTokenAmountBeforeFee,
+            uint256 basetokenAmount,
+            uint256 basetokenAmountBeforeFee,
             uint256 oceanFeeAmount,
             uint256 marketFeeAmount
-        ) = calcBaseInGivenOutDT(exchangeId, dataTokenAmount);
+        ) = calcBaseInGivenOutDT(exchangeId, datatokenAmount);
         require(
-            baseTokenAmount <= maxBaseTokenAmount,
+            basetokenAmount <= maxBasetokenAmount,
             "FixedRateExchange: Too many base tokens"
         );
         // we account fees , fees are always collected in basetoken
@@ -364,45 +364,45 @@ contract FixedRateExchange is ReentrancyGuard {
         exchanges[exchangeId].marketFeeAvailable = exchanges[exchangeId]
             .marketFeeAvailable
             .add(marketFeeAmount);
-        IERC20(exchanges[exchangeId].baseToken).safeTransferFrom(
+        IERC20(exchanges[exchangeId].basetoken).safeTransferFrom(
                 msg.sender,
                 address(this), // we send basetoken to this address, then exchange owner can withdraw
-                baseTokenAmount
+                basetokenAmount
         );
 
         exchanges[exchangeId].btBalance = (exchanges[exchangeId].btBalance).add(
-            baseTokenAmountBeforeFee
+            basetokenAmountBeforeFee
         );
 
-        if (dataTokenAmount > exchanges[exchangeId].dtBalance) {
+        if (datatokenAmount > exchanges[exchangeId].dtBalance) {
             //first, let's try to mint
             if(exchanges[exchangeId].withMint 
-            && IERC20Template(exchanges[exchangeId].dataToken).isMinter(address(this)))
+            && IERC20Template(exchanges[exchangeId].datatoken).isMinter(address(this)))
             {
-                IERC20Template(exchanges[exchangeId].dataToken).mint(msg.sender,dataTokenAmount);
+                IERC20Template(exchanges[exchangeId].datatoken).mint(msg.sender,datatokenAmount);
             }
             else{
-                    IERC20(exchanges[exchangeId].dataToken).safeTransferFrom(
+                    IERC20(exchanges[exchangeId].datatoken).safeTransferFrom(
                         exchanges[exchangeId].exchangeOwner,
                         msg.sender,
-                        dataTokenAmount
+                        datatokenAmount
                     );
             }
         } else {
             exchanges[exchangeId].dtBalance = (exchanges[exchangeId].dtBalance)
-                .sub(dataTokenAmount);
-            IERC20(exchanges[exchangeId].dataToken).safeTransfer(
+                .sub(datatokenAmount);
+            IERC20(exchanges[exchangeId].datatoken).safeTransfer(
                 msg.sender,
-                dataTokenAmount
+                datatokenAmount
             );
         }
 
         emit Swapped(
             exchangeId,
             msg.sender,
-            baseTokenAmount,
-            dataTokenAmount,
-            exchanges[exchangeId].dataToken,
+            basetokenAmount,
+            datatokenAmount,
+            exchanges[exchangeId].datatoken,
             marketFeeAmount,
             oceanFeeAmount
         );
@@ -412,16 +412,16 @@ contract FixedRateExchange is ReentrancyGuard {
      * @dev swap
      *      atomic swap between two registered fixed rate exchange.
      * @param exchangeId a unique exchange idnetifier
-     * @param dataTokenAmount the amount of data tokens to be exchanged
-     * @param minBaseTokenAmount minimum amount of base tokens to cash in
+     * @param datatokenAmount the amount of data tokens to be exchanged
+     * @param minBasetokenAmount minimum amount of base tokens to cash in
      */
-    function sellDT(bytes32 exchangeId, uint256 dataTokenAmount, uint256 minBaseTokenAmount)
+    function sellDT(bytes32 exchangeId, uint256 datatokenAmount, uint256 minBasetokenAmount)
         external
         onlyActiveExchange(exchangeId)
         nonReentrant
     {
         require(
-            dataTokenAmount != 0,
+            datatokenAmount != 0,
             "FixedRateExchange: zero data token amount"
         );
         if(exchanges[exchangeId].allowedSwapper != address(0)){
@@ -431,13 +431,13 @@ contract FixedRateExchange is ReentrancyGuard {
             );
         }
         (
-            uint256 baseTokenAmount,
-            uint256 baseTokenAmountBeforeFee,
+            uint256 basetokenAmount,
+            uint256 basetokenAmountBeforeFee,
             uint256 oceanFeeAmount,
             uint256 marketFeeAmount
-        ) = calcBaseOutGivenInDT(exchangeId, dataTokenAmount);
+        ) = calcBaseOutGivenInDT(exchangeId, datatokenAmount);
         require(
-            baseTokenAmount >= minBaseTokenAmount,
+            basetokenAmount >= minBasetokenAmount,
             "FixedRateExchange: Too few base tokens"
         );
         // we account fees , fees are always collected in basetoken
@@ -448,38 +448,38 @@ contract FixedRateExchange is ReentrancyGuard {
             .marketFeeAvailable
             .add(marketFeeAmount);
         
-            IERC20(exchanges[exchangeId].dataToken).safeTransferFrom(
+            IERC20(exchanges[exchangeId].datatoken).safeTransferFrom(
                 msg.sender,
                 address(this),
-                dataTokenAmount
+                datatokenAmount
             );
 
         exchanges[exchangeId].dtBalance = (exchanges[exchangeId].dtBalance).add(
-            dataTokenAmount
+            datatokenAmount
         );
 
-        if (baseTokenAmount > exchanges[exchangeId].btBalance) {
+        if (basetokenAmount > exchanges[exchangeId].btBalance) {
             
-                IERC20(exchanges[exchangeId].baseToken).safeTransferFrom(
+                IERC20(exchanges[exchangeId].basetoken).safeTransferFrom(
                     exchanges[exchangeId].exchangeOwner,
                     msg.sender,
-                    baseTokenAmount
+                    basetokenAmount
                 );
         } else {
             exchanges[exchangeId].btBalance = (exchanges[exchangeId].btBalance)
-                .sub(baseTokenAmountBeforeFee);
-            IERC20(exchanges[exchangeId].baseToken).safeTransfer(
+                .sub(basetokenAmountBeforeFee);
+            IERC20(exchanges[exchangeId].basetoken).safeTransfer(
                 msg.sender,
-                baseTokenAmount
+                basetokenAmount
             );
         }
 
         emit Swapped(
             exchangeId,
             msg.sender,
-            baseTokenAmount,
-            dataTokenAmount,
-            exchanges[exchangeId].baseToken,
+            basetokenAmount,
+            datatokenAmount,
+            exchanges[exchangeId].basetoken,
             marketFeeAmount,
             oceanFeeAmount
         );
@@ -492,7 +492,7 @@ contract FixedRateExchange is ReentrancyGuard {
     {
         uint256 amount = exchanges[exchangeId].btBalance;
         exchanges[exchangeId].btBalance = 0;
-        IERC20(exchanges[exchangeId].baseToken).safeTransfer(
+        IERC20(exchanges[exchangeId].basetoken).safeTransfer(
             exchanges[exchangeId].exchangeOwner,
             amount
         );
@@ -500,7 +500,7 @@ contract FixedRateExchange is ReentrancyGuard {
         emit TokenCollected(
             exchangeId,
             exchanges[exchangeId].exchangeOwner,
-            exchanges[exchangeId].baseToken,
+            exchanges[exchangeId].basetoken,
             amount
         );
     }
@@ -512,7 +512,7 @@ contract FixedRateExchange is ReentrancyGuard {
     {
         uint256 amount = exchanges[exchangeId].dtBalance;
         exchanges[exchangeId].dtBalance = 0;
-        IERC20(exchanges[exchangeId].dataToken).safeTransfer(
+        IERC20(exchanges[exchangeId].datatoken).safeTransfer(
             exchanges[exchangeId].exchangeOwner,
             amount
         );
@@ -520,7 +520,7 @@ contract FixedRateExchange is ReentrancyGuard {
         emit TokenCollected(
             exchangeId,
             exchanges[exchangeId].exchangeOwner,
-            exchanges[exchangeId].dataToken,
+            exchanges[exchangeId].datatoken,
             amount
         );
     }
@@ -529,13 +529,13 @@ contract FixedRateExchange is ReentrancyGuard {
         // anyone call call this function, because funds are sent to the correct address
         uint256 amount = exchanges[exchangeId].marketFeeAvailable;
         exchanges[exchangeId].marketFeeAvailable = 0;
-        IERC20(exchanges[exchangeId].baseToken).safeTransfer(
+        IERC20(exchanges[exchangeId].basetoken).safeTransfer(
             exchanges[exchangeId].marketFeeCollector,
             amount
         );
         emit MarketFeeCollected(
             exchangeId,
-            exchanges[exchangeId].baseToken,
+            exchanges[exchangeId].basetoken,
             amount
         );
     }
@@ -544,13 +544,13 @@ contract FixedRateExchange is ReentrancyGuard {
         // anyone call call this function, because funds are sent to the correct address
         uint256 amount = exchanges[exchangeId].oceanFeeAvailable;
         exchanges[exchangeId].oceanFeeAvailable = 0;
-        IERC20(exchanges[exchangeId].baseToken).safeTransfer(
+        IERC20(exchanges[exchangeId].basetoken).safeTransfer(
             opfCollector,
             amount
         );
         emit OceanFeeCollected(
             exchangeId,
-            exchanges[exchangeId].baseToken,
+            exchanges[exchangeId].basetoken,
             amount
         );
     }
@@ -670,14 +670,14 @@ contract FixedRateExchange is ReentrancyGuard {
     {
         if (exchanges[exchangeId].active == false) supply = 0;
         else if (exchanges[exchangeId].withMint
-        && IERC20Template(exchanges[exchangeId].dataToken).isMinter(address(this))){
-            supply = IERC20Template(exchanges[exchangeId].dataToken).cap() 
-            - IERC20Template(exchanges[exchangeId].dataToken).totalSupply();
+        && IERC20Template(exchanges[exchangeId].datatoken).isMinter(address(this))){
+            supply = IERC20Template(exchanges[exchangeId].datatoken).cap() 
+            - IERC20Template(exchanges[exchangeId].datatoken).totalSupply();
         }
         else {
-            uint256 balance = IERC20Template(exchanges[exchangeId].dataToken)
+            uint256 balance = IERC20Template(exchanges[exchangeId].datatoken)
                 .balanceOf(exchanges[exchangeId].exchangeOwner);
-            uint256 allowance = IERC20Template(exchanges[exchangeId].dataToken)
+            uint256 allowance = IERC20Template(exchanges[exchangeId].datatoken)
                 .allowance(exchanges[exchangeId].exchangeOwner, address(this));
             if (balance < allowance)
                 supply = balance.add(exchanges[exchangeId].dtBalance);
@@ -699,9 +699,9 @@ contract FixedRateExchange is ReentrancyGuard {
     {
         if (exchanges[exchangeId].active == false) supply = 0;
         else {
-            uint256 balance = IERC20Template(exchanges[exchangeId].baseToken)
+            uint256 balance = IERC20Template(exchanges[exchangeId].basetoken)
                 .balanceOf(exchanges[exchangeId].exchangeOwner);
-            uint256 allowance = IERC20Template(exchanges[exchangeId].baseToken)
+            uint256 allowance = IERC20Template(exchanges[exchangeId].basetoken)
                 .allowance(exchanges[exchangeId].exchangeOwner, address(this));
             if (balance < allowance)
                 supply = balance.add(exchanges[exchangeId].btBalance);
@@ -714,7 +714,7 @@ contract FixedRateExchange is ReentrancyGuard {
     //  *      gets all the exchange details
     //  * @param exchangeId a unique exchange idnetifier
     //  * @return all the exchange details including  the exchange Owner
-    //  *         the dataToken contract address, the base token address, the
+    //  *         the datatoken contract address, the base token address, the
     //  *         fixed rate, whether the exchange is active and the supply or the
     //  *         the current data token liquidity.
     //  */
@@ -723,9 +723,9 @@ contract FixedRateExchange is ReentrancyGuard {
         view
         returns (
             address exchangeOwner,
-            address dataToken,
+            address datatoken,
             uint256 dtDecimals,
-            address baseToken,
+            address basetoken,
             uint256 btDecimals,
             uint256 fixedRate,
             bool active,
@@ -739,9 +739,9 @@ contract FixedRateExchange is ReentrancyGuard {
     {
         Exchange memory exchange = exchanges[exchangeId];
         exchangeOwner = exchange.exchangeOwner;
-        dataToken = exchange.dataToken;
+        datatoken = exchange.datatoken;
         dtDecimals = exchange.dtDecimals;
-        baseToken = exchange.baseToken;
+        basetoken = exchange.basetoken;
         btDecimals = exchange.btDecimals;
         fixedRate = exchange.fixedRate;
         active = exchange.active;
@@ -784,7 +784,7 @@ contract FixedRateExchange is ReentrancyGuard {
         Exchange memory exchange = exchanges[exchangeId];
         marketFee = exchange.marketFee;
         marketFeeCollector = exchange.marketFeeCollector;
-        opfFee = getOPFFee(exchanges[exchangeId].baseToken);
+        opfFee = getOPFFee(exchanges[exchangeId].basetoken);
         marketFeeAvailable = exchange.marketFeeAvailable;
         oceanFeeAvailable = exchange.oceanFeeAvailable;
     }

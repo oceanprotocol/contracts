@@ -127,9 +127,9 @@ swapFees[2] in order:
      *      Function to deploy new Pool with 1SS. It also has a vesting schedule.
             This function can only be called ONCE and ONLY if no token have been minted yet.
      * @param controller ssContract address
-     * @param basetokenAddress baseToken for pool (OCEAN or other)
+     * @param basetokenAddress basetoken for pool (OCEAN or other)
      * @param ssParams params for the ssContract. 
-     * @param basetokenSender user which will provide the baseToken amount for initial liquidity 
+     * @param basetokenSender user which will provide the basetoken amount for initial liquidity 
      * @param swapFees swapFees (swapFee, swapMarketFee), swapOceanFee will be set automatically later
        @param marketFeeCollector marketFeeCollector address
        @param publisherAddress user which will be assigned the vested amount.
@@ -158,8 +158,8 @@ swapFees[2] in order:
      * @dev createFixedRate
      *      Creates a new FixedRateExchange setup.
      * @param fixedPriceAddress fixedPriceAddress
-     * @param basetokenAddress baseToken for exchange (OCEAN or other)
-     * @param basetokenDecimals baseToken decimals
+     * @param basetokenAddress basetoken for exchange (OCEAN or other)
+     * @param basetokenDecimals basetoken decimals
      * @param fixedRate rate
      * @param owner exchangeOwner
        @param marketFee market Fee 

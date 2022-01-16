@@ -196,8 +196,8 @@ contract FactoryRouter is BFactory {
         emit DispenserContractRemoved(msg.sender, _dispenser);
     }
 
-    function getOPFFee(address baseToken) public view returns (uint256) {
-        if (oceanTokens[baseToken]) {
+    function getOPFFee(address basetoken) public view returns (uint256) {
+        if (oceanTokens[basetoken]) {
             return 0;
         } else return swapOceanFee;
     }
@@ -247,7 +247,7 @@ contract FactoryRouter is BFactory {
      * @param addresses refers to an array of addresses passed by user
      *                     [0]  = side staking contract address
      *                     [1]  = basetoken address for pool creation(OCEAN or other)
-     *                     [2]  = basetokenSender user which will provide the baseToken amount for initial liquidity
+     *                     [2]  = basetokenSender user which will provide the basetoken amount for initial liquidity
      *                     [3]  = publisherAddress user which will be assigned the vested amount
      *                     [4]  = marketFeeCollector marketFeeCollector address
                            [5]  = poolTemplateAddress
@@ -300,8 +300,8 @@ contract FactoryRouter is BFactory {
      * As for deployPool, this function cannot be called directly,
      * but ONLY through the ERC20DT contract from a ERC20DEployer role
      * @param fixedPriceAddress fixedPriceAddress
-     * @param addresses array of addresses [baseToken,owner,marketFeeCollector]
-     * @param uints array of uints [baseTokenDecimals,dataTokenDecimals, fixedRate, marketFee, withMint]
+     * @param addresses array of addresses [basetoken,owner,marketFeeCollector]
+     * @param uints array of uints [basetokenDecimals,datatokenDecimals, fixedRate, marketFee, withMint]
        @return exchangeId
      */
 
@@ -480,7 +480,7 @@ contract FactoryRouter is BFactory {
                     _operations[i].source
                 ).getExchange(_operations[i].exchangeIds);
                 // get tokenIn amount required for dt out
-                (uint256 baseTokenAmount, , , ) = IFixedRateExchange(
+                (uint256 basetokenAmount, , , ) = IFixedRateExchange(
                     _operations[i].source
                 ).calcBaseInGivenOutDT(
                         _operations[i].exchangeIds,
@@ -491,12 +491,12 @@ contract FactoryRouter is BFactory {
                 IERC20(_operations[i].tokenIn).safeTransferFrom(
                     msg.sender,
                     address(this),
-                    baseTokenAmount
+                    basetokenAmount
                 );
                 // we approve pool to pull token from router
                 IERC20(_operations[i].tokenIn).safeIncreaseAllowance(
                     _operations[i].source,
-                    baseTokenAmount
+                    basetokenAmount
                 );
                 // perform swap
                 IFixedRateExchange(_operations[i].source).buyDT(

@@ -14,7 +14,7 @@ import "@openzeppelin/contracts/security/ReentrancyGuard.sol";
  * @dev SideStaking is a contract that monitors stakings in pools, 
         adding or removing dt when only basetoken liquidity is added or removed
  *      Called by the pool contract
- *      Every ss newDataTokenCreated function has a ssParams array, 
+ *      Every ss newDatatokenCreated function has a ssParams array, 
         which for this contract has the following structure: 
      *                     [0]  = rate (wei)
      *                     [1]  = basetoken decimals
@@ -37,7 +37,7 @@ contract SideStaking is ReentrancyGuard {
         uint256 datatokenCap; //dt cap
         uint256 basetokenBalance; //current basetoken balance
         uint256 lastPrice; //used for creating the pool
-        uint256 rate; // rate to exchange DT<->BaseToken
+        uint256 rate; // rate to exchange DT<->Basetoken
         address publisherAddress;
         uint256 blockDeployed; //when this record was created
         uint256 vestingEndBlock; //see below
@@ -64,8 +64,8 @@ contract SideStaking is ReentrancyGuard {
     }
 
     /**
-     * @dev newDataTokenCreated
-     *      Called when new DataToken is deployed by the DataTokenFactory
+     * @dev newDatatokenCreated
+     *      Called when new Datatoken is deployed by the DatatokenFactory
      * @param datatokenAddress - datatokenAddress
      * @param basetokenAddress -
      * @param poolAddress - poolAddress
@@ -73,7 +73,7 @@ contract SideStaking is ReentrancyGuard {
      * @param ssParams  - ss Params, see below
      */
 
-    function newDataTokenCreated(
+    function newDatatokenCreated(
         address datatokenAddress,
         address basetokenAddress,
         address poolAddress,
@@ -89,18 +89,18 @@ contract SideStaking is ReentrancyGuard {
         );
         //check if the tokens are bound
         require(
-            bpool.getDataTokenAddress() == datatokenAddress,
-            "DataToken address missmatch"
+            bpool.getDatatokenAddress() == datatokenAddress,
+            "Datatoken address missmatch"
         );
         require(
-            bpool.getBaseTokenAddress() == basetokenAddress,
-            "BaseToken address missmatch"
+            bpool.getBasetokenAddress() == basetokenAddress,
+            "Basetoken address missmatch"
         );
         // check if we are the minter of DT
         IERC20Template dt = IERC20Template(datatokenAddress);
         require(
             (dt.permissions(address(this))).minter,
-            "BaseToken address mismatch"
+            "Basetoken address mismatch"
         );
         // get cap and mint it..
         dt.mint(address(this), dt.cap());
@@ -138,7 +138,7 @@ contract SideStaking is ReentrancyGuard {
 
      */
 
-    function getDataTokenCirculatingSupply(address datatokenAddress)
+    function getDatatokenCirculatingSupply(address datatokenAddress)
         external
         view
         returns (uint256)
@@ -155,7 +155,7 @@ contract SideStaking is ReentrancyGuard {
 
      */
 
-    function getDataTokenCurrentCirculatingSupply(address datatokenAddress)
+    function getDatatokenCurrentCirculatingSupply(address datatokenAddress)
         external
         view
         returns (uint256)
@@ -187,7 +187,7 @@ contract SideStaking is ReentrancyGuard {
 
      */
 
-    function getBaseTokenAddress(address datatokenAddress)
+    function getBasetokenAddress(address datatokenAddress)
         external
         view
         returns (address)
@@ -216,7 +216,7 @@ contract SideStaking is ReentrancyGuard {
      * @param datatokenAddress - datatokenAddress
 
      */
-    function getBaseTokenBalance(address datatokenAddress)
+    function getBasetokenBalance(address datatokenAddress)
         external
         view
         returns (uint256)
@@ -231,7 +231,7 @@ contract SideStaking is ReentrancyGuard {
 
      */
 
-    function getDataTokenBalance(address datatokenAddress)
+    function getDatatokenBalance(address datatokenAddress)
         external
         view
         returns (uint256)
@@ -389,16 +389,16 @@ contract SideStaking is ReentrancyGuard {
         if (! _datatokens[datatokenAddress].bound ) return;
         if (_datatokens[datatokenAddress].poolFinalized) return;
         _datatokens[datatokenAddress].poolFinalized = true;
-        uint256 baseTokenWeight = 5 * BASE; //pool weight: 50-50
+        uint256 basetokenWeight = 5 * BASE; //pool weight: 50-50
         uint256 dataTokenWeight = 5 * BASE; //pool weight: 50-50
-        uint256 baseTokenAmount = _datatokens[datatokenAddress]
+        uint256 basetokenAmount = _datatokens[datatokenAddress]
             .basetokenBalance;
         //given the price, compute dataTokenAmount
 
         uint256 dataTokenAmount = ((_datatokens[datatokenAddress].rate *
-            baseTokenAmount *
+            basetokenAmount *
             dataTokenWeight) /
-            baseTokenWeight /
+            basetokenWeight /
             BASE) * (10**(18 - decimals));
 
 
@@ -410,7 +410,7 @@ contract SideStaking is ReentrancyGuard {
         );
         dtBase.safeIncreaseAllowance(
             _datatokens[datatokenAddress].poolAddress,
-            baseTokenAmount
+            basetokenAmount
         );
 
         // call the pool, bind the tokens, set the price, finalize pool
@@ -420,11 +420,11 @@ contract SideStaking is ReentrancyGuard {
             dataTokenAmount,
             dataTokenWeight,
             _datatokens[datatokenAddress].basetokenAddress,
-            baseTokenAmount,
-            baseTokenWeight
+            basetokenAmount,
+            basetokenWeight
         );
         //substract
-        _datatokens[datatokenAddress].basetokenBalance -= baseTokenAmount;
+        _datatokens[datatokenAddress].basetokenBalance -= basetokenAmount;
         _datatokens[datatokenAddress].datatokenBalance -= dataTokenAmount;
         // send 50% of the pool shares back to the publisher
         IERC20 lPTokens = IERC20(
@@ -506,8 +506,8 @@ contract SideStaking is ReentrancyGuard {
         );
         //check if the tokens are bound
         require(
-            bpool.getDataTokenAddress() == datatokenAddress,
-            "DataToken address missmatch"
+            bpool.getDatatokenAddress() == datatokenAddress,
+            "Datatoken address missmatch"
         );
          IERC20Template dt = IERC20Template(datatokenAddress);
         require(dt.isERC20Deployer(msg.sender), "Not ERC20 Deployer");

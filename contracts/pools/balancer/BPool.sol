@@ -50,12 +50,12 @@ contract BPool is BMath, BToken {
     );
     event LOG_SETUP(
         address indexed caller,
-        address indexed baseToken,
-        uint256 baseTokenAmountIn,
-        uint256 baseTokenWeight,
-        address indexed dataToken,
-        uint256 dataTokenAmountIn,
-        uint256 dataTokenWeight
+        address indexed basetoken,
+        uint256 basetokenAmountIn,
+        uint256 basetokenWeight,
+        address indexed datatoken,
+        uint256 datatokenAmountIn,
+        uint256 datatokenWeight
     );
 
     event LOG_EXIT(
@@ -186,51 +186,51 @@ contract BPool is BMath, BToken {
 
     //can be called only by the controller
     function setup(
-        address dataTokenAddress,
-        uint256 dataTokenAmount,
-        uint256 dataTokenWeight,
-        address baseTokenAddress,
-        uint256 baseTokenAmount,
-        uint256 baseTokenWeight
+        address datatokenAddress,
+        uint256 datatokenAmount,
+        uint256 datatokenWeight,
+        address basetokenAddress,
+        uint256 basetokenAmount,
+        uint256 basetokenWeight
     ) external _lock_ {
         require(msg.sender == _controller, "ERR_INVALID_CONTROLLER");
         require(
-            dataTokenAddress == _datatokenAddress,
+            datatokenAddress == _datatokenAddress,
             "ERR_INVALID_DATATOKEN_ADDRESS"
         );
         require(
-            baseTokenAddress == _basetokenAddress,
+            basetokenAddress == _basetokenAddress,
             "ERR_INVALID_BASETOKEN_ADDRESS"
         );
         // other inputs will be validated prior
         // calling the below functions
         // bind data token
-        bind(dataTokenAddress, dataTokenAmount, dataTokenWeight);
+        bind(datatokenAddress, datatokenAmount, datatokenWeight);
         emit LOG_JOIN(
             msg.sender,
-            dataTokenAddress,
-            dataTokenAmount,
+            datatokenAddress,
+            datatokenAmount,
             block.timestamp
         );
 
         // bind base token
-        bind(baseTokenAddress, baseTokenAmount, baseTokenWeight);
+        bind(basetokenAddress, basetokenAmount, basetokenWeight);
         emit LOG_JOIN(
             msg.sender,
-            baseTokenAddress,
-            baseTokenAmount,
+            basetokenAddress,
+            basetokenAmount,
             block.timestamp
         );
         // finalize
         finalize();
         emit LOG_SETUP(
             msg.sender,
-            baseTokenAddress,
-            baseTokenAmount,
-            baseTokenWeight,
-            dataTokenAddress,
-            dataTokenAmount,
-            dataTokenWeight
+            basetokenAddress,
+            basetokenAmount,
+            basetokenWeight,
+            datatokenAddress,
+            datatokenAmount,
+            datatokenWeight
         );
     }
 
@@ -412,11 +412,11 @@ contract BPool is BMath, BToken {
         return _controller;
     }
 
-    function getDataTokenAddress() external view returns (address) {
+    function getDatatokenAddress() external view returns (address) {
         return _datatokenAddress;
     }
 
-    function getBaseTokenAddress() external view returns (address) {
+    function getBasetokenAddress() external view returns (address) {
         return _basetokenAddress;
     }
 
