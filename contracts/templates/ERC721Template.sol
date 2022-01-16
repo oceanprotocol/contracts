@@ -290,7 +290,6 @@ contract ERC721Template is
      * @param _metaDataAndTokenURI   metaDataAndTokenURI struct
      */
     function setMetaDataAndTokenURI(metaDataAndTokenURI calldata _metaDataAndTokenURI) external {
-        require(msg.sender == ownerOf(_metaDataAndTokenURI.tokenId), "ERC721Template: not NFTOwner");
         require(
             permissions[msg.sender].updateMetadata,
             "ERC721Template: NOT METADATA_ROLE"
