@@ -177,7 +177,7 @@ contract ERC721Template is
      * @param tokenId token ID
      * @param tokenURI token URI
      */
-    function setTokenURI(uint256 tokenId, string memory tokenURI) external {
+    function setTokenURI(uint256 tokenId, string memory tokenURI) public {
         require(msg.sender == ownerOf(tokenId), "ERC721Template: not NFTOwner");
         _setTokenURI(tokenId, tokenURI);
         emit TokenURIUpdate(msg.sender, tokenURI, tokenId,
@@ -299,12 +299,7 @@ contract ERC721Template is
             _metaDataAndTokenURI.metaDataDecryptorAddress, _metaDataAndTokenURI.flags, 
             _metaDataAndTokenURI.data, _metaDataAndTokenURI.metaDataHash, _metaDataAndTokenURI.metadataProofs);
         
-        _setTokenURI(_metaDataAndTokenURI.tokenId, _metaDataAndTokenURI.tokenURI);
-        emit TokenURIUpdate(msg.sender, _metaDataAndTokenURI.tokenURI, _metaDataAndTokenURI.tokenId,
-            /* solium-disable-next-line */
-            block.timestamp,
-            block.number);
-        
+        setTokenURI(_metaDataAndTokenURI.tokenId, _metaDataAndTokenURI.tokenURI);
         
     }
     /**

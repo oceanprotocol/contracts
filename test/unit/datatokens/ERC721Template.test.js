@@ -714,8 +714,6 @@ describe("ERC721Template", () => {
 
 
   it("#setMetaDataAndTokenURI - should update tokenURI and set metadata", async () => {
-    const perm = await tokenERC721.getPermissions(owner.address)
-    console.log(perm)
     const metaDataAndTokenURI = {
       metaDataState: metaDataState,
       metaDataDecryptorUrl: metaDataDecryptorUrl,
