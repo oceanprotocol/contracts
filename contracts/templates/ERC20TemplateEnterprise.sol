@@ -58,7 +58,14 @@ contract ERC20TemplateEnterprise is
 
     mapping(address => uint256) public nonces;
     address public router;
-
+    
+    struct fixedRate{
+        address contractAddress;
+        bytes32 id;
+    }
+    fixedRate[] fixedRateExchanges;
+    address[] dispensers;
+    
     event OrderStarted(
         address indexed consumer,
         address payer,
@@ -95,14 +102,9 @@ contract ERC20TemplateEnterprise is
 
     event MinterApproved(address currentMinter, address newMinter);
 
-    event NewPool(
-        address poolAddress,
-        address ssContract,
-        address basetokenAddress
-    );
-
-    event NewFixedRate(bytes32 exchangeId, address owner);
-
+    event NewFixedRate(bytes32 exchangeId, address indexed owner, address exchangeContract, address indexed baseToken);
+    event NewDispenser(address dispenserContract);
+    
     event NewPaymentCollector(
         address indexed caller,
         address indexed _newPaymentCollector,
@@ -292,7 +294,11 @@ contract ERC20TemplateEnterprise is
             uints
         );
         if (uints[4] > 0) _addMinter(fixedPriceAddress);
-        emit NewFixedRate(exchangeId, addresses[0]);
+        emit NewFixedRate(exchangeId, addresses[1], fixedPriceAddress, addresses[0]);
+        fixedRate memory fixedRate;
+        fixedRate.contractAddress=fixedPriceAddress;
+        fixedRate.id = exchangeId;
+        fixedRateExchanges.push(fixedRate);
     }
 
     /**
@@ -321,6 +327,8 @@ contract ERC20TemplateEnterprise is
         );
         // add FixedPriced contract as minter if withMint == true
         if (withMint) _addMinter(_dispenser);
+        dispensers.push(_dispenser);
+        emit NewDispenser(_dispenser);
     }
 
     /**
@@ -985,5 +993,20 @@ contract ERC20TemplateEnterprise is
     function isERC20Deployer(address user) public returns(bool deployer){
         deployer = IERC721Template(_erc721Address).getPermissions(user).deployERC20;
         return(deployer);
+    }
+
+    /**
+     * @dev getFixedRates
+     *      Returns the list of fixedRateExchanges created for this datatoken
+     */
+    function getFixedRates() public view returns(fixedRate[] memory) {
+        return(fixedRateExchanges);
+    }
+    /**
+     * @dev getDispensers
+     *      Returns the list of dispensers created for this datatoken
+     */
+    function getDispensers() public view returns(address[] memory) {
+        return(dispensers);
     }
 }
