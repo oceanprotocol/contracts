@@ -55,4 +55,5 @@ interface IPool {
         );
 
     function setSwapFee(uint256 swapFee) external;
+    function getId() pure external returns (uint8);
 }

@@ -535,10 +535,11 @@ contract ERC721Template is
 
     /**
      * @dev getId
-     *      Return template id
+     *      Return template id in case we need different ABIs. 
+     *      If you construct your own template, please make sure to change the hardcoded value
      */
-    function getId() external pure returns (uint8) {
-        return templateId;
+    function getId() pure public returns (uint8) {
+        return 1;
     }
      /**
      * @dev fallback function

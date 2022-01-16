@@ -232,4 +232,5 @@ interface IERC721Template is IERC165 {
     function addToCreateERC20List(address _allowedAddress) external;
     function addToMetadataList(address _allowedAddress) external;
     function removeFromMetadataList(address _allowedAddress) external;
+    function getId() pure external returns (uint8);
 }
