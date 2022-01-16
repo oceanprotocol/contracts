@@ -269,10 +269,10 @@ describe("FixedRateExchange", () => {
       expect(eventsExchange[0].args.baseToken).to.equal(web3.utils.toChecksumAddress(oceanContract.address));
 
       const fixedrates = await erc20Token.getFixedRates()
-      assert(fixedrates.includes( {
-          contractAddress: web3.utils.toChecksumAddress(fixedRateExchange.address),
-          id: eventsExchange[0].args.exchangeId
-        }), "Fixed Rate exchange not found in erc20Token.getFixedRates()")
+      assert(fixedrates[0].contractAddress ===web3.utils.toChecksumAddress(fixedRateExchange.address),
+           "Fixed Rate exchange not found in erc20Token.getFixedRates()")
+      assert(fixedrates[0].id === eventsExchange[0].args.exchangeId,
+           "Fixed Rate exchange not found in erc20Token.getFixedRates()")
     });
 
     it("#3 - exchange is active", async () => {
