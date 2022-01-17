@@ -17,11 +17,11 @@ import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 import "../utils/ERC20Roles.sol";
 
 /**
- * @title DataTokenTemplate
+ * @title DatatokenTemplate
  *
  * @dev ERC20TemplateEnterprise is an ERC20 compliant token template
  *      Used by the factory contract as a bytecode reference to
- *      deploy new DataTokens.
+ *      deploy new Datatokens.
  * IMPORTANT CHANGES:
  *  - buyFromFreAndOrder function:  one call to buy a DT from the minting capable FRE, startOrder and burn the DT
  *  - buyFromDispenserAndOrder function:  one call to fetch a DT from the Dispenser, startOrder and burn the DT
@@ -151,7 +151,7 @@ contract ERC20TemplateEnterprise is
 
     /**
      * @dev initialize
-     *      Called prior contract initialization (e.g creating new DataToken instance)
+     *      Called prior contract initialization (e.g creating new Datatoken instance)
      *      Calls private _initialize function. Only if contract is not initialized.
      * @param strings_ refers to an array of strings
      *                      [0] = name token
@@ -230,7 +230,7 @@ contract ERC20TemplateEnterprise is
             "ERC20Template: Invalid community fee collector, zero address"
         );
 
-        require(uints_[0] != 0, "DataTokenTemplate: Invalid cap value");
+        require(uints_[0] != 0, "DatatokenTemplate: Invalid cap value");
         _cap = uints_[0];
         _name = strings_[0];
         _symbol = strings_[1];
@@ -275,8 +275,8 @@ contract ERC20TemplateEnterprise is
      * @dev createFixedRate
      *      Creates a new FixedRateExchange setup.
      * @param fixedPriceAddress fixedPriceAddress
-     * @param addresses array of addresses [baseToken,owner,marketFeeCollector]
-     * @param uints array of uints [baseTokenDecimals,dataTokenDecimals, fixedRate, marketFee, withMint]
+     * @param addresses array of addresses [basetoken,owner,marketFeeCollector]
+     * @param uints array of uints [basetokenDecimals,datatokenDecimals, fixedRate, marketFee, withMint]
      * @return exchangeId
      */
     function createFixedRate(
@@ -334,7 +334,7 @@ contract ERC20TemplateEnterprise is
         require(permissions[msg.sender].minter, "ERC20Template: NOT MINTER");
         require(
             totalSupply().add(value) <= _cap,
-            "DataTokenTemplate: cap exceeded"
+            "DatatokenTemplate: cap exceeded"
         );
         _mint(account, value);
     }
@@ -670,7 +670,7 @@ contract ERC20TemplateEnterprise is
     /**
      * @dev name
      *      It returns the token name.
-     * @return DataToken name.
+     * @return Datatoken name.
      */
     function name() public view override returns (string memory) {
         return _name;
@@ -679,7 +679,7 @@ contract ERC20TemplateEnterprise is
     /**
      * @dev symbol
      *      It returns the token symbol.
-     * @return DataToken symbol.
+     * @return Datatoken symbol.
      */
     function symbol() public view override returns (string memory) {
         return _symbol;
@@ -698,7 +698,7 @@ contract ERC20TemplateEnterprise is
      * @dev decimals
      *      It returns the token decimals.
      *      how many supported decimal points
-     * @return DataToken decimals.
+     * @return Datatoken decimals.
      */
     function decimals() public pure override returns (uint8) {
         return _decimals;
@@ -707,7 +707,7 @@ contract ERC20TemplateEnterprise is
     /**
      * @dev cap
      *      it returns the capital.
-     * @return DataToken cap.
+     * @return Datatoken cap.
      */
     function cap() external view returns (uint256) {
         return _cap;
@@ -857,7 +857,7 @@ contract ERC20TemplateEnterprise is
     struct FreParams {
         address exchangeContract;
         bytes32 exchangeId;
-        uint256 maxBaseTokenAmount;
+        uint256 maxBasetokenAmount;
         uint256 swapMarketFee;
         address marketFeeAddress;
     }
@@ -875,7 +875,7 @@ contract ERC20TemplateEnterprise is
             ,
             address datatoken,
             ,
-            address baseToken,
+            address basetoken,
             ,
             ,
             ,
@@ -893,8 +893,8 @@ contract ERC20TemplateEnterprise is
         );
         // get token amounts needed
         (
-            uint256 baseTokenAmount,
-            uint256 baseTokenAmountBeforeFee,
+            uint256 basetokenAmount,
+            uint256 basetokenAmountBeforeFee,
             ,
 
         ) = IFixedRateExchange(_freParams.exchangeContract)
@@ -903,31 +903,31 @@ contract ERC20TemplateEnterprise is
                     1e18  // we always take 1 DT
                 );
         require(
-            baseTokenAmount <= _freParams.maxBaseTokenAmount,
+            basetokenAmount <= _freParams.maxBasetokenAmount,
             "FixedRateExchange: Too many base tokens"
         );
-        // we calculate the dynamic market fee and add it to the baseTokenAmount to be transferred
-        uint256 marketFeeAmount = (baseTokenAmountBeforeFee *
+        // we calculate the dynamic market fee and add it to the basetokenAmount to be transferred
+        uint256 marketFeeAmount = (basetokenAmountBeforeFee *
             _freParams.swapMarketFee) / 1e18;
-        baseTokenAmount = baseTokenAmount + marketFeeAmount;
+        basetokenAmount = basetokenAmount + marketFeeAmount;
 
-        //transfer baseToken to us first
-        IERC20(baseToken).safeTransferFrom(
+        //transfer basetoken to us first
+        IERC20(basetoken).safeTransferFrom(
             msg.sender,
             address(this),
-            baseTokenAmount
+            basetokenAmount
         );
 
-        //approve FRE to spend baseTokens
-        IERC20(baseToken).safeIncreaseAllowance(
+        //approve FRE to spend basetokens
+        IERC20(basetoken).safeIncreaseAllowance(
             _freParams.exchangeContract,
-            baseTokenAmount
+            basetokenAmount
         );
         //buy DT
         IFixedRateExchange(_freParams.exchangeContract).buyDT(
             _freParams.exchangeId,
             1e18, // we always take 1 dt
-            baseTokenAmount
+            basetokenAmount
         );
         require(
             balanceOf(address(this)) >= 1e18,
@@ -943,13 +943,13 @@ contract ERC20TemplateEnterprise is
 
         // Transfer Market Fee to market fee collector
         if (marketFeeAmount > 0) {
-            IERC20(baseToken).safeTransfer(
+            IERC20(basetoken).safeTransfer(
                 _freParams.marketFeeAddress,
                 marketFeeAmount
             );
         }
 
-        emit BuyAndOrder(msg.sender, baseTokenAmount, marketFeeAmount);
+        emit BuyAndOrder(msg.sender, basetokenAmount, marketFeeAmount);
     }
 
     /**

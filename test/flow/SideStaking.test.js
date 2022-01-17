@@ -231,7 +231,7 @@ describe("1SS flow", () => {
           18, // basetokenDecimals
           web3.utils.toWei("10000"), //vestingAmount max 10% of total cap
           vestedBlocks, // vested blocks
-          initialOceanLiquidity, // baseToken initial pool liquidity
+          initialOceanLiquidity, // basetoken initial pool liquidity
         ],
         // user3.address,
         [
@@ -276,12 +276,12 @@ describe("1SS flow", () => {
     expect(await bPool.publishMarketFees(erc20Token.address)).to.equal(0);
     // we should have a circulating supply of 2k  (100k cap  - 98k ss balance - 2k in pool = 0)
     expect(
-      await sideStaking.getDataTokenCirculatingSupply(erc20Token.address)
-    ).to.equal(web3.utils.toWei("2000"),'getDataTokenCirculatingSupply missmatch');
+      await sideStaking.getDatatokenCirculatingSupply(erc20Token.address)
+    ).to.equal(web3.utils.toWei("2000"),'getDatatokenCirculatingSupply missmatch');
     expect(
-      await sideStaking.getDataTokenCurrentCirculatingSupply(erc20Token.address)
+      await sideStaking.getDatatokenCurrentCirculatingSupply(erc20Token.address)
     ).to.equal(initialDTLiquidity);
-    expect(await sideStaking.getBaseTokenAddress(erc20Token.address)).to.equal(
+    expect(await sideStaking.getBasetokenAddress(erc20Token.address)).to.equal(
       oceanAddress
     );
     expect(await sideStaking.getPoolAddress(erc20Token.address)).to.equal(
@@ -290,8 +290,8 @@ describe("1SS flow", () => {
     expect(await sideStaking.getPublisherAddress(erc20Token.address)).to.equal(
       user3.address
     );
-    expect(await sideStaking.getBaseTokenBalance(oceanAddress)).to.equal(0);
-    expect(await sideStaking.getDataTokenBalance(erc20Token.address)).to.equal(
+    expect(await sideStaking.getBasetokenBalance(oceanAddress)).to.equal(0);
+    expect(await sideStaking.getDatatokenBalance(erc20Token.address)).to.equal(
       web3.utils.toWei("98000")
     );
     expect(
@@ -313,7 +313,7 @@ describe("1SS flow", () => {
 
     await expectRevert(
       erc20Token.connect(user3).mint(user3.address, web3.utils.toWei("10000")),
-      "DataTokenTemplate: cap exceeded"
+      "DatatokenTemplate: cap exceeded"
     );
 
     assert((await erc20Token.balanceOf(user3.address)) == 0);

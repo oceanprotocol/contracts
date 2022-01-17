@@ -115,7 +115,7 @@ contract Dispenser is ReentrancyGuard{
         );
         require(
             datatokens[datatoken].owner == address(0) || datatokens[datatoken].owner == owner,
-            'DataToken already created'
+            'Datatoken already created'
         );
         datatokens[datatoken].active = true;
         datatokens[datatoken].owner = owner;
@@ -161,7 +161,7 @@ contract Dispenser is ReentrancyGuard{
         );
         require(
             datatokens[datatoken].owner == msg.sender,
-            'DataToken already activated'
+            'Datatoken already activated'
         );
         datatokens[datatoken].active = false;
         emit DispenserDeactivated(datatoken);

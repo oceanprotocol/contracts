@@ -113,7 +113,7 @@ contract BFactory is BConst, Deployer {
       //  emit BPoolCreated(bpool, msg.sender,datatokenAddress,basetokenAddress,bpoolTemplate,controller);
         
         // requires approval first from basetokenSender
-        ISideStaking(addresses[0]).newDataTokenCreated(  
+        ISideStaking(addresses[0]).newDatatokenCreated(  
         tokens[0],
         tokens[1],
         bpool,

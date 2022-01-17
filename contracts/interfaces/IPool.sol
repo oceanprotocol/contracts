@@ -9,19 +9,19 @@
 pragma solidity 0.8.10;
 
 interface IPool {
-    function getDataTokenAddress() external view returns (address);
+    function getDatatokenAddress() external view returns (address);
 
-    function getBaseTokenAddress() external view returns (address);
+    function getBasetokenAddress() external view returns (address);
 
     function getController() external view returns (address);
 
     function setup(
-        address dataTokenAaddress,
-        uint256 dataTokenAmount,
-        uint256 dataTokenWeight,
-        address baseTokenAddress,
-        uint256 baseTokenAmount,
-        uint256 baseTokenWeight
+        address datatokenAddress,
+        uint256 datatokenAmount,
+        uint256 datatokennWeight,
+        address basetokenAddress,
+        uint256 basetokenAmount,
+        uint256 basetokenWeight
     ) external;
 
     function swapExactAmountIn(

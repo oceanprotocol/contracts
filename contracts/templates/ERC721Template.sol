@@ -331,7 +331,7 @@ contract ERC721Template is
     /**
      * @dev name
      *      It returns the token name.
-     * @return DataToken name.
+     * @return Datatoken name.
      */
     function name() public view override returns (string memory) {
         return _name;
@@ -340,7 +340,7 @@ contract ERC721Template is
     /**
      * @dev symbol
      *      It returns the token symbol.
-     * @return DataToken symbol.
+     * @return Datatoken symbol.
      */
     function symbol() public view override returns (string memory) {
         return _symbol;

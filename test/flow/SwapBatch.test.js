@@ -286,7 +286,7 @@ describe("Batch Swap", () => {
             18, // basetokenDecimals
             vestingAmount,
             2500000, // vested blocks
-            initialOceanLiquidity, // baseToken initial pool liquidity
+            initialOceanLiquidity, // basetoken initial pool liquidity
           ],
           //   user3.address,
           [
@@ -381,7 +381,7 @@ describe("Batch Swap", () => {
             18, // basetokenDecimals
             web3.utils.toWei("100"), //vestingAmount
             2500000, // vested blocks
-            initialDAILiquidity, // baseToken initial pool liquidity
+            initialDAILiquidity, // basetoken initial pool liquidity
           ],
           // user3.address,
           [swapFee, swapMarketFee],
@@ -474,7 +474,7 @@ describe("Batch Swap", () => {
             basetokenDecimals, // basetokenDecimals
             vestingAmount, // DT vesting amount
             2500000, // vested blocks
-            initialUSDCLiquidity, // baseToken initial pool liquidity
+            initialUSDCLiquidity, // basetoken initial pool liquidity
           ],
           //  user3.address,
           [swapFee, swapMarketFee],
@@ -513,7 +513,7 @@ describe("Batch Swap", () => {
       // check the dt balance available for adding liquidity, which includes vesting amount left 
 
       expect(
-        await sideStaking.getDataTokenBalance(erc20Token3.address)
+        await sideStaking.getDatatokenBalance(erc20Token3.address)
       ).to.equal(
         (await erc20Token3.balanceOf(sideStaking.address))
       );
@@ -529,7 +529,7 @@ describe("Batch Swap", () => {
     });
   });
 
-  describe("#4 - Exchange with baseToken(OCEAN) 18 Decimals and dataToken 18 Decimals, RATE = 1", async () => {
+  describe("#4 - Exchange with basetoken(OCEAN) 18 Decimals and datatoken 18 Decimals, RATE = 1", async () => {
     let amountDTtoSell = web3.utils.toWei("10000"); // exact amount so that we can check if balances works
     marketFee = 1e15;
     rate = web3.utils.toWei("1");

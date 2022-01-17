@@ -73,7 +73,7 @@
     },
     {
       "inputs": [],
-      "name": "getBaseTokenAddress",
+      "name": "getBasetokenAddress",
       "outputs": [
         {
           "internalType": "address",
@@ -99,7 +99,7 @@
     },
     {
       "inputs": [],
-      "name": "getDataTokenAddress",
+      "name": "getDatatokenAddress",
       "outputs": [
         {
           "internalType": "address",
@@ -127,32 +127,32 @@
       "inputs": [
         {
           "internalType": "address",
-          "name": "dataTokenAaddress",
+          "name": "datatokenAddress",
           "type": "address"
         },
         {
           "internalType": "uint256",
-          "name": "dataTokenAmount",
+          "name": "datatokenAmount",
           "type": "uint256"
         },
         {
           "internalType": "uint256",
-          "name": "dataTokenWeight",
+          "name": "datatokennWeight",
           "type": "uint256"
         },
         {
           "internalType": "address",
-          "name": "baseTokenAddress",
+          "name": "basetokenAddress",
           "type": "address"
         },
         {
           "internalType": "uint256",
-          "name": "baseTokenAmount",
+          "name": "basetokenAmount",
           "type": "uint256"
         },
         {
           "internalType": "uint256",
-          "name": "baseTokenWeight",
+          "name": "basetokenWeight",
           "type": "uint256"
         }
       ],
