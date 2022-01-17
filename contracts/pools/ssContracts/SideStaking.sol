@@ -390,14 +390,14 @@ contract SideStaking is ReentrancyGuard {
         if (_datatokens[datatokenAddress].poolFinalized) return;
         _datatokens[datatokenAddress].poolFinalized = true;
         uint256 basetokenWeight = 5 * BASE; //pool weight: 50-50
-        uint256 dataTokenWeight = 5 * BASE; //pool weight: 50-50
+        uint256 datatokenWeight = 5 * BASE; //pool weight: 50-50
         uint256 basetokenAmount = _datatokens[datatokenAddress]
             .basetokenBalance;
         //given the price, compute dataTokenAmount
 
         uint256 dataTokenAmount = ((_datatokens[datatokenAddress].rate *
             basetokenAmount *
-            dataTokenWeight) /
+            datatokenWeight) /
             basetokenWeight /
             BASE) * (10**(18 - decimals));
 
@@ -417,8 +417,8 @@ contract SideStaking is ReentrancyGuard {
         IPool pool = IPool(_datatokens[datatokenAddress].poolAddress);
         pool.setup(
             datatokenAddress,
-            dataTokenAmount,
-            dataTokenWeight,
+            datatokenAmount,
+            datatokenWeight,
             _datatokens[datatokenAddress].basetokenAddress,
             basetokenAmount,
             basetokenWeight
