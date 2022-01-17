@@ -8,7 +8,7 @@ import "../../interfaces/IPool.sol";
 import "@openzeppelin/contracts/utils/math/SafeMath.sol";
 import "../../utils/SafeERC20.sol";
 import "@openzeppelin/contracts/security/ReentrancyGuard.sol";
-/**
+/**datatokenAmount
  * @title SideStaking
  *
  * @dev SideStaking is a contract that monitors stakings in pools, 
@@ -395,7 +395,7 @@ contract SideStaking is ReentrancyGuard {
             .basetokenBalance;
         //given the price, compute dataTokenAmount
 
-        uint256 dataTokenAmount = ((_datatokens[datatokenAddress].rate *
+        uint256 datatokenAmount = ((_datatokens[datatokenAddress].rate *
             basetokenAmount *
             datatokenWeight) /
             basetokenWeight /
@@ -404,7 +404,7 @@ contract SideStaking is ReentrancyGuard {
 
         //approve the tokens and amounts
         IERC20 dt = IERC20(datatokenAddress);
-        dt.safeIncreaseAllowance(_datatokens[datatokenAddress].poolAddress, dataTokenAmount);
+        dt.safeIncreaseAllowance(_datatokens[datatokenAddress].poolAddress, datatokenAmount);
         IERC20 dtBase = IERC20(
             _datatokens[datatokenAddress].basetokenAddress
         );
@@ -425,7 +425,7 @@ contract SideStaking is ReentrancyGuard {
         );
         //substract
         _datatokens[datatokenAddress].basetokenBalance -= basetokenAmount;
-        _datatokens[datatokenAddress].datatokenBalance -= dataTokenAmount;
+        _datatokens[datatokenAddress].datatokenBalance -= datatokenAmount;
         // send 50% of the pool shares back to the publisher
         IERC20 lPTokens = IERC20(
             _datatokens[datatokenAddress].poolAddress
