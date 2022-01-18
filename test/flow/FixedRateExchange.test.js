@@ -265,9 +265,20 @@ describe("FixedRateExchange", () => {
       // commented out for now
       // expect(eventsExchange[0].args.basetoken).to.equal(oceanContract.address);
       // expect(eventsExchange[0].args.owner).to.equal(alice.address);
-      expect(eventsExchange[0].args.owner).to.equal(oceanContract.address);
+      expect(eventsExchange[0].args.owner).to.equal(web3.utils.toChecksumAddress(alice.address));
+      expect(eventsExchange[0].args.basetoken).to.equal(web3.utils.toChecksumAddress(oceanContract.address));
+
+      const fixedrates = await erc20Token.getFixedRates()
+      assert(fixedrates[0].contractAddress ===web3.utils.toChecksumAddress(fixedRateExchange.address),
+           "Fixed Rate exchange not found in erc20Token.getFixedRates()")
+      assert(fixedrates[0].id === eventsExchange[0].args.exchangeId,
+           "Fixed Rate exchange not found in erc20Token.getFixedRates()")
     });
 
+    it("#getId - should return templateId", async () => {
+      const templateId = 1;
+      assert((await fixedRateExchange.getId()) == templateId);
+    });
     it("#3 - exchange is active", async () => {
       const isActive = await fixedRateExchange.isActive(
         eventsExchange[0].args.exchangeId
@@ -986,7 +997,7 @@ describe("FixedRateExchange", () => {
 
       // expect(eventsExchange[0].args.basetoken).to.equal(daiContract.address);
       // expect(eventsExchange[0].args.owner).to.equal(alice.address);
-      expect(eventsExchange[0].args.owner).to.equal(daiContract.address);
+      expect(eventsExchange[0].args.basetoken).to.equal(daiContract.address);
     });
 
     it("#3 - exchange is active", async () => {
@@ -1772,7 +1783,7 @@ describe("FixedRateExchange", () => {
 
       // expect(eventsExchange[0].args.basetoken).to.equal(oceanContract.address);
       //  expect(eventsExchange[0].args.owner).to.equal(alice.address);
-      expect(eventsExchange[0].args.owner).to.equal(oceanContract.address);
+      expect(eventsExchange[0].args.basetoken).to.equal(oceanContract.address);
     });
 
     it("#3 - exchange is active", async () => {
@@ -2479,7 +2490,7 @@ describe("FixedRateExchange", () => {
 
       // expect(eventsExchange[0].args.basetoken).to.equal(daiContract.address);
       // expect(eventsExchange[0].args.owner).to.equal(alice.address);
-      expect(eventsExchange[0].args.owner).to.equal(daiContract.address);
+      expect(eventsExchange[0].args.basetoken).to.equal(daiContract.address);
     });
 
     it("#3 - exchange is active", async () => {
@@ -3181,7 +3192,7 @@ describe("FixedRateExchange", () => {
 
       // expect(eventsExchange[0].args.basetoken).to.equal(usdcContract.address);
       // expect(eventsExchange[0].args.owner).to.equal(alice.address);
-      expect(eventsExchange[0].args.owner).to.equal(usdcContract.address);
+      expect(eventsExchange[0].args.basetoken).to.equal(usdcContract.address);
     });
 
     it("#3 - exchange is active", async () => {
@@ -3889,7 +3900,7 @@ describe("FixedRateExchange", () => {
 
       // expect(eventsExchange[0].args.basetoken).to.equal(usdcContract.address);
       // expect(eventsExchange[0].args.owner).to.equal(alice.address);
-      expect(eventsExchange[0].args.owner).to.equal(usdcContract.address);
+      expect(eventsExchange[0].args.basetoken).to.equal(usdcContract.address);
     });
 
     it("#3 - exchange is active", async () => {
@@ -4593,7 +4604,7 @@ describe("FixedRateExchange", () => {
 
       // expect(eventsExchange[0].args.basetoken).to.equal(daiContract.address);
       // expect(eventsExchange[0].args.owner).to.equal(alice.address);
-      expect(eventsExchange[0].args.owner).to.equal(daiContract.address);
+      expect(eventsExchange[0].args.basetoken).to.equal(daiContract.address);
     });
 
     it("#3 - exchange is active", async () => {
@@ -4775,7 +4786,7 @@ describe("FixedRateExchange", () => {
     });
 
     it("#10 - opfFee is updated to 1% from 0.1%", async () => {
-      await router.updateOPFFee(web3.utils.toWei('0.01'))
+      await router.updateOPFFee('0', web3.utils.toWei('0.01'))
       const feeInfo = await fixedRateExchange.getFeesInfo(
         eventsExchange[0].args.exchangeId
       );
@@ -5382,7 +5393,7 @@ describe("FixedRateExchange", () => {
       // commented out for now
       // expect(eventsExchange[0].args.basetoken).to.equal(oceanContract.address);
       // expect(eventsExchange[0].args.owner).to.equal(alice.address);
-      expect(eventsExchange[0].args.owner).to.equal(oceanContract.address);
+      expect(eventsExchange[0].args.basetoken).to.equal(oceanContract.address);
     });
 
     it("#3 - exchange is active", async () => {

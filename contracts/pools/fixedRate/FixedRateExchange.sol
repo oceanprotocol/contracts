@@ -142,7 +142,15 @@ contract FixedRateExchange is ReentrancyGuard {
         opfCollector = _opfCollector;
     }
 
-
+    /**
+     * @dev getId
+     *      Return template id in case we need different ABIs. 
+     *      If you construct your own template, please make sure to change the hardcoded value
+     */
+    function getId() pure public returns (uint8) {
+        return 1;
+    }
+    
     function getOPFFee(address basetokenAddress) public view returns (uint) {
         return IFactoryRouter(router).getOPFFee(basetokenAddress);
     }

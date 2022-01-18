@@ -64,8 +64,16 @@ contract SideStaking is ReentrancyGuard {
     }
 
     /**
-     * @dev newDatatokenCreated
-     *      Called when new Datatoken is deployed by the DatatokenFactory
+     * @dev getId
+     *      Return template id in case we need different ABIs. 
+     *      If you construct your own template, please make sure to change the hardcoded value
+     */
+    function getId() pure public returns (uint8) {
+        return 1;
+    }
+    /**
+     * @dev newDataTokenCreated
+     *      Called when new DataToken is deployed by the DataTokenFactory
      * @param datatokenAddress - datatokenAddress
      * @param basetokenAddress -
      * @param poolAddress - poolAddress

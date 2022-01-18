@@ -582,7 +582,7 @@ describe("Batch Swap", () => {
       // commented out for now
       // expect(eventsExchange[0].args.basetoken).to.equal(oceanContract.address);
       // expect(eventsExchange[0].args.owner).to.equal(user3.address);
-      expect(eventsExchange[0].args.owner).to.equal(oceanContract.address);
+      expect(eventsExchange[0].args.basetoken).to.equal(oceanContract.address);
     });
 
     it("#3 - exchange is active", async () => {

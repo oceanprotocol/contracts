@@ -1,5 +1,5 @@
 pragma solidity 0.8.10;
-
+// SPDX-License-Identifier: (Apache-2.0 AND CC-BY-4.0)
 import "@openzeppelin/contracts/utils/Context.sol";
 import "./IERC721.sol";
 import "./IERC721Metadata.sol";

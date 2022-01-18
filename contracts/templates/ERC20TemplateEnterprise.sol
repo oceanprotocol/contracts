@@ -45,8 +45,7 @@ contract ERC20TemplateEnterprise is
     address private publishMarketFeeAddress;
     address private publishMarketFeeToken;
     uint256 private publishMarketFeeAmount;
-    uint8 private constant templateId = 2;
-
+    
     uint256 public constant BASE = 10**18;
     uint256 public constant BASE_COMMUNITY_FEE_PERCENTAGE = BASE / 100; // == OPF takes 1% of the fees
 
@@ -58,7 +57,14 @@ contract ERC20TemplateEnterprise is
 
     mapping(address => uint256) public nonces;
     address public router;
-
+    
+    struct fixedRate{
+        address contractAddress;
+        bytes32 id;
+    }
+    fixedRate[] fixedRateExchanges;
+    address[] dispensers;
+    
     event OrderStarted(
         address indexed consumer,
         address payer,
@@ -95,14 +101,9 @@ contract ERC20TemplateEnterprise is
 
     event MinterApproved(address currentMinter, address newMinter);
 
-    event NewPool(
-        address poolAddress,
-        address ssContract,
-        address basetokenAddress
-    );
-
-    event NewFixedRate(bytes32 exchangeId, address owner);
-
+    event NewFixedRate(bytes32 exchangeId, address indexed owner, address exchangeContract, address indexed basetoken);
+    event NewDispenser(address dispenserContract);
+    
     event NewPaymentCollector(
         address indexed caller,
         address indexed _newPaymentCollector,
@@ -292,7 +293,11 @@ contract ERC20TemplateEnterprise is
             uints
         );
         if (uints[4] > 0) _addMinter(fixedPriceAddress);
-        emit NewFixedRate(exchangeId, addresses[0]);
+        emit NewFixedRate(exchangeId, addresses[1], fixedPriceAddress, addresses[0]);
+        fixedRate memory fixedRate;
+        fixedRate.contractAddress=fixedPriceAddress;
+        fixedRate.id = exchangeId;
+        fixedRateExchanges.push(fixedRate);
     }
 
     /**
@@ -321,6 +326,8 @@ contract ERC20TemplateEnterprise is
         );
         // add FixedPriced contract as minter if withMint == true
         if (withMint) _addMinter(_dispenser);
+        dispensers.push(_dispenser);
+        emit NewDispenser(_dispenser);
     }
 
     /**
@@ -661,10 +668,11 @@ contract ERC20TemplateEnterprise is
 
     /**
      * @dev getId
-     *      Return template id
+     *      Return template id in case we need different ABIs. 
+     *      If you construct your own template, please make sure to change the hardcoded value
      */
-    function getId() external pure returns (uint8) {
-        return templateId;
+    function getId() pure public returns (uint8) {
+        return 2;
     }
 
     /**
@@ -985,5 +993,20 @@ contract ERC20TemplateEnterprise is
     function isERC20Deployer(address user) public returns(bool deployer){
         deployer = IERC721Template(_erc721Address).getPermissions(user).deployERC20;
         return(deployer);
+    }
+
+    /**
+     * @dev getFixedRates
+     *      Returns the list of fixedRateExchanges created for this datatoken
+     */
+    function getFixedRates() public view returns(fixedRate[] memory) {
+        return(fixedRateExchanges);
+    }
+    /**
+     * @dev getDispensers
+     *      Returns the list of dispensers created for this datatoken
+     */
+    function getDispensers() public view returns(address[] memory) {
+        return(dispensers);
     }
 }

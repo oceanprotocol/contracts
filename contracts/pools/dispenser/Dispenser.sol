@@ -69,6 +69,14 @@ contract Dispenser is ReentrancyGuard{
     }
 
     /**
+     * @dev getId
+     *      Return template id in case we need different ABIs. 
+     *      If you construct your own template, please make sure to change the hardcoded value
+     */
+    function getId() pure public returns (uint8) {
+        return 1;
+    }
+    /**
      * @dev status
      *      Get information about a datatoken dispenser
      * @param datatoken refers to datatoken address.
