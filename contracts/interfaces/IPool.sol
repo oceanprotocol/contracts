@@ -7,6 +7,9 @@
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 pragma solidity 0.8.10;
+// Copyright Balancer, BigchainDB GmbH and Ocean Protocol contributors
+// SPDX-License-Identifier: (Apache-2.0 AND CC-BY-4.0)
+// Code is Apache-2.0 and docs are CC-BY-4.0
 
 interface IPool {
     function getDataTokenAddress() external view returns (address);
