@@ -577,28 +577,34 @@ describe("ERC20TemplateEnterprise", () => {
     const providerFeeToken = mockErc20.address; // token address for the feeAmount, in this case DAI
     //sign provider data
     const providerData=JSON.stringify({ "timeout":0 })
+    const providerValidUntil = 0;
     const message = ethers.utils.solidityKeccak256(
-      ["bytes", "address", "address", "uint256"],
+      ["bytes", "address", "address", "uint256", "uint256"],
       [
         ethers.utils.hexlify(ethers.utils.toUtf8Bytes(providerData)),
         providerFeeAddress,
         providerFeeToken,
-        providerFeeAmount
+        providerFeeAmount,
+        providerValidUntil
       ]
     );
+
     const signedMessage = await signMessage(message, providerFeeAddress);
     const tx = await erc20Token
       .connect(user2)
       .startOrder(
         consumer,
         serviceIndex,
-        providerFeeAddress,
-        providerFeeToken,
-        providerFeeAmount,
-        signedMessage.v,
-        signedMessage.r,
-        signedMessage.s,
-        ethers.utils.hexlify(ethers.utils.toUtf8Bytes(providerData))
+        {
+          providerFeeAddress: providerFeeAddress,
+          providerFeeToken:providerFeeToken,
+          providerFeeAmount:providerFeeAmount,
+          v:signedMessage.v,
+          r:signedMessage.r,
+          s:signedMessage.s,
+          providerData:ethers.utils.hexlify(ethers.utils.toUtf8Bytes(providerData)),
+          validUntil:providerValidUntil
+        }
       );
     const txReceipt = await tx.wait();
     let event = getEventFromTx(txReceipt, 'OrderStarted')
@@ -627,6 +633,99 @@ describe("ERC20TemplateEnterprise", () => {
     );
   });
 
+  it("#startOrder - user should succeed to call reuseOrder on a ERC20 using a previous txId", async () => {
+
+    //MINT SOME DT20 to USER2 so he can start order
+    await erc20Token.connect(user3).mint(user2.address, web3.utils.toWei("10"));
+    assert(
+      (await erc20Token.balanceOf(user2.address)) == web3.utils.toWei("10")
+    );
+    const consumer = user2.address; // could be different user
+    const dtAmount = web3.utils.toWei("1");
+    const serviceIndex = 1; // dummy index
+    const providerFeeAddress = user5.address; // marketplace fee Collector
+    const providerFeeAmount = 0; // fee to be collected on top, requires approval
+    const providerFeeToken = mockErc20.address; // token address for the feeAmount, in this case DAI
+    const providerValidUntil = 0;
+    //sign provider data
+    const providerData=JSON.stringify({ "timeout":0 })
+    const message = ethers.utils.solidityKeccak256(
+      ["bytes", "address", "address", "uint256", "uint256"],
+      [
+        ethers.utils.hexlify(ethers.utils.toUtf8Bytes(providerData)),
+        providerFeeAddress,
+        providerFeeToken,
+        providerFeeAmount,
+        providerValidUntil
+      ]
+    );
+    const signedMessage = await signMessage(message, providerFeeAddress);
+    const tx = await erc20Token
+      .connect(user2)
+      .startOrder(
+        consumer,
+        serviceIndex,
+        {
+          providerFeeAddress: providerFeeAddress,
+          providerFeeToken:providerFeeToken,
+          providerFeeAmount:providerFeeAmount,
+          v:signedMessage.v,
+          r:signedMessage.r,
+          s:signedMessage.s,
+          providerData:ethers.utils.hexlify(ethers.utils.toUtf8Bytes(providerData)),
+          validUntil:providerValidUntil
+        }
+      );
+    let txReceipt = await tx.wait();
+    let event = getEventFromTx(txReceipt, 'OrderStarted')
+    assert(event, "Cannot find OrderStarted event")
+    //make sure that we don't have 'PublishMarketFees') event
+    event = getEventFromTx(txReceipt, 'PublishMarketFees')
+    assert.typeOf(event, 'undefined',"PublishMarketFees event found")
+    //make sure that we have ProviderFees event
+    event = getEventFromTx(txReceipt, 'ProviderFees')
+    assert(event, "Cannot find ProviderFees event")
+
+    assert(
+      (await erc20Token.balanceOf(user2.address)) == web3.utils.toWei("9"), 'Invalid user balance, DT was not substracted'
+    );
+
+    assert(
+      (await erc20Token.balanceOf(opfCollector.address)) ==
+      web3.utils.toWei("0"), 'Invalid OPF balance, we should not get any DTs'
+    );
+    assert(
+      (await erc20Token.balanceOf(user3.address)) == web3.utils.toWei("0"), 'Invalid consumeFee, we should have DT as fee'
+    );
+    assert(
+      (await erc20Token.balanceOf(await erc20Token.getPaymentCollector())) ==
+      web3.utils.toWei("1"), 'Invalid publisher reward, we should have 1 DT'
+    );
+
+    const reuseTx = await erc20Token
+      .connect(user2)
+      .reuseOrder(
+        txReceipt.transactionHash,
+        {
+          providerFeeAddress: providerFeeAddress,
+          providerFeeToken:providerFeeToken,
+          providerFeeAmount:providerFeeAmount,
+          v:signedMessage.v,
+          r:signedMessage.r,
+          s:signedMessage.s,
+          providerData:ethers.utils.hexlify(ethers.utils.toUtf8Bytes(providerData)),
+          validUntil:providerValidUntil
+        }
+      );
+    txReceipt = await reuseTx.wait();
+    event = getEventFromTx(txReceipt, 'OrderReused')
+    assert(event, "Cannot find OrderReused event")
+    //make sure that we have ProviderFees event
+    event = getEventFromTx(txReceipt, 'ProviderFees')
+    assert(event, "Cannot find ProviderFees event")
+
+  });
+  
   it("#startOrder - user should succeed to call startOrder on a ERC20 without publishFees and provider Fees", async () => {
 
     //MINT SOME DT20 to USER2 so he can start order
@@ -658,13 +757,15 @@ describe("ERC20TemplateEnterprise", () => {
 
     //sign provider data
     const providerData=JSON.stringify({ "timeout":0 })
+    const providerValidUntil = 0;
     const message = ethers.utils.solidityKeccak256(
-      ["bytes", "address", "address", "uint256"],
+      ["bytes", "address", "address", "uint256", "uint256"],
       [
         ethers.utils.hexlify(ethers.utils.toUtf8Bytes(providerData)),
         providerFeeAddress,
         providerFeeToken,
-        providerFeeAmount
+        providerFeeAmount,
+        providerValidUntil
       ]
     );
     const signedMessage = await signMessage(message, providerFeeAddress);
@@ -673,13 +774,16 @@ describe("ERC20TemplateEnterprise", () => {
       .startOrder(
         consumer,
         serviceIndex,
-        providerFeeAddress,
-        providerFeeToken,
-        providerFeeAmount,
-        signedMessage.v,
-        signedMessage.r,
-        signedMessage.s,
-        ethers.utils.hexlify(ethers.utils.toUtf8Bytes(providerData))
+        {
+          providerFeeAddress: providerFeeAddress,
+          providerFeeToken:providerFeeToken,
+          providerFeeAmount:providerFeeAmount,
+          v:signedMessage.v,
+          r:signedMessage.r,
+          s:signedMessage.s,
+          providerData:ethers.utils.hexlify(ethers.utils.toUtf8Bytes(providerData)),
+          validUntil:providerValidUntil
+        }
       );
     const txReceipt = await tx.wait();
     let event = getEventFromTx(txReceipt, 'OrderStarted')
@@ -738,15 +842,18 @@ describe("ERC20TemplateEnterprise", () => {
 
     //sign provider data
     const providerData=JSON.stringify({ "timeout":0 })
+    const providerValidUntil = 0;
     const message = ethers.utils.solidityKeccak256(
-      ["bytes", "address", "address", "uint256"],
+      ["bytes", "address", "address", "uint256", "uint256"],
       [
         ethers.utils.hexlify(ethers.utils.toUtf8Bytes(providerData)),
         providerFeeAddress,
         providerFeeToken,
-        providerFeeAmount
+        providerFeeAmount,
+        providerValidUntil
       ]
     );
+
     // providerFeeAddress is user3, but we are signing using user5 private key, so it should fail
     const signedMessage = await signMessage(message, user5.address);
 
@@ -756,13 +863,16 @@ describe("ERC20TemplateEnterprise", () => {
       .startOrder(
         consumer,
         serviceIndex,
-        providerFeeAddress,
-        providerFeeToken,
-        providerFeeAmount,
-        signedMessage.v,
-        signedMessage.r,
-        signedMessage.s,
-        ethers.utils.hexlify(ethers.utils.toUtf8Bytes(providerData))
+        {
+          providerFeeAddress: providerFeeAddress,
+          providerFeeToken:providerFeeToken,
+          providerFeeAmount:providerFeeAmount,
+          v:signedMessage.v,
+          r:signedMessage.r,
+          s:signedMessage.s,
+          providerData:ethers.utils.hexlify(ethers.utils.toUtf8Bytes(providerData)),
+          validUntil:providerValidUntil
+        }
       ),
       "Invalid provider fee"
     );
@@ -813,13 +923,15 @@ describe("ERC20TemplateEnterprise", () => {
       .approve(erc20TokenWithPublishFee.address, publishFees[2]);
     //sign provider data
     const providerData=JSON.stringify({ "timeout":0 })
+    const providerValidUntil = 0;
     const message = ethers.utils.solidityKeccak256(
-      ["bytes", "address", "address", "uint256"],
+      ["bytes", "address", "address", "uint256", "uint256"],
       [
         ethers.utils.hexlify(ethers.utils.toUtf8Bytes(providerData)),
         providerFeeAddress,
         providerFeeToken,
-        providerFeeAmount
+        providerFeeAmount,
+        providerValidUntil
       ]
     );
     const signedMessage = await signMessage(message, providerFeeAddress);
@@ -828,13 +940,16 @@ describe("ERC20TemplateEnterprise", () => {
       .startOrder(
         consumer,
         serviceIndex,
-        providerFeeAddress,
-        providerFeeToken,
-        providerFeeAmount,
-        signedMessage.v,
-        signedMessage.r,
-        signedMessage.s,
-        ethers.utils.hexlify(ethers.utils.toUtf8Bytes(providerData))
+        {
+          providerFeeAddress: providerFeeAddress,
+          providerFeeToken:providerFeeToken,
+          providerFeeAmount:providerFeeAmount,
+          v:signedMessage.v,
+          r:signedMessage.r,
+          s:signedMessage.s,
+          providerData:ethers.utils.hexlify(ethers.utils.toUtf8Bytes(providerData)),
+          validUntil:providerValidUntil
+        }
       );
     const txReceipt = await tx.wait();
     let event = getEventFromTx(txReceipt, 'OrderStarted')
@@ -905,28 +1020,34 @@ describe("ERC20TemplateEnterprise", () => {
       .approve(erc20TokenWithPublishFee.address, publishFees[2]);
     //sign provider data
     const providerData=JSON.stringify({ "timeout":0 })
+    const providerValidUntil = 0;
     const message = ethers.utils.solidityKeccak256(
-      ["bytes", "address", "address", "uint256"],
+      ["bytes", "address", "address", "uint256", "uint256"],
       [
         ethers.utils.hexlify(ethers.utils.toUtf8Bytes(providerData)),
         providerFeeAddress,
         providerFeeToken,
-        providerFeeAmount
+        providerFeeAmount,
+        providerValidUntil
       ]
     );
+
     const signedMessage = await signMessage(message, providerFeeAddress);
     const tx = await erc20TokenWithPublishFee
       .connect(user2)
       .startOrder(
         consumer,
         serviceIndex,
-        providerFeeAddress,
-        providerFeeToken,
-        providerFeeAmount,
-        signedMessage.v,
-        signedMessage.r,
-        signedMessage.s,
-        ethers.utils.hexlify(ethers.utils.toUtf8Bytes(providerData))
+        {
+          providerFeeAddress: providerFeeAddress,
+          providerFeeToken:providerFeeToken,
+          providerFeeAmount:providerFeeAmount,
+          v:signedMessage.v,
+          r:signedMessage.r,
+          s:signedMessage.s,
+          providerData:ethers.utils.hexlify(ethers.utils.toUtf8Bytes(providerData)),
+          validUntil:providerValidUntil
+        }
       );
     const txReceipt = await tx.wait();
     let event = getEventFromTx(txReceipt, 'OrderStarted')
@@ -1089,15 +1210,19 @@ describe("ERC20TemplateEnterprise", () => {
     const providerFeeAddress = user5.address
     //sign provider data
     const providerData=JSON.stringify({ "timeout":0 })
+    const providerValidUntil = 0;
+    const providerFeeToken = addressZero;
     const message = ethers.utils.solidityKeccak256(
-      ["bytes", "address", "address", "uint256"],
+      ["bytes", "address", "address", "uint256", "uint256"],
       [
         ethers.utils.hexlify(ethers.utils.toUtf8Bytes(providerData)),
         providerFeeAddress,
-        addressZero,
-        providerFeeAmount
+        providerFeeToken,
+        providerFeeAmount,
+        providerValidUntil
       ]
     );
+
     const signedMessage = await signMessage(message, providerFeeAddress);
 
     //let's order in one click
@@ -1105,13 +1230,16 @@ describe("ERC20TemplateEnterprise", () => {
       {
         "consumer": user2.address,
         "serviceIndex": 1,
-        "providerFeeAddress": providerFeeAddress,
-        "providerFeeToken": addressZero,
-        "providerFeeAmount": providerFeeAmount,
-        "v": signedMessage.v,
-        "r": signedMessage.r,
-        "s": signedMessage.s,
-        "providerData": ethers.utils.hexlify(ethers.utils.toUtf8Bytes(providerData))
+        "_providerFees": {
+          providerFeeAddress: providerFeeAddress,
+          providerFeeToken:providerFeeToken,
+          providerFeeAmount:providerFeeAmount,
+          v:signedMessage.v,
+          r:signedMessage.r,
+          s:signedMessage.s,
+          providerData:ethers.utils.hexlify(ethers.utils.toUtf8Bytes(providerData)),
+          validUntil:providerValidUntil
+        }
       },
       dispenser.address)
     assert(tx,
@@ -1218,17 +1346,21 @@ describe("ERC20TemplateEnterprise", () => {
       const user5BalBeforBuy =  await Mock20DecimalContract.balanceOf(user5.address)
     const providerFeeAmount = "0"
     const providerFeeAddress = user5.address
+    const providerFeeToken = addressZero;
     //sign provider data
     const providerData=JSON.stringify({ "timeout":0 })
+    const providerValidUntil = 0;
     const message = ethers.utils.solidityKeccak256(
-      ["bytes", "address", "address", "uint256"],
+      ["bytes", "address", "address", "uint256", "uint256"],
       [
         ethers.utils.hexlify(ethers.utils.toUtf8Bytes(providerData)),
         providerFeeAddress,
-        addressZero,
-        providerFeeAmount
+        providerFeeToken,
+        providerFeeAmount,
+        providerValidUntil
       ]
     );
+
     const signedMessage = await signMessage(message, providerFeeAddress);
     //let's order in one click
     tx = await EnterpriseToken.connect(user3).buyFromFreAndOrder(
@@ -1236,13 +1368,16 @@ describe("ERC20TemplateEnterprise", () => {
         "consumer": user2.address,
         "amount": web3.utils.toWei("1"),
         "serviceIndex": 1,
-        "providerFeeAddress": providerFeeAddress,
-        "providerFeeToken": addressZero,
-        "providerFeeAmount": providerFeeAmount,
-        "v": signedMessage.v,
-        "r": signedMessage.r,
-        "s": signedMessage.s,
-        "providerData": ethers.utils.hexlify(ethers.utils.toUtf8Bytes(providerData))
+        "_providerFees": {
+          providerFeeAddress: providerFeeAddress,
+          providerFeeToken:providerFeeToken,
+          providerFeeAmount:providerFeeAmount,
+          v:signedMessage.v,
+          r:signedMessage.r,
+          s:signedMessage.s,
+          providerData:ethers.utils.hexlify(ethers.utils.toUtf8Bytes(providerData)),
+          validUntil:providerValidUntil
+        }
       },
       {
         "exchangeContract": fixedRateExchange.address,
@@ -1362,30 +1497,37 @@ describe("ERC20TemplateEnterprise", () => {
     const user5BalBeforBuy =  await Mock20DecimalContract.balanceOf(user5.address)
     const providerFeeAmount = "0"
     const providerFeeAddress = user5.address
-    //sign provider data
+    const providerFeeToken = addressZero;
     const providerData=JSON.stringify({ "timeout":0 })
+    const providerValidUntil = 0;
+    //sign provider data
     const message = ethers.utils.solidityKeccak256(
-      ["bytes", "address", "address", "uint256"],
+      ["bytes", "address", "address", "uint256", "uint256"],
       [
         ethers.utils.hexlify(ethers.utils.toUtf8Bytes(providerData)),
         providerFeeAddress,
-        addressZero,
-        providerFeeAmount
+        providerFeeToken,
+        providerFeeAmount,
+        providerValidUntil
       ]
     );
+
     const signedMessage = await signMessage(message, providerFeeAddress);
     tx = await EnterpriseToken.connect(user3).buyFromFreAndOrder(
       {
         "consumer": user2.address,
         "amount": web3.utils.toWei("1"),
         "serviceIndex": 1,
-        "providerFeeAddress": providerFeeAddress,
-        "providerFeeToken": addressZero,
-        "providerFeeAmount": providerFeeAmount,
-        "v": signedMessage.v,
-        "r": signedMessage.r,
-        "s": signedMessage.s,
-        "providerData": ethers.utils.hexlify(ethers.utils.toUtf8Bytes(providerData))
+        "_providerFees": {
+          providerFeeAddress: providerFeeAddress,
+          providerFeeToken:providerFeeToken,
+          providerFeeAmount:providerFeeAmount,
+          v:signedMessage.v,
+          r:signedMessage.r,
+          s:signedMessage.s,
+          providerData:ethers.utils.hexlify(ethers.utils.toUtf8Bytes(providerData)),
+          validUntil:providerValidUntil
+        }
       },
       {
         "exchangeContract": fixedRateExchange.address,
