@@ -51,7 +51,7 @@ describe("Batch Swap", () => {
     opfCollector,
     SwapFeesEvent,
     fixedRateExchange,
-    basetokenDecimals,
+    baseTokenDecimals,
     exchangeIdFPE,
     exchangeIdDispenser,
     vestingAmount = web3.utils.toWei("10000"),
@@ -283,10 +283,10 @@ describe("Batch Swap", () => {
           //  oceanAddress,
           [
             web3.utils.toWei("1"), // rate
-            18, // basetokenDecimals
+            18, // baseTokenDecimals
             vestingAmount,
             2500000, // vested blocks
-            initialOceanLiquidity, // basetoken initial pool liquidity
+            initialOceanLiquidity, // baseToken initial pool liquidity
           ],
           //   user3.address,
           [
@@ -378,10 +378,10 @@ describe("Batch Swap", () => {
           //  daiAddress,
           [
             web3.utils.toWei("1"), // rate
-            18, // basetokenDecimals
+            18, // baseTokenDecimals
             web3.utils.toWei("100"), //vestingAmount
             2500000, // vested blocks
-            initialDAILiquidity, // basetoken initial pool liquidity
+            initialDAILiquidity, // baseToken initial pool liquidity
           ],
           // user3.address,
           [swapFee, swapMarketFee],
@@ -458,7 +458,7 @@ describe("Batch Swap", () => {
       const ssDTBalance = await erc20Token.balanceOf(sideStaking.address);
 
       initialUSDCLiquidity = 88000 * 1e6; // 88000 usdc
-      basetokenDecimals = 6;
+      baseTokenDecimals = 6;
       // approve exact amount
       await usdcContract
         .connect(user3)
@@ -471,10 +471,10 @@ describe("Batch Swap", () => {
           // usdcAddress,
           [
             web3.utils.toWei("1"), // rate
-            basetokenDecimals, // basetokenDecimals
+            baseTokenDecimals, // baseTokenDecimals
             vestingAmount, // DT vesting amount
             2500000, // vested blocks
-            initialUSDCLiquidity, // basetoken initial pool liquidity
+            initialUSDCLiquidity, // baseToken initial pool liquidity
           ],
           //  user3.address,
           [swapFee, swapMarketFee],
@@ -529,7 +529,7 @@ describe("Batch Swap", () => {
     });
   });
 
-  describe("#4 - Exchange with basetoken(OCEAN) 18 Decimals and datatoken 18 Decimals, RATE = 1", async () => {
+  describe("#4 - Exchange with baseToken(OCEAN) 18 Decimals and datatoken 18 Decimals, RATE = 1", async () => {
     let amountDTtoSell = web3.utils.toWei("10000"); // exact amount so that we can check if balances works
     marketFee = 1e15;
     rate = web3.utils.toWei("1");
@@ -580,9 +580,9 @@ describe("Batch Swap", () => {
       eventsExchange = receipt.events.filter((e) => e.event === "NewFixedRate");
 
       // commented out for now
-      // expect(eventsExchange[0].args.basetoken).to.equal(oceanContract.address);
+      // expect(eventsExchange[0].args.baseToken).to.equal(oceanContract.address);
       // expect(eventsExchange[0].args.owner).to.equal(user3.address);
-      expect(eventsExchange[0].args.basetoken).to.equal(oceanContract.address);
+      expect(eventsExchange[0].args.baseToken).to.equal(oceanContract.address);
     });
 
     it("#3 - exchange is active", async () => {

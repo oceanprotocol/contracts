@@ -69,11 +69,11 @@ contract ERC721Factory is Deployer, Ownable, ReentrancyGuard {
     event NewPool(
         address poolAddress,
         address ssContract,
-        address basetokenAddress
+        address baseTokenAddress
     );
 
 
-    event NewFixedRate(bytes32 exchangeId, address indexed owner, address exchangeContract, address indexed basetoken);
+    event NewFixedRate(bytes32 exchangeId, address indexed owner, address exchangeContract, address indexed baseToken);
     event NewDispenser(address dispenserContract);
 
     event DispenserCreated(  // emited when a dispenser is created

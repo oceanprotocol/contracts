@@ -102,10 +102,10 @@ contract ERC20Template is
     event NewPool(
         address poolAddress,
         address ssContract,
-        address basetokenAddress
+        address baseTokenAddress
     );
 
-    event NewFixedRate(bytes32 exchangeId, address indexed owner, address exchangeContract, address indexed basetoken);
+    event NewFixedRate(bytes32 exchangeId, address indexed owner, address exchangeContract, address indexed baseToken);
     event NewDispenser(address dispenserContract);
 
     event NewPaymentCollector(
@@ -274,13 +274,13 @@ contract ERC20Template is
      * @dev deployPool
      *      Function to deploy new Pool with 1SS. It also has a vesting schedule.
      *     This function can only be called ONCE and ONLY if no token have been minted yet.
-     *      Requires basetoken approval
+     *      Requires baseToken approval
      * @param ssParams params for the ssContract. 
      *                     [0]  = rate (wei)
-     *                     [1]  = basetoken decimals
+     *                     [1]  = baseToken decimals
      *                     [2]  = vesting amount (wei)
      *                     [3]  = vested blocks
-     *                     [4]  = initial liquidity in basetoken for pool creation
+     *                     [4]  = initial liquidity in baseToken for pool creation
      * @param swapFees swapFees (swapFee, swapMarketFee), swapOceanFee will be set automatically later
      *                     [0] = swapFee for LP Providers
      *                     [1] = swapFee for marketplace runner
@@ -288,8 +288,8 @@ contract ERC20Template is
       .
      * @param addresses refers to an array of addresses passed by user
      *                     [0]  = side staking contract address
-     *                     [1]  = basetoken address for pool creation(OCEAN or other)
-     *                     [2]  = basetokenSender user which will provide the basetoken amount for initial liquidity
+     *                     [1]  = baseToken address for pool creation(OCEAN or other)
+     *                     [2]  = baseTokenSender user which will provide the baseToken amount for initial liquidity
      *                     [3]  = publisherAddress user which will be assigned the vested amount
      *                     [4]  = marketFeeCollector marketFeeCollector address
                            [5] = poolTemplateAddress
@@ -323,8 +323,8 @@ contract ERC20Template is
      * @dev createFixedRate
      *      Creates a new FixedRateExchange setup.
      * @param fixedPriceAddress fixedPriceAddress
-     * @param addresses array of addresses [basetoken,owner,marketFeeCollector]
-     * @param uints array of uints [basetokenDecimals,dataTokenDecimals, fixedRate, marketFee, withMint]
+     * @param addresses array of addresses [baseToken,owner,marketFeeCollector]
+     * @param uints array of uints [baseTokenDecimals,dataTokenDecimals, fixedRate, marketFee, withMint]
      * @return exchangeId
      */
     function createFixedRate(

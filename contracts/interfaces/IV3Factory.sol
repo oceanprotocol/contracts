@@ -8,7 +8,7 @@ interface IV3Factory {
       function newBPool( 
         address controller, 
         address datatokenAddress, 
-        address basetokenAddress, 
+        address baseTokenAddress, 
         address publisherAddress, 
         uint256 burnInEndBlock,
         uint256[] memory ssParams) external

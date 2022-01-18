@@ -20,7 +20,7 @@ const ethers = hre.ethers;
 describe("FixedRateExchange", () => {
   let alice, // DT Owner and exchange Owner
     exchangeOwner,
-    bob, // Basetoken Holder
+    bob, // baseToken Holder
     fixedRateExchange,
     rate,
     MockERC20,
@@ -215,7 +215,7 @@ describe("FixedRateExchange", () => {
     );
   });
 
-  describe("#1 - Exchange with basetoken(OCEAN) 18 Decimals and datatoken 18 Decimals, RATE = 1", async () => {
+  describe("#1 - Exchange with baseToken(OCEAN) 18 Decimals and datatoken 18 Decimals, RATE = 1", async () => {
     let amountDTtoSell = web3.utils.toWei("10000"); // exact amount so that we can check if balances works
     marketFee = 1e15;
     it("#1 - user3 (alice) create a new erc20DT, assigning herself as minter", async () => {
@@ -263,10 +263,10 @@ describe("FixedRateExchange", () => {
       eventsExchange = receipt.events.filter((e) => e.event === "NewFixedRate");
 
       // commented out for now
-      // expect(eventsExchange[0].args.basetoken).to.equal(oceanContract.address);
+      // expect(eventsExchange[0].args.baseToken).to.equal(oceanContract.address);
       // expect(eventsExchange[0].args.owner).to.equal(alice.address);
       expect(eventsExchange[0].args.owner).to.equal(web3.utils.toChecksumAddress(alice.address));
-      expect(eventsExchange[0].args.basetoken).to.equal(web3.utils.toChecksumAddress(oceanContract.address));
+      expect(eventsExchange[0].args.baseToken).to.equal(web3.utils.toChecksumAddress(oceanContract.address));
 
       const fixedrates = await erc20Token.getFixedRates()
       assert(fixedrates[0].contractAddress ===web3.utils.toChecksumAddress(fixedRateExchange.address),
@@ -368,7 +368,7 @@ describe("FixedRateExchange", () => {
 
       // we check that proper amount is being swapped (rate=1)
       expect(
-        args.basetokenSwappedAmount
+        args.baseTokenSwappedAmount
           .sub(args.oceanFeeAmount)
           .sub(args.marketFeeAmount)
       ).to.equal(args.datatokenSwappedAmount);
@@ -390,7 +390,7 @@ describe("FixedRateExchange", () => {
       );
 
       expect(exchangeDetails.btSupply).to.equal(
-        args.basetokenSwappedAmount.sub(
+        args.baseTokenSwappedAmount.sub(
           args.oceanFeeAmount.add(args.marketFeeAmount)
         )
       );
@@ -400,7 +400,7 @@ describe("FixedRateExchange", () => {
 
       // we also check DT and BT balances were accounted properly
       expect(exchangeDetails.btBalance).to.equal(
-        args.basetokenSwappedAmount.sub(
+        args.baseTokenSwappedAmount.sub(
           args.oceanFeeAmount.add(args.marketFeeAmount)
         )
       );
@@ -434,7 +434,7 @@ describe("FixedRateExchange", () => {
 
       // we check that proper amount is being swapped (rate=1)
       expect(
-        args.basetokenSwappedAmount
+        args.baseTokenSwappedAmount
           .add(args.oceanFeeAmount)
           .add(args.marketFeeAmount)
       ).to.equal(args.datatokenSwappedAmount);
@@ -442,7 +442,7 @@ describe("FixedRateExchange", () => {
       // BOB's DTbalance is zero, and BT increased as expected
       expect(await mockDT18.balanceOf(bob.address)).to.equal(0);
       expect(await oceanContract.balanceOf(bob.address)).to.equal(
-        btBobBalanceBeforeSwap.add(SwappedEvent[0].args.basetokenSwappedAmount)
+        btBobBalanceBeforeSwap.add(SwappedEvent[0].args.baseTokenSwappedAmount)
       );
 
       // BT are into the FixedRate contract.
@@ -459,7 +459,7 @@ describe("FixedRateExchange", () => {
       );
 
       // we also check DT and BT balances were accounted properly
-      // basetoken balance is ZERO
+      // baseToken balance is ZERO
       expect(exchangeDetails.btBalance).to.equal(0);
 
       //now the DT are into the FixedRate and not on alice
@@ -499,7 +499,7 @@ describe("FixedRateExchange", () => {
 
       // we check that proper amount is being swapped (rate=1)
       expect(
-        args.basetokenSwappedAmount
+        args.baseTokenSwappedAmount
           .sub(args.oceanFeeAmount)
           .sub(args.marketFeeAmount)
       ).to.equal(args.datatokenSwappedAmount);
@@ -524,7 +524,7 @@ describe("FixedRateExchange", () => {
         exchangeDetailsAfter.btSupply
           .add(args.marketFeeAmount)
           .add(args.oceanFeeAmount)
-      ).to.equal(SwappedEvent[0].args.basetokenSwappedAmount);
+      ).to.equal(SwappedEvent[0].args.baseTokenSwappedAmount);
 
       // Bob bought 20% of  DT on sale so now dtSupply decreased
       expect(exchangeDetailsAfter.dtSupply).to.equal(
@@ -540,7 +540,7 @@ describe("FixedRateExchange", () => {
           .add(args.oceanFeeAmount)
       ).to.equal(
         exchangeDetailsBefore.btBalance.add(
-          SwappedEvent[0].args.basetokenSwappedAmount
+          SwappedEvent[0].args.baseTokenSwappedAmount
         )
       );
 
@@ -613,7 +613,7 @@ describe("FixedRateExchange", () => {
       const args = SwappedEvent[0].args;
       // we check that proper amount is being swapped (rate=1)
       expect(
-        SwappedEvent[0].args.basetokenSwappedAmount
+        SwappedEvent[0].args.baseTokenSwappedAmount
           .sub(args.marketFeeAmount)
           .sub(args.oceanFeeAmount)
       ).to.equal(SwappedEvent[0].args.datatokenSwappedAmount);
@@ -639,7 +639,7 @@ describe("FixedRateExchange", () => {
         exchangeDetailsAfter.btSupply
           .add(args.marketFeeAmount)
           .add(args.oceanFeeAmount)
-      ).to.equal(SwappedEvent[0].args.basetokenSwappedAmount);
+      ).to.equal(SwappedEvent[0].args.baseTokenSwappedAmount);
 
       // Bob bought 20% of  DT on sale so now dtSupply decreased
       expect(exchangeDetailsAfter.dtSupply).to.equal(
@@ -655,7 +655,7 @@ describe("FixedRateExchange", () => {
           .add(args.oceanFeeAmount)
       ).to.equal(
         exchangeDetailsBefore.btBalance.add(
-          SwappedEvent[0].args.basetokenSwappedAmount
+          SwappedEvent[0].args.baseTokenSwappedAmount
         )
       );
 
@@ -753,7 +753,7 @@ describe("FixedRateExchange", () => {
       const args = SwappedEvent[0].args;
       // we check that proper amount is being swapped (rate=1)
       expect(
-        SwappedEvent[0].args.basetokenSwappedAmount
+        SwappedEvent[0].args.baseTokenSwappedAmount
           .sub(args.marketFeeAmount)
           .sub(args.oceanFeeAmount)
       ).to.equal(SwappedEvent[0].args.datatokenSwappedAmount);
@@ -780,7 +780,7 @@ describe("FixedRateExchange", () => {
           .add(args.oceanFeeAmount)
       ).to.equal(
         exchangeDetailsBefore.btSupply.add(
-          SwappedEvent[0].args.basetokenSwappedAmount
+          SwappedEvent[0].args.baseTokenSwappedAmount
         )
       );
 
@@ -794,7 +794,7 @@ describe("FixedRateExchange", () => {
           .add(args.oceanFeeAmount)
       ).to.equal(
         exchangeDetailsBefore.btBalance.add(
-          SwappedEvent[0].args.basetokenSwappedAmount
+          SwappedEvent[0].args.baseTokenSwappedAmount
         )
       );
 
@@ -829,7 +829,7 @@ describe("FixedRateExchange", () => {
       const args = SwappedEvent[0].args;
       // we check that proper amount is being swapped (rate=1)
       expect(
-        SwappedEvent[0].args.basetokenSwappedAmount
+        SwappedEvent[0].args.baseTokenSwappedAmount
           .add(args.marketFeeAmount)
           .add(args.oceanFeeAmount)
       ).to.equal(SwappedEvent[0].args.datatokenSwappedAmount);
@@ -839,7 +839,7 @@ describe("FixedRateExchange", () => {
         dtBobBalanceBeforeSwap.sub(SwappedEvent[0].args.datatokenSwappedAmount)
       );
       expect(await oceanContract.balanceOf(bob.address)).to.equal(
-        btBobBalanceBeforeSwap.add(SwappedEvent[0].args.basetokenSwappedAmount)
+        btBobBalanceBeforeSwap.add(SwappedEvent[0].args.baseTokenSwappedAmount)
       );
 
       // BT are into the FixedRate contract.
@@ -854,7 +854,7 @@ describe("FixedRateExchange", () => {
           .add(args.oceanFeeAmount)
       ).to.equal(
         exchangeDetailsBefore.btSupply.sub(
-          SwappedEvent[0].args.basetokenSwappedAmount
+          SwappedEvent[0].args.baseTokenSwappedAmount
         )
       );
 
@@ -873,7 +873,7 @@ describe("FixedRateExchange", () => {
           .add(args.oceanFeeAmount)
       ).to.equal(
         exchangeDetailsBefore.btBalance.sub(
-          SwappedEvent[0].args.basetokenSwappedAmount
+          SwappedEvent[0].args.baseTokenSwappedAmount
         )
       );
 
@@ -956,7 +956,7 @@ describe("FixedRateExchange", () => {
     });
   });
 
-  describe("#2 - Exchange with basetoken(DAI) 18 Decimals and datatoken 18 Decimals RATE = 1 ", async () => {
+  describe("#2 - Exchange with baseToken(DAI) 18 Decimals and datatoken 18 Decimals RATE = 1 ", async () => {
     let maxAmountBTtoSell = web3.utils.toWei("100000"), // bigger than required amount
       amountDTtoSell = web3.utils.toWei("10000"); // exact amount so that we can check if balances works
 
@@ -995,9 +995,9 @@ describe("FixedRateExchange", () => {
 
       eventsExchange = receipt.events.filter((e) => e.event === "NewFixedRate");
 
-      // expect(eventsExchange[0].args.basetoken).to.equal(daiContract.address);
+      // expect(eventsExchange[0].args.baseToken).to.equal(daiContract.address);
       // expect(eventsExchange[0].args.owner).to.equal(alice.address);
-      expect(eventsExchange[0].args.basetoken).to.equal(daiContract.address);
+      expect(eventsExchange[0].args.baseToken).to.equal(daiContract.address);
     });
 
     it("#3 - exchange is active", async () => {
@@ -1077,7 +1077,7 @@ describe("FixedRateExchange", () => {
       const args = SwappedEvent[0].args;
       // we check that proper amount is being swapped (rate=1)
       expect(
-        args.basetokenSwappedAmount
+        args.baseTokenSwappedAmount
           .sub(args.oceanFeeAmount)
           .sub(args.marketFeeAmount)
       ).to.equal(args.datatokenSwappedAmount);
@@ -1099,7 +1099,7 @@ describe("FixedRateExchange", () => {
       );
 
       expect(exchangeDetails.btSupply).to.equal(
-        args.basetokenSwappedAmount.sub(
+        args.baseTokenSwappedAmount.sub(
           args.oceanFeeAmount.add(args.marketFeeAmount)
         )
       );
@@ -1109,7 +1109,7 @@ describe("FixedRateExchange", () => {
 
       // we also check DT and BT balances were accounted properly
       expect(exchangeDetails.btBalance).to.equal(
-        args.basetokenSwappedAmount.sub(
+        args.baseTokenSwappedAmount.sub(
           args.oceanFeeAmount.add(args.marketFeeAmount)
         )
       );
@@ -1141,7 +1141,7 @@ describe("FixedRateExchange", () => {
 
       // we check that proper amount is being swapped (rate=1)
       expect(
-        args.basetokenSwappedAmount
+        args.baseTokenSwappedAmount
           .add(args.oceanFeeAmount)
           .add(args.marketFeeAmount)
       ).to.equal(args.datatokenSwappedAmount);
@@ -1149,7 +1149,7 @@ describe("FixedRateExchange", () => {
       // BOB's DTbalance is zero, and BT increased as expected
       expect(await mockDT18.balanceOf(bob.address)).to.equal(0);
       expect(await daiContract.balanceOf(bob.address)).to.equal(
-        btBobBalanceBeforeSwap.add(SwappedEvent[0].args.basetokenSwappedAmount)
+        btBobBalanceBeforeSwap.add(SwappedEvent[0].args.baseTokenSwappedAmount)
       );
 
       // BT are into the FixedRate contract.
@@ -1166,7 +1166,7 @@ describe("FixedRateExchange", () => {
       );
 
       // we also check DT and BT balances were accounted properly
-      // basetoken balance is ZERO
+      // baseToken balance is ZERO
       expect(exchangeDetails.btBalance).to.equal(0);
 
       //now the DT are into the FixedRate and not on alice
@@ -1203,7 +1203,7 @@ describe("FixedRateExchange", () => {
 
       // we check that proper amount is being swapped (rate=1)
       expect(
-        args.basetokenSwappedAmount
+        args.baseTokenSwappedAmount
           .sub(args.oceanFeeAmount)
           .sub(args.marketFeeAmount)
       ).to.equal(args.datatokenSwappedAmount);
@@ -1228,7 +1228,7 @@ describe("FixedRateExchange", () => {
         exchangeDetailsAfter.btSupply
           .add(args.marketFeeAmount)
           .add(args.oceanFeeAmount)
-      ).to.equal(SwappedEvent[0].args.basetokenSwappedAmount);
+      ).to.equal(SwappedEvent[0].args.baseTokenSwappedAmount);
 
       // Bob bought 20% of  DT on sale so now dtSupply decreased
       expect(exchangeDetailsAfter.dtSupply).to.equal(
@@ -1244,7 +1244,7 @@ describe("FixedRateExchange", () => {
           .add(args.oceanFeeAmount)
       ).to.equal(
         exchangeDetailsBefore.btBalance.add(
-          SwappedEvent[0].args.basetokenSwappedAmount
+          SwappedEvent[0].args.baseTokenSwappedAmount
         )
       );
 
@@ -1320,7 +1320,7 @@ describe("FixedRateExchange", () => {
       const args = SwappedEvent[0].args;
       // we check that proper amount is being swapped (rate=1)
       expect(
-        SwappedEvent[0].args.basetokenSwappedAmount
+        SwappedEvent[0].args.baseTokenSwappedAmount
           .sub(args.marketFeeAmount)
           .sub(args.oceanFeeAmount)
       ).to.equal(SwappedEvent[0].args.datatokenSwappedAmount);
@@ -1346,7 +1346,7 @@ describe("FixedRateExchange", () => {
         exchangeDetailsAfter.btSupply
           .add(args.marketFeeAmount)
           .add(args.oceanFeeAmount)
-      ).to.equal(SwappedEvent[0].args.basetokenSwappedAmount);
+      ).to.equal(SwappedEvent[0].args.baseTokenSwappedAmount);
 
       // Bob bought 20% of  DT on sale so now dtSupply decreased
       expect(exchangeDetailsAfter.dtSupply).to.equal(
@@ -1362,7 +1362,7 @@ describe("FixedRateExchange", () => {
           .add(args.oceanFeeAmount)
       ).to.equal(
         exchangeDetailsBefore.btBalance.add(
-          SwappedEvent[0].args.basetokenSwappedAmount
+          SwappedEvent[0].args.baseTokenSwappedAmount
         )
       );
 
@@ -1499,7 +1499,7 @@ describe("FixedRateExchange", () => {
       const args = SwappedEvent[0].args;
       // we check that proper amount is being swapped (rate=1)
       expect(
-        SwappedEvent[0].args.basetokenSwappedAmount
+        SwappedEvent[0].args.baseTokenSwappedAmount
           .sub(args.marketFeeAmount)
           .sub(args.oceanFeeAmount)
       ).to.equal(SwappedEvent[0].args.datatokenSwappedAmount);
@@ -1526,7 +1526,7 @@ describe("FixedRateExchange", () => {
           .add(args.oceanFeeAmount)
       ).to.equal(
         exchangeDetailsBefore.btSupply.add(
-          SwappedEvent[0].args.basetokenSwappedAmount
+          SwappedEvent[0].args.baseTokenSwappedAmount
         )
       );
 
@@ -1540,7 +1540,7 @@ describe("FixedRateExchange", () => {
           .add(args.oceanFeeAmount)
       ).to.equal(
         exchangeDetailsBefore.btBalance.add(
-          SwappedEvent[0].args.basetokenSwappedAmount
+          SwappedEvent[0].args.baseTokenSwappedAmount
         )
       );
 
@@ -1575,7 +1575,7 @@ describe("FixedRateExchange", () => {
       const args = SwappedEvent[0].args;
       // we check that proper amount is being swapped (rate=1)
       expect(
-        SwappedEvent[0].args.basetokenSwappedAmount
+        SwappedEvent[0].args.baseTokenSwappedAmount
           .add(args.marketFeeAmount)
           .add(args.oceanFeeAmount)
       ).to.equal(SwappedEvent[0].args.datatokenSwappedAmount);
@@ -1585,7 +1585,7 @@ describe("FixedRateExchange", () => {
         dtBobBalanceBeforeSwap.sub(SwappedEvent[0].args.datatokenSwappedAmount)
       );
       expect(await daiContract.balanceOf(bob.address)).to.equal(
-        btBobBalanceBeforeSwap.add(SwappedEvent[0].args.basetokenSwappedAmount)
+        btBobBalanceBeforeSwap.add(SwappedEvent[0].args.baseTokenSwappedAmount)
       );
 
       // BT are into the FixedRate contract.
@@ -1600,7 +1600,7 @@ describe("FixedRateExchange", () => {
           .add(args.oceanFeeAmount)
       ).to.equal(
         exchangeDetailsBefore.btSupply.sub(
-          SwappedEvent[0].args.basetokenSwappedAmount
+          SwappedEvent[0].args.baseTokenSwappedAmount
         )
       );
 
@@ -1619,7 +1619,7 @@ describe("FixedRateExchange", () => {
           .add(args.oceanFeeAmount)
       ).to.equal(
         exchangeDetailsBefore.btBalance.sub(
-          SwappedEvent[0].args.basetokenSwappedAmount
+          SwappedEvent[0].args.baseTokenSwappedAmount
         )
       );
 
@@ -1741,7 +1741,7 @@ describe("FixedRateExchange", () => {
     });
   });
 
-  describe("#3 - Exchange with basetoken(OCEAN) 18 Decimals and datatoken 18 Decimals, RATE = 2  (2 OCEAN = 1 DT)", async () => {
+  describe("#3 - Exchange with baseToken(OCEAN) 18 Decimals and datatoken 18 Decimals, RATE = 2  (2 OCEAN = 1 DT)", async () => {
     amountDTtoSell = web3.utils.toWei("10000"); // exact amount so that we can check if balances works
 
     it("#1 - user3 (alice) create a new erc20DT, assigning herself as minter", async () => {
@@ -1781,9 +1781,9 @@ describe("FixedRateExchange", () => {
 
       eventsExchange = receipt.events.filter((e) => e.event === "NewFixedRate");
 
-      // expect(eventsExchange[0].args.basetoken).to.equal(oceanContract.address);
+      // expect(eventsExchange[0].args.baseToken).to.equal(oceanContract.address);
       //  expect(eventsExchange[0].args.owner).to.equal(alice.address);
-      expect(eventsExchange[0].args.basetoken).to.equal(oceanContract.address);
+      expect(eventsExchange[0].args.baseToken).to.equal(oceanContract.address);
     });
 
     it("#3 - exchange is active", async () => {
@@ -1862,7 +1862,7 @@ describe("FixedRateExchange", () => {
       const args = SwappedEvent[0].args;
       // we check that proper amount is being swapped (rate=2)
       expect(
-        args.basetokenSwappedAmount
+        args.baseTokenSwappedAmount
           .sub(args.oceanFeeAmount)
           .sub(args.marketFeeAmount)
       ).to.equal(args.datatokenSwappedAmount.mul(rateX));
@@ -1884,7 +1884,7 @@ describe("FixedRateExchange", () => {
       );
 
       expect(exchangeDetails.btSupply).to.equal(
-        args.basetokenSwappedAmount.sub(
+        args.baseTokenSwappedAmount.sub(
           args.oceanFeeAmount.add(args.marketFeeAmount)
         )
       );
@@ -1894,7 +1894,7 @@ describe("FixedRateExchange", () => {
 
       // we also check DT and BT balances were accounted properly
       expect(exchangeDetails.btBalance).to.equal(
-        args.basetokenSwappedAmount.sub(
+        args.baseTokenSwappedAmount.sub(
           args.oceanFeeAmount.add(args.marketFeeAmount)
         )
       );
@@ -1927,7 +1927,7 @@ describe("FixedRateExchange", () => {
       expect(args.oceanFeeAmount).to.equal(0);
       // we check that proper amount is being swapped (rate=2)
       expect(
-        args.basetokenSwappedAmount
+        args.baseTokenSwappedAmount
           .add(args.oceanFeeAmount)
           .add(args.marketFeeAmount)
       ).to.equal(args.datatokenSwappedAmount.mul(rateX));
@@ -1935,7 +1935,7 @@ describe("FixedRateExchange", () => {
       // BOB's DTbalance is zero, and BT increased as expected
       expect(await mockDT18.balanceOf(bob.address)).to.equal(0);
       expect(await oceanContract.balanceOf(bob.address)).to.equal(
-        btBobBalanceBeforeSwap.add(SwappedEvent[0].args.basetokenSwappedAmount)
+        btBobBalanceBeforeSwap.add(SwappedEvent[0].args.baseTokenSwappedAmount)
       );
 
       // BT are into the FixedRate contract.
@@ -1952,7 +1952,7 @@ describe("FixedRateExchange", () => {
       );
 
       // we also check DT and BT balances were accounted properly
-      // basetoken balance is ZERO, but
+      // baseToken balance is ZERO, but
       expect(exchangeDetails.btBalance).to.equal(0);
 
       //now the DT are into the FixedRate and not on alice
@@ -1990,7 +1990,7 @@ describe("FixedRateExchange", () => {
 
       // we check that proper amount is being swapped (rate=2)
       expect(
-        args.basetokenSwappedAmount
+        args.baseTokenSwappedAmount
           .sub(args.oceanFeeAmount)
           .sub(args.marketFeeAmount)
       ).to.equal(args.datatokenSwappedAmount.mul(rateX));
@@ -2015,7 +2015,7 @@ describe("FixedRateExchange", () => {
         exchangeDetailsAfter.btSupply
           .add(args.marketFeeAmount)
           .add(args.oceanFeeAmount)
-      ).to.equal(SwappedEvent[0].args.basetokenSwappedAmount);
+      ).to.equal(SwappedEvent[0].args.baseTokenSwappedAmount);
 
       // Bob bought 20% of  DT on sale so now dtSupply decreased
       expect(exchangeDetailsAfter.dtSupply).to.equal(
@@ -2031,7 +2031,7 @@ describe("FixedRateExchange", () => {
           .add(args.oceanFeeAmount)
       ).to.equal(
         exchangeDetailsBefore.btBalance.add(
-          SwappedEvent[0].args.basetokenSwappedAmount
+          SwappedEvent[0].args.baseTokenSwappedAmount
         )
       );
 
@@ -2104,7 +2104,7 @@ describe("FixedRateExchange", () => {
       const args = SwappedEvent[0].args;
       // we check that proper amount is being swapped (rate=2)
       expect(
-        SwappedEvent[0].args.basetokenSwappedAmount
+        SwappedEvent[0].args.baseTokenSwappedAmount
           .sub(args.marketFeeAmount)
           .sub(args.oceanFeeAmount)
       ).to.equal(SwappedEvent[0].args.datatokenSwappedAmount.mul(rateX));
@@ -2130,7 +2130,7 @@ describe("FixedRateExchange", () => {
         exchangeDetailsAfter.btSupply
           .add(args.marketFeeAmount)
           .add(args.oceanFeeAmount)
-      ).to.equal(SwappedEvent[0].args.basetokenSwappedAmount);
+      ).to.equal(SwappedEvent[0].args.baseTokenSwappedAmount);
 
       // Bob bought 20% of  DT on sale so now dtSupply decreased
       expect(exchangeDetailsAfter.dtSupply).to.equal(
@@ -2146,7 +2146,7 @@ describe("FixedRateExchange", () => {
           .add(args.oceanFeeAmount)
       ).to.equal(
         exchangeDetailsBefore.btBalance.add(
-          SwappedEvent[0].args.basetokenSwappedAmount
+          SwappedEvent[0].args.baseTokenSwappedAmount
         )
       );
 
@@ -2243,7 +2243,7 @@ describe("FixedRateExchange", () => {
       const args = SwappedEvent[0].args;
       // we check that proper amount is being swapped (rate=1)
       expect(
-        SwappedEvent[0].args.basetokenSwappedAmount
+        SwappedEvent[0].args.baseTokenSwappedAmount
           .sub(args.marketFeeAmount)
           .sub(args.oceanFeeAmount)
       ).to.equal(SwappedEvent[0].args.datatokenSwappedAmount.mul(rateX));
@@ -2270,7 +2270,7 @@ describe("FixedRateExchange", () => {
           .add(args.oceanFeeAmount)
       ).to.equal(
         exchangeDetailsBefore.btSupply.add(
-          SwappedEvent[0].args.basetokenSwappedAmount
+          SwappedEvent[0].args.baseTokenSwappedAmount
         )
       );
 
@@ -2284,7 +2284,7 @@ describe("FixedRateExchange", () => {
           .add(args.oceanFeeAmount)
       ).to.equal(
         exchangeDetailsBefore.btBalance.add(
-          SwappedEvent[0].args.basetokenSwappedAmount
+          SwappedEvent[0].args.baseTokenSwappedAmount
         )
       );
 
@@ -2319,7 +2319,7 @@ describe("FixedRateExchange", () => {
       const args = SwappedEvent[0].args;
       // we check that proper amount is being swapped (rate=2)
       expect(
-        SwappedEvent[0].args.basetokenSwappedAmount
+        SwappedEvent[0].args.baseTokenSwappedAmount
           .add(args.marketFeeAmount)
           .add(args.oceanFeeAmount)
       ).to.equal(SwappedEvent[0].args.datatokenSwappedAmount.mul(rateX));
@@ -2329,7 +2329,7 @@ describe("FixedRateExchange", () => {
         dtBobBalanceBeforeSwap.sub(SwappedEvent[0].args.datatokenSwappedAmount)
       );
       expect(await oceanContract.balanceOf(bob.address)).to.equal(
-        btBobBalanceBeforeSwap.add(SwappedEvent[0].args.basetokenSwappedAmount)
+        btBobBalanceBeforeSwap.add(SwappedEvent[0].args.baseTokenSwappedAmount)
       );
 
       // BT are into the FixedRate contract.
@@ -2344,7 +2344,7 @@ describe("FixedRateExchange", () => {
           .add(args.oceanFeeAmount)
       ).to.equal(
         exchangeDetailsBefore.btSupply.sub(
-          SwappedEvent[0].args.basetokenSwappedAmount
+          SwappedEvent[0].args.baseTokenSwappedAmount
         )
       );
 
@@ -2363,7 +2363,7 @@ describe("FixedRateExchange", () => {
           .add(args.oceanFeeAmount)
       ).to.equal(
         exchangeDetailsBefore.btBalance.sub(
-          SwappedEvent[0].args.basetokenSwappedAmount
+          SwappedEvent[0].args.baseTokenSwappedAmount
         )
       );
 
@@ -2445,7 +2445,7 @@ describe("FixedRateExchange", () => {
     });
   });
 
-  describe("#4 - Exchange with basetoken(DAI) 18 Decimals and datatoken 18 Decimals, RATE = 2  (2 DAI = 1 DT)", async () => {
+  describe("#4 - Exchange with baseToken(DAI) 18 Decimals and datatoken 18 Decimals, RATE = 2  (2 DAI = 1 DT)", async () => {
     let maxAmountBTtoSell = web3.utils.toWei("100000"), // bigger than required amount
       amountDTtoSell = web3.utils.toWei("10000"); // exact amount so that we can check if balances works
 
@@ -2488,9 +2488,9 @@ describe("FixedRateExchange", () => {
 
       eventsExchange = receipt.events.filter((e) => e.event === "NewFixedRate");
 
-      // expect(eventsExchange[0].args.basetoken).to.equal(daiContract.address);
+      // expect(eventsExchange[0].args.baseToken).to.equal(daiContract.address);
       // expect(eventsExchange[0].args.owner).to.equal(alice.address);
-      expect(eventsExchange[0].args.basetoken).to.equal(daiContract.address);
+      expect(eventsExchange[0].args.baseToken).to.equal(daiContract.address);
     });
 
     it("#3 - exchange is active", async () => {
@@ -2569,7 +2569,7 @@ describe("FixedRateExchange", () => {
       const args = SwappedEvent[0].args;
       // we check that proper amount is being swapped (rate=2)
       expect(
-        args.basetokenSwappedAmount
+        args.baseTokenSwappedAmount
           .sub(args.oceanFeeAmount)
           .sub(args.marketFeeAmount)
       ).to.equal(args.datatokenSwappedAmount.mul(rateX));
@@ -2591,7 +2591,7 @@ describe("FixedRateExchange", () => {
       );
 
       expect(exchangeDetails.btSupply).to.equal(
-        args.basetokenSwappedAmount.sub(
+        args.baseTokenSwappedAmount.sub(
           args.oceanFeeAmount.add(args.marketFeeAmount)
         )
       );
@@ -2601,7 +2601,7 @@ describe("FixedRateExchange", () => {
 
       // we also check DT and BT balances were accounted properly
       expect(exchangeDetails.btBalance).to.equal(
-        args.basetokenSwappedAmount.sub(
+        args.baseTokenSwappedAmount.sub(
           args.oceanFeeAmount.add(args.marketFeeAmount)
         )
       );
@@ -2633,7 +2633,7 @@ describe("FixedRateExchange", () => {
 
       // we check that proper amount is being swapped (rate=2)
       expect(
-        args.basetokenSwappedAmount
+        args.baseTokenSwappedAmount
           .add(args.oceanFeeAmount)
           .add(args.marketFeeAmount)
       ).to.equal(args.datatokenSwappedAmount.mul(rateX));
@@ -2641,7 +2641,7 @@ describe("FixedRateExchange", () => {
       // BOB's DTbalance is zero, and BT increased as expected
       expect(await mockDT18.balanceOf(bob.address)).to.equal(0);
       expect(await daiContract.balanceOf(bob.address)).to.equal(
-        btBobBalanceBeforeSwap.add(SwappedEvent[0].args.basetokenSwappedAmount)
+        btBobBalanceBeforeSwap.add(SwappedEvent[0].args.baseTokenSwappedAmount)
       );
 
       // BT are into the FixedRate contract.
@@ -2658,7 +2658,7 @@ describe("FixedRateExchange", () => {
       );
 
       // we also check DT and BT balances were accounted properly
-      // basetoken balance is ZERO, but
+      // baseToken balance is ZERO, but
       expect(exchangeDetails.btBalance).to.equal(0);
 
       //now the DT are into the FixedRate and not on alice
@@ -2694,7 +2694,7 @@ describe("FixedRateExchange", () => {
 
       // we check that proper amount is being swapped (rate=2)
       expect(
-        args.basetokenSwappedAmount
+        args.baseTokenSwappedAmount
           .sub(args.oceanFeeAmount)
           .sub(args.marketFeeAmount)
       ).to.equal(args.datatokenSwappedAmount.mul(rateX));
@@ -2719,7 +2719,7 @@ describe("FixedRateExchange", () => {
         exchangeDetailsAfter.btSupply
           .add(args.marketFeeAmount)
           .add(args.oceanFeeAmount)
-      ).to.equal(SwappedEvent[0].args.basetokenSwappedAmount);
+      ).to.equal(SwappedEvent[0].args.baseTokenSwappedAmount);
 
       // Bob bought 20% of  DT on sale so now dtSupply decreased
       expect(exchangeDetailsAfter.dtSupply).to.equal(
@@ -2735,7 +2735,7 @@ describe("FixedRateExchange", () => {
           .add(args.oceanFeeAmount)
       ).to.equal(
         exchangeDetailsBefore.btBalance.add(
-          SwappedEvent[0].args.basetokenSwappedAmount
+          SwappedEvent[0].args.baseTokenSwappedAmount
         )
       );
 
@@ -2809,7 +2809,7 @@ describe("FixedRateExchange", () => {
 
       // we check that proper amount is being swapped (rate=2)
       expect(
-        SwappedEvent[0].args.basetokenSwappedAmount
+        SwappedEvent[0].args.baseTokenSwappedAmount
           .sub(args.marketFeeAmount)
           .sub(args.oceanFeeAmount)
       ).to.equal(SwappedEvent[0].args.datatokenSwappedAmount.mul(rateX));
@@ -2835,7 +2835,7 @@ describe("FixedRateExchange", () => {
         exchangeDetailsAfter.btSupply
           .add(args.marketFeeAmount)
           .add(args.oceanFeeAmount)
-      ).to.equal(SwappedEvent[0].args.basetokenSwappedAmount);
+      ).to.equal(SwappedEvent[0].args.baseTokenSwappedAmount);
 
       // Bob bought 20% of  DT on sale so now dtSupply decreased
       expect(exchangeDetailsAfter.dtSupply).to.equal(
@@ -2851,7 +2851,7 @@ describe("FixedRateExchange", () => {
           .add(args.oceanFeeAmount)
       ).to.equal(
         exchangeDetailsBefore.btBalance.add(
-          SwappedEvent[0].args.basetokenSwappedAmount
+          SwappedEvent[0].args.baseTokenSwappedAmount
         )
       );
 
@@ -2946,7 +2946,7 @@ describe("FixedRateExchange", () => {
       const args = SwappedEvent[0].args;
       // we check that proper amount is being swapped (rate=2)
       expect(
-        SwappedEvent[0].args.basetokenSwappedAmount
+        SwappedEvent[0].args.baseTokenSwappedAmount
           .sub(args.marketFeeAmount)
           .sub(args.oceanFeeAmount)
       ).to.equal(SwappedEvent[0].args.datatokenSwappedAmount.mul(rateX));
@@ -2973,7 +2973,7 @@ describe("FixedRateExchange", () => {
           .add(args.oceanFeeAmount)
       ).to.equal(
         exchangeDetailsBefore.btSupply.add(
-          SwappedEvent[0].args.basetokenSwappedAmount
+          SwappedEvent[0].args.baseTokenSwappedAmount
         )
       );
 
@@ -2987,7 +2987,7 @@ describe("FixedRateExchange", () => {
           .add(args.oceanFeeAmount)
       ).to.equal(
         exchangeDetailsBefore.btBalance.add(
-          SwappedEvent[0].args.basetokenSwappedAmount
+          SwappedEvent[0].args.baseTokenSwappedAmount
         )
       );
 
@@ -3022,7 +3022,7 @@ describe("FixedRateExchange", () => {
       const args = SwappedEvent[0].args;
       // we check that proper amount is being swapped (rate=2)
       expect(
-        SwappedEvent[0].args.basetokenSwappedAmount
+        SwappedEvent[0].args.baseTokenSwappedAmount
           .add(args.marketFeeAmount)
           .add(args.oceanFeeAmount)
       ).to.equal(SwappedEvent[0].args.datatokenSwappedAmount.mul(rateX));
@@ -3032,7 +3032,7 @@ describe("FixedRateExchange", () => {
         dtBobBalanceBeforeSwap.sub(SwappedEvent[0].args.datatokenSwappedAmount)
       );
       expect(await daiContract.balanceOf(bob.address)).to.equal(
-        btBobBalanceBeforeSwap.add(SwappedEvent[0].args.basetokenSwappedAmount)
+        btBobBalanceBeforeSwap.add(SwappedEvent[0].args.baseTokenSwappedAmount)
       );
 
       // BT are into the FixedRate contract.
@@ -3047,7 +3047,7 @@ describe("FixedRateExchange", () => {
           .add(args.oceanFeeAmount)
       ).to.equal(
         exchangeDetailsBefore.btSupply.sub(
-          SwappedEvent[0].args.basetokenSwappedAmount
+          SwappedEvent[0].args.baseTokenSwappedAmount
         )
       );
 
@@ -3066,7 +3066,7 @@ describe("FixedRateExchange", () => {
           .add(args.oceanFeeAmount)
       ).to.equal(
         exchangeDetailsBefore.btBalance.sub(
-          SwappedEvent[0].args.basetokenSwappedAmount
+          SwappedEvent[0].args.baseTokenSwappedAmount
         )
       );
 
@@ -3148,7 +3148,7 @@ describe("FixedRateExchange", () => {
     });
   });
 
-  describe("#5 - Exchange with basetoken(USDC) 6 Decimals and datatoken 18 Decimals, RATE = 2  (2 USDC = 1 DT)", async () => {
+  describe("#5 - Exchange with baseToken(USDC) 6 Decimals and datatoken 18 Decimals, RATE = 2  (2 USDC = 1 DT)", async () => {
     let amountDTtoSell = web3.utils.toWei("10000"); // exact amount so that we can check if balances works
 
     it("#1 - user3 (alice) create a new erc20DT, assigning herself as minter", async () => {
@@ -3190,9 +3190,9 @@ describe("FixedRateExchange", () => {
 
       eventsExchange = receipt.events.filter((e) => e.event === "NewFixedRate");
 
-      // expect(eventsExchange[0].args.basetoken).to.equal(usdcContract.address);
+      // expect(eventsExchange[0].args.baseToken).to.equal(usdcContract.address);
       // expect(eventsExchange[0].args.owner).to.equal(alice.address);
-      expect(eventsExchange[0].args.basetoken).to.equal(usdcContract.address);
+      expect(eventsExchange[0].args.baseToken).to.equal(usdcContract.address);
     });
 
     it("#3 - exchange is active", async () => {
@@ -3271,7 +3271,7 @@ describe("FixedRateExchange", () => {
       const args = SwappedEvent[0].args;
       // we check that proper amount is being swapped (rate=2)
       expect(
-        args.basetokenSwappedAmount
+        args.baseTokenSwappedAmount
           .sub(args.oceanFeeAmount)
           .sub(args.marketFeeAmount)
           .mul(1e12)
@@ -3294,7 +3294,7 @@ describe("FixedRateExchange", () => {
       );
 
       expect(exchangeDetails.btSupply).to.equal(
-        args.basetokenSwappedAmount.sub(
+        args.baseTokenSwappedAmount.sub(
           args.oceanFeeAmount.add(args.marketFeeAmount)
         )
       );
@@ -3304,7 +3304,7 @@ describe("FixedRateExchange", () => {
 
       // we also check DT and BT balances were accounted properly
       expect(exchangeDetails.btBalance).to.equal(
-        args.basetokenSwappedAmount.sub(
+        args.baseTokenSwappedAmount.sub(
           args.oceanFeeAmount.add(args.marketFeeAmount)
         )
       );
@@ -3336,7 +3336,7 @@ describe("FixedRateExchange", () => {
 
       // we check that proper amount is being swapped (rate=2)
       expect(
-        args.basetokenSwappedAmount
+        args.baseTokenSwappedAmount
           .add(args.oceanFeeAmount)
           .add(args.marketFeeAmount)
           .mul(1e12)
@@ -3345,7 +3345,7 @@ describe("FixedRateExchange", () => {
       // BOB's DTbalance is zero, and BT increased as expected
       expect(await mockDT18.balanceOf(bob.address)).to.equal(0);
       expect(await usdcContract.balanceOf(bob.address)).to.equal(
-        btBobBalanceBeforeSwap.add(SwappedEvent[0].args.basetokenSwappedAmount)
+        btBobBalanceBeforeSwap.add(SwappedEvent[0].args.baseTokenSwappedAmount)
       );
 
       // BT are into the FixedRate contract.
@@ -3362,7 +3362,7 @@ describe("FixedRateExchange", () => {
       );
 
       // we also check DT and BT balances were accounted properly
-      // basetoken balance is ZERO, but
+      // baseToken balance is ZERO, but
       expect(exchangeDetails.btBalance).to.equal(0);
 
       //now the DT are into the FixedRate and not on alice
@@ -3398,7 +3398,7 @@ describe("FixedRateExchange", () => {
 
       // we check that proper amount is being swapped (rate=1)
       expect(
-        args.basetokenSwappedAmount
+        args.baseTokenSwappedAmount
           .sub(args.oceanFeeAmount)
           .sub(args.marketFeeAmount)
           .mul(1e12)
@@ -3424,7 +3424,7 @@ describe("FixedRateExchange", () => {
         exchangeDetailsAfter.btSupply
           .add(args.marketFeeAmount)
           .add(args.oceanFeeAmount)
-      ).to.equal(SwappedEvent[0].args.basetokenSwappedAmount);
+      ).to.equal(SwappedEvent[0].args.baseTokenSwappedAmount);
 
       // Bob bought 20% of  DT on sale so now dtSupply decreased
       expect(exchangeDetailsAfter.dtSupply).to.equal(
@@ -3440,7 +3440,7 @@ describe("FixedRateExchange", () => {
           .add(args.oceanFeeAmount)
       ).to.equal(
         exchangeDetailsBefore.btBalance.add(
-          SwappedEvent[0].args.basetokenSwappedAmount
+          SwappedEvent[0].args.baseTokenSwappedAmount
         )
       );
 
@@ -3511,7 +3511,7 @@ describe("FixedRateExchange", () => {
       const args = SwappedEvent[0].args;
       // we check that proper amount is being swapped (rate=2)
       expect(
-        SwappedEvent[0].args.basetokenSwappedAmount
+        SwappedEvent[0].args.baseTokenSwappedAmount
           .sub(args.marketFeeAmount)
           .sub(args.oceanFeeAmount)
           .mul(1e12)
@@ -3538,7 +3538,7 @@ describe("FixedRateExchange", () => {
         exchangeDetailsAfter.btSupply
           .add(args.marketFeeAmount)
           .add(args.oceanFeeAmount)
-      ).to.equal(SwappedEvent[0].args.basetokenSwappedAmount);
+      ).to.equal(SwappedEvent[0].args.baseTokenSwappedAmount);
 
       // Bob bought 20% of  DT on sale so now dtSupply decreased
       expect(exchangeDetailsAfter.dtSupply).to.equal(
@@ -3554,7 +3554,7 @@ describe("FixedRateExchange", () => {
           .add(args.oceanFeeAmount)
       ).to.equal(
         exchangeDetailsBefore.btBalance.add(
-          SwappedEvent[0].args.basetokenSwappedAmount
+          SwappedEvent[0].args.baseTokenSwappedAmount
         )
       );
 
@@ -3651,7 +3651,7 @@ describe("FixedRateExchange", () => {
       const args = SwappedEvent[0].args;
       // we check that proper amount is being swapped (rate=2)
       expect(
-        SwappedEvent[0].args.basetokenSwappedAmount
+        SwappedEvent[0].args.baseTokenSwappedAmount
           .sub(args.marketFeeAmount)
           .sub(args.oceanFeeAmount)
           .mul(1e12)
@@ -3679,7 +3679,7 @@ describe("FixedRateExchange", () => {
           .add(args.oceanFeeAmount)
       ).to.equal(
         exchangeDetailsBefore.btSupply.add(
-          SwappedEvent[0].args.basetokenSwappedAmount
+          SwappedEvent[0].args.baseTokenSwappedAmount
         )
       );
 
@@ -3693,7 +3693,7 @@ describe("FixedRateExchange", () => {
           .add(args.oceanFeeAmount)
       ).to.equal(
         exchangeDetailsBefore.btBalance.add(
-          SwappedEvent[0].args.basetokenSwappedAmount
+          SwappedEvent[0].args.baseTokenSwappedAmount
         )
       );
 
@@ -3728,7 +3728,7 @@ describe("FixedRateExchange", () => {
       const args = SwappedEvent[0].args;
       // we check that proper amount is being swapped (rate=1)
       expect(
-        SwappedEvent[0].args.basetokenSwappedAmount
+        SwappedEvent[0].args.baseTokenSwappedAmount
           .add(args.marketFeeAmount)
           .add(args.oceanFeeAmount)
           .mul(1e12)
@@ -3739,7 +3739,7 @@ describe("FixedRateExchange", () => {
         dtBobBalanceBeforeSwap.sub(SwappedEvent[0].args.datatokenSwappedAmount)
       );
       expect(await usdcContract.balanceOf(bob.address)).to.equal(
-        btBobBalanceBeforeSwap.add(SwappedEvent[0].args.basetokenSwappedAmount)
+        btBobBalanceBeforeSwap.add(SwappedEvent[0].args.baseTokenSwappedAmount)
       );
 
       // BT are into the FixedRate contract.
@@ -3754,7 +3754,7 @@ describe("FixedRateExchange", () => {
           .add(args.oceanFeeAmount)
       ).to.equal(
         exchangeDetailsBefore.btSupply.sub(
-          SwappedEvent[0].args.basetokenSwappedAmount
+          SwappedEvent[0].args.baseTokenSwappedAmount
         )
       );
 
@@ -3773,7 +3773,7 @@ describe("FixedRateExchange", () => {
           .add(args.oceanFeeAmount)
       ).to.equal(
         exchangeDetailsBefore.btBalance.sub(
-          SwappedEvent[0].args.basetokenSwappedAmount
+          SwappedEvent[0].args.baseTokenSwappedAmount
         )
       );
 
@@ -3857,7 +3857,7 @@ describe("FixedRateExchange", () => {
     });
   });
 
-  describe("#6 - Exchange with basetoken(USDC) 6 Decimals and datatoken 18 Decimals, RATE = 0.5  (1 USDC = 2 DT)", async () => {
+  describe("#6 - Exchange with baseToken(USDC) 6 Decimals and datatoken 18 Decimals, RATE = 0.5  (1 USDC = 2 DT)", async () => {
     amountDTtoSell = web3.utils.toWei("10000"); // exact amount so that we can check if balances works
 
     it("#1 - user3 (alice) create a new erc20DT, assigning herself as minter", async () => {
@@ -3898,9 +3898,9 @@ describe("FixedRateExchange", () => {
 
       eventsExchange = receipt.events.filter((e) => e.event === "NewFixedRate");
 
-      // expect(eventsExchange[0].args.basetoken).to.equal(usdcContract.address);
+      // expect(eventsExchange[0].args.baseToken).to.equal(usdcContract.address);
       // expect(eventsExchange[0].args.owner).to.equal(alice.address);
-      expect(eventsExchange[0].args.basetoken).to.equal(usdcContract.address);
+      expect(eventsExchange[0].args.baseToken).to.equal(usdcContract.address);
     });
 
     it("#3 - exchange is active", async () => {
@@ -3979,7 +3979,7 @@ describe("FixedRateExchange", () => {
       const args = SwappedEvent[0].args;
       // we check that proper amount is being swapped (rate=0.5)
       expect(
-        args.basetokenSwappedAmount
+        args.baseTokenSwappedAmount
           .sub(args.oceanFeeAmount)
           .sub(args.marketFeeAmount)
           .mul(1e12)
@@ -4002,7 +4002,7 @@ describe("FixedRateExchange", () => {
       );
 
       expect(exchangeDetails.btSupply).to.equal(
-        args.basetokenSwappedAmount.sub(
+        args.baseTokenSwappedAmount.sub(
           args.oceanFeeAmount.add(args.marketFeeAmount)
         )
       );
@@ -4012,7 +4012,7 @@ describe("FixedRateExchange", () => {
 
       // we also check DT and BT balances were accounted properly
       expect(exchangeDetails.btBalance).to.equal(
-        args.basetokenSwappedAmount.sub(
+        args.baseTokenSwappedAmount.sub(
           args.oceanFeeAmount.add(args.marketFeeAmount)
         )
       );
@@ -4044,7 +4044,7 @@ describe("FixedRateExchange", () => {
 
       // we check that proper amount is being swapped (rate=2)
       expect(
-        args.basetokenSwappedAmount
+        args.baseTokenSwappedAmount
           .add(args.oceanFeeAmount)
           .add(args.marketFeeAmount)
           .mul(1e12)
@@ -4053,7 +4053,7 @@ describe("FixedRateExchange", () => {
       // BOB's DTbalance is zero, and BT increased as expected
       expect(await mockDT18.balanceOf(bob.address)).to.equal(0);
       expect(await usdcContract.balanceOf(bob.address)).to.equal(
-        btBobBalanceBeforeSwap.add(SwappedEvent[0].args.basetokenSwappedAmount)
+        btBobBalanceBeforeSwap.add(SwappedEvent[0].args.baseTokenSwappedAmount)
       );
 
       // BT are into the FixedRate contract.
@@ -4070,7 +4070,7 @@ describe("FixedRateExchange", () => {
       );
 
       // we also check DT and BT balances were accounted properly
-      // basetoken balance is ZERO
+      // baseToken balance is ZERO
       expect(exchangeDetails.btBalance).to.equal(0);
 
       //now the DT are into the FixedRate and not on alice
@@ -4106,7 +4106,7 @@ describe("FixedRateExchange", () => {
 
       // we check that proper amount is being swapped (rate=0.5)
       expect(
-        args.basetokenSwappedAmount
+        args.baseTokenSwappedAmount
           .sub(args.oceanFeeAmount)
           .sub(args.marketFeeAmount)
           .mul(1e12)
@@ -4132,7 +4132,7 @@ describe("FixedRateExchange", () => {
         exchangeDetailsAfter.btSupply
           .add(args.marketFeeAmount)
           .add(args.oceanFeeAmount)
-      ).to.equal(SwappedEvent[0].args.basetokenSwappedAmount);
+      ).to.equal(SwappedEvent[0].args.baseTokenSwappedAmount);
 
       // Bob bought 20% of  DT on sale so now dtSupply decreased
       expect(exchangeDetailsAfter.dtSupply).to.equal(
@@ -4148,7 +4148,7 @@ describe("FixedRateExchange", () => {
           .add(args.oceanFeeAmount)
       ).to.equal(
         exchangeDetailsBefore.btBalance.add(
-          SwappedEvent[0].args.basetokenSwappedAmount
+          SwappedEvent[0].args.baseTokenSwappedAmount
         )
       );
 
@@ -4219,7 +4219,7 @@ describe("FixedRateExchange", () => {
       const args = SwappedEvent[0].args;
       // we check that proper amount is being swapped (rate=0.5)
       expect(
-        SwappedEvent[0].args.basetokenSwappedAmount
+        SwappedEvent[0].args.baseTokenSwappedAmount
           .sub(args.marketFeeAmount)
           .sub(args.oceanFeeAmount)
           .mul(1e12)
@@ -4246,7 +4246,7 @@ describe("FixedRateExchange", () => {
         exchangeDetailsAfter.btSupply
           .add(args.marketFeeAmount)
           .add(args.oceanFeeAmount)
-      ).to.equal(SwappedEvent[0].args.basetokenSwappedAmount);
+      ).to.equal(SwappedEvent[0].args.baseTokenSwappedAmount);
 
       // Bob bought 20% of  DT on sale so now dtSupply decreased
       expect(exchangeDetailsAfter.dtSupply).to.equal(
@@ -4262,7 +4262,7 @@ describe("FixedRateExchange", () => {
           .add(args.oceanFeeAmount)
       ).to.equal(
         exchangeDetailsBefore.btBalance.add(
-          SwappedEvent[0].args.basetokenSwappedAmount
+          SwappedEvent[0].args.baseTokenSwappedAmount
         )
       );
 
@@ -4357,7 +4357,7 @@ describe("FixedRateExchange", () => {
       const args = SwappedEvent[0].args;
       // we check that proper amount is being swapped (rate=0.5)
       expect(
-        SwappedEvent[0].args.basetokenSwappedAmount
+        SwappedEvent[0].args.baseTokenSwappedAmount
           .sub(args.marketFeeAmount)
           .sub(args.oceanFeeAmount)
           .mul(1e12)
@@ -4385,7 +4385,7 @@ describe("FixedRateExchange", () => {
           .add(args.oceanFeeAmount)
       ).to.equal(
         exchangeDetailsBefore.btSupply.add(
-          SwappedEvent[0].args.basetokenSwappedAmount
+          SwappedEvent[0].args.baseTokenSwappedAmount
         )
       );
 
@@ -4399,7 +4399,7 @@ describe("FixedRateExchange", () => {
           .add(args.oceanFeeAmount)
       ).to.equal(
         exchangeDetailsBefore.btBalance.add(
-          SwappedEvent[0].args.basetokenSwappedAmount
+          SwappedEvent[0].args.baseTokenSwappedAmount
         )
       );
 
@@ -4435,7 +4435,7 @@ describe("FixedRateExchange", () => {
 
       // we check that proper amount is being swapped (rate=0.5)
       expect(
-        SwappedEvent[0].args.basetokenSwappedAmount
+        SwappedEvent[0].args.baseTokenSwappedAmount
           .add(args.marketFeeAmount)
           .add(args.oceanFeeAmount)
           .mul(1e12)
@@ -4446,7 +4446,7 @@ describe("FixedRateExchange", () => {
         dtBobBalanceBeforeSwap.sub(SwappedEvent[0].args.datatokenSwappedAmount)
       );
       expect(await usdcContract.balanceOf(bob.address)).to.equal(
-        btBobBalanceBeforeSwap.add(SwappedEvent[0].args.basetokenSwappedAmount)
+        btBobBalanceBeforeSwap.add(SwappedEvent[0].args.baseTokenSwappedAmount)
       );
 
       // BT are into the FixedRate contract.
@@ -4461,7 +4461,7 @@ describe("FixedRateExchange", () => {
           .add(args.oceanFeeAmount)
       ).to.equal(
         exchangeDetailsBefore.btSupply.sub(
-          SwappedEvent[0].args.basetokenSwappedAmount
+          SwappedEvent[0].args.baseTokenSwappedAmount
         )
       );
 
@@ -4480,7 +4480,7 @@ describe("FixedRateExchange", () => {
           .add(args.oceanFeeAmount)
       ).to.equal(
         exchangeDetailsBefore.btBalance.sub(
-          SwappedEvent[0].args.basetokenSwappedAmount
+          SwappedEvent[0].args.baseTokenSwappedAmount
         )
       );
 
@@ -4562,7 +4562,7 @@ describe("FixedRateExchange", () => {
     });
   });
 
-  describe("#7 - Test flexible OPF fee - Exchange with basetoken(DAI) 18 Decimals and datatoken 18 Decimals RATE = 1 ", async () => {
+  describe("#7 - Test flexible OPF fee - Exchange with baseToken(DAI) 18 Decimals and datatoken 18 Decimals RATE = 1 ", async () => {
     let maxAmountBTtoSell = web3.utils.toWei("100000"), // bigger than required amount
       amountDTtoSell = web3.utils.toWei("10000"); // exact amount so that we can check if balances works
 
@@ -4602,9 +4602,9 @@ describe("FixedRateExchange", () => {
 
       eventsExchange = receipt.events.filter((e) => e.event === "NewFixedRate");
 
-      // expect(eventsExchange[0].args.basetoken).to.equal(daiContract.address);
+      // expect(eventsExchange[0].args.baseToken).to.equal(daiContract.address);
       // expect(eventsExchange[0].args.owner).to.equal(alice.address);
-      expect(eventsExchange[0].args.basetoken).to.equal(daiContract.address);
+      expect(eventsExchange[0].args.baseToken).to.equal(daiContract.address);
     });
 
     it("#3 - exchange is active", async () => {
@@ -4684,7 +4684,7 @@ describe("FixedRateExchange", () => {
       const args = SwappedEvent[0].args;
       // we check that proper amount is being swapped (rate=1)
       expect(
-        args.basetokenSwappedAmount
+        args.baseTokenSwappedAmount
           .sub(args.oceanFeeAmount)
           .sub(args.marketFeeAmount)
       ).to.equal(args.datatokenSwappedAmount);
@@ -4706,7 +4706,7 @@ describe("FixedRateExchange", () => {
       );
 
       expect(exchangeDetails.btSupply).to.equal(
-        args.basetokenSwappedAmount.sub(
+        args.baseTokenSwappedAmount.sub(
           args.oceanFeeAmount.add(args.marketFeeAmount)
         )
       );
@@ -4716,7 +4716,7 @@ describe("FixedRateExchange", () => {
 
       // we also check DT and BT balances were accounted properly
       expect(exchangeDetails.btBalance).to.equal(
-        args.basetokenSwappedAmount.sub(
+        args.baseTokenSwappedAmount.sub(
           args.oceanFeeAmount.add(args.marketFeeAmount)
         )
       );
@@ -4747,7 +4747,7 @@ describe("FixedRateExchange", () => {
 
       // we check that proper amount is being swapped (rate=1)
       expect(
-        args.basetokenSwappedAmount
+        args.baseTokenSwappedAmount
           .add(args.oceanFeeAmount)
           .add(args.marketFeeAmount)
       ).to.equal(args.datatokenSwappedAmount);
@@ -4755,7 +4755,7 @@ describe("FixedRateExchange", () => {
       // BOB's DTbalance is zero, and BT increased as expected
       expect(await mockDT18.balanceOf(bob.address)).to.equal(0);
       expect(await daiContract.balanceOf(bob.address)).to.equal(
-        btBobBalanceBeforeSwap.add(SwappedEvent[0].args.basetokenSwappedAmount)
+        btBobBalanceBeforeSwap.add(SwappedEvent[0].args.baseTokenSwappedAmount)
       );
 
       // BT are into the FixedRate contract.
@@ -4772,7 +4772,7 @@ describe("FixedRateExchange", () => {
       );
 
       // we also check DT and BT balances were accounted properly
-      // basetoken balance is ZERO
+      // baseToken balance is ZERO
       expect(exchangeDetails.btBalance).to.equal(0);
 
       //now the DT are into the FixedRate and not on alice
@@ -4817,7 +4817,7 @@ describe("FixedRateExchange", () => {
 
       // we check that proper amount is being swapped (rate=1)
       expect(
-        args.basetokenSwappedAmount
+        args.baseTokenSwappedAmount
           .sub(args.oceanFeeAmount)
           .sub(args.marketFeeAmount)
       ).to.equal(args.datatokenSwappedAmount);
@@ -4842,7 +4842,7 @@ describe("FixedRateExchange", () => {
         exchangeDetailsAfter.btSupply
           .add(args.marketFeeAmount)
           .add(args.oceanFeeAmount)
-      ).to.equal(SwappedEvent[0].args.basetokenSwappedAmount);
+      ).to.equal(SwappedEvent[0].args.baseTokenSwappedAmount);
 
       // Bob bought 20% of  DT on sale so now dtSupply decreased
       expect(exchangeDetailsAfter.dtSupply).to.equal(
@@ -4858,7 +4858,7 @@ describe("FixedRateExchange", () => {
           .add(args.oceanFeeAmount)
       ).to.equal(
         exchangeDetailsBefore.btBalance.add(
-          SwappedEvent[0].args.basetokenSwappedAmount
+          SwappedEvent[0].args.baseTokenSwappedAmount
         )
       );
 
@@ -4940,7 +4940,7 @@ describe("FixedRateExchange", () => {
       const args = SwappedEvent[0].args;
       // we check that proper amount is being swapped (rate=1)
       expect(
-        SwappedEvent[0].args.basetokenSwappedAmount
+        SwappedEvent[0].args.baseTokenSwappedAmount
           .sub(args.marketFeeAmount)
           .sub(args.oceanFeeAmount)
       ).to.equal(SwappedEvent[0].args.datatokenSwappedAmount);
@@ -4966,7 +4966,7 @@ describe("FixedRateExchange", () => {
         exchangeDetailsAfter.btSupply
           .add(args.marketFeeAmount)
           .add(args.oceanFeeAmount)
-      ).to.equal(SwappedEvent[0].args.basetokenSwappedAmount);
+      ).to.equal(SwappedEvent[0].args.baseTokenSwappedAmount);
 
       // Bob bought 20% of  DT on sale so now dtSupply decreased
       expect(exchangeDetailsAfter.dtSupply).to.equal(
@@ -4982,7 +4982,7 @@ describe("FixedRateExchange", () => {
           .add(args.oceanFeeAmount)
       ).to.equal(
         exchangeDetailsBefore.btBalance.add(
-          SwappedEvent[0].args.basetokenSwappedAmount
+          SwappedEvent[0].args.baseTokenSwappedAmount
         )
       );
 
@@ -5116,7 +5116,7 @@ describe("FixedRateExchange", () => {
       const args = SwappedEvent[0].args;
       // we check that proper amount is being swapped (rate=1)
       expect(
-        SwappedEvent[0].args.basetokenSwappedAmount
+        SwappedEvent[0].args.baseTokenSwappedAmount
           .sub(args.marketFeeAmount)
           .sub(args.oceanFeeAmount)
       ).to.equal(SwappedEvent[0].args.datatokenSwappedAmount);
@@ -5143,7 +5143,7 @@ describe("FixedRateExchange", () => {
           .add(args.oceanFeeAmount)
       ).to.equal(
         exchangeDetailsBefore.btSupply.add(
-          SwappedEvent[0].args.basetokenSwappedAmount
+          SwappedEvent[0].args.baseTokenSwappedAmount
         )
       );
 
@@ -5157,7 +5157,7 @@ describe("FixedRateExchange", () => {
           .add(args.oceanFeeAmount)
       ).to.equal(
         exchangeDetailsBefore.btBalance.add(
-          SwappedEvent[0].args.basetokenSwappedAmount
+          SwappedEvent[0].args.baseTokenSwappedAmount
         )
       );
 
@@ -5192,7 +5192,7 @@ describe("FixedRateExchange", () => {
       const args = SwappedEvent[0].args;
       // we check that proper amount is being swapped (rate=1)
       expect(
-        SwappedEvent[0].args.basetokenSwappedAmount
+        SwappedEvent[0].args.baseTokenSwappedAmount
           .add(args.marketFeeAmount)
           .add(args.oceanFeeAmount)
       ).to.equal(SwappedEvent[0].args.datatokenSwappedAmount);
@@ -5202,7 +5202,7 @@ describe("FixedRateExchange", () => {
         dtBobBalanceBeforeSwap.sub(SwappedEvent[0].args.datatokenSwappedAmount)
       );
       expect(await daiContract.balanceOf(bob.address)).to.equal(
-        btBobBalanceBeforeSwap.add(SwappedEvent[0].args.basetokenSwappedAmount)
+        btBobBalanceBeforeSwap.add(SwappedEvent[0].args.baseTokenSwappedAmount)
       );
 
       // BT are into the FixedRate contract.
@@ -5217,7 +5217,7 @@ describe("FixedRateExchange", () => {
           .add(args.oceanFeeAmount)
       ).to.equal(
         exchangeDetailsBefore.btSupply.sub(
-          SwappedEvent[0].args.basetokenSwappedAmount
+          SwappedEvent[0].args.baseTokenSwappedAmount
         )
       );
 
@@ -5236,7 +5236,7 @@ describe("FixedRateExchange", () => {
           .add(args.oceanFeeAmount)
       ).to.equal(
         exchangeDetailsBefore.btBalance.sub(
-          SwappedEvent[0].args.basetokenSwappedAmount
+          SwappedEvent[0].args.baseTokenSwappedAmount
         )
       );
 
@@ -5391,9 +5391,9 @@ describe("FixedRateExchange", () => {
       ).wait(); // from exchangeOwner (alice)
       eventsExchange = receipt.events.filter((e) => e.event === "NewFixedRate");
       // commented out for now
-      // expect(eventsExchange[0].args.basetoken).to.equal(oceanContract.address);
+      // expect(eventsExchange[0].args.baseToken).to.equal(oceanContract.address);
       // expect(eventsExchange[0].args.owner).to.equal(alice.address);
-      expect(eventsExchange[0].args.basetoken).to.equal(oceanContract.address);
+      expect(eventsExchange[0].args.baseToken).to.equal(oceanContract.address);
     });
 
     it("#3 - exchange is active", async () => {
@@ -5434,7 +5434,7 @@ describe("FixedRateExchange", () => {
 
       // we check that proper amount is being swapped (rate=1)
       expect(
-        args.basetokenSwappedAmount
+        args.baseTokenSwappedAmount
           .sub(args.oceanFeeAmount)
           .sub(args.marketFeeAmount)
       ).to.equal(args.datatokenSwappedAmount);

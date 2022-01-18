@@ -50,9 +50,9 @@ contract BPool is BMath, BToken {
     );
     event LOG_SETUP(
         address indexed caller,
-        address indexed basetoken,
-        uint256 basetokenAmountIn,
-        uint256 basetokenWeight,
+        address indexed baseToken,
+        uint256 baseTokenAmountIn,
+        uint256 baseTokenWeight,
         address indexed datatoken,
         uint256 datatokenAmountIn,
         uint256 datatokenWeight
@@ -185,7 +185,7 @@ contract BPool is BMath, BToken {
         _publicSwap = publicSwap;
         _finalized = finalized;
         _datatokenAddress = tokens[0];
-        _basetokenAddress = tokens[1];
+        _baseTokenAddress = tokens[1];
         _publishMarketCollector = feeCollectors[0];
         _opfCollector = feeCollectors[1];
         initialized = true;
@@ -198,9 +198,9 @@ contract BPool is BMath, BToken {
         address datatokenAddress,
         uint256 datatokenAmount,
         uint256 datatokenWeight,
-        address basetokenAddress,
-        uint256 basetokenAmount,
-        uint256 basetokenWeight
+        address baseTokenAddress,
+        uint256 baseTokenAmount,
+        uint256 baseTokenWeight
     ) external _lock_ {
         require(msg.sender == _controller, "ERR_INVALID_CONTROLLER");
         require(
@@ -208,8 +208,8 @@ contract BPool is BMath, BToken {
             "ERR_INVALID_DATATOKEN_ADDRESS"
         );
         require(
-            basetokenAddress == _basetokenAddress,
-            "ERR_INVALID_BASETOKEN_ADDRESS"
+            baseTokenAddress == _baseTokenAddress,
+            "ERR_INVALID_baseToken_ADDRESS"
         );
         // other inputs will be validated prior
         // calling the below functions
@@ -222,21 +222,21 @@ contract BPool is BMath, BToken {
             block.timestamp
         );
 
-        // bind basetoken
-        bind(basetokenAddress, basetokenAmount, basetokenWeight);
+        // bind baseToken
+        bind(baseTokenAddress, baseTokenAmount, baseTokenWeight);
         emit LOG_JOIN(
             msg.sender,
-            basetokenAddress,
-            basetokenAmount,
+            baseTokenAddress,
+            baseTokenAmount,
             block.timestamp
         );
         // finalize
         finalize();
         emit LOG_SETUP(
             msg.sender,
-            basetokenAddress,
-            basetokenAmount,
-            basetokenWeight,
+            baseTokenAddress,
+            baseTokenAmount,
+            baseTokenWeight,
             datatokenAddress,
             datatokenAmount,
             datatokenWeight
@@ -425,8 +425,8 @@ contract BPool is BMath, BToken {
         return _datatokenAddress;
     }
 
-    function getBasetokenAddress() external view returns (address) {
-        return _basetokenAddress;
+    function getbaseTokenAddress() external view returns (address) {
+        return _baseTokenAddress;
     }
 
     function setSwapFee(uint256 swapFee) public {
@@ -870,9 +870,9 @@ contract BPool is BMath, BToken {
             poolAmountOut
         );
         if (tokenIn == _datatokenAddress) {
-            ssStakeToken = _basetokenAddress;
+            ssStakeToken = _baseTokenAddress;
         } else {
-            // ssInRecord = _records[_basetokenAddress];
+            // ssInRecord = _records[_baseTokenAddress];
             ssStakeToken = _datatokenAddress;
         }
         if (ssContract.canStake(_datatokenAddress, ssStakeToken, ssAmountIn)) {
@@ -943,7 +943,7 @@ contract BPool is BMath, BToken {
         address ssStakeToken;
 
         if (tokenIn == _datatokenAddress) {
-            ssStakeToken = _basetokenAddress;
+            ssStakeToken = _baseTokenAddress;
         } else {
             ssStakeToken = _datatokenAddress;
         }
@@ -1008,7 +1008,7 @@ contract BPool is BMath, BToken {
         //calculate how much should the 1ss unstake
         address ssStakeToken;
         if (tokenOut == _datatokenAddress) {
-            ssStakeToken = _basetokenAddress;
+            ssStakeToken = _baseTokenAddress;
         } else {
             ssStakeToken = _datatokenAddress;
         }
@@ -1091,7 +1091,7 @@ contract BPool is BMath, BToken {
         address ssStakeToken;
 
         if (tokenOut == _datatokenAddress) {
-            ssStakeToken = _basetokenAddress;
+            ssStakeToken = _baseTokenAddress;
         } else {
             ssStakeToken = _datatokenAddress;
         }

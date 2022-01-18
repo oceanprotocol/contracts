@@ -228,10 +228,10 @@ describe("Vesting flow", () => {
        // oceanAddress,
         [
           web3.utils.toWei("1"), // rate
-          18, // basetokenDecimals
+          18, // baseTokenDecimals
           web3.utils.toWei('10000'),
           20, // vested blocks  - this is our failure point
-          initialOceanLiquidity, // basetoken initial pool liquidity
+          initialOceanLiquidity, // baseToken initial pool liquidity
         ],
       //  user3.address,
         [
@@ -263,10 +263,10 @@ describe("Vesting flow", () => {
        // oceanAddress,
         [
           web3.utils.toWei("1"), // rate
-          18, // basetokenDecimals
+          18, // baseTokenDecimals
           web3.utils.toWei('10000'),
           2500000, // vested blocks
-          initialOceanLiquidity, // basetoken initial pool liquidity
+          initialOceanLiquidity, // baseToken initial pool liquidity
         ],
       //  user3.address,
         [

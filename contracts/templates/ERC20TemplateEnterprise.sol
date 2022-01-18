@@ -101,7 +101,7 @@ contract ERC20TemplateEnterprise is
 
     event MinterApproved(address currentMinter, address newMinter);
 
-    event NewFixedRate(bytes32 exchangeId, address indexed owner, address exchangeContract, address indexed basetoken);
+    event NewFixedRate(bytes32 exchangeId, address indexed owner, address exchangeContract, address indexed baseToken);
     event NewDispenser(address dispenserContract);
     
     event NewPaymentCollector(
@@ -276,8 +276,8 @@ contract ERC20TemplateEnterprise is
      * @dev createFixedRate
      *      Creates a new FixedRateExchange setup.
      * @param fixedPriceAddress fixedPriceAddress
-     * @param addresses array of addresses [basetoken,owner,marketFeeCollector]
-     * @param uints array of uints [basetokenDecimals,datatokenDecimals, fixedRate, marketFee, withMint]
+     * @param addresses array of addresses [baseToken,owner,marketFeeCollector]
+     * @param uints array of uints [baseTokenDecimals,datatokenDecimals, fixedRate, marketFee, withMint]
      * @return exchangeId
      */
     function createFixedRate(
@@ -398,7 +398,7 @@ contract ERC20TemplateEnterprise is
         uint256 communityFeePublish = 0;
         require(
             balanceOf(msg.sender) >= amount,
-            "Not enough Data Tokens to start Order"
+            "Not enough datatokens to start Order"
         );
         emit OrderStarted(
             consumer,
@@ -865,7 +865,7 @@ contract ERC20TemplateEnterprise is
     struct FreParams {
         address exchangeContract;
         bytes32 exchangeId;
-        uint256 maxBasetokenAmount;
+        uint256 maxbaseTokenAmount;
         uint256 swapMarketFee;
         address marketFeeAddress;
     }
@@ -883,7 +883,7 @@ contract ERC20TemplateEnterprise is
             ,
             address datatoken,
             ,
-            address basetoken,
+            address baseToken,
             ,
             ,
             ,
@@ -901,8 +901,8 @@ contract ERC20TemplateEnterprise is
         );
         // get token amounts needed
         (
-            uint256 basetokenAmount,
-            uint256 basetokenAmountBeforeFee,
+            uint256 baseTokenAmount,
+            uint256 baseTokenAmountBeforeFee,
             ,
 
         ) = IFixedRateExchange(_freParams.exchangeContract)
@@ -911,31 +911,31 @@ contract ERC20TemplateEnterprise is
                     1e18  // we always take 1 DT
                 );
         require(
-            basetokenAmount <= _freParams.maxBasetokenAmount,
+            baseTokenAmount <= _freParams.maxbaseTokenAmount,
             "FixedRateExchange: Too many base tokens"
         );
-        // we calculate the dynamic market fee and add it to the basetokenAmount to be transferred
-        uint256 marketFeeAmount = (basetokenAmountBeforeFee *
+        // we calculate the dynamic market fee and add it to the baseTokenAmount to be transferred
+        uint256 marketFeeAmount = (baseTokenAmountBeforeFee *
             _freParams.swapMarketFee) / 1e18;
-        basetokenAmount = basetokenAmount + marketFeeAmount;
+        baseTokenAmount = baseTokenAmount + marketFeeAmount;
 
-        //transfer basetoken to us first
-        IERC20(basetoken).safeTransferFrom(
+        //transfer baseToken to us first
+        IERC20(baseToken).safeTransferFrom(
             msg.sender,
             address(this),
-            basetokenAmount
+            baseTokenAmount
         );
 
-        //approve FRE to spend basetokens
-        IERC20(basetoken).safeIncreaseAllowance(
+        //approve FRE to spend baseTokens
+        IERC20(baseToken).safeIncreaseAllowance(
             _freParams.exchangeContract,
-            basetokenAmount
+            baseTokenAmount
         );
         //buy DT
         IFixedRateExchange(_freParams.exchangeContract).buyDT(
             _freParams.exchangeId,
             1e18, // we always take 1 dt
-            basetokenAmount
+            baseTokenAmount
         );
         require(
             balanceOf(address(this)) >= 1e18,
@@ -951,13 +951,13 @@ contract ERC20TemplateEnterprise is
 
         // Transfer Market Fee to market fee collector
         if (marketFeeAmount > 0) {
-            IERC20(basetoken).safeTransfer(
+            IERC20(baseToken).safeTransfer(
                 _freParams.marketFeeAddress,
                 marketFeeAmount
             );
         }
 
-        emit BuyAndOrder(msg.sender, basetokenAmount, marketFeeAmount);
+        emit BuyAndOrder(msg.sender, baseTokenAmount, marketFeeAmount);
     }
 
     /**

@@ -19,7 +19,7 @@ const ethers = hre.ethers;
 describe("Dispenser", () => {
   let alice, // DT Owner and exchange Owner
     exchangeOwner,
-    bob, // Basetoken Holder
+    bob, // baseToken Holder
     charlie,
     dispenser,
     rate,

@@ -29,7 +29,7 @@ contract BMath is BConst, BNum {
     address internal _factory; // BFactory address to push token exitFee to
 
     address internal _datatokenAddress; //datatoken address
-    address internal _basetokenAddress; //base token address
+    address internal _baseTokenAddress; //base token address
     mapping(address => uint) public communityFees;
 
      mapping(address => uint) public publishMarketFees;
@@ -37,7 +37,7 @@ contract BMath is BConst, BNum {
 
 
     function getOPFFee() public view returns (uint) {
-        return IFactoryRouter(_factory).getOPFFee(_basetokenAddress);
+        return IFactoryRouter(_factory).getOPFFee(_baseTokenAddress);
     }
     event SWAP_FEES(uint swapFeeAmount, uint oceanFeeAmount, uint marketFeeAmount, address tokenFees);
     /**********************************************************************************************

@@ -16,7 +16,7 @@ interface ISideStaking {
 
     function newDatatokenCreated(
         address datatokenAddress,
-        address basetokenAddress,
+        address baseTokenAddress,
         address poolAddress,
         address publisherAddress,
         uint256[] calldata ssParams
@@ -32,7 +32,7 @@ interface ISideStaking {
         view
         returns (address);
 
-    function getBasetokenAddress(address datatokenAddress)
+    function getbaseTokenAddress(address datatokenAddress)
         external
         view
         returns (address);
@@ -42,7 +42,7 @@ interface ISideStaking {
         view
         returns (address);
 
-    function getBasetokenBalance(address datatokenAddress)
+    function getbaseTokenBalance(address datatokenAddress)
         external
         view
         returns (uint256);

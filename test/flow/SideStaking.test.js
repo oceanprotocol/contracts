@@ -234,10 +234,10 @@ describe("1SS flow", () => {
         // oceanAddress,
         [
           web3.utils.toWei("1"), // rate
-          18, // basetokenDecimals
+          18, // baseTokenDecimals
           web3.utils.toWei("10000"), //vestingAmount max 10% of total cap
           vestedBlocks, // vested blocks
-          initialOceanLiquidity, // basetoken initial pool liquidity
+          initialOceanLiquidity, // baseToken initial pool liquidity
         ],
         // user3.address,
         [
@@ -287,7 +287,7 @@ describe("1SS flow", () => {
     expect(
       await sideStaking.getDatatokenCurrentCirculatingSupply(erc20Token.address)
     ).to.equal(initialDTLiquidity);
-    expect(await sideStaking.getBasetokenAddress(erc20Token.address)).to.equal(
+    expect(await sideStaking.getbaseTokenAddress(erc20Token.address)).to.equal(
       oceanAddress
     );
     expect(await sideStaking.getPoolAddress(erc20Token.address)).to.equal(
@@ -296,7 +296,7 @@ describe("1SS flow", () => {
     expect(await sideStaking.getPublisherAddress(erc20Token.address)).to.equal(
       user3.address
     );
-    expect(await sideStaking.getBasetokenBalance(oceanAddress)).to.equal(0);
+    expect(await sideStaking.getbaseTokenBalance(oceanAddress)).to.equal(0);
     expect(await sideStaking.getDatatokenBalance(erc20Token.address)).to.equal(
       web3.utils.toWei("98000")
     );
