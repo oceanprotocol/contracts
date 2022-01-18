@@ -14,15 +14,15 @@ pragma solidity 0.8.10;
 interface ISideStaking {
 
 
-    function newDataTokenCreated(
+    function newDatatokenCreated(
         address datatokenAddress,
-        address basetokenAddress,
+        address baseTokenAddress,
         address poolAddress,
         address publisherAddress,
         uint256[] calldata ssParams
     ) external returns (bool);
 
-    function getDataTokenCirculatingSupply(address datatokenAddress)
+    function getDatatokenCirculatingSupply(address datatokenAddress)
         external
         view
         returns (uint256);
@@ -32,7 +32,7 @@ interface ISideStaking {
         view
         returns (address);
 
-    function getBaseTokenAddress(address datatokenAddress)
+    function getbaseTokenAddress(address datatokenAddress)
         external
         view
         returns (address);
@@ -42,12 +42,12 @@ interface ISideStaking {
         view
         returns (address);
 
-    function getBaseTokenBalance(address datatokenAddress)
+    function getbaseTokenBalance(address datatokenAddress)
         external
         view
         returns (uint256);
 
-    function getDataTokenBalance(address datatokenAddress)
+    function getDatatokenBalance(address datatokenAddress)
         external
         view
         returns (uint256);

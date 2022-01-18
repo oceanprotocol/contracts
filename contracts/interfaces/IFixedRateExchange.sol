@@ -5,13 +5,13 @@ pragma solidity 0.8.10;
 
 interface IFixedRateExchange {
     function createWithDecimals(
-        address dataToken,
+        address datatoken,
         address[] calldata addresses, // [baseToken,owner,marketFeeCollector]
-        uint256[] calldata uints // [baseTokenDecimals,dataTokenDecimals, fixedRate, marketFee]
+        uint256[] calldata uints // [baseTokenDecimals,datatokenDecimals, fixedRate, marketFee]
     ) external returns (bytes32 exchangeId);
 
-    function buyDT(bytes32 exchangeId, uint256 dataTokenAmount, uint256 maxBaseTokenAmount) external;
-    function sellDT(bytes32 exchangeId, uint256 dataTokenAmount, uint256 minBaseTokenAmount) external;
+    function buyDT(bytes32 exchangeId, uint256 datatokenAmount, uint256 maxbaseTokenAmount) external;
+    function sellDT(bytes32 exchangeId, uint256 datatokenAmount, uint256 minbaseTokenAmount) external;
 
     function getAllowedSwapper(bytes32 exchangeId) external view returns (address allowedSwapper);
     function getExchange(bytes32 exchangeId)
@@ -19,7 +19,7 @@ interface IFixedRateExchange {
         view
         returns (
             address exchangeOwner,
-            address dataToken,
+            address datatoken,
             uint256 dtDecimals,
             address baseToken,
             uint256 btDecimals,
@@ -46,7 +46,7 @@ interface IFixedRateExchange {
 
     function isActive(bytes32 exchangeId) external view returns (bool);
 
-    function calcBaseInGivenOutDT(bytes32 exchangeId, uint256 dataTokenAmount)
+    function calcBaseInGivenOutDT(bytes32 exchangeId, uint256 datatokenAmount)
         external
         view
         returns (

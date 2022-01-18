@@ -17,11 +17,11 @@ import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 import "../utils/ERC20Roles.sol";
 
 /**
- * @title DataTokenTemplate
+ * @title DatatokenTemplate
  *
  * @dev ERC20TemplateEnterprise is an ERC20 compliant token template
  *      Used by the factory contract as a bytecode reference to
- *      deploy new DataTokens.
+ *      deploy new Datatokens.
  * IMPORTANT CHANGES:
  *  - buyFromFreAndOrder function:  one call to buy a DT from the minting capable FRE, startOrder and burn the DT
  *  - buyFromDispenserAndOrder function:  one call to fetch a DT from the Dispenser, startOrder and burn the DT
@@ -101,7 +101,7 @@ contract ERC20TemplateEnterprise is
 
     event MinterApproved(address currentMinter, address newMinter);
 
-    event NewFixedRate(bytes32 exchangeId, address indexed owner, address exchangeContract, address indexed basetoken);
+    event NewFixedRate(bytes32 exchangeId, address indexed owner, address exchangeContract, address indexed baseToken);
     event NewDispenser(address dispenserContract);
     
     event NewPaymentCollector(
@@ -152,7 +152,7 @@ contract ERC20TemplateEnterprise is
 
     /**
      * @dev initialize
-     *      Called prior contract initialization (e.g creating new DataToken instance)
+     *      Called prior contract initialization (e.g creating new Datatoken instance)
      *      Calls private _initialize function. Only if contract is not initialized.
      * @param strings_ refers to an array of strings
      *                      [0] = name token
@@ -231,7 +231,7 @@ contract ERC20TemplateEnterprise is
             "ERC20Template: Invalid community fee collector, zero address"
         );
 
-        require(uints_[0] != 0, "DataTokenTemplate: Invalid cap value");
+        require(uints_[0] != 0, "DatatokenTemplate: Invalid cap value");
         _cap = uints_[0];
         _name = strings_[0];
         _symbol = strings_[1];
@@ -277,7 +277,7 @@ contract ERC20TemplateEnterprise is
      *      Creates a new FixedRateExchange setup.
      * @param fixedPriceAddress fixedPriceAddress
      * @param addresses array of addresses [baseToken,owner,marketFeeCollector]
-     * @param uints array of uints [baseTokenDecimals,dataTokenDecimals, fixedRate, marketFee, withMint]
+     * @param uints array of uints [baseTokenDecimals,datatokenDecimals, fixedRate, marketFee, withMint]
      * @return exchangeId
      */
     function createFixedRate(
@@ -341,7 +341,7 @@ contract ERC20TemplateEnterprise is
         require(permissions[msg.sender].minter, "ERC20Template: NOT MINTER");
         require(
             totalSupply().add(value) <= _cap,
-            "DataTokenTemplate: cap exceeded"
+            "DatatokenTemplate: cap exceeded"
         );
         _mint(account, value);
     }
@@ -398,7 +398,7 @@ contract ERC20TemplateEnterprise is
         uint256 communityFeePublish = 0;
         require(
             balanceOf(msg.sender) >= amount,
-            "Not enough Data Tokens to start Order"
+            "Not enough datatokens to start Order"
         );
         emit OrderStarted(
             consumer,
@@ -678,7 +678,7 @@ contract ERC20TemplateEnterprise is
     /**
      * @dev name
      *      It returns the token name.
-     * @return DataToken name.
+     * @return Datatoken name.
      */
     function name() public view override returns (string memory) {
         return _name;
@@ -687,7 +687,7 @@ contract ERC20TemplateEnterprise is
     /**
      * @dev symbol
      *      It returns the token symbol.
-     * @return DataToken symbol.
+     * @return Datatoken symbol.
      */
     function symbol() public view override returns (string memory) {
         return _symbol;
@@ -706,7 +706,7 @@ contract ERC20TemplateEnterprise is
      * @dev decimals
      *      It returns the token decimals.
      *      how many supported decimal points
-     * @return DataToken decimals.
+     * @return Datatoken decimals.
      */
     function decimals() public pure override returns (uint8) {
         return _decimals;
@@ -715,7 +715,7 @@ contract ERC20TemplateEnterprise is
     /**
      * @dev cap
      *      it returns the capital.
-     * @return DataToken cap.
+     * @return Datatoken cap.
      */
     function cap() external view returns (uint256) {
         return _cap;
@@ -865,7 +865,7 @@ contract ERC20TemplateEnterprise is
     struct FreParams {
         address exchangeContract;
         bytes32 exchangeId;
-        uint256 maxBaseTokenAmount;
+        uint256 maxbaseTokenAmount;
         uint256 swapMarketFee;
         address marketFeeAddress;
     }
@@ -911,7 +911,7 @@ contract ERC20TemplateEnterprise is
                     1e18  // we always take 1 DT
                 );
         require(
-            baseTokenAmount <= _freParams.maxBaseTokenAmount,
+            baseTokenAmount <= _freParams.maxbaseTokenAmount,
             "FixedRateExchange: Too many base tokens"
         );
         // we calculate the dynamic market fee and add it to the baseTokenAmount to be transferred

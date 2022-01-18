@@ -1247,7 +1247,7 @@ describe("ERC20TemplateEnterprise", () => {
       {
         "exchangeContract": fixedRateExchange.address,
         "exchangeId": exchangeId,
-        "maxBaseTokenAmount": web3.utils.toWei("2"),
+        "maxbaseTokenAmount": web3.utils.toWei("2"),
         "swapMarketFee":0,
         "marketFeeAddress":user5.address
       }
@@ -1390,7 +1390,7 @@ describe("ERC20TemplateEnterprise", () => {
       {
         "exchangeContract": fixedRateExchange.address,
         "exchangeId": exchangeId,
-        "maxBaseTokenAmount": web3.utils.toWei("2"),
+        "maxbaseTokenAmount": web3.utils.toWei("2"),
         "swapMarketFee":web3.utils.toWei("0.001"),//1e15 => 0.1%
         "marketFeeAddress":user5.address
       }

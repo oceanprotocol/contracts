@@ -5,7 +5,7 @@ pragma solidity 0.8.10;
 
 interface IFactoryRouter {
     function deployPool(
-        address[2] calldata tokens, // [datatokenAddress, basetokenAddress]
+        address[2] calldata tokens, // [datatokenAddress, baseTokenAddress]
         uint256[] calldata ssParams,
         uint256[] calldata swapFees,
         address[] calldata addresses

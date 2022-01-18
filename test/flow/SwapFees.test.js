@@ -46,7 +46,7 @@ describe("Swap Fees", () => {
     opfCollector,
     SwapFeesEvent,
     fixedRateExchange,
-    basetokenDecimals,
+    baseTokenDecimals,
     vestingAmount = web3.utils.toWei("1000"),
     SwapEvent;
   (dtIndex = null),
@@ -270,7 +270,7 @@ describe("Swap Fees", () => {
           //  oceanAddress,
           [
             web3.utils.toWei("1"), // rate
-            18, // basetokenDecimals
+            18, // baseTokenDecimals
             vestingAmount,
             2500000, // vested blocks
             initialOceanLiquidity, // baseToken initial pool liquidity
@@ -741,7 +741,7 @@ describe("Swap Fees", () => {
         sideStaking.address
       );
       const ssContractBPTbalance = await bPool.balanceOf(sideStaking.address);
-      const dtBalanceBeforeJoin = await sideStaking.getDataTokenBalance(
+      const dtBalanceBeforeJoin = await sideStaking.getDatatokenBalance(
         erc20Token.address
       );
 
@@ -774,7 +774,7 @@ describe("Swap Fees", () => {
       console.log(ethers.utils.formatEther(sideStakingAmountIn));
       console.log(ethers.utils.formatEther(oceanAmountIn));
       expect(
-        await sideStaking.getDataTokenBalance(erc20Token.address)
+        await sideStaking.getDatatokenBalance(erc20Token.address)
       ).to.equal(dtBalanceBeforeJoin.sub(sideStakingAmountIn));
       expect(JoinEvent[1].args.tokenAmountIn).to.equal(sideStakingAmountIn);
 
@@ -810,7 +810,7 @@ describe("Swap Fees", () => {
         .connect(user3)
         .approve(bPool.address, web3.utils.toWei("100"));
 
-      const dtBalanceBeforeJoin = await sideStaking.getDataTokenBalance(
+      const dtBalanceBeforeJoin = await sideStaking.getDatatokenBalance(
         erc20Token.address
       );
       const BPTAmountOut = ethers.utils.parseEther("0.1");
@@ -837,7 +837,7 @@ describe("Swap Fees", () => {
         "dt in"
       );
       expect(
-        await sideStaking.getDataTokenBalance(erc20Token.address)
+        await sideStaking.getDatatokenBalance(erc20Token.address)
       ).to.equal(dtBalanceBeforeJoin.sub(JoinEvent[1].args.tokenAmountIn));
       // check balances (ocean and bpt)
       expect(
@@ -875,7 +875,7 @@ describe("Swap Fees", () => {
       // NO APPROVAL FOR BPT is required
 
       const user3BPTbalance = await bPool.balanceOf(user3.address);
-      const dtBalanceBeforeExit = await sideStaking.getDataTokenBalance(
+      const dtBalanceBeforeExit = await sideStaking.getDatatokenBalance(
         erc20Token.address
       );
 
@@ -905,7 +905,7 @@ describe("Swap Fees", () => {
       );
 
       expect(
-        await sideStaking.getDataTokenBalance(erc20Token.address)
+        await sideStaking.getDatatokenBalance(erc20Token.address)
       ).to.equal(dtBalanceBeforeExit);
 
       expect((await bPool.balanceOf(user3.address)).add(BPTAmountIn)).to.equal(
@@ -930,7 +930,7 @@ describe("Swap Fees", () => {
       );
       const ssContractBPTbalance = await bPool.balanceOf(sideStaking.address);
       // NO APPROVAL FOR BPT is required
-      const dtBalanceBeforeExit = await sideStaking.getDataTokenBalance(
+      const dtBalanceBeforeExit = await sideStaking.getDatatokenBalance(
         erc20Token.address
       );
       const user3BPTbalance = await bPool.balanceOf(user3.address);
@@ -970,7 +970,7 @@ describe("Swap Fees", () => {
       );
 
       expect(
-        await sideStaking.getDataTokenBalance(erc20Token.address)
+        await sideStaking.getDatatokenBalance(erc20Token.address)
       ).to.equal(dtBalanceBeforeExit.add(ExitEvent[1].args.tokenAmountOut));
       // we also check user3 BPT balance before and after
       expect(user3BPTbalance).to.equal(
@@ -996,7 +996,7 @@ describe("Swap Fees", () => {
       const ssContractBPTbalance = await bPool.balanceOf(sideStaking.address);
 
       // NO APPROVAL FOR BPT is required
-      const dtBalanceBeforeExit = await sideStaking.getDataTokenBalance(
+      const dtBalanceBeforeExit = await sideStaking.getDatatokenBalance(
         erc20Token.address
       );
       const user3BPTbalance = await bPool.balanceOf(user3.address);
@@ -1039,7 +1039,7 @@ describe("Swap Fees", () => {
       );
 
       expect(
-        await sideStaking.getDataTokenBalance(erc20Token.address)
+        await sideStaking.getDatatokenBalance(erc20Token.address)
       ).to.equal(dtBalanceBeforeExit);
 
       // we also check user3 BPT balance before and after
@@ -1064,7 +1064,7 @@ describe("Swap Fees", () => {
       );
       const ssContractBPTbalance = await bPool.balanceOf(sideStaking.address);
       // NO APPROVAL FOR BPT is required
-      const dtBalanceBeforeExit = await sideStaking.getDataTokenBalance(
+      const dtBalanceBeforeExit = await sideStaking.getDatatokenBalance(
         erc20Token.address
       );
       const user3BPTbalance = await bPool.balanceOf(user3.address);
@@ -1109,7 +1109,7 @@ describe("Swap Fees", () => {
         await oceanContract.balanceOf(user3.address)
       );
       expect(
-        await sideStaking.getDataTokenBalance(erc20Token.address)
+        await sideStaking.getDatatokenBalance(erc20Token.address)
       ).to.equal(dtBalanceBeforeExit.add(ExitEvent[1].args.tokenAmountOut));
       // NOW we check the ssContract BPT balance
       expect(ssContractBPTbalance.sub(BPTEvent[0].args.bptAmount)).to.equal(
@@ -1130,7 +1130,7 @@ describe("Swap Fees", () => {
       const ssContractBPTbalance = await bPool.balanceOf(sideStaking.address);
 
       // NO APPROVAL FOR BPT is required
-      const dtBalanceBeforeExit = await sideStaking.getDataTokenBalance(
+      const dtBalanceBeforeExit = await sideStaking.getDatatokenBalance(
         erc20Token.address
       );
       const user3BPTbalance = await bPool.balanceOf(user3.address);
@@ -1169,7 +1169,7 @@ describe("Swap Fees", () => {
         await erc20Token.balanceOf(user3.address)
       );
       expect(
-        await sideStaking.getDataTokenBalance(erc20Token.address)
+        await sideStaking.getDatatokenBalance(erc20Token.address)
       ).to.equal(dtBalanceBeforeExit);
       // NOW we check the ssContract BPT and DT balance didn't change.
       expect(ssContractBPTbalance).to.equal(
@@ -1261,7 +1261,7 @@ describe("Swap Fees", () => {
           //  daiAddress,
           [
             web3.utils.toWei("1"), // rate
-            18, // basetokenDecimals
+            18, // baseTokenDecimals
             web3.utils.toWei("100"), //vestingAmount
             2500000, // vested blocks
             initialDAILiquidity, // baseToken initial pool liquidity
@@ -2158,7 +2158,7 @@ describe("Swap Fees", () => {
     it("#20 - user3 attemps to add more than available liquidity, check vesting still available", async () => {
       // TODO: add detailed balance check for vesting amount, review !18 decimals (USDC TEST)
 
-      const dtSSContractBalance = await sideStaking.getDataTokenBalance(
+      const dtSSContractBalance = await sideStaking.getDatatokenBalance(
         erc20Token.address
       );
       console.log(
@@ -2243,7 +2243,7 @@ describe("Swap Fees", () => {
       const ssDTBalance = await erc20Token.balanceOf(sideStaking.address);
 
       initialUSDCLiquidity = 88000 * 1e6; // 88000 usdc
-      basetokenDecimals = 6;
+      baseTokenDecimals = 6;
       // approve exact amount
       await usdcContract
         .connect(user3)
@@ -2256,7 +2256,7 @@ describe("Swap Fees", () => {
           // usdcAddress,
           [
             web3.utils.toWei("1"), // rate
-            basetokenDecimals, // basetokenDecimals
+            baseTokenDecimals, // baseTokenDecimals
             vestingAmount, // DT vesting amount
             2500000, // vested blocks
             initialUSDCLiquidity, // baseToken initial pool liquidity
@@ -2298,7 +2298,7 @@ describe("Swap Fees", () => {
       // check the dt balance available for adding liquidity doesn't account for vesting amount
 
       expect(
-        await sideStaking.getDataTokenBalance(erc20Token.address)
+        await sideStaking.getDatatokenBalance(erc20Token.address)
       ).to.equal(
         (await erc20Token.balanceOf(sideStaking.address))
       );
@@ -2720,7 +2720,7 @@ describe("Swap Fees", () => {
         sideStaking.address
       );
       const ssContractBPTbalance = await bPool.balanceOf(sideStaking.address);
-      const dtBalanceBeforeJoin = await sideStaking.getDataTokenBalance(
+      const dtBalanceBeforeJoin = await sideStaking.getDatatokenBalance(
         erc20Token.address
       );
       const BPTAmountOut = web3.utils.toWei("0.01");
@@ -2747,7 +2747,7 @@ describe("Swap Fees", () => {
       expect(JoinEvent[0].args.tokenIn).to.equal(erc20Token.address);
       expect(JoinEvent[1].args.tokenIn).to.equal(usdcAddress);
       expect(
-        await sideStaking.getDataTokenBalance(erc20Token.address)
+        await sideStaking.getDatatokenBalance(erc20Token.address)
       ).to.equal(dtBalanceBeforeJoin);
       console.log(
         ethers.utils.formatEther(JoinEvent[0].args.tokenAmountIn),
@@ -2790,7 +2790,7 @@ describe("Swap Fees", () => {
         sideStaking.address
       );
       const ssContractBPTbalance = await bPool.balanceOf(sideStaking.address);
-      const dtBalanceBeforeJoin = await sideStaking.getDataTokenBalance(
+      const dtBalanceBeforeJoin = await sideStaking.getDatatokenBalance(
         erc20Token.address
       );
       await usdcContract
@@ -2828,7 +2828,7 @@ describe("Swap Fees", () => {
         await erc20Token.balanceOf(sideStaking.address)
       );
       expect(
-        await sideStaking.getDataTokenBalance(erc20Token.address)
+        await sideStaking.getDatatokenBalance(erc20Token.address)
       ).to.equal(dtBalanceBeforeJoin.sub(JoinEvent[1].args.tokenAmountIn));
       expect(JoinEvent[1].args.tokenAmountIn).to.equal(sideStakingAmountIn);
 
@@ -2862,7 +2862,7 @@ describe("Swap Fees", () => {
         sideStaking.address
       );
       const ssContractBPTbalance = await bPool.balanceOf(sideStaking.address);
-      const dtBalanceBeforeJoin = await sideStaking.getDataTokenBalance(
+      const dtBalanceBeforeJoin = await sideStaking.getDatatokenBalance(
         erc20Token.address
       );
       await usdcContract
@@ -2893,7 +2893,7 @@ describe("Swap Fees", () => {
         "dt in"
       );
       expect(
-        await sideStaking.getDataTokenBalance(erc20Token.address)
+        await sideStaking.getDatatokenBalance(erc20Token.address)
       ).to.equal(dtBalanceBeforeJoin.sub(JoinEvent[1].args.tokenAmountIn));
       // check balances (ocean and bpt)
       expect(
@@ -2931,7 +2931,7 @@ describe("Swap Fees", () => {
       // NO APPROVAL FOR BPT is required
 
       const user3BPTbalance = await bPool.balanceOf(user3.address);
-      const dtBalanceBeforeExit = await sideStaking.getDataTokenBalance(
+      const dtBalanceBeforeExit = await sideStaking.getDatatokenBalance(
         erc20Token.address
       );
       const BPTAmountIn = ethers.utils.parseEther("0.1");
@@ -2967,7 +2967,7 @@ describe("Swap Fees", () => {
         await usdcContract.balanceOf(user3.address)
       );
       expect(
-        await sideStaking.getDataTokenBalance(erc20Token.address)
+        await sideStaking.getDatatokenBalance(erc20Token.address)
       ).to.equal(dtBalanceBeforeExit);
       expect((await bPool.balanceOf(user3.address)).add(BPTAmountIn)).to.equal(
         user3BPTbalance
@@ -2991,7 +2991,7 @@ describe("Swap Fees", () => {
       );
       const ssContractBPTbalance = await bPool.balanceOf(sideStaking.address);
       // NO APPROVAL FOR BPT is required
-      const dtBalanceBeforeExit = await sideStaking.getDataTokenBalance(
+      const dtBalanceBeforeExit = await sideStaking.getDatatokenBalance(
         erc20Token.address
       );
       const user3BPTbalance = await bPool.balanceOf(user3.address);
@@ -3026,7 +3026,7 @@ describe("Swap Fees", () => {
         "dt out"
       );
       expect(
-        await sideStaking.getDataTokenBalance(erc20Token.address)
+        await sideStaking.getDatatokenBalance(erc20Token.address)
       ).to.equal(dtBalanceBeforeExit.add(ExitEvent[1].args.tokenAmountOut));
       // we check user3 OCEAN balance before and after
       expect(ExitEvent[0].args.tokenAmountOut.add(user3USDCbalance)).to.equal(
@@ -3057,7 +3057,7 @@ describe("Swap Fees", () => {
       );
       const ssContractBPTbalance = await bPool.balanceOf(sideStaking.address);
       // NO APPROVAL FOR BPT is required
-      const dtBalanceBeforeExit = await sideStaking.getDataTokenBalance(
+      const dtBalanceBeforeExit = await sideStaking.getDatatokenBalance(
         erc20Token.address
       );
       const user3BPTbalance = await bPool.balanceOf(user3.address);
@@ -3100,7 +3100,7 @@ describe("Swap Fees", () => {
         await erc20Token.balanceOf(user3.address)
       );
       expect(
-        await sideStaking.getDataTokenBalance(erc20Token.address)
+        await sideStaking.getDatatokenBalance(erc20Token.address)
       ).to.equal(dtBalanceBeforeExit);
       // we also check user3 BPT balance before and after
       expect(user3BPTbalance).to.equal(
@@ -3124,7 +3124,7 @@ describe("Swap Fees", () => {
       );
       const ssContractBPTbalance = await bPool.balanceOf(sideStaking.address);
       // NO APPROVAL FOR BPT is required
-      const dtBalanceBeforeExit = await sideStaking.getDataTokenBalance(
+      const dtBalanceBeforeExit = await sideStaking.getDatatokenBalance(
         erc20Token.address
       );
       const user3BPTbalance = await bPool.balanceOf(user3.address);
@@ -3165,7 +3165,7 @@ describe("Swap Fees", () => {
         "dt out"
       );
       expect(
-        await sideStaking.getDataTokenBalance(erc20Token.address)
+        await sideStaking.getDatatokenBalance(erc20Token.address)
       ).to.equal(dtBalanceBeforeExit.add(ExitEvent[1].args.tokenAmountOut));
       // we check user3 OCEAN balance before and after
       expect(ExitEvent[0].args.tokenAmountOut.add(user3USDCbalance)).to.equal(
@@ -3191,7 +3191,7 @@ describe("Swap Fees", () => {
       const ssContractBPTbalance = await bPool.balanceOf(sideStaking.address);
 
       // NO APPROVAL FOR BPT is required
-      const dtBalanceBeforeExit = await sideStaking.getDataTokenBalance(
+      const dtBalanceBeforeExit = await sideStaking.getDatatokenBalance(
         erc20Token.address
       );
       const user3BPTbalance = await bPool.balanceOf(user3.address);
@@ -3227,7 +3227,7 @@ describe("Swap Fees", () => {
         "dt out"
       );
       expect(
-        await sideStaking.getDataTokenBalance(erc20Token.address)
+        await sideStaking.getDatatokenBalance(erc20Token.address)
       ).to.equal(dtBalanceBeforeExit);
       assert(ExitEvent[1] == null);
       // we check user3 DT balance before and after
@@ -3283,7 +3283,7 @@ describe("Swap Fees", () => {
     });
 
     it("#21 - add all DT tokens as liquidity, check vesting still available", async () => {
-      const dtSSContractBalance = await sideStaking.getDataTokenBalance(
+      const dtSSContractBalance = await sideStaking.getDatatokenBalance(
         erc20Token.address
       );
       console.log(dtSSContractBalance.toString());
@@ -3338,7 +3338,7 @@ describe("Swap Fees", () => {
         user3DTbalance
       );
 
-      const dtSSContractBalanceAfter = await sideStaking.getDataTokenBalance(
+      const dtSSContractBalanceAfter = await sideStaking.getDatatokenBalance(
         erc20Token.address
       );
       console.log(dtSSContractBalanceAfter.toString());
@@ -3380,7 +3380,7 @@ describe("Swap Fees", () => {
       const ssDTBalance = await erc20Token.balanceOf(sideStaking.address);
 
       initialUSDCLiquidity = 88000 * 1e6; // 88000 usdc
-      basetokenDecimals = 6;
+      baseTokenDecimals = 6;
       // approve exact amount
       await usdcContract
         .connect(user3)
@@ -3393,7 +3393,7 @@ describe("Swap Fees", () => {
           // usdcAddress,
           [
             web3.utils.toWei("1"), // rate
-            basetokenDecimals, // basetokenDecimals
+            baseTokenDecimals, // baseTokenDecimals
             vestingAmount, // DT vesting amount
             2500000, // vested blocks
             initialUSDCLiquidity, // baseToken initial pool liquidity
@@ -3435,7 +3435,7 @@ describe("Swap Fees", () => {
       // check the dt balance available for adding liquidity doesn't account for vesting amount
 
       expect(
-        await sideStaking.getDataTokenBalance(erc20Token.address)
+        await sideStaking.getDatatokenBalance(erc20Token.address)
       ).to.equal(
         (await erc20Token.balanceOf(sideStaking.address))
       );
@@ -4303,7 +4303,7 @@ describe("Swap Fees", () => {
     });
 
     it("#23 - add all DT tokens as liquidity, check vesting still available", async () => {
-      const dtSSContractBalance = await sideStaking.getDataTokenBalance(
+      const dtSSContractBalance = await sideStaking.getDatatokenBalance(
         erc20Token.address
       );
       console.log(
@@ -4366,7 +4366,7 @@ describe("Swap Fees", () => {
         user3DTbalance
       );
 
-      const dtSSContractBalanceAfter = await sideStaking.getDataTokenBalance(
+      const dtSSContractBalanceAfter = await sideStaking.getDatatokenBalance(
         erc20Token.address
       );
       console.log(
@@ -4431,7 +4431,7 @@ describe("Swap Fees", () => {
           // daiAddress,
           [
             web3.utils.toWei("1"), // rate
-            18, // basetokenDecimals
+            18, // baseTokenDecimals
             web3.utils.toWei("100"), //vestingAmount
             2500000, // vested blocks
             initialDAILiquidity, // baseToken initial pool liquidity
@@ -5223,7 +5223,7 @@ describe("Swap Fees", () => {
     it("#23 - user3 attemps to add more than available liquidity, check vesting still available", async () => {
       // TODO: add detailed balance check for vesting amount, review !18 decimals (USDC TEST)
 
-      const dtSSContractBalance = await sideStaking.getDataTokenBalance(
+      const dtSSContractBalance = await sideStaking.getDatatokenBalance(
         erc20Token.address
       );
       console.log(

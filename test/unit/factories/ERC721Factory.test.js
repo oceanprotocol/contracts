@@ -1103,7 +1103,7 @@ describe("ERC721Factory", () => {
         "addresses":[sideStaking.address,erc20Token.address,factoryERC721.address,user3.address,user6.address,poolTemplate.address],
         "ssParams":[
           web3.utils.toWei("1"), // rate
-          18, // basetokenDecimals
+          18, // baseTokenDecimals
           web3.utils.toWei('10000'),
           2500000, // vested blocks
           initialPoolLiquidy, // baseToken initial pool liquidity

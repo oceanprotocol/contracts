@@ -409,15 +409,15 @@ contract FactoryRouter is BFactory {
      This function cannot be called directly, but ONLY through the ERC20DT contract from a ERC20DEployer role
 
       ssContract address
-     tokens [datatokenAddress, basetokenAddress]
+     tokens [datatokenAddress, baseTokenAddress]
      publisherAddress user which will be assigned the vested amount.
      * @param tokens precreated parameter
      * @param ssParams params for the ssContract. 
      *                     [0]  = rate (wei)
-     *                     [1]  = basetoken decimals
+     *                     [1]  = baseToken decimals
      *                     [2]  = vesting amount (wei)
      *                     [3]  = vested blocks
-     *                     [4]  = initial liquidity in basetoken for pool creation
+     *                     [4]  = initial liquidity in baseToken for pool creation
      * @param swapFees swapFees (swapFee, swapMarketFee), swapOceanFee will be set automatically later
      *                     [0] = swapFee for LP Providers
      *                     [1] = swapFee for marketplace runner
@@ -425,8 +425,8 @@ contract FactoryRouter is BFactory {
       .
      * @param addresses refers to an array of addresses passed by user
      *                     [0]  = side staking contract address
-     *                     [1]  = basetoken address for pool creation(OCEAN or other)
-     *                     [2]  = basetokenSender user which will provide the baseToken amount for initial liquidity
+     *                     [1]  = baseToken address for pool creation(OCEAN or other)
+     *                     [2]  = baseTokenSender user which will provide the baseToken amount for initial liquidity
      *                     [3]  = publisherAddress user which will be assigned the vested amount
      *                     [4]  = marketFeeCollector marketFeeCollector address
                            [5]  = poolTemplateAddress
@@ -435,14 +435,14 @@ contract FactoryRouter is BFactory {
      */
     function deployPool(
         address[2] calldata tokens,
-        // [datatokenAddress, basetokenAddress]
+        // [datatokenAddress, baseTokenAddress]
         uint256[] calldata ssParams,
         uint256[] calldata swapFees,
         address[] calldata addresses
     )
         external
         returns (
-            //[controller,basetokenAddress,basetokenSender,publisherAddress, marketFeeCollector,poolTemplateAddress]
+            //[controller,baseTokenAddress,baseTokenSender,publisherAddress, marketFeeCollector,poolTemplateAddress]
 
             address
         )
@@ -456,7 +456,7 @@ contract FactoryRouter is BFactory {
         );
         require(ssParams[1] > 0, "Wrong decimals");
 
-        // we pull basetoken for creating initial pool and send it to the controller (ssContract)
+        // we pull baseToken for creating initial pool and send it to the controller (ssContract)
         IERC20 bt = IERC20(tokens[1]);
         bt.safeTransferFrom(addresses[2], addresses[0], ssParams[4]);
 
@@ -479,7 +479,7 @@ contract FactoryRouter is BFactory {
      * but ONLY through the ERC20DT contract from a ERC20DEployer role
      * @param fixedPriceAddress fixedPriceAddress
      * @param addresses array of addresses [baseToken,owner,marketFeeCollector]
-     * @param uints array of uints [baseTokenDecimals,dataTokenDecimals, fixedRate, marketFee, withMint]
+     * @param uints array of uints [baseTokenDecimals,datatokenDecimals, fixedRate, marketFee, withMint]
        @return exchangeId
      */
 

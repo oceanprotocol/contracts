@@ -12,16 +12,16 @@ pragma solidity 0.8.10;
 // Code is Apache-2.0 and docs are CC-BY-4.0
 
 interface IPool {
-    function getDataTokenAddress() external view returns (address);
+    function getDatatokenAddress() external view returns (address);
 
-    function getBaseTokenAddress() external view returns (address);
+    function getbaseTokenAddress() external view returns (address);
 
     function getController() external view returns (address);
 
     function setup(
-        address dataTokenAaddress,
-        uint256 dataTokenAmount,
-        uint256 dataTokenWeight,
+        address datatokenAddress,
+        uint256 datatokenAmount,
+        uint256 datatokennWeight,
         address baseTokenAddress,
         uint256 baseTokenAmount,
         uint256 baseTokenWeight

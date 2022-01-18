@@ -29,7 +29,7 @@ contract BFactory is BConst, Deployer {
         address indexed newBPoolAddress,
         address indexed registeredBy,
         address indexed datatokenAddress,
-        address basetokenAddress,
+        address baseTokenAddress,
         address bpoolTemplateAddress,
         address ssAddress
     );
@@ -73,13 +73,13 @@ contract BFactory is BConst, Deployer {
      * @dev Deploys new BPool proxy contract. 
        Template contract address could not be a zero address. 
 
-     * @param tokens [datatokenAddress, basetokenAddress]
+     * @param tokens [datatokenAddress, baseTokenAddress]
      * publisherAddress user which will be assigned the vested amount.
      * @param ssParams params for the ssContract. 
      * @param swapFees swapFees (swapFee, swapMarketFee), swapOceanFee will be set automatically later
        marketFeeCollector marketFeeCollector address
        @param addresses // array of addresses passed by the user
-       [controller,basetokenAddress,basetokenSender,publisherAddress, marketFeeCollector,poolTemplate address]
+       [controller,baseTokenAddress,baseTokenSender,publisherAddress, marketFeeCollector,poolTemplate address]
       @return bpool address of a new proxy BPool contract 
      */
        
@@ -118,10 +118,10 @@ contract BFactory is BConst, Deployer {
             'ERR_INITIALIZE_BPOOL'
         );
         
-      //  emit BPoolCreated(bpool, msg.sender,datatokenAddress,basetokenAddress,bpoolTemplate,controller);
+      //  emit BPoolCreated(bpool, msg.sender,datatokenAddress,baseTokenAddress,bpoolTemplate,controller);
         
-        // requires approval first from basetokenSender
-        ISideStaking(addresses[0]).newDataTokenCreated(  
+        // requires approval first from baseTokenSender
+        ISideStaking(addresses[0]).newDatatokenCreated(  
         tokens[0],
         tokens[1],
         bpool,

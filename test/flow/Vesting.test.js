@@ -228,7 +228,7 @@ describe("Vesting flow", () => {
        // oceanAddress,
         [
           web3.utils.toWei("1"), // rate
-          18, // basetokenDecimals
+          18, // baseTokenDecimals
           web3.utils.toWei('10000'),
           20, // vested blocks  - this is our failure point
           initialOceanLiquidity, // baseToken initial pool liquidity
@@ -263,7 +263,7 @@ describe("Vesting flow", () => {
        // oceanAddress,
         [
           web3.utils.toWei("1"), // rate
-          18, // basetokenDecimals
+          18, // baseTokenDecimals
           web3.utils.toWei('10000'),
           2500000, // vested blocks
           initialOceanLiquidity, // baseToken initial pool liquidity
@@ -307,7 +307,7 @@ describe("Vesting flow", () => {
 
     await expectRevert(
       erc20Token.connect(user3).mint(user3.address, web3.utils.toWei("10000")),
-      "DataTokenTemplate: cap exceeded"
+      "DatatokenTemplate: cap exceeded"
     );
 
     assert((await erc20Token.balanceOf(user3.address)) == 0);
