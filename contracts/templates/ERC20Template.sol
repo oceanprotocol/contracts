@@ -324,7 +324,7 @@ contract ERC20Template is
      *      Creates a new FixedRateExchange setup.
      * @param fixedPriceAddress fixedPriceAddress
      * @param addresses array of addresses [baseToken,owner,marketFeeCollector]
-     * @param uints array of uints [baseTokenDecimals,dataTokenDecimals, fixedRate, marketFee, withMint]
+     * @param uints array of uints [baseTokenDecimals,datatokenDecimals, fixedRate, marketFee, withMint]
      * @return exchangeId
      */
     function createFixedRate(
