@@ -266,7 +266,7 @@ describe("FixedRateExchange", () => {
       // expect(eventsExchange[0].args.basetoken).to.equal(oceanContract.address);
       // expect(eventsExchange[0].args.owner).to.equal(alice.address);
       expect(eventsExchange[0].args.owner).to.equal(web3.utils.toChecksumAddress(alice.address));
-      expect(eventsExchange[0].args.baseToken).to.equal(web3.utils.toChecksumAddress(oceanContract.address));
+      expect(eventsExchange[0].args.basetoken).to.equal(web3.utils.toChecksumAddress(oceanContract.address));
 
       const fixedrates = await erc20Token.getFixedRates()
       assert(fixedrates[0].contractAddress ===web3.utils.toChecksumAddress(fixedRateExchange.address),
@@ -993,7 +993,7 @@ describe("FixedRateExchange", () => {
 
       // expect(eventsExchange[0].args.basetoken).to.equal(daiContract.address);
       // expect(eventsExchange[0].args.owner).to.equal(alice.address);
-      expect(eventsExchange[0].args.baseToken).to.equal(daiContract.address);
+      expect(eventsExchange[0].args.basetoken).to.equal(daiContract.address);
     });
 
     it("#3 - exchange is active", async () => {
@@ -1779,7 +1779,7 @@ describe("FixedRateExchange", () => {
 
       // expect(eventsExchange[0].args.basetoken).to.equal(oceanContract.address);
       //  expect(eventsExchange[0].args.owner).to.equal(alice.address);
-      expect(eventsExchange[0].args.baseToken).to.equal(oceanContract.address);
+      expect(eventsExchange[0].args.basetoken).to.equal(oceanContract.address);
     });
 
     it("#3 - exchange is active", async () => {
@@ -2486,7 +2486,7 @@ describe("FixedRateExchange", () => {
 
       // expect(eventsExchange[0].args.basetoken).to.equal(daiContract.address);
       // expect(eventsExchange[0].args.owner).to.equal(alice.address);
-      expect(eventsExchange[0].args.baseToken).to.equal(daiContract.address);
+      expect(eventsExchange[0].args.basetoken).to.equal(daiContract.address);
     });
 
     it("#3 - exchange is active", async () => {
@@ -3188,7 +3188,7 @@ describe("FixedRateExchange", () => {
 
       // expect(eventsExchange[0].args.basetoken).to.equal(usdcContract.address);
       // expect(eventsExchange[0].args.owner).to.equal(alice.address);
-      expect(eventsExchange[0].args.baseToken).to.equal(usdcContract.address);
+      expect(eventsExchange[0].args.basetoken).to.equal(usdcContract.address);
     });
 
     it("#3 - exchange is active", async () => {
@@ -3896,7 +3896,7 @@ describe("FixedRateExchange", () => {
 
       // expect(eventsExchange[0].args.basetoken).to.equal(usdcContract.address);
       // expect(eventsExchange[0].args.owner).to.equal(alice.address);
-      expect(eventsExchange[0].args.baseToken).to.equal(usdcContract.address);
+      expect(eventsExchange[0].args.basetoken).to.equal(usdcContract.address);
     });
 
     it("#3 - exchange is active", async () => {
@@ -4600,7 +4600,7 @@ describe("FixedRateExchange", () => {
 
       // expect(eventsExchange[0].args.basetoken).to.equal(daiContract.address);
       // expect(eventsExchange[0].args.owner).to.equal(alice.address);
-      expect(eventsExchange[0].args.baseToken).to.equal(daiContract.address);
+      expect(eventsExchange[0].args.basetoken).to.equal(daiContract.address);
     });
 
     it("#3 - exchange is active", async () => {
@@ -5389,7 +5389,7 @@ describe("FixedRateExchange", () => {
       // commented out for now
       // expect(eventsExchange[0].args.basetoken).to.equal(oceanContract.address);
       // expect(eventsExchange[0].args.owner).to.equal(alice.address);
-      expect(eventsExchange[0].args.baseToken).to.equal(oceanContract.address);
+      expect(eventsExchange[0].args.basetoken).to.equal(oceanContract.address);
     });
 
     it("#3 - exchange is active", async () => {

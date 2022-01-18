@@ -102,7 +102,7 @@ contract ERC20TemplateEnterprise is
 
     event MinterApproved(address currentMinter, address newMinter);
 
-    event NewFixedRate(bytes32 exchangeId, address indexed owner, address exchangeContract, address indexed baseToken);
+    event NewFixedRate(bytes32 exchangeId, address indexed owner, address exchangeContract, address indexed basetoken);
     event NewDispenser(address dispenserContract);
     
     event NewPaymentCollector(
