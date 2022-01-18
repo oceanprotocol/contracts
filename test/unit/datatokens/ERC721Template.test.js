@@ -212,6 +212,7 @@ describe("ERC721Template", () => {
     assert((await erc20Token.permissions(user3.address)).minter == true);
   });
 
+  
   it("#isInitialized - should check that the tokenERC721 contract is initialized", async () => {
     expect(await tokenERC721.isInitialized()).to.equal(true);
   });
@@ -228,6 +229,11 @@ describe("ERC721Template", () => {
       ),
       "ERC721Template: token instance already initialized"
     );
+  });
+
+  it("#getId - should return templateID", async () => {
+    const templateId = 1;
+    assert((await tokenERC721.getId()) == templateId);
   });
 
   it("#mint - should mint 1 ERC721 to owner", async () => {
@@ -708,4 +714,43 @@ describe("ERC721Template", () => {
     const tokenURI= await tokenERC721.tokenURI(1)
     assert(tokenURI == "https://anothernewurl.com/nft/");
   });
+
+
+
+
+
+  it("#setMetaDataAndTokenURI - should update tokenURI and set metadata", async () => {
+    const metaDataAndTokenURI = {
+      metaDataState: metaDataState,
+      metaDataDecryptorUrl: metaDataDecryptorUrl,
+      metaDataDecryptorAddress: metaDataDecryptorAddress,
+      flags: flags,
+      data: data,
+      metaDataHash: dataHash,
+      tokenId: 1,
+      tokenURI: 'https://anothernewurl.com/nft/',
+      metadataProofs: []
+    }
+
+    let tx = await tokenERC721.connect(owner).setMetaDataAndTokenURI(metaDataAndTokenURI);
+    let txReceipt = await tx.wait();
+   
+    let event = getEventFromTx(txReceipt,'TokenURIUpdate')
+    assert(event, "Cannot find TokenURIUpdate event")
+    
+    event = getEventFromTx(txReceipt,'MetadataCreated')
+    assert(event, "Cannot find MetadataCreated event")
+    tokenAddress = event.args[0];
+    assert(event.args[2] == metaDataDecryptorUrl);
+    
+    metadataInfo = await tokenERC721.getMetaData()
+    assert(metadataInfo[3] === true)
+    assert(metadataInfo[0] == metaDataDecryptorUrl);
+
+    
+    
+
+  });
+
+
 });

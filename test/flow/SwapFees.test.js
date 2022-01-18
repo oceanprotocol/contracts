@@ -3610,7 +3610,7 @@ describe("Swap Fees", () => {
     it("#7 - opfFee is updated to 1% (1e16)", async () => {
       // we already approved pool to withdraw Ocean tokens
 
-      await router.updateOPFFee(web3.utils.toWei("0.01"));
+      await router.updateOPFFee("0", web3.utils.toWei("0.01"));
       expect(await bPool.getSwapFee()).to.equal(swapFee);
       expect(await bPool.getOPFFee()).to.equal(web3.utils.toWei("0.01"));
       expect(await bPool._swapPublishMarketFee()).to.equal(
@@ -4561,7 +4561,7 @@ describe("Swap Fees", () => {
     it("#7 - opfFee is updated to 0.1% (1e15) again, set to 0.1% in previous test", async () => {
       // we already approved pool to withdraw Ocean tokens
       expect(await bPool.getOPFFee()).to.equal(web3.utils.toWei("0.01"));
-      await router.updateOPFFee(web3.utils.toWei("0.001")); // 1e15 => 0.1%
+      await router.updateOPFFee("0", web3.utils.toWei("0.001")); // 1e15 => 0.1%
       expect(await bPool.getSwapFee()).to.equal(swapFee);
       expect(await bPool.getOPFFee()).to.equal(web3.utils.toWei("0.001"));
       expect(await bPool._swapPublishMarketFee()).to.equal(

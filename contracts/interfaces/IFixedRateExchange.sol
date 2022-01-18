@@ -1,4 +1,7 @@
 pragma solidity 0.8.10;
+// Copyright BigchainDB GmbH and Ocean Protocol contributors
+// SPDX-License-Identifier: (Apache-2.0 AND CC-BY-4.0)
+// Code is Apache-2.0 and docs are CC-BY-4.0
 
 interface IFixedRateExchange {
     function createWithDecimals(
@@ -55,4 +58,5 @@ interface IFixedRateExchange {
     function updateMarketFee(bytes32 exchangeId, uint256 _newMarketFee) external;
     function updateMarketFeeCollector(bytes32 exchangeId, address _newMarketCollector) external;
     function setAllowedSwapper(bytes32 exchangeId, address newAllowedSwapper) external;
+    function getId() pure external returns (uint8);
 }

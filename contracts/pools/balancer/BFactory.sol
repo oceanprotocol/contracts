@@ -1,5 +1,5 @@
 pragma solidity 0.8.10;
-// Copyright BigchainDB GmbH and Ocean Protocol contributors
+// Copyright Balancer, BigchainDB GmbH and Ocean Protocol contributors
 // SPDX-License-Identifier: (Apache-2.0 AND CC-BY-4.0)
 // Code is Apache-2.0 and docs are CC-BY-4.0
 
@@ -22,8 +22,8 @@ contract BFactory is BConst, Deployer {
 
     address public opfCollector;
 
-    mapping(address => bool) internal poolTemplates;
-  
+    // mapping(address => bool) internal poolTemplates;
+    address[] public poolTemplates;
 
     event BPoolCreated(
         address indexed newBPoolAddress,
@@ -34,6 +34,14 @@ contract BFactory is BConst, Deployer {
         address ssAddress
     );
     
+    event PoolTemplateAdded(
+        address indexed caller,
+        address indexed contractAddress
+    );
+    event PoolTemplateRemoved(
+        address indexed caller,
+        address indexed contractAddress
+    );
     
     /* @dev Called on contract deployment. Cannot be called with zero address.
        @param _bpoolTemplate -- address of a deployed BPool contract. 
@@ -84,7 +92,7 @@ contract BFactory is BConst, Deployer {
         internal 
         returns (address bpool)
     {
-        require(poolTemplates[addresses[5]], 'BFactory: Wrong Pool Template');
+        require(isPoolTemplate(addresses[5]), 'BFactory: Wrong Pool Template');
         address[2] memory feeCollectors = [addresses[4],opfCollector];
 
 
@@ -125,15 +133,60 @@ contract BFactory is BConst, Deployer {
 
     }
 
-     function _addPoolTemplate(address poolTemplate) internal {
-        poolTemplates[poolTemplate] = true;
+    /**
+     * @dev _addPoolTemplate
+     *      Adds an address to the list of pools templates
+     *  @param poolTemplate address Contract to be added
+     */
+    function _addPoolTemplate(address poolTemplate) internal {
+        require(
+            poolTemplate != address(0),
+            "FactoryRouter: Invalid poolTemplate address"
+        );
+        if(!isPoolTemplate(poolTemplate)){
+            poolTemplates.push(poolTemplate);
+            emit PoolTemplateAdded(msg.sender, poolTemplate);
+            
+        }
+    }
+     /**
+     * @dev _removeFixedRateContract
+     *      Removes an address from the list of pool templates
+     *  @param poolTemplate address Contract to be removed
+     */
+    function _removePoolTemplate(address poolTemplate)
+        internal
+    {
+        uint256 i;
+        for (i = 0; i < poolTemplates.length; i++) {
+            if(poolTemplates[i] == poolTemplate) break;
+        }
+        if(i < poolTemplates.length){
+            // it's in the array
+            for (uint c = i; c < poolTemplates.length - 1; c++) {
+                    poolTemplates[c] = poolTemplates[c + 1];
+            }
+            poolTemplates.pop();
+            emit PoolTemplateRemoved(msg.sender, poolTemplate);
+        }
+    }
+    /**
+     * @dev isPoolTemplate
+     *      Removes true if address exists in the list of templates
+     *  @param poolTemplate address Contract to be checked
+     */
+    function isPoolTemplate(address poolTemplate) public view returns(bool) {
+        for (uint256 i = 0; i < poolTemplates.length; i++) {
+            if(poolTemplates[i] == poolTemplate) return true;
+        }
+        return false;
+    }
+    /**
+     * @dev getPoolTemplates
+     *      Returns the list of pool templates
+     */
+    function getPoolTemplates() public view returns(address[] memory) {
+        return(poolTemplates);
     }
 
-    function _removePoolTemplate(address poolTemplate) internal {
-        poolTemplates[poolTemplate] = false;
-    }
-
-    function isPoolTemplate(address poolTemplate) external view returns(bool) {
-        return poolTemplates[poolTemplate];
-    }
 }

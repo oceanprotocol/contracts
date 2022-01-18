@@ -43,8 +43,6 @@ contract ERC20Template is
     address private publishMarketFeeAddress;
     address private publishMarketFeeToken;
     uint256 private publishMarketFeeAmount;
-    uint8 private constant templateId = 1;
-
     uint256 public constant BASE = 10**18;
     uint256 public constant BASE_COMMUNITY_FEE_PERCENTAGE = BASE / 100; // == OPF takes 1% of the fees
 
@@ -704,10 +702,11 @@ contract ERC20Template is
 
     /**
      * @dev getId
-     *      Return template id
+     *      Return template id in case we need different ABIs. 
+     *      If you construct your own template, please make sure to change the hardcoded value
      */
-    function getId() external pure returns (uint8) {
-        return templateId;
+    function getId() pure public returns (uint8) {
+        return 1;
     }
 
     /**

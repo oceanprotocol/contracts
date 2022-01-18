@@ -275,6 +275,10 @@ describe("FixedRateExchange", () => {
            "Fixed Rate exchange not found in erc20Token.getFixedRates()")
     });
 
+    it("#getId - should return templateId", async () => {
+      const templateId = 1;
+      assert((await fixedRateExchange.getId()) == templateId);
+    });
     it("#3 - exchange is active", async () => {
       const isActive = await fixedRateExchange.isActive(
         eventsExchange[0].args.exchangeId
@@ -4782,7 +4786,7 @@ describe("FixedRateExchange", () => {
     });
 
     it("#10 - opfFee is updated to 1% from 0.1%", async () => {
-      await router.updateOPFFee(web3.utils.toWei('0.01'))
+      await router.updateOPFFee('0', web3.utils.toWei('0.01'))
       const feeInfo = await fixedRateExchange.getFeesInfo(
         eventsExchange[0].args.exchangeId
       );

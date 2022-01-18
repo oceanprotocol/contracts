@@ -1,7 +1,7 @@
-// You should have received a copy of the GNU General Public License
-// along with this program.  If not, see <http://www.gnu.org/licenses/>.
-
 pragma solidity 0.8.10;
+// Copyright BigchainDB GmbH and Ocean Protocol contributors
+// SPDX-License-Identifier: (Apache-2.0 AND CC-BY-4.0)
+// Code is Apache-2.0 and docs are CC-BY-4.0
 
 import "./balancer/BFactory.sol";
 import "../interfaces/IFactory.sol";
@@ -19,11 +19,16 @@ contract FactoryRouter is BFactory {
     address public fixedRate;
     uint256 public minVestingPeriodInBlocks = 2426000;
 
-    uint256 public swapOceanFee = 1e15;
-    mapping(address => bool) public oceanTokens;
-    mapping(address => bool) public ssContracts;
-    mapping(address => bool) public fixedPrice;
-    mapping(address => bool) public dispenser;
+    uint256 public swapOceanFee = 0;
+    uint256 public swapNonOceanFee = 1e15;
+    address[] public oceanTokens;
+    address[] public ssContracts;
+    address[] public fixedrates;
+    address[] public dispensers;
+    // mapping(address => bool) public oceanTokens;
+    // mapping(address => bool) public ssContracts;
+    // mapping(address => bool) public fixedPrice;
+    // mapping(address => bool) public dispenser;
 
     event NewPool(address indexed poolAddress, bool isOcean);
     event VestingPeriodChanges(address indexed caller, uint256 minVestingPeriodInBlocks);
@@ -59,16 +64,7 @@ contract FactoryRouter is BFactory {
         address indexed contractAddress
     );
 
-    event PoolTemplateAdded(
-        address indexed caller,
-        address indexed contractAddress
-    );
-    event PoolTemplateRemoved(
-        address indexed caller,
-        address indexed contractAddress
-    );
-
-    event OPFFeeChanged(address indexed caller, uint256 newFee);
+    event OPFFeeChanged(address indexed caller, uint256 newSwapOceanFee, uint256 newSwapNonOceanFee);
 
     modifier onlyRouterOwner() {
         require(routerOwner == msg.sender, "OceanRouter: NOT OWNER");
@@ -96,7 +92,7 @@ contract FactoryRouter is BFactory {
         );
         routerOwner = _routerOwner;
         opfCollector = _opfCollector;
-        oceanTokens[_oceanToken] = true;
+        _addOceanToken(_oceanToken);
     }
 
     function changeRouterOwner(address _routerOwner) external onlyRouterOwner {
@@ -105,15 +101,27 @@ contract FactoryRouter is BFactory {
         emit RouterChanged(msg.sender, _routerOwner);
     }
 
+    /**
+     * @dev addOceanToken
+     *      Adds a token to the list of tokens with reduced fees
+     *  @param oceanTokenAddress address Token to be added
+     */
     function addOceanToken(address oceanTokenAddress) external onlyRouterOwner {
-        require(
-            oceanTokenAddress != address(0),
-            "FactoryRouter: Invalid Ocean Token address"
-        );
-        oceanTokens[oceanTokenAddress] = true;
-        emit TokenAdded(msg.sender, oceanTokenAddress);
+        _addOceanToken(oceanTokenAddress);
+    }
+    
+    function _addOceanToken(address oceanTokenAddress) internal {
+        if(!isOceanToken(oceanTokenAddress)){
+            oceanTokens.push(oceanTokenAddress);
+            emit TokenAdded(msg.sender, oceanTokenAddress);
+        }
     }
 
+    /**
+     * @dev removeOceanToken
+     *      Removes a token if exists from the list of tokens with reduced fees
+     *  @param oceanTokenAddress address Token to be removed
+     */
     function removeOceanToken(address oceanTokenAddress)
         external
         onlyRouterOwner
@@ -122,26 +130,97 @@ contract FactoryRouter is BFactory {
             oceanTokenAddress != address(0),
             "FactoryRouter: Invalid Ocean Token address"
         );
-        oceanTokens[oceanTokenAddress] = false;
-        emit TokenRemoved(msg.sender, oceanTokenAddress);
+        uint256 i;
+        for (i = 0; i < oceanTokens.length; i++) {
+            if(oceanTokens[i] == oceanTokenAddress) break;
+        }
+        if(i < oceanTokens.length){
+            // it's in the array
+            for (uint c = i; c < oceanTokens.length - 1; c++) {
+                    oceanTokens[c] = oceanTokens[c + 1];
+            }
+            oceanTokens.pop();
+            emit TokenRemoved(msg.sender, oceanTokenAddress);
+        }
     }
+    /**
+     * @dev isOceanToken
+     *      Returns true if token exists in the list of tokens with reduced fees
+     *  @param oceanTokenAddress address Token to be checked
+     */
+    function isOceanToken(address oceanTokenAddress) public view returns(bool) {
+        for (uint256 i = 0; i < oceanTokens.length; i++) {
+            if(oceanTokens[i] == oceanTokenAddress) return true;
+        }
+        return false;
+    }
+    /**
+     * @dev getOceanTokens
+     *      Returns the list of tokens with reduced fees
+     */
+    function getOceanTokens() public view returns(address[] memory) {
+        return(oceanTokens);
+    }
+
+
+     /**
+     * @dev addSSContract
+     *      Adds a token to the list of ssContracts
+     *  @param _ssContract address Contract to be added
+     */
 
     function addSSContract(address _ssContract) external onlyRouterOwner {
         require(
             _ssContract != address(0),
             "FactoryRouter: Invalid _ssContract address"
         );
-        ssContracts[_ssContract] = true;
-        emit SSContractAdded(msg.sender, _ssContract);
+        if(!isSSContract(_ssContract)){
+            ssContracts.push(_ssContract);
+            emit SSContractAdded(msg.sender, _ssContract);
+        }
     }
+    /**
+     * @dev removeSSContract
+     *      Removes a token if exists from the list of ssContracts
+     *  @param _ssContract address Contract to be removed
+     */
 
     function removeSSContract(address _ssContract) external onlyRouterOwner {
         require(
             _ssContract != address(0),
             "FactoryRouter: Invalid _ssContract address"
         );
-        ssContracts[_ssContract] = false;
-        emit SSContractRemoved(msg.sender, _ssContract);
+        uint256 i;
+        for (i = 0; i < ssContracts.length; i++) {
+            if(ssContracts[i] == _ssContract) break;
+        }
+        if(i < ssContracts.length){
+            // it's in the array
+            for (uint c = i; c < ssContracts.length - 1; c++) {
+                    ssContracts[c] = ssContracts[c + 1];
+            }
+            ssContracts.pop();
+            emit SSContractRemoved(msg.sender, _ssContract);
+        }
+    }
+
+    /**
+     * @dev isSSContract
+     *      Returns true if token exists in the list of ssContracts
+     *  @param _ssContract  address Contract to be checked
+     */
+    function isSSContract(address _ssContract) public view returns(bool) {
+        for (uint256 i = 0; i < ssContracts.length; i++) {
+            if(ssContracts[i] == _ssContract) return true;
+        }
+        return false;
+    }
+    /**
+     * @dev getSSContracts
+     *      Returns the list of ssContracts
+     */
+    function getSSContracts() public view returns(address[] memory) {
+        return(ssContracts);
     }
 
     function addFactory(address _factory) external onlyRouterOwner {
@@ -154,15 +233,27 @@ contract FactoryRouter is BFactory {
         emit FactoryContractChanged(msg.sender, _factory);
     }
 
+
+    /**
+     * @dev addFixedRateContract
+     *      Adds an address to the list of fixed rate contracts
+     *  @param _fixedRate address Contract to be added
+     */
     function addFixedRateContract(address _fixedRate) external onlyRouterOwner {
         require(
             _fixedRate != address(0),
             "FactoryRouter: Invalid _fixedRate address"
         );
-        fixedPrice[_fixedRate] = true;
-        emit FixedRateContractAdded(msg.sender, _fixedRate);
+        if(!isFixedRateContract(_fixedRate)){
+            fixedrates.push(_fixedRate);
+            emit FixedRateContractAdded(msg.sender, _fixedRate);
+        }
     }
-
+     /**
+     * @dev removeFixedRateContract
+     *      Removes an address from the list of fixed rate contracts
+     *  @param _fixedRate address Contract to be removed
+     */
     function removeFixedRateContract(address _fixedRate)
         external
         onlyRouterOwner
@@ -171,19 +262,59 @@ contract FactoryRouter is BFactory {
             _fixedRate != address(0),
             "FactoryRouter: Invalid _fixedRate address"
         );
-        fixedPrice[_fixedRate] = false;
-        emit FixedRateContractRemoved(msg.sender, _fixedRate);
+        uint256 i;
+        for (i = 0; i < fixedrates.length; i++) {
+            if(fixedrates[i] == _fixedRate) break;
+        }
+        if(i < fixedrates.length){
+            // it's in the array
+            for (uint c = i; c < fixedrates.length - 1; c++) {
+                    fixedrates[c] = fixedrates[c + 1];
+            }
+            fixedrates.pop();
+            emit FixedRateContractRemoved(msg.sender, _fixedRate);
+        }
+    }
+    /**
+     * @dev isFixedRateContract
+     *      Removes true if address exists in the list of fixed rate contracts
+     *  @param _fixedRate address Contract to be checked
+     */
+    function isFixedRateContract(address _fixedRate) public view returns(bool) {
+        for (uint256 i = 0; i < fixedrates.length; i++) {
+            if(fixedrates[i] == _fixedRate) return true;
+        }
+        return false;
+    }
+    /**
+     * @dev getFixedRatesContracts
+     *      Returns the list of fixed rate contracts
+     */
+    function getFixedRatesContracts() public view returns(address[] memory) {
+        return(fixedrates);
     }
 
+    /**
+     * @dev addDispenserContract
+     *      Adds an address to the list of dispensers
+     *  @param _dispenser address Contract to be added
+     */
     function addDispenserContract(address _dispenser) external onlyRouterOwner {
         require(
             _dispenser != address(0),
             "FactoryRouter: Invalid _dispenser address"
         );
-        dispenser[_dispenser] = true;
-        emit DispenserContractAdded(msg.sender, _dispenser);
+          if(!isDispenserContract(_dispenser)){
+            dispensers.push(_dispenser);
+            emit DispenserContractAdded(msg.sender, _dispenser);
+        }
     }
 
+    /**
+     * @dev removeDispenserContract
+     *      Removes an address from the list of dispensers
+     *  @param _dispenser address Contract to be removed
+     */
     function removeDispenserContract(address _dispenser)
         external
         onlyRouterOwner
@@ -192,20 +323,68 @@ contract FactoryRouter is BFactory {
             _dispenser != address(0),
             "FactoryRouter: Invalid _dispenser address"
         );
-        dispenser[_dispenser] = false;
-        emit DispenserContractRemoved(msg.sender, _dispenser);
+        uint256 i;
+        for (i = 0; i < dispensers.length; i++) {
+            if(dispensers[i] == _dispenser) break;
+        }
+        if(i < dispensers.length){
+            // it's in the array
+            for (uint c = i; c < dispensers.length - 1; c++) {
+                    dispensers[c] = dispensers[c + 1];
+            }
+            dispensers.pop();
+            emit DispenserContractRemoved(msg.sender, _dispenser);
+        }
+    }
+    /**
+     * @dev isDispenserContract
+     *      Returns true if address exists in the list of dispensers
+     *  @param _dispenser  address Contract to be checked
+     */
+    function isDispenserContract(address _dispenser) public view returns(bool) {
+        for (uint256 i = 0; i < dispensers.length; i++) {
+            if(dispensers[i] == _dispenser) return true;
+        }
+        return false;
+    }
+    /**
+     * @dev getDispensersContracts
+     *      Returns the list of fixed rate contracts
+     */
+    function getDispensersContracts() public view returns(address[] memory) {
+        return(dispensers);
     }
 
+    /**
+     * @dev getOPFFee
+     *      Gets OPF Community Fees for a particular token
+     * @param baseToken  address token to be checked
+     */
     function getOPFFee(address baseToken) public view returns (uint256) {
-        if (oceanTokens[baseToken]) {
-            return 0;
-        } else return swapOceanFee;
+        if (isOceanToken(baseToken)) {
+            return swapOceanFee;
+        } else return swapNonOceanFee;
     }
 
-    function updateOPFFee(uint256 _newSwapOceanFee) external onlyRouterOwner {
-        // TODO: add a maximum? how much? add event?
+    /**
+     * @dev getOPFFees
+     *      Gets OPF Community Fees for approved tokens and non approved tokens
+     */
+    function getOPFFees() public view returns (uint256,uint256) {
+        return (swapOceanFee, swapNonOceanFee);
+    }
+
+    /**
+     * @dev updateOPFFee
+     *      Updates OPF Community Fees
+     * @param _newSwapOceanFee Amount charged for swapping with ocean approved tokens
+     * @param _newSwapNonOceanFee Amount charged for swapping with non ocean approved tokens
+     */
+    function updateOPFFee(uint256 _newSwapOceanFee, uint256 _newSwapNonOceanFee) external onlyRouterOwner {
+
         swapOceanFee = _newSwapOceanFee;
-        emit OPFFeeChanged(msg.sender, _newSwapOceanFee);
+        swapNonOceanFee = _newSwapNonOceanFee;
+        emit OPFFeeChanged(msg.sender, _newSwapOceanFee, _newSwapNonOceanFee);
     }
 
     /*
@@ -272,8 +451,7 @@ contract FactoryRouter is BFactory {
             IFactory(factory).erc20List(msg.sender),
             "FACTORY ROUTER: NOT ORIGINAL ERC20 TEMPLATE"
         );
-        require(
-            ssContracts[addresses[0]],
+        require(isSSContract(addresses[0]),
             "FACTORY ROUTER: invalid ssContract"
         );
         require(ssParams[1] > 0, "Wrong decimals");
@@ -285,7 +463,7 @@ contract FactoryRouter is BFactory {
         address pool = newBPool(tokens, ssParams, swapFees, addresses);
 
         require(pool != address(0), "FAILED TO DEPLOY POOL");
-        if (oceanTokens[tokens[1]]) emit NewPool(pool, true);
+        if (isOceanToken(tokens[1])) emit NewPool(pool, true);
         else emit NewPool(pool, false);
         return pool;
     }
@@ -315,8 +493,7 @@ contract FactoryRouter is BFactory {
             "FACTORY ROUTER: NOT ORIGINAL ERC20 TEMPLATE"
         );
 
-        require(
-            fixedPrice[fixedPriceAddress],
+        require(isFixedRateContract(fixedPriceAddress),
             "FACTORY ROUTER: Invalid FixedPriceContract"
         );
 
@@ -353,8 +530,7 @@ contract FactoryRouter is BFactory {
             "FACTORY ROUTER: NOT ORIGINAL ERC20 TEMPLATE"
         );
 
-        require(
-            dispenser[_dispenser],
+        require(isDispenserContract(_dispenser),
             "FACTORY ROUTER: Invalid DispenserContract"
         );
         IDispenser(_dispenser).create(
@@ -366,14 +542,21 @@ contract FactoryRouter is BFactory {
         );
     }
 
+     /**
+     * @dev addPoolTemplate
+     *      Adds an address to the list of pools templates
+     *  @param poolTemplate address Contract to be added
+     */
     function addPoolTemplate(address poolTemplate) external onlyRouterOwner {
         _addPoolTemplate(poolTemplate);
-        emit PoolTemplateAdded(msg.sender, poolTemplate);
     }
-
+     /**
+     * @dev removePoolTemplate
+     *      Removes an address from the list of pool templates
+     *  @param poolTemplate address Contract to be removed
+     */
     function removePoolTemplate(address poolTemplate) external onlyRouterOwner {
         _removePoolTemplate(poolTemplate);
-        emit PoolTemplateRemoved(msg.sender, poolTemplate);
     }
 
     // If you need to buy multiple DT (let's say for a compute job which has multiple datasets),

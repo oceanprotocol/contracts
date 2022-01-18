@@ -1386,6 +1386,88 @@
     {
       "inputs": [
         {
+          "components": [
+            {
+              "internalType": "uint8",
+              "name": "metaDataState",
+              "type": "uint8"
+            },
+            {
+              "internalType": "string",
+              "name": "metaDataDecryptorUrl",
+              "type": "string"
+            },
+            {
+              "internalType": "string",
+              "name": "metaDataDecryptorAddress",
+              "type": "string"
+            },
+            {
+              "internalType": "bytes",
+              "name": "flags",
+              "type": "bytes"
+            },
+            {
+              "internalType": "bytes",
+              "name": "data",
+              "type": "bytes"
+            },
+            {
+              "internalType": "bytes32",
+              "name": "metaDataHash",
+              "type": "bytes32"
+            },
+            {
+              "internalType": "uint256",
+              "name": "tokenId",
+              "type": "uint256"
+            },
+            {
+              "internalType": "string",
+              "name": "tokenURI",
+              "type": "string"
+            },
+            {
+              "components": [
+                {
+                  "internalType": "address",
+                  "name": "validatorAddress",
+                  "type": "address"
+                },
+                {
+                  "internalType": "uint8",
+                  "name": "v",
+                  "type": "uint8"
+                },
+                {
+                  "internalType": "bytes32",
+                  "name": "r",
+                  "type": "bytes32"
+                },
+                {
+                  "internalType": "bytes32",
+                  "name": "s",
+                  "type": "bytes32"
+                }
+              ],
+              "internalType": "struct ERC721Template.metaDataProof[]",
+              "name": "metadataProofs",
+              "type": "tuple[]"
+            }
+          ],
+          "internalType": "struct ERC721Template.metaDataAndTokenURI",
+          "name": "_metaDataAndTokenURI",
+          "type": "tuple"
+        }
+      ],
+      "name": "setMetaDataAndTokenURI",
+      "outputs": [],
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
           "internalType": "uint8",
           "name": "_metaDataState",
           "type": "uint8"

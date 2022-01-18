@@ -1,4 +1,7 @@
 pragma solidity 0.8.10;
+// Copyright BigchainDB GmbH and Ocean Protocol contributors
+// SPDX-License-Identifier: (Apache-2.0 AND CC-BY-4.0)
+// Code is Apache-2.0 and docs are CC-BY-4.0
 
 import "../utils/ERC721/ERC721.sol";
 import "../utils/ERC725/ERC725Ocean.sol";
@@ -177,13 +180,16 @@ contract ERC721Template is
      * @param tokenId token ID
      * @param tokenURI token URI
      */
-    function setTokenURI(uint256 tokenId, string memory tokenURI) external onlyNFTOwner {
+    function setTokenURI(uint256 tokenId, string memory tokenURI) public {
+        require(msg.sender == ownerOf(tokenId), "ERC721Template: not NFTOwner");
         _setTokenURI(tokenId, tokenURI);
         emit TokenURIUpdate(msg.sender, tokenURI, tokenId,
             /* solium-disable-next-line */
             block.timestamp,
             block.number);
     }
+
+    
 
     /**
      * @dev setMetaDataState
@@ -228,6 +234,13 @@ contract ERC721Template is
             permissions[msg.sender].updateMetadata,
             "ERC721Template: NOT METADATA_ROLE"
         );
+        _setMetaData(_metaDataState, _metaDataDecryptorUrl, _metaDataDecryptorAddress,flags, 
+        data,_metaDataHash, _metadataProofs);
+    }
+
+    function _setMetaData(uint8 _metaDataState, string calldata _metaDataDecryptorUrl
+        , string calldata _metaDataDecryptorAddress, bytes calldata flags, 
+        bytes calldata data,bytes32 _metaDataHash, metaDataProof[] memory _metadataProofs) internal {
         metaDataState = _metaDataState;
         metaDataDecryptorUrl = _metaDataDecryptorUrl;
         metaDataDecryptorAddress = _metaDataDecryptorAddress;
@@ -261,6 +274,36 @@ contract ERC721Template is
         }
     }
 
+    struct metaDataAndTokenURI {
+        uint8 metaDataState;
+        string metaDataDecryptorUrl;
+        string metaDataDecryptorAddress;
+        bytes flags;
+        bytes data;
+        bytes32 metaDataHash;
+        uint256 tokenId;
+        string tokenURI;
+        metaDataProof[] metadataProofs;
+    }
+
+    /**
+     * @dev setMetaDataAndTokenURI
+     *       Helper function to improve UX
+             Calls setMetaData & setTokenURI
+     * @param _metaDataAndTokenURI   metaDataAndTokenURI struct
+     */
+    function setMetaDataAndTokenURI(metaDataAndTokenURI calldata _metaDataAndTokenURI) external {
+        require(
+            permissions[msg.sender].updateMetadata,
+            "ERC721Template: NOT METADATA_ROLE"
+        );
+        _setMetaData(_metaDataAndTokenURI.metaDataState, _metaDataAndTokenURI.metaDataDecryptorUrl, 
+            _metaDataAndTokenURI.metaDataDecryptorAddress, _metaDataAndTokenURI.flags, 
+            _metaDataAndTokenURI.data, _metaDataAndTokenURI.metaDataHash, _metaDataAndTokenURI.metadataProofs);
+        
+        setTokenURI(_metaDataAndTokenURI.tokenId, _metaDataAndTokenURI.tokenURI);
+        
+    }
     /**
      * @dev getMetaData
      *      Returns metaDataState, metaDataDecryptorUrl, metaDataDecryptorAddress
@@ -535,10 +578,11 @@ contract ERC721Template is
 
     /**
      * @dev getId
-     *      Return template id
+     *      Return template id in case we need different ABIs. 
+     *      If you construct your own template, please make sure to change the hardcoded value
      */
-    function getId() external pure returns (uint8) {
-        return templateId;
+    function getId() pure public returns (uint8) {
+        return 1;
     }
      /**
      * @dev fallback function

@@ -1,5 +1,5 @@
 pragma solidity 0.8.10;
-// Copyright BigchainDB GmbH and Ocean Protocol contributors
+// Copyright Balancer, BigchainDB GmbH and Ocean Protocol contributors
 // SPDX-License-Identifier: (Apache-2.0 AND CC-BY-4.0)
 // Code is Apache-2.0 and docs are CC-BY-4.0
 
@@ -125,6 +125,15 @@ contract BPool is BMath, BToken {
     //-----------------------------------------------------------------------
     //Proxy contract functionality: begin
     bool private initialized;
+
+    /**
+     * @dev getId
+     *      Return template id in case we need different ABIs. 
+     *      If you construct your own template, please make sure to change the hardcoded value
+     */
+    function getId() pure public returns (uint8) {
+        return 1;
+    }
 
     function isInitialized() external view returns (bool) {
         return initialized;

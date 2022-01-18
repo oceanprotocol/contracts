@@ -1,4 +1,7 @@
 pragma solidity 0.8.10;
+// Copyright BigchainDB GmbH and Ocean Protocol contributors
+// SPDX-License-Identifier: (Apache-2.0 AND CC-BY-4.0)
+// Code is Apache-2.0 and docs are CC-BY-4.0
 
 interface IERC20Template {
     struct RolesERC20 {
@@ -106,8 +109,6 @@ interface IERC20Template {
     function burnFrom(address account, uint256 amount) external;
     function getERC721Address() external view returns (address);
     function isERC20Deployer(address user) external returns(bool);
-
-
     function getPools() external view returns(address[] memory);
     struct fixedRate{
         address contractAddress;
@@ -115,4 +116,5 @@ interface IERC20Template {
     }
     function getFixedRates() external view returns(fixedRate[] memory);
     function getDispensers() external view returns(address[] memory);
+    function getId() pure external returns (uint8);
 }

@@ -214,6 +214,10 @@ describe("Dispenser", () => {
       assert(dispensers.includes(web3.utils.toChecksumAddress(dispenser.address)), "Dispenser not found in erc20Token.getDispensers()")
     })
 
+    it("#getId - should return templateID", async () => {
+      const templateId = 1;
+      assert((await dispenser.getId()) == templateId);
+    });
     it('#3 - Alice gets the dispenser status', async () => {
       const status = await dispenser.status(erc20Token.address)
       assert(status.active === true, 'Dispenser not active')
