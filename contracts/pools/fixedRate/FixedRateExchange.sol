@@ -158,9 +158,9 @@ contract FixedRateExchange is ReentrancyGuard {
 
     /**
      * @dev create
-     *      creates new exchange pairs between base token
-     *      (ocean token) and data tokens.
-     * datatoken refers to a data token contract address
+     *      creates new exchange pairs between a basetoken
+     *      (ocean token) and datatoken.
+     * datatoken refers to a datatoken contract address
      * addresses  - array of addresses with the following struct:
      *                [0] - basetoken
      *                [1] - owner
@@ -237,8 +237,8 @@ contract FixedRateExchange is ReentrancyGuard {
     /**
      * @dev generateExchangeId
      *      creates unique exchange identifier for two token pairs.
-     * @param basetoken refers to a ocean token contract address
-     * @param datatoken refers to a data token contract address
+     * @param basetoken refers to a base token contract address
+     * @param datatoken refers to a datatoken contract address
      * @param exchangeOwner exchange owner address
      */
     function generateExchangeId(
@@ -253,7 +253,7 @@ contract FixedRateExchange is ReentrancyGuard {
      * @dev CalcInGivenOut
      *      Calculates how many basetokens are needed to get specifyed amount of datatokens
      * @param exchangeId a unique exchange idnetifier
-     * @param datatokenAmount the amount of data tokens to be exchanged
+     * @param datatokenAmount the amount of datatokens to be exchanged
      */
     function calcBaseInGivenOutDT(bytes32 exchangeId, uint256 datatokenAmount)
         public
@@ -295,7 +295,7 @@ contract FixedRateExchange is ReentrancyGuard {
      * @dev CalcInGivenOut
      *      Calculates how many basetokens are needed to get specifyed amount of datatokens
      * @param exchangeId a unique exchange idnetifier
-     * @param datatokenAmount the amount of data tokens to be exchanged
+     * @param datatokenAmount the amount of datatokens to be exchanged
      */
     function calcBaseOutGivenInDT(bytes32 exchangeId, uint256 datatokenAmount)
         public
@@ -337,7 +337,7 @@ contract FixedRateExchange is ReentrancyGuard {
      * @dev swap
      *      atomic swap between two registered fixed rate exchange.
      * @param exchangeId a unique exchange idnetifier
-     * @param datatokenAmount the amount of data tokens to be exchanged
+     * @param datatokenAmount the amount of datatokens to be exchanged
      * @param maxBasetokenAmount maximum amount of base tokens to pay
      */
     function buyDT(bytes32 exchangeId, uint256 datatokenAmount, uint256 maxBasetokenAmount)
@@ -347,7 +347,7 @@ contract FixedRateExchange is ReentrancyGuard {
     {
         require(
             datatokenAmount != 0,
-            "FixedRateExchange: zero data token amount"
+            "FixedRateExchange: zero datatoken amount"
         );
         if(exchanges[exchangeId].allowedSwapper != address(0)){
             require(
@@ -420,7 +420,7 @@ contract FixedRateExchange is ReentrancyGuard {
      * @dev swap
      *      atomic swap between two registered fixed rate exchange.
      * @param exchangeId a unique exchange idnetifier
-     * @param datatokenAmount the amount of data tokens to be exchanged
+     * @param datatokenAmount the amount of datatokens to be exchanged
      * @param minBasetokenAmount minimum amount of base tokens to cash in
      */
     function sellDT(bytes32 exchangeId, uint256 datatokenAmount, uint256 minBasetokenAmount)
@@ -430,7 +430,7 @@ contract FixedRateExchange is ReentrancyGuard {
     {
         require(
             datatokenAmount != 0,
-            "FixedRateExchange: zero data token amount"
+            "FixedRateExchange: zero datatoken amount"
         );
         if(exchanges[exchangeId].allowedSwapper != address(0)){
             require(
@@ -724,7 +724,7 @@ contract FixedRateExchange is ReentrancyGuard {
     //  * @return all the exchange details including  the exchange Owner
     //  *         the datatoken contract address, the base token address, the
     //  *         fixed rate, whether the exchange is active and the supply or the
-    //  *         the current data token liquidity.
+    //  *         the current datatoken liquidity.
     //  */
     function getExchange(bytes32 exchangeId)
         external

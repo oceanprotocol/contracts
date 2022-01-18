@@ -431,7 +431,7 @@ contract ERC20Template is
         uint256 communityFeePublish = 0;
         require(
             balanceOf(msg.sender) >= amount,
-            "Not enough Data Tokens to start Order"
+            "Not enough datatokens to start Order"
         );
         emit OrderStarted(
             consumer,

@@ -8,8 +8,7 @@ import "../../interfaces/IPool.sol";
 import "@openzeppelin/contracts/utils/math/SafeMath.sol";
 import "../../utils/SafeERC20.sol";
 import "@openzeppelin/contracts/security/ReentrancyGuard.sol";
-/**datatokenAmount
- * @title SideStaking
+/**@title SideStaking
  *
  * @dev SideStaking is a contract that monitors stakings in pools, 
         adding or removing dt when only basetoken liquidity is added or removed
@@ -72,8 +71,8 @@ contract SideStaking is ReentrancyGuard {
         return 1;
     }
     /**
-     * @dev newDataTokenCreated
-     *      Called when new DataToken is deployed by the DataTokenFactory
+     * @dev newDatatokenCreated
+     *      Called when new Datatoken is deployed by the DatatokenFactory
      * @param datatokenAddress - datatokenAddress
      * @param basetokenAddress -
      * @param poolAddress - poolAddress
@@ -401,7 +400,7 @@ contract SideStaking is ReentrancyGuard {
         uint256 datatokenWeight = 5 * BASE; //pool weight: 50-50
         uint256 basetokenAmount = _datatokens[datatokenAddress]
             .basetokenBalance;
-        //given the price, compute dataTokenAmount
+        //given the price, compute datatokenAmount
 
         uint256 datatokenAmount = ((_datatokens[datatokenAddress].rate *
             basetokenAmount *

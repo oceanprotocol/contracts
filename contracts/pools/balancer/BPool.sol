@@ -213,7 +213,7 @@ contract BPool is BMath, BToken {
         );
         // other inputs will be validated prior
         // calling the below functions
-        // bind data token
+        // bind datatoken
         bind(datatokenAddress, datatokenAmount, datatokenWeight);
         emit LOG_JOIN(
             msg.sender,
@@ -222,7 +222,7 @@ contract BPool is BMath, BToken {
             block.timestamp
         );
 
-        // bind base token
+        // bind basetoken
         bind(basetokenAddress, basetokenAmount, basetokenWeight);
         emit LOG_JOIN(
             msg.sender,
