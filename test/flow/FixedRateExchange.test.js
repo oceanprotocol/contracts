@@ -4779,7 +4779,7 @@ describe("FixedRateExchange", () => {
     });
 
     it("#10 - opfFee is updated to 1% from 0.1%", async () => {
-      await router.updateOPFFee(web3.utils.toWei('0.01'))
+      await router.updateOPFFee('0', web3.utils.toWei('0.01'))
       const feeInfo = await fixedRateExchange.getFeesInfo(
         eventsExchange[0].args.exchangeId
       );
