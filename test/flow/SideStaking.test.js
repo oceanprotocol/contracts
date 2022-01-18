@@ -152,6 +152,12 @@ describe("1SS flow", () => {
   const swapOceanFee = 1e15;
   const swapMarketFee = 1e15;
   const vestedBlocks = 2500000;
+  
+  it("#getId - should return templateID", async () => {
+    const templateId = 1;
+    assert((await sideStaking.getId()) == templateId);
+  });
+  
   it("#1 - owner deploys a new ERC721 Contract", async () => {
     // by default connect() in ethers goes with the first address (owner in this case)
     const tx = await factoryERC721.deployERC721Contract(
@@ -319,6 +325,11 @@ describe("1SS flow", () => {
     assert((await erc20Token.balanceOf(user3.address)) == 0);
   });
 
+  it("#getId - should return templateID", async () => {
+    const templateId = 1;
+    assert((await bPool.getId()) == templateId);
+  });
+  
   it("#6 - user4 buys some DT after burnIn period- exactAmountIn", async () => {
     // pool has initial ocean tokens at the beginning
     assert(

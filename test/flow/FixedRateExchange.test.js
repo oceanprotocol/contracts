@@ -268,6 +268,10 @@ describe("FixedRateExchange", () => {
       expect(eventsExchange[0].args.owner).to.equal(oceanContract.address);
     });
 
+    it("#getId - should return templateId", async () => {
+      const templateId = 1;
+      assert((await fixedRateExchange.getId()) == templateId);
+    });
     it("#3 - exchange is active", async () => {
       const isActive = await fixedRateExchange.isActive(
         eventsExchange[0].args.exchangeId

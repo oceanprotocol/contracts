@@ -15,4 +15,5 @@ interface IDispenser {
     
     function ownerWithdraw(address datatoken) external;
     function setAllowedSwapper(address datatoken, address newAllowedSwapper) external;
+    function getId() pure external returns (uint8);
 }

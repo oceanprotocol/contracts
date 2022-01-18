@@ -97,7 +97,7 @@ interface ISideStaking {
     ) external;
 
     function notifyFinalize(address datatokenAddress) external;
-
+    function getId() pure external returns (uint8);
 
   
 }

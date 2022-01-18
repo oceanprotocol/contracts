@@ -212,6 +212,7 @@ describe("ERC721Template", () => {
     assert((await erc20Token.permissions(user3.address)).minter == true);
   });
 
+  
   it("#isInitialized - should check that the tokenERC721 contract is initialized", async () => {
     expect(await tokenERC721.isInitialized()).to.equal(true);
   });
@@ -228,6 +229,11 @@ describe("ERC721Template", () => {
       ),
       "ERC721Template: token instance already initialized"
     );
+  });
+
+  it("#getId - should return templateID", async () => {
+    const templateId = 1;
+    assert((await tokenERC721.getId()) == templateId);
   });
 
   it("#mint - should mint 1 ERC721 to owner", async () => {
