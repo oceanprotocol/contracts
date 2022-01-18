@@ -109,5 +109,12 @@ interface IERC20Template {
     function burnFrom(address account, uint256 amount) external;
     function getERC721Address() external view returns (address);
     function isERC20Deployer(address user) external returns(bool);
+    function getPools() external view returns(address[] memory);
+    struct fixedRate{
+        address contractAddress;
+        bytes32 id;
+    }
+    function getFixedRates() external view returns(fixedRate[] memory);
+    function getDispensers() external view returns(address[] memory);
     function getId() pure external returns (uint8);
 }

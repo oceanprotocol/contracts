@@ -312,6 +312,9 @@ describe("1SS flow", () => {
     expect(await sideStaking.getvestingEndBlock(erc20Token.address)).to.equal(
       initialBlockNum + vestedBlocks
     );
+
+    const deployedPools = await erc20Token.getPools()
+      assert(deployedPools.includes(web3.utils.toChecksumAddress(bPoolAddress)), "Pool not found in erc20Token.getPools()")
   });
 
   it("#5 - user3 fails to mints new erc20 tokens even if it's minter", async () => {

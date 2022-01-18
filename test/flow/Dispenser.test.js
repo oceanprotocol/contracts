@@ -210,13 +210,14 @@ describe("Dispenser", () => {
         dispenser.address, web3.utils.toWei('1'), web3.utils.toWei('1'), true, ZERO_ADDRESS)
       assert(tx,
         'Cannot activate dispenser')
+      const dispensers = await erc20Token.getDispensers()
+      assert(dispensers.includes(web3.utils.toChecksumAddress(dispenser.address)), "Dispenser not found in erc20Token.getDispensers()")
     })
 
     it("#getId - should return templateID", async () => {
       const templateId = 1;
       assert((await dispenser.getId()) == templateId);
     });
-
     it('#3 - Alice gets the dispenser status', async () => {
       const status = await dispenser.status(erc20Token.address)
       assert(status.active === true, 'Dispenser not active')
