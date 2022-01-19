@@ -887,7 +887,7 @@
             },
             {
               "internalType": "uint256",
-              "name": "maxbaseTokenAmount",
+              "name": "maxBaseTokenAmount",
               "type": "uint256"
             },
             {

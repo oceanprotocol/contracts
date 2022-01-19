@@ -100,7 +100,7 @@ contract SideStaking is ReentrancyGuard {
             "Datatoken address missmatch"
         );
         require(
-            bpool.getbaseTokenAddress() == baseTokenAddress,
+            bpool.getBaseTokenAddress() == baseTokenAddress,
             "baseToken address missmatch"
         );
         // check if we are the minter of DT
@@ -194,7 +194,7 @@ contract SideStaking is ReentrancyGuard {
 
      */
 
-    function getbaseTokenAddress(address datatokenAddress)
+    function getBaseTokenAddress(address datatokenAddress)
         external
         view
         returns (address)
@@ -223,7 +223,7 @@ contract SideStaking is ReentrancyGuard {
      * @param datatokenAddress - datatokenAddress
 
      */
-    function getbaseTokenBalance(address datatokenAddress)
+    function getBaseTokenBalance(address datatokenAddress)
         external
         view
         returns (uint256)

@@ -32,7 +32,7 @@ interface ISideStaking {
         view
         returns (address);
 
-    function getbaseTokenAddress(address datatokenAddress)
+    function getBaseTokenAddress(address datatokenAddress)
         external
         view
         returns (address);
@@ -42,7 +42,7 @@ interface ISideStaking {
         view
         returns (address);
 
-    function getbaseTokenBalance(address datatokenAddress)
+    function getbBaseTokenBalance(address datatokenAddress)
         external
         view
         returns (uint256);
