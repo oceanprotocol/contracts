@@ -18,7 +18,7 @@ then
     find /ocean-contracts/artifacts/* -name "*.dbg.json" -type f -delete
     #copy address.json
     if [ -e /ocean-contracts/address.json ]
-        then cp -u /ocean-contracts/address.json /ocean-contracts/artifacts/
+        then cp -u /ocean-contracts/addresses/address.json /ocean-contracts/artifacts/
     fi
     node scripts/deploy-contracts.js
 
