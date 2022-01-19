@@ -55,6 +55,8 @@ jobs:
         run: |
           npx hardhat compile --force
       - run: npm run test:full:cover
+      - name: Delete dbg files
+        run: find ./artifacts/* -name "*.dbg.json" -type f -delete
       - uses: actions/upload-artifact@v2
         with:
           name: coverage
