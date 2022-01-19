@@ -65,7 +65,7 @@ jobs:
   coverage:
     runs-on: ubuntu-latest
     needs: [tests_full]
-    if: ${{ success() && github.actor != 'dependabot[bot]' }}
+    if: ${{ success() && github.actor != 'dependabot[bot]' && secrets.CC_TEST_REPORTER_ID !=0 }}
     steps:
       - uses: actions/checkout@v2
       - uses: actions/download-artifact@v2
