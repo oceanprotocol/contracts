@@ -207,7 +207,7 @@ async function main() {
     console.log("\tmodule.exports=[\n");
     console.log("\t'"+owner.address+"',\n");
     console.log("\t'"+addresses.Ocean+"',\n");
-    console.log("\t'"+poolTemplate.address+"',\n'");
+    console.log("\t'"+poolTemplate.address+"',\n");
     console.log("\t'"+addresses.OPFCommunityFeeCollector+"',\n");
     console.log("\t[]\n");
     console.log("\t];");
