@@ -570,13 +570,15 @@ describe("ERC721Factory", () => {
     const providerFeeAmount = "0"
     //sign provider data
     const providerData=JSON.stringify({ "timeout":0 })
+    const providerValidUntil = 0;
     const message = ethers.utils.solidityKeccak256(
-      ["bytes", "address", "address", "uint256"],
+      ["bytes", "address", "address", "uint256", "uint256"],
       [
         ethers.utils.hexlify(ethers.utils.toUtf8Bytes(providerData)),
         providerFeeAddress,
         providerFeeToken,
-        providerFeeAmount
+        providerFeeAmount,
+        providerValidUntil
       ]
     );
     const signedMessage = await signMessage(message, providerFeeAddress);
@@ -591,13 +593,16 @@ describe("ERC721Factory", () => {
           "consumer":consumer,
           "amount":dtAmount,
           "serviceIndex":serviceIndex,
-          "providerFeeAddress":providerFeeAddress,
-          "providerFeeToken": providerFeeToken,
-          "providerFeeAmount":providerFeeAmount,
-          "v": signedMessage.v,
-          "r": signedMessage.r,
-          "s": signedMessage.s,
-          "providerData": ethers.utils.hexlify(ethers.utils.toUtf8Bytes(providerData))
+          "_providerFees": {
+            providerFeeAddress: providerFeeAddress,
+            providerFeeToken:providerFeeToken,
+            providerFeeAmount:providerFeeAmount,
+            v:signedMessage.v,
+            r:signedMessage.r,
+            s:signedMessage.s,
+            providerData:ethers.utils.hexlify(ethers.utils.toUtf8Bytes(providerData)),
+            validUntil:providerValidUntil
+          }
         }]
       );
       const txReceipt = await tx.wait();
@@ -636,13 +641,15 @@ describe("ERC721Factory", () => {
     const providerFeeAmount = "0"
     //sign provider data
     const providerData=JSON.stringify({ "timeout":0 })
+    const providerValidUntil = 0;
     const message = ethers.utils.solidityKeccak256(
-      ["bytes", "address", "address", "uint256"],
+      ["bytes", "address", "address", "uint256", "uint256"],
       [
         ethers.utils.hexlify(ethers.utils.toUtf8Bytes(providerData)),
         providerFeeAddress,
         providerFeeToken,
-        providerFeeAmount
+        providerFeeAmount,
+        providerValidUntil
       ]
     );
     const signedMessage = await signMessage(message, providerFeeAddress);
@@ -658,13 +665,16 @@ describe("ERC721Factory", () => {
           "consumer":consumer,
           "amount":dtAmount,
           "serviceIndex":serviceIndex,
-          "providerFeeAddress":providerFeeAddress,
-          "providerFeeToken": providerFeeToken,
-          "providerFeeAmount":providerFeeAmount,
-          "v": signedMessage.v,
-          "r": signedMessage.r,
-          "s": signedMessage.s,
-          "providerData": ethers.utils.hexlify(ethers.utils.toUtf8Bytes(providerData))
+          "_providerFees": {
+            providerFeeAddress: providerFeeAddress,
+            providerFeeToken:providerFeeToken,
+            providerFeeAmount:providerFeeAmount,
+            v:signedMessage.v,
+            r:signedMessage.r,
+            s:signedMessage.s,
+            providerData:ethers.utils.hexlify(ethers.utils.toUtf8Bytes(providerData)),
+            validUntil:providerValidUntil
+          }
         }]
       );
       console.log("5")
@@ -707,15 +717,17 @@ describe("ERC721Factory", () => {
     const providerFeeAmount = "0"
     //sign provider data
     const providerData=JSON.stringify({ "timeout":0 })
+    const providerValidUntil = 0;
     const message = ethers.utils.solidityKeccak256(
-        ["bytes", "address", "address", "uint256"],
-        [
-          ethers.utils.hexlify(ethers.utils.toUtf8Bytes(providerData)),
-          providerFeeAddress,
-          providerFeeToken,
-          providerFeeAmount
-        ]
-      );
+      ["bytes", "address", "address", "uint256", "uint256"],
+      [
+        ethers.utils.hexlify(ethers.utils.toUtf8Bytes(providerData)),
+        providerFeeAddress,
+        providerFeeToken,
+        providerFeeAmount,
+        providerValidUntil
+      ]
+    );
     const signedMessage = await signMessage(message, providerFeeAddress);
     const tx = await factoryERC721
     .connect(user2)
@@ -725,13 +737,16 @@ describe("ERC721Factory", () => {
         "consumer":consumer,
         "amount":dtAmount,
         "serviceIndex":serviceIndex,
-        "providerFeeAddress":providerFeeAddress,
-        "providerFeeToken": providerFeeToken,
-        "providerFeeAmount":providerFeeAmount,
-        "v": signedMessage.v,
-        "r": signedMessage.r,
-        "s": signedMessage.s,
-        "providerData": ethers.utils.hexlify(ethers.utils.toUtf8Bytes(providerData))
+        "_providerFees": {
+          providerFeeAddress: providerFeeAddress,
+          providerFeeToken:providerFeeToken,
+          providerFeeAmount:providerFeeAmount,
+          v:signedMessage.v,
+          r:signedMessage.r,
+          s:signedMessage.s,
+          providerData:ethers.utils.hexlify(ethers.utils.toUtf8Bytes(providerData)),
+          validUntil:providerValidUntil
+        }
       }]
       );
     const txReceipt = await tx.wait();
@@ -787,31 +802,36 @@ describe("ERC721Factory", () => {
 
     //sign provider data
     const providerData=JSON.stringify({ "timeout":0 })
+    const providerValidUntil = 0;
     const message = ethers.utils.solidityKeccak256(
-      ["bytes", "address", "address", "uint256"],
+      ["bytes", "address", "address", "uint256", "uint256"],
       [
         ethers.utils.hexlify(ethers.utils.toUtf8Bytes(providerData)),
         providerFeeAddress,
         providerFeeToken,
-        providerFeeAmount
+        providerFeeAmount,
+        providerValidUntil
       ]
     );
     const signedMessage = await signMessage(message, providerFeeAddress);
+    
     const tx = await factoryERC721
       .connect(user2)
       .startMultipleTokenOrder(
         [{
           "tokenAddress":erc20TokenWithPublishFee.address,
           "consumer":consumer,
-          "amount":dtAmount,
           "serviceIndex":serviceIndex,
-          "providerFeeAddress":providerFeeAddress,
-          "providerFeeToken": providerFeeToken,
-          "providerFeeAmount":providerFeeAmount,
-          "v": signedMessage.v,
-          "r": signedMessage.r,
-          "s": signedMessage.s,
-          "providerData": ethers.utils.hexlify(ethers.utils.toUtf8Bytes(providerData))
+          "_providerFees": {
+            providerFeeAddress: providerFeeAddress,
+            providerFeeToken:providerFeeToken,
+            providerFeeAmount:providerFeeAmount,
+            v:signedMessage.v,
+            r:signedMessage.r,
+            s:signedMessage.s,
+            providerData:ethers.utils.hexlify(ethers.utils.toUtf8Bytes(providerData)),
+            validUntil:providerValidUntil
+          }
         }]
       );
     const txReceipt = await tx.wait();
@@ -869,15 +889,18 @@ describe("ERC721Factory", () => {
     
     //sign provider data
     const providerData=JSON.stringify({ "timeout":0 })
+    const providerValidUntil = 0;
     const message = ethers.utils.solidityKeccak256(
-      ["bytes", "address", "address", "uint256"],
+      ["bytes", "address", "address", "uint256", "uint256"],
       [
         ethers.utils.hexlify(ethers.utils.toUtf8Bytes(providerData)),
         providerFeeAddress,
         providerFeeToken,
-        providerFeeAmount
+        providerFeeAmount,
+        providerValidUntil
       ]
     );
+
     const signedMessage = await signMessage(message, providerFeeAddress);
     const tx = await factoryERC721
       .connect(user2)
@@ -886,13 +909,16 @@ describe("ERC721Factory", () => {
           "tokenAddress":erc20TokenWithPublishFee.address,
           "consumer":consumer,
           "serviceIndex":serviceIndex,
-          "providerFeeAddress":providerFeeAddress,
-          "providerFeeToken": providerFeeToken,
-          "providerFeeAmount": providerFeeAmount,
-          "v": signedMessage.v,
-          "r": signedMessage.r,
-          "s": signedMessage.s,
-          "providerData": ethers.utils.hexlify(ethers.utils.toUtf8Bytes(providerData))
+          "_providerFees": {
+            providerFeeAddress: providerFeeAddress,
+            providerFeeToken:providerFeeToken,
+            providerFeeAmount:providerFeeAmount,
+            v:signedMessage.v,
+            r:signedMessage.r,
+            s:signedMessage.s,
+            providerData:ethers.utils.hexlify(ethers.utils.toUtf8Bytes(providerData)),
+            validUntil:providerValidUntil
+          }
         }]
       );
     const txReceipt = await tx.wait();
@@ -968,15 +994,18 @@ describe("ERC721Factory", () => {
     //sign provider data
     const providerData=JSON.stringify({ "timeout":0 })
     const providerFeeAmount = "0"
+    const providerValidUntil = 0;
     const message = ethers.utils.solidityKeccak256(
-      ["bytes", "address", "address", "uint256"],
+      ["bytes", "address", "address", "uint256", "uint256"],
       [
         ethers.utils.hexlify(ethers.utils.toUtf8Bytes(providerData)),
         providerFeeAddress,
         providerFeeToken,
-        providerFeeAmount
+        providerFeeAmount,
+        providerValidUntil
       ]
     );
+
     const signedMessage = await signMessage(message, providerFeeAddress);
     const tx = await factoryERC721
       .connect(user2)
@@ -985,25 +1014,31 @@ describe("ERC721Factory", () => {
           "tokenAddress":erc20TokenWithPublishFee.address,
           "consumer":consumer,
           "serviceIndex":serviceIndex,
-          "providerFeeAddress":providerFeeAddress,
-          "providerFeeToken": providerFeeToken,
-          "providerFeeAmount":providerFeeAmount,
-          "v": signedMessage.v,
-          "r": signedMessage.r,
-          "s": signedMessage.s,
-          "providerData": ethers.utils.hexlify(ethers.utils.toUtf8Bytes(providerData))
+          "_providerFees": {
+            providerFeeAddress: providerFeeAddress,
+            providerFeeToken:providerFeeToken,
+            providerFeeAmount:providerFeeAmount,
+            v:signedMessage.v,
+            r:signedMessage.r,
+            s:signedMessage.s,
+            providerData:ethers.utils.hexlify(ethers.utils.toUtf8Bytes(providerData)),
+            validUntil:providerValidUntil
+          }
         },
         {
           "tokenAddress":erc20Token.address,
           "consumer":consumer,
           "serviceIndex":serviceIndex,
-          "providerFeeAddress":providerFeeAddress,
-          "providerFeeToken": providerFeeToken,
-          "providerFeeAmount":providerFeeAmount,
-          "v": signedMessage.v,
-          "r": signedMessage.r,
-          "s": signedMessage.s,
-          "providerData": ethers.utils.hexlify(ethers.utils.toUtf8Bytes(providerData))
+          "_providerFees": {
+            providerFeeAddress: providerFeeAddress,
+            providerFeeToken:providerFeeToken,
+            providerFeeAmount:providerFeeAmount,
+            v:signedMessage.v,
+            r:signedMessage.r,
+            s:signedMessage.s,
+            providerData:ethers.utils.hexlify(ethers.utils.toUtf8Bytes(providerData)),
+            validUntil:providerValidUntil
+          }
         }]
       );
     const txReceipt = await tx.wait();

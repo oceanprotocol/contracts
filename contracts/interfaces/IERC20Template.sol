@@ -8,6 +8,16 @@ interface IERC20Template {
         bool minter;
         bool feeManager;
     }
+    struct providerFees{
+        address providerFeeAddress;
+        address providerFeeToken; // address of the token marketplace wants to add fee on top
+        uint256 providerFeeAmount; // amount to be transfered to marketFeeCollector
+        uint8 v; // v of provider signed message
+        bytes32 r; // r of provider signed message
+        bytes32 s; // s of provider signed message
+        uint256 validUntil; //validity expresses in unix timestamp
+        bytes providerData; //data encoded by provider
+    }
     function initialize(
         string[] calldata strings_,
         address[] calldata addresses_,
@@ -96,14 +106,13 @@ interface IERC20Template {
      function startOrder(
         address consumer,
         uint256 serviceId,
-        address providerFeeAddress,
-        address providerFeeToken, 
-        uint256 providerFeeAmount,
-        uint8 v, // v of provider signed message
-        bytes32 r, // r of provider signed message
-        bytes32 s, // s of provider signed message
-        bytes memory providerData //data encoded by provider
+        providerFees memory _providerFees
      ) external;
+
+     function reuseOrder(
+        bytes32 orderTxId,
+        providerFees calldata _providerFees
+    ) external;
   
     function burn(uint256 amount) external;
     function burnFrom(address account, uint256 amount) external;

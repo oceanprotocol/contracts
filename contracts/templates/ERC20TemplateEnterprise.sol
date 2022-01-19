@@ -14,6 +14,7 @@ import "@openzeppelin/contracts/token/ERC20/extensions/ERC20Burnable.sol";
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "@openzeppelin/contracts/utils/math/SafeMath.sol";
 import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
+import "@openzeppelin/contracts/security/ReentrancyGuard.sol";
 import "../utils/ERC20Roles.sol";
 
 /**
@@ -30,7 +31,8 @@ import "../utils/ERC20Roles.sol";
 contract ERC20TemplateEnterprise is
     ERC20("test", "testSymbol"),
     ERC20Roles,
-    ERC20Burnable
+    ERC20Burnable,
+    ReentrancyGuard
 {
     using SafeMath for uint256;
     using SafeERC20 for IERC20;
@@ -64,7 +66,18 @@ contract ERC20TemplateEnterprise is
     }
     fixedRate[] fixedRateExchanges;
     address[] dispensers;
-    
+
+    struct providerFees{
+        address providerFeeAddress;
+        address providerFeeToken; // address of the token marketplace wants to add fee on top
+        uint256 providerFeeAmount; // amount to be transfered to marketFeeCollector
+        uint8 v; // v of provider signed message
+        bytes32 r; // r of provider signed message
+        bytes32 s; // s of provider signed message
+        uint256 validUntil; //validity expresses in unix timestamp
+        bytes providerData; //data encoded by provider
+    }
+
     event OrderStarted(
         address indexed consumer,
         address payer,
@@ -73,6 +86,13 @@ contract ERC20TemplateEnterprise is
         uint256 timestamp,
         address indexed publishMarketAddress,
         uint256 blockNumber
+    );
+
+    event OrderReused(
+            bytes32 orderTxId,
+            address caller,
+            uint256 timestamp,
+            uint256 number
     );
 
     event PublishMarketFees(
@@ -94,7 +114,8 @@ contract ERC20TemplateEnterprise is
         bytes providerData,
         uint8 v, 
         bytes32 r, 
-        bytes32 s
+        bytes32 s,
+        uint256 validUntil
     );
 
     event MinterProposed(address currentMinter, address newMinter);
@@ -284,7 +305,7 @@ contract ERC20TemplateEnterprise is
         address fixedPriceAddress,
         address[] memory addresses,
         uint256[] memory uints
-    ) external onlyERC20Deployer returns (bytes32 exchangeId) {
+    ) external onlyERC20Deployer nonReentrant returns (bytes32 exchangeId) {
         //force FRE allowedSwapper to this contract address. no one else can swap
         addresses[3] = address(this);
         exchangeId = IFactoryRouter(router).deployFixedRate(
@@ -315,7 +336,7 @@ contract ERC20TemplateEnterprise is
         uint256 maxBalance,
         bool withMint,
         address allowedSwapper
-    ) external onlyERC20Deployer {
+    ) external onlyERC20Deployer nonReentrant {
         IFactoryRouter(router).deployDispenser(
             _dispenser,
             address(this),
@@ -355,45 +376,68 @@ contract ERC20TemplateEnterprise is
         return (permissions[account].minter);
     }
 
+
+    /**
+     * @dev checkProviderFees
+     *      Checks if a providerFee structure is valid, signed and 
+     *      transfers fee to providerAddress
+     * @param _providerFee providerFees structure
+     */
+    function checkProviderFees(providerFees calldata _providerFee) internal{
+        // check if they are signed
+        bytes memory prefix = "\x19Ethereum Signed Message:\n32";
+        bytes32 message = keccak256(
+            abi.encodePacked(prefix,
+                keccak256(
+                    abi.encodePacked(
+                        _providerFee.providerData,
+                        _providerFee.providerFeeAddress,
+                        _providerFee.providerFeeToken,
+                        _providerFee.providerFeeAmount,
+                        _providerFee.validUntil
+                    )
+                )
+            )
+        );
+        address signer = ecrecover(message, _providerFee.v, _providerFee.r, _providerFee.s);
+        require(signer == _providerFee.providerFeeAddress, "Invalid provider fee");
+        emit ProviderFees(
+            _providerFee.providerFeeAddress,
+            _providerFee.providerFeeToken,
+            _providerFee.providerFeeAmount,
+            _providerFee.providerData,
+            _providerFee.v,
+            _providerFee.r,
+            _providerFee.s,
+            _providerFee.validUntil
+        );
+        // skip fee if amount == 0 or feeToken == 0x0 address or feeAddress == 0x0 address
+        // Requires approval for the providerFeeToken of providerFeeAmount
+        if (
+            _providerFee.providerFeeAmount > 0 &&
+            _providerFee.providerFeeToken != address(0) &&
+            _providerFee.providerFeeAddress != address(0)
+        ) {
+            IERC20(_providerFee.providerFeeToken).safeTransferFrom(
+                msg.sender,
+                _providerFee.providerFeeAddress,
+                _providerFee.providerFeeAmount
+            );
+        }
+    }
     /**
      * @dev startOrder
      *      called by payer or consumer prior ordering a service consume on a marketplace.
      *      Requires previous approval of consumeFeeToken and publishMarketFeeToken
      * @param consumer is the consumer address (payer could be different address)
      * @param serviceIndex service index in the metadata
-     * @param providerFeeAddress consume marketplace fee address
-     * @param providerFeeToken // address of the token marketplace wants to add fee on top
-     * @param providerFeeAmount // fee amount 
-     * @param v // v of provider signed message
-     * @param r // r of provider signed message   
-     * @param s // s of provider signed message     
+     * @param _providerFees provider feees
      */
     function startOrder(
         address consumer,
         uint256 serviceIndex,
-        address providerFeeAddress,
-        address providerFeeToken, // address of the token marketplace wants to add fee on top
-        uint256 providerFeeAmount, // amount to be transfered to marketFeeCollector 
-        uint8 v, // v of provider signed message
-        bytes32 r, // r of provider signed message
-        bytes32 s, // s of provider signed message
-        bytes memory providerData //data encoded by provider
-    ) external {
-        _startOrder(consumer, serviceIndex,
-        providerFeeAddress,providerFeeToken,providerFeeAmount, v, r, s, providerData);
-    }
-
-    function _startOrder(
-        address consumer,
-        uint256 serviceIndex,
-        address providerFeeAddress,
-        address providerFeeToken, // address of the token marketplace wants to add fee on top
-        uint256 providerFeeAmount, // amount to be transfered to marketFeeCollector 
-        uint8 v, // v of provider signed message
-        bytes32 r, // r of provider signed message
-        bytes32 s, // s of provider signed message
-        bytes memory providerData //data encoded by provider
-    ) private {
+        providerFees calldata _providerFees
+    ) public {
         uint256 amount = 1e18; // we always pay 1 DT. No more, no less
         uint256 communityFeePublish = 0;
         require(
@@ -447,48 +491,31 @@ contract ERC20TemplateEnterprise is
             }
         }
 
-       
-        
-
-        // providerFees - check if they are signed
-        bytes memory prefix = "\x19Ethereum Signed Message:\n32";
-        bytes32 message = keccak256(
-            abi.encodePacked(prefix,
-                keccak256(
-                    abi.encodePacked(
-                        providerData,
-                        providerFeeAddress,
-                        providerFeeToken,
-                        providerFeeAmount
-                    )
-                )
-            )
-        );
-        address signer = ecrecover(message, v, r, s);
-        require(signer == providerFeeAddress, "Invalid provider fee");
-        emit ProviderFees(
-            providerFeeAddress,
-            providerFeeToken,
-            providerFeeAmount,
-            providerData,
-            v, r, s
-        );
-        // skip fee if amount == 0 or feeToken == 0x0 address or feeAddress == 0x0 address
-        // Requires approval for the providerFeeToken of providerFeeAmount
-        if (
-            providerFeeAmount > 0 &&
-            providerFeeToken != address(0) &&
-            providerFeeAddress != address(0)
-        ) {
-            IERC20(providerFeeToken).safeTransferFrom(
-                msg.sender,
-                providerFeeAddress,
-                providerFeeAmount
-            );
-        }   
+        checkProviderFees(_providerFees);
         
         // instead of sending datatoken to publisher, we burn them
         burn(amount);
+    }
+
+    /**
+     * @dev reuseOrder
+     *      called by payer or consumer having a valid order, but with expired provider access
+     *      Pays the provider fees again, but it will not require a new datatoken payment
+     *      Requires previous approval of provider fees.
+     * @param orderTxId previous valid order
+     * @param _providerFees provider feees
+     */
+    function reuseOrder(
+        bytes32 orderTxId,
+        providerFees calldata _providerFees
+    ) external {
+        emit OrderReused(
+            orderTxId,
+            msg.sender,
+            block.timestamp,
+            block.number
+        );
+        checkProviderFees(_providerFees);
     }
 
     /**
@@ -854,13 +881,7 @@ contract ERC20TemplateEnterprise is
     struct OrderParams {
         address consumer;
         uint256 serviceIndex;
-        address providerFeeAddress;
-        address providerFeeToken; // address of the token marketplace wants to add fee on top
-        uint256 providerFeeAmount; 
-        uint8 v; // v of provider signed message
-        bytes32 r; // r of provider signed message
-        bytes32 s; // s of provider signed message
-        bytes providerData; //data encoded by provider
+        providerFees _providerFees;
     }
     struct FreParams {
         address exchangeContract;
@@ -875,9 +896,9 @@ contract ERC20TemplateEnterprise is
      *      Buys 1 DT from the FRE and then startsOrder, while burning that DT
      */
     function buyFromFreAndOrder(
-        OrderParams memory _orderParams,
-        FreParams memory _freParams
-    ) external {
+        OrderParams calldata _orderParams,
+        FreParams calldata _freParams
+    ) external nonReentrant{
         // get exchange info
         (
             ,
@@ -944,10 +965,7 @@ contract ERC20TemplateEnterprise is
         //we need the following because startOrder expects msg.sender to have dt
         _transfer(address(this), msg.sender, 1e18);
         //startOrder and burn it
-        _startOrder(
-            _orderParams.consumer, _orderParams.serviceIndex,
-            _orderParams.providerFeeAddress, _orderParams.providerFeeToken, _orderParams.providerFeeAmount,
-            _orderParams.v, _orderParams.r, _orderParams.s, _orderParams.providerData);
+        startOrder(_orderParams.consumer, _orderParams.serviceIndex, _orderParams._providerFees);
 
         // Transfer Market Fee to market fee collector
         if (marketFeeAmount > 0) {
@@ -965,9 +983,9 @@ contract ERC20TemplateEnterprise is
      *      Gets DT from dispenser and then startsOrder, while burning that DT
      */
     function buyFromDispenserAndOrder(
-        OrderParams memory _orderParams,
+        OrderParams calldata _orderParams,
         address dispenserContract
-    ) external {
+    ) external nonReentrant {
         uint256 amount = 1e18;
         //get DT
         IDispenser(dispenserContract).dispense(
@@ -980,10 +998,7 @@ contract ERC20TemplateEnterprise is
             "Unable to get DT from Dispenser"
         );
         //startOrder and burn it
-        _startOrder(
-            _orderParams.consumer, _orderParams.serviceIndex,
-            _orderParams.providerFeeAddress, _orderParams.providerFeeToken, _orderParams.providerFeeAmount,
-            _orderParams.v, _orderParams.r, _orderParams.s, _orderParams.providerData);
+        startOrder(_orderParams.consumer, _orderParams.serviceIndex, _orderParams._providerFees);
     }
 
      /**

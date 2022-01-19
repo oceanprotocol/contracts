@@ -460,17 +460,21 @@ contract ERC721Factory is Deployer, Ownable, ReentrancyGuard {
         return templateCount;
     }
 
+    struct providerFees{
+        address providerFeeAddress;
+        address providerFeeToken; // address of the token marketplace wants to add fee on top
+        uint256 providerFeeAmount; // amount to be transfered to marketFeeCollector
+        uint8 v; // v of provider signed message
+        bytes32 r; // r of provider signed message
+        bytes32 s; // s of provider signed message
+        uint256 validUntil; //validity expresses in unix timestamp
+        bytes providerData; //data encoded by provider
+    }
     struct tokenOrder {
         address tokenAddress;
         address consumer;
         uint256 serviceIndex;
-        address providerFeeAddress;
-        address providerFeeToken; // address of the token marketplace wants to add fee on top
-        uint256 providerFeeAmount;
-        uint8 v; // v of provider signed message
-        bytes32 r; // r of provider signed message
-        bytes32 s; // s of provider signed message
-        bytes providerData;
+        IERC20Template.providerFees _providerFees;
     }
 
     /**
@@ -481,6 +485,7 @@ contract ERC721Factory is Deployer, Ownable, ReentrancyGuard {
      *          - consumeFeeTokens
      *          - publishMarketFeeTokens
      *          - erc20 datatokens
+     *          - providerFees
      * @param orders an array of struct tokenOrder
      */
     function startMultipleTokenOrder(
@@ -505,15 +510,15 @@ contract ERC721Factory is Deployer, Ownable, ReentrancyGuard {
                 IERC20(publishMarketFeeToken).safeIncreaseAllowance(orders[i].tokenAddress, publishMarketFeeAmount);
             }
             // handle provider fees
-            if (orders[i].providerFeeAmount > 0 && orders[i].providerFeeToken!=address(0) 
-            && orders[i].providerFeeAddress!=address(0)) {
-                IERC20(orders[i].providerFeeToken).safeTransferFrom(
+            if (orders[i]._providerFees.providerFeeAmount > 0 && orders[i]._providerFees.providerFeeToken!=address(0) 
+            && orders[i]._providerFees.providerFeeAddress!=address(0)) {
+                IERC20(orders[i]._providerFees.providerFeeToken).safeTransferFrom(
                     msg.sender,
                     address(this),
-                    orders[i].providerFeeAmount
+                    orders[i]._providerFees.providerFeeAmount
                 );
-                IERC20(orders[i].providerFeeToken)
-                .safeIncreaseAllowance(orders[i].tokenAddress, orders[i].providerFeeAmount);
+                IERC20(orders[i]._providerFees.providerFeeToken)
+                .safeIncreaseAllowance(orders[i].tokenAddress, orders[i]._providerFees.providerFeeAmount);
             }
             // transfer erc20 datatoken from consumer to us
             IERC20(orders[i].tokenAddress).safeTransferFrom(
@@ -525,13 +530,50 @@ contract ERC721Factory is Deployer, Ownable, ReentrancyGuard {
             IERC20Template(orders[i].tokenAddress).startOrder(
                 orders[i].consumer,
                 orders[i].serviceIndex,
-                orders[i].providerFeeAddress,
-                orders[i].providerFeeToken,
-                orders[i].providerFeeAmount,
-                orders[i].v,
-                orders[i].r,
-                orders[i].s,
-                orders[i].providerData
+                orders[i]._providerFees
+            );
+        }
+    }
+
+    struct reuseTokenOrder {
+        address tokenAddress;
+        bytes32 orderTxId;
+        IERC20Template.providerFees _providerFees;
+    }
+    /**
+     * @dev reuseMultipleTokenOrder
+     *      Used as a proxy to order multiple reuses
+     *      Users can have inifinite approvals for fees for factory instead of having one approval/ erc20 contract
+     *      Requires previous approval of all :
+     *          - consumeFeeTokens
+     *          - publishMarketFeeTokens
+     *          - erc20 datatokens
+     *          - providerFees
+     * @param orders an array of struct tokenOrder
+     */
+    function reuseMultipleTokenOrder(
+        reuseTokenOrder[] memory orders
+    ) external nonReentrant {
+        // TODO: to avoid DOS attack, we set a limit to maximum order (50 ?)
+        require(orders.length <= 50, 'ERC721Factory: Too Many Orders');
+        // TO DO.  We can do better here , by groupping publishMarketFeeTokens and consumeFeeTokens and have a single 
+        // transfer for each one, instead of doing it per dt..
+        for (uint256 i = 0; i < orders.length; i++) {
+            // handle provider fees
+            if (orders[i]._providerFees.providerFeeAmount > 0 && orders[i]._providerFees.providerFeeToken!=address(0) 
+            && orders[i]._providerFees.providerFeeAddress!=address(0)) {
+                IERC20(orders[i]._providerFees.providerFeeToken).safeTransferFrom(
+                    msg.sender,
+                    address(this),
+                    orders[i]._providerFees.providerFeeAmount
+                );
+                IERC20(orders[i]._providerFees.providerFeeToken)
+                .safeIncreaseAllowance(orders[i].tokenAddress, orders[i]._providerFees.providerFeeAmount);
+            }
+        
+            IERC20Template(orders[i].tokenAddress).reuseOrder(
+                orders[i].orderTxId,
+                orders[i]._providerFees
             );
         }
     }
