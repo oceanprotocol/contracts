@@ -287,7 +287,7 @@ describe("1SS flow", () => {
     expect(
       await sideStaking.getDatatokenCurrentCirculatingSupply(erc20Token.address)
     ).to.equal(initialDTLiquidity);
-    expect(await sideStaking.getbaseTokenAddress(erc20Token.address)).to.equal(
+    expect(await sideStaking.getBaseTokenAddress(erc20Token.address)).to.equal(
       oceanAddress
     );
     expect(await sideStaking.getPoolAddress(erc20Token.address)).to.equal(
@@ -296,7 +296,7 @@ describe("1SS flow", () => {
     expect(await sideStaking.getPublisherAddress(erc20Token.address)).to.equal(
       user3.address
     );
-    expect(await sideStaking.getbaseTokenBalance(oceanAddress)).to.equal(0);
+    expect(await sideStaking.getBaseTokenBalance(oceanAddress)).to.equal(0);
     expect(await sideStaking.getDatatokenBalance(erc20Token.address)).to.equal(
       web3.utils.toWei("98000")
     );

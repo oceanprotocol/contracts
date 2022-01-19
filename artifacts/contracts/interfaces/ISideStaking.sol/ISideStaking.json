@@ -120,31 +120,12 @@
           "type": "address"
         }
       ],
-      "name": "getBasetokenAddress",
+      "name": "getBaseTokenAddress",
       "outputs": [
         {
           "internalType": "address",
           "name": "",
           "type": "address"
-        }
-      ],
-      "stateMutability": "view",
-      "type": "function"
-    },
-    {
-      "inputs": [
-        {
-          "internalType": "address",
-          "name": "datatokenAddress",
-          "type": "address"
-        }
-      ],
-      "name": "getBasetokenBalance",
-      "outputs": [
-        {
-          "internalType": "uint256",
-          "name": "",
-          "type": "uint256"
         }
       ],
       "stateMutability": "view",
@@ -189,6 +170,19 @@
       "type": "function"
     },
     {
+      "inputs": [],
+      "name": "getId",
+      "outputs": [
+        {
+          "internalType": "uint8",
+          "name": "",
+          "type": "uint8"
+        }
+      ],
+      "stateMutability": "pure",
+      "type": "function"
+    },
+    {
       "inputs": [
         {
           "internalType": "address",
@@ -221,6 +215,25 @@
           "internalType": "address",
           "name": "",
           "type": "address"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "address",
+          "name": "datatokenAddress",
+          "type": "address"
+        }
+      ],
+      "name": "getbBaseTokenBalance",
+      "outputs": [
+        {
+          "internalType": "uint256",
+          "name": "",
+          "type": "uint256"
         }
       ],
       "stateMutability": "view",
@@ -311,7 +324,7 @@
         },
         {
           "internalType": "address",
-          "name": "basetokenAddress",
+          "name": "baseTokenAddress",
           "type": "address"
         },
         {

@@ -10,8 +10,8 @@ interface IFixedRateExchange {
         uint256[] calldata uints // [baseTokenDecimals,datatokenDecimals, fixedRate, marketFee]
     ) external returns (bytes32 exchangeId);
 
-    function buyDT(bytes32 exchangeId, uint256 datatokenAmount, uint256 maxbaseTokenAmount) external;
-    function sellDT(bytes32 exchangeId, uint256 datatokenAmount, uint256 minbaseTokenAmount) external;
+    function buyDT(bytes32 exchangeId, uint256 datatokenAmount, uint256 maxBaseTokenAmount) external;
+    function sellDT(bytes32 exchangeId, uint256 datatokenAmount, uint256 minBaseTokenAmount) external;
 
     function getAllowedSwapper(bytes32 exchangeId) external view returns (address allowedSwapper);
     function getExchange(bytes32 exchangeId)
