@@ -1,5 +1,5 @@
 {
-  "name": "hardhat-project",
+  "name": "@oceanprotocol/contracts",
   "version": "v1.0.0-alpha.1",
   "description": "Ocean Protocol Smartcontracts",
   "bugs": {

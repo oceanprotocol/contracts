@@ -102,6 +102,8 @@ jobs:
           npx hardhat compile --force
       - name: Delete dbg files
         run: find ./artifacts/* -name "*.dbg.json" -type f -delete
+      - name: Delete useless files
+        run: rm -rf ./artifacts/build-info/*
       - run: npm publish
         env:
           NODE_AUTH_TOKEN: ${{secrets.NPM_TOKEN}}
@@ -135,6 +137,8 @@ jobs:
           npx hardhat compile --force
       - name: Delete dbg files
         run: find ./artifacts/* -name "*.dbg.json" -type f -delete
+      - name: Delete useless files
+        run: rm -rf ./artifacts/build-info/*
       - uses: actions/checkout@v2
       - name: Set up Python
         uses: actions/setup-python@v2
