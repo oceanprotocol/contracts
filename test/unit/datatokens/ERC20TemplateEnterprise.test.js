@@ -699,9 +699,8 @@ describe("ERC20TemplateEnterprise", () => {
     );
     assert(
       (await erc20Token.balanceOf(await erc20Token.getPaymentCollector())) ==
-      web3.utils.toWei("1"), 'Invalid publisher reward, we should have 1 DT'
+      web3.utils.toWei("0"), 'Invalid publisher reward, we should have burned the DT'
     );
-
     const reuseTx = await erc20Token
       .connect(user2)
       .reuseOrder(
