@@ -14,7 +14,7 @@ pragma solidity 0.8.10;
 interface IPool {
     function getDatatokenAddress() external view returns (address);
 
-    function getbaseTokenAddress() external view returns (address);
+    function getBaseTokenAddress() external view returns (address);
 
     function getController() external view returns (address);
 

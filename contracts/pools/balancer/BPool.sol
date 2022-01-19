@@ -425,7 +425,7 @@ contract BPool is BMath, BToken {
         return _datatokenAddress;
     }
 
-    function getbaseTokenAddress() external view returns (address) {
+    function getBaseTokenAddress() external view returns (address) {
         return _baseTokenAddress;
     }
 

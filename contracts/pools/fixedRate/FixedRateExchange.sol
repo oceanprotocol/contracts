@@ -338,9 +338,9 @@ contract FixedRateExchange is ReentrancyGuard {
      *      atomic swap between two registered fixed rate exchange.
      * @param exchangeId a unique exchange idnetifier
      * @param datatokenAmount the amount of datatokens to be exchanged
-     * @param maxbaseTokenAmount maximum amount of base tokens to pay
+     * @param maxBaseTokenAmount maximum amount of base tokens to pay
      */
-    function buyDT(bytes32 exchangeId, uint256 datatokenAmount, uint256 maxbaseTokenAmount)
+    function buyDT(bytes32 exchangeId, uint256 datatokenAmount, uint256 maxBaseTokenAmount)
         external
         onlyActiveExchange(exchangeId)
         nonReentrant
@@ -362,7 +362,7 @@ contract FixedRateExchange is ReentrancyGuard {
             uint256 marketFeeAmount
         ) = calcBaseInGivenOutDT(exchangeId, datatokenAmount);
         require(
-            baseTokenAmount <= maxbaseTokenAmount,
+            baseTokenAmount <= maxBaseTokenAmount,
             "FixedRateExchange: Too many base tokens"
         );
         // we account fees , fees are always collected in baseToken
@@ -421,9 +421,9 @@ contract FixedRateExchange is ReentrancyGuard {
      *      atomic swap between two registered fixed rate exchange.
      * @param exchangeId a unique exchange idnetifier
      * @param datatokenAmount the amount of datatokens to be exchanged
-     * @param minbaseTokenAmount minimum amount of base tokens to cash in
+     * @param minBaseTokenAmount minimum amount of base tokens to cash in
      */
-    function sellDT(bytes32 exchangeId, uint256 datatokenAmount, uint256 minbaseTokenAmount)
+    function sellDT(bytes32 exchangeId, uint256 datatokenAmount, uint256 minBaseTokenAmount)
         external
         onlyActiveExchange(exchangeId)
         nonReentrant
@@ -445,7 +445,7 @@ contract FixedRateExchange is ReentrancyGuard {
             uint256 marketFeeAmount
         ) = calcBaseOutGivenInDT(exchangeId, datatokenAmount);
         require(
-            baseTokenAmount >= minbaseTokenAmount,
+            baseTokenAmount >= minBaseTokenAmount,
             "FixedRateExchange: Too few base tokens"
         );
         // we account fees , fees are always collected in baseToken

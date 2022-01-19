@@ -865,7 +865,7 @@ contract ERC20TemplateEnterprise is
     struct FreParams {
         address exchangeContract;
         bytes32 exchangeId;
-        uint256 maxbaseTokenAmount;
+        uint256 maxBaseTokenAmount;
         uint256 swapMarketFee;
         address marketFeeAddress;
     }
@@ -911,7 +911,7 @@ contract ERC20TemplateEnterprise is
                     1e18  // we always take 1 DT
                 );
         require(
-            baseTokenAmount <= _freParams.maxbaseTokenAmount,
+            baseTokenAmount <= _freParams.maxBaseTokenAmount,
             "FixedRateExchange: Too many base tokens"
         );
         // we calculate the dynamic market fee and add it to the baseTokenAmount to be transferred
