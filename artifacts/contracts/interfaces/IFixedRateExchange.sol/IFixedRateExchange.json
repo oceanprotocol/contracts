@@ -17,7 +17,7 @@
         },
         {
           "internalType": "uint256",
-          "name": "maxBasetokenAmount",
+          "name": "maxBaseTokenAmount",
           "type": "uint256"
         }
       ],
@@ -43,12 +43,12 @@
       "outputs": [
         {
           "internalType": "uint256",
-          "name": "basetokenAmount",
+          "name": "baseTokenAmount",
           "type": "uint256"
         },
         {
           "internalType": "uint256",
-          "name": "basetokenAmountBeforeFee",
+          "name": "baseTokenAmountBeforeFee",
           "type": "uint256"
         },
         {
@@ -140,7 +140,7 @@
         },
         {
           "internalType": "address",
-          "name": "basetoken",
+          "name": "baseToken",
           "type": "address"
         },
         {
@@ -227,6 +227,19 @@
       "type": "function"
     },
     {
+      "inputs": [],
+      "name": "getId",
+      "outputs": [
+        {
+          "internalType": "uint8",
+          "name": "",
+          "type": "uint8"
+        }
+      ],
+      "stateMutability": "pure",
+      "type": "function"
+    },
+    {
       "inputs": [
         {
           "internalType": "bytes32",
@@ -259,7 +272,7 @@
         },
         {
           "internalType": "uint256",
-          "name": "minBasetokenAmount",
+          "name": "minBaseTokenAmount",
           "type": "uint256"
         }
       ],
