@@ -1,6 +1,28 @@
 {
   "name": "hardhat-project",
   "version": "v1.0.0-alpha.1",
+  "description": "Ocean Protocol Smartcontracts",
+  "bugs": {
+    "url": "https://github.com/oceanprotocol/contracts/issues"
+  },
+  "homepage": "https://github.com/oceanprotocol/contracts#readme",
+  "main": "README.md",
+  "directories": {
+    "doc": "docs",
+    "test": "test"
+  },
+  "files": [
+    "docs/**/*",
+    "artifacts/**/*",
+    "addresses/*",
+    "README.md"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/oceanprotocol/contracts.git"
+  },
+  "author": "Ocean Protocol",
+  "license": "Apache-2.0",
   "scripts": {
     "test:full": "npx hardhat test test/unit/*/*.test.js test/flow/*.test.js ",
     "test:batch": "npx hardhat test test/flow/SwapBatch.test.js ",
