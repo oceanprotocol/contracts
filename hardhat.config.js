@@ -20,6 +20,7 @@ task("accounts", "Prints the list of accounts", async () => {
  * @type import('hardhat/config').HardhatUserConfig
  */
 module.exports = {
+  defaultNetwork: "hardhat",
   solidity: {
     compilers: [
      {
@@ -44,13 +45,7 @@ module.exports = {
         blockNumber: 12545000,
       },
       gasPrice:1000000000
-    },
-    rinkeby: {
-      url:
-        process.env.NETWORK_RPC_URL !== undefined ? process.env.NETWORK_RPC_URL : "",
-      accounts:
-        process.env.PRIVATE_KEY !== undefined ? [process.env.PRIVATE_KEY] : [],
-    },
+    }
   },
   etherscan: {
     apiKey: process.env.ETHERSCAN_API_KEY
