@@ -40,7 +40,7 @@ module.exports = {
       allowUnlimitedContractSize: true,
       forking: {
         url:
-          "https://eth-mainnet.alchemyapi.io/v2/eOqKsGAdsiNLCVm846Vgb-6yY3jlcNEo",
+        process.env.NETWORK_RPC_URL !== undefined ? process.env.NETWORK_RPC_URL : "https://eth-mainnet.alchemyapi.io/v2/eOqKsGAdsiNLCVm846Vgb-6yY3jlcNEo",
         blockNumber: 12545000,
       },
       gasPrice:1000000000

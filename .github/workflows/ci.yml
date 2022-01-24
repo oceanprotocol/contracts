@@ -51,6 +51,8 @@ jobs:
       - name: Run Hardhat
         run: |
           npx hardhat node &
+        env:
+          NETWORK_RPC_URL: ${{secrets.network_rpc_url}}
       - name: Compile contracts
         run: |
           npx hardhat compile --force
