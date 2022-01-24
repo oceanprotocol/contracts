@@ -20,6 +20,7 @@ task("accounts", "Prints the list of accounts", async () => {
  * @type import('hardhat/config').HardhatUserConfig
  */
 module.exports = {
+  defaultNetwork: "ganache",
   solidity: {
     compilers: [
      {
@@ -36,15 +37,6 @@ module.exports = {
     overrides: {},
   },
   networks: {
-    hardhat: {
-      allowUnlimitedContractSize: true,
-      forking: {
-        url:
-          "https://eth-mainnet.alchemyapi.io/v2/eOqKsGAdsiNLCVm846Vgb-6yY3jlcNEo",
-        blockNumber: 12545000,
-      },
-      gasPrice:1000000000
-    },
     ganache: {
       chainId: 8996,
       url: process.env.NETWORK_RPC_URL,
@@ -55,13 +47,7 @@ module.exports = {
       },
       gasPrice: 8000000,
       gas: 2100000
-    },
-    rinkeby: {
-      url:
-        process.env.NETWORK_RPC_URL !== undefined ? process.env.NETWORK_RPC_URL : "",
-      accounts:
-        process.env.PRIVATE_KEY !== undefined ? [process.env.PRIVATE_KEY] : [],
-    },
+    }
   },
   etherscan: {
     apiKey: process.env.ETHERSCAN_API_KEY
