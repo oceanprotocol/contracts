@@ -32,6 +32,7 @@ async function main() {
   const network = provider.getNetwork();
   // utils
   const networkDetails = await network;
+  
 
   let wallet;
   if (process.env.MNEMONIC)
