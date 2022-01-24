@@ -45,17 +45,6 @@ module.exports = {
       },
       gasPrice:1000000000
     },
-    ganache: {
-      chainId: 8996,
-      url: process.env.NETWORK_RPC_URL,
-      accounts: {
-        mnemonic: process.env.GANACHE_MNEMONIC !== undefined ? process.env.GANACHE_MNEMONIC : "taxi music thumb unique chat sand crew more leg another off lamp",
-        initialIndex:0,
-        count: 50,
-      },
-      gasPrice: 8000000,
-      gas: 2100000
-    },
     rinkeby: {
       url:
         process.env.NETWORK_RPC_URL !== undefined ? process.env.NETWORK_RPC_URL : "",
