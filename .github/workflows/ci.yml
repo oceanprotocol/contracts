@@ -56,7 +56,11 @@ jobs:
       - name: Compile contracts
         run: |
           npx hardhat compile --force
+        env:
+          NETWORK_RPC_URL: ${{secrets.network_rpc_url}}
       - run: npm run test:full:cover
+        env:
+          NETWORK_RPC_URL: ${{secrets.network_rpc_url}}
       - name: Delete dbg files
         run: find ./artifacts/* -name "*.dbg.json" -type f -delete
       - uses: actions/upload-artifact@v2
