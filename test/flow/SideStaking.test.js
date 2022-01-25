@@ -75,7 +75,7 @@ describe("1SS flow", () => {
       marketFeeCollector,
       newMarketFeeCollector,
       pool2MarketFeeCollector,
-      opfCollector,
+      opcCollector,
     ] = await ethers.getSigners();
 
     // GET SOME OCEAN TOKEN FROM OUR MAINNET FORK and send them to user3
@@ -126,7 +126,7 @@ describe("1SS flow", () => {
       owner.address,
       oceanAddress,
       poolTemplate.address, // pooltemplate field, unused in this test
-      opfCollector.address,
+      opcCollector.address,
       []
     );
 

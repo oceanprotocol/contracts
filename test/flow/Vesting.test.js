@@ -76,7 +76,7 @@ describe("Vesting flow", () => {
       marketFeeCollector, // POOL1
       newMarketFeeCollector, // POOL1
       pool2MarketFeeCollector,
-      opfCollector,
+      opcCollector,
     ] = await ethers.getSigners();
 
     // GET SOME OCEAN TOKEN FROM OUR MAINNET FORK and send them to user3
@@ -123,7 +123,7 @@ describe("Vesting flow", () => {
       owner.address,
       oceanAddress,
       poolTemplate.address, 
-      opfCollector.address,
+      opcCollector.address,
       []
     );
 
@@ -131,7 +131,7 @@ describe("Vesting flow", () => {
 
     fixedRateExchange = await FixedRateExchange.deploy(
       router.address,
-      opfCollector.address
+      opcCollector.address
     );
 
     templateERC20 = await ERC20Template.deploy();
@@ -142,7 +142,7 @@ describe("Vesting flow", () => {
     factoryERC721 = await ERC721Factory.deploy(
       templateERC721.address,
       templateERC20.address,
-      opfCollector.address,
+      opcCollector.address,
       router.address
     );
 

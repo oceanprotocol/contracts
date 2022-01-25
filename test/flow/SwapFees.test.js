@@ -43,7 +43,7 @@ describe("Swap Fees", () => {
     bPoolAddress,
     bPool,
     signer,
-    opfCollector,
+    opcCollector,
     SwapFeesEvent,
     fixedRateExchange,
     baseTokenDecimals,
@@ -85,7 +85,7 @@ describe("Swap Fees", () => {
       user5,
       user6,
       marketFeeCollector,
-      opfCollector,
+      opcCollector,
     ] = await ethers.getSigners();
 
     // GET SOME OCEAN TOKEN FROM OUR MAINNET FORK and send them to user3
@@ -157,7 +157,7 @@ describe("Swap Fees", () => {
       owner.address,
       oceanAddress,
       poolTemplate.address, // pooltemplate field, unused in this test
-      opfCollector.address,
+      opcCollector.address,
       []
     );
 
@@ -165,7 +165,7 @@ describe("Swap Fees", () => {
 
     fixedRateExchange = await FixedRateExchange.deploy(
       router.address,
-      opfCollector.address
+      opcCollector.address
     );
 
     templateERC20 = await ERC20Template.deploy();
@@ -175,7 +175,7 @@ describe("Swap Fees", () => {
     factoryERC721 = await ERC721Factory.deploy(
       templateERC721.address,
       templateERC20.address,
-      opfCollector.address,
+      opcCollector.address,
       router.address
     );
 

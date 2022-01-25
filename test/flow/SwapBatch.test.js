@@ -48,7 +48,7 @@ describe("Batch Swap", () => {
     bPool2,
     bPool3,
     signer,
-    opfCollector,
+    opcCollector,
     SwapFeesEvent,
     fixedRateExchange,
     baseTokenDecimals,
@@ -93,7 +93,7 @@ describe("Batch Swap", () => {
       user5,
       user6,
       marketFeeCollector,
-      opfCollector,
+      opcCollector,
     ] = await ethers.getSigners();
 
     // GET SOME OCEAN TOKEN FROM OUR MAINNET FORK and send them to user3
@@ -165,7 +165,7 @@ describe("Batch Swap", () => {
       owner.address,
       oceanAddress,
       poolTemplate.address,
-      opfCollector.address,
+      opcCollector.address,
       []
     );
 
@@ -175,7 +175,7 @@ describe("Batch Swap", () => {
 
     fixedRateExchange = await FixedRateExchange.deploy(
       router.address,
-      opfCollector.address
+      opcCollector.address
     );
 
     templateERC20 = await ERC20Template.deploy();
@@ -185,7 +185,7 @@ describe("Batch Swap", () => {
     factoryERC721 = await ERC721Factory.deploy(
       templateERC721.address,
       templateERC20.address,
-      opfCollector.address,
+      opcCollector.address,
       router.address
     );
 

@@ -76,7 +76,7 @@ describe("Dispenser", () => {
       user6,
       marketFeeCollector,
       newMarketFeeCollector,
-      opfCollector,
+      opcCollector,
     ] = await ethers.getSigners();
 
     alice = user3;
@@ -97,7 +97,7 @@ describe("Dispenser", () => {
       owner.address,
       oceanAddress,
       oceanAddress, // pooltemplate field, unused in this test
-      opfCollector.address,
+      opcCollector.address,
       []
     );
 
@@ -114,7 +114,7 @@ describe("Dispenser", () => {
     factoryERC721 = await ERC721Factory.deploy(
       templateERC721.address,
       templateERC20.address,
-      opfCollector.address,
+      opcCollector.address,
       router.address
     );
 

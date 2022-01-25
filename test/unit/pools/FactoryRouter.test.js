@@ -45,7 +45,7 @@ describe("FactoryRouter", () => {
       method: "hardhat_reset",
       params: [{
         forking: {
-          jsonRpcUrl: "https://eth-mainnet.alchemyapi.io/v2/eOqKsGAdsiNLCVm846Vgb-6yY3jlcNEo",
+          jsonRpcUrl: process.env.ALCHEMY_URL,
           blockNumber: 12515000,
         }
       }]
@@ -74,7 +74,7 @@ describe("FactoryRouter", () => {
       user5,
       user6,
       marketFeeCollector,
-      opfCollector,
+      opcCollector,
       newToken      
     ] = await ethers.getSigners();
     
@@ -92,7 +92,7 @@ describe("FactoryRouter", () => {
     owner.address,
     oceanAddress,
     poolTemplate.address, // pooltemplate field, unused in this test
-    opfCollector.address,
+    opcCollector.address,
     []
   );
 
@@ -101,7 +101,7 @@ describe("FactoryRouter", () => {
 
   fixedRateExchange = await FixedRateExchange.deploy(
     router.address,
-    opfCollector.address
+    opcCollector.address
   );
 
   templateERC20 = await ERC20Template.deploy();
@@ -112,7 +112,7 @@ describe("FactoryRouter", () => {
   factoryERC721 = await ERC721Factory.deploy(
     templateERC721.address,
     templateERC20.address,
-    opfCollector.address,
+    opcCollector.address,
     router.address
   );
 

@@ -77,7 +77,7 @@ describe("FixedRateExchange", () => {
       user6,
       marketFeeCollector,
       newMarketFeeCollector,
-      opfCollector,
+      opcCollector,
     ] = await ethers.getSigners();
 
     alice = user3;
@@ -144,7 +144,7 @@ describe("FixedRateExchange", () => {
       owner.address,
       oceanAddress,
       oceanAddress, // pooltemplate field, unused in this test
-      opfCollector.address,
+      opcCollector.address,
       []
     );
 
@@ -153,7 +153,7 @@ describe("FixedRateExchange", () => {
 
     fixedRateExchange = await FixedRateExchange.deploy(
       router.address,
-      opfCollector.address
+      opcCollector.address
     );
 
     templateERC20 = await ERC20Template.deploy();
@@ -165,7 +165,7 @@ describe("FixedRateExchange", () => {
     factoryERC721 = await ERC721Factory.deploy(
       templateERC721.address,
       templateERC20.address,
-      opfCollector.address,
+      opcCollector.address,
       router.address
     );
 
@@ -1424,7 +1424,7 @@ describe("FixedRateExchange", () => {
       assert(feeInfo.oceanFeeAvailable > 0);
 
       // opfFeeCollector balance is ZERO (in Dai)
-      const btOPFBeforeSwap = await daiContract.balanceOf(opfCollector.address);
+      const btOPFBeforeSwap = await daiContract.balanceOf(opcCollector.address);
 
       expect(btOPFBeforeSwap).to.equal(0);
 
@@ -1439,7 +1439,7 @@ describe("FixedRateExchange", () => {
       );
 
       // balance in dai was transferred
-      expect(await daiContract.balanceOf(opfCollector.address)).to.equal(
+      expect(await daiContract.balanceOf(opcCollector.address)).to.equal(
         btOPFBeforeSwap.add(Event[0].args.feeAmount)
       );
 
@@ -1711,7 +1711,7 @@ describe("FixedRateExchange", () => {
       assert(feeInfo.oceanFeeAvailable > 0);
 
       // opfFeeCollector balance is ZERO (in Dai)
-      const btOPFBeforeSwap = await daiContract.balanceOf(opfCollector.address);
+      const btOPFBeforeSwap = await daiContract.balanceOf(opcCollector.address);
 
       const receipt = await (
         await fixedRateExchange.collectOceanFee(
@@ -1724,7 +1724,7 @@ describe("FixedRateExchange", () => {
       );
 
       // balance in dai was transferred
-      expect(await daiContract.balanceOf(opfCollector.address)).to.equal(
+      expect(await daiContract.balanceOf(opcCollector.address)).to.equal(
         btOPFBeforeSwap.add(Event[0].args.feeAmount)
       );
 
@@ -5043,7 +5043,7 @@ describe("FixedRateExchange", () => {
       assert(feeInfo.oceanFeeAvailable > 0);
 
       // opfFeeCollector balance is DAI before collecting
-      const btOPFBeforeSwap = await daiContract.balanceOf(opfCollector.address);
+      const btOPFBeforeSwap = await daiContract.balanceOf(opcCollector.address);
 
       const receipt = await (
         await fixedRateExchange.collectOceanFee(
@@ -5056,7 +5056,7 @@ describe("FixedRateExchange", () => {
       );
 
       // balance in dai was transferred
-      expect(await daiContract.balanceOf(opfCollector.address)).to.equal(
+      expect(await daiContract.balanceOf(opcCollector.address)).to.equal(
         btOPFBeforeSwap.add(Event[0].args.feeAmount)
       );
 
@@ -5328,7 +5328,7 @@ describe("FixedRateExchange", () => {
       assert(feeInfo.oceanFeeAvailable == 0);
 
       // opfFeeCollector balance before collecting
-      const btOPFBeforeSwap = await daiContract.balanceOf(opfCollector.address);
+      const btOPFBeforeSwap = await daiContract.balanceOf(opcCollector.address);
 
       const receipt = await (
         await fixedRateExchange.collectOceanFee(
@@ -5341,7 +5341,7 @@ describe("FixedRateExchange", () => {
       );
 
       // no dai were transferred
-      expect(await daiContract.balanceOf(opfCollector.address)).to.equal(
+      expect(await daiContract.balanceOf(opcCollector.address)).to.equal(
         btOPFBeforeSwap.add(Event[0].args.feeAmount)
       );
       expect(feeInfo.oceanFeeAvailable).to.equal(0)

@@ -462,7 +462,7 @@ contract ERC20Template is
             _providerFee.providerFeeToken != address(0) &&
             _providerFee.providerFeeAddress != address(0)
         ) {
-            uint256 OPCFee = IFactoryRouter(router).getProviderFees();
+            uint256 OPCFee = IFactoryRouter(router).getOPCProviderFee();
             uint256 OPCcut = 0;
             if(OPCFee > 0)
                 OPCcut = _providerFee.providerFeeAmount.mul(OPCFee).div(BASE);
@@ -523,7 +523,7 @@ contract ERC20Template is
                 address(this),
                 publishMarketFeeAmount
             );
-            uint256 OPCFee = IFactoryRouter(router).getConsumeFees();
+            uint256 OPCFee = IFactoryRouter(router).getOPCConsumeFee();
             if(OPCFee > 0)
                 communityFeePublish = publishMarketFeeAmount.mul(OPCFee).div(BASE); 
             //send publishMarketFee
@@ -537,7 +537,7 @@ contract ERC20Template is
                 publishMarketFeeToken,
                 publishMarketFeeAmount.sub(communityFeePublish)
             );
-            //send fees to OPF
+            //send fees to OPC
             if (communityFeePublish > 0) {
                 //since both fees are in the same token, have just one transaction for both, to save gas
                 IERC20(publishMarketFeeToken).safeTransfer(

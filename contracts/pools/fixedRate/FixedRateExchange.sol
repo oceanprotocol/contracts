@@ -25,7 +25,7 @@ contract FixedRateExchange is ReentrancyGuard {
     uint256 private constant BASE = 10**18;
 
     address public router;
-    address public opfCollector;
+    address public opcCollector;
 
     struct Exchange {
         bool active;
@@ -135,11 +135,11 @@ contract FixedRateExchange is ReentrancyGuard {
         uint256 feeAmount
     );
 
-    constructor(address _router, address _opfCollector) {
+    constructor(address _router, address _opcCollector) {
         require(_router != address(0), "FixedRateExchange: Wrong Router address");
-        require(_opfCollector != address(0), "FixedRateExchange: Wrong OPF address");
+        require(_opcCollector != address(0), "FixedRateExchange: Wrong OPC address");
         router = _router;
-        opfCollector = _opfCollector;
+        opcCollector = _opcCollector;
     }
 
     /**
@@ -151,8 +151,8 @@ contract FixedRateExchange is ReentrancyGuard {
         return 1;
     }
     
-    function getOPFFee(address baseTokenAddress) public view returns (uint) {
-        return IFactoryRouter(router).getOPFFee(baseTokenAddress);
+    function getOPCFee(address baseTokenAddress) public view returns (uint) {
+        return IFactoryRouter(router).getOPCFee(baseTokenAddress);
     }
   
 
@@ -273,10 +273,10 @@ contract FixedRateExchange is ReentrancyGuard {
             .div(BASE);
 
       
-        
-        if (getOPFFee(exchanges[exchangeId].baseToken) != 0) {
+        uint256 opcFee = getOPCFee(exchanges[exchangeId].baseToken);
+        if (opcFee != 0) {
             oceanFeeAmount = baseTokenAmountBeforeFee
-                .mul(getOPFFee(exchanges[exchangeId].baseToken))
+                .mul(opcFee)
                 .div(BASE);
         }
      
@@ -315,10 +315,10 @@ contract FixedRateExchange is ReentrancyGuard {
             .div(BASE);
 
        
-        
-        if (getOPFFee(exchanges[exchangeId].baseToken) != 0) {
+        uint256 opcFee = getOPCFee(exchanges[exchangeId].baseToken);
+        if (opcFee != 0) {
             oceanFeeAmount = baseTokenAmountBeforeFee
-                .mul(getOPFFee(exchanges[exchangeId].baseToken))
+                .mul(opcFee)
                 .div(BASE);
         }
       
@@ -553,7 +553,7 @@ contract FixedRateExchange is ReentrancyGuard {
         uint256 amount = exchanges[exchangeId].oceanFeeAvailable;
         exchanges[exchangeId].oceanFeeAvailable = 0;
         IERC20(exchanges[exchangeId].baseToken).safeTransfer(
-            opfCollector,
+            opcCollector,
             amount
         );
         emit OceanFeeCollected(
@@ -784,7 +784,7 @@ contract FixedRateExchange is ReentrancyGuard {
         returns (
             uint256 marketFee,
             address marketFeeCollector,
-            uint256 opfFee,
+            uint256 opcFee,
             uint256 marketFeeAvailable,
             uint256 oceanFeeAvailable
         )
@@ -792,7 +792,7 @@ contract FixedRateExchange is ReentrancyGuard {
         Exchange memory exchange = exchanges[exchangeId];
         marketFee = exchange.marketFee;
         marketFeeCollector = exchange.marketFeeCollector;
-        opfFee = getOPFFee(exchanges[exchangeId].baseToken);
+        opcFee = getOPCFee(exchanges[exchangeId].baseToken);
         marketFeeAvailable = exchange.marketFeeAvailable;
         oceanFeeAvailable = exchange.oceanFeeAvailable;
     }

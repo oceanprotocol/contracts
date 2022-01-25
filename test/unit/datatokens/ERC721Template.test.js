@@ -98,8 +98,7 @@ describe("ERC721Template", () => {
       params: [
         {
           forking: {
-            jsonRpcUrl:
-              "https://eth-mainnet.alchemyapi.io/v2/eOqKsGAdsiNLCVm846Vgb-6yY3jlcNEo",
+            jsonRpcUrl: process.env.ALCHEMY_URL,
             blockNumber: 12515000,
           },
         },
@@ -118,7 +117,7 @@ describe("ERC721Template", () => {
     );
 
 
-    [owner, reciever, user2, user3,user4, user5, user6, provider, opfCollector, marketFeeCollector] = await ethers.getSigners();
+    [owner, reciever, user2, user3,user4, user5, user6, provider, opcCollector, marketFeeCollector] = await ethers.getSigners();
 
     data = web3.utils.asciiToHex(constants.blob[0]);
     dataHash = sha256(data);
@@ -135,7 +134,7 @@ describe("ERC721Template", () => {
      owner.address,
      oceanAddress,
      poolTemplate.address, // pooltemplate field,
-     opfCollector.address,
+     opcCollector.address,
      []
    );
       
@@ -143,7 +142,7 @@ describe("ERC721Template", () => {
 
    fixedRateExchange = await FixedRateExchange.deploy(
      router.address,
-     opfCollector.address
+     opcCollector.address
    );
  
    templateERC20 = await ERC20Template.deploy();
@@ -155,7 +154,7 @@ describe("ERC721Template", () => {
    factoryERC721 = await ERC721Factory.deploy(
      templateERC721.address,
      templateERC20.address,
-     opfCollector.address,
+     opcCollector.address,
      router.address
    );
  

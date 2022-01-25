@@ -75,9 +75,9 @@ contract BPool is BMath, BToken {
     event LOG_BPT(uint256 bptAmount);
     event LOG_BPT_SS(uint256 bptAmount); //emitted for SS contract
 
-    event OPFFee(
+    event OPCFee(
         address caller,
-        address OPFWallet,
+        address OPCWallet,
         address token,
         uint256 amount
     );
@@ -112,7 +112,7 @@ contract BPool is BMath, BToken {
 
     //address public _publishMarketCollector;
     address public _publishMarketCollector;
-    address public _opfCollector;
+    address public _opcCollector;
     // `setSwapFee` and `finalize` require CONTROL
     // `finalize` sets `PUBLIC can SWAP`, `PUBLIC can JOIN`
     bool private _finalized;
@@ -187,7 +187,7 @@ contract BPool is BMath, BToken {
         _datatokenAddress = tokens[0];
         _baseTokenAddress = tokens[1];
         _publishMarketCollector = feeCollectors[0];
-        _opfCollector = feeCollectors[1];
+        _opcCollector = feeCollectors[1];
         initialized = true;
         ssContract = ISideStaking(_controller);
         return initialized;
@@ -282,27 +282,27 @@ contract BPool is BMath, BToken {
     }
 
     /**
-     * @dev collectOPF
-     *      Collects and send all OPF Fees to _opfCollector.
-     *      This funtion can be called by anyone, because fees are being sent to _opfCollector
+     * @dev collectOPC
+     *      Collects and send all OPC Fees to _opcCollector.
+     *      This funtion can be called by anyone, because fees are being sent to _opcCollector
      */
-    function collectOPF() external {
+    function collectOPC() external {
         address[] memory tokens = getFinalTokens();
         for (uint256 i = 0; i < tokens.length; i++) {
             uint256 amount = communityFees[tokens[i]];
             communityFees[tokens[i]] = 0;
-            IERC20(tokens[i]).safeTransfer(_opfCollector, amount);
-            emit OPFFee(msg.sender, _opfCollector, tokens[i], amount);
+            IERC20(tokens[i]).safeTransfer(_opcCollector, amount);
+            emit OPCFee(msg.sender, _opcCollector, tokens[i], amount);
         }
     }
 
     /**
-     * @dev getCurrentOPFFees
-     *      Get the current amount of fees which can be withdrawned by OPF
+     * @dev getCurrentOPCFees
+     *      Get the current amount of fees which can be withdrawned by OPC
      * @return address[] - array of tokens addresses
      *         uint256[] - array of amounts
      */
-    function getCurrentOPFFees()
+    function getCurrentOPCFees()
         public
         view
         returns (address[] memory, uint256[] memory)
@@ -319,7 +319,7 @@ contract BPool is BMath, BToken {
 
     /**
      * @dev getCurrentMarketFees
-     *      Get the current amount of fees which can be withdrawned by OPF
+     *      Get the current amount of fees which can be withdrawned by _publishMarketCollector
      * @return address[] - array of tokens addresses
      *         uint256[] - array of amounts
      */
@@ -758,7 +758,7 @@ contract BPool is BMath, BToken {
             "ERR_BAD_LIMIT_PRICE"
         );
         // this is the amount we are going to register in balances
-        // (only takes account of swapFee, not OPF and market fee,
+        // (only takes account of swapFee, not OPC and market fee,
         //in order to not affect price during following swaps, fee wtihdrawl etc)
         uint256 balanceToAdd;
         uint256[4] memory data = [
