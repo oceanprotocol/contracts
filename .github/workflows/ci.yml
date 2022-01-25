@@ -51,10 +51,16 @@ jobs:
       - name: Run Hardhat
         run: |
           npx hardhat node &
+        env:
+          ALCHEMY_URL: ${{secrets.ALCHEMY_URL}}
       - name: Compile contracts
         run: |
           npx hardhat compile --force
+        env:
+          ALCHEMY_URL: ${{secrets.ALCHEMY_URL}}
       - run: npm run test:full:cover
+        env:
+          ALCHEMY_URL: ${{secrets.ALCHEMY_URL}}
       - name: Delete dbg files
         run: find ./artifacts/* -name "*.dbg.json" -type f -delete
       - uses: actions/upload-artifact@v2
