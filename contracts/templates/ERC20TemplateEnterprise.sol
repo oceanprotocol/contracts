@@ -431,7 +431,7 @@ contract ERC20TemplateEnterprise is
             if(OPCcut > 0){
               IERC20(_providerFee.providerFeeToken).safeTransferFrom(
                 msg.sender,
-                _providerFee.providerFeeAddress,
+                _communityFeeCollector,
                 OPCcut
             );  
             }
