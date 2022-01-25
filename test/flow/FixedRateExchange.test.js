@@ -319,7 +319,7 @@ describe("FixedRateExchange", () => {
       );
       expect(feeInfo.marketFee).to.equal(marketFee);
       expect(feeInfo.marketFeeCollector).to.equal(marketFeeCollector.address);
-      expect(feeInfo.opfFee).to.equal(0);
+      expect(feeInfo.opcFee).to.equal(0);
       expect(feeInfo.marketFeeAvailable).to.equal(0);
       expect(feeInfo.oceanFeeAvailable).to.equal(0);
     });
@@ -1040,7 +1040,7 @@ describe("FixedRateExchange", () => {
       );
       expect(feeInfo.marketFee).to.equal(marketFee);
       expect(feeInfo.marketFeeCollector).to.equal(marketFeeCollector.address);
-      expect(feeInfo.opfFee).to.equal(oceanFee);
+      expect(feeInfo.opcFee).to.equal(oceanFee);
       expect(feeInfo.marketFeeAvailable).to.equal(0);
       expect(feeInfo.oceanFeeAvailable).to.equal(0);
     });
@@ -1416,14 +1416,14 @@ describe("FixedRateExchange", () => {
       expect(feeInfoAfter.marketFeeAvailable).to.equal(0);
     });
 
-    it("#14 - OPFFeeCollector withdraws fees available on the FixedRate contract", async () => {
+    it("#14 - opcFeeCollector withdraws fees available on the FixedRate contract", async () => {
       const feeInfo = await fixedRateExchange.getFeesInfo(
         eventsExchange[0].args.exchangeId
       );
 
       assert(feeInfo.oceanFeeAvailable > 0);
 
-      // opfFeeCollector balance is ZERO (in Dai)
+      // opcFeeCollector balance is ZERO (in Dai)
       const btOPFBeforeSwap = await daiContract.balanceOf(opcCollector.address);
 
       expect(btOPFBeforeSwap).to.equal(0);
@@ -1702,7 +1702,7 @@ describe("FixedRateExchange", () => {
       expect(feeInfoAfter.marketFeeAvailable).to.equal(0);
     });
 
-    it("#18 - OPFFeeCollector receives again fees available on the FixedRate contract", async () => {
+    it("#18 - opcFeeCollector receives again fees available on the FixedRate contract", async () => {
       const feeInfo = await fixedRateExchange.getFeesInfo(
         eventsExchange[0].args.exchangeId
       );
@@ -1710,7 +1710,7 @@ describe("FixedRateExchange", () => {
       // new fees are available
       assert(feeInfo.oceanFeeAvailable > 0);
 
-      // opfFeeCollector balance is ZERO (in Dai)
+      // opcFeeCollector balance is ZERO (in Dai)
       const btOPFBeforeSwap = await daiContract.balanceOf(opcCollector.address);
 
       const receipt = await (
@@ -1826,7 +1826,7 @@ describe("FixedRateExchange", () => {
       );
       expect(feeInfo.marketFee).to.equal(marketFee);
       expect(feeInfo.marketFeeCollector).to.equal(marketFeeCollector.address);
-      expect(feeInfo.opfFee).to.equal(0);
+      expect(feeInfo.opcFee).to.equal(0);
       expect(feeInfo.marketFeeAvailable).to.equal(0);
       expect(feeInfo.oceanFeeAvailable).to.equal(0);
     });
@@ -2533,7 +2533,7 @@ describe("FixedRateExchange", () => {
       );
       expect(feeInfo.marketFee).to.equal(marketFee);
       expect(feeInfo.marketFeeCollector).to.equal(marketFeeCollector.address);
-      expect(feeInfo.opfFee).to.equal(oceanFee);
+      expect(feeInfo.opcFee).to.equal(oceanFee);
       expect(feeInfo.marketFeeAvailable).to.equal(0);
       expect(feeInfo.oceanFeeAvailable).to.equal(0);
     });
@@ -3235,7 +3235,7 @@ describe("FixedRateExchange", () => {
       );
       expect(feeInfo.marketFee).to.equal(marketFee);
       expect(feeInfo.marketFeeCollector).to.equal(marketFeeCollector.address);
-      expect(feeInfo.opfFee).to.equal(oceanFee);
+      expect(feeInfo.opcFee).to.equal(oceanFee);
       expect(feeInfo.marketFeeAvailable).to.equal(0);
       expect(feeInfo.oceanFeeAvailable).to.equal(0);
     });
@@ -3943,7 +3943,7 @@ describe("FixedRateExchange", () => {
       );
       expect(feeInfo.marketFee).to.equal(marketFee);
       expect(feeInfo.marketFeeCollector).to.equal(marketFeeCollector.address);
-      expect(feeInfo.opfFee).to.equal(oceanFee);
+      expect(feeInfo.opcFee).to.equal(oceanFee);
       expect(feeInfo.marketFeeAvailable).to.equal(0);
       expect(feeInfo.oceanFeeAvailable).to.equal(0);
     });
@@ -4647,7 +4647,7 @@ describe("FixedRateExchange", () => {
       );
       expect(feeInfo.marketFee).to.equal(marketFee);
       expect(feeInfo.marketFeeCollector).to.equal(marketFeeCollector.address);
-      expect(feeInfo.opfFee).to.equal(oceanFee);
+      expect(feeInfo.opcFee).to.equal(oceanFee);
       expect(feeInfo.marketFeeAvailable).to.equal(0);
       expect(feeInfo.oceanFeeAvailable).to.equal(0);
     });
@@ -4785,12 +4785,12 @@ describe("FixedRateExchange", () => {
       );
     });
 
-    it("#10 - opfFee is updated to 1% from 0.1%", async () => {
-      await router.updateOPFFee('0', web3.utils.toWei('0.01'))
+    it("#10 - opcFee is updated to 1% from 0.1%", async () => {
+      await router.updateOPCFee('0', web3.utils.toWei('0.01'), web3.utils.toWei('0.001'), 0)
       const feeInfo = await fixedRateExchange.getFeesInfo(
         eventsExchange[0].args.exchangeId
       );
-      expect(feeInfo.opfFee).to.equal(web3.utils.toWei('0.01'));
+      expect(feeInfo.opcFee).to.equal(web3.utils.toWei('0.01'));
     });
 
 
@@ -4908,12 +4908,12 @@ describe("FixedRateExchange", () => {
       expect(exchangeDetailsAfter.btBalance).to.equal(0);
     });
 
-    it("#13 - DAI token is added into Ocean List, now opfFee is ZERO", async () => {
+    it("#13 - DAI token is added into Ocean List, now opcFee is ZERO", async () => {
       await router.addOceanToken(daiContract.address)
       const feeInfo = await fixedRateExchange.getFeesInfo(
         eventsExchange[0].args.exchangeId
       );
-      expect(feeInfo.opfFee).to.equal(0);
+      expect(feeInfo.opcFee).to.equal(0);
     });
 
     it("#14 - Bob buys back all DT left (80%) of Datatokens available", async () => {
@@ -5035,14 +5035,14 @@ describe("FixedRateExchange", () => {
       expect(feeInfoAfter.marketFeeAvailable).to.equal(0);
     });
 
-    it("#16 - OPFFeeCollector withdraws fees available on the FixedRate contract", async () => {
+    it("#16 - opcFeeCollector withdraws fees available on the FixedRate contract", async () => {
       const feeInfo = await fixedRateExchange.getFeesInfo(
         eventsExchange[0].args.exchangeId
       );
 
       assert(feeInfo.oceanFeeAvailable > 0);
 
-      // opfFeeCollector balance is DAI before collecting
+      // opcFeeCollector balance is DAI before collecting
       const btOPFBeforeSwap = await daiContract.balanceOf(opcCollector.address);
 
       const receipt = await (
@@ -5319,7 +5319,7 @@ describe("FixedRateExchange", () => {
       expect(feeInfoAfter.marketFeeAvailable).to.equal(0);
     });
 
-    it("#20 - OPFFeeCollector receives again fees available on the FixedRate contract", async () => {
+    it("#20 - opcFeeCollector receives again fees available on the FixedRate contract", async () => {
       const feeInfo = await fixedRateExchange.getFeesInfo(
         eventsExchange[0].args.exchangeId
       );
@@ -5327,7 +5327,7 @@ describe("FixedRateExchange", () => {
       // DAI is now on the list, no ocean fee available
       assert(feeInfo.oceanFeeAvailable == 0);
 
-      // opfFeeCollector balance before collecting
+      // opcFeeCollector balance before collecting
       const btOPFBeforeSwap = await daiContract.balanceOf(opcCollector.address);
 
       const receipt = await (

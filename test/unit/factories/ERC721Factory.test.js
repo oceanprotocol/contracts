@@ -63,8 +63,7 @@ describe("ERC721Factory", () => {
       params: [
         {
           forking: {
-            jsonRpcUrl:
-              "https://eth-mainnet.alchemyapi.io/v2/eOqKsGAdsiNLCVm846Vgb-6yY3jlcNEo",
+            jsonRpcUrl: process.env.ALCHEMY_URL,
             blockNumber: 12515000,
           },
         },

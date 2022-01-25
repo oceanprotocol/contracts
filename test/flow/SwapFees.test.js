@@ -2115,7 +2115,7 @@ describe("Swap Fees", () => {
       const publishMarketFees = await bPool.getCurrentMarketFees();
       assert(publishMarketFees[0].length === 2);
       assert(publishMarketFees[1].length === 2);
-      const opfFees = await bPool.getCurrentOPFFees();
+      const opfFees = await bPool.getCurrentOPCFees();
       assert(opfFees[0].length === 2);
       assert(opfFees[1].length === 2);
     });
@@ -2149,8 +2149,8 @@ describe("Swap Fees", () => {
     it("#19 - OPF collector withdraws fees", async () => {
       // no fees for OPF WERE COLLECTED AT THIS POINT
 
-      // any user can call collectOPF
-      await bPool.connect(user3).collectOPF();
+      // any user can call collectOPC
+      await bPool.connect(user3).collectOPC();
 
       assert((await bPool.communityFees(daiAddress)) == 0);
       assert((await bPool.communityFees(erc20Token.address)) == 0);
@@ -3275,8 +3275,8 @@ describe("Swap Fees", () => {
     it("#20 - OPF collector withdraws fees", async () => {
       // no fees for OPF WERE COLLECTED AT THIS POINT
 
-      // any user can call collectOPF
-      await bPool.connect(user3).collectOPF();
+      // any user can call collectOPC
+      await bPool.connect(user3).collectOPC();
 
       assert((await bPool.communityFees(usdcAddress)) == 0);
       assert((await bPool.communityFees(erc20Token.address)) == 0);
@@ -3610,7 +3610,7 @@ describe("Swap Fees", () => {
     it("#7 - opfFee is updated to 1% (1e16)", async () => {
       // we already approved pool to withdraw Ocean tokens
 
-      await router.updateOPFFee("0", web3.utils.toWei("0.01"));
+      await router.updateOPCFee("0", web3.utils.toWei("0.01"), web3.utils.toWei('0.001'), 0);
       expect(await bPool.getSwapFee()).to.equal(swapFee);
       expect(await bPool.getOPCFee()).to.equal(web3.utils.toWei("0.01"));
       expect(await bPool._swapPublishMarketFee()).to.equal(
@@ -4295,8 +4295,8 @@ describe("Swap Fees", () => {
     it("#222 - OPF collector withdraws fees", async () => {
       // no fees for OPF WERE COLLECTED AT THIS POINT
 
-      // any user can call collectOPF
-      await bPool.connect(user3).collectOPF();
+      // any user can call collectOPC
+      await bPool.connect(user3).collectOPC();
 
       assert((await bPool.communityFees(usdcAddress)) == 0);
       assert((await bPool.communityFees(erc20Token.address)) == 0);
@@ -4561,7 +4561,7 @@ describe("Swap Fees", () => {
     it("#7 - opfFee is updated to 0.1% (1e15) again, set to 0.1% in previous test", async () => {
       // we already approved pool to withdraw Ocean tokens
       expect(await bPool.getOPCFee()).to.equal(web3.utils.toWei("0.01"));
-      await router.updateOPFFee("0", web3.utils.toWei("0.001")); // 1e15 => 0.1%
+      await router.updateOPCFee("0", web3.utils.toWei("0.001"), web3.utils.toWei('0.001'), 0); // 1e15 => 0.1%
       expect(await bPool.getSwapFee()).to.equal(swapFee);
       expect(await bPool.getOPCFee()).to.equal(web3.utils.toWei("0.001"));
       expect(await bPool._swapPublishMarketFee()).to.equal(
@@ -5214,8 +5214,8 @@ describe("Swap Fees", () => {
     it("#22 - OPF collector withdraws fees", async () => {
       // no fees for OPF WERE COLLECTED AT THIS POINT
 
-      // any user can call collectOPF
-      await bPool.connect(user3).collectOPF();
+      // any user can call collectOPC
+      await bPool.connect(user3).collectOPC();
 
       assert((await bPool.communityFees(daiAddress)) == 0);
       assert((await bPool.communityFees(erc20Token.address)) == 0);

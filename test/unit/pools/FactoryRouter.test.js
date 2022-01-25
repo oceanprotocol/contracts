@@ -230,21 +230,23 @@ describe("FactoryRouter", () => {
     assert(await router.isOceanToken(newToken.address) === true);
   })
 
-  it("#updateOPFFee - should update opf Fee if router owner",async () => {
+  it("#updateOPCFee - should update opf Fee if router owner",async () => {
     assert(await router.isOceanToken(newToken.address) == false);
     assert(await router.getOPCFee(newToken.address) == 1e15);
     assert(await router.swapOceanFee() == 0)
     assert(await router.swapNonOceanFee() == 1e15)
-    await router.updateOPFFee("0", web3.utils.toWei('0.01'));
+    await router.updateOPCFee("0", web3.utils.toWei('0.01'), web3.utils.toWei('0.001'), 0);
     assert(await router.isOceanToken(newToken.address) == false);
     assert(await router.getOPCFee(newToken.address) == 1e16);
     assert(await router.swapNonOceanFee() == 1e16)
     assert(await router.swapOceanFee() == 0)
+    assert(await router.getOPCConsumeFee() == 1e15)
+    assert(await router.getOPCProviderFee() == 0)
   })
 
-  it("#updateOPFFee - should fail to update OPF Fee if NOT Router Owner",async () => {
+  it("#updateOPCFee - should fail to update OPF Fee if NOT Router Owner",async () => {
     assert(await router.swapNonOceanFee() == 1e15)
-    await expectRevert(router.connect(user2).updateOPFFee("0", web3.utils.toWei('0.01')), "OceanRouter: NOT OWNER")
+    await expectRevert(router.connect(user2).updateOPCFee("0", web3.utils.toWei('0.01'), web3.utils.toWei('0.001'), 0), "OceanRouter: NOT OWNER")
     assert(await router.swapNonOceanFee() == 1e15)
   })
 
