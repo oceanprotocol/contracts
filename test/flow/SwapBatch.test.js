@@ -320,7 +320,7 @@ describe("Batch Swap", () => {
         web3.utils.toWei("98000")
       );
 
-      expect(await bPool.getOPFFee()).to.equal(0);
+      expect(await bPool.getOPCFee()).to.equal(0);
       expect(await bPool._swapPublishMarketFee()).to.equal(swapMarketFee);
 
       expect(await bPool.communityFees(oceanAddress)).to.equal(0);
@@ -413,7 +413,7 @@ describe("Batch Swap", () => {
       );
 
       expect(await bPool2.getSwapFee()).to.equal(swapFee);
-      expect(await bPool2.getOPFFee()).to.equal(1e15);
+      expect(await bPool2.getOPCFee()).to.equal(1e15);
       expect(await bPool2._swapPublishMarketFee()).to.equal(swapMarketFee);
 
       expect(await bPool2.communityFees(daiAddress)).to.equal(0);
@@ -519,7 +519,7 @@ describe("Batch Swap", () => {
       );
 
       expect(await bPool3.getSwapFee()).to.equal(swapFee);
-      expect(await bPool3.getOPFFee()).to.equal(1e15);
+      expect(await bPool3.getOPCFee()).to.equal(1e15);
       expect(await bPool3._swapPublishMarketFee()).to.equal(swapMarketFee);
 
       expect(await bPool3.communityFees(usdcAddress)).to.equal(0);

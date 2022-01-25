@@ -273,7 +273,7 @@ describe("1SS flow", () => {
       web3.utils.toWei("98000")
     );
 
-    expect(await bPool.getOPFFee()).to.equal(0);
+    expect(await bPool.getOPCFee()).to.equal(0);
     expect(await bPool._swapPublishMarketFee()).to.equal(swapMarketFee);
 
     expect(await bPool.communityFees(oceanAddress)).to.equal(0);
@@ -837,7 +837,7 @@ describe("1SS flow", () => {
   });
 
   it("#17 - we check again no ocean and market fees were accounted", async () => {
-    expect(await bPool.getOPFFee()).to.equal(0);
+    expect(await bPool.getOPCFee()).to.equal(0);
     expect(await bPool._swapPublishMarketFee()).to.equal(swapMarketFee);
 
     expect(await bPool.communityFees(oceanAddress)).to.equal(0);

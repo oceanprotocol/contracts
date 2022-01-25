@@ -307,7 +307,7 @@ describe("Swap Fees", () => {
         web3.utils.toWei("98000")
       );
 
-      expect(await bPool.getOPFFee()).to.equal(0);
+      expect(await bPool.getOPCFee()).to.equal(0);
       expect(await bPool._swapPublishMarketFee()).to.equal(
         swapPublishMarketFee
       );
@@ -1182,7 +1182,7 @@ describe("Swap Fees", () => {
     });
 
     it("#17 - we check again no ocean and market fees were accounted", async () => {
-      expect(await bPool.getOPFFee()).to.equal(0);
+      expect(await bPool.getOPCFee()).to.equal(0);
       expect(await bPool._swapPublishMarketFee()).to.equal(
         swapPublishMarketFee
       );
@@ -1296,7 +1296,7 @@ describe("Swap Fees", () => {
       );
 
       expect(await bPool.getSwapFee()).to.equal(swapFee);
-      expect(await bPool.getOPFFee()).to.equal(1e15);
+      expect(await bPool.getOPCFee()).to.equal(1e15);
       expect(await bPool.getMarketFee()).to.equal(swapPublishMarketFee);
 
       expect(await bPool.communityFees(daiAddress)).to.equal(0);
@@ -2120,7 +2120,7 @@ describe("Swap Fees", () => {
       assert(opfFees[1].length === 2);
     });
     it("#17 - we check again ocean and market fees were accounted", async () => {
-      expect(await bPool.getOPFFee()).to.equal(1e15);
+      expect(await bPool.getOPCFee()).to.equal(1e15);
       expect(await bPool._swapPublishMarketFee()).to.equal(
         swapPublishMarketFee
       );
@@ -2304,7 +2304,7 @@ describe("Swap Fees", () => {
       );
 
       expect(await bPool.getSwapFee()).to.equal(swapFee);
-      expect(await bPool.getOPFFee()).to.equal(1e15);
+      expect(await bPool.getOPCFee()).to.equal(1e15);
       expect(await bPool._swapPublishMarketFee()).to.equal(
         swapPublishMarketFee
       );
@@ -3246,7 +3246,7 @@ describe("Swap Fees", () => {
     });
 
     it("#18 - we check again ocean and market fees were accounted", async () => {
-      expect(await bPool.getOPFFee()).to.equal(1e15);
+      expect(await bPool.getOPCFee()).to.equal(1e15);
       expect(await bPool._swapPublishMarketFee()).to.equal(
         swapPublishMarketFee
       );
@@ -3441,7 +3441,7 @@ describe("Swap Fees", () => {
       );
 
       expect(await bPool.getSwapFee()).to.equal(swapFee);
-      expect(await bPool.getOPFFee()).to.equal(1e15);
+      expect(await bPool.getOPCFee()).to.equal(1e15);
       expect(await bPool._swapPublishMarketFee()).to.equal(
         swapPublishMarketFee
       );
@@ -3612,7 +3612,7 @@ describe("Swap Fees", () => {
 
       await router.updateOPFFee("0", web3.utils.toWei("0.01"));
       expect(await bPool.getSwapFee()).to.equal(swapFee);
-      expect(await bPool.getOPFFee()).to.equal(web3.utils.toWei("0.01"));
+      expect(await bPool.getOPCFee()).to.equal(web3.utils.toWei("0.01"));
       expect(await bPool._swapPublishMarketFee()).to.equal(
         swapPublishMarketFee
       );
@@ -3767,7 +3767,7 @@ describe("Swap Fees", () => {
 
       await router.addOceanToken(usdcContract.address);
       expect(await bPool.getSwapFee()).to.equal(swapFee);
-      expect(await bPool.getOPFFee()).to.equal(0);
+      expect(await bPool.getOPCFee()).to.equal(0);
       expect(await bPool._swapPublishMarketFee()).to.equal(
         swapPublishMarketFee
       );
@@ -4267,7 +4267,7 @@ describe("Swap Fees", () => {
     });
 
     it("#20 - we check again ocean and market fees were accounted", async () => {
-      expect(await bPool.getOPFFee()).to.equal(0);
+      expect(await bPool.getOPCFee()).to.equal(0);
       expect(await bPool._swapPublishMarketFee()).to.equal(
         swapPublishMarketFee
       );
@@ -4467,7 +4467,7 @@ describe("Swap Fees", () => {
 
       expect(await bPool.getSwapFee()).to.equal(swapFee);
 
-      expect(await bPool.getOPFFee()).to.equal(web3.utils.toWei("0.01"));
+      expect(await bPool.getOPCFee()).to.equal(web3.utils.toWei("0.01"));
       expect(await bPool._swapPublishMarketFee()).to.equal(
         swapPublishMarketFee
       );
@@ -4560,10 +4560,10 @@ describe("Swap Fees", () => {
 
     it("#7 - opfFee is updated to 0.1% (1e15) again, set to 0.1% in previous test", async () => {
       // we already approved pool to withdraw Ocean tokens
-      expect(await bPool.getOPFFee()).to.equal(web3.utils.toWei("0.01"));
+      expect(await bPool.getOPCFee()).to.equal(web3.utils.toWei("0.01"));
       await router.updateOPFFee("0", web3.utils.toWei("0.001")); // 1e15 => 0.1%
       expect(await bPool.getSwapFee()).to.equal(swapFee);
-      expect(await bPool.getOPFFee()).to.equal(web3.utils.toWei("0.001"));
+      expect(await bPool.getOPCFee()).to.equal(web3.utils.toWei("0.001"));
       expect(await bPool._swapPublishMarketFee()).to.equal(
         swapPublishMarketFee
       );
@@ -4692,7 +4692,7 @@ describe("Swap Fees", () => {
 
       await router.addOceanToken(daiContract.address);
       expect(await bPool.getSwapFee()).to.equal(swapFee);
-      expect(await bPool.getOPFFee()).to.equal(0);
+      expect(await bPool.getOPCFee()).to.equal(0);
       expect(await bPool._swapPublishMarketFee()).to.equal(
         swapPublishMarketFee
       );
@@ -5186,7 +5186,7 @@ describe("Swap Fees", () => {
     });
 
     it("#20 - we check again ocean and market fees were accounted", async () => {
-      expect(await bPool.getOPFFee()).to.equal(0);
+      expect(await bPool.getOPCFee()).to.equal(0);
       expect(await bPool._swapPublishMarketFee()).to.equal(
         swapPublishMarketFee
       );
