@@ -418,11 +418,23 @@ contract ERC20TemplateEnterprise is
             _providerFee.providerFeeToken != address(0) &&
             _providerFee.providerFeeAddress != address(0)
         ) {
+            uint256 OPCFee = IFactoryRouter(router).getProviderFees();
+            uint256 OPCcut = 0;
+            if(OPCFee > 0)
+                OPCcut = _providerFee.providerFeeAmount.mul(OPCFee).div(BASE);
+            uint256 providerCut = _providerFee.providerFeeAmount.sub(OPCcut);
             IERC20(_providerFee.providerFeeToken).safeTransferFrom(
                 msg.sender,
                 _providerFee.providerFeeAddress,
-                _providerFee.providerFeeAmount
+                providerCut
             );
+            if(OPCcut > 0){
+              IERC20(_providerFee.providerFeeToken).safeTransferFrom(
+                msg.sender,
+                _providerFee.providerFeeAddress,
+                OPCcut
+            );  
+            }
         }
     }
     /**
@@ -466,7 +478,9 @@ contract ERC20TemplateEnterprise is
                 address(this),
                 publishMarketFeeAmount
             );
-            communityFeePublish = publishMarketFeeAmount.div(100); //hardcode 1% goes to OPF
+            uint256 OPCFee = IFactoryRouter(router).getConsumeFees();
+            if(OPCFee > 0)
+                communityFeePublish = publishMarketFeeAmount.mul(OPCFee).div(BASE); 
             //send publishMarketFee
             IERC20(publishMarketFeeToken).safeTransfer(
                 publishMarketFeeAddress,

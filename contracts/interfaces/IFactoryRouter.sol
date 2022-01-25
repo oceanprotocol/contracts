@@ -18,6 +18,8 @@ interface IFactoryRouter {
     ) external returns (bytes32 exchangeId);
 
     function getOPFFee(address baseToken) external view returns (uint256);
+    function getConsumeFees() external view returns (uint256);
+    function getProviderFees() external view returns (uint256);
     function getMinVestingPeriod() external view returns (uint256);
     function deployDispenser(
         address _dispenser,

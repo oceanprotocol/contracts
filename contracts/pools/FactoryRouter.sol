@@ -20,7 +20,9 @@ contract FactoryRouter is BFactory {
     uint256 public minVestingPeriodInBlocks = 2426000;
 
     uint256 public swapOceanFee = 0;
-    uint256 public swapNonOceanFee = 1e15;
+    uint256 public swapNonOceanFee = 1e15;  // 0.1%
+    uint256 public consumeFees = 1e16; // 1%
+    uint256 public providerFees = 0; // 0%
     address[] public oceanTokens;
     address[] public ssContracts;
     address[] public fixedrates;
@@ -64,7 +66,8 @@ contract FactoryRouter is BFactory {
         address indexed contractAddress
     );
 
-    event OPFFeeChanged(address indexed caller, uint256 newSwapOceanFee, uint256 newSwapNonOceanFee);
+    event OPCFeeChanged(address indexed caller, uint256 newSwapOceanFee,
+        uint256 newSwapNonOceanFee, uint256 newConsumeFee, uint256 newProviderFee);
 
     modifier onlyRouterOwner() {
         require(routerOwner == msg.sender, "OceanRouter: NOT OWNER");
@@ -375,16 +378,38 @@ contract FactoryRouter is BFactory {
     }
 
     /**
+     * @dev getConsumeFees
+     *      Gets OPF Community Fee cuts for consume fees
+     */
+    function getConsumeFees() public view returns (uint256) {
+        return consumeFees;
+    }
+
+    /**
+     * @dev getProviderFees
+     *      Gets OPF Community Fee cuts for provider fees
+     */
+    function getProviderFees() public view returns (uint256) {
+        return providerFees;
+    }
+
+
+    /**
      * @dev updateOPFFee
      *      Updates OPF Community Fees
      * @param _newSwapOceanFee Amount charged for swapping with ocean approved tokens
      * @param _newSwapNonOceanFee Amount charged for swapping with non ocean approved tokens
+     * @param _newConsumeFees Amount charged from consumeFees
+     * @param _newProviderFees Amount charged for providerFees
      */
-    function updateOPFFee(uint256 _newSwapOceanFee, uint256 _newSwapNonOceanFee) external onlyRouterOwner {
+    function updateOPFFee(uint256 _newSwapOceanFee, uint256 _newSwapNonOceanFee,
+        uint256 _newConsumeFees, uint256 _newProviderFees) external onlyRouterOwner {
 
         swapOceanFee = _newSwapOceanFee;
         swapNonOceanFee = _newSwapNonOceanFee;
-        emit OPFFeeChanged(msg.sender, _newSwapOceanFee, _newSwapNonOceanFee);
+        consumeFees = _newConsumeFees;
+        providerFees = _newProviderFees;
+        emit OPCFeeChanged(msg.sender, _newSwapOceanFee, _newSwapNonOceanFee, _newConsumeFees, _newProviderFees);
     }
 
     /*
