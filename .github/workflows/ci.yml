@@ -104,6 +104,8 @@ jobs:
         run: find ./artifacts/* -name "*.dbg.json" -type f -delete
       - name: Delete useless files
         run: rm -rf ./artifacts/build-info/*
+      - name: Copy artifacts to root folder
+        run: find ./artifacts/contracts -name '*.json' -exec cp -prv '{}' './artifacts/' ';'
       - run: npm publish
         env:
           NODE_AUTH_TOKEN: ${{secrets.NPM_TOKEN}}
@@ -139,6 +141,8 @@ jobs:
         run: find ./artifacts/* -name "*.dbg.json" -type f -delete
       - name: Delete useless files
         run: rm -rf ./artifacts/build-info/*
+      - name: Copy artifacts to root folder
+        run: find ./artifacts/contracts -name '*.json' -exec cp -prv '{}' './artifacts/' ';'
       - uses: actions/checkout@v2
       - name: Set up Python
         uses: actions/setup-python@v2
