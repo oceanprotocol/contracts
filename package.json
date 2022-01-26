@@ -1,6 +1,6 @@
 {
   "name": "hardhat-project",
-  "version": "v1.0.0-alpha.1",
+  "version": "v1.0.0-alpha.13",
   "description": "Ocean Protocol Smartcontracts",
   "bugs": {
     "url": "https://github.com/oceanprotocol/contracts/issues"
