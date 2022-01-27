@@ -162,7 +162,6 @@ jobs:
         run: find ./artifacts -maxdepth 1 -mindepth 1 -type d -exec rm -rf '{}' \;
       - name: List all
         run: find ./
-      - uses: actions/checkout@v2
       - name: Set up Python
         uses: actions/setup-python@v2
         with:
