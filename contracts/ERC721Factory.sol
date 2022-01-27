@@ -627,9 +627,9 @@ contract ERC721Factory is Deployer, Ownable, ReentrancyGuard {
     }
 
     struct PoolData{
-        address[] addresses;
         uint256[] ssParams;
         uint256[] swapFees;
+        address[] addresses;
     }
 
     /**
