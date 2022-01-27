@@ -122,8 +122,7 @@ describe("ERC20Template", () => {
       params: [
         {
           forking: {
-            jsonRpcUrl:
-              "https://eth-mainnet.alchemyapi.io/v2/eOqKsGAdsiNLCVm846Vgb-6yY3jlcNEo",
+            jsonRpcUrl: process.env.ALCHEMY_URL,
             blockNumber: 12515000,
           },
         },
@@ -144,7 +143,7 @@ describe("ERC20Template", () => {
     const MockErc20 = await ethers.getContractFactory('MockERC20');
     const MockErc20Decimals = await ethers.getContractFactory('MockERC20Decimals');
 
-    [owner, reciever, user2, user3, user4, user5, user6, opfCollector, marketFeeCollector, publishMarketAccount] = await ethers.getSigners();
+    [owner, reciever, user2, user3, user4, user5, user6, opcCollector, marketFeeCollector, publishMarketAccount] = await ethers.getSigners();
     publishMarketFeeAddress = publishMarketAccount.address
     data = web3.utils.asciiToHex(constants.blob[0]);
     flags = web3.utils.asciiToHex(constants.blob[0]);
@@ -161,7 +160,7 @@ describe("ERC20Template", () => {
       owner.address,
       oceanAddress,
       poolTemplate.address,
-      opfCollector.address,
+      opcCollector.address,
       []
     );
 
@@ -169,7 +168,7 @@ describe("ERC20Template", () => {
 
     fixedRateExchange = await FixedRateExchange.deploy(
       router.address,
-      opfCollector.address
+      opcCollector.address
     );
 
     templateERC20 = await ERC20Template.deploy();
@@ -180,7 +179,7 @@ describe("ERC20Template", () => {
     factoryERC721 = await ERC721Factory.deploy(
       templateERC721.address,
       templateERC20.address,
-      opfCollector.address,
+      opcCollector.address,
       router.address
     );
 
@@ -612,7 +611,7 @@ describe("ERC20Template", () => {
     );
 
     assert(
-      (await erc20Token.balanceOf(opfCollector.address)) ==
+      (await erc20Token.balanceOf(opcCollector.address)) ==
       web3.utils.toWei("0"), 'Invalid OPF balance, we should not get any DTs'
     );
     assert(
@@ -683,7 +682,7 @@ describe("ERC20Template", () => {
     );
 
     assert(
-      (await erc20Token.balanceOf(opfCollector.address)) ==
+      (await erc20Token.balanceOf(opcCollector.address)) ==
       web3.utils.toWei("0"), 'Invalid OPF balance, we should not get any DTs'
     );
     assert(
@@ -790,7 +789,7 @@ describe("ERC20Template", () => {
     );
 
     assert(
-      (await erc20Token.balanceOf(opfCollector.address)) ==
+      (await erc20Token.balanceOf(opcCollector.address)) ==
       web3.utils.toWei("0"), 'Invalid OPF balance, we should not get any DTs'
     );
     assert(
@@ -957,7 +956,7 @@ describe("ERC20Template", () => {
     );
 
     assert(
-      (await erc20TokenWithPublishFee.balanceOf(opfCollector.address)) ==
+      (await erc20TokenWithPublishFee.balanceOf(opcCollector.address)) ==
       web3.utils.toWei("0"), 'Invalid OPF balance, we should not get any DTs'
     );
     assert(
@@ -1053,7 +1052,7 @@ describe("ERC20Template", () => {
     );
 
     assert(
-      (await erc20TokenWithPublishFee.balanceOf(opfCollector.address)) ==
+      (await erc20TokenWithPublishFee.balanceOf(opcCollector.address)) ==
       web3.utils.toWei("0"), 'Invalid OPF balance, we should not get any DTs'
     );
     assert(

@@ -75,7 +75,7 @@ describe("1SS flow", () => {
       marketFeeCollector,
       newMarketFeeCollector,
       pool2MarketFeeCollector,
-      opfCollector,
+      opcCollector,
     ] = await ethers.getSigners();
 
     // GET SOME OCEAN TOKEN FROM OUR MAINNET FORK and send them to user3
@@ -126,7 +126,7 @@ describe("1SS flow", () => {
       owner.address,
       oceanAddress,
       poolTemplate.address, // pooltemplate field, unused in this test
-      opfCollector.address,
+      opcCollector.address,
       []
     );
 
@@ -273,7 +273,7 @@ describe("1SS flow", () => {
       web3.utils.toWei("98000")
     );
 
-    expect(await bPool.getOPFFee()).to.equal(0);
+    expect(await bPool.getOPCFee()).to.equal(0);
     expect(await bPool._swapPublishMarketFee()).to.equal(swapMarketFee);
 
     expect(await bPool.communityFees(oceanAddress)).to.equal(0);
@@ -837,7 +837,7 @@ describe("1SS flow", () => {
   });
 
   it("#17 - we check again no ocean and market fees were accounted", async () => {
-    expect(await bPool.getOPFFee()).to.equal(0);
+    expect(await bPool.getOPCFee()).to.equal(0);
     expect(await bPool._swapPublishMarketFee()).to.equal(swapMarketFee);
 
     expect(await bPool.communityFees(oceanAddress)).to.equal(0);

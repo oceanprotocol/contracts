@@ -44,8 +44,7 @@ contract ERC20Template is
     address private publishMarketFeeToken;
     uint256 private publishMarketFeeAmount;
     uint256 public constant BASE = 10**18;
-    uint256 public constant BASE_COMMUNITY_FEE_PERCENTAGE = BASE / 100; // == OPF takes 1% of the fees
-
+    
     // EIP 2612 SUPPORT
     bytes32 public DOMAIN_SEPARATOR;
     // keccak256("Permit(address owner,address spender,uint256 value,uint256 nonce,uint256 deadline)");
@@ -463,11 +462,23 @@ contract ERC20Template is
             _providerFee.providerFeeToken != address(0) &&
             _providerFee.providerFeeAddress != address(0)
         ) {
+            uint256 OPCFee = IFactoryRouter(router).getOPCProviderFee();
+            uint256 OPCcut = 0;
+            if(OPCFee > 0)
+                OPCcut = _providerFee.providerFeeAmount.mul(OPCFee).div(BASE);
+            uint256 providerCut = _providerFee.providerFeeAmount.sub(OPCcut);
             IERC20(_providerFee.providerFeeToken).safeTransferFrom(
                 msg.sender,
                 _providerFee.providerFeeAddress,
-                _providerFee.providerFeeAmount
+                providerCut
             );
+            if(OPCcut > 0){
+              IERC20(_providerFee.providerFeeToken).safeTransferFrom(
+                msg.sender,
+                _communityFeeCollector,
+                OPCcut
+            );  
+            }
         }
     }
     
@@ -512,7 +523,9 @@ contract ERC20Template is
                 address(this),
                 publishMarketFeeAmount
             );
-            communityFeePublish = publishMarketFeeAmount.div(100); //hardcode 1% goes to OPF
+            uint256 OPCFee = IFactoryRouter(router).getOPCConsumeFee();
+            if(OPCFee > 0)
+                communityFeePublish = publishMarketFeeAmount.mul(OPCFee).div(BASE); 
             //send publishMarketFee
             IERC20(publishMarketFeeToken).safeTransfer(
                 publishMarketFeeAddress,
@@ -524,7 +537,7 @@ contract ERC20Template is
                 publishMarketFeeToken,
                 publishMarketFeeAmount.sub(communityFeePublish)
             );
-            //send fees to OPF
+            //send fees to OPC
             if (communityFeePublish > 0) {
                 //since both fees are in the same token, have just one transaction for both, to save gas
                 IERC20(publishMarketFeeToken).safeTransfer(

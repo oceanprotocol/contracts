@@ -39,7 +39,7 @@ interface IFixedRateExchange {
         returns (
             uint256 marketFee,
             address marketFeeCollector,
-            uint256 opfFee,
+            uint256 opcFee,
             uint256 marketFeeAvailable,
             uint256 oceanFeeAvailable
         );

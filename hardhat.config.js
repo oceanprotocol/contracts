@@ -39,8 +39,7 @@ module.exports = {
     hardhat: {
       allowUnlimitedContractSize: true,
       forking: {
-        url:
-          "https://eth-mainnet.alchemyapi.io/v2/eOqKsGAdsiNLCVm846Vgb-6yY3jlcNEo",
+        url: process.env.ALCHEMY_URL,
         blockNumber: 12545000,
       },
       gasPrice:1000000000

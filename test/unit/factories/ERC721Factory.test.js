@@ -63,8 +63,7 @@ describe("ERC721Factory", () => {
       params: [
         {
           forking: {
-            jsonRpcUrl:
-              "https://eth-mainnet.alchemyapi.io/v2/eOqKsGAdsiNLCVm846Vgb-6yY3jlcNEo",
+            jsonRpcUrl: process.env.ALCHEMY_URL,
             blockNumber: 12515000,
           },
         },
@@ -87,7 +86,7 @@ describe("ERC721Factory", () => {
     );
 
 
-    [owner, reciever, user2, user3,user4, user5, user6, provider, opfCollector, marketFeeCollector, publishMarketAccount] = await ethers.getSigners();
+    [owner, reciever, user2, user3,user4, user5, user6, provider, opcCollector, marketFeeCollector, publishMarketAccount] = await ethers.getSigners();
     publishMarketFeeAddress = publishMarketAccount.address
     data = web3.utils.asciiToHex(constants.blob[0]);
     flags = web3.utils.asciiToHex(constants.blob[0]);
@@ -104,7 +103,7 @@ describe("ERC721Factory", () => {
      owner.address,
      oceanAddress,
      poolTemplate.address, // pooltemplate field,
-     opfCollector.address,
+     opcCollector.address,
      []
    );
       
@@ -113,7 +112,7 @@ describe("ERC721Factory", () => {
 
    fixedRateExchange = await FixedRateExchange.deploy(
      router.address,
-     opfCollector.address
+     opcCollector.address
    );
 
    dispenser = await Dispenser.deploy(
@@ -130,7 +129,7 @@ describe("ERC721Factory", () => {
    factoryERC721 = await ERC721Factory.deploy(
      templateERC721.address,
      templateERC20.address,
-     opfCollector.address,
+     opcCollector.address,
      router.address
    );
  
@@ -612,7 +611,7 @@ describe("ERC721Factory", () => {
     );
 
     assert(
-      (await erc20Token.balanceOf(opfCollector.address)) ==
+      (await erc20Token.balanceOf(opcCollector.address)) ==
         web3.utils.toWei("0"), 'Invalid OPF balance, we should not get any DTs'
     );
     assert(
@@ -684,7 +683,7 @@ describe("ERC721Factory", () => {
     );
 
     assert(
-      (await erc20Token.balanceOf(opfCollector.address)) ==
+      (await erc20Token.balanceOf(opcCollector.address)) ==
         web3.utils.toWei("0"), 'Invalid OPF balance, we should not get any DTs'
     );
     assert(
@@ -841,7 +840,7 @@ describe("ERC721Factory", () => {
     );
 
     assert(
-      (await erc20TokenWithPublishFee.balanceOf(opfCollector.address)) ==
+      (await erc20TokenWithPublishFee.balanceOf(opcCollector.address)) ==
         web3.utils.toWei("0"), 'Invalid OPF balance, we should not get any DTs'
     );
     
@@ -926,7 +925,7 @@ describe("ERC721Factory", () => {
  
 
     const balancePublish = await Mock20DecimalContract.balanceOf(publishFees[0])
-    const balanceOpfPublish = await Mock20DecimalContract.balanceOf(opfCollector.address)
+    const balanceOpfPublish = await Mock20DecimalContract.balanceOf(opcCollector.address)
     const expectedPublish = new BN(publishFees[2].toString()).sub(new BN(publishFees[2].toString()).div(new BN(100)))
     const expectedOpfPublish = new BN(publishFees[2].toString()).div(new BN(100))
     
@@ -1047,7 +1046,7 @@ describe("ERC721Factory", () => {
     
     
     const balancePublish = await Mock20DecimalContract.balanceOf(publishFees[0])
-    const balanceOpfPublish = await Mock20DecimalContract.balanceOf(opfCollector.address)
+    const balanceOpfPublish = await Mock20DecimalContract.balanceOf(opcCollector.address)
     const expectedPublish = new BN(publishFees[2].toString()).sub(new BN(publishFees[2].toString()).div(new BN(100)))
     const expectedOpfPublish = new BN(publishFees[2].toString()).div(new BN(100))
     assert(balancePublish.toString() === expectedPublish.toString(),'Invalid publish Fee')

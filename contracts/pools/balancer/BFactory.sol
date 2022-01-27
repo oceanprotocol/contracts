@@ -20,7 +20,7 @@ import '../../interfaces/IERC20.sol';
 */
 contract BFactory is BConst, Deployer {
 
-    address public opfCollector;
+    address public opcCollector;
 
     // mapping(address => bool) internal poolTemplates;
     address[] public poolTemplates;
@@ -48,18 +48,18 @@ contract BFactory is BConst, Deployer {
        @param _preCreatedPools list of pre-created pools. 
                           It can be only used in case of migration from an old factory contract.
     */
-    constructor(address _bpoolTemplate, address _opfCollector, address[] memory _preCreatedPools)  public 
+    constructor(address _bpoolTemplate, address _opcCollector, address[] memory _preCreatedPools)  public 
     {
         require(
             _bpoolTemplate != address(0), 
             'BFactory: invalid bpool template zero address'
         );
         require(
-            _opfCollector != address(0), 
+            _opcCollector != address(0), 
             'BFactory: zero address'
         );
      
-        opfCollector = _opfCollector;
+        opcCollector = _opcCollector;
         _addPoolTemplate(_bpoolTemplate);
 
         if(_preCreatedPools.length > 0){
@@ -93,7 +93,7 @@ contract BFactory is BConst, Deployer {
         returns (address bpool)
     {
         require(isPoolTemplate(addresses[5]), 'BFactory: Wrong Pool Template');
-        address[2] memory feeCollectors = [addresses[4],opfCollector];
+        address[2] memory feeCollectors = [addresses[4],opcCollector];
 
 
 

@@ -125,8 +125,7 @@ describe("ERC20TemplateEnterprise", () => {
       params: [
         {
           forking: {
-            jsonRpcUrl:
-              "https://eth-mainnet.alchemyapi.io/v2/eOqKsGAdsiNLCVm846Vgb-6yY3jlcNEo",
+            jsonRpcUrl: process.env.ALCHEMY_URL,
             blockNumber: 12515000,
           },
         },
@@ -150,7 +149,7 @@ describe("ERC20TemplateEnterprise", () => {
     const MockErc20 = await ethers.getContractFactory('MockERC20');
     const MockErc20Decimals = await ethers.getContractFactory('MockERC20Decimals');
 
-    [owner, reciever, user2, user3, user4, user5, user6, opfCollector, marketFeeCollector, publishMarketAccount,user7] = await ethers.getSigners();
+    [owner, reciever, user2, user3, user4, user5, user6, opcCollector, marketFeeCollector, publishMarketAccount,user7] = await ethers.getSigners();
     publishMarketFeeAddress = publishMarketAccount.address
     data = web3.utils.asciiToHex(constants.blob[0]);
     flags = web3.utils.asciiToHex(constants.blob[0]);
@@ -167,7 +166,7 @@ describe("ERC20TemplateEnterprise", () => {
       owner.address,
       oceanAddress,
       poolTemplate.address,
-      opfCollector.address,
+      opcCollector.address,
       []
     );
 
@@ -175,7 +174,7 @@ describe("ERC20TemplateEnterprise", () => {
 
     fixedRateExchange = await FixedRateExchange.deploy(
       router.address,
-      opfCollector.address
+      opcCollector.address
     );
 
     dispenser = await Dispenser.deploy(router.address);
@@ -188,7 +187,7 @@ describe("ERC20TemplateEnterprise", () => {
     factoryERC721 = await ERC721Factory.deploy(
       templateERC721.address,
       templateERC20.address,
-      opfCollector.address,
+      opcCollector.address,
       router.address
     );
 
@@ -621,7 +620,7 @@ describe("ERC20TemplateEnterprise", () => {
     );
 
     assert(
-      (await erc20Token.balanceOf(opfCollector.address)) ==
+      (await erc20Token.balanceOf(opcCollector.address)) ==
       web3.utils.toWei("0"), 'Invalid OPF balance, we should not get any DTs'
     );
     assert(
@@ -691,7 +690,7 @@ describe("ERC20TemplateEnterprise", () => {
     );
 
     assert(
-      (await erc20Token.balanceOf(opfCollector.address)) ==
+      (await erc20Token.balanceOf(opcCollector.address)) ==
       web3.utils.toWei("0"), 'Invalid OPF balance, we should not get any DTs'
     );
     assert(
@@ -798,7 +797,7 @@ describe("ERC20TemplateEnterprise", () => {
     );
 
     assert(
-      (await erc20Token.balanceOf(opfCollector.address)) ==
+      (await erc20Token.balanceOf(opcCollector.address)) ==
       web3.utils.toWei("0"), 'Invalid OPF balance, we should not get any DTs'
     );
     assert(
@@ -963,7 +962,7 @@ describe("ERC20TemplateEnterprise", () => {
     );
 
     assert(
-      (await erc20TokenWithPublishFee.balanceOf(opfCollector.address)) ==
+      (await erc20TokenWithPublishFee.balanceOf(opcCollector.address)) ==
       web3.utils.toWei("0"), 'Invalid OPF balance, we should not get any DTs'
     );
     assert(
@@ -1061,7 +1060,7 @@ describe("ERC20TemplateEnterprise", () => {
     );
 
     assert(
-      (await erc20TokenWithPublishFee.balanceOf(opfCollector.address)) ==
+      (await erc20TokenWithPublishFee.balanceOf(opcCollector.address)) ==
       web3.utils.toWei("0"), 'Invalid OPF balance, we should not get any DTs'
     );
     assert(
@@ -1251,7 +1250,7 @@ describe("ERC20TemplateEnterprise", () => {
   
 
     const balancePublish = await Mock20DecimalContract.balanceOf(publishFees[0])
-    const balanceOpfPublish = await Mock20DecimalContract.balanceOf(opfCollector.address)
+    const balanceOpfPublish = await Mock20DecimalContract.balanceOf(opcCollector.address)
     const expectedPublish = new BN(publishFees[2].toString()).sub(new BN(publishFees[2].toString()).div(new BN(100)))
     const expectedOpfPublish = new BN(publishFees[2].toString()).div(new BN(100))
 
@@ -1402,7 +1401,7 @@ describe("ERC20TemplateEnterprise", () => {
     
 
     const balancePublish = await Mock20DecimalContract.balanceOf(publishFees[0])
-    const balanceOpfPublish = await Mock20DecimalContract.balanceOf(opfCollector.address)
+    const balanceOpfPublish = await Mock20DecimalContract.balanceOf(opcCollector.address)
     const expectedPublish = new BN(publishFees[2].toString()).sub(new BN(publishFees[2].toString()).div(new BN(100)))
     const expectedOpfPublish = new BN(publishFees[2].toString()).div(new BN(100))
 
@@ -1550,7 +1549,7 @@ describe("ERC20TemplateEnterprise", () => {
 
 
     const balancePublish = await Mock20DecimalContract.balanceOf(publishFees[0])
-    const balanceOpfPublish = await Mock20DecimalContract.balanceOf(opfCollector.address)
+    const balanceOpfPublish = await Mock20DecimalContract.balanceOf(opcCollector.address)
     const expectedPublish = new BN(publishFees[2].toString()).sub(new BN(publishFees[2].toString()).div(new BN(100)))
     const expectedOpfPublish = new BN(publishFees[2].toString()).div(new BN(100))
 

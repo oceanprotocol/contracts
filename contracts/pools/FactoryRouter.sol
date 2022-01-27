@@ -20,7 +20,9 @@ contract FactoryRouter is BFactory {
     uint256 public minVestingPeriodInBlocks = 2426000;
 
     uint256 public swapOceanFee = 0;
-    uint256 public swapNonOceanFee = 1e15;
+    uint256 public swapNonOceanFee = 1e15;  // 0.1%
+    uint256 public consumeFee = 1e16; // 1%
+    uint256 public providerFee = 0; // 0%
     address[] public oceanTokens;
     address[] public ssContracts;
     address[] public fixedrates;
@@ -64,7 +66,8 @@ contract FactoryRouter is BFactory {
         address indexed contractAddress
     );
 
-    event OPFFeeChanged(address indexed caller, uint256 newSwapOceanFee, uint256 newSwapNonOceanFee);
+    event OPCFeeChanged(address indexed caller, uint256 newSwapOceanFee,
+        uint256 newSwapNonOceanFee, uint256 newConsumeFee, uint256 newProviderFee);
 
     modifier onlyRouterOwner() {
         require(routerOwner == msg.sender, "OceanRouter: NOT OWNER");
@@ -75,23 +78,23 @@ contract FactoryRouter is BFactory {
         address _routerOwner,
         address _oceanToken,
         address _bpoolTemplate,
-        address _opfCollector,
+        address _opcCollector,
         address[] memory _preCreatedPools
-    ) public BFactory(_bpoolTemplate, _opfCollector, _preCreatedPools) {
+    ) public BFactory(_bpoolTemplate, _opcCollector, _preCreatedPools) {
         require(
             _routerOwner != address(0),
             "FactoryRouter: Invalid router owner"
         );
         require(
-            _opfCollector != address(0),
-            "FactoryRouter: Invalid opfCollector"
+            _opcCollector != address(0),
+            "FactoryRouter: Invalid opcCollector"
         );
         require(
             _oceanToken != address(0),
             "FactoryRouter: Invalid Ocean Token address"
         );
         routerOwner = _routerOwner;
-        opfCollector = _opfCollector;
+        opcCollector = _opcCollector;
         _addOceanToken(_oceanToken);
     }
 
@@ -356,35 +359,57 @@ contract FactoryRouter is BFactory {
     }
 
     /**
-     * @dev getOPFFee
-     *      Gets OPF Community Fees for a particular token
+     * @dev getOPCFee
+     *      Gets OP Community Fees for a particular token
      * @param baseToken  address token to be checked
      */
-    function getOPFFee(address baseToken) public view returns (uint256) {
+    function getOPCFee(address baseToken) public view returns (uint256) {
         if (isOceanToken(baseToken)) {
             return swapOceanFee;
         } else return swapNonOceanFee;
     }
 
     /**
-     * @dev getOPFFees
-     *      Gets OPF Community Fees for approved tokens and non approved tokens
+     * @dev getOPCFees
+     *      Gets OP Community Fees for approved tokens and non approved tokens
      */
-    function getOPFFees() public view returns (uint256,uint256) {
+    function getOPCFees() public view returns (uint256,uint256) {
         return (swapOceanFee, swapNonOceanFee);
     }
 
     /**
-     * @dev updateOPFFee
-     *      Updates OPF Community Fees
+     * @dev getConsumeFee
+     *      Gets OP Community Fee cuts for consume fees
+     */
+    function getOPCConsumeFee() public view returns (uint256) {
+        return consumeFee;
+    }
+
+    /**
+     * @dev getOPCProviderFee
+     *      Gets OP Community Fee cuts for provider fees
+     */
+    function getOPCProviderFee() public view returns (uint256) {
+        return providerFee;
+    }
+
+
+    /**
+     * @dev updateOPCFee
+     *      Updates OP Community Fees
      * @param _newSwapOceanFee Amount charged for swapping with ocean approved tokens
      * @param _newSwapNonOceanFee Amount charged for swapping with non ocean approved tokens
+     * @param _newConsumeFee Amount charged from consumeFees
+     * @param _newProviderFee Amount charged for providerFees
      */
-    function updateOPFFee(uint256 _newSwapOceanFee, uint256 _newSwapNonOceanFee) external onlyRouterOwner {
+    function updateOPCFee(uint256 _newSwapOceanFee, uint256 _newSwapNonOceanFee,
+        uint256 _newConsumeFee, uint256 _newProviderFee) external onlyRouterOwner {
 
         swapOceanFee = _newSwapOceanFee;
         swapNonOceanFee = _newSwapNonOceanFee;
-        emit OPFFeeChanged(msg.sender, _newSwapOceanFee, _newSwapNonOceanFee);
+        consumeFee = _newConsumeFee;
+        providerFee = _newProviderFee;
+        emit OPCFeeChanged(msg.sender, _newSwapOceanFee, _newSwapNonOceanFee, _newConsumeFee, _newProviderFee);
     }
 
     /*

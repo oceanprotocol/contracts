@@ -45,7 +45,7 @@ describe("FactoryRouter", () => {
       method: "hardhat_reset",
       params: [{
         forking: {
-          jsonRpcUrl: "https://eth-mainnet.alchemyapi.io/v2/eOqKsGAdsiNLCVm846Vgb-6yY3jlcNEo",
+          jsonRpcUrl: process.env.ALCHEMY_URL,
           blockNumber: 12515000,
         }
       }]
@@ -74,7 +74,7 @@ describe("FactoryRouter", () => {
       user5,
       user6,
       marketFeeCollector,
-      opfCollector,
+      opcCollector,
       newToken      
     ] = await ethers.getSigners();
     
@@ -92,7 +92,7 @@ describe("FactoryRouter", () => {
     owner.address,
     oceanAddress,
     poolTemplate.address, // pooltemplate field, unused in this test
-    opfCollector.address,
+    opcCollector.address,
     []
   );
 
@@ -101,7 +101,7 @@ describe("FactoryRouter", () => {
 
   fixedRateExchange = await FixedRateExchange.deploy(
     router.address,
-    opfCollector.address
+    opcCollector.address
   );
 
   templateERC20 = await ERC20Template.deploy();
@@ -112,7 +112,7 @@ describe("FactoryRouter", () => {
   factoryERC721 = await ERC721Factory.deploy(
     templateERC721.address,
     templateERC20.address,
-    opfCollector.address,
+    opcCollector.address,
     router.address
   );
 
@@ -206,21 +206,21 @@ describe("FactoryRouter", () => {
   it("#removeOceanToken - should remove a token previously added if Router Owner, check OPF fee updates properly",async () => {
     // newToken is not mapped so fee is 1e15
     assert(await router.isOceanToken(newToken.address) == false);
-    assert(await router.getOPFFee(newToken.address) == 1e15);
+    assert(await router.getOPCFee(newToken.address) == 1e15);
     
     // router owner adds newToken address
     await router.addOceanToken(newToken.address)
     assert(await router.isOceanToken(newToken.address) == true);
 
     // OPF Fee is ZERO now
-    assert(await router.getOPFFee(newToken.address) == 0);
+    assert(await router.getOPCFee(newToken.address) == 0);
 
     // router owner removes newToken address
     await router.removeOceanToken(newToken.address)
     assert(await router.isOceanToken(newToken.address) == false);
 
     // OPF Fee is again the default 1e15 => 0.1%
-    assert(await router.getOPFFee(newToken.address) == 1e15);
+    assert(await router.getOPCFee(newToken.address) == 1e15);
   })
 
   it("#removeOceanToken - should fail to remove a new token address to the mapping if NOT Router Owner",async () => {
@@ -230,26 +230,28 @@ describe("FactoryRouter", () => {
     assert(await router.isOceanToken(newToken.address) === true);
   })
 
-  it("#updateOPFFee - should update opf Fee if router owner",async () => {
+  it("#updateOPCFee - should update opf Fee if router owner",async () => {
     assert(await router.isOceanToken(newToken.address) == false);
-    assert(await router.getOPFFee(newToken.address) == 1e15);
+    assert(await router.getOPCFee(newToken.address) == 1e15);
     assert(await router.swapOceanFee() == 0)
     assert(await router.swapNonOceanFee() == 1e15)
-    await router.updateOPFFee("0", web3.utils.toWei('0.01'));
+    await router.updateOPCFee("0", web3.utils.toWei('0.01'), web3.utils.toWei('0.001'), 0);
     assert(await router.isOceanToken(newToken.address) == false);
-    assert(await router.getOPFFee(newToken.address) == 1e16);
+    assert(await router.getOPCFee(newToken.address) == 1e16);
     assert(await router.swapNonOceanFee() == 1e16)
     assert(await router.swapOceanFee() == 0)
+    assert(await router.getOPCConsumeFee() == 1e15)
+    assert(await router.getOPCProviderFee() == 0)
   })
 
-  it("#updateOPFFee - should fail to update OPF Fee if NOT Router Owner",async () => {
+  it("#updateOPCFee - should fail to update OPF Fee if NOT Router Owner",async () => {
     assert(await router.swapNonOceanFee() == 1e15)
-    await expectRevert(router.connect(user2).updateOPFFee("0", web3.utils.toWei('0.01')), "OceanRouter: NOT OWNER")
+    await expectRevert(router.connect(user2).updateOPCFee("0", web3.utils.toWei('0.01'), web3.utils.toWei('0.001'), 0), "OceanRouter: NOT OWNER")
     assert(await router.swapNonOceanFee() == 1e15)
   })
 
-  it("#getOPFFees - should get OPF fees",async () => {
-    const fees = await router.getOPFFees();
+  it("#getOPCFees - should get OPF fees",async () => {
+    const fees = await router.getOPCFees();
     assert(fees[0] == 0);
     assert(fees[1] == 1e15);
   })
