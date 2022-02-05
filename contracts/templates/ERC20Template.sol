@@ -467,15 +467,10 @@ contract ERC20Template is
             if(OPCFee > 0)
                 OPCcut = _providerFee.providerFeeAmount.mul(OPCFee).div(BASE);
             uint256 providerCut = _providerFee.providerFeeAmount.sub(OPCcut);
-            uint256 balanceBefore = IERC20(_providerFee.providerFeeToken).balanceOf(address(this));
-            IERC20(_providerFee.providerFeeToken).safeTransferFrom(
-                msg.sender,
+
+            _pullUnderlying(_providerFee.providerFeeToken,msg.sender,
                 address(this),
-                _providerFee.providerFeeAmount
-            );
-            require(
-                    IERC20(_providerFee.providerFeeToken).balanceOf(address(this)) == balanceBefore.add(_providerFee.providerFeeAmount),
-                    "Transfer amount was not exact");
+                _providerFee.providerFeeAmount);
             IERC20(_providerFee.providerFeeToken).safeTransfer(
                 _providerFee.providerFeeAddress,
                 providerCut
@@ -525,15 +520,9 @@ contract ERC20Template is
             publishMarketFeeToken != address(0) &&
             publishMarketFeeAddress != address(0)
         ) {
-            uint256 balanceBefore = IERC20(publishMarketFeeToken).balanceOf(address(this));
-            IERC20(publishMarketFeeToken).safeTransferFrom(
-                msg.sender,
+            _pullUnderlying(publishMarketFeeToken,msg.sender,
                 address(this),
-                publishMarketFeeAmount
-            );
-            require(
-                    IERC20(publishMarketFeeToken).balanceOf(address(this)) == balanceBefore.add(publishMarketFeeAmount),
-                    "Transfer amount was not exact");
+                publishMarketFeeAmount);
             uint256 OPCFee = IFactoryRouter(router).getOPCConsumeFee();
             if(OPCFee > 0)
                 communityFeePublish = publishMarketFeeAmount.mul(OPCFee).div(BASE); 
@@ -984,5 +973,17 @@ contract ERC20Template is
      */
     function getDispensers() public view returns(address[] memory) {
         return(dispensers);
+    }
+
+    function _pullUnderlying(
+        address erc20,
+        address from,
+        address to,
+        uint256 amount
+    ) internal {
+        uint256 balanceBefore = IERC20(erc20).balanceOf(to);
+        IERC20(erc20).safeTransferFrom(from, to, amount);
+        require(IERC20(erc20).balanceOf(to) == balanceBefore.add(amount),
+                    "Transfer amount was not exact");
     }
 }

@@ -484,13 +484,9 @@ contract FactoryRouter is BFactory {
         require(ssParams[1] > 0, "Wrong decimals");
 
         // we pull baseToken for creating initial pool and send it to the controller (ssContract)
-        IERC20 bt = IERC20(tokens[1]);
-        uint256 balanceBefore = bt.balanceOf(addresses[0]);
-        bt.safeTransferFrom(addresses[2], addresses[0], ssParams[4]);
-        require(bt.balanceOf(addresses[0]) == balanceBefore.add(ssParams[4]),
-                    "Transfer amount was not exact");
+        _pullUnderlying(tokens[1],addresses[2], addresses[0], ssParams[4]);
+        
         address pool = newBPool(tokens, ssParams, swapFees, addresses);
-
         require(pool != address(0), "FAILED TO DEPLOY POOL");
         if (isOceanToken(tokens[1])) emit NewPool(pool, true);
         else emit NewPool(pool, false);
@@ -636,15 +632,9 @@ contract FactoryRouter is BFactory {
             // tokenInOutMarket[0] =
             if (_operations[i].operation == operationType.SwapExactIn) {
                 // Get amountIn from user to router
-                uint256 balanceBefore = IERC20(_operations[i].tokenIn).balanceOf(address(this));
-                IERC20(_operations[i].tokenIn).safeTransferFrom(
-                    msg.sender,
+                _pullUnderlying(_operations[i].tokenIn,msg.sender,
                     address(this),
-                    _operations[i].amountsIn
-                );
-                require(
-                    IERC20(_operations[i].tokenIn).balanceOf(address(this)) == balanceBefore.add(_operations[i].amountsIn),
-                    "Transfer amount was not exact");
+                    _operations[i].amountsIn);
                 // we approve pool to pull token from router
                 IERC20(_operations[i].tokenIn).safeIncreaseAllowance(
                     _operations[i].source,
@@ -670,15 +660,9 @@ contract FactoryRouter is BFactory {
                         _operations[i].swapMarketFee
                     );
                 // pull amount In from user
-                uint256 balanceBefore = IERC20(_operations[i].tokenIn).balanceOf(address(this));
-                IERC20(_operations[i].tokenIn).safeTransferFrom(
-                    msg.sender,
+                _pullUnderlying(_operations[i].tokenIn,msg.sender,
                     address(this),
-                    amountIn
-                );
-                require(
-                    IERC20(_operations[i].tokenIn).balanceOf(address(this)) == balanceBefore.add(amountIn),
-                    "Transfer amount was not exact");
+                    amountIn);
                 // we approve pool to pull token from router
                 IERC20(_operations[i].tokenIn).safeIncreaseAllowance(
                     _operations[i].source,
@@ -708,15 +692,9 @@ contract FactoryRouter is BFactory {
                     );
 
                 // pull tokenIn amount
-                uint256 balanceBefore = IERC20(_operations[i].tokenIn).balanceOf(address(this));
-                IERC20(_operations[i].tokenIn).safeTransferFrom(
-                    msg.sender,
+                _pullUnderlying(_operations[i].tokenIn,msg.sender,
                     address(this),
-                    baseTokenAmount
-                );
-                require(
-                    IERC20(_operations[i].tokenIn).balanceOf(address(this)) == balanceBefore.add(baseTokenAmount),
-                    "Transfer amount was not exact");
+                    baseTokenAmount);
                 // we approve pool to pull token from router
                 IERC20(_operations[i].tokenIn).safeIncreaseAllowance(
                     _operations[i].source,
@@ -741,5 +719,17 @@ contract FactoryRouter is BFactory {
                 );
             }
         }
+    }
+
+    function _pullUnderlying(
+        address erc20,
+        address from,
+        address to,
+        uint256 amount
+    ) internal {
+        uint256 balanceBefore = IERC20(erc20).balanceOf(to);
+        IERC20(erc20).safeTransferFrom(from, to, amount);
+        require(IERC20(erc20).balanceOf(to) == balanceBefore.add(amount),
+                    "Transfer amount was not exact");
     }
 }
