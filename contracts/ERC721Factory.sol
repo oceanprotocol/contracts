@@ -10,6 +10,7 @@ import "./interfaces/IERC20Template.sol";
 import "./interfaces/IERC721Template.sol";
 import "./interfaces/IERC20.sol";
 import "./utils/SafeERC20.sol";
+import "@openzeppelin/contracts/utils/math/SafeMath.sol";
 import "@openzeppelin/contracts/security/ReentrancyGuard.sol";
 /**
  * @title DTFactory contract
@@ -23,6 +24,7 @@ import "@openzeppelin/contracts/security/ReentrancyGuard.sol";
  */
 contract ERC721Factory is Deployer, Ownable, ReentrancyGuard {
     using SafeERC20 for IERC20;
+    using SafeMath for uint256;
     address private communityFeeCollector;
     uint256 private currentNFTCount;
     address private erc20Factory;
@@ -509,7 +511,7 @@ contract ERC721Factory is Deployer, Ownable, ReentrancyGuard {
                     publishMarketFeeAmount
                 );
                 require(
-                    IERC20(publishMarketFeeToken).balanceOf(address(this)) == balanceBefore + publishMarketFeeAmount,
+                    IERC20(publishMarketFeeToken).balanceOf(address(this)) == balanceBefore.add(publishMarketFeeAmount),
                     "Transfer amount was not exact");
                 IERC20(publishMarketFeeToken).safeIncreaseAllowance(orders[i].tokenAddress, publishMarketFeeAmount);
             }
@@ -523,7 +525,7 @@ contract ERC721Factory is Deployer, Ownable, ReentrancyGuard {
                     orders[i]._providerFees.providerFeeAmount
                 );
                 require(
-                    IERC20(orders[i]._providerFees.providerFeeToken).balanceOf(address(this)) == balanceBefore + orders[i]._providerFees.providerFeeAmount,
+                    IERC20(orders[i]._providerFees.providerFeeToken).balanceOf(address(this)) == balanceBefore.add(orders[i]._providerFees.providerFeeAmount),
                     "Transfer amount was not exact");
                 IERC20(orders[i]._providerFees.providerFeeToken)
                 .safeIncreaseAllowance(orders[i].tokenAddress, orders[i]._providerFees.providerFeeAmount);
@@ -536,7 +538,7 @@ contract ERC721Factory is Deployer, Ownable, ReentrancyGuard {
                 1e18
             ); // we always pay 1 DT. No more, no less
             require(
-                    IERC20(orders[i].tokenAddress).balanceOf(address(this)) == balanceBefore + 1e18,
+                    IERC20(orders[i].tokenAddress).balanceOf(address(this)) == balanceBefore.add(1e18),
                     "Transfer amount was not exact");
             IERC20Template(orders[i].tokenAddress).startOrder(
                 orders[i].consumer,
@@ -580,7 +582,7 @@ contract ERC721Factory is Deployer, Ownable, ReentrancyGuard {
                     orders[i]._providerFees.providerFeeAmount
                 );
                 require(
-                    IERC20(orders[i]._providerFees.providerFeeToken).balanceOf(address(this)) == balanceBefore + orders[i]._providerFees.providerFeeAmount,
+                    IERC20(orders[i]._providerFees.providerFeeToken).balanceOf(address(this)) == balanceBefore.add(orders[i]._providerFees.providerFeeAmount),
                     "Transfer amount was not exact");
                 IERC20(orders[i]._providerFees.providerFeeToken)
                 .safeIncreaseAllowance(orders[i].tokenAddress, orders[i]._providerFees.providerFeeAmount);
@@ -667,7 +669,7 @@ contract ERC721Factory is Deployer, Ownable, ReentrancyGuard {
                 _PoolData.ssParams[4]
         );
         require(
-                    IERC20(_PoolData.addresses[1]).balanceOf(address(this)) == balanceBefore + _PoolData.ssParams[4],
+                    IERC20(_PoolData.addresses[1]).balanceOf(address(this)) == balanceBefore.add(_PoolData.ssParams[4]),
                     "Transfer amount was not exact");
         //we are adding ourselfs as a ERC20 Deployer, because we need it in order to deploy the pool
         erc721Address = deployERC721Contract(
