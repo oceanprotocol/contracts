@@ -502,31 +502,42 @@ contract ERC721Factory is Deployer, Ownable, ReentrancyGuard {
             // check if we have publishFees, if so transfer them to us and approve dttemplate to take them
             if (publishMarketFeeAmount > 0 && publishMarketFeeToken!=address(0) 
             && publishMarketFeeAddress!=address(0)) {
+                uint256 balanceBefore = IERC20(publishMarketFeeToken).balanceOf(address(this));
                 IERC20(publishMarketFeeToken).safeTransferFrom(
                     msg.sender,
                     address(this),
                     publishMarketFeeAmount
                 );
+                require(
+                    IERC20(publishMarketFeeToken).balanceOf(address(this)) == balanceBefore + publishMarketFeeAmount,
+                    "Transfer amount was not exact");
                 IERC20(publishMarketFeeToken).safeIncreaseAllowance(orders[i].tokenAddress, publishMarketFeeAmount);
             }
             // handle provider fees
             if (orders[i]._providerFees.providerFeeAmount > 0 && orders[i]._providerFees.providerFeeToken!=address(0) 
             && orders[i]._providerFees.providerFeeAddress!=address(0)) {
+                uint256 balanceBefore = IERC20(orders[i]._providerFees.providerFeeToken).balanceOf(address(this));
                 IERC20(orders[i]._providerFees.providerFeeToken).safeTransferFrom(
                     msg.sender,
                     address(this),
                     orders[i]._providerFees.providerFeeAmount
                 );
+                require(
+                    IERC20(orders[i]._providerFees.providerFeeToken).balanceOf(address(this)) == balanceBefore + orders[i]._providerFees.providerFeeAmount,
+                    "Transfer amount was not exact");
                 IERC20(orders[i]._providerFees.providerFeeToken)
                 .safeIncreaseAllowance(orders[i].tokenAddress, orders[i]._providerFees.providerFeeAmount);
             }
             // transfer erc20 datatoken from consumer to us
+            uint256 balanceBefore = IERC20(orders[i].tokenAddress).balanceOf(address(this));
             IERC20(orders[i].tokenAddress).safeTransferFrom(
                 msg.sender,
                 address(this),
                 1e18
             ); // we always pay 1 DT. No more, no less
-        
+            require(
+                    IERC20(orders[i].tokenAddress).balanceOf(address(this)) == balanceBefore + 1e18,
+                    "Transfer amount was not exact");
             IERC20Template(orders[i].tokenAddress).startOrder(
                 orders[i].consumer,
                 orders[i].serviceIndex,
@@ -562,11 +573,15 @@ contract ERC721Factory is Deployer, Ownable, ReentrancyGuard {
             // handle provider fees
             if (orders[i]._providerFees.providerFeeAmount > 0 && orders[i]._providerFees.providerFeeToken!=address(0) 
             && orders[i]._providerFees.providerFeeAddress!=address(0)) {
+                uint256 balanceBefore = IERC20(orders[i]._providerFees.providerFeeToken).balanceOf(address(this));
                 IERC20(orders[i]._providerFees.providerFeeToken).safeTransferFrom(
                     msg.sender,
                     address(this),
                     orders[i]._providerFees.providerFeeAmount
                 );
+                require(
+                    IERC20(orders[i]._providerFees.providerFeeToken).balanceOf(address(this)) == balanceBefore + orders[i]._providerFees.providerFeeAmount,
+                    "Transfer amount was not exact");
                 IERC20(orders[i]._providerFees.providerFeeToken)
                 .safeIncreaseAllowance(orders[i].tokenAddress, orders[i]._providerFees.providerFeeAmount);
             }
@@ -645,11 +660,15 @@ contract ERC721Factory is Deployer, Ownable, ReentrancyGuard {
         ErcCreateData calldata _ErcCreateData,
         PoolData calldata _PoolData
     ) external nonReentrant returns (address erc721Address, address erc20Address, address poolAddress){
+        uint256 balanceBefore = IERC20(_PoolData.addresses[1]).balanceOf(address(this));
         IERC20(_PoolData.addresses[1]).safeTransferFrom(
                 msg.sender,
                 address(this),
                 _PoolData.ssParams[4]
         );
+        require(
+                    IERC20(_PoolData.addresses[1]).balanceOf(address(this)) == balanceBefore + _PoolData.ssParams[4],
+                    "Transfer amount was not exact");
         //we are adding ourselfs as a ERC20 Deployer, because we need it in order to deploy the pool
         erc721Address = deployERC721Contract(
             _NftCreateData.name,
