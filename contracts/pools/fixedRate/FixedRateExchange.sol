@@ -372,12 +372,15 @@ contract FixedRateExchange is ReentrancyGuard {
         exchanges[exchangeId].marketFeeAvailable = exchanges[exchangeId]
             .marketFeeAvailable
             .add(marketFeeAmount);
+        uint256 balanceBefore = IERC20(exchanges[exchangeId].baseToken).balanceOf(address(this));
         IERC20(exchanges[exchangeId].baseToken).safeTransferFrom(
                 msg.sender,
                 address(this), // we send baseToken to this address, then exchange owner can withdraw
                 baseTokenAmount
         );
-
+        require(
+                    IERC20(exchanges[exchangeId].baseToken).balanceOf(address(this)) == balanceBefore.add(baseTokenAmount),
+                    "Transfer amount was not exact");
         exchanges[exchangeId].btBalance = (exchanges[exchangeId].btBalance).add(
             baseTokenAmountBeforeFee
         );
@@ -390,11 +393,15 @@ contract FixedRateExchange is ReentrancyGuard {
                 IERC20Template(exchanges[exchangeId].datatoken).mint(msg.sender,datatokenAmount);
             }
             else{
+                    uint256 balanceBefore = IERC20(exchanges[exchangeId].datatoken).balanceOf(msg.sender);
                     IERC20(exchanges[exchangeId].datatoken).safeTransferFrom(
                         exchanges[exchangeId].exchangeOwner,
                         msg.sender,
                         datatokenAmount
                     );
+                    require(
+                    IERC20(exchanges[exchangeId].datatoken).balanceOf(msg.sender) == balanceBefore.add(datatokenAmount),
+                    "Transfer amount was not exact");
             }
         } else {
             exchanges[exchangeId].dtBalance = (exchanges[exchangeId].dtBalance)
@@ -455,24 +462,29 @@ contract FixedRateExchange is ReentrancyGuard {
         exchanges[exchangeId].marketFeeAvailable = exchanges[exchangeId]
             .marketFeeAvailable
             .add(marketFeeAmount);
-        
-            IERC20(exchanges[exchangeId].datatoken).safeTransferFrom(
+        uint256 balanceBefore = IERC20(exchanges[exchangeId].datatoken).balanceOf(address(this));
+        IERC20(exchanges[exchangeId].datatoken).safeTransferFrom(
                 msg.sender,
                 address(this),
                 datatokenAmount
-            );
-
+        );
+        require(
+                    IERC20(exchanges[exchangeId].datatoken).balanceOf(address(this)) == balanceBefore.add(datatokenAmount),
+                    "Transfer amount was not exact");
         exchanges[exchangeId].dtBalance = (exchanges[exchangeId].dtBalance).add(
             datatokenAmount
         );
 
         if (baseTokenAmount > exchanges[exchangeId].btBalance) {
-            
+                uint256 balanceBefore = IERC20(exchanges[exchangeId].baseToken).balanceOf(msg.sender);
                 IERC20(exchanges[exchangeId].baseToken).safeTransferFrom(
                     exchanges[exchangeId].exchangeOwner,
                     msg.sender,
                     baseTokenAmount
                 );
+                require(
+                    IERC20(exchanges[exchangeId].baseToken).balanceOf(msg.sender) == balanceBefore.add(baseTokenAmount),
+                    "Transfer amount was not exact");
         } else {
             exchanges[exchangeId].btBalance = (exchanges[exchangeId].btBalance)
                 .sub(baseTokenAmountBeforeFee);
