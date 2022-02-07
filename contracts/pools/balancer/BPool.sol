@@ -491,15 +491,13 @@ contract BPool is BMath, BToken {
         if (balance > oldBalance) {
             _pullUnderlying(token, msg.sender, bsub(balance, oldBalance));
         } else if (balance < oldBalance) {
-            // In this case liquidity is being withdrawn, so charge EXIT_FEE
+            // In this case liquidity is being withdrawn, we don't have EXIT_FEES
             uint256 tokenBalanceWithdrawn = bsub(oldBalance, balance);
-            uint256 tokenExitFee = bmul(tokenBalanceWithdrawn, EXIT_FEE);
             _pushUnderlying(
                 token,
                 msg.sender,
-                bsub(tokenBalanceWithdrawn, tokenExitFee)
+                tokenBalanceWithdrawn
             );
-            _pushUnderlying(token, _factory, tokenExitFee);
         }
     }
 
@@ -612,14 +610,15 @@ contract BPool is BMath, BToken {
         require(_finalized, "ERR_NOT_FINALIZED");
 
         uint256 poolTotal = totalSupply();
-        uint256 exitFee = bmul(poolAmountIn, EXIT_FEE);
-        uint256 pAiAfterExitFee = bsub(poolAmountIn, exitFee);
-        uint256 ratio = bdiv(pAiAfterExitFee, poolTotal);
+        //uint256 exitFee = bmul(poolAmountIn, EXIT_FEE);
+        //uint256 pAiAfterExitFee = bsub(poolAmountIn, exitFee);
+        
+        uint256 ratio = bdiv(poolAmountIn, poolTotal);
         require(ratio != 0, "ERR_MATH_APPROX");
 
         _pullPoolShare(msg.sender, poolAmountIn);
-        _pushPoolShare(_factory, exitFee);
-        _burnPoolShare(pAiAfterExitFee);
+        //_pushPoolShare(_factory, exitFee);
+        _burnPoolShare(poolAmountIn);
 
         for (uint256 i = 0; i < _tokens.length; i++) {
             address t = _tokens[i];
@@ -826,18 +825,18 @@ contract BPool is BMath, BToken {
     }
 
     function joinswapExternAmountIn(
-        address tokenIn,
         uint256 tokenAmountIn,
         uint256 minPoolAmountOut
     ) external _lock_ returns (uint256 poolAmountOut) {
+        //tokenIn = _baseTokenAddress;
         require(_finalized, "ERR_NOT_FINALIZED");
-        _checkBound(tokenIn);
+        _checkBound(_baseTokenAddress);
         require(
-            tokenAmountIn <= bmul(_records[tokenIn].balance, MAX_IN_RATIO),
+            tokenAmountIn <= bmul(_records[_baseTokenAddress].balance, MAX_IN_RATIO),
             "ERR_MAX_IN_RATIO"
         );
         //ask ssContract
-        Record storage inRecord = _records[tokenIn];
+        Record storage inRecord = _records[_baseTokenAddress];
 
         poolAmountOut = calcPoolOutGivenSingleIn(
             inRecord.balance,
@@ -851,12 +850,12 @@ contract BPool is BMath, BToken {
 
         inRecord.balance = badd(inRecord.balance, tokenAmountIn);
 
-        emit LOG_JOIN(msg.sender, tokenIn, tokenAmountIn, block.timestamp);
+        emit LOG_JOIN(msg.sender, _baseTokenAddress, tokenAmountIn, block.timestamp);
         emit LOG_BPT(poolAmountOut);
         _mintPoolShare(poolAmountOut);
         _pushPoolShare(msg.sender, poolAmountOut);
 
-        _pullUnderlying(tokenIn, msg.sender, tokenAmountIn);
+        _pullUnderlying(_baseTokenAddress, msg.sender, tokenAmountIn);
 
         //ask the ssContract to stake as well
         //calculate how much should the 1ss stake
@@ -869,112 +868,36 @@ contract BPool is BMath, BToken {
             _totalWeight,
             poolAmountOut
         );
-        if (tokenIn == _datatokenAddress) {
-            ssStakeToken = _baseTokenAddress;
-        } else {
-            // ssInRecord = _records[_baseTokenAddress];
-            ssStakeToken = _datatokenAddress;
-        }
-        if (ssContract.canStake(_datatokenAddress, ssStakeToken, ssAmountIn)) {
+        if (ssContract.canStake(_datatokenAddress, ssAmountIn)) {
             //call 1ss to approve
-
-            ssContract.Stake(_datatokenAddress, ssStakeToken, ssAmountIn);
+            ssContract.Stake(_datatokenAddress, ssAmountIn);
             // follow the same path
             ssInRecord.balance = badd(ssInRecord.balance, ssAmountIn);
             emit LOG_JOIN(
                 _controller,
-                ssStakeToken,
+                _datatokenAddress,
                 ssAmountIn,
                 block.timestamp
             );
             emit LOG_BPT_SS(poolAmountOut);
             _mintPoolShare(poolAmountOut);
             _pushPoolShare(_controller, poolAmountOut);
-            _pullUnderlying(ssStakeToken, _controller, ssAmountIn);
+            _pullUnderlying(_datatokenAddress, _controller, ssAmountIn);
         }
         return poolAmountOut;
     }
 
-    function joinswapPoolAmountOut(
-        address tokenIn,
-        uint256 poolAmountOut,
-        uint256 maxAmountIn
-    ) external _lock_ returns (uint256 tokenAmountIn) {
-        require(_finalized, "ERR_NOT_FINALIZED");
-        _checkBound(tokenIn);
-
-        Record storage inRecord = _records[tokenIn];
-
-        tokenAmountIn = calcSingleInGivenPoolOut(
-            inRecord.balance,
-            inRecord.denorm,
-            _totalSupply,
-            _totalWeight,
-            poolAmountOut
-        );
-
-        //ask ssContract
-        require(tokenAmountIn != 0, "ERR_MATH_APPROX");
-        require(tokenAmountIn <= maxAmountIn, "ERR_LIMIT_IN");
-
-        require(
-            tokenAmountIn <= bmul(_records[tokenIn].balance, MAX_IN_RATIO),
-            "ERR_MAX_IN_RATIO"
-        );
-
-        inRecord.balance = badd(inRecord.balance, tokenAmountIn);
-
-        emit LOG_JOIN(msg.sender, tokenIn, tokenAmountIn, block.timestamp);
-        emit LOG_BPT(poolAmountOut);
-        _mintPoolShare(poolAmountOut);
-        _pushPoolShare(msg.sender, poolAmountOut);
-        _pullUnderlying(tokenIn, msg.sender, tokenAmountIn);
-
-        Record storage ssInRecord = _records[_datatokenAddress];
-        //ask the ssContract to stake as well
-        //calculate how much should the 1ss stake
-        uint256 ssAmountIn = calcSingleInGivenPoolOut(
-            ssInRecord.balance,
-            ssInRecord.denorm,
-            _totalSupply,
-            _totalWeight,
-            poolAmountOut
-        );
-        address ssStakeToken;
-
-        if (tokenIn == _datatokenAddress) {
-            ssStakeToken = _baseTokenAddress;
-        } else {
-            ssStakeToken = _datatokenAddress;
-        }
-        if (ssContract.canStake(_datatokenAddress, ssStakeToken, ssAmountIn)) {
-            //call 1ss to approve
-            ssContract.Stake(_datatokenAddress, ssStakeToken, ssAmountIn);
-            // follow the same path
-            ssInRecord.balance = badd(ssInRecord.balance, ssAmountIn);
-            emit LOG_JOIN(
-                _controller,
-                ssStakeToken,
-                ssAmountIn,
-                block.timestamp
-            );
-            _mintPoolShare(poolAmountOut);
-            _pushPoolShare(_controller, poolAmountOut);
-            _pullUnderlying(ssStakeToken, _controller, ssAmountIn);
-            emit LOG_BPT_SS(poolAmountOut);
-        }
-        return tokenAmountIn;
-    }
+    
 
     function exitswapPoolAmountIn(
-        address tokenOut,
         uint256 poolAmountIn,
         uint256 minAmountOut
     ) external _lock_ returns (uint256 tokenAmountOut) {
+        //tokenOut = _baseTokenAddress;
         require(_finalized, "ERR_NOT_FINALIZED");
-        _checkBound(tokenOut);
+        _checkBound(_baseTokenAddress);
 
-        Record storage outRecord = _records[tokenOut];
+        Record storage outRecord = _records[_baseTokenAddress];
 
         tokenAmountOut = calcSingleOutGivenPoolIn(
             outRecord.balance,
@@ -987,34 +910,29 @@ contract BPool is BMath, BToken {
         require(tokenAmountOut >= minAmountOut, "ERR_LIMIT_OUT");
 
         require(
-            tokenAmountOut <= bmul(_records[tokenOut].balance, MAX_OUT_RATIO),
+            tokenAmountOut <= bmul(_records[_baseTokenAddress].balance, MAX_OUT_RATIO),
             "ERR_MAX_OUT_RATIO"
         );
 
         outRecord.balance = bsub(outRecord.balance, tokenAmountOut);
 
-        uint256 exitFee = bmul(poolAmountIn, EXIT_FEE);
+        //uint256 exitFee = bmul(poolAmountIn, EXIT_FEE);
 
-        emit LOG_EXIT(msg.sender, tokenOut, tokenAmountOut, block.timestamp);
+        emit LOG_EXIT(msg.sender, _baseTokenAddress, tokenAmountOut, block.timestamp);
         emit LOG_BPT(poolAmountIn);
 
         _pullPoolShare(msg.sender, poolAmountIn);
 
-        _burnPoolShare(bsub(poolAmountIn, exitFee));
-        _pushPoolShare(_factory, exitFee);
-        _pushUnderlying(tokenOut, msg.sender, tokenAmountOut);
+        //_burnPoolShare(bsub(poolAmountIn, exitFee));
+        _burnPoolShare(poolAmountIn);
+        //_pushPoolShare(_factory, exitFee);
+        _pushUnderlying(_baseTokenAddress, msg.sender, tokenAmountOut);
 
         //ask the ssContract to unstake as well
         //calculate how much should the 1ss unstake
-        address ssStakeToken;
-        if (tokenOut == _datatokenAddress) {
-            ssStakeToken = _baseTokenAddress;
-        } else {
-            ssStakeToken = _datatokenAddress;
-        }
-
+        
         if (
-            ssContract.canUnStake(_datatokenAddress, ssStakeToken, poolAmountIn)
+            ssContract.canUnStake(_datatokenAddress, poolAmountIn)
         ) {
             Record storage ssOutRecord = _records[_datatokenAddress];
             uint256 ssAmountOut = calcSingleOutGivenPoolIn(
@@ -1026,21 +944,21 @@ contract BPool is BMath, BToken {
             );
 
             ssOutRecord.balance = bsub(ssOutRecord.balance, ssAmountOut);
-            exitFee = bmul(poolAmountIn, EXIT_FEE);
+            //exitFee = bmul(poolAmountIn, EXIT_FEE);
             emit LOG_EXIT(
                 _controller,
-                ssStakeToken,
+                _datatokenAddress,
                 ssAmountOut,
                 block.timestamp
             );
             _pullPoolShare(_controller, poolAmountIn);
-            _burnPoolShare(bsub(poolAmountIn, exitFee));
-            _pushPoolShare(_factory, exitFee);
-            _pushUnderlying(ssStakeToken, _controller, ssAmountOut);
+            //_burnPoolShare(bsub(poolAmountIn, exitFee));
+            _burnPoolShare(poolAmountIn);
+            //_pushPoolShare(_factory, exitFee);
+            _pushUnderlying(_datatokenAddress, _controller, ssAmountOut);
             //call unstake on 1ss to do cleanup on their side
             ssContract.UnStake(
                 _datatokenAddress,
-                ssStakeToken,
                 ssAmountOut,
                 poolAmountIn
             );
@@ -1049,86 +967,7 @@ contract BPool is BMath, BToken {
         return tokenAmountOut;
     }
 
-    function exitswapExternAmountOut(
-        address tokenOut,
-        uint256 tokenAmountOut,
-        uint256 maxPoolAmountIn
-    ) external _lock_ returns (uint256 poolAmountIn) {
-        require(_finalized, "ERR_NOT_FINALIZED");
-        _checkBound(tokenOut);
-        require(
-            tokenAmountOut <= bmul(_records[tokenOut].balance, MAX_OUT_RATIO),
-            "ERR_MAX_OUT_RATIO"
-        );
-
-        Record storage outRecord = _records[tokenOut];
-
-        poolAmountIn = calcPoolInGivenSingleOut(
-            outRecord.balance,
-            outRecord.denorm,
-            _totalSupply,
-            _totalWeight,
-            tokenAmountOut
-        );
-
-        require(poolAmountIn != 0, "ERR_MATH_APPROX");
-        require(poolAmountIn <= maxPoolAmountIn, "ERR_LIMIT_IN");
-
-        outRecord.balance = bsub(outRecord.balance, tokenAmountOut);
-
-        uint256 exitFee = bmul(poolAmountIn, EXIT_FEE);
-
-        emit LOG_EXIT(msg.sender, tokenOut, tokenAmountOut, block.timestamp);
-        emit LOG_BPT(poolAmountIn);
-        _pullPoolShare(msg.sender, poolAmountIn);
-        _burnPoolShare(bsub(poolAmountIn, exitFee));
-        _pushPoolShare(_factory, exitFee);
-        _pushUnderlying(tokenOut, msg.sender, tokenAmountOut);
-
-        //ask the ssContract to unstake as well
-        //calculate how much should the 1ss unstake
-        //ask ssContract
-        address ssStakeToken;
-
-        if (tokenOut == _datatokenAddress) {
-            ssStakeToken = _baseTokenAddress;
-        } else {
-            ssStakeToken = _datatokenAddress;
-        }
-        if (
-            ssContract.canUnStake(_datatokenAddress, ssStakeToken, poolAmountIn)
-        ) {
-            Record storage ssOutRecord = _records[_datatokenAddress];
-            uint256 ssAmountOut = calcSingleOutGivenPoolIn(
-                ssOutRecord.balance,
-                ssOutRecord.denorm,
-                _totalSupply,
-                _totalWeight,
-                poolAmountIn
-            );
-            ssOutRecord.balance = bsub(ssOutRecord.balance, ssAmountOut);
-            exitFee = bmul(poolAmountIn, EXIT_FEE);
-            emit LOG_EXIT(
-                _controller,
-                ssStakeToken,
-                ssAmountOut,
-                block.timestamp
-            );
-            _pullPoolShare(_controller, poolAmountIn);
-            _burnPoolShare(bsub(poolAmountIn, exitFee));
-            _pushPoolShare(_factory, exitFee);
-            _pushUnderlying(ssStakeToken, _controller, ssAmountOut);
-            //call unstake on 1ss to do cleanup on their side
-            ssContract.UnStake(
-                _datatokenAddress,
-                ssStakeToken,
-                ssAmountOut,
-                poolAmountIn
-            );
-            emit LOG_BPT_SS(poolAmountIn);
-        }
-        return poolAmountIn;
-    }
+    
 
     function calcSingleOutPoolIn(address tokenOut, uint256 poolAmountIn)
         external

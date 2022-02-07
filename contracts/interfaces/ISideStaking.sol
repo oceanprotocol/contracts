@@ -76,25 +76,21 @@ interface ISideStaking {
 
     function canStake(
         address datatokenAddress,
-        address stakeToken,
         uint256 amount
     ) external view returns (bool);
 
     function Stake(
         address datatokenAddress,
-        address stakeToken,
         uint256 amount
     ) external;
 
     function canUnStake(
         address datatokenAddress,
-        address stakeToken,
         uint256 amount
     ) external view returns (bool);
 
     function UnStake(
         address datatokenAddress,
-        address stakeToken,
         uint256 amount,
         uint256 poolAmountIn
     ) external;

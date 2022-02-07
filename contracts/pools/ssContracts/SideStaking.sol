@@ -310,7 +310,6 @@ contract SideStaking is ReentrancyGuard {
     //called by pool to confirm that we can stake a token (add pool liquidty). If true, pool will call Stake function
     function canStake(
         address datatokenAddress,
-        address stakeToken,
         uint256 amount
     ) public view returns (bool) {
         require(
@@ -318,9 +317,7 @@ contract SideStaking is ReentrancyGuard {
             "ERR: Only pool can call this"
         );
         if (! _datatokens[datatokenAddress].bound) return (false);
-        if (_datatokens[datatokenAddress].baseTokenAddress == stakeToken)
-            return (false);
-
+        
         //check balances. Make sure that we have enough to vest
         if (_datatokens[datatokenAddress].datatokenBalance >= 
         (amount + (_datatokens[datatokenAddress].vestingAmount - _datatokens[datatokenAddress].vestingAmountSoFar))
@@ -333,7 +330,6 @@ contract SideStaking is ReentrancyGuard {
     // Function only needs to approve the amount to be spent by the pool, pool will do the rest
     function Stake(
         address datatokenAddress,
-        address stakeToken,
         uint256 amount
     ) external nonReentrant {
         if (!_datatokens[datatokenAddress].bound) return;
@@ -341,7 +337,7 @@ contract SideStaking is ReentrancyGuard {
             msg.sender == _datatokens[datatokenAddress].poolAddress,
             "ERR: Only pool can call this"
         );
-        bool ok = canStake(datatokenAddress, stakeToken, amount);
+        bool ok = canStake(datatokenAddress, amount);
         if (!ok) return;
         IERC20 dt = IERC20(datatokenAddress);
         dt.safeIncreaseAllowance(_datatokens[datatokenAddress].poolAddress, amount);
@@ -351,7 +347,6 @@ contract SideStaking is ReentrancyGuard {
     //called by pool to confirm that we can stake a token (add pool liquidty). If true, pool will call Unstake function
     function canUnStake(
         address datatokenAddress,
-        address stakeToken,
         uint256 lptIn
     ) public view returns (bool) {
         //TO DO
@@ -360,10 +355,7 @@ contract SideStaking is ReentrancyGuard {
             msg.sender == _datatokens[datatokenAddress].poolAddress,
             "ERR: Only pool can call this"
         );
-        //check balances, etc and issue true or false
-        if (_datatokens[datatokenAddress].baseTokenAddress == stakeToken)
-            return (false);
-
+        
         // we check LPT balance TODO: review this part
         if (IERC20(msg.sender).balanceOf(address(this)) >= lptIn) {
             return true;
@@ -375,7 +367,6 @@ contract SideStaking is ReentrancyGuard {
     // In our case the balancer pool will handle all, this is just a notifier so 1ss can handle internal kitchen
     function UnStake(
         address datatokenAddress,
-        address stakeToken,
         uint256 dtAmountIn,
         uint256 poolAmountOut
     ) external nonReentrant{
@@ -384,7 +375,7 @@ contract SideStaking is ReentrancyGuard {
             msg.sender == _datatokens[datatokenAddress].poolAddress,
             "ERR: Only pool can call this"
         );
-        bool ok = canUnStake(datatokenAddress, stakeToken, poolAmountOut);
+        bool ok = canUnStake(datatokenAddress, poolAmountOut);
         if (!ok) return;
         _datatokens[datatokenAddress].datatokenBalance += dtAmountIn;
     }
