@@ -92,7 +92,7 @@ jobs:
         with:
           coverageLocations: |
             ${{ github.workspace }}/coverage/lcov.info:lcov
-            
+
   dockerbuild:
     runs-on: ubuntu-latest
     if: ${{ success() }}
@@ -100,7 +100,7 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v2
       - name: Docker build
-        docker build -t testimage:latest .
+        docker build -t "testimage:latest" .
 
   publish-npm:
     needs: [lint, tests_full]
