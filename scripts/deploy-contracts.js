@@ -49,7 +49,7 @@ async function main() {
   let OPFCommunityFeeCollectorAddress;
   let productionNetwork = false;
   let OceanTokenAddress;
-  let gasLimit
+  let gasLimit 
   console.log("Using chain "+networkDetails.chainId);
   switch (networkDetails.chainId) {
     case 1:
@@ -90,7 +90,7 @@ async function main() {
       OceanTokenAddress = "0x80E63f73cAc60c1662f27D2DFd2EA834acddBaa8";
       gasLimit
       break;
-    case 8001:
+    case 80001:
       networkName = "mumbai";
       OPFOwner = '0x06100AB868206861a4D7936166A91668c2Ce1312'
       OceanTokenAddress = "0xd8992Ed72C445c35Cb4A2be468568Ed1079357c8";
@@ -128,6 +128,7 @@ async function main() {
       shouldDeployOceanMock = true;
       break;
   }
+  // if gasLimit is not set use 8M 
   if (gasLimit == undefined){
     gasLimit = 8000000
   }
