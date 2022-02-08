@@ -389,6 +389,84 @@
           "internalType": "struct ERC721Factory.ErcCreateData",
           "name": "_ErcCreateData",
           "type": "tuple"
+        }
+      ],
+      "name": "createNftWithErc20",
+      "outputs": [
+        {
+          "internalType": "address",
+          "name": "erc721Address",
+          "type": "address"
+        },
+        {
+          "internalType": "address",
+          "name": "erc20Address",
+          "type": "address"
+        }
+      ],
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "components": [
+            {
+              "internalType": "string",
+              "name": "name",
+              "type": "string"
+            },
+            {
+              "internalType": "string",
+              "name": "symbol",
+              "type": "string"
+            },
+            {
+              "internalType": "uint256",
+              "name": "templateIndex",
+              "type": "uint256"
+            },
+            {
+              "internalType": "string",
+              "name": "tokenURI",
+              "type": "string"
+            }
+          ],
+          "internalType": "struct ERC721Factory.NftCreateData",
+          "name": "_NftCreateData",
+          "type": "tuple"
+        },
+        {
+          "components": [
+            {
+              "internalType": "uint256",
+              "name": "templateIndex",
+              "type": "uint256"
+            },
+            {
+              "internalType": "string[]",
+              "name": "strings",
+              "type": "string[]"
+            },
+            {
+              "internalType": "address[]",
+              "name": "addresses",
+              "type": "address[]"
+            },
+            {
+              "internalType": "uint256[]",
+              "name": "uints",
+              "type": "uint256[]"
+            },
+            {
+              "internalType": "bytes[]",
+              "name": "bytess",
+              "type": "bytes[]"
+            }
+          ],
+          "internalType": "struct ERC721Factory.ErcCreateData",
+          "name": "_ErcCreateData",
+          "type": "tuple"
         },
         {
           "components": [
@@ -423,7 +501,7 @@
           "type": "tuple"
         }
       ],
-      "name": "createNftErcWithDispenser",
+      "name": "createNftWithErc20WithDispenser",
       "outputs": [
         {
           "internalType": "address",
@@ -523,7 +601,7 @@
           "type": "tuple"
         }
       ],
-      "name": "createNftErcWithFixedRate",
+      "name": "createNftWithErc20WithFixedRate",
       "outputs": [
         {
           "internalType": "address",
@@ -628,7 +706,7 @@
           "type": "tuple"
         }
       ],
-      "name": "createNftErcWithPool",
+      "name": "createNftWithErc20WithPool",
       "outputs": [
         {
           "internalType": "address",
@@ -643,84 +721,6 @@
         {
           "internalType": "address",
           "name": "poolAddress",
-          "type": "address"
-        }
-      ],
-      "stateMutability": "nonpayable",
-      "type": "function"
-    },
-    {
-      "inputs": [
-        {
-          "components": [
-            {
-              "internalType": "string",
-              "name": "name",
-              "type": "string"
-            },
-            {
-              "internalType": "string",
-              "name": "symbol",
-              "type": "string"
-            },
-            {
-              "internalType": "uint256",
-              "name": "templateIndex",
-              "type": "uint256"
-            },
-            {
-              "internalType": "string",
-              "name": "tokenURI",
-              "type": "string"
-            }
-          ],
-          "internalType": "struct ERC721Factory.NftCreateData",
-          "name": "_NftCreateData",
-          "type": "tuple"
-        },
-        {
-          "components": [
-            {
-              "internalType": "uint256",
-              "name": "templateIndex",
-              "type": "uint256"
-            },
-            {
-              "internalType": "string[]",
-              "name": "strings",
-              "type": "string[]"
-            },
-            {
-              "internalType": "address[]",
-              "name": "addresses",
-              "type": "address[]"
-            },
-            {
-              "internalType": "uint256[]",
-              "name": "uints",
-              "type": "uint256[]"
-            },
-            {
-              "internalType": "bytes[]",
-              "name": "bytess",
-              "type": "bytes[]"
-            }
-          ],
-          "internalType": "struct ERC721Factory.ErcCreateData",
-          "name": "_ErcCreateData",
-          "type": "tuple"
-        }
-      ],
-      "name": "createNftWithErc",
-      "outputs": [
-        {
-          "internalType": "address",
-          "name": "erc721Address",
-          "type": "address"
-        },
-        {
-          "internalType": "address",
-          "name": "erc20Address",
           "type": "address"
         }
       ],

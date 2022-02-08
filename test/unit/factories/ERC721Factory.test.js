@@ -1074,8 +1074,8 @@ describe("ERC721Factory", () => {
   });
  
 
-  it("#createNftWithErc - should create a new erc721 and new erc20 in one single call and get their addresses", async () => {    
-    const tx = await factoryERC721.createNftWithErc(
+  it("#createNftWithErc20 - should create a new erc721 and new erc20 in one single call and get their addresses", async () => {    
+    const tx = await factoryERC721.createNftWithErc20(
       {
       "name": "72120Bundle",
       "symbol": "72Bundle",
@@ -1112,14 +1112,14 @@ describe("ERC721Factory", () => {
   });
 
 
-  it("#createNftWithErcWithPool - should create a new erc721 and new erc20 and a new Pool in one single call and get their addresses", async () => {    
+  it("#createNftWithErc20WithPool - should create a new erc721 and new erc20 and a new Pool in one single call and get their addresses", async () => {    
     const swapFee = 1e15;
     const swapMarketFee = 1e15;
     const initialPoolLiquidy = web3.utils.toWei("12"); // baseToken initial pool liquidity
     await erc20Token.connect(user3).mint(user3.address,initialPoolLiquidy);
     await erc20Token.connect(user3).approve(factoryERC721.address,initialPoolLiquidy);
 
-    const tx = await factoryERC721.connect(user3).createNftErcWithPool(
+    const tx = await factoryERC721.connect(user3).createNftWithErc20WithPool(
       {
       "name": "72120PBundle",
       "symbol": "72PBundle",
@@ -1185,10 +1185,10 @@ describe("ERC721Factory", () => {
   });
 
 
-  it("#createNftWithErcWithFixedRate - should create a new erc721 and new erc20 and a FixedRate in one single call and get their addresses/exchangeId", async () => {    
+  it("#createNftWithErc20WithFixedRate - should create a new erc721 and new erc20 and a FixedRate in one single call and get their addresses/exchangeId", async () => {    
     const marketFee = 1e15;
     const rate = web3.utils.toWei("1");
-    const tx = await factoryERC721.createNftErcWithFixedRate(
+    const tx = await factoryERC721.createNftWithErc20WithFixedRate(
       {
       "name": "72120PBundle",
       "symbol": "72PBundle",
@@ -1237,10 +1237,10 @@ describe("ERC721Factory", () => {
     
   });
 
-  it("#createNftWithErcWithDispenser - should create a new erc721 and new erc20 and a Dispenser in one single call and get their addresses", async () => {    
+  it("#createNftWithErc20WithDispenser - should create a new erc721 and new erc20 and a Dispenser in one single call and get their addresses", async () => {    
     const marketFee = 1e15;
     const rate = web3.utils.toWei("1");
-    const tx = await factoryERC721.createNftErcWithDispenser(
+    const tx = await factoryERC721.createNftWithErc20WithDispenser(
       {
       "name": "72120PBundle",
       "symbol": "72PBundle",

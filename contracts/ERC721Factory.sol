@@ -591,13 +591,13 @@ contract ERC721Factory is Deployer, Ownable, ReentrancyGuard {
     
   
     /**
-     * @dev createNftWithErc
+     * @dev createNftWithErc20
      *      Creates a new NFT, then a ERC20,all in one call
      * @param _NftCreateData input data for nft creation
      * @param _ErcCreateData input data for erc20 creation
      
      */
-    function createNftWithErc(
+    function createNftWithErc20(
         NftCreateData calldata _NftCreateData,
         ErcCreateData calldata _ErcCreateData
     ) external nonReentrant returns (address erc721Address, address erc20Address){
@@ -626,14 +626,14 @@ contract ERC721Factory is Deployer, Ownable, ReentrancyGuard {
     }
 
     /**
-     * @dev createNftErcWithPool
+     * @dev createNftWithErc20WithPool
      *      Creates a new NFT, then a ERC20, then a Pool, all in one call
      *      Use this carefully, because if Pool creation fails, you are still going to pay a lot of gas
      * @param _NftCreateData input data for NFT Creation
      * @param _ErcCreateData input data for ERC20 Creation
      * @param _PoolData input data for Pool Creation
      */
-    function createNftErcWithPool(
+    function createNftWithErc20WithPool(
         NftCreateData calldata _NftCreateData,
         ErcCreateData calldata _ErcCreateData,
         PoolData calldata _PoolData
@@ -674,14 +674,14 @@ contract ERC721Factory is Deployer, Ownable, ReentrancyGuard {
         uint256[] uints;
     }
     /**
-     * @dev createNftErcWithFixedRate
+     * @dev createNftWithErc20WithFixedRate
      *      Creates a new NFT, then a ERC20, then a FixedRateExchange, all in one call
      *      Use this carefully, because if Fixed Rate creation fails, you are still going to pay a lot of gas
      * @param _NftCreateData input data for NFT Creation
      * @param _ErcCreateData input data for ERC20 Creation
      * @param _FixedData input data for FixedRate Creation
      */
-    function createNftErcWithFixedRate(
+    function createNftWithErc20WithFixedRate(
         NftCreateData calldata _NftCreateData,
         ErcCreateData calldata _ErcCreateData,
         FixedData calldata _FixedData
@@ -717,14 +717,14 @@ contract ERC721Factory is Deployer, Ownable, ReentrancyGuard {
         address allowedSwapper;
     }
     /**
-     * @dev createNftErcWithDispenser
+     * @dev createNftWithErc20WithDispenser
      *      Creates a new NFT, then a ERC20, then a Dispenser, all in one call
      *      Use this carefully
      * @param _NftCreateData input data for NFT Creation
      * @param _ErcCreateData input data for ERC20 Creation
      * @param _DispenserData input data for Dispenser Creation
      */
-    function createNftErcWithDispenser(
+    function createNftWithErc20WithDispenser(
         NftCreateData calldata _NftCreateData,
         ErcCreateData calldata _ErcCreateData,
         DispenserData calldata _DispenserData
