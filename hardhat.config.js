@@ -12,7 +12,7 @@ task("accounts", "Prints the list of accounts", async () => {
     console.log(account.address);
   }
 });
-
+require('dotenv').config()
 // You need to export an object to set up your config
 // Go to https://hardhat.org/config/ to learn more
 
@@ -43,12 +43,14 @@ module.exports = {
         blockNumber: 12545000,
       },
       gasPrice:1000000000
+     
     },
     rinkeby: {
       url:
         process.env.NETWORK_RPC_URL !== undefined ? process.env.NETWORK_RPC_URL : "",
       accounts:
         process.env.PRIVATE_KEY !== undefined ? [process.env.PRIVATE_KEY] : [],
+      
     },
   },
   etherscan: {
