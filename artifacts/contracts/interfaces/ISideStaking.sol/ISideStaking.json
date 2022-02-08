@@ -11,11 +11,6 @@
           "type": "address"
         },
         {
-          "internalType": "address",
-          "name": "stakeToken",
-          "type": "address"
-        },
-        {
           "internalType": "uint256",
           "name": "amount",
           "type": "uint256"
@@ -31,11 +26,6 @@
         {
           "internalType": "address",
           "name": "datatokenAddress",
-          "type": "address"
-        },
-        {
-          "internalType": "address",
-          "name": "stakeToken",
           "type": "address"
         },
         {
@@ -62,11 +52,6 @@
           "type": "address"
         },
         {
-          "internalType": "address",
-          "name": "stakeToken",
-          "type": "address"
-        },
-        {
           "internalType": "uint256",
           "name": "amount",
           "type": "uint256"
@@ -88,11 +73,6 @@
         {
           "internalType": "address",
           "name": "datatokenAddress",
-          "type": "address"
-        },
-        {
-          "internalType": "address",
-          "name": "stakeToken",
           "type": "address"
         },
         {

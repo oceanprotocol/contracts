@@ -754,7 +754,6 @@ describe("Swap Fees", () => {
 
       receipt = await (
         await bPool.connect(user3).joinswapExternAmountIn(
-          oceanAddress, //token IN
           oceanAmountIn, // amount In (ocean tokens)
           minBPTOut // BPT token out
         )
@@ -797,74 +796,7 @@ describe("Swap Fees", () => {
       );
     });
 
-    it("#11 - user3 adds more liquidity with joinswapPoolAmountOut (only OCEAN)", async () => {
-      const user3DTbalance = await erc20Token.balanceOf(user3.address);
-      const user3Oceanbalance = await oceanContract.balanceOf(user3.address);
-      const user3BPTbalance = await bPool.balanceOf(user3.address);
-      const ssContractDTbalance = await erc20Token.balanceOf(
-        sideStaking.address
-      );
-      const ssContractBPTbalance = await bPool.balanceOf(sideStaking.address);
-
-      await oceanContract
-        .connect(user3)
-        .approve(bPool.address, web3.utils.toWei("100"));
-
-      const dtBalanceBeforeJoin = await sideStaking.getDatatokenBalance(
-        erc20Token.address
-      );
-      const BPTAmountOut = ethers.utils.parseEther("0.1");
-      const maxOceanIn = ethers.utils.parseEther("100");
-
-      receipt = await (
-        await bPool.connect(user3).joinswapPoolAmountOut(
-          oceanAddress, //token IN
-          BPTAmountOut, // exact lp token out
-          maxOceanIn // max ocean tokens IN
-        )
-      ).wait();
-
-      const JoinEvent = receipt.events.filter((e) => e.event === "LOG_JOIN");
-
-      expect(JoinEvent[0].args.tokenIn).to.equal(oceanAddress);
-      expect(JoinEvent[1].args.tokenIn).to.equal(erc20Token.address);
-      console.log(
-        ethers.utils.formatEther(JoinEvent[0].args.tokenAmountIn),
-        "ocean in"
-      );
-      console.log(
-        ethers.utils.formatEther(JoinEvent[1].args.tokenAmountIn),
-        "dt in"
-      );
-      expect(
-        await sideStaking.getDatatokenBalance(erc20Token.address)
-      ).to.equal(dtBalanceBeforeJoin.sub(JoinEvent[1].args.tokenAmountIn));
-      // check balances (ocean and bpt)
-      expect(
-        JoinEvent[0].args.tokenAmountIn.add(
-          await oceanContract.balanceOf(user3.address)
-        )
-      ).to.equal(user3Oceanbalance);
-
-      expect(BPTAmountOut.add(user3BPTbalance)).to.equal(
-        await bPool.balanceOf(user3.address)
-      );
-
-      // we check ssContract received the same amount of BPT
-      expect(ssContractBPTbalance.add(BPTAmountOut)).to.equal(
-        await bPool.balanceOf(sideStaking.address)
-      );
-
-      // and also that DT balance lowered in the ssContract
-      expect(ssContractDTbalance.sub(JoinEvent[1].args.tokenAmountIn)).to.equal(
-        await erc20Token.balanceOf(sideStaking.address)
-      );
-
-      // no token where taken from user3.
-      expect(user3DTbalance).to.equal(
-        await erc20Token.balanceOf(user3.address)
-      );
-    });
+    
     it("#12 - user3 removes liquidity with ExitPool, receiving both tokens", async () => {
       const user3DTbalance = await erc20Token.balanceOf(user3.address);
       const user3Oceanbalance = await oceanContract.balanceOf(user3.address);
@@ -939,7 +871,6 @@ describe("Swap Fees", () => {
 
       receipt = await (
         await bPool.connect(user3).exitswapPoolAmountIn(
-          oceanAddress,
           BPTAmountIn, //BPT token IN
           minOceanOut // min amount OCEAN out
         )
@@ -987,200 +918,8 @@ describe("Swap Fees", () => {
       ).to.equal(await erc20Token.balanceOf(sideStaking.address));
     });
 
-    it("#14 - user3 removes liquidity with exitswapPoolAmountIn, receiving only DT tokens", async () => {
-      const user3DTbalance = await erc20Token.balanceOf(user3.address);
-      const user3Oceanbalance = await oceanContract.balanceOf(user3.address);
-      const ssContractDTbalance = await erc20Token.balanceOf(
-        sideStaking.address
-      );
-      const ssContractBPTbalance = await bPool.balanceOf(sideStaking.address);
-
-      // NO APPROVAL FOR BPT is required
-      const dtBalanceBeforeExit = await sideStaking.getDatatokenBalance(
-        erc20Token.address
-      );
-      const user3BPTbalance = await bPool.balanceOf(user3.address);
-      console.log("user BPT Balance", user3BPTbalance.toString());
-
-      const BPTAmountIn = ethers.utils.parseEther("0.2");
-      const minDTOut = ethers.utils.parseEther("0.5");
-      receipt = await (
-        await bPool.connect(user3).exitswapPoolAmountIn(
-          erc20Token.address,
-          BPTAmountIn, //BPT token IN
-          minDTOut // min amount DT out
-        )
-      ).wait();
-
-      expect(await oceanContract.balanceOf(user3.address)).to.equal(
-        user3Oceanbalance
-      );
-
-      const BPTEvent = receipt.events.filter((e) => e.event === "LOG_BPT");
-
-      expect(await bPool.balanceOf(user3.address)).to.equal(
-        user3BPTbalance.sub(BPTEvent[0].args.bptAmount)
-      );
-
-      // LOOK FOR EXIT EVENT
-      const ExitEvent = receipt.events.filter((e) => e.event === "LOG_EXIT");
-
-      // we check event arguments
-      assert(ExitEvent[0].args.caller == user3.address);
-      assert(ExitEvent[0].args.tokenOut == erc20Token.address);
-      console.log(
-        ethers.utils.formatEther(ExitEvent[0].args.tokenAmountOut),
-        "dt out"
-      );
-
-      // we check user3 DT balance before and after
-      expect(ExitEvent[0].args.tokenAmountOut.add(user3DTbalance)).to.equal(
-        await erc20Token.balanceOf(user3.address)
-      );
-
-      expect(
-        await sideStaking.getDatatokenBalance(erc20Token.address)
-      ).to.equal(dtBalanceBeforeExit);
-
-      // we also check user3 BPT balance before and after
-      expect(user3BPTbalance).to.equal(
-        (await bPool.balanceOf(user3.address)).add(BPTAmountIn)
-      );
-
-      // NOW we check the ssContract BPT and DT balance didn't change.
-      expect(ssContractBPTbalance).to.equal(
-        await bPool.balanceOf(sideStaking.address)
-      );
-
-      expect(ssContractDTbalance).to.equal(
-        await erc20Token.balanceOf(sideStaking.address)
-      );
-    });
-    it("#15 - user3 removes liquidity with exitswapExternAmountOut, receiving only OCEAN tokens", async () => {
-      const user3DTbalance = await erc20Token.balanceOf(user3.address);
-      const user3Oceanbalance = await oceanContract.balanceOf(user3.address);
-      const ssContractDTbalance = await erc20Token.balanceOf(
-        sideStaking.address
-      );
-      const ssContractBPTbalance = await bPool.balanceOf(sideStaking.address);
-      // NO APPROVAL FOR BPT is required
-      const dtBalanceBeforeExit = await sideStaking.getDatatokenBalance(
-        erc20Token.address
-      );
-      const user3BPTbalance = await bPool.balanceOf(user3.address);
-      const maxBTPIn = ethers.utils.parseEther("0.5");
-      const exactOceanOut = ethers.utils.parseEther("1");
-
-      receipt = await (
-        await bPool.connect(user3).exitswapExternAmountOut(
-          oceanAddress,
-          exactOceanOut, // exact amount OCEAN out
-          maxBTPIn //max BPT token IN
-        )
-      ).wait();
-
-      expect(await erc20Token.balanceOf(user3.address)).to.equal(
-        user3DTbalance
-      );
-
-      const BPTEvent = receipt.events.filter((e) => e.event === "LOG_BPT");
-
-      expect(await bPool.balanceOf(user3.address)).to.equal(
-        user3BPTbalance.sub(BPTEvent[0].args.bptAmount)
-      );
-
-      // LOOK FOR EXIT EVENT
-      const ExitEvent = receipt.events.filter((e) => e.event === "LOG_EXIT");
-
-      // we check event arguments
-      expect(ExitEvent[0].args.caller).to.equal(user3.address);
-      expect(ExitEvent[0].args.tokenOut).to.equal(oceanContract.address);
-      expect(ExitEvent[1].args.tokenOut).to.equal(erc20Token.address);
-      console.log(
-        ethers.utils.formatEther(ExitEvent[0].args.tokenAmountOut),
-        "ocean out"
-      );
-      console.log(
-        ethers.utils.formatEther(ExitEvent[1].args.tokenAmountOut),
-        "dt out"
-      );
-      // we check user3 OCEAN balance before and after
-      expect(ExitEvent[0].args.tokenAmountOut.add(user3Oceanbalance)).to.equal(
-        await oceanContract.balanceOf(user3.address)
-      );
-      expect(
-        await sideStaking.getDatatokenBalance(erc20Token.address)
-      ).to.equal(dtBalanceBeforeExit.add(ExitEvent[1].args.tokenAmountOut));
-      // NOW we check the ssContract BPT balance
-      expect(ssContractBPTbalance.sub(BPTEvent[0].args.bptAmount)).to.equal(
-        await bPool.balanceOf(sideStaking.address)
-      );
-      // and that we got back some dt when redeeeming BPT
-      expect(
-        ssContractDTbalance.add(ExitEvent[1].args.tokenAmountOut)
-      ).to.equal(await erc20Token.balanceOf(sideStaking.address));
-    });
-
-    it("#16 - user3 removes liquidity with exitswapExternAmountOut, receiving only DT tokens", async () => {
-      const user3DTbalance = await erc20Token.balanceOf(user3.address);
-      const user3Oceanbalance = await oceanContract.balanceOf(user3.address);
-      const ssContractDTbalance = await erc20Token.balanceOf(
-        sideStaking.address
-      );
-      const ssContractBPTbalance = await bPool.balanceOf(sideStaking.address);
-
-      // NO APPROVAL FOR BPT is required
-      const dtBalanceBeforeExit = await sideStaking.getDatatokenBalance(
-        erc20Token.address
-      );
-      const user3BPTbalance = await bPool.balanceOf(user3.address);
-
-      receipt = await (
-        await bPool.connect(user3).exitswapExternAmountOut(
-          erc20Token.address,
-          ethers.utils.parseEther("0.5"), // exact amount DT out
-          web3.utils.toWei("1") //max BPT token IN
-        )
-      ).wait();
-
-      // OCEAN BALANCE DOESN"T CHANGE
-      expect(await oceanContract.balanceOf(user3.address)).to.equal(
-        user3Oceanbalance
-      );
-
-      const BPTEvent = receipt.events.filter((e) => e.event === "LOG_BPT");
-      // BPT balance decrease
-      expect(await bPool.balanceOf(user3.address)).to.equal(
-        user3BPTbalance.sub(BPTEvent[0].args.bptAmount)
-      );
-
-      // LOOK FOR EXIT EVENT
-      const ExitEvent = receipt.events.filter((e) => e.event === "LOG_EXIT");
-
-      // we check event arguments
-      expect(ExitEvent[0].args.caller).to.equal(user3.address);
-      expect(ExitEvent[0].args.tokenOut).to.equal(erc20Token.address);
-      console.log(
-        ethers.utils.formatEther(ExitEvent[0].args.tokenAmountOut),
-        "dt out"
-      );
-      // we check user3 DT balance before and after
-      expect(ExitEvent[0].args.tokenAmountOut.add(user3DTbalance)).to.equal(
-        await erc20Token.balanceOf(user3.address)
-      );
-      expect(
-        await sideStaking.getDatatokenBalance(erc20Token.address)
-      ).to.equal(dtBalanceBeforeExit);
-      // NOW we check the ssContract BPT and DT balance didn't change.
-      expect(ssContractBPTbalance).to.equal(
-        await bPool.balanceOf(sideStaking.address)
-      );
-
-      expect(ssContractDTbalance).to.equal(
-        await erc20Token.balanceOf(sideStaking.address)
-      );
-    });
-
+    
+    
     it("#17 - we check again no ocean and market fees were accounted", async () => {
       expect(await bPool.getOPCFee()).to.equal(0);
       expect(await bPool._swapPublishMarketFee()).to.equal(
@@ -1710,7 +1449,6 @@ describe("Swap Fees", () => {
 
       receipt = await (
         await bPool.connect(user3).joinswapExternAmountIn(
-          daiAddress, //token IN
           daiAmountIn, // amount In (dai tokens)
           minBPTOut // BPT token out
         )
@@ -1759,68 +1497,7 @@ describe("Swap Fees", () => {
       );
     });
 
-    it("#11 - user3 adds more liquidity with joinswapPoolAmountOut (only DAI)", async () => {
-      const user3DTbalance = await erc20Token.balanceOf(user3.address);
-      const user3DAIbalance = await daiContract.balanceOf(user3.address);
-      const user3BPTbalance = await bPool.balanceOf(user3.address);
-      const ssContractDTbalance = await erc20Token.balanceOf(
-        sideStaking.address
-      );
-      const ssContractBPTbalance = await bPool.balanceOf(sideStaking.address);
-
-      await daiContract
-        .connect(user3)
-        .approve(bPool.address, web3.utils.toWei("100"));
-
-      const BPTAmountOut = ethers.utils.parseEther("0.1");
-      const maxOceanIn = ethers.utils.parseEther("100");
-
-      receipt = await (
-        await bPool.connect(user3).joinswapPoolAmountOut(
-          daiAddress, //token IN
-          BPTAmountOut, // exact lp token out
-          maxOceanIn // max ocean tokens IN
-        )
-      ).wait();
-
-      const JoinEvent = receipt.events.filter((e) => e.event === "LOG_JOIN");
-
-      expect(JoinEvent[0].args.tokenIn).to.equal(daiAddress);
-      expect(JoinEvent[1].args.tokenIn).to.equal(erc20Token.address);
-      console.log(
-        ethers.utils.formatEther(JoinEvent[0].args.tokenAmountIn),
-        "dai in"
-      );
-      console.log(
-        ethers.utils.formatEther(JoinEvent[1].args.tokenAmountIn),
-        "dt in"
-      );
-      // check balances (ocean and bpt)
-      expect(
-        JoinEvent[0].args.tokenAmountIn.add(
-          await daiContract.balanceOf(user3.address)
-        )
-      ).to.equal(user3DAIbalance);
-
-      expect(BPTAmountOut.add(user3BPTbalance)).to.equal(
-        await bPool.balanceOf(user3.address)
-      );
-
-      // we check ssContract received the same amount of BPT
-      expect(ssContractBPTbalance.add(BPTAmountOut)).to.equal(
-        await bPool.balanceOf(sideStaking.address)
-      );
-
-      // and also that DT balance lowered in the ssContract
-      expect(ssContractDTbalance.sub(JoinEvent[1].args.tokenAmountIn)).to.equal(
-        await erc20Token.balanceOf(sideStaking.address)
-      );
-
-      // no token where taken from user3.
-      expect(user3DTbalance).to.equal(
-        await erc20Token.balanceOf(user3.address)
-      );
-    });
+    
     it("#12 - user3 removes liquidity with ExitPool, receiving both tokens", async () => {
       const user3DTbalance = await erc20Token.balanceOf(user3.address);
       const user3DAIbalance = await daiContract.balanceOf(user3.address);
@@ -1886,7 +1563,6 @@ describe("Swap Fees", () => {
 
       receipt = await (
         await bPool.connect(user3).exitswapPoolAmountIn(
-          daiAddress,
           BPTAmountIn, //BPT token IN
           minDAIOut // min amount DAI out
         )
@@ -1930,186 +1606,8 @@ describe("Swap Fees", () => {
       ).to.equal(await erc20Token.balanceOf(sideStaking.address));
     });
 
-    it("#14 - user3 removes liquidity with exitswapPoolAmountIn, receiving only DT tokens", async () => {
-      const user3DTbalance = await erc20Token.balanceOf(user3.address);
-      const user3DAIbalance = await daiContract.balanceOf(user3.address);
-      const ssContractDTbalance = await erc20Token.balanceOf(
-        sideStaking.address
-      );
-      const ssContractBPTbalance = await bPool.balanceOf(sideStaking.address);
-      // NO APPROVAL FOR BPT is required
-
-      const user3BPTbalance = await bPool.balanceOf(user3.address);
-      console.log("user BPT Balance", user3BPTbalance.toString());
-
-      const BPTAmountIn = ethers.utils.parseEther("0.2");
-      const minDTOut = ethers.utils.parseEther("0.5");
-      receipt = await (
-        await bPool.connect(user3).exitswapPoolAmountIn(
-          erc20Token.address,
-          BPTAmountIn, //BPT token IN
-          minDTOut // min amount DT out
-        )
-      ).wait();
-
-      expect(await daiContract.balanceOf(user3.address)).to.equal(
-        user3DAIbalance
-      );
-
-      const BPTEvent = receipt.events.filter((e) => e.event === "LOG_BPT");
-
-      expect(await bPool.balanceOf(user3.address)).to.equal(
-        user3BPTbalance.sub(BPTEvent[0].args.bptAmount)
-      );
-
-      // LOOK FOR EXIT EVENT
-      const ExitEvent = receipt.events.filter((e) => e.event === "LOG_EXIT");
-
-      // we check event arguments
-      assert(ExitEvent[0].args.caller == user3.address);
-      assert(ExitEvent[0].args.tokenOut == erc20Token.address);
-      console.log(
-        ethers.utils.formatEther(ExitEvent[0].args.tokenAmountOut),
-        "dt out"
-      );
-      assert(ExitEvent[1] == null);
-
-      // we check user3 DT balance before and after
-      expect(ExitEvent[0].args.tokenAmountOut.add(user3DTbalance)).to.equal(
-        await erc20Token.balanceOf(user3.address)
-      );
-
-      // we also check user3 BPT balance before and after
-      expect(user3BPTbalance).to.equal(
-        (await bPool.balanceOf(user3.address)).add(BPTAmountIn)
-      );
-
-      // NOW we check the ssContract BPT and DT balance didn't change.
-      expect(ssContractBPTbalance).to.equal(
-        await bPool.balanceOf(sideStaking.address)
-      );
-
-      expect(ssContractDTbalance).to.equal(
-        await erc20Token.balanceOf(sideStaking.address)
-      );
-    });
-    it("#15 - user3 removes liquidity with exitswapExternAmountOut, receiving only DAI tokens", async () => {
-      const user3DTbalance = await erc20Token.balanceOf(user3.address);
-      const user3DAIbalance = await daiContract.balanceOf(user3.address);
-      const ssContractDTbalance = await erc20Token.balanceOf(
-        sideStaking.address
-      );
-      const ssContractBPTbalance = await bPool.balanceOf(sideStaking.address);
-      // NO APPROVAL FOR BPT is required
-
-      const user3BPTbalance = await bPool.balanceOf(user3.address);
-      const maxBTPIn = ethers.utils.parseEther("0.5");
-      const exactDAIOut = ethers.utils.parseEther("1");
-
-      receipt = await (
-        await bPool.connect(user3).exitswapExternAmountOut(
-          daiAddress,
-          exactDAIOut, // exact amount DAI out
-          maxBTPIn //max BPT token IN
-        )
-      ).wait();
-
-      expect(await erc20Token.balanceOf(user3.address)).to.equal(
-        user3DTbalance
-      );
-
-      const BPTEvent = receipt.events.filter((e) => e.event === "LOG_BPT");
-
-      expect(await bPool.balanceOf(user3.address)).to.equal(
-        user3BPTbalance.sub(BPTEvent[0].args.bptAmount)
-      );
-
-      // LOOK FOR EXIT EVENT
-      const ExitEvent = receipt.events.filter((e) => e.event === "LOG_EXIT");
-
-      // we check event arguments
-      expect(ExitEvent[0].args.caller).to.equal(user3.address);
-      expect(ExitEvent[0].args.tokenOut).to.equal(daiContract.address);
-      expect(ExitEvent[1].args.tokenOut).to.equal(erc20Token.address);
-      console.log(
-        ethers.utils.formatEther(ExitEvent[0].args.tokenAmountOut),
-        "dai out"
-      );
-      console.log(
-        ethers.utils.formatEther(ExitEvent[1].args.tokenAmountOut),
-        "dt out"
-      );
-      // we check user3 OCEAN balance before and after
-      expect(ExitEvent[0].args.tokenAmountOut.add(user3DAIbalance)).to.equal(
-        await daiContract.balanceOf(user3.address)
-      );
-
-      // NOW we check the ssContract BPT balance
-      expect(ssContractBPTbalance.sub(BPTEvent[0].args.bptAmount)).to.equal(
-        await bPool.balanceOf(sideStaking.address)
-      );
-      // and that we got back some dt when redeeeming BPT
-      expect(
-        ssContractDTbalance.add(ExitEvent[1].args.tokenAmountOut)
-      ).to.equal(await erc20Token.balanceOf(sideStaking.address));
-    });
-
-    it("#16 - user3 removes liquidity with exitswapExternAmountOut, receiving only DT tokens", async () => {
-      const user3DTbalance = await erc20Token.balanceOf(user3.address);
-      const user3DAIbalance = await daiContract.balanceOf(user3.address);
-      const ssContractDTbalance = await erc20Token.balanceOf(
-        sideStaking.address
-      );
-      const ssContractBPTbalance = await bPool.balanceOf(sideStaking.address);
-
-      // NO APPROVAL FOR BPT is required
-
-      const user3BPTbalance = await bPool.balanceOf(user3.address);
-
-      receipt = await (
-        await bPool.connect(user3).exitswapExternAmountOut(
-          erc20Token.address,
-          ethers.utils.parseEther("0.5"), // exact amount DT out
-          web3.utils.toWei("1") //max BPT token IN
-        )
-      ).wait();
-
-      // DAI BALANCE DOESN"T CHANGE
-      expect(await daiContract.balanceOf(user3.address)).to.equal(
-        user3DAIbalance
-      );
-
-      const BPTEvent = receipt.events.filter((e) => e.event === "LOG_BPT");
-      // BPT balance decrease
-      expect(await bPool.balanceOf(user3.address)).to.equal(
-        user3BPTbalance.sub(BPTEvent[0].args.bptAmount)
-      );
-
-      // LOOK FOR EXIT EVENT
-      const ExitEvent = receipt.events.filter((e) => e.event === "LOG_EXIT");
-
-      // we check event arguments
-      expect(ExitEvent[0].args.caller).to.equal(user3.address);
-      expect(ExitEvent[0].args.tokenOut).to.equal(erc20Token.address);
-      console.log(
-        ethers.utils.formatEther(ExitEvent[0].args.tokenAmountOut),
-        "dt out"
-      );
-      assert(ExitEvent[1] == null);
-      // we check user3 DT balance before and after
-      expect(ExitEvent[0].args.tokenAmountOut.add(user3DTbalance)).to.equal(
-        await erc20Token.balanceOf(user3.address)
-      );
-
-      // NOW we check the ssContract BPT and DT balance didn't change.
-      expect(ssContractBPTbalance).to.equal(
-        await bPool.balanceOf(sideStaking.address)
-      );
-
-      expect(ssContractDTbalance).to.equal(
-        await erc20Token.balanceOf(sideStaking.address)
-      );
-    });
+    
+    
 
     it("Check for fees", async () => {
       const publishMarketFees = await bPool.getCurrentMarketFees();
@@ -2188,7 +1686,6 @@ describe("Swap Fees", () => {
       assert(daiAmountIn > dtSSContractBalance);
       receipt = await (
         await bPool.connect(user3).joinswapExternAmountIn(
-          daiAddress, //token IN
           daiAmountIn, // amount In (dai tokens)
           minBPTOut // BPT token out
         )
@@ -2802,7 +2299,6 @@ describe("Swap Fees", () => {
 
       receipt = await (
         await bPool.connect(user3).joinswapExternAmountIn(
-          usdcAddress, //token IN
           usdcAmountIn, // amount In (dai tokens)
           minBPTOut // BPT token out
         )
@@ -2854,73 +2350,7 @@ describe("Swap Fees", () => {
       );
     });
 
-    it("#12 - user3 adds more liquidity with joinswapPoolAmountOut (only USDC)", async () => {
-      const user3DTbalance = await erc20Token.balanceOf(user3.address);
-      const user3USDCbalance = await usdcContract.balanceOf(user3.address);
-      const user3BPTbalance = await bPool.balanceOf(user3.address);
-      const ssContractDTbalance = await erc20Token.balanceOf(
-        sideStaking.address
-      );
-      const ssContractBPTbalance = await bPool.balanceOf(sideStaking.address);
-      const dtBalanceBeforeJoin = await sideStaking.getDatatokenBalance(
-        erc20Token.address
-      );
-      await usdcContract
-        .connect(user3)
-        .approve(bPool.address, web3.utils.toWei("100"));
-
-      const BPTAmountOut = ethers.utils.parseEther("0.01");
-      const maxUSDCIn = 1e8;
-
-      receipt = await (
-        await bPool.connect(user3).joinswapPoolAmountOut(
-          usdcAddress, //token IN
-          BPTAmountOut, // exact lp token out
-          maxUSDCIn // max usdc tokens IN
-        )
-      ).wait();
-
-      const JoinEvent = receipt.events.filter((e) => e.event === "LOG_JOIN");
-
-      expect(JoinEvent[0].args.tokenIn).to.equal(usdcAddress);
-      expect(JoinEvent[1].args.tokenIn).to.equal(erc20Token.address);
-      console.log(
-        new BN(JoinEvent[0].args.tokenAmountIn / 1e6).toString(),
-        "usdc in"
-      );
-      console.log(
-        ethers.utils.formatEther(JoinEvent[1].args.tokenAmountIn),
-        "dt in"
-      );
-      expect(
-        await sideStaking.getDatatokenBalance(erc20Token.address)
-      ).to.equal(dtBalanceBeforeJoin.sub(JoinEvent[1].args.tokenAmountIn));
-      // check balances (ocean and bpt)
-      expect(
-        JoinEvent[0].args.tokenAmountIn.add(
-          await usdcContract.balanceOf(user3.address)
-        )
-      ).to.equal(user3USDCbalance);
-
-      expect(BPTAmountOut.add(user3BPTbalance)).to.equal(
-        await bPool.balanceOf(user3.address)
-      );
-
-      // we check ssContract received the same amount of BPT
-      expect(ssContractBPTbalance.add(BPTAmountOut)).to.equal(
-        await bPool.balanceOf(sideStaking.address)
-      );
-
-      // and also that DT balance lowered in the ssContract
-      expect(ssContractDTbalance.sub(JoinEvent[1].args.tokenAmountIn)).to.equal(
-        await erc20Token.balanceOf(sideStaking.address)
-      );
-
-      // no token where taken from user3.
-      expect(user3DTbalance).to.equal(
-        await erc20Token.balanceOf(user3.address)
-      );
-    });
+    
     it("#13 - user3 removes liquidity with ExitPool, receiving both tokens", async () => {
       const user3DTbalance = await erc20Token.balanceOf(user3.address);
       const user3USDCbalance = await usdcContract.balanceOf(user3.address);
@@ -3000,7 +2430,6 @@ describe("Swap Fees", () => {
 
       receipt = await (
         await bPool.connect(user3).exitswapPoolAmountIn(
-          usdcAddress,
           BPTAmountIn, //BPT token IN
           minUSDCOut // min amount USDC out
         )
@@ -3049,201 +2478,10 @@ describe("Swap Fees", () => {
       ).to.equal(await erc20Token.balanceOf(sideStaking.address));
     });
 
-    it("#15 - user3 removes liquidity with exitswapPoolAmountIn, receiving only DT tokens", async () => {
-      const user3DTbalance = await erc20Token.balanceOf(user3.address);
-      const user3USDCbalance = await usdcContract.balanceOf(user3.address);
-      const ssContractDTbalance = await erc20Token.balanceOf(
-        sideStaking.address
-      );
-      const ssContractBPTbalance = await bPool.balanceOf(sideStaking.address);
-      // NO APPROVAL FOR BPT is required
-      const dtBalanceBeforeExit = await sideStaking.getDatatokenBalance(
-        erc20Token.address
-      );
-      const user3BPTbalance = await bPool.balanceOf(user3.address);
+    
+    
 
-      const BPTAmountIn = ethers.utils.parseEther("0.01");
-      const minDTOut = ethers.utils.parseEther("0.5");
-      receipt = await (
-        await bPool.connect(user3).exitswapPoolAmountIn(
-          erc20Token.address,
-          BPTAmountIn, //BPT token IN
-          minDTOut // min amount DT out
-        )
-      ).wait();
-
-      expect(await usdcContract.balanceOf(user3.address)).to.equal(
-        user3USDCbalance
-      );
-
-      const BPTEvent = receipt.events.filter((e) => e.event === "LOG_BPT");
-
-      expect(await bPool.balanceOf(user3.address)).to.equal(
-        user3BPTbalance.sub(BPTEvent[0].args.bptAmount)
-      );
-
-      // LOOK FOR EXIT EVENT
-      const ExitEvent = receipt.events.filter((e) => e.event === "LOG_EXIT");
-
-      // we check event arguments
-      assert(ExitEvent[0].args.caller == user3.address);
-      assert(ExitEvent[0].args.tokenOut == erc20Token.address);
-
-      console.log(
-        ethers.utils.formatEther(ExitEvent[0].args.tokenAmountOut),
-        "dt out"
-      );
-
-      assert(ExitEvent[1] == null);
-      // we check user3 DT balance before and after
-      expect(ExitEvent[0].args.tokenAmountOut.add(user3DTbalance)).to.equal(
-        await erc20Token.balanceOf(user3.address)
-      );
-      expect(
-        await sideStaking.getDatatokenBalance(erc20Token.address)
-      ).to.equal(dtBalanceBeforeExit);
-      // we also check user3 BPT balance before and after
-      expect(user3BPTbalance).to.equal(
-        (await bPool.balanceOf(user3.address)).add(BPTAmountIn)
-      );
-
-      // NOW we check the ssContract BPT and DT balance didn't change.
-      expect(ssContractBPTbalance).to.equal(
-        await bPool.balanceOf(sideStaking.address)
-      );
-
-      expect(ssContractDTbalance).to.equal(
-        await erc20Token.balanceOf(sideStaking.address)
-      );
-    });
-    it("#16 - user3 removes liquidity with exitswapExternAmountOut, receiving only USDC tokens", async () => {
-      const user3DTbalance = await erc20Token.balanceOf(user3.address);
-      const user3USDCbalance = await usdcContract.balanceOf(user3.address);
-      const ssContractDTbalance = await erc20Token.balanceOf(
-        sideStaking.address
-      );
-      const ssContractBPTbalance = await bPool.balanceOf(sideStaking.address);
-      // NO APPROVAL FOR BPT is required
-      const dtBalanceBeforeExit = await sideStaking.getDatatokenBalance(
-        erc20Token.address
-      );
-      const user3BPTbalance = await bPool.balanceOf(user3.address);
-      const maxBTPIn = ethers.utils.parseEther("0.5");
-      const exactUSDCOut = 1e6; // 1 usdc
-
-      receipt = await (
-        await bPool.connect(user3).exitswapExternAmountOut(
-          usdcAddress,
-          exactUSDCOut, // exact amount USDC out
-          maxBTPIn //max BPT token IN
-        )
-      ).wait();
-
-      expect(await erc20Token.balanceOf(user3.address)).to.equal(
-        user3DTbalance
-      );
-
-      const BPTEvent = receipt.events.filter((e) => e.event === "LOG_BPT");
-
-      expect(await bPool.balanceOf(user3.address)).to.equal(
-        user3BPTbalance.sub(BPTEvent[0].args.bptAmount)
-      );
-
-      // LOOK FOR EXIT EVENT
-      const ExitEvent = receipt.events.filter((e) => e.event === "LOG_EXIT");
-
-      // we check event arguments
-      expect(ExitEvent[0].args.caller).to.equal(user3.address);
-      expect(ExitEvent[0].args.tokenOut).to.equal(usdcContract.address);
-      expect(ExitEvent[1].args.tokenOut).to.equal(erc20Token.address);
-      console.log(
-        new BN(ExitEvent[0].args.tokenAmountOut / 1e6).toString(),
-        "usdc out"
-      );
-      console.log(
-        ethers.utils.formatEther(ExitEvent[1].args.tokenAmountOut),
-        "dt out"
-      );
-      expect(
-        await sideStaking.getDatatokenBalance(erc20Token.address)
-      ).to.equal(dtBalanceBeforeExit.add(ExitEvent[1].args.tokenAmountOut));
-      // we check user3 OCEAN balance before and after
-      expect(ExitEvent[0].args.tokenAmountOut.add(user3USDCbalance)).to.equal(
-        await usdcContract.balanceOf(user3.address)
-      );
-
-      // NOW we check the ssContract BPT balance
-      expect(ssContractBPTbalance.sub(BPTEvent[0].args.bptAmount)).to.equal(
-        await bPool.balanceOf(sideStaking.address)
-      );
-      // and that we got back some dt when redeeeming BPT
-      expect(
-        ssContractDTbalance.add(ExitEvent[1].args.tokenAmountOut)
-      ).to.equal(await erc20Token.balanceOf(sideStaking.address));
-    });
-
-    it("#17 - user3 removes liquidity with exitswapExternAmountOut, receiving only DT tokens", async () => {
-      const user3DTbalance = await erc20Token.balanceOf(user3.address);
-      const user3USDCbalance = await usdcContract.balanceOf(user3.address);
-      const ssContractDTbalance = await erc20Token.balanceOf(
-        sideStaking.address
-      );
-      const ssContractBPTbalance = await bPool.balanceOf(sideStaking.address);
-
-      // NO APPROVAL FOR BPT is required
-      const dtBalanceBeforeExit = await sideStaking.getDatatokenBalance(
-        erc20Token.address
-      );
-      const user3BPTbalance = await bPool.balanceOf(user3.address);
-
-      receipt = await (
-        await bPool.connect(user3).exitswapExternAmountOut(
-          erc20Token.address,
-          ethers.utils.parseEther("0.5"), //max BPT token IN
-          web3.utils.toWei("1") // exact amount DT out
-        )
-      ).wait();
-
-      // USDC BALANCE DOESN"T CHANGE
-      expect(await usdcContract.balanceOf(user3.address)).to.equal(
-        user3USDCbalance
-      );
-
-      const BPTEvent = receipt.events.filter((e) => e.event === "LOG_BPT");
-      // BPT balance decrease
-      expect(await bPool.balanceOf(user3.address)).to.equal(
-        user3BPTbalance.sub(BPTEvent[0].args.bptAmount)
-      );
-
-      // LOOK FOR EXIT EVENT
-      const ExitEvent = receipt.events.filter((e) => e.event === "LOG_EXIT");
-
-      // we check event arguments
-      expect(ExitEvent[0].args.caller).to.equal(user3.address);
-      expect(ExitEvent[0].args.tokenOut).to.equal(erc20Token.address);
-
-      console.log(
-        ethers.utils.formatEther(ExitEvent[0].args.tokenAmountOut),
-        "dt out"
-      );
-      expect(
-        await sideStaking.getDatatokenBalance(erc20Token.address)
-      ).to.equal(dtBalanceBeforeExit);
-      assert(ExitEvent[1] == null);
-      // we check user3 DT balance before and after
-      expect(ExitEvent[0].args.tokenAmountOut.add(user3DTbalance)).to.equal(
-        await erc20Token.balanceOf(user3.address)
-      );
-
-      // NOW we check the ssContract BPT and DT balance didn't change.
-      expect(ssContractBPTbalance).to.equal(
-        await bPool.balanceOf(sideStaking.address)
-      );
-
-      expect(ssContractDTbalance).to.equal(
-        await erc20Token.balanceOf(sideStaking.address)
-      );
-    });
+    
 
     it("#18 - we check again ocean and market fees were accounted", async () => {
       expect(await bPool.getOPCFee()).to.equal(1e15);
@@ -3303,7 +2541,6 @@ describe("Swap Fees", () => {
 
       receipt = await (
         await bPool.connect(user3).joinswapExternAmountIn(
-          usdcAddress, //token IN
           usdcAmountIn, // amount In (usdc tokens)
           minBPTOut // BPT token out
         )
@@ -3904,7 +3141,6 @@ describe("Swap Fees", () => {
 
       receipt = await (
         await bPool.connect(user3).joinswapExternAmountIn(
-          usdcAddress, //token IN
           usdcAmountIn, // amount In (dai tokens)
           minBPTOut // BPT token out
         )
@@ -3946,61 +3182,7 @@ describe("Swap Fees", () => {
       );
     });
 
-    it("#14 - user3 adds more liquidity with joinswapPoolAmountOut (only USDC)", async () => {
-      const user3DTbalance = await erc20Token.balanceOf(user3.address);
-      const user3USDCbalance = await usdcContract.balanceOf(user3.address);
-      const user3BPTbalance = await bPool.balanceOf(user3.address);
-      const ssContractDTbalance = await erc20Token.balanceOf(
-        sideStaking.address
-      );
-      const ssContractBPTbalance = await bPool.balanceOf(sideStaking.address);
 
-      await usdcContract
-        .connect(user3)
-        .approve(bPool.address, web3.utils.toWei("100"));
-
-      const BPTAmountOut = ethers.utils.parseEther("0.01");
-      const maxUSDCIn = 1e8;
-
-      receipt = await (
-        await bPool.connect(user3).joinswapPoolAmountOut(
-          usdcAddress, //token IN
-          BPTAmountOut, // exact lp token out
-          maxUSDCIn // max usdc tokens IN
-        )
-      ).wait();
-
-      const JoinEvent = receipt.events.filter((e) => e.event === "LOG_JOIN");
-
-      expect(JoinEvent[0].args.tokenIn).to.equal(usdcAddress);
-      expect(JoinEvent[1].args.tokenIn).to.equal(erc20Token.address);
-
-      // check balances (ocean and bpt)
-      expect(
-        JoinEvent[0].args.tokenAmountIn.add(
-          await usdcContract.balanceOf(user3.address)
-        )
-      ).to.equal(user3USDCbalance);
-
-      expect(BPTAmountOut.add(user3BPTbalance)).to.equal(
-        await bPool.balanceOf(user3.address)
-      );
-
-      // we check ssContract received the same amount of BPT
-      expect(ssContractBPTbalance.add(BPTAmountOut)).to.equal(
-        await bPool.balanceOf(sideStaking.address)
-      );
-
-      // and also that DT balance lowered in the ssContract
-      expect(ssContractDTbalance.sub(JoinEvent[1].args.tokenAmountIn)).to.equal(
-        await erc20Token.balanceOf(sideStaking.address)
-      );
-
-      // no token where taken from user3.
-      expect(user3DTbalance).to.equal(
-        await erc20Token.balanceOf(user3.address)
-      );
-    });
     it("#15 - user3 removes liquidity with JoinPool, receiving both tokens", async () => {
       const user3DTbalance = await erc20Token.balanceOf(user3.address);
       const user3USDCbalance = await usdcContract.balanceOf(user3.address);
@@ -4067,7 +3249,6 @@ describe("Swap Fees", () => {
 
       receipt = await (
         await bPool.connect(user3).exitswapPoolAmountIn(
-          usdcAddress,
           BPTAmountIn, //BPT token IN
           minUSDCOut // min amount USDC out
         )
@@ -4103,168 +3284,9 @@ describe("Swap Fees", () => {
       ).to.equal(await erc20Token.balanceOf(sideStaking.address));
     });
 
-    it("#17 - user3 removes liquidity with exitswapPoolAmountIn, receiving only DT tokens", async () => {
-      const user3DTbalance = await erc20Token.balanceOf(user3.address);
-      const user3USDCbalance = await usdcContract.balanceOf(user3.address);
-      const ssContractDTbalance = await erc20Token.balanceOf(
-        sideStaking.address
-      );
-      const ssContractBPTbalance = await bPool.balanceOf(sideStaking.address);
-      // NO APPROVAL FOR BPT is required
-
-      const user3BPTbalance = await bPool.balanceOf(user3.address);
-
-      const BPTAmountIn = ethers.utils.parseEther("0.01");
-      const minDTOut = ethers.utils.parseEther("0.5");
-      receipt = await (
-        await bPool.connect(user3).exitswapPoolAmountIn(
-          erc20Token.address,
-          BPTAmountIn, //BPT token IN
-          minDTOut // min amount DT out
-        )
-      ).wait();
-
-      expect(await usdcContract.balanceOf(user3.address)).to.equal(
-        user3USDCbalance
-      );
-
-      const BPTEvent = receipt.events.filter((e) => e.event === "LOG_BPT");
-
-      expect(await bPool.balanceOf(user3.address)).to.equal(
-        user3BPTbalance.sub(BPTEvent[0].args.bptAmount)
-      );
-
-      // LOOK FOR EXIT EVENT
-      const ExitEvent = receipt.events.filter((e) => e.event === "LOG_EXIT");
-
-      // we check event arguments
-      assert(ExitEvent[0].args.caller == user3.address);
-      assert(ExitEvent[0].args.tokenOut == erc20Token.address);
-
-      // we check user3 DT balance before and after
-      expect(ExitEvent[0].args.tokenAmountOut.add(user3DTbalance)).to.equal(
-        await erc20Token.balanceOf(user3.address)
-      );
-
-      // we also check user3 BPT balance before and after
-      expect(user3BPTbalance).to.equal(
-        (await bPool.balanceOf(user3.address)).add(BPTAmountIn)
-      );
-
-      // NOW we check the ssContract BPT and DT balance didn't change.
-      expect(ssContractBPTbalance).to.equal(
-        await bPool.balanceOf(sideStaking.address)
-      );
-
-      expect(ssContractDTbalance).to.equal(
-        await erc20Token.balanceOf(sideStaking.address)
-      );
-    });
-    it("#18 - user3 removes liquidity with exitswapExternAmountOut, receiving only USDC tokens", async () => {
-      const user3DTbalance = await erc20Token.balanceOf(user3.address);
-      const user3USDCbalance = await usdcContract.balanceOf(user3.address);
-      const ssContractDTbalance = await erc20Token.balanceOf(
-        sideStaking.address
-      );
-      const ssContractBPTbalance = await bPool.balanceOf(sideStaking.address);
-      // NO APPROVAL FOR BPT is required
-
-      const user3BPTbalance = await bPool.balanceOf(user3.address);
-      const maxBTPIn = ethers.utils.parseEther("0.5");
-      const exactUSDCOut = 1e6; // 1 usdc
-
-      receipt = await (
-        await bPool.connect(user3).exitswapExternAmountOut(
-          usdcAddress,
-          exactUSDCOut, // exact amount USDC out
-          maxBTPIn //max BPT token IN
-        )
-      ).wait();
-
-      expect(await erc20Token.balanceOf(user3.address)).to.equal(
-        user3DTbalance
-      );
-
-      const BPTEvent = receipt.events.filter((e) => e.event === "LOG_BPT");
-
-      expect(await bPool.balanceOf(user3.address)).to.equal(
-        user3BPTbalance.sub(BPTEvent[0].args.bptAmount)
-      );
-
-      // LOOK FOR EXIT EVENT
-      const ExitEvent = receipt.events.filter((e) => e.event === "LOG_EXIT");
-
-      // we check event arguments
-      expect(ExitEvent[0].args.caller).to.equal(user3.address);
-      expect(ExitEvent[0].args.tokenOut).to.equal(usdcContract.address);
-      expect(ExitEvent[1].args.tokenOut).to.equal(erc20Token.address);
-      // we check user3 OCEAN balance before and after
-      expect(ExitEvent[0].args.tokenAmountOut.add(user3USDCbalance)).to.equal(
-        await usdcContract.balanceOf(user3.address)
-      );
-
-      // NOW we check the ssContract BPT balance
-      expect(ssContractBPTbalance.sub(BPTEvent[0].args.bptAmount)).to.equal(
-        await bPool.balanceOf(sideStaking.address)
-      );
-      // and that we got back some dt when redeeeming BPT
-      expect(
-        ssContractDTbalance.add(ExitEvent[1].args.tokenAmountOut)
-      ).to.equal(await erc20Token.balanceOf(sideStaking.address));
-    });
-
-    it("#19 - user3 removes liquidity with exitswapExternAmountOut, receiving only DT tokens", async () => {
-      const user3DTbalance = await erc20Token.balanceOf(user3.address);
-      const user3USDCbalance = await usdcContract.balanceOf(user3.address);
-      const ssContractDTbalance = await erc20Token.balanceOf(
-        sideStaking.address
-      );
-      const ssContractBPTbalance = await bPool.balanceOf(sideStaking.address);
-
-      // NO APPROVAL FOR BPT is required
-
-      const user3BPTbalance = await bPool.balanceOf(user3.address);
-
-      receipt = await (
-        await bPool.connect(user3).exitswapExternAmountOut(
-          erc20Token.address,
-          ethers.utils.parseEther("0.5"), //max BPT token IN
-          web3.utils.toWei("1") // exact amount DT out
-        )
-      ).wait();
-
-      // USDC BALANCE DOESN"T CHANGE
-      expect(await usdcContract.balanceOf(user3.address)).to.equal(
-        user3USDCbalance
-      );
-
-      const BPTEvent = receipt.events.filter((e) => e.event === "LOG_BPT");
-      // BPT balance decrease
-      expect(await bPool.balanceOf(user3.address)).to.equal(
-        user3BPTbalance.sub(BPTEvent[0].args.bptAmount)
-      );
-
-      // LOOK FOR EXIT EVENT
-      const ExitEvent = receipt.events.filter((e) => e.event === "LOG_EXIT");
-
-      // we check event arguments
-      expect(ExitEvent[0].args.caller).to.equal(user3.address);
-      expect(ExitEvent[0].args.tokenOut).to.equal(erc20Token.address);
-
-      // we check user3 DT balance before and after
-      expect(ExitEvent[0].args.tokenAmountOut.add(user3DTbalance)).to.equal(
-        await erc20Token.balanceOf(user3.address)
-      );
-
-      // NOW we check the ssContract BPT and DT balance didn't change.
-      expect(ssContractBPTbalance).to.equal(
-        await bPool.balanceOf(sideStaking.address)
-      );
-
-      expect(ssContractDTbalance).to.equal(
-        await erc20Token.balanceOf(sideStaking.address)
-      );
-    });
+    
+    
+    
 
     it("#20 - we check again ocean and market fees were accounted", async () => {
       expect(await bPool.getOPCFee()).to.equal(0);
@@ -4329,7 +3351,6 @@ describe("Swap Fees", () => {
 
       receipt = await (
         await bPool.connect(user3).joinswapExternAmountIn(
-          usdcAddress, //token IN
           usdcAmountIn, // amount In (usdc tokens)
           minBPTOut // BPT token out
         )
@@ -4826,7 +3847,6 @@ describe("Swap Fees", () => {
 
       receipt = await (
         await bPool.connect(user3).joinswapExternAmountIn(
-          daiAddress, //token IN
           daiAmountIn, // amount In (dai tokens)
           minBPTOut // BPT token out
         )
@@ -4865,61 +3885,7 @@ describe("Swap Fees", () => {
       );
     });
 
-    it("#14 - user3 adds more liquidity with joinswapPoolAmountOut (only DAI)", async () => {
-      const user3DTbalance = await erc20Token.balanceOf(user3.address);
-      const user3DAIbalance = await daiContract.balanceOf(user3.address);
-      const user3BPTbalance = await bPool.balanceOf(user3.address);
-      const ssContractDTbalance = await erc20Token.balanceOf(
-        sideStaking.address
-      );
-      const ssContractBPTbalance = await bPool.balanceOf(sideStaking.address);
-
-      await daiContract
-        .connect(user3)
-        .approve(bPool.address, web3.utils.toWei("100"));
-
-      const BPTAmountOut = ethers.utils.parseEther("0.1");
-      const maxOceanIn = ethers.utils.parseEther("100");
-
-      receipt = await (
-        await bPool.connect(user3).joinswapPoolAmountOut(
-          daiAddress, //token IN
-          BPTAmountOut, // exact lp token out
-          maxOceanIn // max ocean tokens IN
-        )
-      ).wait();
-
-      const JoinEvent = receipt.events.filter((e) => e.event === "LOG_JOIN");
-
-      expect(JoinEvent[0].args.tokenIn).to.equal(daiAddress);
-      expect(JoinEvent[1].args.tokenIn).to.equal(erc20Token.address);
-
-      // check balances (ocean and bpt)
-      expect(
-        JoinEvent[0].args.tokenAmountIn.add(
-          await daiContract.balanceOf(user3.address)
-        )
-      ).to.equal(user3DAIbalance);
-
-      expect(BPTAmountOut.add(user3BPTbalance)).to.equal(
-        await bPool.balanceOf(user3.address)
-      );
-
-      // we check ssContract received the same amount of BPT
-      expect(ssContractBPTbalance.add(BPTAmountOut)).to.equal(
-        await bPool.balanceOf(sideStaking.address)
-      );
-
-      // and also that DT balance lowered in the ssContract
-      expect(ssContractDTbalance.sub(JoinEvent[1].args.tokenAmountIn)).to.equal(
-        await erc20Token.balanceOf(sideStaking.address)
-      );
-
-      // no token where taken from user3.
-      expect(user3DTbalance).to.equal(
-        await erc20Token.balanceOf(user3.address)
-      );
-    });
+    
     it("#15 - user3 removes liquidity with JoinPool, receiving both tokens", async () => {
       const user3DTbalance = await erc20Token.balanceOf(user3.address);
       const user3DAIbalance = await daiContract.balanceOf(user3.address);
@@ -4985,7 +3951,6 @@ describe("Swap Fees", () => {
 
       receipt = await (
         await bPool.connect(user3).exitswapPoolAmountIn(
-          daiAddress,
           BPTAmountIn, //BPT token IN
           minOceanOut // min amount OCEAN out
         )
@@ -5021,169 +3986,9 @@ describe("Swap Fees", () => {
       ).to.equal(await erc20Token.balanceOf(sideStaking.address));
     });
 
-    it("#17 - user3 removes liquidity with exitswapPoolAmountIn, receiving only DT tokens", async () => {
-      const user3DTbalance = await erc20Token.balanceOf(user3.address);
-      const user3DAIbalance = await daiContract.balanceOf(user3.address);
-      const ssContractDTbalance = await erc20Token.balanceOf(
-        sideStaking.address
-      );
-      const ssContractBPTbalance = await bPool.balanceOf(sideStaking.address);
-      // NO APPROVAL FOR BPT is required
+    
+    
 
-      const user3BPTbalance = await bPool.balanceOf(user3.address);
-      console.log("user BPT Balance", user3BPTbalance.toString());
-
-      const BPTAmountIn = ethers.utils.parseEther("0.2");
-      const minDTOut = ethers.utils.parseEther("0.5");
-      receipt = await (
-        await bPool.connect(user3).exitswapPoolAmountIn(
-          erc20Token.address,
-          BPTAmountIn, //BPT token IN
-          minDTOut // min amount DT out
-        )
-      ).wait();
-
-      expect(await daiContract.balanceOf(user3.address)).to.equal(
-        user3DAIbalance
-      );
-
-      const BPTEvent = receipt.events.filter((e) => e.event === "LOG_BPT");
-
-      expect(await bPool.balanceOf(user3.address)).to.equal(
-        user3BPTbalance.sub(BPTEvent[0].args.bptAmount)
-      );
-
-      // LOOK FOR EXIT EVENT
-      const ExitEvent = receipt.events.filter((e) => e.event === "LOG_EXIT");
-
-      // we check event arguments
-      assert(ExitEvent[0].args.caller == user3.address);
-      assert(ExitEvent[0].args.tokenOut == erc20Token.address);
-
-      // we check user3 DT balance before and after
-      expect(ExitEvent[0].args.tokenAmountOut.add(user3DTbalance)).to.equal(
-        await erc20Token.balanceOf(user3.address)
-      );
-
-      // we also check user3 BPT balance before and after
-      expect(user3BPTbalance).to.equal(
-        (await bPool.balanceOf(user3.address)).add(BPTAmountIn)
-      );
-
-      // NOW we check the ssContract BPT and DT balance didn't change.
-      expect(ssContractBPTbalance).to.equal(
-        await bPool.balanceOf(sideStaking.address)
-      );
-
-      expect(ssContractDTbalance).to.equal(
-        await erc20Token.balanceOf(sideStaking.address)
-      );
-    });
-    it("#18 - user3 removes liquidity with exitswapExternAmountOut, receiving only OCEAN tokens", async () => {
-      const user3DTbalance = await erc20Token.balanceOf(user3.address);
-      const user3DAIbalance = await daiContract.balanceOf(user3.address);
-      const ssContractDTbalance = await erc20Token.balanceOf(
-        sideStaking.address
-      );
-      const ssContractBPTbalance = await bPool.balanceOf(sideStaking.address);
-      // NO APPROVAL FOR BPT is required
-
-      const user3BPTbalance = await bPool.balanceOf(user3.address);
-      const maxBTPIn = ethers.utils.parseEther("0.5");
-      const exactOceanOut = ethers.utils.parseEther("1");
-
-      receipt = await (
-        await bPool.connect(user3).exitswapExternAmountOut(
-          daiAddress,
-          exactOceanOut, // exact amount OCEAN out
-          maxBTPIn //max BPT token IN
-        )
-      ).wait();
-
-      expect(await erc20Token.balanceOf(user3.address)).to.equal(
-        user3DTbalance
-      );
-
-      const BPTEvent = receipt.events.filter((e) => e.event === "LOG_BPT");
-
-      expect(await bPool.balanceOf(user3.address)).to.equal(
-        user3BPTbalance.sub(BPTEvent[0].args.bptAmount)
-      );
-
-      // LOOK FOR EXIT EVENT
-      const ExitEvent = receipt.events.filter((e) => e.event === "LOG_EXIT");
-
-      // we check event arguments
-      expect(ExitEvent[0].args.caller).to.equal(user3.address);
-      expect(ExitEvent[0].args.tokenOut).to.equal(daiContract.address);
-      expect(ExitEvent[1].args.tokenOut).to.equal(erc20Token.address);
-      // we check user3 OCEAN balance before and after
-      expect(ExitEvent[0].args.tokenAmountOut.add(user3DAIbalance)).to.equal(
-        await daiContract.balanceOf(user3.address)
-      );
-
-      // NOW we check the ssContract BPT balance
-      expect(ssContractBPTbalance.sub(BPTEvent[0].args.bptAmount)).to.equal(
-        await bPool.balanceOf(sideStaking.address)
-      );
-      // and that we got back some dt when redeeeming BPT
-      expect(
-        ssContractDTbalance.add(ExitEvent[1].args.tokenAmountOut)
-      ).to.equal(await erc20Token.balanceOf(sideStaking.address));
-    });
-
-    it("#19 - user3 removes liquidity with exitswapExternAmountOut, receiving only DT tokens", async () => {
-      const user3DTbalance = await erc20Token.balanceOf(user3.address);
-      const user3DAIbalance = await daiContract.balanceOf(user3.address);
-      const ssContractDTbalance = await erc20Token.balanceOf(
-        sideStaking.address
-      );
-      const ssContractBPTbalance = await bPool.balanceOf(sideStaking.address);
-
-      // NO APPROVAL FOR BPT is required
-
-      const user3BPTbalance = await bPool.balanceOf(user3.address);
-
-      receipt = await (
-        await bPool.connect(user3).exitswapExternAmountOut(
-          erc20Token.address,
-          ethers.utils.parseEther("0.5"), //max BPT token IN
-          web3.utils.toWei("1") // exact amount DT out
-        )
-      ).wait();
-
-      // DAI BALANCE DOESN"T CHANGE
-      expect(await daiContract.balanceOf(user3.address)).to.equal(
-        user3DAIbalance
-      );
-
-      const BPTEvent = receipt.events.filter((e) => e.event === "LOG_BPT");
-      // BPT balance decrease
-      expect(await bPool.balanceOf(user3.address)).to.equal(
-        user3BPTbalance.sub(BPTEvent[0].args.bptAmount)
-      );
-
-      // LOOK FOR EXIT EVENT
-      const ExitEvent = receipt.events.filter((e) => e.event === "LOG_EXIT");
-
-      // we check event arguments
-      expect(ExitEvent[0].args.caller).to.equal(user3.address);
-      expect(ExitEvent[0].args.tokenOut).to.equal(erc20Token.address);
-
-      // we check user3 DT balance before and after
-      expect(ExitEvent[0].args.tokenAmountOut.add(user3DTbalance)).to.equal(
-        await erc20Token.balanceOf(user3.address)
-      );
-
-      // NOW we check the ssContract BPT and DT balance didn't change.
-      expect(ssContractBPTbalance).to.equal(
-        await bPool.balanceOf(sideStaking.address)
-      );
-
-      expect(ssContractDTbalance).to.equal(
-        await erc20Token.balanceOf(sideStaking.address)
-      );
-    });
 
     it("#20 - we check again ocean and market fees were accounted", async () => {
       expect(await bPool.getOPCFee()).to.equal(0);
@@ -5251,7 +4056,6 @@ describe("Swap Fees", () => {
 
       receipt = await (
         await bPool.connect(user3).joinswapExternAmountIn(
-          daiAddress, //token IN
           daiAmountIn, // amount In (dai tokens)
           minBPTOut // BPT token out
         )
