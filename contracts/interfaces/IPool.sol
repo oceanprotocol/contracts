@@ -61,13 +61,11 @@ interface IPool {
     function getId() pure external returns (uint8);
 
     function exitswapPoolAmountIn(
-        address tokenOut,
         uint256 poolAmountIn,
         uint256 minAmountOut
     ) external returns (uint256 tokenAmountOut);
     
     function joinswapExternAmountIn(
-        address tokenIn,
         uint256 tokenAmountIn,
         uint256 minPoolAmountOut
     ) external returns (uint256 poolAmountOut);
