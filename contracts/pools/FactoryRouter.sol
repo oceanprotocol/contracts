@@ -10,10 +10,12 @@ import "../interfaces/IFixedRateExchange.sol";
 import "../interfaces/IPool.sol";
 import "../interfaces/IDispenser.sol";
 import "../utils/SafeERC20.sol";
+import "@openzeppelin/contracts/utils/math/SafeMath.sol";
 import "hardhat/console.sol";
 
 contract FactoryRouter is BFactory {
     using SafeERC20 for IERC20;
+    using SafeMath for uint256;
     address public routerOwner;
     address public factory;
     address public fixedRate;
@@ -482,11 +484,9 @@ contract FactoryRouter is BFactory {
         require(ssParams[1] > 0, "Wrong decimals");
 
         // we pull baseToken for creating initial pool and send it to the controller (ssContract)
-        IERC20 bt = IERC20(tokens[1]);
-        bt.safeTransferFrom(addresses[2], addresses[0], ssParams[4]);
-
+        _pullUnderlying(tokens[1],addresses[2], addresses[0], ssParams[4]);
+        
         address pool = newBPool(tokens, ssParams, swapFees, addresses);
-
         require(pool != address(0), "FAILED TO DEPLOY POOL");
         if (isOceanToken(tokens[1])) emit NewPool(pool, true);
         else emit NewPool(pool, false);
@@ -632,11 +632,9 @@ contract FactoryRouter is BFactory {
             // tokenInOutMarket[0] =
             if (_operations[i].operation == operationType.SwapExactIn) {
                 // Get amountIn from user to router
-                IERC20(_operations[i].tokenIn).safeTransferFrom(
-                    msg.sender,
+                _pullUnderlying(_operations[i].tokenIn,msg.sender,
                     address(this),
-                    _operations[i].amountsIn
-                );
+                    _operations[i].amountsIn);
                 // we approve pool to pull token from router
                 IERC20(_operations[i].tokenIn).safeIncreaseAllowance(
                     _operations[i].source,
@@ -662,11 +660,9 @@ contract FactoryRouter is BFactory {
                         _operations[i].swapMarketFee
                     );
                 // pull amount In from user
-                IERC20(_operations[i].tokenIn).safeTransferFrom(
-                    msg.sender,
+                _pullUnderlying(_operations[i].tokenIn,msg.sender,
                     address(this),
-                    amountIn
-                );
+                    amountIn);
                 // we approve pool to pull token from router
                 IERC20(_operations[i].tokenIn).safeIncreaseAllowance(
                     _operations[i].source,
@@ -696,11 +692,9 @@ contract FactoryRouter is BFactory {
                     );
 
                 // pull tokenIn amount
-                IERC20(_operations[i].tokenIn).safeTransferFrom(
-                    msg.sender,
+                _pullUnderlying(_operations[i].tokenIn,msg.sender,
                     address(this),
-                    baseTokenAmount
-                );
+                    baseTokenAmount);
                 // we approve pool to pull token from router
                 IERC20(_operations[i].tokenIn).safeIncreaseAllowance(
                     _operations[i].source,
@@ -725,5 +719,17 @@ contract FactoryRouter is BFactory {
                 );
             }
         }
+    }
+
+    function _pullUnderlying(
+        address erc20,
+        address from,
+        address to,
+        uint256 amount
+    ) internal {
+        uint256 balanceBefore = IERC20(erc20).balanceOf(to);
+        IERC20(erc20).safeTransferFrom(from, to, amount);
+        require(IERC20(erc20).balanceOf(to) == balanceBefore.add(amount),
+                    "Transfer amount was not exact");
     }
 }

@@ -372,12 +372,9 @@ contract FixedRateExchange is ReentrancyGuard {
         exchanges[exchangeId].marketFeeAvailable = exchanges[exchangeId]
             .marketFeeAvailable
             .add(marketFeeAmount);
-        IERC20(exchanges[exchangeId].baseToken).safeTransferFrom(
-                msg.sender,
-                address(this), // we send baseToken to this address, then exchange owner can withdraw
-                baseTokenAmount
-        );
-
+        _pullUnderlying(exchanges[exchangeId].baseToken,msg.sender,
+                address(this),
+                baseTokenAmount);
         exchanges[exchangeId].btBalance = (exchanges[exchangeId].btBalance).add(
             baseTokenAmountBeforeFee
         );
@@ -390,11 +387,9 @@ contract FixedRateExchange is ReentrancyGuard {
                 IERC20Template(exchanges[exchangeId].datatoken).mint(msg.sender,datatokenAmount);
             }
             else{
-                    IERC20(exchanges[exchangeId].datatoken).safeTransferFrom(
-                        exchanges[exchangeId].exchangeOwner,
-                        msg.sender,
-                        datatokenAmount
-                    );
+                    _pullUnderlying(exchanges[exchangeId].datatoken,exchanges[exchangeId].exchangeOwner,
+                    msg.sender,
+                    datatokenAmount);
             }
         } else {
             exchanges[exchangeId].dtBalance = (exchanges[exchangeId].dtBalance)
@@ -455,24 +450,17 @@ contract FixedRateExchange is ReentrancyGuard {
         exchanges[exchangeId].marketFeeAvailable = exchanges[exchangeId]
             .marketFeeAvailable
             .add(marketFeeAmount);
-        
-            IERC20(exchanges[exchangeId].datatoken).safeTransferFrom(
-                msg.sender,
+        _pullUnderlying(exchanges[exchangeId].datatoken,msg.sender,
                 address(this),
-                datatokenAmount
-            );
-
+                datatokenAmount);
         exchanges[exchangeId].dtBalance = (exchanges[exchangeId].dtBalance).add(
             datatokenAmount
         );
 
         if (baseTokenAmount > exchanges[exchangeId].btBalance) {
-            
-                IERC20(exchanges[exchangeId].baseToken).safeTransferFrom(
-                    exchanges[exchangeId].exchangeOwner,
+                _pullUnderlying(exchanges[exchangeId].baseToken,exchanges[exchangeId].exchangeOwner,
                     msg.sender,
-                    baseTokenAmount
-                );
+                    baseTokenAmount);
         } else {
             exchanges[exchangeId].btBalance = (exchanges[exchangeId].btBalance)
                 .sub(baseTokenAmountBeforeFee);
@@ -814,5 +802,17 @@ contract FixedRateExchange is ReentrancyGuard {
      */
     function isActive(bytes32 exchangeId) external view returns (bool) {
         return exchanges[exchangeId].active;
+    }
+
+    function _pullUnderlying(
+        address erc20,
+        address from,
+        address to,
+        uint256 amount
+    ) internal {
+        uint256 balanceBefore = IERC20(erc20).balanceOf(to);
+        IERC20(erc20).safeTransferFrom(from, to, amount);
+        require(IERC20(erc20).balanceOf(to) == balanceBefore.add(amount),
+                    "Transfer amount was not exact");
     }
 }
