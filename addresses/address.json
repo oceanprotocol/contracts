@@ -38,5 +38,24 @@
     },
     "Dispenser": "0xf09e3c54d37050bbD522106C477120a5CcA2745f",
     "ERC721Factory": "0x72790c16BbCB7985993A8B693c1D531D690630E4"
+  },
+  "mumbai": {
+    "chainId": 80001,
+    "Ocean": "0xd8992Ed72C445c35Cb4A2be468568Ed1079357c8",
+    "OPFCommunityFeeCollector": "0x28f06E4D4bb77CF945Fe4Beb1BbDC46230b50C1D",
+    "startBlock": 24727799,
+    "poolTemplate": "0x42FBB5ABba151C68548e1e60C3152C76BbB3FF3C",
+    "Router": "0xcab0426f50dc6cd61E979d8D581fB764104EDE57",
+    "FixedPrice": "0x0b94a9F6832a74A247ea9ec99de09750f8330dDe",
+    "Staking": "0x05c059422379E1253639dFDEaBeaAE1eb5A79835",
+    "ERC20Template": {
+      "1": "0x206Cb83F4678D7852Db08f9CB668259c07385A8d",
+      "2": "0x703494D14e23a26feA12F273192f6a29637ca222"
+    },
+    "ERC721Template": {
+      "1": "0x9b34719532A81CfAF1Fe9dAD836CfFf25Adbfb59"
+    },
+    "Dispenser": "0xa7842812bD8964d9eC0EA62374AAdceEA2808165",
+    "ERC721Factory": "0x836bf2758d1200B69fabE0A95d1278eb9c8fB6E7"
   }
 }
