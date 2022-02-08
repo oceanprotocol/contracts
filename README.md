@@ -23,11 +23,12 @@
 - **Transfer** datatokens to another owner, and **all other ERC20 actions**
   using [web3.js](https://web3js.readthedocs.io/en/v1.2.9/web3-eth-contract.html) etc. -->
 
-ocean v4 is part of the [Ocean Protocol](https://oceanprotocol.com) toolset.
+Ocean v4 is part of the [Ocean Protocol](https://oceanprotocol.com) toolset.
 
 This is in alpha state and you can expect running into problems. If you run into them, please open up a [new issue](https://github.com/oceanprotocol/ocean.js/issues/new?assignees=&labels=bug&template=bug_report.md&title=).
 
 - [📚 Prerequisites](#-prerequisites)
+- [Overview](#-overview)
 - [🏄 Quickstart](#-quickstart)
   - [Features](#features)
   - [Publisher Flow](#publisher-flow)
@@ -66,31 +67,35 @@ Any function that uses `getPastEvents()` will only work on Eth (see: <https://gi
 npm install @oceanprotocol/lib
 ``` -->
 
+## Overview
+
+![image](docs/images/smart-contracts.png)
+
 ## 🏄 Quickstart
 
 
 
 ### Features
 
-- NFT-ize base IP: a new way of representing baseIP, all newly ERC20 DTs are linked to the NFT contract
+- NFT-ize base IP: a new way of representing baseIP, all newly ERC20 DTs are linked to the Data NFT contract
 
-- Roles Administration: there are now multiple roles for a more flexible administation both at NFT and ERC20 levels.
+- Roles Administration: there are now multiple roles for a more flexible administation both at data NFT and datatoken levels.
 
-- Safer Staking - Better IDOs: An automated DT staking and vesting contract which helps with initial DT distribution and price stability.
+- Safer Staking - Better IDOs: An automated Datatoken staking and vesting contract which helps with initial datatoken distribution and price stability.
 
   It also provides a customizable vesting schedule for the publisher.
 
 - Help Ocean community: if Ocean is not the basetoken, Ocean Community will receive 0.1% swap fee on pools or fixed price exchange 
 
-- Flexible key-value store in the NFT contract : NFT contract can be used to store custom key-value pairs
+- Flexible key-value store in the data NFT contract : data NFT contract can be used to store custom key-value pairs
 
-- Metadata is also stored in the NFT contract store (even if it still supports Metadata.sol)
+- Metadata is also stored in the data NFT contract store (even if it still supports Metadata.sol)
 
 - Marketplace fees flexibility: now any marketplace runner can set more customized fees structure.
 
-- Multiple NFT template support: the Factory can deploy different types of NFT templates. 
+- Multiple data NFT template support: the Factory can deploy different types of data NFT templates. 
 
-- Multiple ERC20 template support: the Factory can deploy different types of ERC20 templates
+- Multiple datatoken template support: the Factory can deploy different types of Datatoken templates
 
 
 
