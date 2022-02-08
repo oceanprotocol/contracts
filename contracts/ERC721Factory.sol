@@ -10,6 +10,7 @@ import "./interfaces/IERC20Template.sol";
 import "./interfaces/IERC721Template.sol";
 import "./interfaces/IERC20.sol";
 import "./utils/SafeERC20.sol";
+import "@openzeppelin/contracts/utils/math/SafeMath.sol";
 import "@openzeppelin/contracts/security/ReentrancyGuard.sol";
 /**
  * @title DTFactory contract
@@ -23,6 +24,7 @@ import "@openzeppelin/contracts/security/ReentrancyGuard.sol";
  */
 contract ERC721Factory is Deployer, Ownable, ReentrancyGuard {
     using SafeERC20 for IERC20;
+    using SafeMath for uint256;
     address private communityFeeCollector;
     uint256 private currentNFTCount;
     address private erc20Factory;
@@ -502,31 +504,24 @@ contract ERC721Factory is Deployer, Ownable, ReentrancyGuard {
             // check if we have publishFees, if so transfer them to us and approve dttemplate to take them
             if (publishMarketFeeAmount > 0 && publishMarketFeeToken!=address(0) 
             && publishMarketFeeAddress!=address(0)) {
-                IERC20(publishMarketFeeToken).safeTransferFrom(
-                    msg.sender,
+                _pullUnderlying(publishMarketFeeToken,msg.sender,
                     address(this),
-                    publishMarketFeeAmount
-                );
+                    publishMarketFeeAmount);
                 IERC20(publishMarketFeeToken).safeIncreaseAllowance(orders[i].tokenAddress, publishMarketFeeAmount);
             }
             // handle provider fees
             if (orders[i]._providerFees.providerFeeAmount > 0 && orders[i]._providerFees.providerFeeToken!=address(0) 
             && orders[i]._providerFees.providerFeeAddress!=address(0)) {
-                IERC20(orders[i]._providerFees.providerFeeToken).safeTransferFrom(
-                    msg.sender,
+                _pullUnderlying(orders[i]._providerFees.providerFeeToken,msg.sender,
                     address(this),
-                    orders[i]._providerFees.providerFeeAmount
-                );
+                    orders[i]._providerFees.providerFeeAmount);
                 IERC20(orders[i]._providerFees.providerFeeToken)
                 .safeIncreaseAllowance(orders[i].tokenAddress, orders[i]._providerFees.providerFeeAmount);
             }
             // transfer erc20 datatoken from consumer to us
-            IERC20(orders[i].tokenAddress).safeTransferFrom(
-                msg.sender,
-                address(this),
-                1e18
-            ); // we always pay 1 DT. No more, no less
-        
+            _pullUnderlying(orders[i].tokenAddress,msg.sender,
+                    address(this),
+                    1e18);
             IERC20Template(orders[i].tokenAddress).startOrder(
                 orders[i].consumer,
                 orders[i].serviceIndex,
@@ -562,11 +557,9 @@ contract ERC721Factory is Deployer, Ownable, ReentrancyGuard {
             // handle provider fees
             if (orders[i]._providerFees.providerFeeAmount > 0 && orders[i]._providerFees.providerFeeToken!=address(0) 
             && orders[i]._providerFees.providerFeeAddress!=address(0)) {
-                IERC20(orders[i]._providerFees.providerFeeToken).safeTransferFrom(
-                    msg.sender,
+                _pullUnderlying(orders[i]._providerFees.providerFeeToken,msg.sender,
                     address(this),
-                    orders[i]._providerFees.providerFeeAmount
-                );
+                    orders[i]._providerFees.providerFeeAmount);
                 IERC20(orders[i]._providerFees.providerFeeToken)
                 .safeIncreaseAllowance(orders[i].tokenAddress, orders[i]._providerFees.providerFeeAmount);
             }
@@ -598,13 +591,13 @@ contract ERC721Factory is Deployer, Ownable, ReentrancyGuard {
     
   
     /**
-     * @dev createNftWithErc
+     * @dev createNftWithErc20
      *      Creates a new NFT, then a ERC20,all in one call
      * @param _NftCreateData input data for nft creation
      * @param _ErcCreateData input data for erc20 creation
      
      */
-    function createNftWithErc(
+    function createNftWithErc20(
         NftCreateData calldata _NftCreateData,
         ErcCreateData calldata _ErcCreateData
     ) external nonReentrant returns (address erc721Address, address erc20Address){
@@ -633,23 +626,21 @@ contract ERC721Factory is Deployer, Ownable, ReentrancyGuard {
     }
 
     /**
-     * @dev createNftErcWithPool
+     * @dev createNftWithErc20WithPool
      *      Creates a new NFT, then a ERC20, then a Pool, all in one call
      *      Use this carefully, because if Pool creation fails, you are still going to pay a lot of gas
      * @param _NftCreateData input data for NFT Creation
      * @param _ErcCreateData input data for ERC20 Creation
      * @param _PoolData input data for Pool Creation
      */
-    function createNftErcWithPool(
+    function createNftWithErc20WithPool(
         NftCreateData calldata _NftCreateData,
         ErcCreateData calldata _ErcCreateData,
         PoolData calldata _PoolData
     ) external nonReentrant returns (address erc721Address, address erc20Address, address poolAddress){
-        IERC20(_PoolData.addresses[1]).safeTransferFrom(
-                msg.sender,
-                address(this),
-                _PoolData.ssParams[4]
-        );
+        _pullUnderlying(_PoolData.addresses[1],msg.sender,
+                    address(this),
+                    _PoolData.ssParams[4]);
         //we are adding ourselfs as a ERC20 Deployer, because we need it in order to deploy the pool
         erc721Address = deployERC721Contract(
             _NftCreateData.name,
@@ -683,14 +674,14 @@ contract ERC721Factory is Deployer, Ownable, ReentrancyGuard {
         uint256[] uints;
     }
     /**
-     * @dev createNftErcWithFixedRate
+     * @dev createNftWithErc20WithFixedRate
      *      Creates a new NFT, then a ERC20, then a FixedRateExchange, all in one call
      *      Use this carefully, because if Fixed Rate creation fails, you are still going to pay a lot of gas
      * @param _NftCreateData input data for NFT Creation
      * @param _ErcCreateData input data for ERC20 Creation
      * @param _FixedData input data for FixedRate Creation
      */
-    function createNftErcWithFixedRate(
+    function createNftWithErc20WithFixedRate(
         NftCreateData calldata _NftCreateData,
         ErcCreateData calldata _ErcCreateData,
         FixedData calldata _FixedData
@@ -726,14 +717,14 @@ contract ERC721Factory is Deployer, Ownable, ReentrancyGuard {
         address allowedSwapper;
     }
     /**
-     * @dev createNftErcWithDispenser
+     * @dev createNftWithErc20WithDispenser
      *      Creates a new NFT, then a ERC20, then a Dispenser, all in one call
      *      Use this carefully
      * @param _NftCreateData input data for NFT Creation
      * @param _ErcCreateData input data for ERC20 Creation
      * @param _DispenserData input data for Dispenser Creation
      */
-    function createNftErcWithDispenser(
+    function createNftWithErc20WithDispenser(
         NftCreateData calldata _NftCreateData,
         ErcCreateData calldata _ErcCreateData,
         DispenserData calldata _DispenserData
@@ -764,6 +755,16 @@ contract ERC721Factory is Deployer, Ownable, ReentrancyGuard {
     }
 
 
-
+    function _pullUnderlying(
+        address erc20,
+        address from,
+        address to,
+        uint256 amount
+    ) internal {
+        uint256 balanceBefore = IERC20(erc20).balanceOf(to);
+        IERC20(erc20).safeTransferFrom(from, to, amount);
+        require(IERC20(erc20).balanceOf(to) == balanceBefore.add(amount),
+                    "Transfer amount was not exact");
+    }
 
 }

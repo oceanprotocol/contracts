@@ -423,14 +423,15 @@ contract ERC20TemplateEnterprise is
             if(OPCFee > 0)
                 OPCcut = _providerFee.providerFeeAmount.mul(OPCFee).div(BASE);
             uint256 providerCut = _providerFee.providerFeeAmount.sub(OPCcut);
-            IERC20(_providerFee.providerFeeToken).safeTransferFrom(
-                msg.sender,
+            _pullUnderlying(_providerFee.providerFeeToken,msg.sender,
+                address(this),
+                _providerFee.providerFeeAmount);
+            IERC20(_providerFee.providerFeeToken).safeTransfer(
                 _providerFee.providerFeeAddress,
                 providerCut
             );
             if(OPCcut > 0){
-              IERC20(_providerFee.providerFeeToken).safeTransferFrom(
-                msg.sender,
+              IERC20(_providerFee.providerFeeToken).safeTransfer(
                 _communityFeeCollector,
                 OPCcut
             );  
@@ -473,11 +474,9 @@ contract ERC20TemplateEnterprise is
             publishMarketFeeToken != address(0) &&
             publishMarketFeeAddress != address(0)
         ) {
-            IERC20(publishMarketFeeToken).safeTransferFrom(
-                msg.sender,
+            _pullUnderlying(publishMarketFeeToken,msg.sender,
                 address(this),
-                publishMarketFeeAmount
-            );
+                publishMarketFeeAmount);
             uint256 OPCFee = IFactoryRouter(router).getOPCConsumeFee();
             if(OPCFee > 0)
                 communityFeePublish = publishMarketFeeAmount.mul(OPCFee).div(BASE); 
@@ -955,12 +954,9 @@ contract ERC20TemplateEnterprise is
         baseTokenAmount = baseTokenAmount + marketFeeAmount;
 
         //transfer baseToken to us first
-        IERC20(baseToken).safeTransferFrom(
-            msg.sender,
-            address(this),
-            baseTokenAmount
-        );
-
+        _pullUnderlying(baseToken,msg.sender,
+                address(this),
+                baseTokenAmount);
         //approve FRE to spend baseTokens
         IERC20(baseToken).safeIncreaseAllowance(
             _freParams.exchangeContract,
@@ -1037,5 +1033,17 @@ contract ERC20TemplateEnterprise is
      */
     function getDispensers() public view returns(address[] memory) {
         return(dispensers);
+    }
+
+     function _pullUnderlying(
+        address erc20,
+        address from,
+        address to,
+        uint256 amount
+    ) internal {
+        uint256 balanceBefore = IERC20(erc20).balanceOf(to);
+        IERC20(erc20).safeTransferFrom(from, to, amount);
+        require(IERC20(erc20).balanceOf(to) == balanceBefore.add(amount),
+                    "Transfer amount was not exact");
     }
 }

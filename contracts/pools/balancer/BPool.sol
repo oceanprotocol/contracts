@@ -1049,8 +1049,10 @@ contract BPool is BMath, BToken {
         address from,
         uint256 amount
     ) internal {
+        uint256 balanceBefore = IERC20(erc20).balanceOf(address(this));
         IERC20(erc20).safeTransferFrom(from, address(this), amount);
-
+        require(IERC20(erc20).balanceOf(address(this)) == balanceBefore + amount,
+                    "Transfer amount was not exact");
         //require(xfer, "ERR_ERC20_FALSE");
     }
 
