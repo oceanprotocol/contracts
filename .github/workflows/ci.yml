@@ -80,6 +80,9 @@ jobs:
       contents: read
       security-events: write
     steps:
+      - name: Checkout repository
+        uses: actions/checkout@v2
+
       - name: Run Slither
         uses: crytic/slither-action@v0.1.0
         continue-on-error: true
