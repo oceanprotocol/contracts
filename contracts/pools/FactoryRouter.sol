@@ -19,7 +19,8 @@ contract FactoryRouter is BFactory {
     address public routerOwner;
     address public factory;
     address public fixedRate;
-    uint256 public minVestingPeriodInBlocks = 2426000;
+   // uint256 public minVestingPeriodInBlocks = 2426000;
+     uint256 public minVestingPeriodInBlocks = 500;
 
     uint256 public swapOceanFee = 0;
     uint256 public swapNonOceanFee = 1e15;  // 0.1%

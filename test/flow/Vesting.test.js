@@ -38,6 +38,7 @@ describe("Vesting flow", () => {
     bPoolAddress,
     bPool,
     signer,
+    initialBlock,
     vestingAmount = web3.utils.toWei('10000'),
     vestedBlocks,
     dtIndex = null,
@@ -264,8 +265,8 @@ describe("Vesting flow", () => {
         [
           web3.utils.toWei("1"), // rate
           18, // baseTokenDecimals
-          web3.utils.toWei('10000'),
-          2500000, // vested blocks
+         vestingAmount,
+          500, // vested blocks
           initialOceanLiquidity, // baseToken initial pool liquidity
         ],
       //  user3.address,
@@ -278,6 +279,7 @@ describe("Vesting flow", () => {
         [sideStaking.address,oceanAddress,user3.address,user3.address,marketFeeCollector.address,poolTemplate.address]
       )
     ).wait();
+
 
     const PoolEvent = receipt.events.filter((e) => e.event === "NewPool");
 
@@ -324,30 +326,43 @@ describe("Vesting flow", () => {
     // console.log((await time.latestBlock()).toString());
   });
 
-  xit("#8 - we check vesting amount is correct", async () => {
-    const pubDTbalBEFORE = await erc20Token.balanceOf(tokenERC721.address);
+  it("#8 - we check vesting amount is correct", async () => {
+ 
     expect(await sideStaking.getvestingAmount(erc20Token.address)).to.equal(
       vestingAmount
     );
-    console.log(pubDTbalBEFORE.toString());
-
-    //console.log((await sideStaking.getvestingAmountSoFar(erc20Token.address)).toString())
-    console.log((await time.latestBlock()).toString());
-
-    console.log((await time.latestBlock()).toString());
-    //await sideStaking.getVesting(erc20Token.address)
-
-    // to many blocks to advance, previous commit shows it works (500 blocks vesting) 
-    // TODO: add test for intermediate steps (50%, etc)
-    for (let i = 0; i < 2500000; i++) {
+    
+    console.log(ethers.utils.formatEther(await erc20Token.balanceOf(user3.address)))
+    // publisher has no token yet
+    expect(await erc20Token.balanceOf(user3.address)).to.equal(0)
+    // we already advanced a couple of blocks because of previous tests
+    for (let i = 0; i < 249; i++) {
       // each one advance a block
-      await signer.sendTransaction({
-        to: user4.address,
-        value: ethers.utils.parseEther("0.0"),
-      });
+      await sideStaking.getVesting(erc20Token.address);
     }
-    await sideStaking.getVesting(erc20Token.address);
-    const pubDTbalAFTER = await erc20Token.balanceOf(tokenERC721.address);
-    console.log(ethers.utils.formatEther(pubDTbalAFTER));
+    expect(await erc20Token.balanceOf(user3.address)).to.equal(web3.utils.toWei('5000'))
+    console.log(ethers.utils.formatEther(await erc20Token.balanceOf(user3.address)))
+    for (let i = 0; i < 250; i++) {
+        // each one advance a block
+        await sideStaking.getVesting(erc20Token.address);
+      }
+ 
+   
+    expect(await erc20Token.balanceOf(user3.address)).to.equal(vestingAmount) //10k
+    //console.log(ethers.utils.formatEther(await erc20Token.balanceOf(user3.address)))
+  });
+  it("#9 - amount is fully withdrawn, no more tokens are distributed", async () => {
+   
+    expect(await sideStaking.getvestingAmount(erc20Token.address)).to.equal(
+      vestingAmount
+    );
+
+    for (let i = 0; i < 100; i++) {
+      // each one advance a block
+      await sideStaking.getVesting(erc20Token.address);
+    }
+   
+    expect(await erc20Token.balanceOf(user3.address)).to.equal(vestingAmount)
+
   });
 });
