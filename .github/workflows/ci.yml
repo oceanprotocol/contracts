@@ -76,50 +76,22 @@ jobs:
   slither:
     name: Slither Analysis
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      security-events: write
     steps:
-      - name: "step-log-ref"
-        run: |
-          echo "[C] github.ref: ${{github.ref}}"
-      - name: "step-log-event_name "
-        run: |
-          echo "[C] github.event_name : ${{github.event_name }}"
-      - uses: actions/checkout@v2
-      - uses: actions/setup-node@v2
+      - name: Run Slither
+        uses: crytic/slither-action@v0.1.0
+        continue-on-error: true
+        id: slither
         with:
-          node-version: '16'
-      - name: Cache node_modules
-        uses: actions/cache@v2
-        env:
-          cache-name: cache-node-modules
-        with:
-          path: ~/.npm
-          key: ${{ runner.os }}-test-unit-${{ env.cache-name }}-${{ hashFiles('**/package-lock.json') }}
-          restore-keys: ${{ runner.os }}-test-unit-${{ env.cache-name }}-
-      - run: npm ci
-      - name: Python 3.7
-        uses: actions/setup-python@v2
-        with:
-          python-version: 3.7
-      - name: Cache pip
-        uses: actions/cache@v2
-        with:
-          path: ~/.cache/pip
-          key: ${{ runner.os }}-pip-${{ hashFiles('requirements.txt') }}
-          restore-keys: |
-            ${{ runner.os }}-pip-
-            ${{ runner.os }}-
-      - name: Install slither
-        run: |
-          python -m pip install --upgrade pip
-          pip3 install slither-analyzer
-      - name: Run slither
-        run: slither . --sarif slither.sarif || true
-        env:
-          ALCHEMY_URL: ${{secrets.ALCHEMY_URL}}
+          node-version: 16
+          sarif: results.sarif
+
       - name: Upload SARIF file
         uses: github/codeql-action/upload-sarif@v1
         with:
-          sarif_file: "slither.sarif"
+          sarif_file: ${{ steps.slither.outputs.sarif }}
 
   coverage:
     runs-on: ubuntu-latest
