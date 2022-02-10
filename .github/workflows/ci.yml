@@ -96,16 +96,6 @@ jobs:
           key: ${{ runner.os }}-test-unit-${{ env.cache-name }}-${{ hashFiles('**/package-lock.json') }}
           restore-keys: ${{ runner.os }}-test-unit-${{ env.cache-name }}-
       - run: npm ci
-      - name: Run Hardhat
-        run: |
-          npx hardhat node &
-        env:
-          ALCHEMY_URL: ${{secrets.ALCHEMY_URL}}
-      - name: Compile contracts
-        run: |
-          npx hardhat compile --force
-        env:
-          ALCHEMY_URL: ${{secrets.ALCHEMY_URL}}
       - name: Python 3.7
         uses: actions/setup-python@v2
         with:
@@ -124,6 +114,8 @@ jobs:
           pip3 install slither-analyzer
       - name: Run slither
         run: slither . --sarif slither.sarif || true
+        env:
+          ALCHEMY_URL: ${{secrets.ALCHEMY_URL}}
       - name: Upload SARIF file
         uses: github/codeql-action/upload-sarif@v1
         with:
