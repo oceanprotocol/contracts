@@ -77,6 +77,35 @@ jobs:
     name: Slither Analysis
     runs-on: ubuntu-latest
     steps:
+      - name: "step-log-ref"
+        run: |
+          echo "[C] github.ref: ${{github.ref}}"
+      - name: "step-log-event_name "
+        run: |
+          echo "[C] github.event_name : ${{github.event_name }}"
+      - uses: actions/checkout@v2
+      - uses: actions/setup-node@v2
+        with:
+          node-version: '16'
+      - name: Cache node_modules
+        uses: actions/cache@v2
+        env:
+          cache-name: cache-node-modules
+        with:
+          path: ~/.npm
+          key: ${{ runner.os }}-test-unit-${{ env.cache-name }}-${{ hashFiles('**/package-lock.json') }}
+          restore-keys: ${{ runner.os }}-test-unit-${{ env.cache-name }}-
+      - run: npm ci
+      - name: Run Hardhat
+        run: |
+          npx hardhat node &
+        env:
+          ALCHEMY_URL: ${{secrets.ALCHEMY_URL}}
+      - name: Compile contracts
+        run: |
+          npx hardhat compile --force
+        env:
+          ALCHEMY_URL: ${{secrets.ALCHEMY_URL}}
       - name: Python 3.7
         uses: actions/setup-python@v2
         with:
