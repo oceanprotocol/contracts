@@ -402,9 +402,9 @@ describe("Swap Fees", () => {
       expect(web3.utils.toWei("0.01")).to.equal(args.marketFeeAmount);
 
       // publishMarketFees accounting increased as expected , in OCEAN
-      expect(oceanAddress).to.equal(args.tokenFees);
+      expect(oceanAddress).to.equal(args.tokenFeeAddress);
       expect(oceanMarketFeeBal.add(args.marketFeeAmount)).to.equal(
-        await bPool.publishMarketFees(args.tokenFees)
+        await bPool.publishMarketFees(args.tokenFeeAddress)
       );
       // check user5 balance (market fee receiver)
       expect(await oceanContract.balanceOf(user5.address)).to.equal(web3.utils.toWei("0.01"))
@@ -491,7 +491,7 @@ describe("Swap Fees", () => {
 
       // publishMarketFees accounting increased as expected (fees are taken from the amountIn so OCEAN IN THIS CASE)
       expect(oceanMarketFeeBal.add(args.marketFeeAmount)).to.equal(
-        await bPool.publishMarketFees(args.tokenFees)
+        await bPool.publishMarketFees(args.tokenFeeAddress)
       );
       expect(dtMarketFeeBal).to.equal(
         await bPool.publishMarketFees(erc20Token.address)
@@ -502,7 +502,7 @@ describe("Swap Fees", () => {
         swapArgs.tokenAmountIn.div(1e18 / swapPublishMarketFee)
       ).to.be.closeTo(args.marketFeeAmount, 1);
       expect(swapArgs.tokenAmountIn.div(1e18 / swapFee)).to.be.closeTo(
-        args.swapFeeAmount,
+        args.LPFeeAmount,
         1
       );
 
@@ -566,7 +566,7 @@ describe("Swap Fees", () => {
 
       // publishMarketFees accounting increased as expected
       expect(dtMarketFeeBal.add(args.marketFeeAmount)).to.equal(
-        await bPool.publishMarketFees(args.tokenFees)
+        await bPool.publishMarketFees(args.tokenFeeAddress)
       );
 
       SwapEvent = receipt.events.filter((e) => e.event === "LOG_SWAP");
@@ -587,7 +587,7 @@ describe("Swap Fees", () => {
         swapArgs.tokenAmountIn.div(1e18 / swapPublishMarketFee)
       ).to.be.closeTo(args.marketFeeAmount, 1);
       expect(swapArgs.tokenAmountIn.div(1e18 / swapFee)).to.be.closeTo(
-        args.swapFeeAmount,
+        args.LPFeeAmount,
         1
       );
 
@@ -641,7 +641,7 @@ describe("Swap Fees", () => {
        expect(await erc20Token.balanceOf(user5.address)).gt(user5BalBefore)
       // publishMarketFees accounting increased as expected
       expect(dtMarketFeeBal.add(args.marketFeeAmount)).to.equal(
-        await bPool.publishMarketFees(args.tokenFees)
+        await bPool.publishMarketFees(args.tokenFeeAddress)
       );
 
       SwapEvent = receipt.events.filter((e) => e.event === "LOG_SWAP");
@@ -662,7 +662,7 @@ describe("Swap Fees", () => {
         swapArgs.tokenAmountIn.div(1e18 / swapPublishMarketFee)
       ).to.be.closeTo(args.marketFeeAmount, 1);
       expect(swapArgs.tokenAmountIn.div(1e18 / swapFee)).to.be.closeTo(
-        args.swapFeeAmount,
+        args.LPFeeAmount,
         1
       );
        // CHECK MARKET FEES:
@@ -1083,36 +1083,35 @@ describe("Swap Fees", () => {
       );
 
       // we check swap math
-      expect(
-        await bPool.getAmountOutExactIn(
-          daiAddress,
-          erc20Token.address,
-          web3.utils.toWei("1"),
-          swapMarketFee
-        )
-      ).to.equal(
-        await bPool.getAmountOutExactIn(
-          erc20Token.address,
-          daiAddress,
-          web3.utils.toWei("1"),
-          swapMarketFee
-        )
-      );
-      expect(
-        await bPool.getAmountInExactOut(
-          erc20Token.address,
-          daiAddress,
-          web3.utils.toWei("1"),
-          swapMarketFee
-        )
-      ).to.equal(
-        await bPool.getAmountInExactOut(
-          daiAddress,
-          erc20Token.address,
-          web3.utils.toWei("1"),
-          swapMarketFee
-        )
-      );
+      const res1 = await bPool.getAmountOutExactIn(
+        daiAddress,
+        erc20Token.address,
+        web3.utils.toWei("1"),
+        swapMarketFee
+      )
+      const res2 = await bPool.getAmountOutExactIn(
+        erc20Token.address,
+        daiAddress,
+        web3.utils.toWei("1"),
+        swapMarketFee
+      )
+      
+      expect(res1.tokenAmountOut).to.equal(res2.tokenAmountOut);
+
+      const res3=await bPool.getAmountInExactOut(
+        erc20Token.address,
+        daiAddress,
+        web3.utils.toWei("1"),
+        swapMarketFee
+      )
+      const res4=await bPool.getAmountInExactOut(
+        daiAddress,
+        erc20Token.address,
+        web3.utils.toWei("1"),
+        swapMarketFee
+      )
+      expect(res3.tokenAmountIn).to.equal(res4.tokenAmountIn);
+
     });
     it("#6 - user4 buys some DT - exactAmountIn", async () => {
       // pool has initial ocean tokens at the beginning
@@ -1155,16 +1154,16 @@ describe("Swap Fees", () => {
       // marketFeeAmount and oceanFeeAmont have been calculated properly - ocean fee is 0.1% (set by the contracts)
       expect(web3.utils.toWei("0.01")).to.equal(args.marketFeeAmount);
       expect(web3.utils.toWei("0.01")).to.equal(args.oceanFeeAmount);
-      expect(args.oceanFeeAmount).to.equal(args.swapFeeAmount);
-      expect(web3.utils.toWei("0.01")).to.equal(args.swapFeeAmount);
+      expect(args.oceanFeeAmount).to.equal(args.LPFeeAmount);
+      expect(web3.utils.toWei("0.01")).to.equal(args.LPFeeAmount);
 
       // publishMarketFees and opfFees accounting increased as expected , in DAI
-      expect(daiAddress).to.equal(args.tokenFees);
+      expect(daiAddress).to.equal(args.tokenFeeAddress);
       expect(daiMarketFeeBal.add(args.marketFeeAmount)).to.equal(
-        await bPool.publishMarketFees(args.tokenFees)
+        await bPool.publishMarketFees(args.tokenFeeAddress)
       );
       expect(daiOPFFeeBal.add(args.oceanFeeAmount)).to.equal(
-        await bPool.communityFees(args.tokenFees)
+        await bPool.communityFees(args.tokenFeeAddress)
       );
 
       SwapEvent = receipt.events.filter((e) => e.event === "LOG_SWAP");
@@ -1189,7 +1188,7 @@ describe("Swap Fees", () => {
         1
       );
       expect(swapArgs.tokenAmountIn.div(1e18 / swapFee)).to.be.closeTo(
-        args.swapFeeAmount,
+        args.LPFeeAmount,
         1
       );
     });
@@ -1223,12 +1222,12 @@ describe("Swap Fees", () => {
       const args = SwapFeesEvent[0].args;
 
       // publishMarketFees and opfFees accounting increased as expected , in DAI
-      expect(daiAddress).to.equal(args.tokenFees);
+      expect(daiAddress).to.equal(args.tokenFeeAddress);
       expect(daiMarketFeeBal.add(args.marketFeeAmount)).to.equal(
-        await bPool.publishMarketFees(args.tokenFees)
+        await bPool.publishMarketFees(args.tokenFeeAddress)
       );
       expect(daiOPFFeeBal.add(args.oceanFeeAmount)).to.equal(
-        await bPool.communityFees(args.tokenFees)
+        await bPool.communityFees(args.tokenFeeAddress)
       );
 
       SwapEvent = receipt.events.filter((e) => e.event === "LOG_SWAP");
@@ -1242,7 +1241,7 @@ describe("Swap Fees", () => {
         1
       );
       expect(swapArgs.tokenAmountIn.div(1e18 / swapFee)).to.be.closeTo(
-        args.swapFeeAmount,
+        args.LPFeeAmount,
         1
       );
 
@@ -1307,7 +1306,7 @@ describe("Swap Fees", () => {
         1
       );
       expect(swapArgs.tokenAmountIn.div(1e18 / swapFee)).to.be.closeTo(
-        args.swapFeeAmount,
+        args.LPFeeAmount,
         1
       );
     });
@@ -1361,7 +1360,7 @@ describe("Swap Fees", () => {
         1
       );
       expect(swapArgs.tokenAmountIn.div(1e18 / swapFee)).to.be.closeTo(
-        args.swapFeeAmount,
+        args.LPFeeAmount,
         1
       );
     });
@@ -1855,40 +1854,45 @@ describe("Swap Fees", () => {
         1
       );
       // we check swap math
+      const res1=await bPool.getAmountOutExactIn(
+        usdcAddress,
+        erc20Token.address,
+        1e6,
+        swapMarketFee
+      )
+      const res2=await bPool.getAmountOutExactIn(
+        erc20Token.address,
+        usdcAddress,
+        web3.utils.toWei("1"),
+        swapMarketFee
+      )
       expect(
         (
-          await bPool.getAmountOutExactIn(
-            usdcAddress,
-            erc20Token.address,
-            1e6,
-            swapMarketFee
-          )
+          res1.tokenAmountOut
         ).div(1e12)
       ).to.be.closeTo(
-        await bPool.getAmountOutExactIn(
-          erc20Token.address,
-          usdcAddress,
-          web3.utils.toWei("1"),
-          swapMarketFee
-        ),
+        res2.tokenAmountOut,
         1
       );
+
+      const res3=await bPool.getAmountInExactOut(
+        erc20Token.address,
+        usdcAddress,
+        1e6,
+        swapMarketFee
+      )
+      const res4=await bPool.getAmountInExactOut(
+        usdcAddress,
+        erc20Token.address,
+        web3.utils.toWei("1"),
+        swapMarketFee
+      )
       expect(
         (
-          await bPool.getAmountInExactOut(
-            erc20Token.address,
-            usdcAddress,
-            1e6,
-            swapMarketFee
-          )
-        ).div(1e12)
+       res3.tokenAmountIn
+        ).mul(1e12)
       ).to.be.closeTo(
-        await bPool.getAmountInExactOut(
-          usdcAddress,
-          erc20Token.address,
-          web3.utils.toWei("1"),
-          swapMarketFee
-        ),
+        res4.tokenAmountIn,
         1
       );
     });
@@ -1941,19 +1945,19 @@ describe("Swap Fees", () => {
       // marketFeeAmount and oceanFeeAmont have been calculated properly - ocean fee is 0.1% (set by the contracts)
       expect(1e4).to.equal(args.marketFeeAmount);
       expect(1e4).to.equal(args.oceanFeeAmount);
-      expect(args.oceanFeeAmount).to.equal(args.swapFeeAmount);
-      expect(1e4).to.equal(args.swapFeeAmount);
+      expect(args.oceanFeeAmount).to.equal(args.LPFeeAmount);
+      expect(1e4).to.equal(args.LPFeeAmount);
 
       // publishMarketFees and opfFees accounting increased as expected , in USDC
 
       console.log(usdcAddress);
-      console.log(args.tokenFees);
-      expect(usdcAddress).to.equal(args.tokenFees);
+      console.log(args.tokenFeeAddress);
+      expect(usdcAddress).to.equal(args.tokenFeeAddress);
       expect(usdcMarketFeeBal.add(args.marketFeeAmount)).to.equal(
-        await bPool.publishMarketFees(args.tokenFees)
+        await bPool.publishMarketFees(args.tokenFeeAddress)
       );
       expect(usdcOPFFeeBal.add(args.oceanFeeAmount)).to.equal(
-        await bPool.communityFees(args.tokenFees)
+        await bPool.communityFees(args.tokenFeeAddress)
       );
 
       SwapEvent = receipt.events.filter((e) => e.event === "LOG_SWAP");
@@ -1980,7 +1984,7 @@ describe("Swap Fees", () => {
         1
       );
       expect(swapArgs.tokenAmountIn.div(1e18 / swapFee)).to.be.closeTo(
-        args.swapFeeAmount,
+        args.LPFeeAmount,
         1
       );
 
@@ -2039,12 +2043,12 @@ describe("Swap Fees", () => {
       const args = SwapFeesEvent[0].args;
 
       // publishMarketFees and opfFees accounting increased as expected , in usdc
-      expect(usdcAddress).to.equal(args.tokenFees);
+      expect(usdcAddress).to.equal(args.tokenFeeAddress);
       expect(usdcMarketFeeBal.add(args.marketFeeAmount)).to.equal(
-        await bPool.publishMarketFees(args.tokenFees)
+        await bPool.publishMarketFees(args.tokenFeeAddress)
       );
       expect(usdcOPFFeeBal.add(args.oceanFeeAmount)).to.equal(
-        await bPool.communityFees(args.tokenFees)
+        await bPool.communityFees(args.tokenFeeAddress)
       );
 
       SwapEvent = receipt.events.filter((e) => e.event === "LOG_SWAP");
@@ -2058,7 +2062,7 @@ describe("Swap Fees", () => {
         1
       );
       expect(swapArgs.tokenAmountIn.div(1e18 / swapFee)).to.be.closeTo(
-        args.swapFeeAmount,
+        args.LPFeeAmount,
         1
       );
 
@@ -2143,7 +2147,7 @@ describe("Swap Fees", () => {
         1
       );
       expect(swapArgs.tokenAmountIn.div(1e18 / swapFee)).to.be.closeTo(
-        args.swapFeeAmount,
+        args.LPFeeAmount,
         1
       );
 
@@ -2204,7 +2208,7 @@ describe("Swap Fees", () => {
         1
       );
       expect(swapArgs.tokenAmountIn.div(1e18 / swapFee)).to.be.closeTo(
-        args.swapFeeAmount,
+        args.LPFeeAmount,
         1
       );
     });
@@ -2689,40 +2693,45 @@ describe("Swap Fees", () => {
       expect(await bPool.publishMarketFees(erc20Token.address)).to.equal(0);
 
       // we check swap math
+      const res1=await bPool.getAmountOutExactIn(
+        usdcAddress,
+        erc20Token.address,
+        1e6,
+        swapMarketFee
+      )
+      const res2=await bPool.getAmountOutExactIn(
+        erc20Token.address,
+        usdcAddress,
+        web3.utils.toWei("1"),
+        swapMarketFee
+      )
       expect(
         (
-          await bPool.getAmountOutExactIn(
-            usdcAddress,
-            erc20Token.address,
-            1e6,
-            swapMarketFee
-          )
+          res1.tokenAmountOut
         ).div(1e12)
       ).to.be.closeTo(
-        await bPool.getAmountOutExactIn(
-          erc20Token.address,
-          usdcAddress,
-          web3.utils.toWei("1"),
-          swapMarketFee
-        ),
+        res2.tokenAmountOut,
         1
       );
+      const res3=await bPool.getAmountInExactOut(
+        erc20Token.address,
+        usdcAddress,
+        1e6,
+        swapMarketFee
+      )
+      const res4=await bPool.getAmountInExactOut(
+        usdcAddress,
+        erc20Token.address,
+        web3.utils.toWei("1"),
+        swapMarketFee
+      )
+      
       expect(
         (
-          await bPool.getAmountInExactOut(
-            erc20Token.address,
-            usdcAddress,
-            1e6,
-            swapMarketFee
-          )
-        ).div(1e12)
+        res3.tokenAmountIn   
+        ).mul(1e12)
       ).to.be.closeTo(
-        await bPool.getAmountInExactOut(
-          usdcAddress,
-          erc20Token.address,
-          web3.utils.toWei("1"),
-          swapMarketFee
-        ),
+        res4.tokenAmountIn,
         1
       );
     });
@@ -2775,18 +2784,18 @@ describe("Swap Fees", () => {
       // marketFeeAmount and oceanFeeAmont have been calculated properly - ocean fee is 0.1% (set by the contracts)
       expect(1e4).to.equal(args.marketFeeAmount);
       expect(1e4).to.equal(args.oceanFeeAmount);
-      expect(args.oceanFeeAmount).to.equal(args.swapFeeAmount);
-      expect(1e4).to.equal(args.swapFeeAmount);
+      expect(args.oceanFeeAmount).to.equal(args.LPFeeAmount);
+      expect(1e4).to.equal(args.LPFeeAmount);
 
       // publishMarketFees and opfFees accounting increased as expected , in USDC
       console.log(usdcAddress);
-      console.log(args.tokenFees);
-      expect(usdcAddress).to.equal(args.tokenFees);
+      console.log(args.tokenFeeAddress);
+      expect(usdcAddress).to.equal(args.tokenFeeAddress);
       expect(usdcMarketFeeBal.add(args.marketFeeAmount)).to.equal(
-        await bPool.publishMarketFees(args.tokenFees)
+        await bPool.publishMarketFees(args.tokenFeeAddress)
       );
       expect(usdcOPFFeeBal.add(args.oceanFeeAmount)).to.equal(
-        await bPool.communityFees(args.tokenFees)
+        await bPool.communityFees(args.tokenFeeAddress)
       );
 
       SwapEvent = receipt.events.filter((e) => e.event === "LOG_SWAP");
@@ -2813,7 +2822,7 @@ describe("Swap Fees", () => {
         1
       );
       expect(swapArgs.tokenAmountIn.div(1e18 / swapFee)).to.be.closeTo(
-        args.swapFeeAmount,
+        args.LPFeeAmount,
         1
       );
 
@@ -2883,12 +2892,12 @@ describe("Swap Fees", () => {
       const args = SwapFeesEvent[0].args;
 
       // publishMarketFees and opfFees accounting increased as expected , in usdc
-      expect(usdcAddress).to.equal(args.tokenFees);
+      expect(usdcAddress).to.equal(args.tokenFeeAddress);
       expect(usdcMarketFeeBal.add(args.marketFeeAmount)).to.equal(
-        await bPool.publishMarketFees(args.tokenFees)
+        await bPool.publishMarketFees(args.tokenFeeAddress)
       );
       expect(usdcOPFFeeBal.add(args.oceanFeeAmount)).to.equal(
-        await bPool.communityFees(args.tokenFees)
+        await bPool.communityFees(args.tokenFeeAddress)
       );
 
       SwapEvent = receipt.events.filter((e) => e.event === "LOG_SWAP");
@@ -2903,7 +2912,7 @@ describe("Swap Fees", () => {
         1
       );
       expect(swapArgs.tokenAmountIn.div(1e18 / swapFee)).to.be.closeTo(
-        args.swapFeeAmount,
+        args.LPFeeAmount,
         1
       );
 
@@ -2988,7 +2997,7 @@ describe("Swap Fees", () => {
         1
       );
       expect(swapArgs.tokenAmountIn.div(1e18 / swapFee)).to.be.closeTo(
-        args.swapFeeAmount,
+        args.LPFeeAmount,
         1
       );
 
@@ -3060,7 +3069,7 @@ describe("Swap Fees", () => {
       expect(args.oceanFeeAmount).to.equal(0);
 
       expect(swapArgs.tokenAmountIn.div(1e18 / swapFee)).to.be.closeTo(
-        args.swapFeeAmount,
+        args.LPFeeAmount,
         1
       );
     });
@@ -3541,15 +3550,15 @@ describe("Swap Fees", () => {
       // marketFeeAmount and oceanFeeAmont have been calculated properly - ocean fee is 1% (set in previous test)
       expect(web3.utils.toWei("0.01")).to.equal(args.marketFeeAmount); // 0.1%
       expect(web3.utils.toWei("0.1")).to.equal(args.oceanFeeAmount); // 1%
-      expect(web3.utils.toWei("0.01")).to.equal(args.swapFeeAmount); // 0.1%
+      expect(web3.utils.toWei("0.01")).to.equal(args.LPFeeAmount); // 0.1%
 
       // publishMarketFees and opfFees accounting increased as expected , in DAI
-      expect(daiAddress).to.equal(args.tokenFees);
+      expect(daiAddress).to.equal(args.tokenFeeAddress);
       expect(daiMarketFeeBal.add(args.marketFeeAmount)).to.equal(
-        await bPool.publishMarketFees(args.tokenFees)
+        await bPool.publishMarketFees(args.tokenFeeAddress)
       );
       expect(daiOPFFeeBal.add(args.oceanFeeAmount)).to.equal(
-        await bPool.communityFees(args.tokenFees)
+        await bPool.communityFees(args.tokenFeeAddress)
       );
 
       SwapEvent = receipt.events.filter((e) => e.event === "LOG_SWAP");
@@ -3574,7 +3583,7 @@ describe("Swap Fees", () => {
         1
       );
       expect(swapArgs.tokenAmountIn.div(1e18 / swapFee)).to.be.closeTo(
-        args.swapFeeAmount,
+        args.LPFeeAmount,
         1
       );
     });
@@ -3619,12 +3628,12 @@ describe("Swap Fees", () => {
       const args = SwapFeesEvent[0].args;
 
       // publishMarketFees and opfFees accounting increased as expected , in DAI
-      expect(daiAddress).to.equal(args.tokenFees);
+      expect(daiAddress).to.equal(args.tokenFeeAddress);
       expect(daiMarketFeeBal.add(args.marketFeeAmount)).to.equal(
-        await bPool.publishMarketFees(args.tokenFees)
+        await bPool.publishMarketFees(args.tokenFeeAddress)
       );
       expect(daiOPFFeeBal.add(args.oceanFeeAmount)).to.equal(
-        await bPool.communityFees(args.tokenFees)
+        await bPool.communityFees(args.tokenFeeAddress)
       );
 
       SwapEvent = receipt.events.filter((e) => e.event === "LOG_SWAP");
@@ -3638,7 +3647,7 @@ describe("Swap Fees", () => {
         1
       );
       expect(swapArgs.tokenAmountIn.div(1e18 / swapFee)).to.be.closeTo(
-        args.swapFeeAmount,
+        args.LPFeeAmount,
         1
       );
 
@@ -3703,7 +3712,7 @@ describe("Swap Fees", () => {
         1
       );
       expect(swapArgs.tokenAmountIn.div(1e18 / swapFee)).to.be.closeTo(
-        args.swapFeeAmount,
+        args.LPFeeAmount,
         1
       );
     });
@@ -3766,7 +3775,7 @@ describe("Swap Fees", () => {
       expect(args.oceanFeeAmount).to.equal(0);
 
       expect(swapArgs.tokenAmountIn.div(1e18 / swapFee)).to.be.closeTo(
-        args.swapFeeAmount,
+        args.LPFeeAmount,
         1
       );
     });
