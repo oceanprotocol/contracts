@@ -652,7 +652,8 @@ contract FactoryRouter is BFactory {
                 );
             } else if (_operations[i].operation == operationType.SwapExactOut) {
                 // calculate how much amount In we need for exact Out
-                uint256 amountIn = IPool(_operations[i].source)
+                uint256 amountIn;
+                (amountIn, , , , ) = IPool(_operations[i].source)
                     .getAmountInExactOut(
                         _operations[i].tokenIn,
                         _operations[i].tokenOut,

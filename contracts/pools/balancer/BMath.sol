@@ -39,7 +39,13 @@ contract BMath is BConst, BNum {
     function getOPCFee() public view returns (uint) {
         return IFactoryRouter(_factory).getOPCFee(_baseTokenAddress);
     }
-    event SWAP_FEES(uint swapFeeAmount, uint oceanFeeAmount, uint marketFeeAmount, address tokenFees);
+    
+    struct swapfees{
+        uint256 LPFee;
+        uint256 oceanFeeAmount;
+        uint256 publishMarketFeeAmount;
+        uint256 consumeMarketFee;
+    }
     /**********************************************************************************************
     // calcSpotPrice                                                                             //
     // sP = spotPrice                                                                            //
@@ -86,29 +92,27 @@ contract BMath is BConst, BNum {
     //         outRecord.balance,
     //         outRecord.denorm
     //     ];
-    function calcOutGivenInSwap(
+    function calcOutGivenIn(
         uint[4] memory data,
         uint tokenAmountIn,
         address tokenInAddress,
-        uint256 _swapMarketFee
+        uint256 _consumeMarketSwapFee
 
     )
-        internal
-        returns (uint tokenAmountOut, uint balanceInToAdd)
+        public view
+        returns (uint tokenAmountOut, uint balanceInToAdd, swapfees memory _swapfees)
     {
         uint weightRatio = bdiv(data[1], data[3]);
 
-        uint oceanFeeAmount =  bsub(tokenAmountIn, bmul(tokenAmountIn, bsub(BONE, getOPCFee())));
+        _swapfees.oceanFeeAmount =  bsub(tokenAmountIn, bmul(tokenAmountIn, bsub(BONE, getOPCFee())));
 
-        communityFees[tokenInAddress] = badd(communityFees[tokenInAddress],oceanFeeAmount);
         
-        uint publishMarketFeeAmount =  bsub(tokenAmountIn, bmul(tokenAmountIn, bsub(BONE, _swapPublishMarketFee)));
+        _swapfees.publishMarketFeeAmount =  bsub(tokenAmountIn, bmul(tokenAmountIn, bsub(BONE, _swapPublishMarketFee)));
         
-        publishMarketFees[tokenInAddress] = badd(publishMarketFees[tokenInAddress],publishMarketFeeAmount);
 
-        uint totalFee =_swapFee+getOPCFee()+_swapPublishMarketFee+_swapMarketFee;
-
-        emit SWAP_FEES(bsub(tokenAmountIn, bmul(tokenAmountIn, bsub(BONE, _swapFee))), oceanFeeAmount,publishMarketFeeAmount,tokenInAddress);
+        _swapfees.LPFee = bsub(tokenAmountIn, bmul(tokenAmountIn, bsub(BONE, _swapFee)));
+        _swapfees.consumeMarketFee = bsub(tokenAmountIn, bmul(tokenAmountIn, bsub(BONE, _consumeMarketSwapFee)));
+        uint totalFee =_swapFee+getOPCFee()+_swapPublishMarketFee+_consumeMarketSwapFee;
 
         uint adjustedIn = bsub(BONE, totalFee);
         
@@ -121,7 +125,8 @@ contract BMath is BConst, BNum {
 
         tokenAmountOut = bmul(data[2], bar);
        
-        return (tokenAmountOut, bsub(tokenAmountIn,(oceanFeeAmount+publishMarketFeeAmount)));
+        return (tokenAmountOut, bsub(tokenAmountIn,(_swapfees.oceanFeeAmount+_swapfees.publishMarketFeeAmount)), _swapfees);
+        
     }
 
      /**********************************************************************************************
@@ -133,7 +138,7 @@ contract BMath is BConst, BNum {
     // wI = tokenWeightIn               \      \ ( bI + ( aI * ( 1 - sF )) /              /      //
     // wO = tokenWeightOut                                                                       //
     // sF = swapFee                                                                              //
-    **********************************************************************************************/
+    **********************************************************************************************
     function calcOutGivenIn(
         uint tokenBalanceIn,
         uint tokenWeightIn,
@@ -144,7 +149,7 @@ contract BMath is BConst, BNum {
     
     )
         internal view
-        returns (uint tokenAmountOut)
+        returns (uint , uint, uint, uint, uint)
     {
         uint weightRatio = bdiv(tokenWeightIn, tokenWeightOut);
 
@@ -160,10 +165,59 @@ contract BMath is BConst, BNum {
         uint foo = bpow(y, weightRatio);
         uint bar = bsub(BONE, foo);
 
-        tokenAmountOut = bmul(tokenBalanceOut, bar);
+        uint tokenAmountOut = bmul(tokenBalanceOut, bar);
        
     
         return tokenAmountOut;
+    }
+    */
+
+    /**********************************************************************************************
+    // calcInGivenOut                                                                            //
+    // aI = tokenAmountIn                                                                        //
+    // bO = tokenBalanceOut               /  /     bO      \    (wO / wI)      \                 //
+    // bI = tokenBalanceIn          bI * |  | ------------  | ^            - 1  |                //
+    // aO = tokenAmountOut    aI =        \  \ ( bO - aO ) /                   /                 //
+    // wI = tokenWeightIn           --------------------------------------------                 //
+    // wO = tokenWeightOut                          ( 1 - sF )                                   //
+    // sF = swapFee                                                                              //
+    **********************************************************************************************
+    function calcInGivenOut(
+        uint tokenBalanceIn,
+        uint tokenWeightIn,
+        uint tokenBalanceOut,
+        uint tokenWeightOut,
+        uint tokenAmountOut,
+        uint _consumeMarketSwapFee
+    )
+        internal view
+        returns (uint, uint, uint, uint, uint)
+    {
+        uint weightRatio = bdiv(tokenWeightOut, tokenWeightIn);
+        uint diff = bsub(tokenBalanceOut, tokenAmountOut);
+        uint y = bdiv(tokenBalanceOut, diff);
+        uint foo = bpow(y, weightRatio);
+        foo = bsub(foo, BONE);
+        uint _opcFee = getOPCFee();
+        uint totalFee =_swapFee+_opcFee +_consumeMarketSwapFee+_swapPublishMarketFee;
+
+        uint tokenAmountIn = bsub(BONE, totalFee);
+        tokenAmountIn = bdiv(bmul(tokenBalanceIn, foo), tokenAmountIn);
+
+        uint swapFee = bsub(BONE, _swapFee);
+        swapFee = bdiv(bmul(tokenBalanceIn, foo), swapFee);
+
+        uint opcFee = bsub(BONE, _opcFee);
+        opcFee = bdiv(bmul(tokenBalanceIn, foo), opcFee);
+
+        uint consumeMarketSwapFee = bsub(BONE, _consumeMarketSwapFee);
+        consumeMarketSwapFee = bdiv(bmul(tokenBalanceIn, foo), consumeMarketSwapFee);
+
+        uint publishMarketSwapFee = bsub(BONE, _swapPublishMarketFee);
+        publishMarketSwapFee = bdiv(bmul(tokenBalanceIn, foo), publishMarketSwapFee);
+
+
+        return (tokenAmountIn, swapFee, opcFee , consumeMarketSwapFee, publishMarketSwapFee);
     }
 
     /**********************************************************************************************
@@ -177,70 +231,38 @@ contract BMath is BConst, BNum {
     // sF = swapFee                                                                              //
     **********************************************************************************************/
     function calcInGivenOut(
-        uint tokenBalanceIn,
-        uint tokenWeightIn,
-        uint tokenBalanceOut,
-        uint tokenWeightOut,
-        uint tokenAmountOut,
-        uint _swapMarketFee
-    )
-        internal view
-        returns (uint tokenAmountIn)
-    {
-        uint weightRatio = bdiv(tokenWeightOut, tokenWeightIn);
-        uint diff = bsub(tokenBalanceOut, tokenAmountOut);
-        uint y = bdiv(tokenBalanceOut, diff);
-        uint foo = bpow(y, weightRatio);
-        foo = bsub(foo, BONE);
-        uint totalFee =_swapFee+getOPCFee()+_swapMarketFee+_swapPublishMarketFee;
-
-        tokenAmountIn = bsub(BONE, totalFee);
-        
-        tokenAmountIn = bdiv(bmul(tokenBalanceIn, foo), tokenAmountIn);
-        
-        return tokenAmountIn;
-    }
-
-    /**********************************************************************************************
-    // calcInGivenOut                                                                            //
-    // aI = tokenAmountIn                                                                        //
-    // bO = tokenBalanceOut               /  /     bO      \    (wO / wI)      \                 //
-    // bI = tokenBalanceIn          bI * |  | ------------  | ^            - 1  |                //
-    // aO = tokenAmountOut    aI =        \  \ ( bO - aO ) /                   /                 //
-    // wI = tokenWeightIn           --------------------------------------------                 //
-    // wO = tokenWeightOut                          ( 1 - sF )                                   //
-    // sF = swapFee                                                                              //
-    **********************************************************************************************/
-    function calcInGivenOutSwap(
         uint[4] memory data,
         uint tokenAmountOut,
         address tokenInAddress,
       //  address marketFeeAddress,
-        uint _swapMarketFee
+        uint _consumeMarketSwapFee
     )
-        internal
-        returns (uint tokenAmountIn, uint tokenAmountInBalance)
+        public view 
+        returns (uint tokenAmountIn, uint tokenAmountInBalance, swapfees memory _swapfees)
     {
         uint weightRatio = bdiv(data[3], data[1]);
         uint diff = bsub(data[2], tokenAmountOut);
         uint y = bdiv(data[2], diff);
         uint foo = bpow(y, weightRatio);
         foo = bsub(foo, BONE);
-        uint totalFee =_swapFee+getOPCFee()+_swapMarketFee+_swapPublishMarketFee;
+        uint totalFee =_swapFee+getOPCFee()+_consumeMarketSwapFee+_swapPublishMarketFee;
         
         
         tokenAmountIn = bdiv(bmul(data[0], foo), bsub(BONE, totalFee));
-        uint oceanFeeAmount =  bsub(tokenAmountIn, bmul(tokenAmountIn, bsub(BONE, getOPCFee())));
-         communityFees[tokenInAddress] = badd(communityFees[tokenInAddress],oceanFeeAmount);
-        uint publishMarketFeeAmount =  bsub(tokenAmountIn, bmul(tokenAmountIn, bsub(BONE, _swapPublishMarketFee)));
+        _swapfees.oceanFeeAmount =  bsub(tokenAmountIn, bmul(tokenAmountIn, bsub(BONE, getOPCFee())));
+        
      
-         publishMarketFees[tokenInAddress] = badd(publishMarketFees[tokenInAddress],publishMarketFeeAmount);
+        _swapfees.publishMarketFeeAmount =  bsub(tokenAmountIn, bmul(tokenAmountIn, bsub(BONE, _swapPublishMarketFee)));
+
      
+        _swapfees.LPFee = bsub(tokenAmountIn, bmul(tokenAmountIn, bsub(BONE, _swapFee)));
+        _swapfees.consumeMarketFee = bsub(tokenAmountIn, bmul(tokenAmountIn, bsub(BONE, _consumeMarketSwapFee)));
+        
       
         tokenAmountInBalance = bdiv(bmul(data[0], foo), bsub(BONE, _swapFee));
       
-        emit SWAP_FEES(bsub(tokenAmountIn, bmul(tokenAmountIn, bsub(BONE, _swapFee))), oceanFeeAmount, publishMarketFeeAmount,tokenInAddress);
-        return (tokenAmountIn, tokenAmountInBalance);
+        
+        return (tokenAmountIn, tokenAmountInBalance,_swapfees);
     }
 
     /**********************************************************************************************

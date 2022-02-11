@@ -41,21 +41,15 @@ interface IPool {
         address tokenIn,
         address tokenOut,
         uint256 tokenAmountOut,
-        uint256 _swapMarketFee
-    ) external view returns (uint256 tokenAmountIn);
+        uint256 _consumeMarketSwapFee
+    ) external view returns (uint256, uint256, uint256, uint256, uint256);
 
     function getAmountOutExactIn(
         address tokenIn,
         address tokenOut,
         uint256 tokenAmountIn,
-        uint256 _swapMarketFee
-    )
-        external
-        view
-        returns (
-            //  _viewlock_
-            uint256 tokenAmountOut
-        );
+        uint256 _consumeMarketSwapFee
+    ) external view returns (uint256, uint256, uint256, uint256, uint256);
 
     function setSwapFee(uint256 swapFee) external;
     function getId() pure external returns (uint8);

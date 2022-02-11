@@ -90,7 +90,8 @@ contract BPool is BMath, BToken {
     );
 
     event MarketFees(address to, address token, uint256 amount);
-
+    event SWAP_FEES(uint LPFeeAmount, uint oceanFeeAmount, uint marketFeeAmount,
+    uint consumeMarketFeeAmount, address tokenFeeAddress);
     event MarketCollectorChanged(address caller, address newMarketCollector);
 
     modifier _lock_() {
@@ -521,33 +522,52 @@ contract BPool is BMath, BToken {
     }
 
     // view function used for batch buy. useful for frontend
+     /**
+     * @dev getAmountInExactOut
+     *      How many tokensIn do you need in order to get exact tokenAmountOut.
+            Returns: tokenAmountIn, swapFee, opcFee , consumeMarketSwapFee, publishMarketSwapFee
+     * @param tokenIn token to be swaped
+     * @param tokenOut token to get
+     * @param tokenAmountOut exact amount of tokenOut
+     * @param _consumeMarketSwapFee consume market swap fee
+     */
+
     function getAmountInExactOut(
         address tokenIn,
         address tokenOut,
         uint256 tokenAmountOut,
-        uint256 _swapMarketFee
+        uint256 _consumeMarketSwapFee
     )
         external
         view
         returns (
             // _viewlock_
-            uint256 tokenAmountIn
+            uint256 tokenAmountIn, uint lpFeeAmount, 
+            uint oceanFeeAmount, 
+            uint publishMarketSwapFeeAmount,
+            uint consumeMarketSwapFeeAmount
         )
     {
         _checkBound(tokenIn);
         _checkBound(tokenOut);
-        Record storage inRecord = _records[tokenIn];
-        Record storage outRecord = _records[tokenOut];
-
-        return
+        uint256[4] memory data = [
+            _records[tokenIn].balance,
+            _records[tokenIn].denorm,
+            _records[tokenOut].balance,
+            _records[tokenOut].denorm
+        ];
+        uint tokenAmountInBalance;
+        swapfees memory _swapfees;
+        (tokenAmountIn, tokenAmountInBalance, _swapfees) =        
             calcInGivenOut(
-                inRecord.balance,
-                inRecord.denorm,
-                outRecord.balance,
-                outRecord.denorm,
+                data,
                 tokenAmountOut,
-                _swapMarketFee
+                tokenIn,
+                _consumeMarketSwapFee
             );
+        return(tokenAmountIn, _swapfees.LPFee, _swapfees.oceanFeeAmount, 
+        _swapfees.publishMarketFeeAmount, _swapfees.consumeMarketFee);
+
     }
 
     // view function useful for frontend
@@ -555,28 +575,38 @@ contract BPool is BMath, BToken {
         address tokenIn,
         address tokenOut,
         uint256 tokenAmountIn,
-        uint256 _swapMarketFee
+        uint256 _consumeMarketSwapFee
     )
         external
         view
         returns (
             //  _viewlock_
-            uint256 tokenAmountOut
+            uint256 tokenAmountOut,
+            uint lpFeeAmount, 
+            uint oceanFeeAmount, 
+            uint publishMarketSwapFeeAmount,
+            uint consumeMarketSwapFeeAmount
         )
     {
         _checkBound(tokenIn);
         _checkBound(tokenOut);
-        Record storage inRecord = _records[tokenIn];
-        Record storage outRecord = _records[tokenOut];
-        return
+        uint256[4] memory data = [
+            _records[tokenIn].balance,
+            _records[tokenIn].denorm,
+            _records[tokenOut].balance,
+            _records[tokenOut].denorm
+        ];
+        uint balanceInToAdd;
+        swapfees memory _swapfees;
+         (tokenAmountOut, balanceInToAdd, _swapfees) =        
             calcOutGivenIn(
-                inRecord.balance,
-                inRecord.denorm,
-                outRecord.balance,
-                outRecord.denorm,
+                data,
                 tokenAmountIn,
-                _swapMarketFee
+                tokenIn,
+                _consumeMarketSwapFee
             );
+        return(tokenAmountOut, _swapfees.LPFee, 
+        _swapfees.oceanFeeAmount, _swapfees.publishMarketFeeAmount, _swapfees.consumeMarketFee);
     }
 
     function joinPool(uint256 poolAmountOut, uint256[] calldata maxAmountsIn)
@@ -667,13 +697,17 @@ contract BPool is BMath, BToken {
             outRecord.balance,
             outRecord.denorm
         ];
-        (tokenAmountOut, balanceInToAdd) = calcOutGivenInSwap(
+        swapfees memory _swapfees;
+        (tokenAmountOut, balanceInToAdd, _swapfees) = calcOutGivenIn(
             data,
             amountsInOutMaxFee[0],
             tokenInOutMarket[0],
             amountsInOutMaxFee[3]
         );
-
+        // update balances
+        communityFees[tokenInOutMarket[0]] = badd(communityFees[tokenInOutMarket[0]],_swapfees.oceanFeeAmount);
+        publishMarketFees[tokenInOutMarket[0]] = badd(publishMarketFees[tokenInOutMarket[0]],_swapfees.publishMarketFeeAmount);
+        emit SWAP_FEES(_swapfees.LPFee, _swapfees.oceanFeeAmount,_swapfees.publishMarketFeeAmount,_swapfees.consumeMarketFee, tokenInOutMarket[0]);
         require(tokenAmountOut >= amountsInOutMaxFee[1], "ERR_LIMIT_OUT");
 
         inRecord.balance = badd(inRecord.balance, balanceInToAdd);
@@ -766,14 +800,17 @@ contract BPool is BMath, BToken {
             outRecord.balance,
             outRecord.denorm
         ];
-
-        (tokenAmountIn, balanceToAdd) = calcInGivenOutSwap(
+        swapfees memory _swapfees;
+        (tokenAmountIn, balanceToAdd,
+        _swapfees) = calcInGivenOut(
             data,
             amountsInOutMaxFee[1],
             tokenInOutMarket[0],
             amountsInOutMaxFee[3]
         );
-
+        communityFees[tokenInOutMarket[0]] = badd(communityFees[tokenInOutMarket[0]],_swapfees.oceanFeeAmount);
+        publishMarketFees[tokenInOutMarket[0]] = badd(publishMarketFees[tokenInOutMarket[0]],_swapfees.publishMarketFeeAmount);
+        emit SWAP_FEES(_swapfees.LPFee, _swapfees.oceanFeeAmount, _swapfees.publishMarketFeeAmount,_swapfees.consumeMarketFee, tokenInOutMarket[0]);
         require(tokenAmountIn <= amountsInOutMaxFee[0], "ERR_LIMIT_IN");
 
         inRecord.balance = badd(inRecord.balance, balanceToAdd);
@@ -802,7 +839,6 @@ contract BPool is BMath, BToken {
             amountsInOutMaxFee[1],
             block.timestamp
         );
-
         _pullUnderlying(tokenInOutMarket[0], msg.sender, tokenAmountIn);
         uint256 marketFeeAmount = bsub(
             tokenAmountIn,
@@ -820,7 +856,6 @@ contract BPool is BMath, BToken {
             );
         }
         _pushUnderlying(tokenInOutMarket[1], msg.sender, amountsInOutMaxFee[1]);
-
         return (tokenAmountIn, spotPriceAfter);
     }
 
