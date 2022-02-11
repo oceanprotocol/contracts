@@ -112,9 +112,9 @@ contract ERC20Template is
 
     // emited for every order
     event ConsumeMarketFee(
-        address indexed PublishMarketFeeAddress,
-        address indexed PublishMarketFeeToken,
-        uint256 PublishMarketFeeAmount
+        address indexed consumeMarketFeeAddress,
+        address indexed consumeMarketFeeToken,
+        uint256 consumeMarketFeeAmount
     );
 
     // emited for every order
