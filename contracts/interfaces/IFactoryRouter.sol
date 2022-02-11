@@ -42,4 +42,32 @@ interface IFactoryRouter {
     function getDispensersContracts() external view returns(address[] memory);
      function isPoolTemplate(address) external view returns(bool);
     function getPoolTemplates() external view returns(address[] memory);
+
+    struct Stakes {
+        address poolAddress;
+        uint256 tokenAmountIn;
+        uint256 minPoolAmountOut;
+    }
+    function stakeBatch(Stakes[] calldata) external;
+
+    enum operationType {
+        SwapExactIn,
+        SwapExactOut,
+        FixedRate,
+        Dispenser
+    }
+
+    struct Operations {
+        bytes32 exchangeIds; // used for fixedRate or dispenser
+        address source; // pool, dispenser or fixed rate address
+        operationType operation; // type of operation: enum operationType
+        address tokenIn; // token in address, only for pools
+        uint256 amountsIn; // ExactAmount In for swapExactIn operation, maxAmount In for swapExactOut
+        address tokenOut; // token out address, only for pools
+        uint256 amountsOut; // minAmountOut for swapExactIn or exactAmountOut for swapExactOut
+        uint256 maxPrice; // maxPrice, only for pools
+        uint256 swapMarketFee;
+        address marketFeeAddress;
+    }
+    function buyDTBatch(Operations[] calldata) external;
 }
