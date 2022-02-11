@@ -565,7 +565,7 @@ contract BPool is BMath, BToken {
                 tokenIn,
                 _consumeMarketSwapFee
             );
-        return(tokenAmountOut, _swapfees.LPFee, _swapfees.oceanFeeAmount, 
+        return(tokenAmountIn, _swapfees.LPFee, _swapfees.oceanFeeAmount, 
         _swapfees.publishMarketFeeAmount, _swapfees.consumeMarketFee);
 
     }
@@ -839,7 +839,6 @@ contract BPool is BMath, BToken {
             amountsInOutMaxFee[1],
             block.timestamp
         );
-
         _pullUnderlying(tokenInOutMarket[0], msg.sender, tokenAmountIn);
         uint256 marketFeeAmount = bsub(
             tokenAmountIn,
@@ -857,7 +856,6 @@ contract BPool is BMath, BToken {
             );
         }
         _pushUnderlying(tokenInOutMarket[1], msg.sender, amountsInOutMaxFee[1]);
-
         return (tokenAmountIn, spotPriceAfter);
     }
 

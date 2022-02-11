@@ -1890,7 +1890,7 @@ describe("Swap Fees", () => {
       expect(
         (
        res3.tokenAmountIn
-        ).mul(1e12)
+        ).div(1e12)
       ).to.be.closeTo(
         res4.tokenAmountIn,
         1
@@ -2729,7 +2729,7 @@ describe("Swap Fees", () => {
       expect(
         (
         res3.tokenAmountIn   
-        ).mul(1e12)
+        ).div(1e12)
       ).to.be.closeTo(
         res4.tokenAmountIn,
         1
