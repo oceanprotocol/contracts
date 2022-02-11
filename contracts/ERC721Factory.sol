@@ -462,21 +462,12 @@ contract ERC721Factory is Deployer, Ownable, ReentrancyGuard {
         return templateCount;
     }
 
-    struct providerFees{
-        address providerFeeAddress;
-        address providerFeeToken; // address of the token marketplace wants to add fee on top
-        uint256 providerFeeAmount; // amount to be transfered to marketFeeCollector
-        uint8 v; // v of provider signed message
-        bytes32 r; // r of provider signed message
-        bytes32 s; // s of provider signed message
-        uint256 validUntil; //validity expresses in unix timestamp
-        bytes providerData; //data encoded by provider
-    }
     struct tokenOrder {
         address tokenAddress;
         address consumer;
         uint256 serviceIndex;
-        IERC20Template.providerFees _providerFees;
+        IERC20Template.providerFee _providerFee;
+        IERC20Template.consumeMarketFee _consumeMarketFee;
     }
 
     /**
@@ -509,14 +500,24 @@ contract ERC721Factory is Deployer, Ownable, ReentrancyGuard {
                     publishMarketFeeAmount);
                 IERC20(publishMarketFeeToken).safeIncreaseAllowance(orders[i].tokenAddress, publishMarketFeeAmount);
             }
-            // handle provider fees
-            if (orders[i]._providerFees.providerFeeAmount > 0 && orders[i]._providerFees.providerFeeToken!=address(0) 
-            && orders[i]._providerFees.providerFeeAddress!=address(0)) {
-                _pullUnderlying(orders[i]._providerFees.providerFeeToken,msg.sender,
+            // check if we have consumeMarketFee, if so transfer them to us and approve dttemplate to take them
+            if (orders[i]._consumeMarketFee.consumeMarketFeeAmount > 0
+            && orders[i]._consumeMarketFee.consumeMarketFeeAddress!=address(0) 
+            && orders[i]._consumeMarketFee.consumeMarketFeeToken!=address(0)) {
+                _pullUnderlying(orders[i]._consumeMarketFee.consumeMarketFeeToken,msg.sender,
                     address(this),
-                    orders[i]._providerFees.providerFeeAmount);
-                IERC20(orders[i]._providerFees.providerFeeToken)
-                .safeIncreaseAllowance(orders[i].tokenAddress, orders[i]._providerFees.providerFeeAmount);
+                    orders[i]._consumeMarketFee.consumeMarketFeeAmount);
+                IERC20(orders[i]._consumeMarketFee.consumeMarketFeeToken)
+                .safeIncreaseAllowance(orders[i].tokenAddress, orders[i]._consumeMarketFee.consumeMarketFeeAmount);
+            }
+            // handle provider fees
+            if (orders[i]._providerFee.providerFeeAmount > 0 && orders[i]._providerFee.providerFeeToken!=address(0) 
+            && orders[i]._providerFee.providerFeeAddress!=address(0)) {
+                _pullUnderlying(orders[i]._providerFee.providerFeeToken,msg.sender,
+                    address(this),
+                    orders[i]._providerFee.providerFeeAmount);
+                IERC20(orders[i]._providerFee.providerFeeToken)
+                .safeIncreaseAllowance(orders[i].tokenAddress, orders[i]._providerFee.providerFeeAmount);
             }
             // transfer erc20 datatoken from consumer to us
             _pullUnderlying(orders[i].tokenAddress,msg.sender,
@@ -525,7 +526,8 @@ contract ERC721Factory is Deployer, Ownable, ReentrancyGuard {
             IERC20Template(orders[i].tokenAddress).startOrder(
                 orders[i].consumer,
                 orders[i].serviceIndex,
-                orders[i]._providerFees
+                orders[i]._providerFee,
+                orders[i]._consumeMarketFee
             );
         }
     }
@@ -533,7 +535,7 @@ contract ERC721Factory is Deployer, Ownable, ReentrancyGuard {
     struct reuseTokenOrder {
         address tokenAddress;
         bytes32 orderTxId;
-        IERC20Template.providerFees _providerFees;
+        IERC20Template.providerFee _providerFee;
     }
     /**
      * @dev reuseMultipleTokenOrder
@@ -555,18 +557,18 @@ contract ERC721Factory is Deployer, Ownable, ReentrancyGuard {
         // transfer for each one, instead of doing it per dt..
         for (uint256 i = 0; i < orders.length; i++) {
             // handle provider fees
-            if (orders[i]._providerFees.providerFeeAmount > 0 && orders[i]._providerFees.providerFeeToken!=address(0) 
-            && orders[i]._providerFees.providerFeeAddress!=address(0)) {
-                _pullUnderlying(orders[i]._providerFees.providerFeeToken,msg.sender,
+            if (orders[i]._providerFee.providerFeeAmount > 0 && orders[i]._providerFee.providerFeeToken!=address(0) 
+            && orders[i]._providerFee.providerFeeAddress!=address(0)) {
+                _pullUnderlying(orders[i]._providerFee.providerFeeToken,msg.sender,
                     address(this),
-                    orders[i]._providerFees.providerFeeAmount);
-                IERC20(orders[i]._providerFees.providerFeeToken)
-                .safeIncreaseAllowance(orders[i].tokenAddress, orders[i]._providerFees.providerFeeAmount);
+                    orders[i]._providerFee.providerFeeAmount);
+                IERC20(orders[i]._providerFee.providerFeeToken)
+                .safeIncreaseAllowance(orders[i].tokenAddress, orders[i]._providerFee.providerFeeAmount);
             }
         
             IERC20Template(orders[i].tokenAddress).reuseOrder(
                 orders[i].orderTxId,
-                orders[i]._providerFees
+                orders[i]._providerFee
             );
         }
     }
