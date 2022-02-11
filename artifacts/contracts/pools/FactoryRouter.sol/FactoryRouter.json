@@ -1346,6 +1346,36 @@
       "type": "function"
     },
     {
+      "inputs": [
+        {
+          "components": [
+            {
+              "internalType": "address",
+              "name": "poolAddress",
+              "type": "address"
+            },
+            {
+              "internalType": "uint256",
+              "name": "tokenAmountIn",
+              "type": "uint256"
+            },
+            {
+              "internalType": "uint256",
+              "name": "minPoolAmountOut",
+              "type": "uint256"
+            }
+          ],
+          "internalType": "struct FactoryRouter.Stakes[]",
+          "name": "_stakes",
+          "type": "tuple[]"
+        }
+      ],
+      "name": "stakeBatch",
+      "outputs": [],
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
       "inputs": [],
       "name": "swapNonOceanFee",
       "outputs": [
