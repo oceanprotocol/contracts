@@ -274,6 +274,12 @@ contract ERC20TemplateEnterprise is
         publishMarketFeeAddress = addresses_[2];
         publishMarketFeeToken = addresses_[3];
         publishMarketFeeAmount = uints_[1];
+        emit PublishMarketFeesChanged(
+            msg.sender,
+            publishMarketFeeAddress,
+            publishMarketFeeToken,
+            publishMarketFeeAmount
+        );
         uint256 chainId;
         assembly {
             chainId := chainid()
