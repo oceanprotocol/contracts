@@ -3,6 +3,9 @@ require("hardhat-contract-sizer");
 require("hardhat-gas-reporter");
 require('solidity-coverage');
 require("@nomiclabs/hardhat-etherscan");
+require('@typechain/hardhat')
+require('@nomiclabs/hardhat-ethers')
+
 // This is a sample Hardhat task. To learn how to create your own go to
 // https://hardhat.org/guides/create-task.html
 task("accounts", "Prints the list of accounts", async () => {
@@ -37,12 +40,12 @@ module.exports = {
   },
   networks: {
     hardhat: {
-      allowUnlimitedContractSize: true,
-      forking: {
-        url: process.env.ALCHEMY_URL,
-        blockNumber: 12545000,
-      },
-      gasPrice:1000000000
+      // allowUnlimitedContractSize: true,
+      // forking: {
+      //   url: process.env.ALCHEMY_URL,
+      //   blockNumber: 12545000,
+      // },
+      // gasPrice:1000000000
     },
     rinkeby: {
       url:
@@ -63,5 +66,11 @@ module.exports = {
     currency: 'USD',
     gasPrice: 80,
     coinmarketcap: process.env.COINMARKETCAP_API_KEY,
-  }
+  },
+  typechain: {
+    outDir: 'src/types',
+    target: 'ethers-v5',
+    alwaysGenerateOverloads: false, // should overloads with full signatures like deposit(uint256) be generated always, even if there are no overloads?
+    externalArtifacts: ['externalArtifacts/*.json'], // optional array of glob patterns with external artifacts to process (for example external libs from node_modules)
+  },
 };
