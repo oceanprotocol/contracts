@@ -289,7 +289,7 @@ contract ERC20TemplateEnterprise is
         publishMarketFeeAddress = addresses_[2];
         publishMarketFeeToken = addresses_[3];
         publishMarketFeeAmount = uints_[1];
-        emit PublishMarketFeesChanged(
+        emit PublishMarketFeeChanged(
             msg.sender,
             publishMarketFeeAddress,
             publishMarketFeeToken,
