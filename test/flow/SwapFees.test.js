@@ -425,7 +425,7 @@ describe("Swap Fees", () => {
       );
 
       // CHECK MARKET FEES:
-      MarketFeeEvent = receipt.events.filter((e) => e.event === "MarketFees");
+      MarketFeeEvent = receipt.events.filter((e) => e.event === "ConsumeMarketFee");
       const marketFeeArgs = MarketFeeEvent[0].args;
       expect(marketFeeArgs.to).to.equal(user5.address)
       expect(marketFeeArgs.token).to.equal(oceanAddress)
@@ -507,7 +507,7 @@ describe("Swap Fees", () => {
       );
 
        // CHECK MARKET FEES:
-       MarketFeeEvent = receipt.events.filter((e) => e.event === "MarketFees");
+       MarketFeeEvent = receipt.events.filter((e) => e.event === "ConsumeMarketFee");
        const marketFeeArgs = MarketFeeEvent[0].args;
        expect(marketFeeArgs.to).to.equal(user5.address)
        expect(marketFeeArgs.token).to.equal(oceanAddress)
@@ -592,7 +592,7 @@ describe("Swap Fees", () => {
       );
 
        // CHECK MARKET FEES:
-       MarketFeeEvent = receipt.events.filter((e) => e.event === "MarketFees");
+       MarketFeeEvent = receipt.events.filter((e) => e.event === "ConsumeMarketFee");
        const marketFeeArgs = MarketFeeEvent[0].args;
        expect(marketFeeArgs.to).to.equal(user5.address)
        expect(marketFeeArgs.token).to.equal(erc20Token.address)
@@ -666,7 +666,7 @@ describe("Swap Fees", () => {
         1
       );
        // CHECK MARKET FEES:
-       MarketFeeEvent = receipt.events.filter((e) => e.event === "MarketFees");
+       MarketFeeEvent = receipt.events.filter((e) => e.event === "ConsumeMarketFee");
        const marketFeeArgs = MarketFeeEvent[0].args;
        expect(marketFeeArgs.to).to.equal(user5.address)
        expect(marketFeeArgs.token).to.equal(erc20Token.address)

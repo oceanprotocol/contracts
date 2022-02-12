@@ -85,11 +85,11 @@ contract BPool is BMath, BToken {
         address token,
         uint256 amount
     );
-
-    event MarketFees(address to, address token, uint256 amount);
+    // emited for fees sent to consumeMarket
+    event ConsumeMarketFee(address to, address token, uint256 amount);
     event SWAP_FEES(uint LPFeeAmount, uint oceanFeeAmount, uint marketFeeAmount,
-    uint consumeMarketFeeAmount, address tokenFeeAddress);
-    event MarketCollectorChanged(address caller, address newMarketCollector);
+        uint consumeMarketFeeAmount, address tokenFeeAddress);
+    event PublishMarketCollectorChanged(address caller, address newMarketCollector);
 
     modifier _lock_() {
         require(!_mutex, "ERR_REENTRY");
@@ -178,13 +178,14 @@ contract BPool is BMath, BToken {
         _controller = controller;
         _factory = factory;
         _swapFee = swapFees[0];
-
+        emit SwapFeeChanged(msg.sender, _swapFee);
         _swapPublishMarketFee = swapFees[1];
         _publicSwap = publicSwap;
         _finalized = finalized;
         _datatokenAddress = tokens[0];
         _baseTokenAddress = tokens[1];
         _publishMarketCollector = feeCollectors[0];
+        emit PublishMarketCollectorChanged(msg.sender, _publishMarketCollector);
         _opcCollector = feeCollectors[1];
         initialized = true;
         ssContract = ISideStaking(_controller);
@@ -402,7 +403,7 @@ contract BPool is BMath, BToken {
         require(_publishMarketCollector == msg.sender, "ONLY MARKET COLLECTOR");
         require(_newCollector != address(0), "Invalid _newCollector address");
         _publishMarketCollector = _newCollector;
-        emit MarketCollectorChanged(msg.sender, _publishMarketCollector);
+        emit PublishMarketCollectorChanged(msg.sender, _publishMarketCollector);
     }
 
     /**
@@ -876,19 +877,19 @@ contract BPool is BMath, BToken {
         );
 
         _pullUnderlying(tokenInOutMarket[0], msg.sender, amountsInOutMaxFee[0]);
-        uint256 marketFeeAmount = bsub(
+        uint256 consumeMarketFeeAmount = bsub(
             amountsInOutMaxFee[0],
             bmul(amountsInOutMaxFee[0], bsub(BONE, amountsInOutMaxFee[3]))
         );
         if (amountsInOutMaxFee[3] > 0) {
             IERC20(tokenInOutMarket[0]).safeTransfer(
                 tokenInOutMarket[2],
-                marketFeeAmount
+                consumeMarketFeeAmount
             );
-            emit MarketFees(
+            emit ConsumeMarketFee(
                 tokenInOutMarket[2],
                 tokenInOutMarket[0],
-                marketFeeAmount
+                consumeMarketFeeAmount
             );
         }
         _pushUnderlying(tokenInOutMarket[1], msg.sender, tokenAmountOut);
@@ -982,19 +983,19 @@ contract BPool is BMath, BToken {
             block.timestamp
         );
         _pullUnderlying(tokenInOutMarket[0], msg.sender, tokenAmountIn);
-        uint256 marketFeeAmount = bsub(
+        uint256 consumeMarketFeeAmount = bsub(
             tokenAmountIn,
             bmul(tokenAmountIn, bsub(BONE, amountsInOutMaxFee[3]))
         );
         if (amountsInOutMaxFee[3] > 0) {
             IERC20(tokenInOutMarket[0]).safeTransfer(
                 tokenInOutMarket[2],// market address
-                marketFeeAmount
+                consumeMarketFeeAmount
             );
-            emit MarketFees(
+            emit ConsumeMarketFee(
                 tokenInOutMarket[2], // to (market address)
                 tokenInOutMarket[0], // token
-                marketFeeAmount
+                consumeMarketFeeAmount
             );
         }
         _pushUnderlying(tokenInOutMarket[1], msg.sender, amountsInOutMaxFee[1]);
