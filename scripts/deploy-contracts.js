@@ -351,16 +351,16 @@ async function main() {
     
   // SET REQUIRED ADDRESS
 
-  if (logging) console.info("Adding factoryERC721.address");
+  if (logging) console.info("Adding factoryERC721.address(" + factoryERC721.address + ") to router");
   await router.connect(owner).addFactory(factoryERC721.address, options);
-  if (logging) console.info("Adding fixedPriceExchange.address");
+  if (logging) console.info("Adding fixedPriceExchange.address(" + fixedPriceExchange.address + ") to router");
   await router.connect(owner).addFixedRateContract(fixedPriceExchange.address, options);
-  if (logging) console.info("Adding dispenser.address");
+  if (logging) console.info("Adding dispenser.address(" + dispenser.address + ") to router");
   await router.connect(owner).addDispenserContract(dispenser.address, options);
-  if (logging) console.info("Adding ssPool.address");
+  if (logging) console.info("Adding ssPool.address(" + ssPool.address + ") to router");
   await router.connect(owner).addSSContract(ssPool.address, options);
   // Avoid setting Owner an account we cannot use on barge for now
-  if (logging) console.info("Moving Router ownership")
+  if (logging) console.info("Moving Router ownership to " + routerOwner)
   if (owner.address != routerOwner) await router.connect(owner).changeRouterOwner(routerOwner, options)
 
   if (addressFile) {
