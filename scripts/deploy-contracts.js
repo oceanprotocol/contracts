@@ -43,11 +43,13 @@ async function main() {
     return null;
   }
   owner = wallet.connect(provider);
-  let OPFOwner = '0x7DF5273aD9A6fCce64D45c64c1E43cfb6F861725';
-  let routerOwner;
+  //let OPFOwner = '0x7DF5273aD9A6fCce64D45c64c1E43cfb6F861725';
+  let OPFOwner = null;
+  let routerOwner = null
   let OPFCommunityFeeCollectorAddress;
   let productionNetwork = false;
   let OceanTokenAddress;
+  let gasLimit = 8000000;
   console.log("Using chain "+networkDetails.chainId);
   switch (networkDetails.chainId) {
     case 1:
@@ -55,22 +57,26 @@ async function main() {
       productionNetwork = true;
       OPFOwner = "0x7DF5273aD9A6fCce64D45c64c1E43cfb6F861725";
       OceanTokenAddress = "0x967da4048cD07aB37855c090aAF366e4ce1b9F48";
+      gasLimit = 30000000;
       break;
     case 0x3:
       networkName = "ropsten";
       OceanTokenAddress = "0x5e8DCB2AfA23844bcc311B00Ad1A0C30025aADE9";
+      OPFOwner = '0x58F76AE5BC7Fe80D2fb2781d92189e6eE6Eb8F76';
+      routerOwner = OPFOwner;
       break;
     case 0x4:
       networkName = "rinkeby";
       OceanTokenAddress = "0x8967bcf84170c91b0d24d4302c2376283b0b3a07";
       OPFOwner = "0x0e901bC5D49636eC75B3B4fB88238698E5322dE6";
-      routerOwner = "0x0e901bC5D49636eC75B3B4fB88238698E5322dE6";
-      shouldDeployOceanMock = false;
+      routerOwner = OPFOwner;
+      gasLimit= 30000000;
       break;
     case 0x89:
       networkName = "polygon";
       productionNetwork = true;
       OceanTokenAddress = "0x282d8efCe846A88B159800bd4130ad77443Fa1A1";
+      gasLimit = 20000000;
       break;
     case 0x507:
       networkName = "moonbeamalpha";
@@ -82,10 +88,12 @@ async function main() {
       OPFOwner = '0x2112Eb973af1DBf83a4f11eda82f7a7527D7Fde5'
       OceanTokenAddress = "0x80E63f73cAc60c1662f27D2DFd2EA834acddBaa8";
       break;
-    case 8001:
+    case 80001:
       networkName = "mumbai";
       OPFOwner = '0x06100AB868206861a4D7936166A91668c2Ce1312'
+      routerOwner = OPFOwner;
       OceanTokenAddress = "0xd8992Ed72C445c35Cb4A2be468568Ed1079357c8";
+      gasLimit = 20000000
       break;
     case 0x38:
       networkName = "bsc";
@@ -116,6 +124,12 @@ async function main() {
       break;
   }
 
+  if (!routerOwner || !OPFOwner) {
+    console.error("We need OPFOwner and routerOwner in order to deploy!");
+    return null;
+  }
+  
+  const options = { gasLimit }
   const addressFile = process.env.ADDRESS_FILE;
   let oldAddresses;
   if (addressFile) {
@@ -137,16 +151,16 @@ async function main() {
   if (shouldDeployOceanMock) {
     if (logging) console.info("Deploying OceanMock");
     const Ocean = await ethers.getContractFactory("MockOcean", owner);
-    const ocean = await Ocean.connect(owner).deploy(owner.address);
+    const ocean = await Ocean.connect(owner).deploy(owner.address, options);
     addresses.Ocean = ocean.address;
     // DEPLOY DAI and USDC for TEST (barge etc)
     // owner will already have a 10k balance both for DAI and USDC
     const ERC20Mock = await ethers.getContractFactory("MockERC20Decimals");
     if (logging) console.info("Deploying DAI MOCK");
-    const DAI = await ERC20Mock.connect(owner).deploy("DAI", "DAI", 18);
+    const DAI = await ERC20Mock.connect(owner).deploy("DAI", "DAI", 18, options);
     addresses.MockDAI = DAI.address;
     if (logging) console.info("Deploying USDC MOCK");
-    const USDC = await ERC20Mock.connect(owner).deploy("USDC", "USDC", 6);
+    const USDC = await ERC20Mock.connect(owner).deploy("USDC", "USDC", 6, options);
     addresses.MockUSDC = USDC.address;
 
   }
@@ -162,7 +176,8 @@ async function main() {
     );
     const opfcommunityfeecollector = await OPFCommunityFeeCollector.deploy(
       OPFOwner,
-      OPFOwner
+      OPFOwner,
+      options
     );
     await opfcommunityfeecollector.deployTransaction.wait();
     addresses.OPFCommunityFeeCollector = opfcommunityfeecollector.address;
@@ -183,7 +198,7 @@ async function main() {
 
   if (logging) console.info("Deploying BPool");
   const BPool = await ethers.getContractFactory("BPool", owner);
-  const poolTemplate = await BPool.deploy();
+  const poolTemplate = await BPool.deploy(options);
   const receipt = await poolTemplate.deployTransaction.wait();
   addresses.startBlock = receipt.blockNumber 
   addresses.poolTemplate = poolTemplate.address;
@@ -198,7 +213,8 @@ async function main() {
     addresses.Ocean,
     poolTemplate.address,
     addresses.OPFCommunityFeeCollector,
-    []
+    [],
+    options
   );
   await router.deployTransaction.wait();
   addresses.Router = router.address;
@@ -223,7 +239,8 @@ async function main() {
   );
   const fixedPriceExchange = await FixedPriceExchange.deploy(
     router.address,
-    addresses.OPFCommunityFeeCollector
+    addresses.OPFCommunityFeeCollector,
+    options
   );
   await fixedPriceExchange.deployTransaction.wait();
   addresses.FixedPrice = fixedPriceExchange.address;
@@ -233,7 +250,7 @@ async function main() {
   }
   if (logging) console.info("Deploying StakingContract");
   const SSContract = await ethers.getContractFactory("SideStaking", owner);
-  const ssPool = await SSContract.deploy(router.address);
+  const ssPool = await SSContract.deploy(router.address, options);
   await ssPool.deployTransaction.wait();
   addresses.Staking = ssPool.address;
   if(show_verify){
@@ -243,7 +260,7 @@ async function main() {
   addresses.ERC20Template = {};
   if (logging) console.info("Deploying ERC20 Template");
   const ERC20Template = await ethers.getContractFactory("ERC20Template", owner);
-  const templateERC20 = await ERC20Template.deploy();
+  const templateERC20 = await ERC20Template.deploy(options);
   await templateERC20.deployTransaction.wait();
   if(show_verify){
     console.log("\tRun the following to verify on etherscan");
@@ -254,7 +271,7 @@ async function main() {
     "ERC20TemplateEnterprise",
     owner
   );
-  const templateERC20Enterprise = await ERC20TemplateEnterprise.deploy();
+  const templateERC20Enterprise = await ERC20TemplateEnterprise.deploy(options);
   await templateERC20Enterprise.deployTransaction.wait();
   if(show_verify){
     console.log("\tRun the following to verify on etherscan");
@@ -266,7 +283,7 @@ async function main() {
     "ERC721Template",
     owner
   );
-  const templateERC721 = await ERC721Template.deploy();
+  const templateERC721 = await ERC721Template.deploy(options);
   await templateERC721.deployTransaction.wait();
   if(show_verify){
     console.log("\tRun the following to verify on etherscan");
@@ -274,7 +291,7 @@ async function main() {
   }
   if (logging) console.info("Deploying Dispenser");
   const Dispenser = await ethers.getContractFactory("Dispenser", owner);
-  const dispenser = await Dispenser.deploy(router.address);
+  const dispenser = await Dispenser.deploy(router.address, options);
   await dispenser.deployTransaction.wait();
   addresses.Dispenser = dispenser.address;
   if(show_verify){
@@ -297,7 +314,8 @@ async function main() {
     templateERC721.address,
     templateERC20.address,
     addresses.OPFCommunityFeeCollector,
-    router.address
+    router.address,
+    options
   );
   await factoryERC721.deployTransaction.wait();
   if(show_verify){
@@ -313,7 +331,7 @@ async function main() {
   let tokenTemplate = await factoryERC721.getTokenTemplate(currentTokenCount);
   addresses.ERC20Template[currentTokenCount.toString()] = templateERC20.address;
   if (logging) console.info("Adding ERC20Enterprise to ERC721Factory");
-  const templateadd = await factoryERC721.addTokenTemplate(templateERC20Enterprise.address);
+  const templateadd = await factoryERC721.addTokenTemplate(templateERC20Enterprise.address, options);
   await templateadd.wait();
   currentTokenCount = await factoryERC721.getCurrentTemplateCount();
   tokenTemplate = await factoryERC721.getTokenTemplate(currentTokenCount);
@@ -323,16 +341,16 @@ async function main() {
   // SET REQUIRED ADDRESS
 
   if (logging) console.info("Adding factoryERC721.address");
-  await router.connect(owner).addFactory(factoryERC721.address);
+  await router.connect(owner).addFactory(factoryERC721.address, options);
   if (logging) console.info("Adding fixedPriceExchange.address");
-  await router.connect(owner).addFixedRateContract(fixedPriceExchange.address);
+  await router.connect(owner).addFixedRateContract(fixedPriceExchange.address, options);
   if (logging) console.info("Adding dispenser.address");
-  await router.connect(owner).addDispenserContract(dispenser.address);
+  await router.connect(owner).addDispenserContract(dispenser.address, options);
   if (logging) console.info("Adding ssPool.address");
-  await router.connect(owner).addSSContract(ssPool.address);
+  await router.connect(owner).addSSContract(ssPool.address, options);
   // Avoid setting Owner an account we cannot use on barge for now
   if (logging) console.info("Moving Router ownership")
-  if (owner.address != routerOwner) await router.connect(owner).changeRouterOwner(routerOwner)
+  if (owner.address != routerOwner) await router.connect(owner).changeRouterOwner(routerOwner, options)
 
   if (addressFile) {
     // write address.json if needed
