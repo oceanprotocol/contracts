@@ -443,6 +443,11 @@
           "type": "address"
         },
         {
+          "internalType": "address",
+          "name": "additionalMetaDataUpdater",
+          "type": "address"
+        },
+        {
           "internalType": "string",
           "name": "tokenURI",
           "type": "string"

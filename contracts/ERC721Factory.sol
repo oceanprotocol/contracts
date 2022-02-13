@@ -121,6 +121,7 @@ contract ERC721Factory is Deployer, Ownable, ReentrancyGuard {
      * @param symbol NFT Symbol
      * @param _templateIndex template index we want to use
      * @param additionalERC20Deployer if != address(0), we will add it with ERC20Deployer role
+     * @param additionalMetaDataUpdater if != address(0), we will add it with updateMetadata role
      */
 
     function deployERC721Contract(
@@ -128,6 +129,7 @@ contract ERC721Factory is Deployer, Ownable, ReentrancyGuard {
         string memory symbol,
         uint256 _templateIndex,
         address additionalERC20Deployer,
+        address additionalMetaDataUpdater,
         string memory tokenURI
     ) public returns (address token) {
         require(
@@ -158,6 +160,7 @@ contract ERC721Factory is Deployer, Ownable, ReentrancyGuard {
                 symbol,
                 address(this),
                 additionalERC20Deployer,
+                additionalMetaDataUpdater,
                 tokenURI
             ),
             "ERC721DTFactory: Unable to initialize token instance"
@@ -609,6 +612,7 @@ contract ERC721Factory is Deployer, Ownable, ReentrancyGuard {
             _NftCreateData.symbol,
             _NftCreateData.templateIndex,
             address(this),
+            address(0),
             _NftCreateData.tokenURI);
         erc20Address = IERC721Template(erc721Address).createERC20(
             _ErcCreateData.templateIndex,
@@ -649,6 +653,7 @@ contract ERC721Factory is Deployer, Ownable, ReentrancyGuard {
             _NftCreateData.symbol,
             _NftCreateData.templateIndex,
             address(this),
+            address(0),
              _NftCreateData.tokenURI);
         erc20Address = IERC721Template(erc721Address).createERC20(
             _ErcCreateData.templateIndex,
@@ -694,6 +699,7 @@ contract ERC721Factory is Deployer, Ownable, ReentrancyGuard {
             _NftCreateData.symbol,
             _NftCreateData.templateIndex,
             address(this),
+            address(0),
              _NftCreateData.tokenURI);
         erc20Address = IERC721Template(erc721Address).createERC20(
             _ErcCreateData.templateIndex,
@@ -737,6 +743,7 @@ contract ERC721Factory is Deployer, Ownable, ReentrancyGuard {
             _NftCreateData.symbol,
             _NftCreateData.templateIndex,
             address(this),
+            address(0),
              _NftCreateData.tokenURI);
         erc20Address = IERC721Template(erc721Address).createERC20(
             _ErcCreateData.templateIndex,
@@ -754,6 +761,45 @@ contract ERC721Factory is Deployer, Ownable, ReentrancyGuard {
             );
         // remove our selfs from the erc20DeployerRole
         IERC721Template(erc721Address).removeFromCreateERC20List(address(this));
+    }
+
+
+    
+    struct MetaData {
+        uint8 _metaDataState;
+        string _metaDataDecryptorUrl;
+        string _metaDataDecryptorAddress;
+        bytes flags;
+        bytes data;
+        bytes32 _metaDataHash;
+        IERC721Template.metaDataProof[] _metadataProofs;
+    }
+
+    /**
+     * @dev createNftWithMetaData
+     *      Creates a new NFT, then sets the metadata, all in one call
+     *      Use this carefully
+     * @param _NftCreateData input data for NFT Creation
+     * @param _MetaData input metadata
+     */
+    function createNftWithMetaData(
+        NftCreateData calldata _NftCreateData,
+        MetaData calldata _MetaData
+    ) external nonReentrant returns (address erc721Address){
+        //we are adding ourselfs as a ERC20 Deployer, because we need it in order to deploy the fixedrate
+        erc721Address = deployERC721Contract(
+            _NftCreateData.name,
+            _NftCreateData.symbol,
+            _NftCreateData.templateIndex,
+            address(0),
+            address(this),
+             _NftCreateData.tokenURI);
+        // set metadata
+        IERC721Template(erc721Address).setMetaData(_MetaData._metaDataState, _MetaData._metaDataDecryptorUrl
+        , _MetaData._metaDataDecryptorAddress, _MetaData.flags, 
+        _MetaData.data,_MetaData._metaDataHash, _MetaData._metadataProofs);
+        // remove our selfs from the erc20DeployerRole
+        IERC721Template(erc721Address).removeFromMetadataList(address(this));
     }
 
 

@@ -6,6 +6,7 @@ const { expectRevert, expectEvent, BN } = require("@openzeppelin/test-helpers");
 const { impersonate } = require("../../helpers/impersonate");
 const constants = require("../../helpers/constants");
 const { web3 } = require("@openzeppelin/test-helpers/src/setup");
+const { sha256 } = require("@ethersproject/sha2");
 const {getEventFromTx} = require("../../helpers/utils");
 const { ZERO_ADDRESS } = require("@openzeppelin/test-helpers/src/constants");
 const ethers = hre.ethers;
@@ -149,6 +150,7 @@ describe("ERC721Factory", () => {
       "NFTSYMBOL",
       1,
       "0x0000000000000000000000000000000000000000",
+      "0x0000000000000000000000000000000000000000",
       "https://oceanprotocol.com/nft/"
     );
     
@@ -209,6 +211,7 @@ describe("ERC721Factory", () => {
       "DTSYMBOL",
       1,
       "0x0000000000000000000000000000000000000000",
+      "0x0000000000000000000000000000000000000000",
       "https://oceanprotocol.com/nft/"
     );
     const txReceipt = await tx.wait();
@@ -231,6 +234,7 @@ describe("ERC721Factory", () => {
       "DTSYMBOL",
       1,
       "0x0000000000000000000000000000000000000000",
+      "0x0000000000000000000000000000000000000000",
       "https://oceanprotocol.com/nft/"
     );
     const txReceipt = await tx.wait();
@@ -246,6 +250,7 @@ describe("ERC721Factory", () => {
     await expectRevert(
       factoryERC721.deployERC721Contract("DT1", "DTSYMBOL", 7,
       "0x0000000000000000000000000000000000000000",
+      "0x0000000000000000000000000000000000000000",
       "https://oceanprotocol.com/nft/"),
       "ERC721DTFactory: Template index doesnt exist"
     );
@@ -254,6 +259,7 @@ describe("ERC721Factory", () => {
   it("#deployERC721Contract - should fail to deploy a new erc721 contract if template index is ZERO", async () => {
     await expectRevert(
       factoryERC721.deployERC721Contract("DT1", "DTSYMBOL", 0,
+      "0x0000000000000000000000000000000000000000",
       "0x0000000000000000000000000000000000000000",
       "https://oceanprotocol.com/nft/"),
       "ERC721DTFactory: Template index doesnt exist"
@@ -272,6 +278,7 @@ describe("ERC721Factory", () => {
     await expectRevert(
       factoryERC721.deployERC721Contract("DT1", "DTSYMBOL",  templateIndex,
       "0x0000000000000000000000000000000000000000",
+      "0x0000000000000000000000000000000000000000",
       "https://oceanprotocol.com/nft/"),
       "ERC721DTFactory: ERC721Token Template disabled"
     );
@@ -281,7 +288,9 @@ describe("ERC721Factory", () => {
     assert((await factoryERC721.getCurrentNFTCount()) == 1);
 
     await factoryERC721.deployERC721Contract("DT1", "DTSYMBOL",  1,
-    "0x0000000000000000000000000000000000000000","https://oceanprotocol.com/nft/");
+    "0x0000000000000000000000000000000000000000",
+    "0x0000000000000000000000000000000000000000",
+    "https://oceanprotocol.com/nft/");
 
     assert((await factoryERC721.getCurrentNFTCount()) == 2);
   });
@@ -1342,5 +1351,46 @@ describe("ERC721Factory", () => {
     assert(dispenserStatus.active==true)
     assert(dispenserToken === erc20Address)
     
+  });
+
+  it("#createNftWithMetaData - should create a new erc721 with metadata in one single call and get address", async () => {    
+    const marketFee = 1e15;
+    const rate = web3.utils.toWei("1");
+    const data = web3.utils.asciiToHex('my cool metadata');
+    const dataHash = sha256(data);
+    const metaDataDecryptorUrl = 'http://myprovider:8030';
+    const tx = await factoryERC721.createNftWithMetaData(
+      {
+      "name": "72120PBundle",
+      "symbol": "72PBundle",
+      "templateIndex": 1, 
+      "tokenURI":"https://oceanprotocol.com/nft/" 
+      },
+      {
+        "_metaDataState": 1,
+        "_metaDataDecryptorUrl": metaDataDecryptorUrl,
+        "_metaDataDecryptorAddress": '0x123',
+        "flags":0,
+        "data": data,
+        "_metaDataHash": dataHash,
+        "_metadataProofs": []
+      }
+      );
+
+    const txReceipt = await tx.wait();
+    let event = getEventFromTx(txReceipt,'NFTCreated')
+    assert(event, "Cannot find NFTCreated event")
+    const nftAddress = event.args[0];
+    
+    
+
+    const tokenERC721 = await ethers.getContractAt(
+      "contracts/interfaces/IERC721Template.sol:IERC721Template",
+      nftAddress
+    );
+    assert(await tokenERC721.name() === "72120PBundle");
+    metadataInfo = await tokenERC721.getMetaData()
+    assert(metadataInfo[3] === true)
+    assert(metadataInfo[0] == metaDataDecryptorUrl);
   });
 });
