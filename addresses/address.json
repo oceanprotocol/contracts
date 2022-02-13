@@ -36,5 +36,24 @@
     },
     "Dispenser": "0x5494711392a67DA50D3bC7b1fcC2d1877cFaA4d2",
     "ERC721Factory": "0x8c98ea273bA22327F896Aa1a1a46E1BFf56e9b1D"
+  },
+  "ropsten": {
+    "chainId": 3,
+    "Ocean": "0x5e8DCB2AfA23844bcc311B00Ad1A0C30025aADE9",
+    "OPFCommunityFeeCollector": "0x78e1317186786591912A10a7aF2490B8B4697A93",
+    "startBlock": 11960144,
+    "poolTemplate": "0xb28Ab1AaDe4c75F8cF013136fc0c290AeaeA9BA6",
+    "Router": "0x3EFDD8f728c8e774aB81D14d0B2F07a8238960f4",
+    "FixedPrice": "0x8B8E187CF9c551e63f54AA04E21F48CDAF2296aE",
+    "Staking": "0xE282492d50879b911844fA6dD87aAD6169963fC6",
+    "ERC20Template": {
+      "1": "0xd09789Ce05aa0f6feFc18315de4964Db07Cc0618",
+      "2": "0x257fe2e49530A4B7FC3Ed597465e2931db3f20b7"
+    },
+    "ERC721Template": {
+      "1": "0x6fd867E5AEE6D62a24f97939db90C4e67A73A651"
+    },
+    "Dispenser": "0x1Af3CC30fD18af837f7630Aff12aE2b826bD3c5D",
+    "ERC721Factory": "0x09c9a4010E106b9673DcD58AB021a2C84457f323"
   }
 }
