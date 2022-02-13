@@ -56,6 +56,7 @@ async function main() {
       networkName = "mainnet";
       productionNetwork = true;
       OPFOwner = "0x7DF5273aD9A6fCce64D45c64c1E43cfb6F861725";
+      routerOwner = OPFOwner;
       OceanTokenAddress = "0x967da4048cD07aB37855c090aAF366e4ce1b9F48";
       gasLimit = 30000000;
       break;
@@ -76,16 +77,20 @@ async function main() {
       networkName = "polygon";
       productionNetwork = true;
       OceanTokenAddress = "0x282d8efCe846A88B159800bd4130ad77443Fa1A1";
+      OPFOwner = "0xc37f8341ac6e4a94538302bcd4d49cf0852d30c0";
+      routerOwner = OPFOwner;
       gasLimit = 20000000;
       break;
     case 0x507:
-      networkName = "moonbeamalpha";
+      networkName = "moonbase";
       OPFOwner = '0xd8992Ed72C445c35Cb4A2be468568Ed1079357c8';
       OceanTokenAddress = "0xF6410bf5d773C7a41ebFf972f38e7463FA242477";
+      routerOwner = OPFOwner;
       break;
     case 2021000:
       networkName = "gaiaxtestnet";
       OPFOwner = '0x2112Eb973af1DBf83a4f11eda82f7a7527D7Fde5'
+      routerOwner = OPFOwner;
       OceanTokenAddress = "0x80E63f73cAc60c1662f27D2DFd2EA834acddBaa8";
       break;
     case 80001:
@@ -98,23 +103,29 @@ async function main() {
     case 0x38:
       networkName = "bsc";
       productionNetwork = true;
-      OPFOwner = '0x30E4CC2C7A9c6aA2b2Ce93586E3Df24a3A00bcDD'
+      OPFOwner = '0x30E4CC2C7A9c6aA2b2Ce93586E3Df24a3A00bcDD';
+      routerOwner = OPFOwner;
       OceanTokenAddress = "0xdce07662ca8ebc241316a15b611c89711414dd1a";
       break;
     case 2021001:
       networkName = "catenaxtestnet";
       OPFOwner = '0x06100AB868206861a4D7936166A91668c2Ce1312'
       OceanTokenAddress = "0xf26c6C93f9f1d725e149d95f8E7B2334a406aD10";
+      routerOwner = OPFOwner;
       break;
     case 0xf6:
       networkName = "energyweb";
       productionNetwork = true;
       OceanTokenAddress = "0x593122aae80a6fc3183b2ac0c4ab3336debee528";
+      OPFOwner = "0x06100AB868206861a4D7936166A91668c2Ce1312";
+      routerOwner = OPFOwner;
       break;
     case 1285:
       networkName = "moonriver";
       productionNetwork = true;
       OceanTokenAddress = "0x99C409E5f62E4bd2AC142f17caFb6810B8F0BAAE";
+      OPFOwner = "0x06100AB868206861a4D7936166A91668c2Ce1312"
+      routerOwner = OPFOwner;
       break;
     default:
       OPFOwner = "0x7DF5273aD9A6fCce64D45c64c1E43cfb6F861725";
