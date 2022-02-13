@@ -278,12 +278,13 @@ describe("Vesting flow", () => {
         [sideStaking.address,oceanAddress,user3.address,user3.address,marketFeeCollector.address,poolTemplate.address]
       )
     ).wait();
+    const PoolEvent = getEventFromTx(receipt, 'NewPool')
+    assert(PoolEvent, "Cannot find NewPool event")
+    const VestingCreatedEvent = getEventFromTx(receipt, 'VestingCreated')
+    assert(VestingCreatedEvent, "Cannot find VestingCreated event")
+    assert(PoolEvent.args.ssContract == sideStaking.address);
 
-    const PoolEvent = receipt.events.filter((e) => e.event === "NewPool");
-
-    assert(PoolEvent[0].args.ssContract == sideStaking.address);
-
-    bPoolAddress = PoolEvent[0].args.poolAddress;
+    bPoolAddress = PoolEvent.args.poolAddress;
 
     bPool = await ethers.getContractAt("BPool", bPoolAddress);
 
@@ -324,30 +325,38 @@ describe("Vesting flow", () => {
     // console.log((await time.latestBlock()).toString());
   });
 
-  xit("#8 - we check vesting amount is correct", async () => {
+  it("#8 - we check vesting", async () => {
     const pubDTbalBEFORE = await erc20Token.balanceOf(tokenERC721.address);
     expect(await sideStaking.getvestingAmount(erc20Token.address)).to.equal(
       vestingAmount
     );
-    console.log(pubDTbalBEFORE.toString());
-
+    //console.log(pubDTbalBEFORE.toString());
+    const availableVesting = await sideStaking.getAvailableVesting(erc20Token.address)
+    console.log("Available vesting: "+ethers.utils.formatEther(availableVesting));
     //console.log((await sideStaking.getvestingAmountSoFar(erc20Token.address)).toString())
-    console.log((await time.latestBlock()).toString());
+    //console.log((await time.latestBlock()).toString());
 
-    console.log((await time.latestBlock()).toString());
     //await sideStaking.getVesting(erc20Token.address)
 
-    // to many blocks to advance, previous commit shows it works (500 blocks vesting) 
+    // advance 1000 blocks
     // TODO: add test for intermediate steps (50%, etc)
-    for (let i = 0; i < 2500000; i++) {
+    
+    for (let i = 0; i < 1000; i++) {
       // each one advance a block
-      await signer.sendTransaction({
+      const dummyTx=await signer.sendTransaction({
         to: user4.address,
         value: ethers.utils.parseEther("0.0"),
       });
+      await dummyTx.wait()
     }
-    await sideStaking.getVesting(erc20Token.address);
+    const availableVestingAfterAdvance = await sideStaking.getAvailableVesting(erc20Token.address)
+    console.log("Available vesting after 1000 blocks: "+ethers.utils.formatEther(availableVestingAfterAdvance));
+    expect(availableVestingAfterAdvance.gt(availableVesting), 'Available vesting was not increased!')
+    const tx=await sideStaking.getVesting(erc20Token.address);
+    const txReceipt = await tx.wait();
+    const VestingCreatedEvent = getEventFromTx(txReceipt, 'Vesting')
+    assert(VestingCreatedEvent, "Cannot find Vesting event")
     const pubDTbalAFTER = await erc20Token.balanceOf(tokenERC721.address);
-    console.log(ethers.utils.formatEther(pubDTbalAFTER));
+    expect(pubDTbalAFTER.gt(pubDTbalBEFORE), 'Publisher balance was not increased!')
   });
 });

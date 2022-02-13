@@ -139,7 +139,10 @@ contract ERC20Template is
         address ssContract,
         address baseTokenAddress
     );
-
+    event VestingCreated(address indexed datatokenAddress,
+        address indexed publisherAddress,
+        uint256 vestingEndBlock,
+        uint256 totalVestingAmount);
     event NewFixedRate(bytes32 exchangeId, address indexed owner, address exchangeContract, address indexed baseToken);
     event NewDispenser(address dispenserContract);
 
