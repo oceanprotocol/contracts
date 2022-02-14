@@ -2,155 +2,178 @@
 
 ## ERC721Factory.sol
 
-### deployERC721Contract.   
-#### deploys a new NFT Contract, for now there's only 1 template, _templateIndex = 1
+### deployERC721Contract.
+
+#### deploys a new NFT Contract, for now there's only 1 template, \_templateIndex = 1
 
 ```Javascript
-  /**
+   /**
      * @dev deployERC721Contract
-     *      
+     *
      * @param name NFT name
      * @param symbol NFT Symbol
-     * @param _data data used by Aquarius
-     * @param _flags flags used by Aquarius
      * @param _templateIndex template index we want to use
+     * @param additionalERC20Deployer if != address(0), we will add it with ERC20Deployer role
+     * @param additionalMetaDataUpdater if != address(0), we will add it with updateMetadata role
+     * @param tokenURI tokenURI for NFT metadata
      */
 
     function deployERC721Contract(
         string memory name,
         string memory symbol,
-        bytes memory _data,
-        bytes memory _flags,
-        uint256 _templateIndex
+        uint256 _templateIndex,
+        address additionalERC20Deployer,
+        address additionalMetaDataUpdater,
+        string memory tokenURI
     ) public returns (address token)
 ```
+
+
 
 ## ERC721Template.sol
 
 ### createERC20
-#### deploys a new ERC20 Contract, for now there's only 1 template, templateIndex = 1
+
+#### deploys a new ERC20 Contract, templateIndex = 1 for Standard Template, templateIndex = 2 for Enterprise template
 
 ```Javascript
-  /**
+   /**
      * @dev createERC20
      *        ONLY user with deployERC20 permission (assigned by Manager) can call it
              Creates a new ERC20 datatoken.
             It also adds initial minting and fee management permissions to custom users.
 
-    * @param name_ token name
-    * @param symbol_ token symbol
-    * @param cap the maximum total supply
-    * @param templateIndex template index to deploy
-    * @param minter minter address to be set as initial minter 
-    * @param feeManager feeManager address to be set as initial feeManager (who can set who gets the DTs consumed)
+     * @param _templateIndex ERC20Template index 
+     * @param strings refers to an array of strings
+     *                      [0] = name
+     *                      [1] = symbol
+     * @param addresses refers to an array of addresses
+     *                     [0]  = minter account who can mint datatokens (can have multiple minters)
+     *                     [1]  = feeManager initial feeManager for this DT
+     *                     [2]  = publishing Market Address
+     *                     [3]  = publishing Market Fee Token
+     * @param uints  refers to an array of uints
+     *                     [0] = cap_ the total ERC20 cap
+     *                     [1] = publishing Market Fee Amount
+     * @param bytess  refers to an array of bytes
+     *                     Currently not used, useful for future templates
      
      @return ERC20 token address
      */
 
     function createERC20(
-        string calldata name_,
-        string calldata symbol_,
-        uint256 cap,
-        uint256 templateIndex,
-        address minter,
-        address feeManager
-    ) external returns (address)
+        uint256 _templateIndex,
+        string[] calldata strings,
+        address[] calldata addresses,
+        uint256[] calldata uints,
+        bytes[] calldata bytess
+    ) external nonReentrant returns (address)
 ```
 
-### updateMetadata   
-#### updates metadata both for Aqua and the store
+### setMetaData
+
+#### sets MetaData for Aquarius
 
 ```Javascript
    /**
-     * @dev updateMetadata
-     *        ONLY user with updateMetadata permission (assigned by Manager) can call it
-             Updates Metadata for Aqua(emit event on the Metadata contract)
-             It also updates the same data argument into the ERC725 standard (key-value store).
-             The key is prefixed at METADATA_KEY = keccak256("METADATA_KEY");
+     * @dev setMetaData
+     *
+             Creates or update Metadata for Aqua(emit event)
+             Also, updates the METADATA_DECRYPTOR key
+     * @param _metaDataState metadata state
+     * @param _metaDataDecryptorUrl decryptor URL
+     * @param _metaDataDecryptorAddress decryptor public key
      * @param flags flags used by Aquarius
      * @param data data used by Aquarius
-    
-     
+     * @param _metaDataHash hash of clear data (before the encryption, if any)
+     * @param _metadataProofs optional signatures of entitys who validated data (before the encryption, if any)
      */
-
-    function updateMetadata(bytes calldata flags, bytes calldata data)
-        external
-```
-
-### wrapV3DT   
-#### used for V3 DT integration. 
-
-```Javascript
-       /**
-     * @dev wrapV3DT
-            Requires to call proposeMinter BEFORE on the v3DT, the proposed minter MUST be the NFT contract address
-     *      Only NFT Owner can call this function.
-     *      This function 'wraps' any v3 datatoken, NFTOwner has to be the actual minter(v3) 
-            After wrapping, the minter() in the v3 datatoken is going to be this contract. To mint new tokens we now need to use mintV3DT
-     * @param datatoken datatoken address we want to wrap
-     * @param newMinter new minter address after wrapping
-     */
-
-    function wrapV3DT(address datatoken, address newMinter)
-        external
-        onlyNFTOwner
+    function setMetaData(
+        uint8 _metaDataState, 
+        string calldata _metaDataDecryptorUrl,
+        string calldata _metaDataDecryptorAddress, 
+        bytes calldata flags,
+        bytes calldata data,
+        bytes32 _metaDataHash, 
+        metaDataProof[] memory _metadataProofs) external
 ```
 
 
 ## ERC20Template.sol
 
 ### deployPool
+
 #### creates a new pool with combined a Vesting and Staking Contract.
+
 #### This function has many parameters because does many things in once:
+
 - creates a Pool with Staking Contract
 - separate a Vesting amount for publisher
-- adds initial liquidity 
+- adds initial liquidity
 
 #### Requires basetoken approval before
 
-NOTE: 
+NOTE:
 ssParams[5] in order:
-- initial rate converted to Wei
-- basetokenDecimals
+
+- initial rate in Wei
+- basetoken Decimals
 - vesting amount in Wei, max 10% of total cap
 - vesting blocks
-- initial liquidity we want to provide in basetoken (will stake DTs proportionally to the rate provided, pool weight 50-50)   [
+- initial liquidity we want to provide in basetoken (will stake DTs proportionally to the rate provided, pool weight 50-50) 
 
 swapFees[2] in order:
+
 - swapFee (fee for Liquidity provider)
 - swapMarketFee (fee for marketplace)
 
+addresses[5] in order:
+    - side staking contract address
+    - baseToken address for pool creation(OCEAN or other)
+    - baseTokenSender user which will provide the baseToken amount for initial liquidity
+    - publisherAddress user which will be assigned the vested amount
+    - marketFeeCollector address
+    - pool template address
 
 ```Javascript
-    /**
+   /**
      * @dev deployPool
      *      Function to deploy new Pool with 1SS. It also has a vesting schedule.
-            This function can only be called ONCE and ONLY if no token have been minted yet.
-     * @param controller ssContract address
-     * @param basetokenAddress baseToken for pool (OCEAN or other)
+     *     This function can only be called ONCE and ONLY if no token have been minted yet.
+     *      Requires baseToken approval
      * @param ssParams params for the ssContract. 
-     * @param basetokenSender user which will provide the baseToken amount for initial liquidity 
+     *                     [0]  = rate (wei)
+     *                     [1]  = baseToken decimals
+     *                     [2]  = vesting amount (wei)
+     *                     [3]  = vested blocks
+     *                     [4]  = initial liquidity in baseToken for pool creation
      * @param swapFees swapFees (swapFee, swapMarketFee), swapOceanFee will be set automatically later
-       @param marketFeeCollector marketFeeCollector address
-       @param publisherAddress user which will be assigned the vested amount.
+     *                     [0] = swapFee for LP Providers
+     *                     [1] = swapFee for marketplace runner
+      
+      .
+     * @param addresses refers to an array of addresses passed by user
+     *                     [0]  = side staking contract address
+     *                     [1]  = baseToken address for pool creation(OCEAN or other)
+     *                     [2]  = baseTokenSender user which will provide the baseToken amount for initial liquidity
+     *                     [3]  = publisherAddress user which will be assigned the vested amount
+     *                     [4]  = marketFeeCollector marketFeeCollector address
+                           [5] = poolTemplateAddress
      */
 
     function deployPool(
-        address controller,
-        address basetokenAddress,
         uint256[] memory ssParams,
-        address basetokenSender,
-        uint256[2] memory swapFees,
-        address marketFeeCollector,
-        address publisherAddress
-    ) external onlyERC20Deployer 
+        uint256[] memory swapFees,
+        address[] memory addresses
+    ) external onlyERC20Deployer nonReentrant returns (address pool)
 ```
 
-
 ### createFixedRate
+
 #### creates a new Fixed price exchange.
 
 #### DT approval from owner can be done AFTER exchange creation to initiate the exchange
+
 #### Requires Basetoken approval for buyer
 
 ```Javascript
@@ -158,23 +181,13 @@ swapFees[2] in order:
      * @dev createFixedRate
      *      Creates a new FixedRateExchange setup.
      * @param fixedPriceAddress fixedPriceAddress
-     * @param basetokenAddress baseToken for exchange (OCEAN or other)
-     * @param basetokenDecimals baseToken decimals
-     * @param fixedRate rate
-     * @param owner exchangeOwner
-       @param marketFee market Fee 
-       @param marketFeeCollector market fee collector address
-
-       @return exchangeId
+     * @param addresses array of addresses [baseToken,owner,marketFeeCollector]
+     * @param uints array of uints [baseTokenDecimals,datatokenDecimals, fixedRate, marketFee, withMint]
+     * @return exchangeId
      */
-
     function createFixedRate(
         address fixedPriceAddress,
-        address basetokenAddress,
-        uint8 basetokenDecimals,
-        uint256 fixedRate,
-        address owner,
-        uint256 marketFee,
-        address marketFeeCollector
-    ) external onlyERC20Deployer returns (bytes32 exchangeId)
+        address[] memory addresses,
+        uint256[] memory uints
+    ) external onlyERC20Deployer nonReentrant returns (bytes32 exchangeId)
 ```

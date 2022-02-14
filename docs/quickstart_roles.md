@@ -46,8 +46,8 @@ ERC20 Roles are managed by the ERC20Deployers at 721 LEVEL
 ### Minter: 
    - can mint new DT20 tokens if cap is not exceeded
 
-### Fee Manager: 
-   - can set a new Fee Collector(better a DT collector), if not set, NFT Owner is the fee Collector (gets DT consumed after market and community fee)
+### Payment Manager: 
+   - can set a new Payment Collector, if not set, NFT Owner is the Payment Collector (gets DT consumed after market and community fee)
 
 
 
@@ -58,7 +58,7 @@ ERC20 Roles are managed by the ERC20Deployers at 721 LEVEL
 
 Both in ERC725 and ERC20 contract there’s a function called cleanPermissions:
 ERC725: clean all permissions: Manager, ERC20Deployer, MetadataUpdate,Store Updater. After this call even the NFT Owner has to reassign itself as Manager.
-ERC20: clean Minter and Fee Manager Permissions. 
+ERC20: clean Minter and Payment Manager Permissions. 
 
 
 ![alt text](https://github.com/oceanprotocol/contracts/blob/feature/1SS/V4Roles.jpg?raw=true)
