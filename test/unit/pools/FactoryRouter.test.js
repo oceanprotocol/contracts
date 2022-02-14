@@ -43,12 +43,7 @@ describe("FactoryRouter", () => {
   beforeEach("init contracts for each test", async () => {
     await network.provider.request({
       method: "hardhat_reset",
-      params: [{
-        forking: {
-          jsonRpcUrl: process.env.ALCHEMY_URL,
-          blockNumber: 12515000,
-        }
-      }]
+      params: []
     })
 
     const ERC721Template = await ethers.getContractFactory("ERC721Template");

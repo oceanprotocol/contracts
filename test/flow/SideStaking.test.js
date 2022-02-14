@@ -79,9 +79,7 @@ describe("1SS flow", () => {
       daiContract = await MockERC20.deploy(
         'DAI','DAI',18
       );
-      usdcContract = await MockERC20.deploy(
-        'USDC','USDC',6
-      );
+      
   
   
       await oceanContract

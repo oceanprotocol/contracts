@@ -50,11 +50,10 @@ describe("Dispenser", () => {
     (cap = web3.utils.toWei("100000"));
 
   const oceanAddress = "0x967da4048cD07aB37855c090aAF366e4ce1b9F48";
-  const daiAddress = "0x6B175474E89094C44Da98b954EedeAC495271d0F";
-  const usdcAddress = "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48";
+  
 
   before("init contracts for each test", async () => {
-    MockERC20 = await ethers.getContractFactory("MockERC20Decimals");
+  
     const Dispenser = await ethers.getContractFactory(
       "Dispenser"
     );

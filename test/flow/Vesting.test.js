@@ -44,14 +44,7 @@ describe("Vesting flow", () => {
     oceanIndex = null,
     daiIndex = null;
 
-  const oceanAddress = "0x967da4048cD07aB37855c090aAF366e4ce1b9F48";
-  const daiAddress = "0x6b175474e89094c44da98b954eedeac495271d0f";
-  const balAddress = "0xba100000625a3754423978a60c9317c58a424e3D";
-  const vaultAddress = "0xBA12222222228d8Ba445958a75a0704d566BF2C8";
-  const communityFeeCollector = "0xeE9300b7961e0a01d9f0adb863C7A227A07AaD75";
-  const OPF_FEE_WITHDRAWAL = 3; // corresponding enum index for ocean community exitKind
-  const MP_FEE_WITHDRAWAL = 4; // corresponding enum index for market fee exitKind
-  const provider = new ethers.providers.JsonRpcProvider();
+
 
   before("init contracts for each test", async () => {
     const ERC721Template = await ethers.getContractFactory("ERC721Template");
@@ -64,7 +57,8 @@ describe("Vesting flow", () => {
     const FixedRateExchange = await ethers.getContractFactory(
       "FixedRateExchange"
     );
-
+    const MockERC20 = await ethers.getContractFactory('MockERC20Decimals');
+    
     [
       owner, // nft owner, 721 deployer
       reciever,
@@ -79,36 +73,13 @@ describe("Vesting flow", () => {
       opcCollector,
     ] = await ethers.getSigners();
 
-    // GET SOME OCEAN TOKEN FROM OUR MAINNET FORK and send them to user3
-    const userWithOcean = "0x53aB4a93B31F480d17D3440a6329bDa86869458A";
-    await impersonate(userWithOcean);
-
-    oceanContract = await ethers.getContractAt(
-      "contracts/interfaces/IERC20.sol:IERC20",
-      oceanAddress
+    oceanContract = await MockERC20.deploy(
+      'OCEAN','OCEAN',18
     );
-    signer = ethers.provider.getSigner(userWithOcean);
     await oceanContract
-      .connect(signer)
       .transfer(user3.address, ethers.utils.parseEther("10000"));
 
-    await oceanContract
-      .connect(signer)
-      .transfer(user4.address, ethers.utils.parseEther("10000"));
-
-    // GET SOME DAI (A NEW TOKEN different from OCEAN)
-    const userWithDAI = "0xB09cD60ad551cE7fF6bc97458B483A8D50489Ee7";
-
-    await impersonate(userWithDAI);
-
-    daiContract = await ethers.getContractAt(
-      "contracts/interfaces/IERC20.sol:IERC20",
-      daiAddress
-    );
-    signer = ethers.provider.getSigner(userWithDAI);
-    await daiContract
-      .connect(signer)
-      .transfer(user3.address, ethers.utils.parseEther("10000"));
+   
 
     data = web3.utils.asciiToHex("SomeData");
     flags = web3.utils.asciiToHex(constants.blob[0]);
@@ -121,7 +92,7 @@ describe("Vesting flow", () => {
 
     router = await Router.deploy(
       owner.address,
-      oceanAddress,
+      oceanContract.address,
       poolTemplate.address, 
       opcCollector.address,
       []
@@ -226,7 +197,7 @@ describe("Vesting flow", () => {
     
     await expectRevert(erc20Token.connect(user3).deployPool(
        // sideStaking.address,
-       // oceanAddress,
+       // oceanContract.address,
         [
           web3.utils.toWei("1"), // rate
           18, // baseTokenDecimals
@@ -241,7 +212,7 @@ describe("Vesting flow", () => {
         ],
        // marketFeeCollector.address,
        // user3.address // publisherAddress (get vested amount)
-        [sideStaking.address,oceanAddress,user3.address,user3.address,marketFeeCollector.address,poolTemplate.address]
+        [sideStaking.address,oceanContract.address,user3.address,user3.address,marketFeeCollector.address,poolTemplate.address]
       ), "ERC20Template: Vesting period too low. See FactoryRouter.minVestingPeriodInBlocks");
   });
   
@@ -261,7 +232,7 @@ describe("Vesting flow", () => {
     receipt = await (
       await erc20Token.connect(user3).deployPool(
        // sideStaking.address,
-       // oceanAddress,
+       // oceanContract.address,
         [
           web3.utils.toWei("1"), // rate
           18, // baseTokenDecimals
@@ -276,7 +247,7 @@ describe("Vesting flow", () => {
         ],
        // marketFeeCollector.address,
        // user3.address // publisherAddress (get vested amount)
-        [sideStaking.address,oceanAddress,user3.address,user3.address,marketFeeCollector.address,poolTemplate.address]
+        [sideStaking.address,oceanContract.address,user3.address,user3.address,marketFeeCollector.address,poolTemplate.address]
       )
     ).wait();
     const PoolEvent = getEventFromTx(receipt, 'NewPool')
@@ -298,9 +269,9 @@ describe("Vesting flow", () => {
     expect(await bPool.getOPCFee()).to.equal(0);
     expect(await bPool._swapPublishMarketFee()).to.equal(swapPublishMarketFee);
 
-    expect(await bPool.communityFees(oceanAddress)).to.equal(0);
+    expect(await bPool.communityFees(oceanContract.address)).to.equal(0);
     expect(await bPool.communityFees(erc20Token.address)).to.equal(0);
-    expect(await bPool.publishMarketFees(oceanAddress)).to.equal(0);
+    expect(await bPool.publishMarketFees(oceanContract.address)).to.equal(0);
     expect(await bPool.publishMarketFees(erc20Token.address)).to.equal(0);
   });
 
@@ -344,7 +315,7 @@ describe("Vesting flow", () => {
     
     for (let i = 0; i < 1000; i++) {
       // each one advance a block
-      const dummyTx=await signer.sendTransaction({
+      const dummyTx=await user3.sendTransaction({
         to: user4.address,
         value: ethers.utils.parseEther("0.0"),
       });

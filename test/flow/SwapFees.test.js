@@ -54,13 +54,9 @@ describe("Swap Fees", () => {
     (daiIndex = null),
     (cap = web3.utils.toWei("100000"));
 
-  const oceanAddress = "0x967da4048cD07aB37855c090aAF366e4ce1b9F48";
-  const daiAddress = "0x6B175474E89094C44Da98b954EedeAC495271d0F";
-  const usdcAddress = "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48";
-
-  const communityFeeCollector = "0xeE9300b7961e0a01d9f0adb863C7A227A07AaD75";
-
-  const provider = new ethers.providers.JsonRpcProvider();
+ 
+  
+  
 
   before("init contracts for each test", async () => {
     const ERC721Template = await ethers.getContractFactory("ERC721Template");
@@ -73,8 +69,7 @@ describe("Swap Fees", () => {
     const FixedRateExchange = await ethers.getContractFactory(
       "FixedRateExchange"
     );
-
-    //console.log(await provider.getBlockNumber());
+    const MockERC20 = await ethers.getContractFactory('MockERC20Decimals');
 
     [
       owner, // nft owner, 721 deployer
@@ -88,63 +83,43 @@ describe("Swap Fees", () => {
       opcCollector,
     ] = await ethers.getSigners();
 
-    // GET SOME OCEAN TOKEN FROM OUR MAINNET FORK and send them to user3
-    const userWithOcean = "0x53aB4a93B31F480d17D3440a6329bDa86869458A";
-    await impersonate(userWithOcean);
-
-    oceanContract = await ethers.getContractAt(
-      "contracts/interfaces/IERC20.sol:IERC20",
-      oceanAddress
+     // MOCK TOKENS
+    oceanContract = await MockERC20.deploy(
+      'OCEAN','OCEAN',18
     );
-    signer = ethers.provider.getSigner(userWithOcean);
+    daiContract = await MockERC20.deploy(
+      'DAI','DAI',18
+    );
+    usdcContract = await MockERC20.deploy(
+      'USDC','USDC',6
+    );
+
+
     await oceanContract
-      .connect(signer)
       .transfer(user3.address, ethers.utils.parseEther("10000"));
-
-    await oceanContract
-      .connect(signer)
+      await oceanContract
       .transfer(user4.address, ethers.utils.parseEther("10000"));
 
-    // GET SOME DAI (A NEW TOKEN different from OCEAN)
-    const userWithDAI = "0x16de59092dAE5CcF4A1E6439D611fd0653f0Bd01";
 
-    await impersonate(userWithDAI);
 
-    daiContract = await ethers.getContractAt(
-      "contracts/interfaces/IERC20.sol:IERC20",
-      daiAddress
-    );
-    signer = ethers.provider.getSigner(userWithDAI);
     await daiContract
-      .connect(signer)
       .transfer(user3.address, ethers.utils.parseEther("100000"));
-
-    await daiContract
-      .connect(signer)
+      await daiContract
       .transfer(user4.address, ethers.utils.parseEther("10000"));
 
-    // GET SOME USDC (token with !18 decimals (6 in this case))
-    const userWithUSDC = "0xF977814e90dA44bFA03b6295A0616a897441aceC";
 
-    await impersonate(userWithUSDC);
+    const amount = 1e12; // 100k USDC
 
-    usdcContract = await ethers.getContractAt(
-      "contracts/interfaces/IERC20.sol:IERC20",
-      usdcAddress
-    );
+    await usdcContract.transfer(user3.address, amount);
+    await usdcContract.transfer(user4.address, amount);
 
-    signer = ethers.provider.getSigner(userWithUSDC);
 
-    const amount = 1e12; // 100000 USDC
-    await usdcContract.connect(signer).transfer(user3.address, amount);
 
-    await usdcContract.connect(signer).transfer(user4.address, amount);
+    expect(
+      await usdcContract.balanceOf(user3.address)).to.equal(amount)
 
-    // expect(
-    //   await usdcContract.balanceOf(user3.address)).to.equal(amount)
-
-    // expect(
-    //     await usdcContract.balanceOf(user4.address)).to.equal(amount)
+    expect(
+        await usdcContract.balanceOf(user4.address)).to.equal(amount)
 
     data = web3.utils.asciiToHex("SomeData");
     flags = web3.utils.asciiToHex(constants.blob[0]);
@@ -155,7 +130,7 @@ describe("Swap Fees", () => {
 
     router = await Router.deploy(
       owner.address,
-      oceanAddress,
+      oceanContract.address,
       poolTemplate.address, // pooltemplate field, unused in this test
       opcCollector.address,
       []
@@ -268,7 +243,7 @@ describe("Swap Fees", () => {
       receipt = await (
         await erc20Token.connect(user3).deployPool(
           //  sideStaking.address,
-          //  oceanAddress,
+          //  oceanContract.address,
           [
             web3.utils.toWei("1"), // rate
             18, // baseTokenDecimals
@@ -285,7 +260,7 @@ describe("Swap Fees", () => {
           //    user3.address// publisher address (vested token)
           [
             sideStaking.address,
-            oceanAddress,
+            oceanContract.address,
             user3.address,
             user3.address,
             marketFeeCollector.address,
@@ -313,9 +288,9 @@ describe("Swap Fees", () => {
         swapPublishMarketFee
       );
 
-      expect(await bPool.communityFees(oceanAddress)).to.equal(0);
+      expect(await bPool.communityFees(oceanContract.address)).to.equal(0);
       expect(await bPool.communityFees(erc20Token.address)).to.equal(0);
-      expect(await bPool.publishMarketFees(oceanAddress)).to.equal(0);
+      expect(await bPool.publishMarketFees(oceanContract.address)).to.equal(0);
       expect(await bPool.publishMarketFees(erc20Token.address)).to.equal(0);
 
       // CHECK LIQUIDITY VIEW FUNCTIONS AND VALUE
@@ -325,7 +300,7 @@ describe("Swap Fees", () => {
           web3.utils.toWei("10")
         )
       ).to.equal(
-        await bPool.calcPoolInSingleOut(oceanAddress, web3.utils.toWei("10"))
+        await bPool.calcPoolInSingleOut(oceanContract.address, web3.utils.toWei("10"))
       );
       expect(
         await bPool.calcPoolOutSingleIn(
@@ -333,7 +308,7 @@ describe("Swap Fees", () => {
           web3.utils.toWei("10")
         )
       ).to.equal(
-        await bPool.calcPoolOutSingleIn(oceanAddress, web3.utils.toWei("10"))
+        await bPool.calcPoolOutSingleIn(oceanContract.address, web3.utils.toWei("10"))
       );
 
       expect(
@@ -342,7 +317,7 @@ describe("Swap Fees", () => {
           web3.utils.toWei("10")
         )
       ).to.equal(
-        await bPool.calcSingleOutPoolIn(oceanAddress, web3.utils.toWei("10"))
+        await bPool.calcSingleOutPoolIn(oceanContract.address, web3.utils.toWei("10"))
       );
       expect(
         await bPool.calcSingleInPoolOut(
@@ -350,7 +325,7 @@ describe("Swap Fees", () => {
           web3.utils.toWei("10")
         )
       ).to.equal(
-        await bPool.calcSingleInPoolOut(oceanAddress, web3.utils.toWei("10"))
+        await bPool.calcSingleInPoolOut(oceanContract.address, web3.utils.toWei("10"))
       );
     });
 
@@ -372,7 +347,7 @@ describe("Swap Fees", () => {
       const user4DTbalance = await erc20Token.balanceOf(user4.address);
       const user4OceanBalance = await oceanContract.balanceOf(user4.address);
       const dtMarketFeeBal = await bPool.publishMarketFees(erc20Token.address);
-      const oceanMarketFeeBal = await bPool.publishMarketFees(oceanAddress);
+      const oceanMarketFeeBal = await bPool.publishMarketFees(oceanContract.address);
       // we prepare the arrays, user5 is going to receive the dynamic market fee
       amountIn = web3.utils.toWei("10");
       minAmountOut = web3.utils.toWei("1");
@@ -380,7 +355,7 @@ describe("Swap Fees", () => {
       // we set a dynamic market fee
       marketFee = 1e15; //0.1%
       const tokenInOutMarket = [
-        oceanAddress,
+        oceanContract.address,
         erc20Token.address,
         user5.address,
       ]; // [tokenIn,tokenOut,marketFeeAddress]
@@ -403,7 +378,7 @@ describe("Swap Fees", () => {
       expect(web3.utils.toWei("0.01")).to.equal(args.marketFeeAmount);
 
       // publishMarketFees accounting increased as expected , in OCEAN
-      expect(oceanAddress).to.equal(args.tokenFeeAddress);
+      expect(oceanContract.address).to.equal(args.tokenFeeAddress);
       expect(oceanMarketFeeBal.add(args.marketFeeAmount)).to.equal(
         await bPool.publishMarketFees(args.tokenFeeAddress)
       );
@@ -429,7 +404,7 @@ describe("Swap Fees", () => {
       MarketFeeEvent = receipt.events.filter((e) => e.event === "ConsumeMarketFee");
       const marketFeeArgs = MarketFeeEvent[0].args;
       expect(marketFeeArgs.to).to.equal(user5.address)
-      expect(marketFeeArgs.token).to.equal(oceanAddress)
+      expect(marketFeeArgs.token).to.equal(oceanContract.address)
       expect(marketFeeArgs.amount).to.equal(web3.utils.toWei("0.01"))
         // FEE is 0.1% 
         expect(marketFeeArgs.amount.mul(1000)).to.be.equal(swapArgs.tokenAmountIn)
@@ -443,7 +418,7 @@ describe("Swap Fees", () => {
       const user4OceanBalance = await oceanContract.balanceOf(user4.address);
 
       const dtMarketFeeBal = await bPool.publishMarketFees(erc20Token.address);
-      const oceanMarketFeeBal = await bPool.publishMarketFees(oceanAddress);
+      const oceanMarketFeeBal = await bPool.publishMarketFees(oceanContract.address);
 
       const user5BalBefore = await oceanContract.balanceOf(user5.address)
       // we prepare the arrays, user5 is going to receive the dynamic market fee
@@ -452,7 +427,7 @@ describe("Swap Fees", () => {
       maxPrice = web3.utils.toWei("10");
       marketFee = 1e15; // 0.1%
       const tokenInOutMarket = [
-        oceanAddress,
+        oceanContract.address,
         erc20Token.address,
         user5.address,
       ]; // [tokenIn,tokenOut,marketFeeAddress]
@@ -511,7 +486,7 @@ describe("Swap Fees", () => {
        MarketFeeEvent = receipt.events.filter((e) => e.event === "ConsumeMarketFee");
        const marketFeeArgs = MarketFeeEvent[0].args;
        expect(marketFeeArgs.to).to.equal(user5.address)
-       expect(marketFeeArgs.token).to.equal(oceanAddress)
+       expect(marketFeeArgs.token).to.equal(oceanContract.address)
        expect(marketFeeArgs.amount).to.equal((await oceanContract.balanceOf(user5.address)).sub(user5BalBefore))
         // FEE is 0.1% 
         expect(marketFeeArgs.amount.mul(1000)).to.be.closeTo(swapArgs.tokenAmountIn,5)
@@ -529,9 +504,9 @@ describe("Swap Fees", () => {
       const user4Oceanbalance = await oceanContract.balanceOf(user4.address);
 
       const dtMarketFeeBal = await bPool.publishMarketFees(erc20Token.address);
-      const oceanMarketFeeBal = await bPool.publishMarketFees(oceanAddress);
+      const oceanMarketFeeBal = await bPool.publishMarketFees(oceanContract.address);
 
-      expect(await bPool.communityFees(oceanAddress)).to.equal(0);
+      expect(await bPool.communityFees(oceanContract.address)).to.equal(0);
       expect(await bPool.communityFees(erc20Token.address)).to.equal(0);
 
       expect(await bPool.publishMarketFees(erc20Token.address)).to.equal(0);
@@ -543,7 +518,7 @@ describe("Swap Fees", () => {
       marketFee = web3.utils.toWei("0.01"); //1% 1e16
       const tokenInOutMarket = [
         erc20Token.address,
-        oceanAddress,
+        oceanContract.address,
         user5.address,
       ]; // [tokenIn,tokenOut,marketFeeAddress]
       const amountsInOutMaxFee = [amountIn, minAmountOut, maxPrice, marketFee]; // [exactAmountIn,minAmountOut,maxPrice,_swapMarketFee]
@@ -610,10 +585,10 @@ describe("Swap Fees", () => {
       const user4Oceanbalance = await oceanContract.balanceOf(user4.address);
 
       const dtMarketFeeBal = await bPool.publishMarketFees(erc20Token.address);
-      const oceanMarketFeeBal = await bPool.publishMarketFees(oceanAddress);
+      const oceanMarketFeeBal = await bPool.publishMarketFees(oceanContract.address);
 
       const user5BalBefore = await erc20Token.balanceOf(user5.address)
-      expect(await bPool.communityFees(oceanAddress)).to.equal(0);
+      expect(await bPool.communityFees(oceanContract.address)).to.equal(0);
       expect(await bPool.communityFees(erc20Token.address)).to.equal(0);
 
       // we prepare the arrays, user5 is going to receive the dynamic market fee
@@ -623,7 +598,7 @@ describe("Swap Fees", () => {
       marketFee = web3.utils.toWei("0.1"); // 10%
       const tokenInOutMarket = [
         erc20Token.address,
-        oceanAddress,
+        oceanContract.address,
         user5.address,
       ]; // [tokenIn,tokenOut,marketFeeAddress]
       const amountsInOutMaxFee = [maxAmountIn, amountOut, maxPrice, marketFee]; // [maxAmountIn,exactAmountOut,maxPrice,_swapMarketFee]
@@ -707,7 +682,7 @@ describe("Swap Fees", () => {
 
       const JoinEvent = receipt.events.filter((e) => e.event === "LOG_JOIN");
       expect(JoinEvent[0].args.tokenIn).to.equal(erc20Token.address);
-      expect(JoinEvent[1].args.tokenIn).to.equal(oceanAddress);
+      expect(JoinEvent[1].args.tokenIn).to.equal(oceanContract.address);
 
       // we check all balances
       expect(
@@ -762,7 +737,7 @@ describe("Swap Fees", () => {
 
       const JoinEvent = receipt.events.filter((e) => e.event === "LOG_JOIN");
 
-      expect(JoinEvent[0].args.tokenIn).to.equal(oceanAddress);
+      expect(JoinEvent[0].args.tokenIn).to.equal(oceanContract.address);
 
       expect(JoinEvent[0].args.tokenAmountIn).to.equal(oceanAmountIn);
 
@@ -828,7 +803,7 @@ describe("Swap Fees", () => {
 
       // we check all balances (DT,OCEAN,BPT)
       expect(ExitEvents[0].args.tokenOut).to.equal(erc20Token.address);
-      expect(ExitEvents[1].args.tokenOut).to.equal(oceanAddress);
+      expect(ExitEvents[1].args.tokenOut).to.equal(oceanContract.address);
 
       expect(ExitEvents[0].args.tokenAmountOut.add(user3DTbalance)).to.equal(
         await erc20Token.balanceOf(user3.address)
@@ -927,16 +902,16 @@ describe("Swap Fees", () => {
         swapPublishMarketFee
       );
 
-      expect(await bPool.communityFees(oceanAddress)).to.equal(0);
+      expect(await bPool.communityFees(oceanContract.address)).to.equal(0);
       expect(await bPool.communityFees(erc20Token.address)).to.equal(0);
 
       // market fee actually collected some fees
-      assert((await bPool.publishMarketFees(oceanAddress)).gt(0) == true);
+      assert((await bPool.publishMarketFees(oceanContract.address)).gt(0) == true);
       assert((await bPool.publishMarketFees(erc20Token.address)).gt(0) == true);
     });
 
     it("#18 - market collector withdraws fees", async () => {
-      assert((await bPool.publishMarketFees(oceanAddress)).gt(0) == true);
+      assert((await bPool.publishMarketFees(oceanContract.address)).gt(0) == true);
       assert((await bPool.publishMarketFees(erc20Token.address)).gt(0) == true);
 
       expect(await erc20Token.balanceOf(user2.address)).to.equal(0);
@@ -998,7 +973,7 @@ describe("Swap Fees", () => {
       receipt = await (
         await erc20Token.connect(user3).deployPool(
           //sideStaking.address,
-          //  daiAddress,
+          //  daiContract.address,
           [
             web3.utils.toWei("1"), // rate
             18, // baseTokenDecimals
@@ -1012,7 +987,7 @@ describe("Swap Fees", () => {
           //  user3.address// publisher address (vested token)
           [
             sideStaking.address,
-            daiAddress,
+            daiContract.address,
             user3.address,
             user3.address,
             marketFeeCollector.address,
@@ -1039,9 +1014,9 @@ describe("Swap Fees", () => {
       expect(await bPool.getOPCFee()).to.equal(1e15);
       expect(await bPool.getMarketFee()).to.equal(swapPublishMarketFee);
 
-      expect(await bPool.communityFees(daiAddress)).to.equal(0);
+      expect(await bPool.communityFees(daiContract.address)).to.equal(0);
       expect(await bPool.communityFees(erc20Token.address)).to.equal(0);
-      expect(await bPool.publishMarketFees(daiAddress)).to.equal(0);
+      expect(await bPool.publishMarketFees(daiContract.address)).to.equal(0);
       expect(await bPool.publishMarketFees(erc20Token.address)).to.equal(0);
 
       // same amount of token out for dai and dt
@@ -1051,7 +1026,7 @@ describe("Swap Fees", () => {
           web3.utils.toWei("10")
         )
       ).to.equal(
-        await bPool.calcPoolInSingleOut(daiAddress, web3.utils.toWei("10"))
+        await bPool.calcPoolInSingleOut(daiContract.address, web3.utils.toWei("10"))
       );
 
       // same amount of pool out for dai and dt amount in
@@ -1061,7 +1036,7 @@ describe("Swap Fees", () => {
           web3.utils.toWei("10")
         )
       ).to.equal(
-        await bPool.calcPoolOutSingleIn(daiAddress, web3.utils.toWei("10"))
+        await bPool.calcPoolOutSingleIn(daiContract.address, web3.utils.toWei("10"))
       );
 
       // same amount of token out for dai and dt exact pool amount in
@@ -1071,7 +1046,7 @@ describe("Swap Fees", () => {
           web3.utils.toWei("10")
         )
       ).to.equal(
-        await bPool.calcSingleOutPoolIn(daiAddress, web3.utils.toWei("10"))
+        await bPool.calcSingleOutPoolIn(daiContract.address, web3.utils.toWei("10"))
       );
       // same amount of token in for dai and dt to get exact pool amount out
       expect(
@@ -1080,19 +1055,19 @@ describe("Swap Fees", () => {
           web3.utils.toWei("10")
         )
       ).to.equal(
-        await bPool.calcSingleInPoolOut(daiAddress, web3.utils.toWei("10"))
+        await bPool.calcSingleInPoolOut(daiContract.address, web3.utils.toWei("10"))
       );
 
       // we check swap math
       const res1 = await bPool.getAmountOutExactIn(
-        daiAddress,
+        daiContract.address,
         erc20Token.address,
         web3.utils.toWei("1"),
         swapMarketFee
       )
       const res2 = await bPool.getAmountOutExactIn(
         erc20Token.address,
-        daiAddress,
+        daiContract.address,
         web3.utils.toWei("1"),
         swapMarketFee
       )
@@ -1101,12 +1076,12 @@ describe("Swap Fees", () => {
 
       const res3=await bPool.getAmountInExactOut(
         erc20Token.address,
-        daiAddress,
+        daiContract.address,
         web3.utils.toWei("1"),
         swapMarketFee
       )
       const res4=await bPool.getAmountInExactOut(
-        daiAddress,
+        daiContract.address,
         erc20Token.address,
         web3.utils.toWei("1"),
         swapMarketFee
@@ -1131,15 +1106,15 @@ describe("Swap Fees", () => {
       const user4DTbalance = await erc20Token.balanceOf(user4.address);
       const user4DAIBalance = await daiContract.balanceOf(user4.address);
       const dtMarketFeeBal = await bPool.publishMarketFees(erc20Token.address);
-      const daiMarketFeeBal = await bPool.publishMarketFees(daiAddress);
+      const daiMarketFeeBal = await bPool.publishMarketFees(daiContract.address);
       const dtOPFFeeBal = await bPool.communityFees(erc20Token.address);
-      const daiOPFFeeBal = await bPool.communityFees(daiAddress);
+      const daiOPFFeeBal = await bPool.communityFees(daiContract.address);
       // we prepare the arrays, user5 is going to receive the dynamic market fee
       amountIn = web3.utils.toWei("10");
       minAmountOut = web3.utils.toWei("1");
       maxPrice = web3.utils.toWei("10");
       marketFee = 0;
-      const tokenInOutMarket = [daiAddress, erc20Token.address, user5.address]; // [tokenIn,tokenOut,marketFeeAddress]
+      const tokenInOutMarket = [daiContract.address, erc20Token.address, user5.address]; // [tokenIn,tokenOut,marketFeeAddress]
       const amountsInOutMaxFee = [amountIn, minAmountOut, maxPrice, marketFee]; // [exactAmountIn,minAmountOut,maxPrice,_swapMarketFee]
 
       receipt = await (
@@ -1159,7 +1134,7 @@ describe("Swap Fees", () => {
       expect(web3.utils.toWei("0.01")).to.equal(args.LPFeeAmount);
 
       // publishMarketFees and opfFees accounting increased as expected , in DAI
-      expect(daiAddress).to.equal(args.tokenFeeAddress);
+      expect(daiContract.address).to.equal(args.tokenFeeAddress);
       expect(daiMarketFeeBal.add(args.marketFeeAmount)).to.equal(
         await bPool.publishMarketFees(args.tokenFeeAddress)
       );
@@ -1200,16 +1175,16 @@ describe("Swap Fees", () => {
       const user4DTbalance = await erc20Token.balanceOf(user4.address);
       const user4DAIBalance = await daiContract.balanceOf(user4.address);
       const dtMarketFeeBal = await bPool.publishMarketFees(erc20Token.address);
-      const daiMarketFeeBal = await bPool.publishMarketFees(daiAddress);
+      const daiMarketFeeBal = await bPool.publishMarketFees(daiContract.address);
       const dtOPFFeeBal = await bPool.communityFees(erc20Token.address);
-      const daiOPFFeeBal = await bPool.communityFees(daiAddress);
+      const daiOPFFeeBal = await bPool.communityFees(daiContract.address);
 
       // we prepare the arrays, user5 is going to receive the dynamic market fee
       maxAmountIn = web3.utils.toWei("100");
       amountOut = web3.utils.toWei("10");
       maxPrice = web3.utils.toWei("10");
       marketFee = 0;
-      const tokenInOutMarket = [daiAddress, erc20Token.address, user5.address]; // [tokenIn,tokenOut,marketFeeAddress]
+      const tokenInOutMarket = [daiContract.address, erc20Token.address, user5.address]; // [tokenIn,tokenOut,marketFeeAddress]
       const amountsInOutMaxFee = [maxAmountIn, amountOut, maxPrice, marketFee]; // [maxAmountIn,exactAmountOut,maxPrice,_swapMarketFee]
 
       receipt = await (
@@ -1223,7 +1198,7 @@ describe("Swap Fees", () => {
       const args = SwapFeesEvent[0].args;
 
       // publishMarketFees and opfFees accounting increased as expected , in DAI
-      expect(daiAddress).to.equal(args.tokenFeeAddress);
+      expect(daiContract.address).to.equal(args.tokenFeeAddress);
       expect(daiMarketFeeBal.add(args.marketFeeAmount)).to.equal(
         await bPool.publishMarketFees(args.tokenFeeAddress)
       );
@@ -1274,7 +1249,7 @@ describe("Swap Fees", () => {
       minAmountOut = web3.utils.toWei("1");
       maxPrice = web3.utils.toWei("10");
       marketFee = 0;
-      const tokenInOutMarket = [erc20Token.address, daiAddress, user5.address]; // [tokenIn,tokenOut,marketFeeAddress]
+      const tokenInOutMarket = [erc20Token.address, daiContract.address, user5.address]; // [tokenIn,tokenOut,marketFeeAddress]
       const amountsInOutMaxFee = [amountIn, minAmountOut, maxPrice, marketFee]; // [exactAmountIn,minAmountOut,maxPrice,_swapMarketFee]
 
       receipt = await (
@@ -1328,7 +1303,7 @@ describe("Swap Fees", () => {
       amountOut = web3.utils.toWei("1");
       maxPrice = web3.utils.toWei("10");
       marketFee = 0;
-      const tokenInOutMarket = [erc20Token.address, daiAddress, user5.address]; // [tokenIn,tokenOut,marketFeeAddress]
+      const tokenInOutMarket = [erc20Token.address, daiContract.address, user5.address]; // [tokenIn,tokenOut,marketFeeAddress]
       const amountsInOutMaxFee = [maxAmountIn, amountOut, maxPrice, marketFee]; // [maxAmountIn,exactAmountOut,maxPrice,_swapMarketFee]
 
       receipt = await (
@@ -1397,7 +1372,7 @@ describe("Swap Fees", () => {
 
       const JoinEvent = receipt.events.filter((e) => e.event === "LOG_JOIN");
       expect(JoinEvent[0].args.tokenIn).to.equal(erc20Token.address);
-      expect(JoinEvent[1].args.tokenIn).to.equal(daiAddress);
+      expect(JoinEvent[1].args.tokenIn).to.equal(daiContract.address);
       console.log(
         ethers.utils.formatEther(JoinEvent[0].args.tokenAmountIn),
         "dt in"
@@ -1456,7 +1431,7 @@ describe("Swap Fees", () => {
 
       const JoinEvent = receipt.events.filter((e) => e.event === "LOG_JOIN");
 
-      expect(JoinEvent[0].args.tokenIn).to.equal(daiAddress);
+      expect(JoinEvent[0].args.tokenIn).to.equal(daiContract.address);
 
       expect(JoinEvent[0].args.tokenAmountIn).to.equal(daiAmountIn);
 
@@ -1525,7 +1500,7 @@ describe("Swap Fees", () => {
 
       // we check all balances (DT,OCEAN,BPT)
       expect(ExitEvents[0].args.tokenOut).to.equal(erc20Token.address);
-      expect(ExitEvents[1].args.tokenOut).to.equal(daiAddress);
+      expect(ExitEvents[1].args.tokenOut).to.equal(daiContract.address);
 
       expect(ExitEvents[0].args.tokenAmountOut.add(user3DTbalance)).to.equal(
         await erc20Token.balanceOf(user3.address)
@@ -1624,11 +1599,11 @@ describe("Swap Fees", () => {
       );
 
       // ocean fee actually collected some fees
-      assert((await bPool.communityFees(daiAddress)).gt(0) == true);
+      assert((await bPool.communityFees(daiContract.address)).gt(0) == true);
       assert((await bPool.communityFees(erc20Token.address)).gt(0) == true);
       // market fee actually collected some fees
 
-      assert((await bPool.publishMarketFees(daiAddress)).gt(0) == true);
+      assert((await bPool.publishMarketFees(daiContract.address)).gt(0) == true);
       assert((await bPool.publishMarketFees(erc20Token.address)).gt(0) == true);
     });
 
@@ -1640,7 +1615,7 @@ describe("Swap Fees", () => {
 
       await bPool.connect(marketFeeCollector).collectMarketFee();
 
-      assert((await bPool.publishMarketFees(usdcAddress)) == 0);
+      assert((await bPool.publishMarketFees(usdcContract.address)) == 0);
       assert((await bPool.publishMarketFees(erc20Token.address)) == 0);
     });
 
@@ -1650,7 +1625,7 @@ describe("Swap Fees", () => {
       // any user can call collectOPC
       await bPool.connect(user3).collectOPC();
 
-      assert((await bPool.communityFees(daiAddress)) == 0);
+      assert((await bPool.communityFees(daiContract.address)) == 0);
       assert((await bPool.communityFees(erc20Token.address)) == 0);
     });
     it("#20 - user3 attemps to add more than available liquidity, check vesting still available", async () => {
@@ -1693,7 +1668,7 @@ describe("Swap Fees", () => {
 
       const JoinEvent = receipt.events.filter((e) => e.event === "LOG_JOIN");
 
-      expect(JoinEvent[0].args.tokenIn).to.equal(daiAddress);
+      expect(JoinEvent[0].args.tokenIn).to.equal(daiContract.address);
 
       expect(JoinEvent[0].args.tokenAmountIn).to.equal(daiAmountIn);
 
@@ -1750,7 +1725,7 @@ describe("Swap Fees", () => {
       receipt = await (
         await erc20Token.connect(user3).deployPool(
           // sideStaking.address,
-          // usdcAddress,
+          // usdcContract.address,
           [
             web3.utils.toWei("1"), // rate
             baseTokenDecimals, // baseTokenDecimals
@@ -1764,7 +1739,7 @@ describe("Swap Fees", () => {
           //  user3.address// publisher address (vested token)
           [
             sideStaking.address,
-            usdcAddress,
+            usdcContract.address,
             user3.address,
             user3.address,
             marketFeeCollector.address,
@@ -1785,7 +1760,7 @@ describe("Swap Fees", () => {
 
       // PROPER BALANCE HAS BEEN DEPOSITED
 
-      expect(await bPool.getBalance(usdcAddress)).to.equal(
+      expect(await bPool.getBalance(usdcContract.address)).to.equal(
         initialUSDCLiquidity
       );
       expect(await bPool.getBalance(erc20Token.address)).to.equal(
@@ -1806,9 +1781,9 @@ describe("Swap Fees", () => {
         swapPublishMarketFee
       );
 
-      expect(await bPool.communityFees(usdcAddress)).to.equal(0);
+      expect(await bPool.communityFees(usdcContract.address)).to.equal(0);
       expect(await bPool.communityFees(erc20Token.address)).to.equal(0);
-      expect(await bPool.publishMarketFees(usdcAddress)).to.equal(0);
+      expect(await bPool.publishMarketFees(usdcContract.address)).to.equal(0);
       expect(await bPool.publishMarketFees(erc20Token.address)).to.equal(0);
 
       // with diff decimals the Pool in slightly different <1e9 in a 18 decimlals token(BPT)
@@ -1818,7 +1793,7 @@ describe("Swap Fees", () => {
           web3.utils.toWei("10")
         )
       ).to.be.closeTo(
-        await bPool.calcPoolInSingleOut(usdcAddress, 10 * 1e6),
+        await bPool.calcPoolInSingleOut(usdcContract.address, 10 * 1e6),
         1e9
       );
 
@@ -1828,7 +1803,7 @@ describe("Swap Fees", () => {
           erc20Token.address,
           web3.utils.toWei("10")
         )
-      ).to.equal(await bPool.calcPoolOutSingleIn(usdcAddress, 10 * 1e6));
+      ).to.equal(await bPool.calcPoolOutSingleIn(usdcContract.address, 10 * 1e6));
 
       // equivalent token out for pool amount in
       expect(
@@ -1839,7 +1814,7 @@ describe("Swap Fees", () => {
           )
         ).div(1e12)
       ).to.equal(
-        await bPool.calcSingleOutPoolIn(usdcAddress, web3.utils.toWei("10"))
+        await bPool.calcSingleOutPoolIn(usdcContract.address, web3.utils.toWei("10"))
       );
 
       //  almost equal token in (1 unit difference) for exact pool amount out
@@ -1851,19 +1826,19 @@ describe("Swap Fees", () => {
           )
         ).div(1e12)
       ).to.closeTo(
-        await bPool.calcSingleInPoolOut(usdcAddress, web3.utils.toWei("10")),
+        await bPool.calcSingleInPoolOut(usdcContract.address, web3.utils.toWei("10")),
         1
       );
       // we check swap math
       const res1=await bPool.getAmountOutExactIn(
-        usdcAddress,
+        usdcContract.address,
         erc20Token.address,
         1e6,
         swapMarketFee
       )
       const res2=await bPool.getAmountOutExactIn(
         erc20Token.address,
-        usdcAddress,
+        usdcContract.address,
         web3.utils.toWei("1"),
         swapMarketFee
       )
@@ -1878,12 +1853,12 @@ describe("Swap Fees", () => {
 
       const res3=await bPool.getAmountInExactOut(
         erc20Token.address,
-        usdcAddress,
+        usdcContract.address,
         1e6,
         swapMarketFee
       )
       const res4=await bPool.getAmountInExactOut(
-        usdcAddress,
+        usdcContract.address,
         erc20Token.address,
         web3.utils.toWei("1"),
         swapMarketFee
@@ -1915,9 +1890,9 @@ describe("Swap Fees", () => {
       const user4DTbalance = await erc20Token.balanceOf(user4.address);
       const user4USDCBalance = await usdcContract.balanceOf(user4.address);
       const dtMarketFeeBal = await bPool.publishMarketFees(erc20Token.address);
-      const usdcMarketFeeBal = await bPool.publishMarketFees(usdcAddress);
+      const usdcMarketFeeBal = await bPool.publishMarketFees(usdcContract.address);
       const dtOPFFeeBal = await bPool.communityFees(erc20Token.address);
-      const usdcOPFFeeBal = await bPool.communityFees(usdcAddress);
+      const usdcOPFFeeBal = await bPool.communityFees(usdcContract.address);
 
       const usdcAmountIn = 1e7; // 10 usdc
       // we prepare the arrays, user5 is going to receive the dynamic market fee
@@ -1925,7 +1900,7 @@ describe("Swap Fees", () => {
       minAmountOut = web3.utils.toWei("1");
       maxPrice = web3.utils.toWei("5");
       marketFee = 0;
-      const tokenInOutMarket = [usdcAddress, erc20Token.address, user5.address]; // [tokenIn,tokenOut,marketFeeAddress]
+      const tokenInOutMarket = [usdcContract.address, erc20Token.address, user5.address]; // [tokenIn,tokenOut,marketFeeAddress]
       const amountsInOutMaxFee = [
         usdcAmountIn,
         minAmountOut,
@@ -1951,9 +1926,9 @@ describe("Swap Fees", () => {
 
       // publishMarketFees and opfFees accounting increased as expected , in USDC
 
-      console.log(usdcAddress);
+      console.log(usdcContract.address);
       console.log(args.tokenFeeAddress);
-      expect(usdcAddress).to.equal(args.tokenFeeAddress);
+      expect(usdcContract.address).to.equal(args.tokenFeeAddress);
       expect(usdcMarketFeeBal.add(args.marketFeeAmount)).to.equal(
         await bPool.publishMarketFees(args.tokenFeeAddress)
       );
@@ -1990,14 +1965,14 @@ describe("Swap Fees", () => {
       );
 
       const spotPriceDT = await bPool.getSpotPrice(
-        usdcAddress,
+        usdcContract.address,
         erc20Token.address,
         swapMarketFee
       );
       console.log("spotprice DT", spotPriceDT.toString());
       const spotPriceUSDC = await bPool.getSpotPrice(
         erc20Token.address,
-        usdcAddress,
+        usdcContract.address,
         swapMarketFee
       );
       console.log("spotprice USDC", spotPriceUSDC.toString());
@@ -2007,7 +1982,7 @@ describe("Swap Fees", () => {
         ethers.utils.formatEther(swapArgs.tokenAmountOut.toString()),
         "dt amount out"
       );
-      const tokenBalanceUSDC = await bPool.getBalance(usdcAddress);
+      const tokenBalanceUSDC = await bPool.getBalance(usdcContract.address);
       const tokenBalanceDT = await bPool.getBalance(erc20Token.address);
       console.log(tokenBalanceUSDC.toString(), "after swap usdc balance");
       console.log(
@@ -2022,15 +1997,15 @@ describe("Swap Fees", () => {
       const user4DTbalance = await erc20Token.balanceOf(user4.address);
       const user4USDCBalance = await usdcContract.balanceOf(user4.address);
       const dtMarketFeeBal = await bPool.publishMarketFees(erc20Token.address);
-      const usdcMarketFeeBal = await bPool.publishMarketFees(usdcAddress);
+      const usdcMarketFeeBal = await bPool.publishMarketFees(usdcContract.address);
       const dtOPFFeeBal = await bPool.communityFees(erc20Token.address);
-      const usdcOPFFeeBal = await bPool.communityFees(usdcAddress);
+      const usdcOPFFeeBal = await bPool.communityFees(usdcContract.address);
 
       maxAmountIn = 1e8;
       amountOut = web3.utils.toWei("10");
       maxPrice = web3.utils.toWei("10");
       marketFee = 0;
-      const tokenInOutMarket = [usdcAddress, erc20Token.address, user5.address]; // [tokenIn,tokenOut,marketFeeAddress]
+      const tokenInOutMarket = [usdcContract.address, erc20Token.address, user5.address]; // [tokenIn,tokenOut,marketFeeAddress]
       const amountsInOutMaxFee = [maxAmountIn, amountOut, maxPrice, marketFee]; // [maxAmountIn,exactAmountOut,maxPrice,_swapMarketFee]
 
       receipt = await (
@@ -2044,7 +2019,7 @@ describe("Swap Fees", () => {
       const args = SwapFeesEvent[0].args;
 
       // publishMarketFees and opfFees accounting increased as expected , in usdc
-      expect(usdcAddress).to.equal(args.tokenFeeAddress);
+      expect(usdcContract.address).to.equal(args.tokenFeeAddress);
       expect(usdcMarketFeeBal.add(args.marketFeeAmount)).to.equal(
         await bPool.publishMarketFees(args.tokenFeeAddress)
       );
@@ -2080,14 +2055,14 @@ describe("Swap Fees", () => {
         await erc20Token.balanceOf(user4.address)
       );
       const spotPriceDT = await bPool.getSpotPrice(
-        usdcAddress,
+        usdcContract.address,
         erc20Token.address,
         swapMarketFee
       );
       console.log("spotprice DT", spotPriceDT.toString());
       const spotPriceUSDC = await bPool.getSpotPrice(
         erc20Token.address,
-        usdcAddress,
+        usdcContract.address,
         swapMarketFee
       );
       console.log("spotprice USDC", spotPriceUSDC.toString());
@@ -2115,7 +2090,7 @@ describe("Swap Fees", () => {
       (minAmountOut = 1e6), // minAmountOut 1 USDC
         (maxPrice = web3.utils.toWei("10000000000000")); // maxPrice;
       marketFee = 0;
-      const tokenInOutMarket = [erc20Token.address, usdcAddress, user5.address]; // [tokenIn,tokenOut,marketFeeAddress]
+      const tokenInOutMarket = [erc20Token.address, usdcContract.address, user5.address]; // [tokenIn,tokenOut,marketFeeAddress]
       const amountsInOutMaxFee = [amountIn, minAmountOut, maxPrice, marketFee]; // [exactAmountIn,minAmountOut,maxPrice,_swapMarketFee]
 
       receipt = await (
@@ -2175,7 +2150,7 @@ describe("Swap Fees", () => {
       const maxPrice = web3.utils.toWei("10000000000000");
       // we prepare the arrays, user5 is going to receive the dynamic market fee
       marketFee = 0;
-      const tokenInOutMarket = [erc20Token.address, usdcAddress, user5.address]; // [tokenIn,tokenOut,marketFeeAddress]
+      const tokenInOutMarket = [erc20Token.address, usdcContract.address, user5.address]; // [tokenIn,tokenOut,marketFeeAddress]
       const amountsInOutMaxFee = [maxAmountIn, amountOut, maxPrice, marketFee]; // [maxAmountIn,exactAmountOut,maxPrice,_swapMarketFee]
 
       receipt = await (
@@ -2247,7 +2222,7 @@ describe("Swap Fees", () => {
 
       const JoinEvent = receipt.events.filter((e) => e.event === "LOG_JOIN");
       expect(JoinEvent[0].args.tokenIn).to.equal(erc20Token.address);
-      expect(JoinEvent[1].args.tokenIn).to.equal(usdcAddress);
+      expect(JoinEvent[1].args.tokenIn).to.equal(usdcContract.address);
       expect(
         await sideStaking.getDatatokenBalance(erc20Token.address)
       ).to.equal(dtBalanceBeforeJoin);
@@ -2311,7 +2286,7 @@ describe("Swap Fees", () => {
 
       const JoinEvent = receipt.events.filter((e) => e.event === "LOG_JOIN");
 
-      expect(JoinEvent[0].args.tokenIn).to.equal(usdcAddress);
+      expect(JoinEvent[0].args.tokenIn).to.equal(usdcContract.address);
 
       expect(JoinEvent[0].args.tokenAmountIn).to.equal(usdcAmountIn);
 
@@ -2386,7 +2361,7 @@ describe("Swap Fees", () => {
 
       // we check all balances (DT,USDC,BPT)
       expect(ExitEvents[0].args.tokenOut).to.equal(erc20Token.address);
-      expect(ExitEvents[1].args.tokenOut).to.equal(usdcAddress);
+      expect(ExitEvents[1].args.tokenOut).to.equal(usdcContract.address);
       console.log(
         new BN(ExitEvents[1].args.tokenAmountOut / 1e6).toString(),
         "usdc out"
@@ -2495,11 +2470,11 @@ describe("Swap Fees", () => {
       );
 
       // ocean fee actually collected some fees
-      assert((await bPool.communityFees(usdcAddress)).gt(0) == true);
+      assert((await bPool.communityFees(usdcContract.address)).gt(0) == true);
       assert((await bPool.communityFees(erc20Token.address)).gt(0) == true);
       // market fee actually collected some fees
 
-      assert((await bPool.publishMarketFees(usdcAddress)).gt(0) == true);
+      assert((await bPool.publishMarketFees(usdcContract.address)).gt(0) == true);
       assert((await bPool.publishMarketFees(erc20Token.address)).gt(0) == true);
     });
 
@@ -2511,7 +2486,7 @@ describe("Swap Fees", () => {
 
       await bPool.connect(marketFeeCollector).collectMarketFee();
 
-      assert((await bPool.publishMarketFees(usdcAddress)) == 0);
+      assert((await bPool.publishMarketFees(usdcContract.address)) == 0);
       assert((await bPool.publishMarketFees(erc20Token.address)) == 0);
     });
 
@@ -2521,7 +2496,7 @@ describe("Swap Fees", () => {
       // any user can call collectOPC
       await bPool.connect(user3).collectOPC();
 
-      assert((await bPool.communityFees(usdcAddress)) == 0);
+      assert((await bPool.communityFees(usdcContract.address)) == 0);
       assert((await bPool.communityFees(erc20Token.address)) == 0);
     });
 
@@ -2553,7 +2528,7 @@ describe("Swap Fees", () => {
 
       const JoinEvent = receipt.events.filter((e) => e.event === "LOG_JOIN");
 
-      expect(JoinEvent[0].args.tokenIn).to.equal(usdcAddress);
+      expect(JoinEvent[0].args.tokenIn).to.equal(usdcContract.address);
 
       expect(JoinEvent[0].args.tokenAmountIn).to.equal(usdcAmountIn);
       console.log(
@@ -2632,7 +2607,7 @@ describe("Swap Fees", () => {
       receipt = await (
         await erc20Token.connect(user3).deployPool(
           // sideStaking.address,
-          // usdcAddress,
+          // usdcContract.address,
           [
             web3.utils.toWei("1"), // rate
             baseTokenDecimals, // baseTokenDecimals
@@ -2646,7 +2621,7 @@ describe("Swap Fees", () => {
           // user3.address// publisher address (vested token)
           [
             sideStaking.address,
-            usdcAddress,
+            usdcContract.address,
             user3.address,
             user3.address,
             marketFeeCollector.address,
@@ -2667,7 +2642,7 @@ describe("Swap Fees", () => {
 
       // PROPER BALANCE HAS BEEN DEPOSITED
 
-      expect(await bPool.getBalance(usdcAddress)).to.equal(
+      expect(await bPool.getBalance(usdcContract.address)).to.equal(
         initialUSDCLiquidity
       );
       expect(await bPool.getBalance(erc20Token.address)).to.equal(
@@ -2688,21 +2663,21 @@ describe("Swap Fees", () => {
         swapPublishMarketFee
       );
 
-      expect(await bPool.communityFees(usdcAddress)).to.equal(0);
+      expect(await bPool.communityFees(usdcContract.address)).to.equal(0);
       expect(await bPool.communityFees(erc20Token.address)).to.equal(0);
-      expect(await bPool.publishMarketFees(usdcAddress)).to.equal(0);
+      expect(await bPool.publishMarketFees(usdcContract.address)).to.equal(0);
       expect(await bPool.publishMarketFees(erc20Token.address)).to.equal(0);
 
       // we check swap math
       const res1=await bPool.getAmountOutExactIn(
-        usdcAddress,
+        usdcContract.address,
         erc20Token.address,
         1e6,
         swapMarketFee
       )
       const res2=await bPool.getAmountOutExactIn(
         erc20Token.address,
-        usdcAddress,
+        usdcContract.address,
         web3.utils.toWei("1"),
         swapMarketFee
       )
@@ -2716,12 +2691,12 @@ describe("Swap Fees", () => {
       );
       const res3=await bPool.getAmountInExactOut(
         erc20Token.address,
-        usdcAddress,
+        usdcContract.address,
         1e6,
         swapMarketFee
       )
       const res4=await bPool.getAmountInExactOut(
-        usdcAddress,
+        usdcContract.address,
         erc20Token.address,
         web3.utils.toWei("1"),
         swapMarketFee
@@ -2754,9 +2729,9 @@ describe("Swap Fees", () => {
       const user4DTbalance = await erc20Token.balanceOf(user4.address);
       const user4USDCBalance = await usdcContract.balanceOf(user4.address);
       const dtMarketFeeBal = await bPool.publishMarketFees(erc20Token.address);
-      const usdcMarketFeeBal = await bPool.publishMarketFees(usdcAddress);
+      const usdcMarketFeeBal = await bPool.publishMarketFees(usdcContract.address);
       const dtOPFFeeBal = await bPool.communityFees(erc20Token.address);
-      const usdcOPFFeeBal = await bPool.communityFees(usdcAddress);
+      const usdcOPFFeeBal = await bPool.communityFees(usdcContract.address);
 
       const usdcAmountIn = 1e7; // 10 usdc
       // we prepare the arrays, user5 is going to receive the dynamic market fee
@@ -2764,7 +2739,7 @@ describe("Swap Fees", () => {
       minAmountOut = web3.utils.toWei("1");
       maxPrice = web3.utils.toWei("5");
       marketFee = 0;
-      const tokenInOutMarket = [usdcAddress, erc20Token.address, user5.address]; // [tokenIn,tokenOut,marketFeeAddress]
+      const tokenInOutMarket = [usdcContract.address, erc20Token.address, user5.address]; // [tokenIn,tokenOut,marketFeeAddress]
       const amountsInOutMaxFee = [
         usdcAmountIn,
         minAmountOut,
@@ -2789,9 +2764,9 @@ describe("Swap Fees", () => {
       expect(1e4).to.equal(args.LPFeeAmount);
 
       // publishMarketFees and opfFees accounting increased as expected , in USDC
-      console.log(usdcAddress);
+      console.log(usdcContract.address);
       console.log(args.tokenFeeAddress);
-      expect(usdcAddress).to.equal(args.tokenFeeAddress);
+      expect(usdcContract.address).to.equal(args.tokenFeeAddress);
       expect(usdcMarketFeeBal.add(args.marketFeeAmount)).to.equal(
         await bPool.publishMarketFees(args.tokenFeeAddress)
       );
@@ -2828,14 +2803,14 @@ describe("Swap Fees", () => {
       );
 
       const spotPriceDT = await bPool.getSpotPrice(
-        usdcAddress,
+        usdcContract.address,
         erc20Token.address,
         swapMarketFee
       );
       console.log("spotprice DT", spotPriceDT.toString());
       const spotPriceUSDC = await bPool.getSpotPrice(
         erc20Token.address,
-        usdcAddress,
+        usdcContract.address,
         swapMarketFee
       );
       console.log("spotprice USDC", spotPriceUSDC.toString());
@@ -2845,7 +2820,7 @@ describe("Swap Fees", () => {
         ethers.utils.formatEther(swapArgs.tokenAmountOut.toString()),
         "dt amount out"
       );
-      const tokenBalanceUSDC = await bPool.getBalance(usdcAddress);
+      const tokenBalanceUSDC = await bPool.getBalance(usdcContract.address);
       const tokenBalanceDT = await bPool.getBalance(erc20Token.address);
       console.log(tokenBalanceUSDC.toString(), "after swap usdc balance");
       console.log(
@@ -2871,15 +2846,15 @@ describe("Swap Fees", () => {
       const user4DTbalance = await erc20Token.balanceOf(user4.address);
       const user4USDCBalance = await usdcContract.balanceOf(user4.address);
       const dtMarketFeeBal = await bPool.publishMarketFees(erc20Token.address);
-      const usdcMarketFeeBal = await bPool.publishMarketFees(usdcAddress);
+      const usdcMarketFeeBal = await bPool.publishMarketFees(usdcContract.address);
       const dtOPFFeeBal = await bPool.communityFees(erc20Token.address);
-      const usdcOPFFeeBal = await bPool.communityFees(usdcAddress);
+      const usdcOPFFeeBal = await bPool.communityFees(usdcContract.address);
 
       maxAmountIn = 1e8;
       amountOut = web3.utils.toWei("10");
       maxPrice = web3.utils.toWei("10");
       marketFee = 0;
-      const tokenInOutMarket = [usdcAddress, erc20Token.address, user5.address]; // [tokenIn,tokenOut,marketFeeAddress]
+      const tokenInOutMarket = [usdcContract.address, erc20Token.address, user5.address]; // [tokenIn,tokenOut,marketFeeAddress]
       const amountsInOutMaxFee = [maxAmountIn, amountOut, maxPrice, marketFee]; // [maxAmountIn,exactAmountOut,maxPrice,_swapMarketFee]
 
       receipt = await (
@@ -2893,7 +2868,7 @@ describe("Swap Fees", () => {
       const args = SwapFeesEvent[0].args;
 
       // publishMarketFees and opfFees accounting increased as expected , in usdc
-      expect(usdcAddress).to.equal(args.tokenFeeAddress);
+      expect(usdcContract.address).to.equal(args.tokenFeeAddress);
       expect(usdcMarketFeeBal.add(args.marketFeeAmount)).to.equal(
         await bPool.publishMarketFees(args.tokenFeeAddress)
       );
@@ -2930,14 +2905,14 @@ describe("Swap Fees", () => {
         await erc20Token.balanceOf(user4.address)
       );
       const spotPriceDT = await bPool.getSpotPrice(
-        usdcAddress,
+        usdcContract.address,
         erc20Token.address,
         swapMarketFee
       );
       console.log("spotprice DT", spotPriceDT.toString());
       const spotPriceUSDC = await bPool.getSpotPrice(
         erc20Token.address,
-        usdcAddress,
+        usdcContract.address,
         swapMarketFee
       );
       console.log("spotprice USDC", spotPriceUSDC.toString());
@@ -2965,7 +2940,7 @@ describe("Swap Fees", () => {
       (minAmountOut = 1e6), // minAmountOut 1 USDC
         (maxPrice = web3.utils.toWei("10000000000000")); // maxPrice;
       marketFee = 0;
-      const tokenInOutMarket = [erc20Token.address, usdcAddress, user5.address]; // [tokenIn,tokenOut,marketFeeAddress]
+      const tokenInOutMarket = [erc20Token.address, usdcContract.address, user5.address]; // [tokenIn,tokenOut,marketFeeAddress]
       const amountsInOutMaxFee = [amountIn, minAmountOut, maxPrice, marketFee]; // [exactAmountIn,minAmountOut,maxPrice,_swapMarketFee]
 
       receipt = await (
@@ -3036,7 +3011,7 @@ describe("Swap Fees", () => {
       const maxPrice = web3.utils.toWei("10000000000000");
       // we prepare the arrays, user5 is going to receive the dynamic market fee
       marketFee = 0;
-      const tokenInOutMarket = [erc20Token.address, usdcAddress, user5.address]; // [tokenIn,tokenOut,marketFeeAddress]
+      const tokenInOutMarket = [erc20Token.address, usdcContract.address, user5.address]; // [tokenIn,tokenOut,marketFeeAddress]
       const amountsInOutMaxFee = [maxAmountIn, amountOut, maxPrice, marketFee]; // [maxAmountIn,exactAmountOut,maxPrice,_swapMarketFee]
 
       receipt = await (
@@ -3106,7 +3081,7 @@ describe("Swap Fees", () => {
 
       const JoinEvent = receipt.events.filter((e) => e.event === "LOG_JOIN");
       expect(JoinEvent[0].args.tokenIn).to.equal(erc20Token.address);
-      expect(JoinEvent[1].args.tokenIn).to.equal(usdcAddress);
+      expect(JoinEvent[1].args.tokenIn).to.equal(usdcContract.address);
 
       // we check all balances
       expect(
@@ -3158,7 +3133,7 @@ describe("Swap Fees", () => {
 
       const JoinEvent = receipt.events.filter((e) => e.event === "LOG_JOIN");
 
-      expect(JoinEvent[0].args.tokenIn).to.equal(usdcAddress);
+      expect(JoinEvent[0].args.tokenIn).to.equal(usdcContract.address);
 
       expect(JoinEvent[0].args.tokenAmountIn).to.equal(usdcAmountIn);
 
@@ -3221,7 +3196,7 @@ describe("Swap Fees", () => {
 
       // we check all balances (DT,USDC,BPT)
       expect(ExitEvents[0].args.tokenOut).to.equal(erc20Token.address);
-      expect(ExitEvents[1].args.tokenOut).to.equal(usdcAddress);
+      expect(ExitEvents[1].args.tokenOut).to.equal(usdcContract.address);
 
       expect(ExitEvents[0].args.tokenAmountOut.add(user3DTbalance)).to.equal(
         await erc20Token.balanceOf(user3.address)
@@ -3305,11 +3280,11 @@ describe("Swap Fees", () => {
       );
 
       // ocean fee actually collected some fees
-      assert((await bPool.communityFees(usdcAddress)).gt(0) == true);
+      assert((await bPool.communityFees(usdcContract.address)).gt(0) == true);
       assert((await bPool.communityFees(erc20Token.address)).gt(0) == true);
       // market fee actually collected some fees
 
-      assert((await bPool.publishMarketFees(usdcAddress)).gt(0) == true);
+      assert((await bPool.publishMarketFees(usdcContract.address)).gt(0) == true);
       assert((await bPool.publishMarketFees(erc20Token.address)).gt(0) == true);
     });
 
@@ -3320,7 +3295,7 @@ describe("Swap Fees", () => {
 
       await bPool.connect(marketFeeCollector).collectMarketFee();
 
-      assert((await bPool.publishMarketFees(usdcAddress)) == 0);
+      assert((await bPool.publishMarketFees(usdcContract.address)) == 0);
       assert((await bPool.publishMarketFees(erc20Token.address)) == 0);
     });
 
@@ -3330,7 +3305,7 @@ describe("Swap Fees", () => {
       // any user can call collectOPC
       await bPool.connect(user3).collectOPC();
 
-      assert((await bPool.communityFees(usdcAddress)) == 0);
+      assert((await bPool.communityFees(usdcContract.address)) == 0);
       assert((await bPool.communityFees(erc20Token.address)) == 0);
     });
 
@@ -3368,7 +3343,7 @@ describe("Swap Fees", () => {
 
       const JoinEvent = receipt.events.filter((e) => e.event === "LOG_JOIN");
 
-      expect(JoinEvent[0].args.tokenIn).to.equal(usdcAddress);
+      expect(JoinEvent[0].args.tokenIn).to.equal(usdcContract.address);
 
       expect(JoinEvent[0].args.tokenAmountIn).to.equal(usdcAmountIn);
 
@@ -3459,7 +3434,7 @@ describe("Swap Fees", () => {
       receipt = await (
         await erc20Token.connect(user3).deployPool(
           //  sideStaking.address,
-          // daiAddress,
+          // daiContract.address,
           [
             web3.utils.toWei("1"), // rate
             18, // baseTokenDecimals
@@ -3473,7 +3448,7 @@ describe("Swap Fees", () => {
           //  user3.address// publisher address (vested token)
           [
             sideStaking.address,
-            daiAddress,
+            daiContract.address,
             user3.address,
             user3.address,
             marketFeeCollector.address,
@@ -3503,9 +3478,9 @@ describe("Swap Fees", () => {
         swapPublishMarketFee
       );
 
-      expect(await bPool.communityFees(daiAddress)).to.equal(0);
+      expect(await bPool.communityFees(daiContract.address)).to.equal(0);
       expect(await bPool.communityFees(erc20Token.address)).to.equal(0);
-      expect(await bPool.publishMarketFees(daiAddress)).to.equal(0);
+      expect(await bPool.publishMarketFees(daiContract.address)).to.equal(0);
       expect(await bPool.publishMarketFees(erc20Token.address)).to.equal(0);
     });
 
@@ -3526,16 +3501,16 @@ describe("Swap Fees", () => {
       const user4DTbalance = await erc20Token.balanceOf(user4.address);
       const user4DAIBalance = await daiContract.balanceOf(user4.address);
       const dtMarketFeeBal = await bPool.publishMarketFees(erc20Token.address);
-      const daiMarketFeeBal = await bPool.publishMarketFees(daiAddress);
+      const daiMarketFeeBal = await bPool.publishMarketFees(daiContract.address);
       const dtOPFFeeBal = await bPool.communityFees(erc20Token.address);
-      const daiOPFFeeBal = await bPool.communityFees(daiAddress);
+      const daiOPFFeeBal = await bPool.communityFees(daiContract.address);
 
       // we prepare the arrays, user5 is going to receive the dynamic market fee
       amountIn = web3.utils.toWei("10");
       minAmountOut = web3.utils.toWei("1");
       maxPrice = web3.utils.toWei("10");
       marketFee = 0;
-      const tokenInOutMarket = [daiAddress, erc20Token.address, user5.address]; // [tokenIn,tokenOut,marketFeeAddress]
+      const tokenInOutMarket = [daiContract.address, erc20Token.address, user5.address]; // [tokenIn,tokenOut,marketFeeAddress]
       const amountsInOutMaxFee = [amountIn, minAmountOut, maxPrice, marketFee]; // [exactAmountIn,minAmountOut,maxPrice,_swapMarketFee]
 
       receipt = await (
@@ -3554,7 +3529,7 @@ describe("Swap Fees", () => {
       expect(web3.utils.toWei("0.01")).to.equal(args.LPFeeAmount); // 0.1%
 
       // publishMarketFees and opfFees accounting increased as expected , in DAI
-      expect(daiAddress).to.equal(args.tokenFeeAddress);
+      expect(daiContract.address).to.equal(args.tokenFeeAddress);
       expect(daiMarketFeeBal.add(args.marketFeeAmount)).to.equal(
         await bPool.publishMarketFees(args.tokenFeeAddress)
       );
@@ -3606,16 +3581,16 @@ describe("Swap Fees", () => {
       const user4DTbalance = await erc20Token.balanceOf(user4.address);
       const user4DAIBalance = await daiContract.balanceOf(user4.address);
       const dtMarketFeeBal = await bPool.publishMarketFees(erc20Token.address);
-      const daiMarketFeeBal = await bPool.publishMarketFees(daiAddress);
+      const daiMarketFeeBal = await bPool.publishMarketFees(daiContract.address);
       const dtOPFFeeBal = await bPool.communityFees(erc20Token.address);
-      const daiOPFFeeBal = await bPool.communityFees(daiAddress);
+      const daiOPFFeeBal = await bPool.communityFees(daiContract.address);
 
       // we prepare the arrays, user5 is going to receive the dynamic market fee
       maxAmountIn = web3.utils.toWei("100");
       amountOut = web3.utils.toWei("10");
       maxPrice = web3.utils.toWei("10");
       marketFee = 0;
-      const tokenInOutMarket = [daiAddress, erc20Token.address, user5.address]; // [tokenIn,tokenOut,marketFeeAddress]
+      const tokenInOutMarket = [daiContract.address, erc20Token.address, user5.address]; // [tokenIn,tokenOut,marketFeeAddress]
       const amountsInOutMaxFee = [maxAmountIn, amountOut, maxPrice, marketFee]; // [maxAmountIn,exactAmountOut,maxPrice,_swapMarketFee]
 
       receipt = await (
@@ -3629,7 +3604,7 @@ describe("Swap Fees", () => {
       const args = SwapFeesEvent[0].args;
 
       // publishMarketFees and opfFees accounting increased as expected , in DAI
-      expect(daiAddress).to.equal(args.tokenFeeAddress);
+      expect(daiContract.address).to.equal(args.tokenFeeAddress);
       expect(daiMarketFeeBal.add(args.marketFeeAmount)).to.equal(
         await bPool.publishMarketFees(args.tokenFeeAddress)
       );
@@ -3680,7 +3655,7 @@ describe("Swap Fees", () => {
       minAmountOut = web3.utils.toWei("1");
       maxPrice = web3.utils.toWei("10");
       marketFee = 0;
-      const tokenInOutMarket = [erc20Token.address, daiAddress, user5.address]; // [tokenIn,tokenOut,marketFeeAddress]
+      const tokenInOutMarket = [erc20Token.address, daiContract.address, user5.address]; // [tokenIn,tokenOut,marketFeeAddress]
       const amountsInOutMaxFee = [amountIn, minAmountOut, maxPrice, marketFee]; // [exactAmountIn,minAmountOut,maxPrice,_swapMarketFee]
 
       receipt = await (
@@ -3745,7 +3720,7 @@ describe("Swap Fees", () => {
       amountOut = web3.utils.toWei("1");
       maxPrice = web3.utils.toWei("10");
       marketFee = 0;
-      const tokenInOutMarket = [erc20Token.address, daiAddress, user5.address]; // [tokenIn,tokenOut,marketFeeAddress]
+      const tokenInOutMarket = [erc20Token.address, daiContract.address, user5.address]; // [tokenIn,tokenOut,marketFeeAddress]
       const amountsInOutMaxFee = [maxAmountIn, amountOut, maxPrice, marketFee]; // [maxAmountIn,exactAmountOut,maxPrice,_swapMarketFee]
 
       receipt = await (
@@ -3812,7 +3787,7 @@ describe("Swap Fees", () => {
 
       const JoinEvent = receipt.events.filter((e) => e.event === "LOG_JOIN");
       expect(JoinEvent[0].args.tokenIn).to.equal(erc20Token.address);
-      expect(JoinEvent[1].args.tokenIn).to.equal(daiAddress);
+      expect(JoinEvent[1].args.tokenIn).to.equal(daiContract.address);
 
       // we check all balances
       expect(
@@ -3864,7 +3839,7 @@ describe("Swap Fees", () => {
 
       const JoinEvent = receipt.events.filter((e) => e.event === "LOG_JOIN");
 
-      expect(JoinEvent[0].args.tokenIn).to.equal(daiAddress);
+      expect(JoinEvent[0].args.tokenIn).to.equal(daiContract.address);
 
       expect(JoinEvent[0].args.tokenAmountIn).to.equal(daiAmountIn);
 
@@ -3923,7 +3898,7 @@ describe("Swap Fees", () => {
 
       // we check all balances (DT,OCEAN,BPT)
       expect(ExitEvents[0].args.tokenOut).to.equal(erc20Token.address);
-      expect(ExitEvents[1].args.tokenOut).to.equal(daiAddress);
+      expect(ExitEvents[1].args.tokenOut).to.equal(daiContract.address);
 
       expect(ExitEvents[0].args.tokenAmountOut.add(user3DTbalance)).to.equal(
         await erc20Token.balanceOf(user3.address)
@@ -4007,11 +3982,11 @@ describe("Swap Fees", () => {
       );
 
       // ocean fee actually collected some fees
-      assert((await bPool.communityFees(daiAddress)).gt(0) == true);
+      assert((await bPool.communityFees(daiContract.address)).gt(0) == true);
       assert((await bPool.communityFees(erc20Token.address)).gt(0) == true);
       // market fee actually collected some fees
 
-      assert((await bPool.publishMarketFees(daiAddress)).gt(0) == true);
+      assert((await bPool.publishMarketFees(daiContract.address)).gt(0) == true);
       assert((await bPool.publishMarketFees(erc20Token.address)).gt(0) == true);
     });
 
@@ -4022,7 +3997,7 @@ describe("Swap Fees", () => {
 
       await bPool.connect(marketFeeCollector).collectMarketFee();
 
-      assert((await bPool.publishMarketFees(daiAddress)) == 0);
+      assert((await bPool.publishMarketFees(daiContract.address)) == 0);
       assert((await bPool.publishMarketFees(erc20Token.address)) == 0);
     });
 
@@ -4032,7 +4007,7 @@ describe("Swap Fees", () => {
       // any user can call collectOPC
       await bPool.connect(user3).collectOPC();
 
-      assert((await bPool.communityFees(daiAddress)) == 0);
+      assert((await bPool.communityFees(daiContract.address)) == 0);
       assert((await bPool.communityFees(erc20Token.address)) == 0);
     });
     it("#23 - user3 attemps to add more than available liquidity, check vesting still available", async () => {
@@ -4073,7 +4048,7 @@ describe("Swap Fees", () => {
 
       const JoinEvent = receipt.events.filter((e) => e.event === "LOG_JOIN");
 
-      expect(JoinEvent[0].args.tokenIn).to.equal(daiAddress);
+      expect(JoinEvent[0].args.tokenIn).to.equal(daiContract.address);
 
       expect(JoinEvent[0].args.tokenAmountIn).to.equal(daiAmountIn);
 
