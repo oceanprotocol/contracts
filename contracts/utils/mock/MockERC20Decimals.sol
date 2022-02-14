@@ -56,7 +56,7 @@ contract MockERC20Decimals is Context, IERC20 {
         _name = name_;
         _symbol = symbol_;
         _decimals = decimals_;
-        _mint(msg.sender,10e22);
+        _mint(msg.sender,10e28);
     }
 
     /**

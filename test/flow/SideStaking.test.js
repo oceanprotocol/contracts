@@ -44,13 +44,7 @@ describe("1SS flow", () => {
     daiIndex = null,
     cap = web3.utils.toWei("100000");
 
-  const oceanAddress = "0x967da4048cD07aB37855c090aAF366e4ce1b9F48";
-  const daiAddress = "0x6b175474e89094c44da98b954eedeac495271d0f";
-  const balAddress = "0xba100000625a3754423978a60c9317c58a424e3D";
-  const vaultAddress = "0xBA12222222228d8Ba445958a75a0704d566BF2C8";
   const communityFeeCollector = "0xeE9300b7961e0a01d9f0adb863C7A227A07AaD75";
-  const OPF_FEE_WITHDRAWAL = 3; // corresponding enum index for ocean community exitKind
-  const MP_FEE_WITHDRAWAL = 4; // corresponding enum index for market fee exitKind
   const provider = new ethers.providers.JsonRpcProvider();
 
   before("init contracts for each test", async () => {
@@ -61,7 +55,7 @@ describe("1SS flow", () => {
     const Router = await ethers.getContractFactory("FactoryRouter");
     const SSContract = await ethers.getContractFactory("SideStaking");
     const BPool = await ethers.getContractFactory("BPool");
-
+    const MockERC20 = await ethers.getContractFactory('MockERC20Decimals');
     console.log(await provider.getBlockNumber());
 
     [
@@ -78,43 +72,32 @@ describe("1SS flow", () => {
       opcCollector,
     ] = await ethers.getSigners();
 
-    // GET SOME OCEAN TOKEN FROM OUR MAINNET FORK and send them to user3
-    const userWithOcean = "0x53aB4a93B31F480d17D3440a6329bDa86869458A";
-    await impersonate(userWithOcean);
-
-    oceanContract = await ethers.getContractAt(
-      "contracts/interfaces/IERC20.sol:IERC20",
-      oceanAddress
-    );
-    signer = ethers.provider.getSigner(userWithOcean);
-    await oceanContract
-      .connect(signer)
-      .transfer(user3.address, ethers.utils.parseEther("10000"));
-
-    await oceanContract
-      .connect(signer)
-      .transfer(user4.address, ethers.utils.parseEther("10000"));
-
-    // GET SOME DAI (A NEW TOKEN different from OCEAN)
-    const userWithDAI = "0xB09cD60ad551cE7fF6bc97458B483A8D50489Ee7";
-
-    await impersonate(userWithDAI);
-
-    daiContract = await ethers.getContractAt(
-      "contracts/interfaces/IERC20.sol:IERC20",
-      daiAddress
-    );
-    signer = ethers.provider.getSigner(userWithDAI);
-    await daiContract
-      .connect(signer)
-      .transfer(user3.address, ethers.utils.parseEther("10000"));
-
-    console.log((await daiContract.balanceOf(user3.address)).toString());
-
-    // assert(
-    //   (await daiContract.balanceOf(user3.address)).toString() ==
-    //     ethers.utils.parseEther("10005")
-    // );
+      // MOCK TOKENS
+      oceanContract = await MockERC20.deploy(
+        'OCEAN','OCEAN',18
+      );
+      daiContract = await MockERC20.deploy(
+        'DAI','DAI',18
+      );
+      usdcContract = await MockERC20.deploy(
+        'USDC','USDC',6
+      );
+  
+  
+      await oceanContract
+        .transfer(user3.address, ethers.utils.parseEther("10000"));
+        
+        await oceanContract
+        .transfer(user4.address, ethers.utils.parseEther("10000"));
+  
+  
+  
+      await daiContract
+        .transfer(user3.address, ethers.utils.parseEther("10000"));
+        await daiContract
+        .transfer(user4.address, ethers.utils.parseEther("10000"));
+  
+  
 
     data = web3.utils.asciiToHex("SomeData");
     flags = web3.utils.asciiToHex(constants.blob[0]);
@@ -124,7 +107,7 @@ describe("1SS flow", () => {
     // DEPLOY ROUTER, SETTING OWNER
     router = await Router.deploy(
       owner.address,
-      oceanAddress,
+      oceanContract.address,
       poolTemplate.address, // pooltemplate field, unused in this test
       opcCollector.address,
       []
@@ -149,7 +132,6 @@ describe("1SS flow", () => {
     await router.addSSContract(sideStaking.address);
   });
   const swapFee = 1e15;
-  const swapOceanFee = 1e15;
   const swapMarketFee = 1e15;
   const vestedBlocks = 2500000;
   
@@ -232,7 +214,7 @@ describe("1SS flow", () => {
     receipt = await (
       await erc20Token.connect(user3).deployPool(
         //  sideStaking.address,
-        // oceanAddress,
+        // oceanContract.address,
         [
           web3.utils.toWei("1"), // rate
           18, // baseTokenDecimals
@@ -249,7 +231,7 @@ describe("1SS flow", () => {
         //  user3.address// publisher address (vested token)
         [
           sideStaking.address,
-          oceanAddress,
+          oceanContract.address,
           user3.address,
           user3.address,
           marketFeeCollector.address,
@@ -277,9 +259,9 @@ describe("1SS flow", () => {
     expect(await bPool.getOPCFee()).to.equal(0);
     expect(await bPool._swapPublishMarketFee()).to.equal(swapMarketFee);
 
-    expect(await bPool.communityFees(oceanAddress)).to.equal(0);
+    expect(await bPool.communityFees(oceanContract.address)).to.equal(0);
     expect(await bPool.communityFees(erc20Token.address)).to.equal(0);
-    expect(await bPool.publishMarketFees(oceanAddress)).to.equal(0);
+    expect(await bPool.publishMarketFees(oceanContract.address)).to.equal(0);
     expect(await bPool.publishMarketFees(erc20Token.address)).to.equal(0);
     // we should have a circulating supply of 2k  (100k cap  - 98k ss balance - 2k in pool = 0)
     expect(
@@ -289,7 +271,7 @@ describe("1SS flow", () => {
       await sideStaking.getDatatokenCurrentCirculatingSupply(erc20Token.address)
     ).to.equal(initialDTLiquidity);
     expect(await sideStaking.getBaseTokenAddress(erc20Token.address)).to.equal(
-      oceanAddress
+      oceanContract.address
     );
     expect(await sideStaking.getPoolAddress(erc20Token.address)).to.equal(
       bPoolAddress
@@ -297,7 +279,7 @@ describe("1SS flow", () => {
     expect(await sideStaking.getPublisherAddress(erc20Token.address)).to.equal(
       user3.address
     );
-    expect(await sideStaking.getBaseTokenBalance(oceanAddress)).to.equal(0);
+    expect(await sideStaking.getBaseTokenBalance(oceanContract.address)).to.equal(0);
     expect(await sideStaking.getDatatokenBalance(erc20Token.address)).to.equal(
       web3.utils.toWei("98000")
     );
@@ -352,7 +334,7 @@ describe("1SS flow", () => {
     minAmountOut = web3.utils.toWei("1");
     maxPrice = web3.utils.toWei("10");
     marketFee = 0;
-    const tokenInOutMarket = [oceanAddress, erc20Token.address, user5.address]; // [tokenIn,tokenOut,marketFeeAddress]
+    const tokenInOutMarket = [oceanContract.address, erc20Token.address, user5.address]; // [tokenIn,tokenOut,marketFeeAddress]
     const amountsInOutMaxFee = [amountIn, minAmountOut, maxPrice, marketFee]; // [exactAmountIn,minAmountOut,maxPrice,_swapMarketFee]
 
     await bPool
@@ -375,7 +357,7 @@ describe("1SS flow", () => {
     amountOut = web3.utils.toWei("10");
     maxPrice = web3.utils.toWei("10");
     marketFee = 0;
-    const tokenInOutMarket = [oceanAddress, erc20Token.address, user5.address]; // [tokenIn,tokenOut,marketFeeAddress]
+    const tokenInOutMarket = [oceanContract.address, erc20Token.address, user5.address]; // [tokenIn,tokenOut,marketFeeAddress]
     const amountsInOutMaxFee = [maxAmountIn, amountOut, maxPrice, marketFee]; // [maxAmountIn,exactAmountOut,maxPrice,_swapMarketFee]
 
     await bPool
@@ -405,7 +387,7 @@ describe("1SS flow", () => {
     minAmountOut = web3.utils.toWei("1");
     maxPrice = web3.utils.toWei("10");
     marketFee = 0;
-    const tokenInOutMarket = [erc20Token.address, oceanAddress, user5.address]; // [tokenIn,tokenOut,marketFeeAddress]
+    const tokenInOutMarket = [erc20Token.address, oceanContract.address, user5.address]; // [tokenIn,tokenOut,marketFeeAddress]
     const amountsInOutMaxFee = [amountIn, minAmountOut, maxPrice, marketFee]; // [exactAmountIn,minAmountOut,maxPrice,_swapMarketFee]
 
     receipt = await (
@@ -456,7 +438,7 @@ describe("1SS flow", () => {
 
     const JoinEvent = receipt.events.filter((e) => e.event === "LOG_JOIN");
     expect(JoinEvent[0].args.tokenIn).to.equal(erc20Token.address);
-    expect(JoinEvent[1].args.tokenIn).to.equal(oceanAddress);
+    expect(JoinEvent[1].args.tokenIn).to.equal(oceanContract.address);
 
     // we check all balances
     expect(
@@ -506,7 +488,7 @@ describe("1SS flow", () => {
 
     const JoinEvent = receipt.events.filter((e) => e.event === "LOG_JOIN");
 
-    expect(JoinEvent[0].args.tokenIn).to.equal(oceanAddress);
+    expect(JoinEvent[0].args.tokenIn).to.equal(oceanContract.address);
 
     expect(JoinEvent[0].args.tokenAmountIn).to.equal(oceanAmountIn);
 
@@ -561,7 +543,7 @@ describe("1SS flow", () => {
 
     // we check all balances (DT,OCEAN,BPT)
     expect(ExitEvents[0].args.tokenOut).to.equal(erc20Token.address);
-    expect(ExitEvents[1].args.tokenOut).to.equal(oceanAddress);
+    expect(ExitEvents[1].args.tokenOut).to.equal(oceanContract.address);
 
     expect(ExitEvents[0].args.tokenAmountOut.add(user3DTbalance)).to.equal(
       await erc20Token.balanceOf(user3.address)
@@ -641,9 +623,9 @@ describe("1SS flow", () => {
     expect(await bPool.getOPCFee()).to.equal(0);
     expect(await bPool._swapPublishMarketFee()).to.equal(swapMarketFee);
 
-    expect(await bPool.communityFees(oceanAddress)).to.equal(0);
+    expect(await bPool.communityFees(oceanContract.address)).to.equal(0);
     expect(await bPool.communityFees(erc20Token.address)).to.equal(0);
-    expect(await bPool.publishMarketFees(oceanAddress)).gt(0);
+    expect(await bPool.publishMarketFees(oceanContract.address)).gt(0);
     expect(await bPool.publishMarketFees(erc20Token.address)).gt(0);
   });
 });

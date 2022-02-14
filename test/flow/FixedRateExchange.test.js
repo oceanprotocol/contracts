@@ -48,13 +48,12 @@ describe("FixedRateExchange", () => {
     (daiIndex = null),
     (cap = web3.utils.toWei("100000"));
 
-  const oceanAddress = "0x967da4048cD07aB37855c090aAF366e4ce1b9F48";
-  const daiAddress = "0x6B175474E89094C44Da98b954EedeAC495271d0F";
-  const usdcAddress = "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48";
+  
+
   const noLimit = web3.utils.toWei('100000000000000000000');
   const noSellLimit = '1';
   before("init contracts for each test", async () => {
-    MockERC20 = await ethers.getContractFactory("MockERC20Decimals");
+ 
     const FixedRateExchange = await ethers.getContractFactory(
       "FixedRateExchange"
     );
@@ -66,7 +65,8 @@ describe("FixedRateExchange", () => {
 
     const Router = await ethers.getContractFactory("FactoryRouter");
     const SSContract = await ethers.getContractFactory("SideStaking");
-
+    const MockERC20 = await ethers.getContractFactory('MockERC20Decimals');
+    
     [
       owner, // nft owner, 721 deployer
       reciever,
@@ -87,54 +87,30 @@ describe("FixedRateExchange", () => {
     rate = web3.utils.toWei("1");
 
 
-    // GET SOME OCEAN TOKEN FROM OUR MAINNET FORK and send them to user3
-    const userWithOcean = "0x53aB4a93B31F480d17D3440a6329bDa86869458A";
-    await impersonate(userWithOcean);
-
-    oceanContract = await ethers.getContractAt(
-      "contracts/interfaces/IERC20.sol:IERC20",
-      oceanAddress
+    // MOCK TOKENS
+    oceanContract = await MockERC20.deploy(
+      'OCEAN','OCEAN',18
     );
-    signer = ethers.provider.getSigner(userWithOcean);
+    daiContract = await MockERC20.deploy(
+      'DAI','DAI',18
+    );
+    usdcContract = await MockERC20.deploy(
+      'USDC','USDC',6
+    );
+
 
     await oceanContract
-      .connect(signer)
       .transfer(bob.address, ethers.utils.parseEther("1000000"));
 
 
-
-    // GET SOME DAI (A NEW TOKEN different from OCEAN)
-    const userWithDAI = "0x16de59092dAE5CcF4A1E6439D611fd0653f0Bd01";
-
-    await impersonate(userWithDAI);
-
-    daiContract = await ethers.getContractAt(
-      "contracts/interfaces/IERC20.sol:IERC20",
-      daiAddress
-    );
-    signer = ethers.provider.getSigner(userWithDAI);
 
     await daiContract
-      .connect(signer)
       .transfer(bob.address, ethers.utils.parseEther("1000000"));
 
-
-
-    // GET SOME USDC (token with !18 decimals (6 in this case))
-    const userWithUSDC = "0xF977814e90dA44bFA03b6295A0616a897441aceC";
-
-    await impersonate(userWithUSDC);
-
-    usdcContract = await ethers.getContractAt(
-      "contracts/interfaces/IERC20.sol:IERC20",
-      usdcAddress
-    );
-
-    signer = ethers.provider.getSigner(userWithUSDC);
 
     const amount = 1e11; // 100000 USDC
 
-    await usdcContract.connect(signer).transfer(bob.address, amount);
+    await usdcContract.transfer(bob.address, amount);
 
     data = web3.utils.asciiToHex("SomeData");
     flags = web3.utils.asciiToHex(constants.blob[0]);
@@ -142,8 +118,8 @@ describe("FixedRateExchange", () => {
     // DEPLOY ROUTER, SETTING OWNER
     router = await Router.deploy(
       owner.address,
-      oceanAddress,
-      oceanAddress, // pooltemplate field, unused in this test
+      oceanContract.address,
+      oceanContract.address, // pooltemplate field, unused in this test
       opcCollector.address,
       []
     );
@@ -1062,8 +1038,8 @@ describe("FixedRateExchange", () => {
       const dtBobBalanceBeforeSwap = await mockDT18.balanceOf(bob.address);
       const btAliceBeforeSwap = await daiContract.balanceOf(alice.address);
       expect(dtBobBalanceBeforeSwap).to.equal(0); // BOB HAS NO DT
-      // alice has as default 5 DAI
-      expect(btAliceBeforeSwap).to.equal(web3.utils.toWei("5"));
+    
+      expect(btAliceBeforeSwap).to.equal(0);
 
       // BOB is going to buy all DT availables
       amountDT = amountDTtoSell;
@@ -1121,8 +1097,8 @@ describe("FixedRateExchange", () => {
       const dtBobBalanceBeforeSwap = await mockDT18.balanceOf(bob.address);
       const btBobBalanceBeforeSwap = await daiContract.balanceOf(bob.address);
       const btAliceBeforeSwap = await daiContract.balanceOf(alice.address);
-      // alice has as default 5 DAI
-      expect(btAliceBeforeSwap).to.equal(web3.utils.toWei("5"));
+      
+      expect(btAliceBeforeSwap).to.equal(0);
 
       // BOB approves FixedRate to move his DTs
       await mockDT18
@@ -1188,8 +1164,8 @@ describe("FixedRateExchange", () => {
       const dtBobBalanceBeforeSwap = await mockDT18.balanceOf(bob.address);
       const btAliceBeforeSwap = await daiContract.balanceOf(alice.address);
       expect(dtBobBalanceBeforeSwap).to.equal(0); // BOB HAS NO DT
-      // alice has as default 5 DAI
-      expect(btAliceBeforeSwap).to.equal(web3.utils.toWei("5"));
+     
+      expect(btAliceBeforeSwap).to.equal(0);
 
       // BOB is going to buy20% of  all DT availables
       amountDT = web3.utils.toWei("2000");
@@ -1268,8 +1244,8 @@ describe("FixedRateExchange", () => {
 
       const btAliceBeforeSwap = await daiContract.balanceOf(alice.address);
 
-      // alice has as default 5 DAI
-      expect(btAliceBeforeSwap).to.equal(web3.utils.toWei("5"));
+   
+      expect(btAliceBeforeSwap).to.equal(0);
 
       // only exchange owner can withdraw
       await expectRevert(
@@ -1305,7 +1281,7 @@ describe("FixedRateExchange", () => {
       const dtBobBalanceBeforeSwap = await mockDT18.balanceOf(bob.address);
       const btAliceBeforeSwap = await daiContract.balanceOf(alice.address);
       expect(dtBobBalanceBeforeSwap).to.equal(web3.utils.toWei("2000")); // BOB HAS 20% of initial DT available
-      expect(btAliceBeforeSwap).to.equal(web3.utils.toWei("2005")); // Alice(owner) has already withdrew her BT (#11)
+      expect(btAliceBeforeSwap).to.equal(web3.utils.toWei("2000")); // Alice(owner) has already withdrew her BT (#11)
 
       // BOB is going to buy 80% of  all DT availables
       amountDT = web3.utils.toWei("8000");
@@ -1464,7 +1440,7 @@ describe("FixedRateExchange", () => {
       const dtBobBalanceBeforeSwap = await mockDT18.balanceOf(bob.address);
       const btAliceBeforeSwap = await daiContract.balanceOf(alice.address);
       expect(dtBobBalanceBeforeSwap).to.equal(amountDTtoSell); // BOB HAS 100% of initial DT available
-      expect(btAliceBeforeSwap).to.equal(web3.utils.toWei("2005")); // Alice(owner) has already withdrew her BT (#11)
+      expect(btAliceBeforeSwap).to.equal(web3.utils.toWei("2000")); // Alice(owner) has already withdrew her BT (#11)
 
       // BOB is going to buy more DT but fails because alice hasn't approved more
       amountDT = web3.utils.toWei("8000");
@@ -1558,7 +1534,7 @@ describe("FixedRateExchange", () => {
       const btBobBalanceBeforeSwap = await daiContract.balanceOf(bob.address);
       const btAliceBeforeSwap = await daiContract.balanceOf(alice.address);
       const dtAliceBeforeSwap = await mockDT18.balanceOf(alice.address);
-      expect(btAliceBeforeSwap).to.equal(web3.utils.toWei("2005")); // Alice(owner) has already some DAI collected
+      expect(btAliceBeforeSwap).to.equal(web3.utils.toWei("2000")); // Alice(owner) has already some DAI collected
 
       amountDT = web3.utils.toWei("2000");
       // BOB approves FixedRate to move his DTs
@@ -2555,7 +2531,7 @@ describe("FixedRateExchange", () => {
       const dtBobBalanceBeforeSwap = await mockDT18.balanceOf(bob.address);
       const btAliceBeforeSwap = await daiContract.balanceOf(alice.address);
       expect(dtBobBalanceBeforeSwap).to.equal(0); // BOB HAS NO DT
-      expect(btAliceBeforeSwap).to.equal(web3.utils.toWei("2005")); // Alice(owner) has 2005 dai  (we already collected from previous test)
+      expect(btAliceBeforeSwap).to.equal(web3.utils.toWei("2000")); // Alice(owner) has 2000 dai  (we already collected from previous test)
 
       // BOB is going to buy all DT availables
       amountDT = amountDTtoSell;
@@ -2613,7 +2589,7 @@ describe("FixedRateExchange", () => {
       const dtBobBalanceBeforeSwap = await mockDT18.balanceOf(bob.address);
       const btBobBalanceBeforeSwap = await daiContract.balanceOf(bob.address);
       const btAliceBeforeSwap = await daiContract.balanceOf(alice.address);
-      expect(btAliceBeforeSwap).to.equal(web3.utils.toWei("2005")); // Alice(owner) has 2005 dai  (we already collected from previous test)
+      expect(btAliceBeforeSwap).to.equal(web3.utils.toWei("2000")); // Alice(owner) has 2000 dai  (we already collected from previous test)
 
       // BOB approves FixedRate to move his DTs
       await mockDT18
@@ -2680,7 +2656,7 @@ describe("FixedRateExchange", () => {
       const dtBobBalanceBeforeSwap = await mockDT18.balanceOf(bob.address);
       const btAliceBeforeSwap = await daiContract.balanceOf(alice.address);
       expect(dtBobBalanceBeforeSwap).to.equal(0); // BOB HAS NO DT
-      expect(btAliceBeforeSwap).to.equal(web3.utils.toWei("2005")); // Alice(owner) has 2005 dai  (we already collected from previous test)
+      expect(btAliceBeforeSwap).to.equal(web3.utils.toWei("2000")); // Alice(owner) has 2000 dai  (we already collected from previous test)
 
       // BOB is going to buy20% of  all DT availables
       amountDT = web3.utils.toWei("2000");
@@ -2758,7 +2734,7 @@ describe("FixedRateExchange", () => {
       );
 
       const btAliceBeforeSwap = await daiContract.balanceOf(alice.address);
-      expect(btAliceBeforeSwap).to.equal(web3.utils.toWei("2005")); // Alice(owner) has 2005 dai  (we already collected from previous test)
+      expect(btAliceBeforeSwap).to.equal(web3.utils.toWei("2000")); // Alice(owner) has 2000 dai  (we already collected from previous test)
 
       // only exchange owner can withdraw
       await expectRevert(
@@ -2794,7 +2770,7 @@ describe("FixedRateExchange", () => {
       const dtBobBalanceBeforeSwap = await mockDT18.balanceOf(bob.address);
       const btAliceBeforeSwap = await daiContract.balanceOf(alice.address);
       expect(dtBobBalanceBeforeSwap).to.equal(web3.utils.toWei("2000")); // BOB HAS 20% of initial DT available
-      expect(btAliceBeforeSwap).to.equal(web3.utils.toWei("6005")); // Alice(owner) has already withdrew her BT (#11)
+      expect(btAliceBeforeSwap).to.equal(web3.utils.toWei("6000")); // Alice(owner) has already withdrew her BT (#11)
 
       // BOB is going to buy 80% of  all DT availables
       amountDT = web3.utils.toWei("8000");
@@ -2911,7 +2887,7 @@ describe("FixedRateExchange", () => {
       const dtBobBalanceBeforeSwap = await mockDT18.balanceOf(bob.address);
       const btAliceBeforeSwap = await daiContract.balanceOf(alice.address);
       expect(dtBobBalanceBeforeSwap).to.equal(amountDTtoSell); // BOB HAS 100% of initial DT available
-      expect(btAliceBeforeSwap).to.equal(web3.utils.toWei("6005")); // Alice(owner) has already withdrew her BT (#11)
+      expect(btAliceBeforeSwap).to.equal(web3.utils.toWei("6000")); // Alice(owner) has already withdrew her BT (#11)
 
       // BOB is going to buy more DT but fails because alice hasn't approved more
       amountDT = web3.utils.toWei("8000");
@@ -3005,7 +2981,7 @@ describe("FixedRateExchange", () => {
       const btBobBalanceBeforeSwap = await daiContract.balanceOf(bob.address);
       const btAliceBeforeSwap = await daiContract.balanceOf(alice.address);
       const dtAliceBeforeSwap = await mockDT18.balanceOf(alice.address);
-      expect(btAliceBeforeSwap).to.equal(web3.utils.toWei("6005")); // Alice(owner) has already withdrawn her BT
+      expect(btAliceBeforeSwap).to.equal(web3.utils.toWei("6000")); // Alice(owner) has already withdrawn her BT
 
       amountDT = web3.utils.toWei("2000");
       // BOB approves FixedRate to move his DTs
