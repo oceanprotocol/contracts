@@ -121,6 +121,7 @@ contract ERC721Factory is Deployer, Ownable, ReentrancyGuard {
      * @param symbol NFT Symbol
      * @param _templateIndex template index we want to use
      * @param additionalERC20Deployer if != address(0), we will add it with ERC20Deployer role
+     * @param additionalMetaDataUpdater if != address(0), we will add it with updateMetadata role
      */
 
     function deployERC721Contract(
@@ -128,6 +129,7 @@ contract ERC721Factory is Deployer, Ownable, ReentrancyGuard {
         string memory symbol,
         uint256 _templateIndex,
         address additionalERC20Deployer,
+        address additionalMetaDataUpdater,
         string memory tokenURI
     ) public returns (address token) {
         require(
@@ -158,6 +160,7 @@ contract ERC721Factory is Deployer, Ownable, ReentrancyGuard {
                 symbol,
                 address(this),
                 additionalERC20Deployer,
+                additionalMetaDataUpdater,
                 tokenURI
             ),
             "ERC721DTFactory: Unable to initialize token instance"
@@ -462,21 +465,12 @@ contract ERC721Factory is Deployer, Ownable, ReentrancyGuard {
         return templateCount;
     }
 
-    struct providerFees{
-        address providerFeeAddress;
-        address providerFeeToken; // address of the token marketplace wants to add fee on top
-        uint256 providerFeeAmount; // amount to be transfered to marketFeeCollector
-        uint8 v; // v of provider signed message
-        bytes32 r; // r of provider signed message
-        bytes32 s; // s of provider signed message
-        uint256 validUntil; //validity expresses in unix timestamp
-        bytes providerData; //data encoded by provider
-    }
     struct tokenOrder {
         address tokenAddress;
         address consumer;
         uint256 serviceIndex;
-        IERC20Template.providerFees _providerFees;
+        IERC20Template.providerFee _providerFee;
+        IERC20Template.consumeMarketFee _consumeMarketFee;
     }
 
     /**
@@ -509,14 +503,24 @@ contract ERC721Factory is Deployer, Ownable, ReentrancyGuard {
                     publishMarketFeeAmount);
                 IERC20(publishMarketFeeToken).safeIncreaseAllowance(orders[i].tokenAddress, publishMarketFeeAmount);
             }
-            // handle provider fees
-            if (orders[i]._providerFees.providerFeeAmount > 0 && orders[i]._providerFees.providerFeeToken!=address(0) 
-            && orders[i]._providerFees.providerFeeAddress!=address(0)) {
-                _pullUnderlying(orders[i]._providerFees.providerFeeToken,msg.sender,
+            // check if we have consumeMarketFee, if so transfer them to us and approve dttemplate to take them
+            if (orders[i]._consumeMarketFee.consumeMarketFeeAmount > 0
+            && orders[i]._consumeMarketFee.consumeMarketFeeAddress!=address(0) 
+            && orders[i]._consumeMarketFee.consumeMarketFeeToken!=address(0)) {
+                _pullUnderlying(orders[i]._consumeMarketFee.consumeMarketFeeToken,msg.sender,
                     address(this),
-                    orders[i]._providerFees.providerFeeAmount);
-                IERC20(orders[i]._providerFees.providerFeeToken)
-                .safeIncreaseAllowance(orders[i].tokenAddress, orders[i]._providerFees.providerFeeAmount);
+                    orders[i]._consumeMarketFee.consumeMarketFeeAmount);
+                IERC20(orders[i]._consumeMarketFee.consumeMarketFeeToken)
+                .safeIncreaseAllowance(orders[i].tokenAddress, orders[i]._consumeMarketFee.consumeMarketFeeAmount);
+            }
+            // handle provider fees
+            if (orders[i]._providerFee.providerFeeAmount > 0 && orders[i]._providerFee.providerFeeToken!=address(0) 
+            && orders[i]._providerFee.providerFeeAddress!=address(0)) {
+                _pullUnderlying(orders[i]._providerFee.providerFeeToken,msg.sender,
+                    address(this),
+                    orders[i]._providerFee.providerFeeAmount);
+                IERC20(orders[i]._providerFee.providerFeeToken)
+                .safeIncreaseAllowance(orders[i].tokenAddress, orders[i]._providerFee.providerFeeAmount);
             }
             // transfer erc20 datatoken from consumer to us
             _pullUnderlying(orders[i].tokenAddress,msg.sender,
@@ -525,7 +529,8 @@ contract ERC721Factory is Deployer, Ownable, ReentrancyGuard {
             IERC20Template(orders[i].tokenAddress).startOrder(
                 orders[i].consumer,
                 orders[i].serviceIndex,
-                orders[i]._providerFees
+                orders[i]._providerFee,
+                orders[i]._consumeMarketFee
             );
         }
     }
@@ -533,7 +538,7 @@ contract ERC721Factory is Deployer, Ownable, ReentrancyGuard {
     struct reuseTokenOrder {
         address tokenAddress;
         bytes32 orderTxId;
-        IERC20Template.providerFees _providerFees;
+        IERC20Template.providerFee _providerFee;
     }
     /**
      * @dev reuseMultipleTokenOrder
@@ -555,18 +560,18 @@ contract ERC721Factory is Deployer, Ownable, ReentrancyGuard {
         // transfer for each one, instead of doing it per dt..
         for (uint256 i = 0; i < orders.length; i++) {
             // handle provider fees
-            if (orders[i]._providerFees.providerFeeAmount > 0 && orders[i]._providerFees.providerFeeToken!=address(0) 
-            && orders[i]._providerFees.providerFeeAddress!=address(0)) {
-                _pullUnderlying(orders[i]._providerFees.providerFeeToken,msg.sender,
+            if (orders[i]._providerFee.providerFeeAmount > 0 && orders[i]._providerFee.providerFeeToken!=address(0) 
+            && orders[i]._providerFee.providerFeeAddress!=address(0)) {
+                _pullUnderlying(orders[i]._providerFee.providerFeeToken,msg.sender,
                     address(this),
-                    orders[i]._providerFees.providerFeeAmount);
-                IERC20(orders[i]._providerFees.providerFeeToken)
-                .safeIncreaseAllowance(orders[i].tokenAddress, orders[i]._providerFees.providerFeeAmount);
+                    orders[i]._providerFee.providerFeeAmount);
+                IERC20(orders[i]._providerFee.providerFeeToken)
+                .safeIncreaseAllowance(orders[i].tokenAddress, orders[i]._providerFee.providerFeeAmount);
             }
         
             IERC20Template(orders[i].tokenAddress).reuseOrder(
                 orders[i].orderTxId,
-                orders[i]._providerFees
+                orders[i]._providerFee
             );
         }
     }
@@ -607,6 +612,7 @@ contract ERC721Factory is Deployer, Ownable, ReentrancyGuard {
             _NftCreateData.symbol,
             _NftCreateData.templateIndex,
             address(this),
+            address(0),
             _NftCreateData.tokenURI);
         erc20Address = IERC721Template(erc721Address).createERC20(
             _ErcCreateData.templateIndex,
@@ -647,6 +653,7 @@ contract ERC721Factory is Deployer, Ownable, ReentrancyGuard {
             _NftCreateData.symbol,
             _NftCreateData.templateIndex,
             address(this),
+            address(0),
              _NftCreateData.tokenURI);
         erc20Address = IERC721Template(erc721Address).createERC20(
             _ErcCreateData.templateIndex,
@@ -692,6 +699,7 @@ contract ERC721Factory is Deployer, Ownable, ReentrancyGuard {
             _NftCreateData.symbol,
             _NftCreateData.templateIndex,
             address(this),
+            address(0),
              _NftCreateData.tokenURI);
         erc20Address = IERC721Template(erc721Address).createERC20(
             _ErcCreateData.templateIndex,
@@ -735,6 +743,7 @@ contract ERC721Factory is Deployer, Ownable, ReentrancyGuard {
             _NftCreateData.symbol,
             _NftCreateData.templateIndex,
             address(this),
+            address(0),
              _NftCreateData.tokenURI);
         erc20Address = IERC721Template(erc721Address).createERC20(
             _ErcCreateData.templateIndex,
@@ -752,6 +761,45 @@ contract ERC721Factory is Deployer, Ownable, ReentrancyGuard {
             );
         // remove our selfs from the erc20DeployerRole
         IERC721Template(erc721Address).removeFromCreateERC20List(address(this));
+    }
+
+
+    
+    struct MetaData {
+        uint8 _metaDataState;
+        string _metaDataDecryptorUrl;
+        string _metaDataDecryptorAddress;
+        bytes flags;
+        bytes data;
+        bytes32 _metaDataHash;
+        IERC721Template.metaDataProof[] _metadataProofs;
+    }
+
+    /**
+     * @dev createNftWithMetaData
+     *      Creates a new NFT, then sets the metadata, all in one call
+     *      Use this carefully
+     * @param _NftCreateData input data for NFT Creation
+     * @param _MetaData input metadata
+     */
+    function createNftWithMetaData(
+        NftCreateData calldata _NftCreateData,
+        MetaData calldata _MetaData
+    ) external nonReentrant returns (address erc721Address){
+        //we are adding ourselfs as a ERC20 Deployer, because we need it in order to deploy the fixedrate
+        erc721Address = deployERC721Contract(
+            _NftCreateData.name,
+            _NftCreateData.symbol,
+            _NftCreateData.templateIndex,
+            address(0),
+            address(this),
+             _NftCreateData.tokenURI);
+        // set metadata
+        IERC721Template(erc721Address).setMetaData(_MetaData._metaDataState, _MetaData._metaDataDecryptorUrl
+        , _MetaData._metaDataDecryptorAddress, _MetaData.flags, 
+        _MetaData.data,_MetaData._metaDataHash, _MetaData._metadataProofs);
+        // remove our selfs from the erc20DeployerRole
+        IERC721Template(erc721Address).removeFromMetadataList(address(this));
     }
 
 

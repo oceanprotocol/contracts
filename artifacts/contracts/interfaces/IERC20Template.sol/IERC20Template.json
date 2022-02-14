@@ -602,8 +602,8 @@
               "type": "bytes"
             }
           ],
-          "internalType": "struct IERC20Template.providerFees",
-          "name": "_providerFees",
+          "internalType": "struct IERC20Template.providerFee",
+          "name": "_providerFee",
           "type": "tuple"
         }
       ],
@@ -690,8 +690,30 @@
               "type": "bytes"
             }
           ],
-          "internalType": "struct IERC20Template.providerFees",
-          "name": "_providerFees",
+          "internalType": "struct IERC20Template.providerFee",
+          "name": "_providerFee",
+          "type": "tuple"
+        },
+        {
+          "components": [
+            {
+              "internalType": "address",
+              "name": "consumeMarketFeeAddress",
+              "type": "address"
+            },
+            {
+              "internalType": "address",
+              "name": "consumeMarketFeeToken",
+              "type": "address"
+            },
+            {
+              "internalType": "uint256",
+              "name": "consumeMarketFeeAmount",
+              "type": "uint256"
+            }
+          ],
+          "internalType": "struct IERC20Template.consumeMarketFee",
+          "name": "_consumeMarketFee",
           "type": "tuple"
         }
       ],

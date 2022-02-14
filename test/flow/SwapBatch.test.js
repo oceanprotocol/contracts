@@ -99,11 +99,11 @@ describe("Batch Swap", () => {
     // GET SOME OCEAN TOKEN FROM OUR MAINNET FORK and send them to user3
     const userWithOcean = "0x53aB4a93B31F480d17D3440a6329bDa86869458A";
     await impersonate(userWithOcean);
-
     oceanContract = await ethers.getContractAt(
       "contracts/interfaces/IERC20.sol:IERC20",
       oceanAddress
     );
+
     signer = ethers.provider.getSigner(userWithOcean);
     await oceanContract
       .connect(signer)
@@ -111,7 +111,7 @@ describe("Batch Swap", () => {
 
     await oceanContract
       .connect(signer)
-      .transfer(user4.address, ethers.utils.parseEther("10000"));
+      .transfer(user4.address, ethers.utils.parseEther("20000"));
 
     // GET SOME DAI (A NEW TOKEN different from OCEAN)
     const userWithDAI = "0x16de59092dAE5CcF4A1E6439D611fd0653f0Bd01";
@@ -129,7 +129,7 @@ describe("Batch Swap", () => {
 
     await daiContract
       .connect(signer)
-      .transfer(user4.address, ethers.utils.parseEther("10000"));
+      .transfer(user4.address, ethers.utils.parseEther("100000"));
 
     // GET SOME USDC (token with !18 decimals (6 in this case))
     const userWithUSDC = "0xF977814e90dA44bFA03b6295A0616a897441aceC";
@@ -143,11 +143,9 @@ describe("Batch Swap", () => {
 
     signer = ethers.provider.getSigner(userWithUSDC);
 
-    const amount = 1e12; // 100000 USDC
+    const amount = 1e11; // 100000 
     await usdcContract.connect(signer).transfer(user3.address, amount);
-
     await usdcContract.connect(signer).transfer(user4.address, amount);
-
     // expect(
     //   await usdcContract.balanceOf(user3.address)).to.equal(amount)
 
@@ -206,6 +204,7 @@ describe("Batch Swap", () => {
       "NFT",
       "NFTSYMBOL",
       1,
+      "0x0000000000000000000000000000000000000000",
       "0x0000000000000000000000000000000000000000",
       "https://oceanprotocol.com/nft/"
     );
@@ -776,6 +775,63 @@ describe("Batch Swap", () => {
 
       expect(await erc20Token5.balanceOf(user4.address)).to.equal(operations5.amountsOut)
       expect(await erc20Token5.balanceOf(router.address)).to.equal(0)
+    });
+  });
+
+  describe("user4 attemps to add liquidity to 3 pools in the same transaction", async () => {
+    
+    it("#1 - user4 checks he has enough balance in USDC, DAI, and OCEAN, then approves router to spend his tokens", async () => {
+      amount = web3.utils.toWei("1");
+      usdc_amount = "998996980"
+      expect(await usdcContract.balanceOf(user4.address)).gt(usdc_amount);
+      expect(await daiContract.balanceOf(user4.address)).gt(amount);
+      expect(await oceanContract.balanceOf(user4.address)).gt(amount);
+
+      await usdcContract.connect(user4).approve(router.address, amount);
+      await daiContract.connect(user4).approve(router.address, amount);
+      await oceanContract.connect(user4).approve(router.address, amount);
+    });
+
+    it("#2 - user4 calls stakeBatch", async () => {
+      const stake1 = {
+        poolAddress: bPool.address, // pool Address
+        tokenAmountIn: amount, // when swapExactAmountIn is EXACT amount IN
+        minPoolAmountOut:0
+      }
+
+      const stake2 = {
+        poolAddress: bPool2.address, // pool Address
+        tokenAmountIn: amount, // when swapExactAmountIn is EXACT amount IN
+        minPoolAmountOut:0
+      }
+
+      const stake3 = {
+        poolAddress: bPool3.address, // pool Address
+        tokenAmountIn: usdc_amount, // when swapExactAmountIn is EXACT amount IN
+        minPoolAmountOut:0
+      }
+
+      BPool1Token1 = await ethers.getContractAt("ERC20Template", bPool.address);
+      BPool1Token2 = await ethers.getContractAt("ERC20Template", bPool2.address);
+      BPool1Token3 = await ethers.getContractAt("ERC20Template", bPool3.address);
+      //make sure that both router and user4 does not have pool shares
+      expect(await BPool1Token1.balanceOf(router.address)).to.equal(0)
+      expect(await BPool1Token2.balanceOf(router.address)).to.equal(0)
+      expect(await BPool1Token3.balanceOf(router.address)).to.equal(0)
+      expect(await BPool1Token1.balanceOf(user4.address)).to.equal(0)
+      expect(await BPool1Token2.balanceOf(user4.address)).to.equal(0)
+      expect(await BPool1Token3.balanceOf(user4.address)).to.equal(0)
+
+      await router.connect(user4).stakeBatch([stake1,stake2,stake3]);
+
+      //make sure that router has no pool shares
+      expect(await BPool1Token1.balanceOf(router.address)).to.equal(0)
+      expect(await BPool1Token2.balanceOf(router.address)).to.equal(0)
+      expect(await BPool1Token3.balanceOf(router.address)).to.equal(0)
+      //make sure that user4 has pool shares
+      expect(await BPool1Token1.balanceOf(user4.address)).gt(0)
+      expect(await BPool1Token2.balanceOf(user4.address)).gt(0)
+      expect(await BPool1Token3.balanceOf(user4.address)).gt(0)
     });
   });
 });

@@ -69,7 +69,9 @@ describe("ERC721Template", () => {
       "NFT2",
       "NFTSYMBOL",
       1,
-      "0x0000000000000000000000000000000000000000"
+      "0x0000000000000000000000000000000000000000",
+      "0x0000000000000000000000000000000000000000",
+      "https://oceanprotocol.com/nft/"
     );
     const txReceipt = await tx.wait();
     let event = getEventFromTx(txReceipt,'NFTCreated')
@@ -173,6 +175,7 @@ describe("ERC721Template", () => {
       "NFTSYMBOL",
       1,
       "0x0000000000000000000000000000000000000000",
+      "0x0000000000000000000000000000000000000000",
       "https://oceanprotocol.com/nft/"
     );
     const txReceipt = await tx.wait();
@@ -223,6 +226,7 @@ describe("ERC721Template", () => {
         "NewName",
         "NN",
         factoryERC721.address,
+        '0x0000000000000000000000000000000000000000',
         '0x0000000000000000000000000000000000000000',
         "https://oceanprotocol.com/nft/"
       ),
