@@ -131,6 +131,7 @@ describe("FactoryRouter", () => {
       "DTSYMBOL",
       1,
       "0x0000000000000000000000000000000000000000",
+      "0x0000000000000000000000000000000000000000",
       "https://oceanprotocol.com/nft/"
     );
     txReceipt = await tx.wait();
