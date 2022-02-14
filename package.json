@@ -24,7 +24,7 @@
   "author": "Ocean Protocol",
   "license": "Apache-2.0",
   "scripts": {
-    "release": "release-it --non-interactive",
+    "release": "release-it --dry-run --release-version",
     "test:full": "npx hardhat test test/unit/*/*.test.js test/flow/*.test.js ",
     "test:batch": "npx hardhat test test/flow/SwapBatch.test.js ",
     "test:ss": "npx hardhat test test/flow/SideStaking.test.js ",
