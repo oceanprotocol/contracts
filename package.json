@@ -24,6 +24,7 @@
   "author": "Ocean Protocol",
   "license": "Apache-2.0",
   "scripts": {
+    "release": "release-it --non-interactive",
     "test:full": "npx hardhat test test/unit/*/*.test.js test/flow/*.test.js ",
     "test:batch": "npx hardhat test test/flow/SwapBatch.test.js ",
     "test:ss": "npx hardhat test test/flow/SideStaking.test.js ",
@@ -56,6 +57,7 @@
     "eth-permit": "^0.2.1",
     "ethereumjs-util": "^7.1.3",
     "hardhat-contract-sizer": "^2.1.1",
+    "release-it": "^14.12.4",
     "solidity-bytes-utils": "^0.8.0"
   }
 }
