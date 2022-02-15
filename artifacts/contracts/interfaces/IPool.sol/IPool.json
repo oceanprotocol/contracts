@@ -6,11 +6,6 @@
     {
       "inputs": [
         {
-          "internalType": "address",
-          "name": "tokenOut",
-          "type": "address"
-        },
-        {
           "internalType": "uint256",
           "name": "poolAmountIn",
           "type": "uint256"
@@ -51,7 +46,7 @@
         },
         {
           "internalType": "uint256",
-          "name": "_swapMarketFee",
+          "name": "_consumeMarketSwapFee",
           "type": "uint256"
         }
       ],
@@ -59,7 +54,27 @@
       "outputs": [
         {
           "internalType": "uint256",
-          "name": "tokenAmountIn",
+          "name": "",
+          "type": "uint256"
+        },
+        {
+          "internalType": "uint256",
+          "name": "",
+          "type": "uint256"
+        },
+        {
+          "internalType": "uint256",
+          "name": "",
+          "type": "uint256"
+        },
+        {
+          "internalType": "uint256",
+          "name": "",
+          "type": "uint256"
+        },
+        {
+          "internalType": "uint256",
+          "name": "",
           "type": "uint256"
         }
       ],
@@ -85,7 +100,7 @@
         },
         {
           "internalType": "uint256",
-          "name": "_swapMarketFee",
+          "name": "_consumeMarketSwapFee",
           "type": "uint256"
         }
       ],
@@ -93,7 +108,27 @@
       "outputs": [
         {
           "internalType": "uint256",
-          "name": "tokenAmountOut",
+          "name": "",
+          "type": "uint256"
+        },
+        {
+          "internalType": "uint256",
+          "name": "",
+          "type": "uint256"
+        },
+        {
+          "internalType": "uint256",
+          "name": "",
+          "type": "uint256"
+        },
+        {
+          "internalType": "uint256",
+          "name": "",
+          "type": "uint256"
+        },
+        {
+          "internalType": "uint256",
+          "name": "",
           "type": "uint256"
         }
       ],
@@ -154,11 +189,6 @@
     },
     {
       "inputs": [
-        {
-          "internalType": "address",
-          "name": "tokenIn",
-          "type": "address"
-        },
         {
           "internalType": "uint256",
           "name": "tokenAmountIn",

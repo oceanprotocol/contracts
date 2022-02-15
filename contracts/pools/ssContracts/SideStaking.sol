@@ -27,6 +27,17 @@ contract SideStaking is ReentrancyGuard {
     using SafeERC20 for IERC20;
     address public router;
 
+    // emitted when a new vesting is created
+    event VestingCreated(address indexed datatokenAddress,
+        address indexed publisherAddress,
+        uint256 vestingEndBlock,
+        uint256 totalVestingAmount);
+    // emited each time when tokens are vested to the publisher
+    event Vesting(address indexed datatokenAddress,
+        address indexed publisherAddress,
+        address indexed caller,
+        uint256 amountVested);
+
     struct Record {
         bool bound; //datatoken bounded
         address baseTokenAddress;
@@ -132,6 +143,8 @@ contract SideStaking is ReentrancyGuard {
             vestingLastBlock: block.number,
             vestingAmountSoFar: 0
         });
+        emit VestingCreated(datatokenAddress, publisherAddress,
+            _datatokens[datatokenAddress].vestingEndBlock, _datatokens[datatokenAddress].vestingAmount);
 
         notifyFinalize(datatokenAddress, ssParams[1]);
 
@@ -483,6 +496,7 @@ contract SideStaking is ReentrancyGuard {
             dt.safeTransfer(_datatokens[datatokenAddress].publisherAddress, amount);
             _datatokens[datatokenAddress].datatokenBalance -= amount;
             _datatokens[datatokenAddress].vestingAmountSoFar += amount;
+            emit Vesting(datatokenAddress, _datatokens[datatokenAddress].publisherAddress, msg.sender, amount);
         }
     }
 

@@ -62,15 +62,21 @@ contract ERC20Template is
     fixedRate[] fixedRateExchanges;
     address[] dispensers;
 
-    struct providerFees{
+    struct providerFee{
         address providerFeeAddress;
-        address providerFeeToken; // address of the token marketplace wants to add fee on top
-        uint256 providerFeeAmount; // amount to be transfered to marketFeeCollector
+        address providerFeeToken; // address of the token 
+        uint256 providerFeeAmount; // amount to be transfered to provider
         uint8 v; // v of provider signed message
         bytes32 r; // r of provider signed message
         bytes32 s; // s of provider signed message
         uint256 validUntil; //validity expresses in unix timestamp
         bytes providerData; //data encoded by provider   
+    }
+
+    struct consumeMarketFee{
+        address consumeMarketFeeAddress;
+        address consumeMarketFeeToken; // address of the token marketplace wants to add fee on top
+        uint256 consumeMarketFeeAmount; // amount to be transfered to marketFeeCollector
     }
 
     event OrderStarted(
@@ -90,19 +96,29 @@ contract ERC20Template is
             uint256 number
         );
 
-    event PublishMarketFees(
-        address indexed PublishMarketFeeAddress,
-        address indexed PublishMarketFeeToken,
-        uint256 PublishMarketFeeAmount
-    );
-
-    event PublishMarketFeesChanged(
+    event PublishMarketFeeChanged(
         address caller,
         address PublishMarketFeeAddress,
         address PublishMarketFeeToken,
         uint256 PublishMarketFeeAmount
     );
-    event ProviderFees(
+
+    // emited for every order
+    event PublishMarketFee(
+        address indexed PublishMarketFeeAddress,
+        address indexed PublishMarketFeeToken,
+        uint256 PublishMarketFeeAmount
+    );
+
+    // emited for every order
+    event ConsumeMarketFee(
+        address indexed consumeMarketFeeAddress,
+        address indexed consumeMarketFeeToken,
+        uint256 consumeMarketFeeAmount
+    );
+
+    // emited for every order
+    event ProviderFee(
         address indexed providerFeeAddress,
         address indexed providerFeeToken,
         uint256 providerFeeAmount,
@@ -112,6 +128,7 @@ contract ERC20Template is
         bytes32 s,
         uint256 validUntil
     );
+    
 
     event MinterProposed(address currentMinter, address newMinter);
 
@@ -122,7 +139,10 @@ contract ERC20Template is
         address ssContract,
         address baseTokenAddress
     );
-
+    event VestingCreated(address indexed datatokenAddress,
+        address indexed publisherAddress,
+        uint256 vestingEndBlock,
+        uint256 totalVestingAmount);
     event NewFixedRate(bytes32 exchangeId, address indexed owner, address exchangeContract, address indexed baseToken);
     event NewDispenser(address dispenserContract);
 
@@ -269,6 +289,12 @@ contract ERC20Template is
         publishMarketFeeAddress = addresses_[2];
         publishMarketFeeToken = addresses_[3];
         publishMarketFeeAmount = uints_[1];
+        emit PublishMarketFeeChanged(
+            msg.sender,
+            publishMarketFeeAddress,
+            publishMarketFeeToken,
+            publishMarketFeeAmount
+        );
         uint256 chainId;
         assembly {
             chainId := chainid()
@@ -422,12 +448,12 @@ contract ERC20Template is
 
     
     /**
-     * @dev checkProviderFees
+     * @dev checkProviderFee
      *      Checks if a providerFee structure is valid, signed and 
      *      transfers fee to providerAddress
-     * @param _providerFee providerFees structure
+     * @param _providerFee providerFee structure
      */
-    function checkProviderFees(providerFees calldata _providerFee) internal{
+    function checkProviderFee(providerFee calldata _providerFee) internal{
         // check if they are signed
         bytes memory prefix = "\x19Ethereum Signed Message:\n32";
         bytes32 message = keccak256(
@@ -445,7 +471,7 @@ contract ERC20Template is
         );
         address signer = ecrecover(message, _providerFee.v, _providerFee.r, _providerFee.s);
         require(signer == _providerFee.providerFeeAddress, "Invalid provider fee");
-        emit ProviderFees(
+        emit ProviderFee(
             _providerFee.providerFeeAddress,
             _providerFee.providerFeeToken,
             _providerFee.providerFeeAmount,
@@ -490,12 +516,14 @@ contract ERC20Template is
      *      Requires previous approval of consumeFeeToken and publishMarketFeeToken
      * @param consumer is the consumer address (payer could be different address)
      * @param serviceIndex service index in the metadata
-     * @param _providerFees provider feees
+     * @param _providerFee provider fee
+     * @param _consumeMarketFee consume market fee
      */
     function startOrder(
         address consumer,
         uint256 serviceIndex,
-        providerFees calldata _providerFees
+        providerFee calldata _providerFee,
+        consumeMarketFee calldata _consumeMarketFee
     ) external nonReentrant {
         uint256 amount = 1e18; // we always pay 1 DT. No more, no less
         uint256 communityFeePublish = 0;
@@ -512,7 +540,7 @@ contract ERC20Template is
             publishMarketFeeAddress,
             block.number
         );
-        // publishMarketFees
+        // publishMarketFee
         // Requires approval for the publishMarketFeeToken of publishMarketFeeAmount
         // skip fee if amount == 0 or feeToken == 0x0 address or feeAddress == 0x0 address
         if (
@@ -532,19 +560,19 @@ contract ERC20Template is
                 publishMarketFeeAmount.sub(communityFeePublish)
             );
 
-            emit PublishMarketFees(
+            emit PublishMarketFee(
                 publishMarketFeeAddress,
                 publishMarketFeeToken,
                 publishMarketFeeAmount.sub(communityFeePublish)
             );
-            //send fees to OPC
+            //send fee to OPC
             if (communityFeePublish > 0) {
                 //since both fees are in the same token, have just one transaction for both, to save gas
                 IERC20(publishMarketFeeToken).safeTransfer(
                     _communityFeeCollector,
                     communityFeePublish
                 );
-                emit PublishMarketFees(
+                emit PublishMarketFee(
                     _communityFeeCollector,
                     publishMarketFeeToken,
                     communityFeePublish
@@ -552,7 +580,46 @@ contract ERC20Template is
             }
         }
 
-        checkProviderFees(_providerFees);
+        // consumeMarketFee
+        // Requires approval for the FeeToken 
+        // skip fee if amount == 0 or feeToken == 0x0 address or feeAddress == 0x0 address
+        if (
+            _consumeMarketFee.consumeMarketFeeAmount > 0 &&
+            _consumeMarketFee.consumeMarketFeeToken != address(0) &&
+            _consumeMarketFee.consumeMarketFeeAddress != address(0)
+        ) {
+            _pullUnderlying(_consumeMarketFee.consumeMarketFeeToken,msg.sender,
+                address(this),
+                _consumeMarketFee.consumeMarketFeeAmount);
+            uint256 OPCFee = IFactoryRouter(router).getOPCConsumeFee();
+            if(OPCFee > 0)
+                communityFeePublish = _consumeMarketFee.consumeMarketFeeAmount.mul(OPCFee).div(BASE); 
+            //send publishMarketFee
+            IERC20(_consumeMarketFee.consumeMarketFeeToken).safeTransfer(
+                _consumeMarketFee.consumeMarketFeeAddress,
+                _consumeMarketFee.consumeMarketFeeAmount.sub(communityFeePublish)
+            );
+
+            emit ConsumeMarketFee(
+                _consumeMarketFee.consumeMarketFeeAddress,
+                _consumeMarketFee.consumeMarketFeeToken,
+                _consumeMarketFee.consumeMarketFeeAmount.sub(communityFeePublish)
+            );
+            //send fee to OPC
+            if (communityFeePublish > 0) {
+                //since both fees are in the same token, have just one transaction for both, to save gas
+                IERC20(_consumeMarketFee.consumeMarketFeeToken).safeTransfer(
+                    _communityFeeCollector,
+                    communityFeePublish
+                );
+                emit ConsumeMarketFee(
+                    _communityFeeCollector,
+                    _consumeMarketFee.consumeMarketFeeToken,
+                    communityFeePublish
+                );
+            }
+        }
+        checkProviderFee(_providerFee);
         
         // send datatoken to publisher
         require(
@@ -564,14 +631,14 @@ contract ERC20Template is
     /**
      * @dev reuseOrder
      *      called by payer or consumer having a valid order, but with expired provider access
-     *      Pays the provider fees again, but it will not require a new datatoken payment
-     *      Requires previous approval of provider fees.
+     *      Pays the provider fee again, but it will not require a new datatoken payment
+     *      Requires previous approval of provider fee.
      * @param orderTxId previous valid order
-     * @param _providerFees provider feees
+     * @param _providerFee provider feee
      */
     function reuseOrder(
         bytes32 orderTxId,
-        providerFees calldata _providerFees
+        providerFee calldata _providerFee
     ) external nonReentrant {
         emit OrderReused(
             orderTxId,
@@ -579,7 +646,7 @@ contract ERC20Template is
             block.timestamp,
             block.number
         );
-        checkProviderFees(_providerFees);
+        checkProviderFee(_providerFee);
     }
 
     /**
@@ -710,7 +777,7 @@ contract ERC20Template is
 
     /**
      * @dev getPublishingMarketFee
-     *      Get publishingMarket Fees
+     *      Get publishingMarket Fee
      *      This function allows to get the current fee set by the publishing market
      */
     function getPublishingMarketFee()
@@ -732,7 +799,7 @@ contract ERC20Template is
     /**
      * @dev setPublishingMarketFee
      *      Only publishMarketFeeAddress can call it
-     *      This function allows to set the fees required by the publisherMarket
+     *      This function allows to set the fee required by the publisherMarket
      * @param _publishMarketFeeAddress  new _publishMarketFeeAddress
      * @param _publishMarketFeeToken new _publishMarketFeeToken
      * @param _publishMarketFeeAmount new fee amount
@@ -749,7 +816,7 @@ contract ERC20Template is
         publishMarketFeeAddress = _publishMarketFeeAddress;
         publishMarketFeeToken = _publishMarketFeeToken;
         publishMarketFeeAmount = _publishMarketFeeAmount;
-        emit PublishMarketFeesChanged(
+        emit PublishMarketFeeChanged(
             msg.sender,
             _publishMarketFeeAddress,
             _publishMarketFeeToken,

@@ -652,7 +652,8 @@ contract FactoryRouter is BFactory {
                 );
             } else if (_operations[i].operation == operationType.SwapExactOut) {
                 // calculate how much amount In we need for exact Out
-                uint256 amountIn = IPool(_operations[i].source)
+                uint256 amountIn;
+                (amountIn, , , , ) = IPool(_operations[i].source)
                     .getAmountInExactOut(
                         _operations[i].tokenIn,
                         _operations[i].tokenOut,
@@ -721,6 +722,40 @@ contract FactoryRouter is BFactory {
         }
     }
 
+    struct Stakes {
+        address poolAddress;
+        uint256 tokenAmountIn;
+        uint256 minPoolAmountOut;
+    }
+    // require pool[].baseToken (for each pool) approvals for router from user.
+    function stakeBatch(Stakes[] calldata _stakes) external {
+        // TODO: to avoid DOS attack, we set a limit to maximum orders (50?)
+        require(_stakes.length <= 50, "FactoryRouter: Too Many Operations");
+        for (uint256 i = 0; i < _stakes.length; i++) {
+            address baseToken = IPool(_stakes[i].poolAddress).getBaseTokenAddress();
+            console.log("Start %s",i);
+            _pullUnderlying(baseToken,msg.sender,
+                    address(this),
+                    _stakes[i].tokenAmountIn);
+            console.log("got funds %s",i);
+            uint256 balanceBefore = IERC20(_stakes[i].poolAddress).balanceOf(address(this));
+            // we approve pool to pull token from router
+            IERC20(baseToken).safeIncreaseAllowance(
+                    _stakes[i].poolAddress,
+                    _stakes[i].tokenAmountIn);
+            //now stake
+            IPool(_stakes[i].poolAddress).joinswapExternAmountIn(_stakes[i].tokenAmountIn, _stakes[i].minPoolAmountOut);
+            uint256 balanceAfter = IERC20(_stakes[i].poolAddress).balanceOf(address(this));
+            //send LP shares to user
+             console.log("i: %s, balanceAfter: %s, balanceBefore %s", i, balanceAfter, balanceBefore);
+            IERC20(_stakes[i].poolAddress).safeTransfer(
+                    msg.sender,
+                    balanceAfter.sub(balanceBefore)
+                );
+            console.log("Done %s",i);
+        }
+    }
+    
     function _pullUnderlying(
         address erc20,
         address from,

@@ -109,6 +109,7 @@ contract ERC721Template is
         string calldata symbol_,
         address tokenFactory,
         address additionalERC20Deployer,
+        address additionalMetaDataUpdater,
         string memory tokenURI
     ) external returns (bool) {
         require(
@@ -125,6 +126,8 @@ contract ERC721Template is
             );
         if(initResult && additionalERC20Deployer != address(0))
             _addToCreateERC20List(additionalERC20Deployer);
+        if(initResult && additionalMetaDataUpdater != address(0))
+            _addToMetadataList(additionalMetaDataUpdater);
         return(initResult);
     }
 

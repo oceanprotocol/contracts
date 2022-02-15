@@ -191,6 +191,7 @@ interface IERC721Template is IERC165 {
         string calldata symbol,
         address erc20Factory,
         address additionalERC20Deployer,
+        address additionalMetaDataUpdater,
         string calldata tokenURI
     ) external returns (bool);
 

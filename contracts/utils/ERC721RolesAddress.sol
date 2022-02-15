@@ -124,6 +124,13 @@ contract ERC721RolesAddress {
         auth.push(_allowedAddress);
         emit AddedToMetadataList(_allowedAddress,msg.sender,block.timestamp,block.number);
     }
+    //it's only called internally, so is without checking onlyManager
+    function _addToMetadataList(address _allowedAddress) internal {
+        Roles storage user = permissions[_allowedAddress];
+        user.updateMetadata = true;
+        auth.push(_allowedAddress);
+        emit AddedToMetadataList(_allowedAddress,msg.sender,block.timestamp,block.number);
+    }
 
     function removeFromMetadataList(address _allowedAddress)
         public
