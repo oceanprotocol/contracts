@@ -269,7 +269,8 @@ contract FixedRateExchange is ReentrancyGuard {
             uint256 consumeMarketFeeAmount;
     }
         
-    function getBaseTokenOutPrice(bytes32 exchangeId, uint256 datatokenAmount) internal view returns (uint256 baseTokenAmount){
+    function getBaseTokenOutPrice(bytes32 exchangeId, uint256 datatokenAmount) 
+    internal view returns (uint256 baseTokenAmount){
         baseTokenAmount = datatokenAmount
             .mul(exchanges[exchangeId].fixedRate)
             .mul(10**exchanges[exchangeId].btDecimals)
@@ -484,7 +485,8 @@ contract FixedRateExchange is ReentrancyGuard {
      * @param consumeMarketAddress consumeMarketAddress
      * @param consumeMarketSwapFeeAmount fee amount for consume market
      */
-    function sellDT(bytes32 exchangeId, uint256 datatokenAmount, uint256 minBaseTokenAmount, address consumeMarketAddress, uint256 consumeMarketSwapFeeAmount)
+    function sellDT(bytes32 exchangeId, uint256 datatokenAmount,
+    uint256 minBaseTokenAmount, address consumeMarketAddress, uint256 consumeMarketSwapFeeAmount)
         external
         onlyActiveExchange(exchangeId)
         nonReentrant
@@ -517,7 +519,8 @@ contract FixedRateExchange is ReentrancyGuard {
         exchanges[exchangeId].marketFeeAvailable = exchanges[exchangeId]
             .marketFeeAvailable
             .add(fee.publishMarketFeeAmount);
-        uint256 baseTokenAmountWithFees = fee.baseTokenAmount.add(fee.oceanFeeAmount).add(fee.publishMarketFeeAmount).add(fee.consumeMarketFeeAmount);
+        uint256 baseTokenAmountWithFees = fee.baseTokenAmount.add(fee.oceanFeeAmount)
+            .add(fee.publishMarketFeeAmount).add(fee.consumeMarketFeeAmount);
         _pullUnderlying(exchanges[exchangeId].datatoken,msg.sender,
                 address(this),
                 datatokenAmount);
