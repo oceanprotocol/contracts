@@ -89,7 +89,8 @@ contract BPool is BMath, BToken {
     event ConsumeMarketFee(address to, address token, uint256 amount);
     event SWAP_FEES(uint LPFeeAmount, uint oceanFeeAmount, uint marketFeeAmount,
         uint consumeMarketFeeAmount, address tokenFeeAddress);
-    event PublishMarketCollectorChanged(address caller, address newMarketCollector);
+    //emitted for every change done by publisherMarket
+    event PublishMarketFeeChanged(address caller, address newMarketCollector, uint256 swapFee);
 
     modifier _lock_() {
         require(!_mutex, "ERR_REENTRY");
@@ -153,6 +154,8 @@ contract BPool is BMath, BToken {
         require(factory != address(0), "ERR_INVALID_FACTORY_ADDRESS");
         require(swapFees[0] >= MIN_FEE, "ERR_MIN_FEE");
         require(swapFees[0] <= MAX_FEE, "ERR_MAX_FEE");
+        require(swapFees[1] >= MIN_FEE, "ERR_MIN_FEE");
+        require(swapFees[1] <= MAX_FEE, "ERR_MAX_FEE");
         return
             _initialize(
                 controller,
@@ -185,7 +188,7 @@ contract BPool is BMath, BToken {
         _datatokenAddress = tokens[0];
         _baseTokenAddress = tokens[1];
         _publishMarketCollector = feeCollectors[0];
-        emit PublishMarketCollectorChanged(msg.sender, _publishMarketCollector);
+        emit PublishMarketFeeChanged(msg.sender, _publishMarketCollector, _swapPublishMarketFee);
         _opcCollector = feeCollectors[1];
         initialized = true;
         ssContract = ISideStaking(_controller);
@@ -396,14 +399,19 @@ contract BPool is BMath, BToken {
     }
 
     /**
-     * @dev updateMarketFeeCollector
+     * @dev updatePublishMarketFee
      *      Set _newCollector as _publishMarketCollector
+     * @param _newCollector new _publishMarketCollector
+     * @param _newSwapFee new swapFee
      */
-    function updateMarketFeeCollector(address _newCollector) external {
+    function updatePublishMarketFee(address _newCollector, uint256 _newSwapFee) external {
         require(_publishMarketCollector == msg.sender, "ONLY MARKET COLLECTOR");
         require(_newCollector != address(0), "Invalid _newCollector address");
+        require(_newSwapFee >= MIN_FEE, "ERR_MIN_FEE");
+        require(_newSwapFee <= MAX_FEE, "ERR_MAX_FEE");
         _publishMarketCollector = _newCollector;
-        emit PublishMarketCollectorChanged(msg.sender, _publishMarketCollector);
+        _swapPublishMarketFee = _newSwapFee;
+        emit PublishMarketFeeChanged(msg.sender, _publishMarketCollector, _swapPublishMarketFee);
     }
 
     /**
