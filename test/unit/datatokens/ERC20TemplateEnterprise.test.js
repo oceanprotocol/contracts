@@ -1375,7 +1375,7 @@ describe("ERC20TemplateEnterprise", () => {
     await expectRevert(
       fixedRateExchange
         .connect(user4)
-        .buyDT(exchangeId, web3.utils.toWei('1'), web3.utils.toWei('1')),
+        .buyDT(exchangeId, web3.utils.toWei('1'), web3.utils.toWei('1'),addressZero, 0),
       "FixedRateExchange: This address is not allowed to swap"
     );
 
@@ -1458,13 +1458,7 @@ describe("ERC20TemplateEnterprise", () => {
     txReceipt = await tx.wait();
     assert(await EnterpriseToken.totalSupply() == 0, "Invalid Total Supply")
 
-    // Check for event
-    event = txReceipt.events.filter((e) => e.event === "BuyAndOrder");
-    const args = event[0].args;
-    // balance increasead as expected, dynamic market fee has been received
-    expect(await Mock20DecimalContract.balanceOf(user5.address)).to.equal(user5BalBeforBuy.add(args.marketFeeAmount))
-    expect(args.marketFeeAmount).to.equal(0)
-   
+    
    
     
 
@@ -1535,7 +1529,7 @@ describe("ERC20TemplateEnterprise", () => {
     await expectRevert(
       fixedRateExchange
         .connect(user4)
-        .buyDT(exchangeId, web3.utils.toWei('1'), web3.utils.toWei('1')),
+        .buyDT(exchangeId, web3.utils.toWei('1'), web3.utils.toWei('1'),addressZero, 0),
       "FixedRateExchange: This address is not allowed to swap"
     );
 
@@ -1617,11 +1611,6 @@ describe("ERC20TemplateEnterprise", () => {
     txReceipt = await tx.wait();
     assert(await EnterpriseToken.totalSupply() == 0, "Invalid Total Supply")
 
-    event = txReceipt.events.filter((e) => e.event === "BuyAndOrder");
-    const args = event[0].args;
-    expect(await Mock20DecimalContract.balanceOf(user5.address)).to.equal(user5BalBeforBuy.add(args.marketFeeAmount))
-    // 0.1% of 1 token => 0.001 token
-    expect(args.marketFeeAmount).to.equal(web3.utils.toWei('0.001'))
     
 
 

@@ -147,12 +147,6 @@ contract ERC20TemplateEnterprise is
         uint256 blockNumber
     );
 
-    event BuyAndOrder(
-        address buyer,
-        uint256 baseTokenAmount,
-        uint256 marketFeeAmount
-    );
-
     modifier onlyNotInitialized() {
         require(
             !initialized,
@@ -999,23 +993,21 @@ contract ERC20TemplateEnterprise is
         );
         // get token amounts needed
         (
-            uint256 baseTokenAmount,
-            uint256 baseTokenAmountBeforeFee,
+            uint256 baseTokenAmount
+            ,
+            ,
             ,
 
         ) = IFixedRateExchange(_freParams.exchangeContract)
                 .calcBaseInGivenOutDT(
                     _freParams.exchangeId,
-                    1e18  // we always take 1 DT
+                    1e18,  // we always take 1 DT
+                    _freParams.swapMarketFee
                 );
         require(
             baseTokenAmount <= _freParams.maxBaseTokenAmount,
             "FixedRateExchange: Too many base tokens"
         );
-        // we calculate the dynamic market fee and add it to the baseTokenAmount to be transferred
-        uint256 marketFeeAmount = (baseTokenAmountBeforeFee *
-            _freParams.swapMarketFee) / 1e18;
-        baseTokenAmount = baseTokenAmount + marketFeeAmount;
 
         //transfer baseToken to us first
         _pullUnderlying(baseToken,msg.sender,
@@ -1030,7 +1022,9 @@ contract ERC20TemplateEnterprise is
         IFixedRateExchange(_freParams.exchangeContract).buyDT(
             _freParams.exchangeId,
             1e18, // we always take 1 dt
-            baseTokenAmount
+            baseTokenAmount,
+            _freParams.marketFeeAddress,
+            _freParams.swapMarketFee
         );
         require(
             balanceOf(address(this)) >= 1e18,
@@ -1041,16 +1035,6 @@ contract ERC20TemplateEnterprise is
         //startOrder and burn it
         startOrder(_orderParams.consumer, _orderParams.serviceIndex,
         _orderParams._providerFee, _orderParams._consumeMarketFee);
-
-        // Transfer Market Fee to market fee collector
-        if (marketFeeAmount > 0) {
-            IERC20(baseToken).safeTransfer(
-                _freParams.marketFeeAddress,
-                marketFeeAmount
-            );
-        }
-
-        emit BuyAndOrder(msg.sender, baseTokenAmount, marketFeeAmount);
     }
 
     /**

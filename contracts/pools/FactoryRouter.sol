@@ -689,7 +689,8 @@ contract FactoryRouter is BFactory {
                     _operations[i].source
                 ).calcBaseInGivenOutDT(
                         _operations[i].exchangeIds,
-                        _operations[i].amountsOut
+                        _operations[i].amountsOut,
+                        _operations[i].swapMarketFee
                     );
 
                 // pull tokenIn amount
@@ -705,7 +706,9 @@ contract FactoryRouter is BFactory {
                 IFixedRateExchange(_operations[i].source).buyDT(
                     _operations[i].exchangeIds,
                     _operations[i].amountsOut,
-                    _operations[i].amountsIn
+                    _operations[i].amountsIn,
+                    _operations[i].marketFeeAddress,
+                    _operations[i].swapMarketFee
                 );
                 // send dt out to user
                 IERC20(datatoken).safeTransfer(

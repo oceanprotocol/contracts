@@ -10,8 +10,8 @@ interface IFixedRateExchange {
         uint256[] calldata uints // [baseTokenDecimals,datatokenDecimals, fixedRate, marketFee]
     ) external returns (bytes32 exchangeId);
 
-    function buyDT(bytes32 exchangeId, uint256 datatokenAmount, uint256 maxBaseTokenAmount) external;
-    function sellDT(bytes32 exchangeId, uint256 datatokenAmount, uint256 minBaseTokenAmount) external;
+    function buyDT(bytes32 exchangeId, uint256 datatokenAmount, uint256 maxBaseTokenAmount, address consumeMarketAddress, uint256 consumeMarketSwapFeeAmount) external;
+    function sellDT(bytes32 exchangeId, uint256 datatokenAmount, uint256 minBaseTokenAmount, address consumeMarketAddress, uint256 consumeMarketSwapFeeAmount) external;
 
     function getAllowedSwapper(bytes32 exchangeId) external view returns (address allowedSwapper);
     function getExchange(bytes32 exchangeId)
@@ -46,14 +46,23 @@ interface IFixedRateExchange {
 
     function isActive(bytes32 exchangeId) external view returns (bool);
 
-    function calcBaseInGivenOutDT(bytes32 exchangeId, uint256 datatokenAmount)
+    function calcBaseInGivenOutDT(bytes32 exchangeId, uint256 datatokenAmount, uint256 consumeMarketSwapFeeAmount)
         external
         view
         returns (
             uint256 baseTokenAmount,
-            uint256 baseTokenAmountBeforeFee,
             uint256 oceanFeeAmount,
-            uint256 marketFeeAmount
+            uint256 publishMarketFeeAmount,
+            uint256 consumeMarketFeeAmount
+        );
+    function calcBaseOutGivenInDT(bytes32 exchangeId, uint256 datatokenAmount, uint256 consumeMarketSwapFeeAmount)
+        external
+        view
+        returns (
+            uint256 baseTokenAmount,
+            uint256 oceanFeeAmount,
+            uint256 publishMarketFeeAmount,
+            uint256 consumeMarketFeeAmount
         );
     function updateMarketFee(bytes32 exchangeId, uint256 _newMarketFee) external;
     function updateMarketFeeCollector(bytes32 exchangeId, address _newMarketCollector) external;

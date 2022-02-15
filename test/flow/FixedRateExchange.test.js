@@ -339,13 +339,13 @@ describe("FixedRateExchange", () => {
     it("#8 - Bob should fail to buy if price is too high", async () => {
       // this will fails because we are willing to spend only 1 wei of base tokens
       await expectRevert(fixedRateExchange.connect(bob)
-      .buyDT(eventsExchange[0].args.exchangeId, amountDTtoSell, '1')
+      .buyDT(eventsExchange[0].args.exchangeId, amountDTtoSell, '1',ZERO_ADDRESS, 0)
       ,"FixedRateExchange: Too many base tokens" )
     });
     it("#9 - Bob should fail to sell if price is too low", async () => {
       // this will fails because we want to receive a high no of base tokens
       await expectRevert(fixedRateExchange.connect(bob)
-      .sellDT(eventsExchange[0].args.exchangeId, amountDTtoSell, noLimit)
+      .sellDT(eventsExchange[0].args.exchangeId, amountDTtoSell, noLimit,ZERO_ADDRESS, 0)
       ,"FixedRateExchange: Too few base tokens" )
     });
       
@@ -360,7 +360,7 @@ describe("FixedRateExchange", () => {
       const receipt = await (
         await fixedRateExchange
           .connect(bob)
-          .buyDT(eventsExchange[0].args.exchangeId, amountDT, noLimit)
+          .buyDT(eventsExchange[0].args.exchangeId, amountDT, noLimit,ZERO_ADDRESS, 0)
       ).wait();
 
       const SwappedEvent = receipt.events.filter((e) => e.event === "Swapped");
@@ -424,7 +424,7 @@ describe("FixedRateExchange", () => {
       const receipt = await (
         await fixedRateExchange
           .connect(bob)
-          .sellDT(eventsExchange[0].args.exchangeId, amountDT, noSellLimit)
+          .sellDT(eventsExchange[0].args.exchangeId, amountDT, noSellLimit,ZERO_ADDRESS, 0)
       ).wait();
 
       const SwappedEvent = receipt.events.filter((e) => e.event === "Swapped");
@@ -489,7 +489,7 @@ describe("FixedRateExchange", () => {
       const receipt = await (
         await fixedRateExchange
           .connect(bob)
-          .buyDT(eventsExchange[0].args.exchangeId, amountDT, noLimit)
+          .buyDT(eventsExchange[0].args.exchangeId, amountDT, noLimit,ZERO_ADDRESS, 0)
       ).wait();
 
       const SwappedEvent = receipt.events.filter((e) => e.event === "Swapped");
@@ -606,7 +606,7 @@ describe("FixedRateExchange", () => {
       const receipt = await (
         await fixedRateExchange
           .connect(bob)
-          .buyDT(eventsExchange[0].args.exchangeId, amountDT, noLimit)
+          .buyDT(eventsExchange[0].args.exchangeId, amountDT, noLimit,ZERO_ADDRESS, 0)
       ).wait();
 
       const SwappedEvent = receipt.events.filter((e) => e.event === "Swapped");
@@ -727,7 +727,7 @@ describe("FixedRateExchange", () => {
       await expectRevert(
         fixedRateExchange
           .connect(bob)
-          .buyDT(eventsExchange[0].args.exchangeId, amountDT, noLimit),
+          .buyDT(eventsExchange[0].args.exchangeId, amountDT, noLimit,ZERO_ADDRESS, 0),
         "ERC20: transfer amount exceeds allowance"
       );
 
@@ -746,7 +746,7 @@ describe("FixedRateExchange", () => {
       const receipt = await (
         await fixedRateExchange
           .connect(bob)
-          .buyDT(eventsExchange[0].args.exchangeId, amountDT, noLimit)
+          .buyDT(eventsExchange[0].args.exchangeId, amountDT, noLimit,ZERO_ADDRESS, 0)
       ).wait();
 
       // console.log(receipt)
@@ -823,7 +823,7 @@ describe("FixedRateExchange", () => {
       const receipt = await (
         await fixedRateExchange
           .connect(bob)
-          .sellDT(eventsExchange[0].args.exchangeId, amountDT, noSellLimit)
+          .sellDT(eventsExchange[0].args.exchangeId, amountDT, noSellLimit,ZERO_ADDRESS, 0)
       ).wait();
 
       const SwappedEvent = receipt.events.filter((e) => e.event === "Swapped");
@@ -898,6 +898,7 @@ describe("FixedRateExchange", () => {
 
     it("#18 - MarketFeeCollector updates new address then withdraws fees available on the FixedRate contract", async () => {
       // only market collector can update the address
+      await fixedRateExchange.getM
       await expectRevert(
         fixedRateExchange.updateMarketFeeCollector(
           eventsExchange[0].args.exchangeId,
@@ -1070,7 +1071,7 @@ describe("FixedRateExchange", () => {
       const receipt = await (
         await fixedRateExchange
           .connect(bob)
-          .buyDT(eventsExchange[0].args.exchangeId, amountDT, noLimit)
+          .buyDT(eventsExchange[0].args.exchangeId, amountDT, noLimit,ZERO_ADDRESS, 0)
       ).wait();
 
       const SwappedEvent = receipt.events.filter((e) => e.event === "Swapped");
@@ -1134,7 +1135,7 @@ describe("FixedRateExchange", () => {
       const receipt = await (
         await fixedRateExchange
           .connect(bob)
-          .sellDT(eventsExchange[0].args.exchangeId, amountDT, noSellLimit)
+          .sellDT(eventsExchange[0].args.exchangeId, amountDT, noSellLimit,ZERO_ADDRESS, 0)
       ).wait();
 
       const SwappedEvent = receipt.events.filter((e) => e.event === "Swapped");
@@ -1196,7 +1197,7 @@ describe("FixedRateExchange", () => {
       const receipt = await (
         await fixedRateExchange
           .connect(bob)
-          .buyDT(eventsExchange[0].args.exchangeId, amountDT, noLimit)
+          .buyDT(eventsExchange[0].args.exchangeId, amountDT, noLimit,ZERO_ADDRESS, 0)
       ).wait();
 
       const SwappedEvent = receipt.events.filter((e) => e.event === "Swapped");
@@ -1312,7 +1313,7 @@ describe("FixedRateExchange", () => {
       const receipt = await (
         await fixedRateExchange
           .connect(bob)
-          .buyDT(eventsExchange[0].args.exchangeId, amountDT, noLimit)
+          .buyDT(eventsExchange[0].args.exchangeId, amountDT, noLimit,ZERO_ADDRESS, 0)
       ).wait();
 
       // console.log(receipt)
@@ -1474,7 +1475,7 @@ describe("FixedRateExchange", () => {
       await expectRevert(
         fixedRateExchange
           .connect(bob)
-          .buyDT(eventsExchange[0].args.exchangeId, amountDT, noLimit),
+          .buyDT(eventsExchange[0].args.exchangeId, amountDT, noLimit,ZERO_ADDRESS, 0),
         "ERC20: transfer amount exceeds allowance"
       );
 
@@ -1493,7 +1494,7 @@ describe("FixedRateExchange", () => {
       const receipt = await (
         await fixedRateExchange
           .connect(bob)
-          .buyDT(eventsExchange[0].args.exchangeId, amountDT, noLimit)
+          .buyDT(eventsExchange[0].args.exchangeId, amountDT, noLimit,ZERO_ADDRESS, 0)
       ).wait();
 
       const SwappedEvent = receipt.events.filter((e) => e.event === "Swapped");
@@ -1569,7 +1570,7 @@ describe("FixedRateExchange", () => {
       const receipt = await (
         await fixedRateExchange
           .connect(bob)
-          .sellDT(eventsExchange[0].args.exchangeId, amountDT, noSellLimit)
+          .sellDT(eventsExchange[0].args.exchangeId, amountDT, noSellLimit,ZERO_ADDRESS, 0)
       ).wait();
 
       const SwappedEvent = receipt.events.filter((e) => e.event === "Swapped");
@@ -1855,7 +1856,7 @@ describe("FixedRateExchange", () => {
       const receipt = await (
         await fixedRateExchange
           .connect(bob)
-          .buyDT(eventsExchange[0].args.exchangeId, amountDT, noLimit)
+          .buyDT(eventsExchange[0].args.exchangeId, amountDT, noLimit,ZERO_ADDRESS, 0)
       ).wait();
 
       const SwappedEvent = receipt.events.filter((e) => e.event === "Swapped");
@@ -1918,7 +1919,7 @@ describe("FixedRateExchange", () => {
       const receipt = await (
         await fixedRateExchange
           .connect(bob)
-          .sellDT(eventsExchange[0].args.exchangeId, amountDT, noSellLimit)
+          .sellDT(eventsExchange[0].args.exchangeId, amountDT, noSellLimit,ZERO_ADDRESS, 0)
       ).wait();
 
       const SwappedEvent = receipt.events.filter((e) => e.event === "Swapped");
@@ -1980,7 +1981,7 @@ describe("FixedRateExchange", () => {
       const receipt = await (
         await fixedRateExchange
           .connect(bob)
-          .buyDT(eventsExchange[0].args.exchangeId, amountDT, noLimit)
+          .buyDT(eventsExchange[0].args.exchangeId, amountDT, noLimit,ZERO_ADDRESS, 0)
       ).wait();
 
       const SwappedEvent = receipt.events.filter((e) => e.event === "Swapped");
@@ -2097,7 +2098,7 @@ describe("FixedRateExchange", () => {
       const receipt = await (
         await fixedRateExchange
           .connect(bob)
-          .buyDT(eventsExchange[0].args.exchangeId, amountDT, noLimit)
+          .buyDT(eventsExchange[0].args.exchangeId, amountDT, noLimit,ZERO_ADDRESS, 0)
       ).wait();
 
       const SwappedEvent = receipt.events.filter((e) => e.event === "Swapped");
@@ -2218,7 +2219,7 @@ describe("FixedRateExchange", () => {
       await expectRevert(
         fixedRateExchange
           .connect(bob)
-          .buyDT(eventsExchange[0].args.exchangeId, amountDT, noLimit),
+          .buyDT(eventsExchange[0].args.exchangeId, amountDT, noLimit,ZERO_ADDRESS, 0),
         "ERC20: transfer amount exceeds allowance"
       );
 
@@ -2237,7 +2238,7 @@ describe("FixedRateExchange", () => {
       const receipt = await (
         await fixedRateExchange
           .connect(bob)
-          .buyDT(eventsExchange[0].args.exchangeId, amountDT, noLimit)
+          .buyDT(eventsExchange[0].args.exchangeId, amountDT, noLimit,ZERO_ADDRESS, 0)
       ).wait();
 
       const SwappedEvent = receipt.events.filter((e) => e.event === "Swapped");
@@ -2313,7 +2314,7 @@ describe("FixedRateExchange", () => {
       const receipt = await (
         await fixedRateExchange
           .connect(bob)
-          .sellDT(eventsExchange[0].args.exchangeId, amountDT, noSellLimit)
+          .sellDT(eventsExchange[0].args.exchangeId, amountDT, noSellLimit,ZERO_ADDRESS, 0)
       ).wait();
 
       const SwappedEvent = receipt.events.filter((e) => e.event === "Swapped");
@@ -2562,7 +2563,7 @@ describe("FixedRateExchange", () => {
       const receipt = await (
         await fixedRateExchange
           .connect(bob)
-          .buyDT(eventsExchange[0].args.exchangeId, amountDT, noLimit)
+          .buyDT(eventsExchange[0].args.exchangeId, amountDT, noLimit,ZERO_ADDRESS, 0)
       ).wait();
 
       const SwappedEvent = receipt.events.filter((e) => e.event === "Swapped");
@@ -2626,7 +2627,7 @@ describe("FixedRateExchange", () => {
       const receipt = await (
         await fixedRateExchange
           .connect(bob)
-          .sellDT(eventsExchange[0].args.exchangeId, amountDT, noSellLimit)
+          .sellDT(eventsExchange[0].args.exchangeId, amountDT, noSellLimit,ZERO_ADDRESS, 0)
       ).wait();
 
       const SwappedEvent = receipt.events.filter((e) => e.event === "Swapped");
@@ -2687,7 +2688,7 @@ describe("FixedRateExchange", () => {
       const receipt = await (
         await fixedRateExchange
           .connect(bob)
-          .buyDT(eventsExchange[0].args.exchangeId, amountDT, noLimit)
+          .buyDT(eventsExchange[0].args.exchangeId, amountDT, noLimit,ZERO_ADDRESS, 0)
       ).wait();
 
       const SwappedEvent = receipt.events.filter((e) => e.event === "Swapped");
@@ -2801,7 +2802,7 @@ describe("FixedRateExchange", () => {
       const receipt = await (
         await fixedRateExchange
           .connect(bob)
-          .buyDT(eventsExchange[0].args.exchangeId, amountDT, noLimit)
+          .buyDT(eventsExchange[0].args.exchangeId, amountDT, noLimit,ZERO_ADDRESS, 0)
       ).wait();
 
       const SwappedEvent = receipt.events.filter((e) => e.event === "Swapped");
@@ -2921,7 +2922,7 @@ describe("FixedRateExchange", () => {
       await expectRevert(
         fixedRateExchange
           .connect(bob)
-          .buyDT(eventsExchange[0].args.exchangeId, amountDT, noLimit),
+          .buyDT(eventsExchange[0].args.exchangeId, amountDT, noLimit,ZERO_ADDRESS, 0),
         "ERC20: transfer amount exceeds allowance"
       );
 
@@ -2940,7 +2941,7 @@ describe("FixedRateExchange", () => {
       const receipt = await (
         await fixedRateExchange
           .connect(bob)
-          .buyDT(eventsExchange[0].args.exchangeId, amountDT, noLimit)
+          .buyDT(eventsExchange[0].args.exchangeId, amountDT, noLimit,ZERO_ADDRESS, 0)
       ).wait();
 
       const SwappedEvent = receipt.events.filter((e) => e.event === "Swapped");
@@ -3016,7 +3017,7 @@ describe("FixedRateExchange", () => {
       const receipt = await (
         await fixedRateExchange
           .connect(bob)
-          .sellDT(eventsExchange[0].args.exchangeId, amountDT, noSellLimit)
+          .sellDT(eventsExchange[0].args.exchangeId, amountDT, noSellLimit,ZERO_ADDRESS, 0)
       ).wait();
 
       const SwappedEvent = receipt.events.filter((e) => e.event === "Swapped");
@@ -3264,7 +3265,7 @@ describe("FixedRateExchange", () => {
       const receipt = await (
         await fixedRateExchange
           .connect(bob)
-          .buyDT(eventsExchange[0].args.exchangeId, amountDT, noLimit)
+          .buyDT(eventsExchange[0].args.exchangeId, amountDT, noLimit,ZERO_ADDRESS, 0)
       ).wait();
 
       const SwappedEvent = receipt.events.filter((e) => e.event === "Swapped");
@@ -3329,7 +3330,7 @@ describe("FixedRateExchange", () => {
       const receipt = await (
         await fixedRateExchange
           .connect(bob)
-          .sellDT(eventsExchange[0].args.exchangeId, amountDT, noSellLimit)
+          .sellDT(eventsExchange[0].args.exchangeId, amountDT, noSellLimit,ZERO_ADDRESS, 0)
       ).wait();
 
       const SwappedEvent = receipt.events.filter((e) => e.event === "Swapped");
@@ -3391,7 +3392,7 @@ describe("FixedRateExchange", () => {
       const receipt = await (
         await fixedRateExchange
           .connect(bob)
-          .buyDT(eventsExchange[0].args.exchangeId, amountDT, noLimit)
+          .buyDT(eventsExchange[0].args.exchangeId, amountDT, noLimit,ZERO_ADDRESS, 0)
       ).wait();
 
       const SwappedEvent = receipt.events.filter((e) => e.event === "Swapped");
@@ -3504,7 +3505,7 @@ describe("FixedRateExchange", () => {
       const receipt = await (
         await fixedRateExchange
           .connect(bob)
-          .buyDT(eventsExchange[0].args.exchangeId, amountDT, noLimit)
+          .buyDT(eventsExchange[0].args.exchangeId, amountDT, noLimit,ZERO_ADDRESS, 0)
       ).wait();
 
       const SwappedEvent = receipt.events.filter((e) => e.event === "Swapped");
@@ -3626,7 +3627,7 @@ describe("FixedRateExchange", () => {
       await expectRevert(
         fixedRateExchange
           .connect(bob)
-          .buyDT(eventsExchange[0].args.exchangeId, amountDT, noLimit),
+          .buyDT(eventsExchange[0].args.exchangeId, amountDT, noLimit,ZERO_ADDRESS, 0),
         "ERC20: transfer amount exceeds allowance"
       );
 
@@ -3645,7 +3646,7 @@ describe("FixedRateExchange", () => {
       const receipt = await (
         await fixedRateExchange
           .connect(bob)
-          .buyDT(eventsExchange[0].args.exchangeId, amountDT, noLimit)
+          .buyDT(eventsExchange[0].args.exchangeId, amountDT, noLimit,ZERO_ADDRESS, 0)
       ).wait();
 
       const SwappedEvent = receipt.events.filter((e) => e.event === "Swapped");
@@ -3722,7 +3723,7 @@ describe("FixedRateExchange", () => {
       const receipt = await (
         await fixedRateExchange
           .connect(bob)
-          .sellDT(eventsExchange[0].args.exchangeId, amountDT, noSellLimit)
+          .sellDT(eventsExchange[0].args.exchangeId, amountDT, noSellLimit,ZERO_ADDRESS, 0)
       ).wait();
 
       const SwappedEvent = receipt.events.filter((e) => e.event === "Swapped");
@@ -3972,7 +3973,7 @@ describe("FixedRateExchange", () => {
       const receipt = await (
         await fixedRateExchange
           .connect(bob)
-          .buyDT(eventsExchange[0].args.exchangeId, amountDT, noLimit)
+          .buyDT(eventsExchange[0].args.exchangeId, amountDT, noLimit,ZERO_ADDRESS, 0)
       ).wait();
 
       const SwappedEvent = receipt.events.filter((e) => e.event === "Swapped");
@@ -4037,7 +4038,7 @@ describe("FixedRateExchange", () => {
       const receipt = await (
         await fixedRateExchange
           .connect(bob)
-          .sellDT(eventsExchange[0].args.exchangeId, amountDT, noSellLimit)
+          .sellDT(eventsExchange[0].args.exchangeId, amountDT, noSellLimit,ZERO_ADDRESS, 0)
       ).wait();
 
       const SwappedEvent = receipt.events.filter((e) => e.event === "Swapped");
@@ -4099,7 +4100,7 @@ describe("FixedRateExchange", () => {
       const receipt = await (
         await fixedRateExchange
           .connect(bob)
-          .buyDT(eventsExchange[0].args.exchangeId, amountDT, noLimit)
+          .buyDT(eventsExchange[0].args.exchangeId, amountDT, noLimit,ZERO_ADDRESS, 0)
       ).wait();
 
       const SwappedEvent = receipt.events.filter((e) => e.event === "Swapped");
@@ -4212,7 +4213,7 @@ describe("FixedRateExchange", () => {
       const receipt = await (
         await fixedRateExchange
           .connect(bob)
-          .buyDT(eventsExchange[0].args.exchangeId, amountDT, noLimit)
+          .buyDT(eventsExchange[0].args.exchangeId, amountDT, noLimit,ZERO_ADDRESS, 0)
       ).wait();
 
       const SwappedEvent = receipt.events.filter((e) => e.event === "Swapped");
@@ -4332,7 +4333,7 @@ describe("FixedRateExchange", () => {
       await expectRevert(
         fixedRateExchange
           .connect(bob)
-          .buyDT(eventsExchange[0].args.exchangeId, amountDT, noLimit),
+          .buyDT(eventsExchange[0].args.exchangeId, amountDT, noLimit,ZERO_ADDRESS, 0),
         "ERC20: transfer amount exceeds allowance"
       );
 
@@ -4351,7 +4352,7 @@ describe("FixedRateExchange", () => {
       const receipt = await (
         await fixedRateExchange
           .connect(bob)
-          .buyDT(eventsExchange[0].args.exchangeId, amountDT, noLimit)
+          .buyDT(eventsExchange[0].args.exchangeId, amountDT, noLimit,ZERO_ADDRESS, 0)
       ).wait();
 
       const SwappedEvent = receipt.events.filter((e) => e.event === "Swapped");
@@ -4428,7 +4429,7 @@ describe("FixedRateExchange", () => {
       const receipt = await (
         await fixedRateExchange
           .connect(bob)
-          .sellDT(eventsExchange[0].args.exchangeId, amountDT, noSellLimit)
+          .sellDT(eventsExchange[0].args.exchangeId, amountDT, noSellLimit,ZERO_ADDRESS, 0)
       ).wait();
 
       const SwappedEvent = receipt.events.filter((e) => e.event === "Swapped");
@@ -4677,7 +4678,7 @@ describe("FixedRateExchange", () => {
       const receipt = await (
         await fixedRateExchange
           .connect(bob)
-          .buyDT(eventsExchange[0].args.exchangeId, amountDT, noLimit)
+          .buyDT(eventsExchange[0].args.exchangeId, amountDT, noLimit,ZERO_ADDRESS, 0)
       ).wait();
 
       const SwappedEvent = receipt.events.filter((e) => e.event === "Swapped");
@@ -4740,7 +4741,7 @@ describe("FixedRateExchange", () => {
       const receipt = await (
         await fixedRateExchange
           .connect(bob)
-          .sellDT(eventsExchange[0].args.exchangeId, amountDT, noSellLimit)
+          .sellDT(eventsExchange[0].args.exchangeId, amountDT, noSellLimit,ZERO_ADDRESS, 0)
       ).wait();
 
       const SwappedEvent = receipt.events.filter((e) => e.event === "Swapped");
@@ -4810,7 +4811,7 @@ describe("FixedRateExchange", () => {
       const receipt = await (
         await fixedRateExchange
           .connect(bob)
-          .buyDT(eventsExchange[0].args.exchangeId, amountDT, noLimit)
+          .buyDT(eventsExchange[0].args.exchangeId, amountDT, noLimit,ZERO_ADDRESS, 0)
       ).wait();
 
       const SwappedEvent = receipt.events.filter((e) => e.event === "Swapped");
@@ -4932,7 +4933,7 @@ describe("FixedRateExchange", () => {
       const receipt = await (
         await fixedRateExchange
           .connect(bob)
-          .buyDT(eventsExchange[0].args.exchangeId, amountDT, noLimit)
+          .buyDT(eventsExchange[0].args.exchangeId, amountDT, noLimit,ZERO_ADDRESS, 0)
       ).wait();
 
       // console.log(receipt)
@@ -5091,7 +5092,7 @@ describe("FixedRateExchange", () => {
       await expectRevert(
         fixedRateExchange
           .connect(bob)
-          .buyDT(eventsExchange[0].args.exchangeId, amountDT, noLimit),
+          .buyDT(eventsExchange[0].args.exchangeId, amountDT, noLimit,ZERO_ADDRESS, 0),
         "ERC20: transfer amount exceeds allowance"
       );
 
@@ -5110,7 +5111,7 @@ describe("FixedRateExchange", () => {
       const receipt = await (
         await fixedRateExchange
           .connect(bob)
-          .buyDT(eventsExchange[0].args.exchangeId, amountDT, noLimit)
+          .buyDT(eventsExchange[0].args.exchangeId, amountDT, noLimit,ZERO_ADDRESS, 0)
       ).wait();
 
       const SwappedEvent = receipt.events.filter((e) => e.event === "Swapped");
@@ -5186,7 +5187,7 @@ describe("FixedRateExchange", () => {
       const receipt = await (
         await fixedRateExchange
           .connect(bob)
-          .sellDT(eventsExchange[0].args.exchangeId, amountDT, noSellLimit)
+          .sellDT(eventsExchange[0].args.exchangeId, amountDT, noSellLimit,ZERO_ADDRESS, 0)
       ).wait();
 
       const SwappedEvent = receipt.events.filter((e) => e.event === "Swapped");
@@ -5426,7 +5427,7 @@ describe("FixedRateExchange", () => {
       const receipt = await (
         await fixedRateExchange
           .connect(bob)
-          .buyDT(eventsExchange[0].args.exchangeId, amountDT, noLimit)
+          .buyDT(eventsExchange[0].args.exchangeId, amountDT, noLimit,ZERO_ADDRESS, 0)
       ).wait();
 
       const SwappedEvent = receipt.events.filter((e) => e.event === "Swapped");
