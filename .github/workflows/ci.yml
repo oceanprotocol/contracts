@@ -90,7 +90,6 @@ jobs:
         with:
           node-version: 16
           sarif: results.sarif
-          projectPath: './contracts/'
         env:
           ALCHEMY_URL: ${{secrets.ALCHEMY_URL}}`
 
