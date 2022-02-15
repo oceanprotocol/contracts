@@ -434,7 +434,7 @@ contract FixedRateExchange is ReentrancyGuard {
                 address(this),
                 fee.baseTokenAmount);
         if(consumeMarketAddress!= address(0) && fee.consumeMarketFeeAmount>0)
-            IERC20Template(exchanges[exchangeId].baseToken).transfer(consumeMarketAddress, fee.consumeMarketFeeAmount);
+            IERC20(exchanges[exchangeId].baseToken).safeTransfer(consumeMarketAddress, fee.consumeMarketFeeAmount);
         uint256 baseTokenAmountBeforeFee = fee.baseTokenAmount.sub(fee.oceanFeeAmount).
             sub(fee.publishMarketFeeAmount).sub(fee.consumeMarketFeeAmount);
         exchanges[exchangeId].btBalance = (exchanges[exchangeId].btBalance).add(
@@ -522,7 +522,7 @@ contract FixedRateExchange is ReentrancyGuard {
                 address(this),
                 datatokenAmount);
         if(consumeMarketAddress!= address(0) && fee.consumeMarketFeeAmount>0)
-            IERC20Template(exchanges[exchangeId].baseToken).transfer(consumeMarketAddress, fee.consumeMarketFeeAmount);    
+            IERC20(exchanges[exchangeId].baseToken).safeTransfer(consumeMarketAddress, fee.consumeMarketFeeAmount);    
         exchanges[exchangeId].dtBalance = (exchanges[exchangeId].dtBalance).add(
             datatokenAmount
         );
