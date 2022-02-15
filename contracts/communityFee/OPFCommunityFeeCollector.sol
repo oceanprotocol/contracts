@@ -2,7 +2,7 @@ pragma solidity 0.8.10;
 // Copyright BigchainDB GmbH and Ocean Protocol contributors
 // SPDX-License-Identifier: (Apache-2.0 AND CC-BY-4.0)
 // Code is Apache-2.0 and docs are CC-BY-4.0
-import '../interfaces/IERC20.sol';
+import "@openzeppelin/contracts/interfaces/IERC20Metadata.sol";
 import '@openzeppelin/contracts/access/Ownable.sol';
 import '../utils/SafeERC20.sol';
 
@@ -10,8 +10,8 @@ import '../utils/SafeERC20.sol';
 /**
  * @title OPFCommunityFeeCollector
  * @dev Ocean Protocol Foundation Community Fee Collector contract
- *      allows consumers to pay very small fee as part of the exchange of 
- *      datatokens with ocean token in order to support the community of  
+ *      allows consumers to pay very small fee as part of the exchange of
+ *      datatokens with ocean token in order to support the community of
  *      ocean protocol and provide a sustainble development.
  */
 contract OPFCommunityFeeCollector is Ownable {
@@ -27,13 +27,13 @@ contract OPFCommunityFeeCollector is Ownable {
     constructor(
         address payable newCollector,
         address OPFOwnerAddress
-    ) 
+    )
         public
         Ownable()
     {
         require(
             newCollector != address(0)&&
-            OPFOwnerAddress != address(0), 
+            OPFOwnerAddress != address(0),
             'OPFCommunityFeeCollector: collector address or owner is invalid address'
         );
         collector = newCollector;
@@ -50,8 +50,8 @@ contract OPFCommunityFeeCollector is Ownable {
      * @dev withdrawETH
      *      transfers all the accumlated ether the collector address
      */
-    function withdrawETH() 
-        external 
+    function withdrawETH()
+        external
         payable
     {
         collector.transfer(address(this).balance);
@@ -60,11 +60,11 @@ contract OPFCommunityFeeCollector is Ownable {
     /**
      * @dev withdrawToken
      *      transfers all the accumlated tokens the collector address
-     * @param tokenAddress the token contract address 
+     * @param tokenAddress the token contract address
      */
     function withdrawToken(
         address tokenAddress
-    ) 
+    )
         external
     {
         require(
@@ -81,13 +81,13 @@ contract OPFCommunityFeeCollector is Ownable {
     /**
      * @dev changeCollector
      *      change the current collector address. Only owner can do that.
-     * @param newCollector the new collector address 
+     * @param newCollector the new collector address
      */
     function changeCollector(
         address payable newCollector
-    ) 
-        external 
-        onlyOwner 
+    )
+        external
+        onlyOwner
     {
         require(
             newCollector != address(0),

@@ -38,7 +38,7 @@ contract ERC721 is Context, IERC721, IERC721Metadata {
 
      // Optional mapping for token URIs
     mapping (uint256 => string) private _tokenURIs;
-    
+
     /**
      * @dev Initializes the contract by setting a `name` and a `symbol` to the token collection.
      */
@@ -89,7 +89,7 @@ contract ERC721 is Context, IERC721, IERC721Metadata {
         require(_exists(tokenId), "ERC721URIStorage: URI set of nonexistent token");
         _tokenURIs[tokenId] = _tokenURI;
     }
-    
+
     /**
      * @dev See {IERC721Metadata-tokenURI}.
      */
@@ -165,7 +165,7 @@ contract ERC721 is Context, IERC721, IERC721Metadata {
         safeTransferFrom(from, to, tokenId, "");
     }
 
-   
+
     /**
      * @dev See {IERC721-safeTransferFrom}.
      */

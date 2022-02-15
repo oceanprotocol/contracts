@@ -7,7 +7,7 @@ import './BPool.sol';
 import './BConst.sol';
 import '../../utils/Deployer.sol';
 import '../../interfaces/ISideStaking.sol';
-import '../../interfaces/IERC20.sol';
+import "@openzeppelin/contracts/interfaces/IERC20Metadata.sol";
 /*
 * @title BFactory contract
 * @author Ocean Protocol (with code from Balancer Labs)
@@ -33,7 +33,7 @@ contract BFactory is BConst, Deployer {
         address bpoolTemplateAddress,
         address ssAddress
     );
-    
+
     event PoolTemplateAdded(
         address indexed caller,
         address indexed contractAddress
@@ -42,23 +42,23 @@ contract BFactory is BConst, Deployer {
         address indexed caller,
         address indexed contractAddress
     );
-    
+
     /* @dev Called on contract deployment. Cannot be called with zero address.
-       @param _bpoolTemplate -- address of a deployed BPool contract. 
-       @param _preCreatedPools list of pre-created pools. 
+       @param _bpoolTemplate -- address of a deployed BPool contract.
+       @param _preCreatedPools list of pre-created pools.
                           It can be only used in case of migration from an old factory contract.
     */
-    constructor(address _bpoolTemplate, address _opcCollector, address[] memory _preCreatedPools)  public 
+    constructor(address _bpoolTemplate, address _opcCollector, address[] memory _preCreatedPools)  public
     {
         require(
-            _bpoolTemplate != address(0), 
+            _bpoolTemplate != address(0),
             'BFactory: invalid bpool template zero address'
         );
         require(
-            _opcCollector != address(0), 
+            _opcCollector != address(0),
             'BFactory: zero address'
         );
-     
+
         opcCollector = _opcCollector;
         _addPoolTemplate(_bpoolTemplate);
 
@@ -67,29 +67,29 @@ contract BFactory is BConst, Deployer {
                 emit BPoolCreated(_preCreatedPools[i], msg.sender,address(0),address(0),address(0),address(0));
             }
         }
-        
+
     }
-    /** 
-     * @dev Deploys new BPool proxy contract. 
-       Template contract address could not be a zero address. 
+    /**
+     * @dev Deploys new BPool proxy contract.
+       Template contract address could not be a zero address.
 
      * @param tokens [datatokenAddress, baseTokenAddress]
      * publisherAddress user which will be assigned the vested amount.
-     * @param ssParams params for the ssContract. 
+     * @param ssParams params for the ssContract.
      * @param swapFees swapFees (swapFee, swapMarketFee), swapOceanFee will be set automatically later
        marketFeeCollector marketFeeCollector address
        @param addresses // array of addresses passed by the user
        [controller,baseTokenAddress,baseTokenSender,publisherAddress, marketFeeCollector,poolTemplate address]
-      @return bpool address of a new proxy BPool contract 
+      @return bpool address of a new proxy BPool contract
      */
-       
+
     function newBPool(
         address[2] memory tokens,
         uint256[] memory ssParams,
         uint256[] memory swapFees,
-        address[] memory addresses 
+        address[] memory addresses
         )
-        internal 
+        internal
         returns (address bpool)
     {
         require(isPoolTemplate(addresses[5]), 'BFactory: Wrong Pool Template');
@@ -100,15 +100,15 @@ contract BFactory is BConst, Deployer {
         bpool = deploy(addresses[5]);
 
         require(
-            bpool != address(0), 
+            bpool != address(0),
             'BFactory: invalid bpool zero address'
         );
-        BPool bpoolInstance = BPool(bpool);	
+        BPool bpoolInstance = BPool(bpool);
 
         require(
             bpoolInstance.initialize(
                 addresses[0],  // ss is the pool controller
-                address(this), 
+                address(this),
                 swapFees,
                 false,
                 false,
@@ -117,19 +117,19 @@ contract BFactory is BConst, Deployer {
             ),
             'ERR_INITIALIZE_BPOOL'
         );
-        
+
       //  emit BPoolCreated(bpool, msg.sender,datatokenAddress,baseTokenAddress,bpoolTemplate,controller);
-        
+
         // requires approval first from baseTokenSender
-        ISideStaking(addresses[0]).newDatatokenCreated(  
+        ISideStaking(addresses[0]).newDatatokenCreated(
         tokens[0],
         tokens[1],
         bpool,
         addresses[3],//publisherAddress
         ssParams);
-        
+
         return bpool;
-       
+
 
     }
 
@@ -146,7 +146,7 @@ contract BFactory is BConst, Deployer {
         if(!isPoolTemplate(poolTemplate)){
             poolTemplates.push(poolTemplate);
             emit PoolTemplateAdded(msg.sender, poolTemplate);
-            
+
         }
     }
      /**

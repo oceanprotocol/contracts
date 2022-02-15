@@ -11,7 +11,7 @@ import "../interfaces/IDispenser.sol";
 import "../utils/ERC725/ERC725Ocean.sol";
 import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
 import "@openzeppelin/contracts/token/ERC20/extensions/ERC20Burnable.sol";
-import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
+import "@openzeppelin/contracts/interfaces/IERC20Metadata.sol";
 import "@openzeppelin/contracts/utils/math/SafeMath.sol";
 import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 import "@openzeppelin/contracts/security/ReentrancyGuard.sol";
@@ -47,9 +47,9 @@ contract ERC20TemplateEnterprise is
     address private publishMarketFeeAddress;
     address private publishMarketFeeToken;
     uint256 private publishMarketFeeAmount;
-    
+
     uint256 public constant BASE = 10**18;
-    
+
 
     // EIP 2612 SUPPORT
     bytes32 public DOMAIN_SEPARATOR;
@@ -59,7 +59,7 @@ contract ERC20TemplateEnterprise is
 
     mapping(address => uint256) public nonces;
     address public router;
-    
+
     struct fixedRate{
         address contractAddress;
         bytes32 id;
@@ -69,13 +69,13 @@ contract ERC20TemplateEnterprise is
 
     struct providerFee{
         address providerFeeAddress;
-        address providerFeeToken; // address of the token 
+        address providerFeeToken; // address of the token
         uint256 providerFeeAmount; // amount to be transfered to provider
         uint8 v; // v of provider signed message
         bytes32 r; // r of provider signed message
         bytes32 s; // s of provider signed message
         uint256 validUntil; //validity expresses in unix timestamp
-        bytes providerData; //data encoded by provider   
+        bytes providerData; //data encoded by provider
     }
 
     struct consumeMarketFee{
@@ -124,11 +124,11 @@ contract ERC20TemplateEnterprise is
 
     event ProviderFee(
         address indexed providerFeeAddress,
-        address indexed providerFeeToken, 
+        address indexed providerFeeToken,
         uint256 providerFeeAmount,
         bytes providerData,
-        uint8 v, 
-        bytes32 r, 
+        uint8 v,
+        bytes32 r,
         bytes32 s,
         uint256 validUntil
     );
@@ -139,7 +139,7 @@ contract ERC20TemplateEnterprise is
 
     event NewFixedRate(bytes32 exchangeId, address indexed owner, address exchangeContract, address indexed baseToken);
     event NewDispenser(address dispenserContract);
-    
+
     event NewPaymentCollector(
         address indexed caller,
         address indexed _newPaymentCollector,
@@ -400,7 +400,7 @@ contract ERC20TemplateEnterprise is
 
     /**
      * @dev checkProviderFee
-     *      Checks if a providerFee structure is valid, signed and 
+     *      Checks if a providerFee structure is valid, signed and
      *      transfers fee to providerAddress
      * @param _providerFee providerFee structure
      */
@@ -455,7 +455,7 @@ contract ERC20TemplateEnterprise is
               IERC20(_providerFee.providerFeeToken).safeTransfer(
                 _communityFeeCollector,
                 OPCcut
-            );  
+            );
             }
         }
     }
@@ -502,7 +502,7 @@ contract ERC20TemplateEnterprise is
                 publishMarketFeeAmount);
             uint256 OPCFee = IFactoryRouter(router).getOPCConsumeFee();
             if(OPCFee > 0)
-                communityFeePublish = publishMarketFeeAmount.mul(OPCFee).div(BASE); 
+                communityFeePublish = publishMarketFeeAmount.mul(OPCFee).div(BASE);
             //send publishMarketFee
             IERC20(publishMarketFeeToken).safeTransfer(
                 publishMarketFeeAddress,
@@ -528,7 +528,7 @@ contract ERC20TemplateEnterprise is
         }
 
         // consumeMarketFee
-        // Requires approval for the FeeToken 
+        // Requires approval for the FeeToken
         // skip fee if amount == 0 or feeToken == 0x0 address or feeAddress == 0x0 address
         if (
             _consumeMarketFee.consumeMarketFeeAmount > 0 &&
@@ -540,7 +540,7 @@ contract ERC20TemplateEnterprise is
                 _consumeMarketFee.consumeMarketFeeAmount);
             uint256 OPCFee = IFactoryRouter(router).getOPCConsumeFee();
             if(OPCFee > 0)
-                communityFeePublish = _consumeMarketFee.consumeMarketFeeAmount.mul(OPCFee).div(BASE); 
+                communityFeePublish = _consumeMarketFee.consumeMarketFeeAmount.mul(OPCFee).div(BASE);
             //send publishMarketFee
             IERC20(_consumeMarketFee.consumeMarketFeeToken).safeTransfer(
                 _consumeMarketFee.consumeMarketFeeAddress,
@@ -568,7 +568,7 @@ contract ERC20TemplateEnterprise is
         }
 
         checkProviderFee(_providerFee);
-        
+
         // instead of sending datatoken to publisher, we burn them
         burn(amount);
     }
@@ -690,7 +690,7 @@ contract ERC20TemplateEnterprise is
      *      Only feeManager can call it
      *      This function allows to set a newPaymentCollector (receives DT when consuming)
             If not set the paymentCollector is the NFT Owner
-     * @param _newPaymentCollector new fee collector 
+     * @param _newPaymentCollector new fee collector
      */
 
     function setPaymentCollector(address _newPaymentCollector) external {
@@ -771,7 +771,7 @@ contract ERC20TemplateEnterprise is
 
     /**
      * @dev getId
-     *      Return template id in case we need different ABIs. 
+     *      Return template id in case we need different ABIs.
      *      If you construct your own template, please make sure to change the hardcoded value
      */
     function getId() pure public returns (uint8) {

@@ -2,7 +2,7 @@ pragma solidity 0.8.10;
 // Copyright BigchainDB GmbH and Ocean Protocol contributors
 // SPDX-License-Identifier: (Apache-2.0 AND CC-BY-4.0)
 // Code is Apache-2.0 and docs are CC-BY-4.0
-import "../../interfaces/IERC20.sol";
+import "@openzeppelin/contracts/interfaces/IERC20Metadata.sol";
 import "../../interfaces/IERC20Template.sol";
 import "../../interfaces/IFactoryRouter.sol";
 import "@openzeppelin/contracts/utils/math/SafeMath.sol";
@@ -85,13 +85,13 @@ contract FixedRateExchange is ReentrancyGuard {
         uint256 newRate
     );
 
-    //triggered when the withMint state is changed 
+    //triggered when the withMint state is changed
     event ExchangeMintStateChanged(
         bytes32 indexed exchangeId,
         address indexed exchangeOwner,
         bool withMint
     );
-    
+
     event ExchangeActivated(
         bytes32 indexed exchangeId,
         address indexed exchangeOwner
@@ -106,7 +106,7 @@ contract FixedRateExchange is ReentrancyGuard {
         bytes32 indexed exchangeId,
         address indexed allowedSwapper
     );
-    
+
     event Swapped(
         bytes32 indexed exchangeId,
         address indexed by,
@@ -144,17 +144,17 @@ contract FixedRateExchange is ReentrancyGuard {
 
     /**
      * @dev getId
-     *      Return template id in case we need different ABIs. 
+     *      Return template id in case we need different ABIs.
      *      If you construct your own template, please make sure to change the hardcoded value
      */
     function getId() pure public returns (uint8) {
         return 1;
     }
-    
+
     function getOPCFee(address baseTokenAddress) public view returns (uint) {
         return IFactoryRouter(router).getOPCFee(baseTokenAddress);
     }
-  
+
 
     /**
      * @dev create
@@ -175,10 +175,10 @@ contract FixedRateExchange is ReentrancyGuard {
      */
     function createWithDecimals(
         address datatoken,
-        address[] memory addresses, 
-        uint256[] memory uints 
+        address[] memory addresses,
+        uint256[] memory uints
     ) external onlyRouter returns (bytes32 exchangeId) {
-       
+
         require(
             addresses[0] != address(0),
             "FixedRateExchange: Invalid baseToken,  zero address"
@@ -224,7 +224,7 @@ contract FixedRateExchange is ReentrancyGuard {
 
         emit ExchangeCreated(
             exchangeId,
-            addresses[0], // 
+            addresses[0], //
             datatoken,
             addresses[1],
             uints[2]
@@ -272,23 +272,23 @@ contract FixedRateExchange is ReentrancyGuard {
             .div(10**exchanges[exchangeId].dtDecimals)
             .div(BASE);
 
-      
+
         uint256 opcFee = getOPCFee(exchanges[exchangeId].baseToken);
         if (opcFee != 0) {
             oceanFeeAmount = baseTokenAmountBeforeFee
                 .mul(opcFee)
                 .div(BASE);
         }
-     
+
         marketFeeAmount = baseTokenAmountBeforeFee
             .mul(exchanges[exchangeId].marketFee)
             .div(BASE);
 
-       
+
         baseTokenAmount = baseTokenAmountBeforeFee.add(marketFeeAmount).add(
             oceanFeeAmount
         );
-      
+
     }
 
     /**
@@ -314,23 +314,23 @@ contract FixedRateExchange is ReentrancyGuard {
             .div(10**exchanges[exchangeId].dtDecimals)
             .div(BASE);
 
-       
+
         uint256 opcFee = getOPCFee(exchanges[exchangeId].baseToken);
         if (opcFee != 0) {
             oceanFeeAmount = baseTokenAmountBeforeFee
                 .mul(opcFee)
                 .div(BASE);
         }
-      
+
         marketFeeAmount = baseTokenAmountBeforeFee
             .mul(exchanges[exchangeId].marketFee)
             .div(BASE);
 
-    
+
         baseTokenAmount = baseTokenAmountBeforeFee.sub(marketFeeAmount).sub(
             oceanFeeAmount
         );
-   
+
     }
 
     /**
@@ -381,7 +381,7 @@ contract FixedRateExchange is ReentrancyGuard {
 
         if (datatokenAmount > exchanges[exchangeId].dtBalance) {
             //first, let's try to mint
-            if(exchanges[exchangeId].withMint 
+            if(exchanges[exchangeId].withMint
             && IERC20Template(exchanges[exchangeId].datatoken).isMinter(address(this)))
             {
                 IERC20Template(exchanges[exchangeId].datatoken).mint(msg.sender,datatokenAmount);
@@ -667,7 +667,7 @@ contract FixedRateExchange is ReentrancyGuard {
         if (exchanges[exchangeId].active == false) supply = 0;
         else if (exchanges[exchangeId].withMint
         && IERC20Template(exchanges[exchangeId].datatoken).isMinter(address(this))){
-            supply = IERC20Template(exchanges[exchangeId].datatoken).cap() 
+            supply = IERC20Template(exchanges[exchangeId].datatoken).cap()
             - IERC20Template(exchanges[exchangeId].datatoken).totalSupply();
         }
         else {
@@ -753,7 +753,7 @@ contract FixedRateExchange is ReentrancyGuard {
     //  * @dev getAllowedSwapper
     //  *      gets allowedSwapper
     //  * @param exchangeId a unique exchange idnetifier
-    //  * @return address of allowedSwapper 
+    //  * @return address of allowedSwapper
     //  */
     function getAllowedSwapper(bytes32 exchangeId)
         external

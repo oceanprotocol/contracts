@@ -5,7 +5,7 @@ pragma solidity 0.8.10;
 
 import "./balancer/BFactory.sol";
 import "../interfaces/IFactory.sol";
-import "../interfaces/IERC20.sol";
+import "@openzeppelin/contracts/interfaces/IERC20Metadata.sol";
 import "../interfaces/IFixedRateExchange.sol";
 import "../interfaces/IPool.sol";
 import "../interfaces/IDispenser.sol";
@@ -114,7 +114,7 @@ contract FactoryRouter is BFactory {
     function addOceanToken(address oceanTokenAddress) external onlyRouterOwner {
         _addOceanToken(oceanTokenAddress);
     }
-    
+
     function _addOceanToken(address oceanTokenAddress) internal {
         if(!isOceanToken(oceanTokenAddress)){
             oceanTokens.push(oceanTokenAddress);
@@ -439,7 +439,7 @@ contract FactoryRouter is BFactory {
      tokens [datatokenAddress, baseTokenAddress]
      publisherAddress user which will be assigned the vested amount.
      * @param tokens precreated parameter
-     * @param ssParams params for the ssContract. 
+     * @param ssParams params for the ssContract.
      *                     [0]  = rate (wei)
      *                     [1]  = baseToken decimals
      *                     [2]  = vesting amount (wei)
@@ -448,7 +448,7 @@ contract FactoryRouter is BFactory {
      * @param swapFees swapFees (swapFee, swapMarketFee), swapOceanFee will be set automatically later
      *                     [0] = swapFee for LP Providers
      *                     [1] = swapFee for marketplace runner
-      
+
       .
      * @param addresses refers to an array of addresses passed by user
      *                     [0]  = side staking contract address
@@ -457,7 +457,7 @@ contract FactoryRouter is BFactory {
      *                     [3]  = publisherAddress user which will be assigned the vested amount
      *                     [4]  = marketFeeCollector marketFeeCollector address
                            [5]  = poolTemplateAddress
-       
+
         @return pool address
      */
     function deployPool(
@@ -485,7 +485,7 @@ contract FactoryRouter is BFactory {
 
         // we pull baseToken for creating initial pool and send it to the controller (ssContract)
         _pullUnderlying(tokens[1],addresses[2], addresses[0], ssParams[4]);
-        
+
         address pool = newBPool(tokens, ssParams, swapFees, addresses);
         require(pool != address(0), "FAILED TO DEPLOY POOL");
         if (isOceanToken(tokens[1])) emit NewPool(pool, true);
@@ -755,7 +755,7 @@ contract FactoryRouter is BFactory {
             console.log("Done %s",i);
         }
     }
-    
+
     function _pullUnderlying(
         address erc20,
         address from,

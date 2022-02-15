@@ -3,7 +3,7 @@ pragma solidity 0.8.10;
 // SPDX-License-Identifier: (Apache-2.0 AND CC-BY-4.0)
 // Code is Apache-2.0 and docs are CC-BY-4.0
 
-import "../../interfaces/IERC20.sol";
+import "@openzeppelin/contracts/interfaces/IERC20Metadata.sol";
 import "../../interfaces/IERC20Template.sol";
 import "@openzeppelin/contracts/utils/math/SafeMath.sol";
 
@@ -19,14 +19,14 @@ contract Dispenser is ReentrancyGuard{
         bool active;  // if the dispenser is active for this datatoken
         address owner; // owner of this dispenser
         uint256 maxTokens; // max tokens to dispense
-        uint256 maxBalance; // max balance of requester. 
+        uint256 maxBalance; // max balance of requester.
         address allowedSwapper;
         //If the balance is higher, the dispense is rejected
     }
     mapping(address => DataToken) datatokens;
     address[] public datatokensList;
-    
-    
+
+
     event DispenserCreated(  // emited when a dispenser is created
         address indexed datatokenAddress,
         address indexed owner,
@@ -44,8 +44,8 @@ contract Dispenser is ReentrancyGuard{
     event DispenserAllowedSwapperChanged( // emited when allowedSwapper is changed
         address indexed datatoken,
         address indexed newAllowedSwapper);
-    
-    event TokensDispensed( 
+
+    event TokensDispensed(
         // emited when tokens are dispended
         address indexed datatokenAddress,
         address indexed userAddress,
@@ -70,7 +70,7 @@ contract Dispenser is ReentrancyGuard{
 
     /**
      * @dev getId
-     *      Return template id in case we need different ABIs. 
+     *      Return template id in case we need different ABIs.
      *      If you construct your own template, please make sure to change the hardcoded value
      */
     function getId() pure public returns (uint8) {
@@ -88,8 +88,8 @@ contract Dispenser is ReentrancyGuard{
      * @return balance - internal balance of the contract (if any)
      * @return allowedSwapper - address allowed to request DT if != 0
      */
-    function status(address datatoken) 
-    external view 
+    function status(address datatoken)
+    external view
     returns(bool active,address owner,
     bool isMinter,uint256 maxTokens,uint256 maxBalance, uint256 balance, address allowedSwapper){
         require(
@@ -194,12 +194,12 @@ contract Dispenser is ReentrancyGuard{
         emit DispenserAllowedSwapperChanged(datatoken, newAllowedSwapper);
     }
 
-    
+
 
     /**
      * @dev dispense
-     *  Dispense datatokens to caller. 
-     *  The dispenser must be active, hold enough DT (or be able to mint more) 
+     *  Dispense datatokens to caller.
+     *  The dispenser must be active, hold enough DT (or be able to mint more)
      *  and respect maxTokens/maxBalance requirements
      * @param datatoken refers to datatoken address.
      * @param amount amount of datatokens required.
@@ -228,7 +228,7 @@ contract Dispenser is ReentrancyGuard{
                 "This address is not allowed to request DT"
             );
         }
-        
+
         IERC20Template tokenInstance = IERC20Template(datatoken);
         uint256 callerBalance = tokenInstance.balanceOf(destination);
         require(
@@ -236,7 +236,7 @@ contract Dispenser is ReentrancyGuard{
             'Caller balance too high'
         );
         uint256 ourBalance = tokenInstance.balanceOf(address(this));
-        if(ourBalance<amount && tokenInstance.isMinter(address(this))){ 
+        if(ourBalance<amount && tokenInstance.isMinter(address(this))){
             //we need to mint the difference if we can
             tokenInstance.mint(address(this),amount - ourBalance);
             ourBalance = tokenInstance.balanceOf(address(this));

@@ -3,13 +3,12 @@ pragma solidity 0.8.10;
 // SPDX-License-Identifier: (Apache-2.0 AND CC-BY-4.0)
 // Code is Apache-2.0 and docs are CC-BY-4.0
 
-import "../interfaces/IERC20Template.sol";
+import "@openzeppelin/contracts/interfaces/IERC20Metadata.sol";
 import "../interfaces/IERC721Template.sol";
 import "../interfaces/IFactoryRouter.sol";
 import "../utils/ERC725/ERC725Ocean.sol";
 import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
 import "@openzeppelin/contracts/token/ERC20/extensions/ERC20Burnable.sol";
-import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "@openzeppelin/contracts/utils/math/SafeMath.sol";
 
 import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
@@ -44,7 +43,7 @@ contract ERC20Template is
     address private publishMarketFeeToken;
     uint256 private publishMarketFeeAmount;
     uint256 public constant BASE = 10**18;
-    
+
     // EIP 2612 SUPPORT
     bytes32 public DOMAIN_SEPARATOR;
     // keccak256("Permit(address owner,address spender,uint256 value,uint256 nonce,uint256 deadline)");
@@ -64,13 +63,13 @@ contract ERC20Template is
 
     struct providerFee{
         address providerFeeAddress;
-        address providerFeeToken; // address of the token 
+        address providerFeeToken; // address of the token
         uint256 providerFeeAmount; // amount to be transfered to provider
         uint8 v; // v of provider signed message
         bytes32 r; // r of provider signed message
         bytes32 s; // s of provider signed message
         uint256 validUntil; //validity expresses in unix timestamp
-        bytes providerData; //data encoded by provider   
+        bytes providerData; //data encoded by provider
     }
 
     struct consumeMarketFee{
@@ -123,12 +122,12 @@ contract ERC20Template is
         address indexed providerFeeToken,
         uint256 providerFeeAmount,
         bytes providerData,
-        uint8 v, 
-        bytes32 r, 
+        uint8 v,
+        bytes32 r,
         bytes32 s,
         uint256 validUntil
     );
-    
+
 
     event MinterProposed(address currentMinter, address newMinter);
 
@@ -319,7 +318,7 @@ contract ERC20Template is
      *      Function to deploy new Pool with 1SS. It also has a vesting schedule.
      *     This function can only be called ONCE and ONLY if no token have been minted yet.
      *      Requires baseToken approval
-     * @param ssParams params for the ssContract. 
+     * @param ssParams params for the ssContract.
      *                     [0]  = rate (wei)
      *                     [1]  = baseToken decimals
      *                     [2]  = vesting amount (wei)
@@ -328,7 +327,7 @@ contract ERC20Template is
      * @param swapFees swapFees (swapFee, swapMarketFee), swapOceanFee will be set automatically later
      *                     [0] = swapFee for LP Providers
      *                     [1] = swapFee for marketplace runner
-      
+
       .
      * @param addresses refers to an array of addresses passed by user
      *                     [0]  = side staking contract address
@@ -446,10 +445,10 @@ contract ERC20Template is
         return (permissions[account].minter);
     }
 
-    
+
     /**
      * @dev checkProviderFee
-     *      Checks if a providerFee structure is valid, signed and 
+     *      Checks if a providerFee structure is valid, signed and
      *      transfers fee to providerAddress
      * @param _providerFee providerFee structure
      */
@@ -505,11 +504,11 @@ contract ERC20Template is
               IERC20(_providerFee.providerFeeToken).safeTransfer(
                 _communityFeeCollector,
                 OPCcut
-            );  
+            );
             }
         }
     }
-    
+
     /**
      * @dev startOrder
      *      called by payer or consumer prior ordering a service consume on a marketplace.
@@ -553,7 +552,7 @@ contract ERC20Template is
                 publishMarketFeeAmount);
             uint256 OPCFee = IFactoryRouter(router).getOPCConsumeFee();
             if(OPCFee > 0)
-                communityFeePublish = publishMarketFeeAmount.mul(OPCFee).div(BASE); 
+                communityFeePublish = publishMarketFeeAmount.mul(OPCFee).div(BASE);
             //send publishMarketFee
             IERC20(publishMarketFeeToken).safeTransfer(
                 publishMarketFeeAddress,
@@ -581,7 +580,7 @@ contract ERC20Template is
         }
 
         // consumeMarketFee
-        // Requires approval for the FeeToken 
+        // Requires approval for the FeeToken
         // skip fee if amount == 0 or feeToken == 0x0 address or feeAddress == 0x0 address
         if (
             _consumeMarketFee.consumeMarketFeeAmount > 0 &&
@@ -593,7 +592,7 @@ contract ERC20Template is
                 _consumeMarketFee.consumeMarketFeeAmount);
             uint256 OPCFee = IFactoryRouter(router).getOPCConsumeFee();
             if(OPCFee > 0)
-                communityFeePublish = _consumeMarketFee.consumeMarketFeeAmount.mul(OPCFee).div(BASE); 
+                communityFeePublish = _consumeMarketFee.consumeMarketFeeAmount.mul(OPCFee).div(BASE);
             //send publishMarketFee
             IERC20(_consumeMarketFee.consumeMarketFeeToken).safeTransfer(
                 _consumeMarketFee.consumeMarketFeeAddress,
@@ -620,7 +619,7 @@ contract ERC20Template is
             }
         }
         checkProviderFee(_providerFee);
-        
+
         // send datatoken to publisher
         require(
             transfer(getPaymentCollector(), amount),
@@ -745,7 +744,7 @@ contract ERC20Template is
      *      Only feeManager can call it
      *      This function allows to set a newPaymentCollector (receives DT when consuming)
             If not set the paymentCollector is the NFT Owner
-     * @param _newPaymentCollector new fee collector 
+     * @param _newPaymentCollector new fee collector
      */
 
     function setPaymentCollector(address _newPaymentCollector) external {
@@ -826,7 +825,7 @@ contract ERC20Template is
 
     /**
      * @dev getId
-     *      Return template id in case we need different ABIs. 
+     *      Return template id in case we need different ABIs.
      *      If you construct your own template, please make sure to change the hardcoded value
      */
     function getId() pure public returns (uint8) {

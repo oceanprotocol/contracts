@@ -17,24 +17,7 @@ pragma solidity 0.8.10;
 // Code is Apache-2.0 and docs are CC-BY-4.0
 
 import './BNum.sol';
-// import '@openzeppelin/contracts/token/ERC20/IERC20.sol';
-import '../../interfaces/IERC20.sol';
-// Highly opinionated token implementation
-
-// interface IERC20 {
-//     event Approval(address indexed src, address indexed dst, uint amt);
-//     event Transfer(address indexed src, address indexed dst, uint amt);
-
-//     function totalSupply() external view returns (uint);
-//     function balanceOf(address whom) external view returns (uint);
-//     function allowance(address src, address dst) external view returns (uint);
-
-//     function approve(address dst, uint amt) external returns (bool);
-//     function transfer(address dst, uint amt) external returns (bool);
-//     function transferFrom(
-//         address src, address dst, uint amt
-//     ) external returns (bool);
-// }
+import "@openzeppelin/contracts/interfaces/IERC20Metadata.sol";
 
 contract BTokenBase is BNum {
 
@@ -53,7 +36,7 @@ contract BTokenBase is BNum {
 
     function _burn(uint amt) internal {
         require(
-            _balance[address(this)] >= amt, 
+            _balance[address(this)] >= amt,
             'ERR_INSUFFICIENT_BAL'
         );
         _balance[address(this)] = bsub(_balance[address(this)], amt);
@@ -136,15 +119,15 @@ contract BToken is BTokenBase {
     }
 
     function transferFrom(
-        address src, 
-        address dst, 
+        address src,
+        address dst,
         uint amt
-    ) 
+    )
     external
-    returns (bool) 
+    returns (bool)
     {
         require(
-            msg.sender == src || amt <= _allowance[src][msg.sender], 
+            msg.sender == src || amt <= _allowance[src][msg.sender],
             'ERR_BTOKEN_BAD_CALLER'
         );
         _move(src, dst, amt);

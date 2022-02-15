@@ -2,7 +2,7 @@ pragma solidity 0.8.10;
 // Copyright BigchainDB GmbH and Ocean Protocol contributors
 // SPDX-License-Identifier: (Apache-2.0 AND CC-BY-4.0)
 // Code is Apache-2.0 and docs are CC-BY-4.0
-import "../../interfaces/IERC20.sol";
+import "@openzeppelin/contracts/interfaces/IERC20Metadata.sol";
 import "../../interfaces/IERC20Template.sol";
 import "../../interfaces/IPool.sol";
 import "@openzeppelin/contracts/utils/math/SafeMath.sol";
@@ -10,11 +10,11 @@ import "../../utils/SafeERC20.sol";
 import "@openzeppelin/contracts/security/ReentrancyGuard.sol";
 /**@title SideStaking
  *
- * @dev SideStaking is a contract that monitors stakings in pools, 
+ * @dev SideStaking is a contract that monitors stakings in pools,
         adding or removing dt when only baseToken liquidity is added or removed
  *      Called by the pool contract
- *      Every ss newDatatokenCreated function has a ssParams array, 
-        which for this contract has the following structure: 
+ *      Every ss newDatatokenCreated function has a ssParams array,
+        which for this contract has the following structure:
      *                     [0]  = rate (wei)
      *                     [1]  = baseToken decimals
      *                     [2]  = vesting amount (wei)
@@ -75,7 +75,7 @@ contract SideStaking is ReentrancyGuard {
 
     /**
      * @dev getId
-     *      Return template id in case we need different ABIs. 
+     *      Return template id in case we need different ABIs.
      *      If you construct your own template, please make sure to change the hardcoded value
      */
     function getId() pure public returns (uint8) {
@@ -330,9 +330,9 @@ contract SideStaking is ReentrancyGuard {
             "ERR: Only pool can call this"
         );
         if (! _datatokens[datatokenAddress].bound) return (false);
-        
+
         //check balances. Make sure that we have enough to vest
-        if (_datatokens[datatokenAddress].datatokenBalance >= 
+        if (_datatokens[datatokenAddress].datatokenBalance >=
         (amount + (_datatokens[datatokenAddress].vestingAmount - _datatokens[datatokenAddress].vestingAmountSoFar))
         )
             return (true);
@@ -368,7 +368,7 @@ contract SideStaking is ReentrancyGuard {
             msg.sender == _datatokens[datatokenAddress].poolAddress,
             "ERR: Only pool can call this"
         );
-        
+
         // we check LPT balance TODO: review this part
         if (IERC20(msg.sender).balanceOf(address(this)) >= lptIn) {
             return true;
@@ -376,7 +376,7 @@ contract SideStaking is ReentrancyGuard {
         return false;
     }
 
-    //called by pool so 1ss will unstake a token (remove pool liquidty). 
+    //called by pool so 1ss will unstake a token (remove pool liquidty).
     // In our case the balancer pool will handle all, this is just a notifier so 1ss can handle internal kitchen
     function UnStake(
         address datatokenAddress,
