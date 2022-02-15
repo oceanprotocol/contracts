@@ -78,6 +78,7 @@ describe("FixedRateExchange", () => {
       marketFeeCollector,
       newMarketFeeCollector,
       opcCollector,
+      consumeMarket
     ] = await ethers.getSigners();
 
     alice = user3;
@@ -743,10 +744,11 @@ describe("FixedRateExchange", () => {
       ).to.equal(amountDT);
 
       // Now bob can buy
+      // TO DO - add consumeFee
       const receipt = await (
         await fixedRateExchange
           .connect(bob)
-          .buyDT(eventsExchange[0].args.exchangeId, amountDT, noLimit,ZERO_ADDRESS, 0)
+          .buyDT(eventsExchange[0].args.exchangeId, amountDT, noLimit,consumeMarket.address, web3.utils.toWei("0.1"))
       ).wait();
 
       // console.log(receipt)
@@ -757,7 +759,8 @@ describe("FixedRateExchange", () => {
         SwappedEvent[0].args.baseTokenSwappedAmount
           .sub(args.marketFeeAmount)
           .sub(args.oceanFeeAmount)
-      ).to.equal(SwappedEvent[0].args.datatokenSwappedAmount);
+          .sub(args.consumeMarketFeeAmount)
+      ).to.equal(String(SwappedEvent[0].args.datatokenSwappedAmount));
 
       // BOB's DTbalance has increased
       const dtBobBalanceAfterSwap = await mockDT18.balanceOf(bob.address);
@@ -779,10 +782,11 @@ describe("FixedRateExchange", () => {
         exchangeDetailsAfter.btSupply
           .add(args.marketFeeAmount)
           .add(args.oceanFeeAmount)
-      ).to.equal(
+          .add(args.consumeMarketFeeAmount)
+      ).to.equal(String(
         exchangeDetailsBefore.btSupply.add(
           SwappedEvent[0].args.baseTokenSwappedAmount
-        )
+        ))
       );
 
       // Bob bought again all DT on sale so now dtSupply is 0
@@ -793,10 +797,11 @@ describe("FixedRateExchange", () => {
         exchangeDetailsAfter.btBalance
           .add(args.marketFeeAmount)
           .add(args.oceanFeeAmount)
-      ).to.equal(
+          .add(args.consumeMarketFeeAmount)
+      ).to.equal(String(
         exchangeDetailsBefore.btBalance.add(
           SwappedEvent[0].args.baseTokenSwappedAmount
-        )
+        ))
       );
 
       // no DT are available in internal balance
@@ -819,11 +824,11 @@ describe("FixedRateExchange", () => {
       await mockDT18.connect(bob).approve(fixedRateExchange.address, amountDT);
 
       // BOB is going to sell all DTs available
-
+      // TO DO - add consumeFee
       const receipt = await (
         await fixedRateExchange
           .connect(bob)
-          .sellDT(eventsExchange[0].args.exchangeId, amountDT, noSellLimit,ZERO_ADDRESS, 0)
+          .sellDT(eventsExchange[0].args.exchangeId, amountDT, noSellLimit,consumeMarket.address, web3.utils.toWei("0.1"))
       ).wait();
 
       const SwappedEvent = receipt.events.filter((e) => e.event === "Swapped");
@@ -833,7 +838,8 @@ describe("FixedRateExchange", () => {
         SwappedEvent[0].args.baseTokenSwappedAmount
           .add(args.marketFeeAmount)
           .add(args.oceanFeeAmount)
-      ).to.equal(SwappedEvent[0].args.datatokenSwappedAmount);
+          .add(args.consumeMarketFeeAmount)
+      ).to.equal(String(SwappedEvent[0].args.datatokenSwappedAmount));
 
       // BOB's DTbalance is zero, and BT increased as expected
       expect(await mockDT18.balanceOf(bob.address)).to.equal(
@@ -853,10 +859,11 @@ describe("FixedRateExchange", () => {
         exchangeDetails.btSupply
           .add(args.marketFeeAmount)
           .add(args.oceanFeeAmount)
-      ).to.equal(
+          .add(args.consumeMarketFeeAmount)
+      ).to.equal(String(
         exchangeDetailsBefore.btSupply.sub(
           SwappedEvent[0].args.baseTokenSwappedAmount
-        )
+        ))
       );
 
       // Bob sold some of his DTs so now dtSupply increased
@@ -872,10 +879,11 @@ describe("FixedRateExchange", () => {
         exchangeDetails.btBalance
           .add(args.marketFeeAmount)
           .add(args.oceanFeeAmount)
-      ).to.equal(
+          .add(args.consumeMarketFeeAmount)
+      ).to.equal(String(
         exchangeDetailsBefore.btBalance.sub(
           SwappedEvent[0].args.baseTokenSwappedAmount
-        )
+        ))
       );
 
       //now the DT are into the FixedRate and not on alice
