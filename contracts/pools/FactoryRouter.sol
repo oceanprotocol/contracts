@@ -748,7 +748,9 @@ contract FactoryRouter is BFactory {
                     _stakes[i].poolAddress,
                     _stakes[i].tokenAmountIn);
             //now stake
-            uint poolAmountOut = IPool(_stakes[i].poolAddress).joinswapExternAmountIn(_stakes[i].tokenAmountIn, _stakes[i].minPoolAmountOut);
+            uint poolAmountOut = IPool(_stakes[i].poolAddress).joinswapExternAmountIn(
+                _stakes[i].tokenAmountIn, _stakes[i].minPoolAmountOut
+                );
             require(poolAmountOut >=  _stakes[i].minPoolAmountOut,'NOT ENOUGH LP');
             uint256 balanceAfter = IERC20(_stakes[i].poolAddress).balanceOf(address(this));
             //send LP shares to user
