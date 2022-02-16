@@ -822,6 +822,10 @@ contract ERC20Template is
             _publishMarketFeeAddress != address(0),
             "Invalid _publishMarketFeeAddress address"
         );
+           require(
+            _publishMarketFeeToken != address(0),
+            "Invalid _publishMarketFeeToken address"
+        );
         publishMarketFeeAddress = _publishMarketFeeAddress;
         publishMarketFeeToken = _publishMarketFeeToken;
         publishMarketFeeAmount = _publishMarketFeeAmount;
