@@ -308,7 +308,7 @@ contract FixedRateExchange is ReentrancyGuard {
 
     {
         uint256 baseTokenAmountBeforeFee = getBaseTokenOutPrice(exchangeId, datatokenAmount);
-        Fees memory fee;
+        Fees memory fee = Fees(0,0,0,0);
         uint256 opcFee = getOPCFee(exchanges[exchangeId].baseToken);
         if (opcFee != 0) {
             fee.oceanFeeAmount = baseTokenAmountBeforeFee
@@ -364,7 +364,7 @@ contract FixedRateExchange is ReentrancyGuard {
     {
         uint256 baseTokenAmountBeforeFee = getBaseTokenOutPrice(exchangeId, datatokenAmount);
 
-        Fees memory fee;
+        Fees memory fee = Fees(0,0,0,0);
         uint256 opcFee = getOPCFee(exchanges[exchangeId].baseToken);
         if (opcFee != 0) {
             fee.oceanFeeAmount = baseTokenAmountBeforeFee
@@ -425,7 +425,7 @@ contract FixedRateExchange is ReentrancyGuard {
             );
         }
         if(consumeMarketAddress == address(0)) consumeMarketSwapFeeAmount=0; 
-        Fees memory fee;
+        Fees memory fee = Fees(0,0,0,0);
         (fee.baseTokenAmount,
             fee.oceanFeeAmount,
             fee.publishMarketFeeAmount,
@@ -520,7 +520,7 @@ contract FixedRateExchange is ReentrancyGuard {
                 "FixedRateExchange: This address is not allowed to swap"
             );
         }
-        Fees memory fee;
+        Fees memory fee = Fees(0,0,0,0);
         if(consumeMarketAddress == address(0)) consumeMarketSwapFeeAmount=0; 
         (fee.baseTokenAmount,
             fee.oceanFeeAmount,
