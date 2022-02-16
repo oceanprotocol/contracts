@@ -25,6 +25,7 @@ contract FixedRateExchange is ReentrancyGuard {
     uint256 private constant BASE = 10**18;
     uint public constant MIN_FEE           = BASE / 10**4;
     uint public constant MAX_FEE           = BASE / 10;
+    uint public constant MIN_RATE          = 10 ** 10;
 
     address public router;
     address public opcCollector;
@@ -212,7 +213,7 @@ contract FixedRateExchange is ReentrancyGuard {
             "FixedRateExchange: Invalid datatoken,  equals baseToken"
         );
         require(
-            uints[2] != 0,
+            uints[2] >= MIN_RATE,
             "FixedRateExchange: Invalid exchange rate value"
         );
         exchangeId = generateExchangeId(addresses[0], datatoken, addresses[1]);
