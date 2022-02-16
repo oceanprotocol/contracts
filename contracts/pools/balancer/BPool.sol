@@ -678,7 +678,7 @@ contract BPool is BMath, BToken {
             calcInGivenOut(
                 data,
                 tokenAmountOut,
-                tokenIn,
+                // tokenIn,
                 _consumeMarketSwapFee
             );
         return(tokenAmountIn, _swapfees.LPFee, _swapfees.oceanFeeAmount, 
@@ -727,7 +727,7 @@ contract BPool is BMath, BToken {
             calcOutGivenIn(
                 data,
                 tokenAmountIn,
-                tokenIn,
+               // tokenIn,
                 _consumeMarketSwapFee
             );
         return(tokenAmountOut, _swapfees.LPFee, 
@@ -846,7 +846,7 @@ contract BPool is BMath, BToken {
         (tokenAmountOut, balanceInToAdd, _swapfees) = calcOutGivenIn(
             data,
             amountsInOutMaxFee[0],
-            tokenInOutMarket[0],
+           // tokenInOutMarket[0],
             amountsInOutMaxFee[3]
         );
         // update balances
@@ -957,7 +957,7 @@ contract BPool is BMath, BToken {
         _swapfees) = calcInGivenOut(
             data,
             amountsInOutMaxFee[1],
-            tokenInOutMarket[0],
+            //tokenInOutMarket[0],
             amountsInOutMaxFee[3]
         );
         communityFees[tokenInOutMarket[0]] = badd(communityFees[tokenInOutMarket[0]],_swapfees.oceanFeeAmount);
@@ -1056,7 +1056,6 @@ contract BPool is BMath, BToken {
         //ask the ssContract to stake as well
         //calculate how much should the 1ss stake
         Record storage ssInRecord = _records[_datatokenAddress];
-        address ssStakeToken;
         uint256 ssAmountIn = calcSingleInGivenPoolOut(
             ssInRecord.balance,
             ssInRecord.denorm,

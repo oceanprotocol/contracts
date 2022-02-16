@@ -95,7 +95,7 @@ contract BMath is BConst, BNum {
     function calcOutGivenIn(
         uint[4] memory data,
         uint tokenAmountIn,
-        address tokenInAddress,
+        //address tokenInAddress,
         uint256 _consumeMarketSwapFee
 
     )
@@ -233,7 +233,7 @@ contract BMath is BConst, BNum {
     function calcInGivenOut(
         uint[4] memory data,
         uint tokenAmountOut,
-        address tokenInAddress,
+        //address tokenInAddress,
       //  address marketFeeAddress,
         uint _consumeMarketSwapFee
     )
