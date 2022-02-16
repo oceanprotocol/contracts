@@ -342,10 +342,7 @@ contract ERC20TemplateEnterprise is
         );
         if (uints[4] > 0) _addMinter(fixedPriceAddress);
         emit NewFixedRate(exchangeId, addresses[1], fixedPriceAddress, addresses[0]);
-        fixedRate memory fixedRate;
-        fixedRate.contractAddress=fixedPriceAddress;
-        fixedRate.id = exchangeId;
-        fixedRateExchanges.push(fixedRate);
+        fixedRateExchanges.push(fixedRate(fixedPriceAddress,exchangeId));
     }
 
     /**
@@ -1156,7 +1153,7 @@ contract ERC20TemplateEnterprise is
 
 
 
-    function ecrecovery(bytes32 hash, bytes memory sig) internal returns (address) {
+    function ecrecovery(bytes32 hash, bytes memory sig) pure internal returns (address) {
         bytes32 r;
         bytes32 s;
         uint8 v;

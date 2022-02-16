@@ -455,7 +455,6 @@ contract SideStaking is ReentrancyGuard {
 
      */
     function getAvailableVesting(address datatokenAddress) public view returns (uint256) {
-        uint256 amount = 0;
         uint256 blocksPassed;
 
         if (_datatokens[datatokenAddress].vestingEndBlock < block.number) {
