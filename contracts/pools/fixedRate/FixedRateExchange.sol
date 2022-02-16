@@ -531,8 +531,11 @@ contract FixedRateExchange is ReentrancyGuard {
         );
         if (baseTokenAmountWithFees > exchanges[exchangeId].btBalance) {
                 _pullUnderlying(exchanges[exchangeId].baseToken,exchanges[exchangeId].exchangeOwner,
-                    msg.sender,
+                    address(this),
                     baseTokenAmountWithFees);
+                IERC20(exchanges[exchangeId].baseToken).safeTransfer(
+                    msg.sender,
+                    fee.baseTokenAmount);
         } else {
             exchanges[exchangeId].btBalance = (exchanges[exchangeId].btBalance)
                 .sub(baseTokenAmountWithFees);
