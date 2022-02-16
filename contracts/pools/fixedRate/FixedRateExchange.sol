@@ -434,8 +434,6 @@ contract FixedRateExchange is ReentrancyGuard {
         _pullUnderlying(exchanges[exchangeId].baseToken,msg.sender,
                 address(this),
                 fee.baseTokenAmount);
-        if(consumeMarketAddress!= address(0) && fee.consumeMarketFeeAmount>0)
-            IERC20(exchanges[exchangeId].baseToken).safeTransfer(consumeMarketAddress, fee.consumeMarketFeeAmount);
         uint256 baseTokenAmountBeforeFee = fee.baseTokenAmount.sub(fee.oceanFeeAmount).
             sub(fee.publishMarketFeeAmount).sub(fee.consumeMarketFeeAmount);
         exchanges[exchangeId].btBalance = (exchanges[exchangeId].btBalance).add(
@@ -462,7 +460,9 @@ contract FixedRateExchange is ReentrancyGuard {
                 datatokenAmount
             );
         }
-
+        if(consumeMarketAddress!= address(0) && fee.consumeMarketFeeAmount>0)
+            IERC20(exchanges[exchangeId].baseToken).safeTransfer(consumeMarketAddress, fee.consumeMarketFeeAmount);
+        
         emit Swapped(
             exchangeId,
             msg.sender,
@@ -524,8 +524,6 @@ contract FixedRateExchange is ReentrancyGuard {
         _pullUnderlying(exchanges[exchangeId].datatoken,msg.sender,
                 address(this),
                 datatokenAmount);
-        if(consumeMarketAddress!= address(0) && fee.consumeMarketFeeAmount>0)
-            IERC20(exchanges[exchangeId].baseToken).safeTransfer(consumeMarketAddress, fee.consumeMarketFeeAmount);    
         exchanges[exchangeId].dtBalance = (exchanges[exchangeId].dtBalance).add(
             datatokenAmount
         );
@@ -544,6 +542,8 @@ contract FixedRateExchange is ReentrancyGuard {
                 fee.baseTokenAmount
             );
         }
+        if(consumeMarketAddress!= address(0) && fee.consumeMarketFeeAmount>0)
+            IERC20(exchanges[exchangeId].baseToken).safeTransfer(consumeMarketAddress, fee.consumeMarketFeeAmount);    
         emit Swapped(
             exchangeId,
             msg.sender,
