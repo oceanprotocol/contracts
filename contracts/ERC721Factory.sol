@@ -348,12 +348,12 @@ contract ERC721Factory is Deployer, Ownable, ReentrancyGuard {
         );
         emit TokenCreated(token, tokenTemplate.templateAddress, strings[0], strings[1], uints[0], owner);
         currentTokenCount += 1;
-        tokenStruct memory tokenData; 
-        tokenData.strings = strings;
-        tokenData.addresses = addresses;
-        tokenData.uints = uints;
-        tokenData.owner = owner;
-        tokenData.bytess = bytess;
+        tokenStruct memory tokenData = tokenStruct(strings,addresses,uints,bytess,owner); 
+        // tokenData.strings = strings;
+        // tokenData.addresses = addresses;
+        // tokenData.uints = uints;
+        // tokenData.owner = owner;
+        // tokenData.bytess = bytess;
         _createTokenStep2(token, tokenData);
     }
 
