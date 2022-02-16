@@ -154,7 +154,7 @@ contract BPool is BMath, BToken {
         require(factory != address(0), "ERR_INVALID_FACTORY_ADDRESS");
         require(swapFees[0] >= MIN_FEE, "ERR_MIN_FEE");
         require(swapFees[0] <= MAX_FEE, "ERR_MAX_FEE");
-        require(swapFees[1] >= MIN_FEE, "ERR_MIN_FEE");
+        require(swapFees[1] == 0 || swapFees[1]>= MIN_FEE, "ERR_MIN_FEE");
         require(swapFees[1] <= MAX_FEE, "ERR_MAX_FEE");
         return
             _initialize(
@@ -407,7 +407,7 @@ contract BPool is BMath, BToken {
     function updatePublishMarketFee(address _newCollector, uint256 _newSwapFee) external {
         require(_publishMarketCollector == msg.sender, "ONLY MARKET COLLECTOR");
         require(_newCollector != address(0), "Invalid _newCollector address");
-        require(_newSwapFee >= MIN_FEE, "ERR_MIN_FEE");
+        require(_newSwapFee ==0 || _newSwapFee >= MIN_FEE, "ERR_MIN_FEE");
         require(_newSwapFee <= MAX_FEE, "ERR_MAX_FEE");
         _publishMarketCollector = _newCollector;
         _swapPublishMarketFee = _newSwapFee;
@@ -519,7 +519,7 @@ contract BPool is BMath, BToken {
     /**
      * @dev setSwapFee
      *      Allows controller to change the swapFee
-     * @param swapFee new swap fee (1e17 = 10 % , 1e16 = 1% , 1e15 = 0.1%, 1e14 = 0.01%)
+     * @param swapFee new swap fee (max 1e17 = 10 % , 1e16 = 1% , 1e15 = 0.1%, 1e14 = 0.01%)
      */
     function setSwapFee(uint256 swapFee) public {
         require(msg.sender == _controller, "ERR_NOT_CONTROLLER");
@@ -816,7 +816,8 @@ contract BPool is BMath, BToken {
         _checkBound(tokenInOutMarket[1]);
         Record storage inRecord = _records[address(tokenInOutMarket[0])];
         Record storage outRecord = _records[address(tokenInOutMarket[1])];
-
+        require(amountsInOutMaxFee[0] ==0 || amountsInOutMaxFee[0] >= MIN_FEE,'ConsumeSwapFee too low');
+        require(amountsInOutMaxFee[0] <= MAX_FEE,'ConsumeSwapFee too high');
         require(
             amountsInOutMaxFee[0] <= bmul(inRecord.balance, MAX_IN_RATIO),
             "ERR_MAX_IN_RATIO"
@@ -917,6 +918,8 @@ contract BPool is BMath, BToken {
         uint256[4] calldata amountsInOutMaxFee
     ) external _lock_ returns (uint256 tokenAmountIn, uint256 spotPriceAfter) {
         require(_finalized, "ERR_NOT_FINALIZED");
+        require(amountsInOutMaxFee[0] ==0 || amountsInOutMaxFee[0] >= MIN_FEE,'ConsumeSwapFee too low');
+        require(amountsInOutMaxFee[0] <= MAX_FEE,'ConsumeSwapFee too high');
         _checkBound(tokenInOutMarket[0]);
         _checkBound(tokenInOutMarket[1]);
         Record storage inRecord = _records[address(tokenInOutMarket[0])];

@@ -23,6 +23,9 @@ contract FixedRateExchange is ReentrancyGuard {
     using SafeMath for uint256;
     using SafeERC20 for IERC20;
     uint256 private constant BASE = 10**18;
+    uint public constant MIN_FEE           = BASE / 10**6;
+    uint public constant MAX_FEE           = BASE / 10;
+
 
     address public router;
     address public opcCollector;
@@ -237,7 +240,8 @@ contract FixedRateExchange is ReentrancyGuard {
             withMint: withMint,
             allowedSwapper: addresses[3]
         });
-
+        require(uints[3] ==0 || uints[3] >= MIN_FEE,'SwapFee too low');
+        require(uints[3] <= MAX_FEE,'SwapFee too high');
         exchangeIds.push(exchangeId);
 
         emit ExchangeCreated(
@@ -412,6 +416,8 @@ contract FixedRateExchange is ReentrancyGuard {
             datatokenAmount != 0,
             "FixedRateExchange: zero datatoken amount"
         );
+        require(consumeMarketSwapFeeAmount ==0 || consumeMarketSwapFeeAmount >= MIN_FEE,'ConsumeSwapFee too low');
+        require(consumeMarketSwapFeeAmount <= MAX_FEE,'ConsumeSwapFee too high');
         if(exchanges[exchangeId].allowedSwapper != address(0)){
             require(
                 exchanges[exchangeId].allowedSwapper == msg.sender,
@@ -506,6 +512,8 @@ contract FixedRateExchange is ReentrancyGuard {
             datatokenAmount != 0,
             "FixedRateExchange: zero datatoken amount"
         );
+        require(consumeMarketSwapFeeAmount ==0 || consumeMarketSwapFeeAmount >= MIN_FEE,'ConsumeSwapFee too low');
+        require(consumeMarketSwapFeeAmount <= MAX_FEE,'ConsumeSwapFee too high');
         if(exchanges[exchangeId].allowedSwapper != address(0)){
             require(
                 exchanges[exchangeId].allowedSwapper == msg.sender,
@@ -668,6 +676,8 @@ contract FixedRateExchange is ReentrancyGuard {
             msg.sender == exchanges[exchangeId].marketFeeCollector,
             "not marketFeeCollector"
         );
+        require(_newMarketFee ==0 || _newMarketFee >= MIN_FEE,'SwapFee too low');
+        require(_newMarketFee <= MAX_FEE,'SwapFee too high');
         exchanges[exchangeId].marketFee = _newMarketFee;
         emit PublishMarketFeeChanged(exchangeId, msg.sender, exchanges[exchangeId].marketFeeCollector, _newMarketFee);
     }
