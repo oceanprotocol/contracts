@@ -128,7 +128,7 @@ contract BFactory is BConst, Deployer {
                 addresses[3], //publisherAddress
                 ssParams
             ),
-            "ERR_INITIALIZE_BPOOL"
+            "ERR_INITIALIZE_SIDESTAKING"
         );
 
         return bpool;
