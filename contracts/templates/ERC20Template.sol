@@ -396,10 +396,7 @@ contract ERC20Template is
         // add FixedPriced contract as minter if withMint == true
         if (uints[4] > 0) _addMinter(fixedPriceAddress);
         emit NewFixedRate(exchangeId, addresses[1], fixedPriceAddress, addresses[0]);
-        fixedRate memory _fixedRate;
-        _fixedRate.contractAddress=fixedPriceAddress;
-        _fixedRate.id = exchangeId;
-        fixedRateExchanges.push(_fixedRate);
+        fixedRateExchanges.push(fixedRate(fixedPriceAddress,exchangeId));
 
     }
 
