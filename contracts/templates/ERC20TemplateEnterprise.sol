@@ -101,6 +101,18 @@ contract ERC20TemplateEnterprise is
             uint256 number
     );
 
+    event OrderExecuted( 
+        address indexed providerAddress,
+        address indexed consumerAddress,
+        bytes32 orderTxId,
+        bytes providerData,
+        bytes providerSignature,
+        bytes consumerData,
+        bytes consumerSignature,
+        uint256 timestamp,
+        uint256 blockNumber
+    );
+    
     // emited for every order
     event PublishMarketFee(
         address indexed PublishMarketFeeAddress,
@@ -1095,5 +1107,73 @@ contract ERC20TemplateEnterprise is
         IERC20(erc20).safeTransferFrom(from, to, amount);
         require(IERC20(erc20).balanceOf(to) == balanceBefore.add(amount),
                     "Transfer amount was not exact");
+    }
+
+    /**
+     * @dev orderExecuted
+     *      Providers should call this to prove order execution
+     * @param orderTxId order tx
+     * @param providerData provider data
+     * @param providerSignature provider signature
+     * @param consumerData consumer data
+     * @param consumerSignature consumer signature
+     * @param consumerAddress consumer address
+     */
+    function orderExecuted(
+        bytes32 orderTxId,
+        bytes calldata providerData,
+        bytes calldata providerSignature,
+        bytes calldata consumerData,
+        bytes calldata consumerSignature,
+        address consumerAddress
+    ) external {
+        require(msg.sender != consumerAddress, "Provider cannot be the consumer");
+        bytes memory prefix = "\x19Ethereum Signed Message:\n32";
+        bytes32 providerHash = keccak256(
+            abi.encodePacked(prefix,
+                keccak256(
+                    abi.encodePacked(
+                        orderTxId,
+                        providerData
+                    )
+                )
+            )
+        );
+        require(ecrecovery(providerHash, providerSignature) == msg.sender, "Provider signature check failed");
+        bytes32 consumerHash = keccak256(
+            abi.encodePacked(prefix,
+                keccak256(
+                    abi.encodePacked(
+                        consumerData
+                    )
+                )
+            )
+        );
+        require(ecrecovery(consumerHash, consumerSignature) == consumerAddress, "Consumer signature check failed");
+        emit OrderExecuted(msg.sender, consumerAddress ,orderTxId, providerData, providerSignature,
+                consumerData, consumerSignature, block.timestamp, block.number);
+    }
+
+
+
+    function ecrecovery(bytes32 hash, bytes memory sig) internal returns (address) {
+        bytes32 r;
+        bytes32 s;
+        uint8 v;
+        if (sig.length != 65) {
+          return address(0);
+        }
+        assembly {
+          r := mload(add(sig, 32))
+        s := mload(add(sig, 64))
+        v := and(mload(add(sig, 65)), 255)
+        }
+        if (v < 27) {
+          v += 27;
+        }   
+        if (v != 27 && v != 28) {
+        return address(0);
+        }
+        return ecrecover(hash, v, r, s);
     }
 }
