@@ -816,8 +816,8 @@ contract BPool is BMath, BToken {
         _checkBound(tokenInOutMarket[1]);
         Record storage inRecord = _records[address(tokenInOutMarket[0])];
         Record storage outRecord = _records[address(tokenInOutMarket[1])];
-        require(amountsInOutMaxFee[0] ==0 || amountsInOutMaxFee[0] >= MIN_FEE,'ConsumeSwapFee too low');
-        require(amountsInOutMaxFee[0] <= MAX_FEE,'ConsumeSwapFee too high');
+        require(amountsInOutMaxFee[3] ==0 || amountsInOutMaxFee[3] >= MIN_FEE,'ConsumeSwapFee too low');
+        require(amountsInOutMaxFee[3] <= MAX_FEE,'ConsumeSwapFee too high');
         require(
             amountsInOutMaxFee[0] <= bmul(inRecord.balance, MAX_IN_RATIO),
             "ERR_MAX_IN_RATIO"
@@ -918,8 +918,8 @@ contract BPool is BMath, BToken {
         uint256[4] calldata amountsInOutMaxFee
     ) external _lock_ returns (uint256 tokenAmountIn, uint256 spotPriceAfter) {
         require(_finalized, "ERR_NOT_FINALIZED");
-        require(amountsInOutMaxFee[0] ==0 || amountsInOutMaxFee[0] >= MIN_FEE,'ConsumeSwapFee too low');
-        require(amountsInOutMaxFee[0] <= MAX_FEE,'ConsumeSwapFee too high');
+        require(amountsInOutMaxFee[3] ==0 || amountsInOutMaxFee[3] >= MIN_FEE,'ConsumeSwapFee too low');
+        require(amountsInOutMaxFee[3] <= MAX_FEE,'ConsumeSwapFee too high');
         _checkBound(tokenInOutMarket[0]);
         _checkBound(tokenInOutMarket[1]);
         Record storage inRecord = _records[address(tokenInOutMarket[0])];
