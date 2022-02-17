@@ -27,7 +27,7 @@ ocean v4 is part of the [Ocean Protocol](https://oceanprotocol.com) toolset.
 
 This is in alpha state and you can expect running into problems. If you run into them, please open up a [new issue](https://github.com/oceanprotocol/ocean.js/issues/new?assignees=&labels=bug&template=bug_report.md&title=).
 
-- [📚 Prerequisites](#-prerequisites)
+- [📚 Installation](#-installation)
 - [🏄 Quickstart](#-quickstart)
   - [Features](#features)
   - [Publisher Flow](#publisher-flow)
@@ -145,6 +145,14 @@ If you notice any bugs or issues with ocean.js please [open an issue on github](
 
 The [ocean.js](https://github.com/oceanprotocol/ocean.js) and [ocean.py](https://github.com/oceanprotocol/ocean.py) libraries wrap `contracts` in JavaScript and Python respectively. They each have quickstart guides.
 
+## 🦑 Development
+
+
+```bash
+npm install
+npx hardhat node
+```
+
 
 ## 🛳 Network Deployments
 
@@ -152,7 +160,7 @@ You can use an existing deployment of Ocean contracts, deploy locally or deploy 
 
 #### Use existing deployments
 
-Ocean contracts are deployed to Rinkeby, Mumbai, and more. [Here are details](./artifacts/address.json).
+Ocean contracts are deployed to Rinkeby, Mumbai, and more. [Here are details](../artifacts/address.json).
 
 #### 🦑Deploy Locally or Remote (e.g. Rinkeby)
 
@@ -166,27 +174,6 @@ export NETWORK_RPC_URL='NETWORK_RPC_URL SHOULD BE HERE' (i.e: INFURA OR ALCHEMY 
 
 npm run deploy
 ```
-
-
-## 🦑 Development
-
-
-```bash
-npm install
-npx hardhat node
-```
-
-<!-- ## ✨ Code Style
-
-For linting and auto-formatting you can use from the root of the project:
-
-```bash
-# lint all js with eslint
-npm run lint
-
-# auto format all js & css with prettier, taking all configs into account
-npm run format
-``` -->
 
 ## 👩‍🔬 Testing
 
