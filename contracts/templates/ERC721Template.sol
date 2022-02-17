@@ -115,6 +115,10 @@ contract ERC721Template is
             !initialized,
             "ERC721Template: token instance already initialized"
         );
+        if(additionalERC20Deployer != address(0))
+            _addToCreateERC20List(additionalERC20Deployer);
+        if(additionalMetaDataUpdater != address(0))
+            _addToMetadataList(additionalMetaDataUpdater);
         bool initResult = 
             _initialize(
                 owner,
@@ -123,10 +127,6 @@ contract ERC721Template is
                 tokenFactory,
                 tokenURI
             );
-        if(initResult && additionalERC20Deployer != address(0))
-            _addToCreateERC20List(additionalERC20Deployer);
-        if(initResult && additionalMetaDataUpdater != address(0))
-            _addToMetadataList(additionalMetaDataUpdater);
         return(initResult);
     }
 
