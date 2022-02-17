@@ -517,7 +517,6 @@ contract ERC721Template is
         require(tokenId == 1, "ERC721Template: Cannot transfer this tokenId");
         _cleanERC20Permissions(getAddressLength(deployedERC20List));
         _cleanPermissions();
-        _transferFrom(from, to, tokenId);
         _addManager(to);
           // we add the nft owner to all other roles (so that doesn't need to make multiple transactions)
         Roles storage user = permissions[to];
@@ -525,6 +524,8 @@ contract ERC721Template is
         user.deployERC20 = true;
         user.store = true;
         // no need to push to auth since it has been already added in _addManager()
+        _transferFrom(from, to, tokenId);
+        
     }
 
     /**
@@ -540,7 +541,6 @@ contract ERC721Template is
         require(tokenId == 1, "ERC721Template: Cannot transfer this tokenId");
         _cleanERC20Permissions(getAddressLength(deployedERC20List));
         _cleanPermissions();
-        safeTransferFrom(from, to, tokenId, "");
         _addManager(to);
         // we add the nft owner to all other roles (so that doesn't need to make multiple transactions)
         Roles storage user = permissions[to];
@@ -548,6 +548,8 @@ contract ERC721Template is
         user.deployERC20 = true;
         user.store = true;
         // no need to push to auth since it has been already added in _addManager()
+        safeTransferFrom(from, to, tokenId, "");
+        
     }
 
       /**
