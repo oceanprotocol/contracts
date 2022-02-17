@@ -8,6 +8,7 @@ import "../../interfaces/IPool.sol";
 import "@openzeppelin/contracts/utils/math/SafeMath.sol";
 import "../../utils/SafeERC20.sol";
 import "@openzeppelin/contracts/security/ReentrancyGuard.sol";
+
 /**@title SideStaking
  *
  * @dev SideStaking is a contract that monitors stakings in pools, 
@@ -28,15 +29,19 @@ contract SideStaking is ReentrancyGuard {
     address public router;
 
     // emitted when a new vesting is created
-    event VestingCreated(address indexed datatokenAddress,
+    event VestingCreated(
+        address indexed datatokenAddress,
         address indexed publisherAddress,
         uint256 vestingEndBlock,
-        uint256 totalVestingAmount);
+        uint256 totalVestingAmount
+    );
     // emited each time when tokens are vested to the publisher
-    event Vesting(address indexed datatokenAddress,
+    event Vesting(
+        address indexed datatokenAddress,
         address indexed publisherAddress,
         address indexed caller,
-        uint256 amountVested);
+        uint256 amountVested
+    );
 
     struct Record {
         bool bound; //datatoken bounded
@@ -75,12 +80,13 @@ contract SideStaking is ReentrancyGuard {
 
     /**
      * @dev getId
-     *      Return template id in case we need different ABIs. 
+     *      Return template id in case we need different ABIs.
      *      If you construct your own template, please make sure to change the hardcoded value
      */
-    function getId() pure public returns (uint8) {
+    function getId() public pure returns (uint8) {
         return 1;
     }
+
     /**
      * @dev newDatatokenCreated
      *      Called when new Datatoken is deployed by the DatatokenFactory
@@ -143,8 +149,12 @@ contract SideStaking is ReentrancyGuard {
             vestingLastBlock: block.number,
             vestingAmountSoFar: 0
         });
-        emit VestingCreated(datatokenAddress, publisherAddress,
-            _datatokens[datatokenAddress].vestingEndBlock, _datatokens[datatokenAddress].vestingAmount);
+        emit VestingCreated(
+            datatokenAddress,
+            publisherAddress,
+            _datatokens[datatokenAddress].vestingEndBlock,
+            _datatokens[datatokenAddress].vestingAmount
+        );
 
         notifyFinalize(datatokenAddress, ssParams[1]);
 
@@ -241,7 +251,7 @@ contract SideStaking is ReentrancyGuard {
         view
         returns (uint256)
     {
-        if (! _datatokens[datatokenAddress].bound) return (0);
+        if (!_datatokens[datatokenAddress].bound) return (0);
         return (_datatokens[datatokenAddress].baseTokenBalance);
     }
 
@@ -256,7 +266,7 @@ contract SideStaking is ReentrancyGuard {
         view
         returns (uint256)
     {
-        if (! _datatokens[datatokenAddress].bound) return (0);
+        if (!_datatokens[datatokenAddress].bound) return (0);
         return (_datatokens[datatokenAddress].datatokenBalance);
     }
 
@@ -271,7 +281,7 @@ contract SideStaking is ReentrancyGuard {
         view
         returns (uint256)
     {
-        if (! _datatokens[datatokenAddress].bound) return (0);
+        if (!_datatokens[datatokenAddress].bound) return (0);
         return (_datatokens[datatokenAddress].vestingEndBlock);
     }
 
@@ -286,7 +296,7 @@ contract SideStaking is ReentrancyGuard {
         view
         returns (uint256)
     {
-        if (! _datatokens[datatokenAddress].bound) return (0);
+        if (!_datatokens[datatokenAddress].bound) return (0);
         return (_datatokens[datatokenAddress].vestingAmount);
     }
 
@@ -316,35 +326,38 @@ contract SideStaking is ReentrancyGuard {
         view
         returns (uint256)
     {
-        if (! _datatokens[datatokenAddress].bound) return (0);
+        if (!_datatokens[datatokenAddress].bound) return (0);
         return (_datatokens[datatokenAddress].vestingAmountSoFar);
     }
 
     //called by pool to confirm that we can stake a token (add pool liquidty). If true, pool will call Stake function
-    function canStake(
-        address datatokenAddress,
-        uint256 amount
-    ) public view returns (bool) {
+    function canStake(address datatokenAddress, uint256 amount)
+        public
+        view
+        returns (bool)
+    {
         require(
             msg.sender == _datatokens[datatokenAddress].poolAddress,
             "ERR: Only pool can call this"
         );
-        if (! _datatokens[datatokenAddress].bound) return (false);
-        
+        if (!_datatokens[datatokenAddress].bound) return (false);
+
         //check balances. Make sure that we have enough to vest
-        if (_datatokens[datatokenAddress].datatokenBalance >= 
-        (amount + (_datatokens[datatokenAddress].vestingAmount - _datatokens[datatokenAddress].vestingAmountSoFar))
-        )
-            return (true);
+        if (
+            _datatokens[datatokenAddress].datatokenBalance >=
+            (amount +
+                (_datatokens[datatokenAddress].vestingAmount -
+                    _datatokens[datatokenAddress].vestingAmountSoFar))
+        ) return (true);
         return (false);
     }
 
     //called by pool so 1ss will stake a token (add pool liquidty).
     // Function only needs to approve the amount to be spent by the pool, pool will do the rest
-    function Stake(
-        address datatokenAddress,
-        uint256 amount
-    ) external nonReentrant {
+    function Stake(address datatokenAddress, uint256 amount)
+        external
+        nonReentrant
+    {
         if (!_datatokens[datatokenAddress].bound) return;
         require(
             msg.sender == _datatokens[datatokenAddress].poolAddress,
@@ -353,22 +366,26 @@ contract SideStaking is ReentrancyGuard {
         bool ok = canStake(datatokenAddress, amount);
         if (!ok) return;
         IERC20 dt = IERC20(datatokenAddress);
-        dt.safeIncreaseAllowance(_datatokens[datatokenAddress].poolAddress, amount);
+        dt.safeIncreaseAllowance(
+            _datatokens[datatokenAddress].poolAddress,
+            amount
+        );
         _datatokens[datatokenAddress].datatokenBalance -= amount;
     }
 
     //called by pool to confirm that we can stake a token (add pool liquidty). If true, pool will call Unstake function
-    function canUnStake(
-        address datatokenAddress,
-        uint256 lptIn
-    ) public view returns (bool) {
+    function canUnStake(address datatokenAddress, uint256 lptIn)
+        public
+        view
+        returns (bool)
+    {
         //TO DO
-        if (! _datatokens[datatokenAddress].bound) return (false);
+        if (!_datatokens[datatokenAddress].bound) return (false);
         require(
             msg.sender == _datatokens[datatokenAddress].poolAddress,
             "ERR: Only pool can call this"
         );
-        
+
         // we check LPT balance TODO: review this part
         if (IERC20(msg.sender).balanceOf(address(this)) >= lptIn) {
             return true;
@@ -376,14 +393,14 @@ contract SideStaking is ReentrancyGuard {
         return false;
     }
 
-    //called by pool so 1ss will unstake a token (remove pool liquidty). 
+    //called by pool so 1ss will unstake a token (remove pool liquidty).
     // In our case the balancer pool will handle all, this is just a notifier so 1ss can handle internal kitchen
     function UnStake(
         address datatokenAddress,
         uint256 dtAmountIn,
         uint256 poolAmountOut
-    ) external nonReentrant{
-        if (! _datatokens[datatokenAddress].bound) return;
+    ) external nonReentrant {
+        if (!_datatokens[datatokenAddress].bound) return;
         require(
             msg.sender == _datatokens[datatokenAddress].poolAddress,
             "ERR: Only pool can call this"
@@ -397,7 +414,7 @@ contract SideStaking is ReentrancyGuard {
     function notifyFinalize(address datatokenAddress, uint256 decimals)
         internal
     {
-        if (! _datatokens[datatokenAddress].bound ) return;
+        if (!_datatokens[datatokenAddress].bound) return;
         if (_datatokens[datatokenAddress].poolFinalized) return;
         _datatokens[datatokenAddress].poolFinalized = true;
         uint256 baseTokenWeight = 5 * BASE; //pool weight: 50-50
@@ -406,19 +423,19 @@ contract SideStaking is ReentrancyGuard {
             .baseTokenBalance;
         //given the price, compute datatokenAmount
 
-        uint256 datatokenAmount = ((_datatokens[datatokenAddress].rate *
+        uint256 datatokenAmount = (10**(18 - decimals))*_datatokens[datatokenAddress].rate *
             baseTokenAmount *
-            datatokenWeight) /
+            datatokenWeight /
             baseTokenWeight /
-            BASE) * (10**(18 - decimals));
-
+            BASE;
 
         //approve the tokens and amounts
         IERC20 dt = IERC20(datatokenAddress);
-        dt.safeIncreaseAllowance(_datatokens[datatokenAddress].poolAddress, datatokenAmount);
-        IERC20 dtBase = IERC20(
-            _datatokens[datatokenAddress].baseTokenAddress
+        dt.safeIncreaseAllowance(
+            _datatokens[datatokenAddress].poolAddress,
+            datatokenAmount
         );
+        IERC20 dtBase = IERC20(_datatokens[datatokenAddress].baseTokenAddress);
         dtBase.safeIncreaseAllowance(
             _datatokens[datatokenAddress].poolAddress,
             baseTokenAmount
@@ -438,9 +455,7 @@ contract SideStaking is ReentrancyGuard {
         _datatokens[datatokenAddress].baseTokenBalance -= baseTokenAmount;
         _datatokens[datatokenAddress].datatokenBalance -= datatokenAmount;
         // send 50% of the pool shares back to the publisher
-        IERC20 lPTokens = IERC20(
-            _datatokens[datatokenAddress].poolAddress
-        );
+        IERC20 lPTokens = IERC20(_datatokens[datatokenAddress].poolAddress);
         uint256 lpBalance = lPTokens.balanceOf(address(this));
         //  uint256 balanceToTransfer = lpBalance.div(2);
         lPTokens.safeTransfer(
@@ -449,12 +464,16 @@ contract SideStaking is ReentrancyGuard {
         );
     }
 
-     /**
+    /**
      *  Get available vesting now
      * @param datatokenAddress - datatokenAddress
 
      */
-    function getAvailableVesting(address datatokenAddress) public view returns (uint256) {
+    function getAvailableVesting(address datatokenAddress)
+        public
+        view
+        returns (uint256)
+    {
         uint256 blocksPassed;
 
         if (_datatokens[datatokenAddress].vestingEndBlock < block.number) {
@@ -467,13 +486,16 @@ contract SideStaking is ReentrancyGuard {
                 _datatokens[datatokenAddress].vestingLastBlock;
         }
 
-        uint256 vestPerBlock = _datatokens[datatokenAddress].vestingAmount.div(
-            _datatokens[datatokenAddress].vestingEndBlock -
-                _datatokens[datatokenAddress].blockDeployed
-        );
-        if (vestPerBlock == 0) return 0;
-        return(blocksPassed.mul(vestPerBlock));
+        uint256 availableVesting = blocksPassed
+            .mul(_datatokens[datatokenAddress].vestingAmount)
+            .div(
+                _datatokens[datatokenAddress].vestingEndBlock -
+                    _datatokens[datatokenAddress].blockDeployed
+            );
+
+        return availableVesting;
     }
+
     /**
      *  Send available vested tokens to the publisher address, can be called by anyone
      * @param datatokenAddress - datatokenAddress
@@ -481,10 +503,7 @@ contract SideStaking is ReentrancyGuard {
      */
     // called by vester to get datatokens
     function getVesting(address datatokenAddress) external nonReentrant {
-        require(
-            _datatokens[datatokenAddress].bound,
-            "ERR:Invalid datatoken"
-        );
+        require(_datatokens[datatokenAddress].bound, "ERR:Invalid datatoken");
         uint256 amount = getAvailableVesting(datatokenAddress);
         if (
             amount > 0 &&
@@ -492,13 +511,20 @@ contract SideStaking is ReentrancyGuard {
         ) {
             IERC20 dt = IERC20(datatokenAddress);
             _datatokens[datatokenAddress].vestingLastBlock = block.number;
-            dt.safeTransfer(_datatokens[datatokenAddress].publisherAddress, amount);
+            dt.safeTransfer(
+                _datatokens[datatokenAddress].publisherAddress,
+                amount
+            );
             _datatokens[datatokenAddress].datatokenBalance -= amount;
             _datatokens[datatokenAddress].vestingAmountSoFar += amount;
-            emit Vesting(datatokenAddress, _datatokens[datatokenAddress].publisherAddress, msg.sender, amount);
+            emit Vesting(
+                datatokenAddress,
+                _datatokens[datatokenAddress].publisherAddress,
+                msg.sender,
+                amount
+            );
         }
     }
-
 
     /**
      *  Change pool fee
@@ -508,7 +534,11 @@ contract SideStaking is ReentrancyGuard {
 
      */
     // called by ERC20 Deployer of datatoken
-    function setPoolSwapFee(address datatokenAddress, address poolAddress, uint256 swapFee) external nonReentrant {
+    function setPoolSwapFee(
+        address datatokenAddress,
+        address poolAddress,
+        uint256 swapFee
+    ) external nonReentrant {
         require(poolAddress != address(0), "Invalid poolAddress");
         IPool bpool = IPool(poolAddress);
         require(
@@ -520,7 +550,7 @@ contract SideStaking is ReentrancyGuard {
             bpool.getDatatokenAddress() == datatokenAddress,
             "Datatoken address missmatch"
         );
-         IERC20Template dt = IERC20Template(datatokenAddress);
+        IERC20Template dt = IERC20Template(datatokenAddress);
         require(dt.isERC20Deployer(msg.sender), "Not ERC20 Deployer");
         bpool.setSwapFee(swapFee);
     }
