@@ -429,6 +429,9 @@ contract SideStaking is ReentrancyGuard {
             baseTokenWeight /
             BASE;
 
+        //substract
+        _datatokens[datatokenAddress].baseTokenBalance -= baseTokenAmount;
+        _datatokens[datatokenAddress].datatokenBalance -= datatokenAmount;
         //approve the tokens and amounts
         IERC20 dt = IERC20(datatokenAddress);
         dt.safeIncreaseAllowance(
@@ -440,7 +443,8 @@ contract SideStaking is ReentrancyGuard {
             _datatokens[datatokenAddress].poolAddress,
             baseTokenAmount
         );
-
+        
+        
         // call the pool, bind the tokens, set the price, finalize pool
         IPool pool = IPool(_datatokens[datatokenAddress].poolAddress);
         pool.setup(
@@ -451,9 +455,6 @@ contract SideStaking is ReentrancyGuard {
             baseTokenAmount,
             baseTokenWeight
         );
-        //substract
-        _datatokens[datatokenAddress].baseTokenBalance -= baseTokenAmount;
-        _datatokens[datatokenAddress].datatokenBalance -= datatokenAmount;
         // send 50% of the pool shares back to the publisher
         IERC20 lPTokens = IERC20(_datatokens[datatokenAddress].poolAddress);
         uint256 lpBalance = lPTokens.balanceOf(address(this));
