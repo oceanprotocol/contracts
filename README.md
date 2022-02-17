@@ -47,7 +47,7 @@ For quick installation of the contract `ABIs`:
 
 ### Javascript/Typescript
 ```bash
-yarn add @oceanprotocol/contracts
+npm install @oceanprotocol/contracts
 ```
 ### Python
 ```bash
@@ -62,8 +62,7 @@ pip3 install json-sempai
 ```python
 from jsonsempai import magic
 from artifacts import address
-address.mainnet
-{'DTFactory': '0x57317f97E9EA49eBd19f7c9bB7c180b8cDcbDeB9', 'BFactory': '0xbe0083053744ECb871510C88dC0f6b77Da162706', 'FixedRateExchange': '0x608d05214E42722B94a54cF6114d4840FCfF84e1', 'Metadata': '0x1a4b70d8c9DcA47cD6D0Fb3c52BB8634CA1C0Fdf', 'Ocean': '0x967da4048cD07aB37855c090aAF366e4ce1b9F48'}
+
 ```
 
 ## 🏄 Quickstart
@@ -149,11 +148,11 @@ The [ocean.js](https://github.com/oceanprotocol/ocean.js) and [ocean.py](https:/
 
 ## 🛳 Network Deployments
 
-You can use an existing deployment of Ocean contracts, deploy locally, or deploy to a remote network. Let's review each.
+You can use an existing deployment of Ocean contracts, deploy locally or deploy to a remote network. Let's review each.
 
 #### Use existing deployments
 
-Ocean contracts are deployed to Rinkeby, Mumbai, and more. [Here are details](docs/README.md#deployments).
+Ocean contracts are deployed to Rinkeby, Mumbai, and more. [Here are details](./artifacts/address.json).
 
 #### 🦑Deploy Locally or Remote (e.g. Rinkeby)
 
