@@ -396,10 +396,7 @@ contract ERC20Template is
         // add FixedPriced contract as minter if withMint == true
         if (uints[4] > 0) _addMinter(fixedPriceAddress);
         emit NewFixedRate(exchangeId, addresses[1], fixedPriceAddress, addresses[0]);
-        fixedRate memory fixedRate;
-        fixedRate.contractAddress=fixedPriceAddress;
-        fixedRate.id = exchangeId;
-        fixedRateExchanges.push(fixedRate);
+        fixedRateExchanges.push(fixedRate(fixedPriceAddress,exchangeId));
 
     }
 
@@ -825,6 +822,10 @@ contract ERC20Template is
             _publishMarketFeeAddress != address(0),
             "Invalid _publishMarketFeeAddress address"
         );
+           require(
+            _publishMarketFeeToken != address(0),
+            "Invalid _publishMarketFeeToken address"
+        );
         publishMarketFeeAddress = _publishMarketFeeAddress;
         publishMarketFeeToken = _publishMarketFeeToken;
         publishMarketFeeAmount = _publishMarketFeeAmount;
@@ -1062,8 +1063,8 @@ contract ERC20Template is
     ) internal {
         uint256 balanceBefore = IERC20(erc20).balanceOf(to);
         IERC20(erc20).safeTransferFrom(from, to, amount);
-        require(IERC20(erc20).balanceOf(to) == balanceBefore.add(amount),
-                    "Transfer amount was not exact");
+        require(IERC20(erc20).balanceOf(to) >= balanceBefore.add(amount),
+                    "Transfer amount is too low");
     }
 
 
@@ -1114,7 +1115,7 @@ contract ERC20Template is
 
 
 
-    function ecrecovery(bytes32 hash, bytes memory sig) internal returns (address) {
+    function ecrecovery(bytes32 hash, bytes memory sig) pure internal returns (address) {
         bytes32 r;
         bytes32 s;
         uint8 v;

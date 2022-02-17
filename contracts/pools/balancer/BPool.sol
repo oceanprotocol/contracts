@@ -154,7 +154,7 @@ contract BPool is BMath, BToken {
         require(factory != address(0), "ERR_INVALID_FACTORY_ADDRESS");
         require(swapFees[0] >= MIN_FEE, "ERR_MIN_FEE");
         require(swapFees[0] <= MAX_FEE, "ERR_MAX_FEE");
-        require(swapFees[1] >= MIN_FEE, "ERR_MIN_FEE");
+        require(swapFees[1] == 0 || swapFees[1]>= MIN_FEE, "ERR_MIN_FEE");
         require(swapFees[1] <= MAX_FEE, "ERR_MAX_FEE");
         return
             _initialize(
@@ -407,7 +407,7 @@ contract BPool is BMath, BToken {
     function updatePublishMarketFee(address _newCollector, uint256 _newSwapFee) external {
         require(_publishMarketCollector == msg.sender, "ONLY MARKET COLLECTOR");
         require(_newCollector != address(0), "Invalid _newCollector address");
-        require(_newSwapFee >= MIN_FEE, "ERR_MIN_FEE");
+        require(_newSwapFee ==0 || _newSwapFee >= MIN_FEE, "ERR_MIN_FEE");
         require(_newSwapFee <= MAX_FEE, "ERR_MAX_FEE");
         _publishMarketCollector = _newCollector;
         _swapPublishMarketFee = _newSwapFee;
@@ -519,7 +519,7 @@ contract BPool is BMath, BToken {
     /**
      * @dev setSwapFee
      *      Allows controller to change the swapFee
-     * @param swapFee new swap fee (1e17 = 10 % , 1e16 = 1% , 1e15 = 0.1%, 1e14 = 0.01%)
+     * @param swapFee new swap fee (max 1e17 = 10 % , 1e16 = 1% , 1e15 = 0.1%, 1e14 = 0.01%)
      */
     function setSwapFee(uint256 swapFee) public {
         require(msg.sender == _controller, "ERR_NOT_CONTROLLER");
@@ -678,7 +678,7 @@ contract BPool is BMath, BToken {
             calcInGivenOut(
                 data,
                 tokenAmountOut,
-                tokenIn,
+                // tokenIn,
                 _consumeMarketSwapFee
             );
         return(tokenAmountIn, _swapfees.LPFee, _swapfees.oceanFeeAmount, 
@@ -727,7 +727,7 @@ contract BPool is BMath, BToken {
             calcOutGivenIn(
                 data,
                 tokenAmountIn,
-                tokenIn,
+               // tokenIn,
                 _consumeMarketSwapFee
             );
         return(tokenAmountOut, _swapfees.LPFee, 
@@ -816,7 +816,8 @@ contract BPool is BMath, BToken {
         _checkBound(tokenInOutMarket[1]);
         Record storage inRecord = _records[address(tokenInOutMarket[0])];
         Record storage outRecord = _records[address(tokenInOutMarket[1])];
-
+        require(amountsInOutMaxFee[3] ==0 || amountsInOutMaxFee[3] >= MIN_FEE,'ConsumeSwapFee too low');
+        require(amountsInOutMaxFee[3] <= MAX_FEE,'ConsumeSwapFee too high');
         require(
             amountsInOutMaxFee[0] <= bmul(inRecord.balance, MAX_IN_RATIO),
             "ERR_MAX_IN_RATIO"
@@ -845,7 +846,7 @@ contract BPool is BMath, BToken {
         (tokenAmountOut, balanceInToAdd, _swapfees) = calcOutGivenIn(
             data,
             amountsInOutMaxFee[0],
-            tokenInOutMarket[0],
+           // tokenInOutMarket[0],
             amountsInOutMaxFee[3]
         );
         // update balances
@@ -917,6 +918,8 @@ contract BPool is BMath, BToken {
         uint256[4] calldata amountsInOutMaxFee
     ) external _lock_ returns (uint256 tokenAmountIn, uint256 spotPriceAfter) {
         require(_finalized, "ERR_NOT_FINALIZED");
+        require(amountsInOutMaxFee[3] ==0 || amountsInOutMaxFee[3] >= MIN_FEE,'ConsumeSwapFee too low');
+        require(amountsInOutMaxFee[3] <= MAX_FEE,'ConsumeSwapFee too high');
         _checkBound(tokenInOutMarket[0]);
         _checkBound(tokenInOutMarket[1]);
         Record storage inRecord = _records[address(tokenInOutMarket[0])];
@@ -954,7 +957,7 @@ contract BPool is BMath, BToken {
         _swapfees) = calcInGivenOut(
             data,
             amountsInOutMaxFee[1],
-            tokenInOutMarket[0],
+            //tokenInOutMarket[0],
             amountsInOutMaxFee[3]
         );
         communityFees[tokenInOutMarket[0]] = badd(communityFees[tokenInOutMarket[0]],_swapfees.oceanFeeAmount);
@@ -1053,7 +1056,6 @@ contract BPool is BMath, BToken {
         //ask the ssContract to stake as well
         //calculate how much should the 1ss stake
         Record storage ssInRecord = _records[_datatokenAddress];
-        address ssStakeToken;
         uint256 ssAmountIn = calcSingleInGivenPoolOut(
             ssInRecord.balance,
             ssInRecord.denorm,
@@ -1276,8 +1278,8 @@ contract BPool is BMath, BToken {
     ) internal {
         uint256 balanceBefore = IERC20(erc20).balanceOf(address(this));
         IERC20(erc20).safeTransferFrom(from, address(this), amount);
-        require(IERC20(erc20).balanceOf(address(this)) == balanceBefore + amount,
-                    "Transfer amount was not exact");
+        require(IERC20(erc20).balanceOf(address(this)) >= balanceBefore + amount,
+                    "Transfer amount is too low");
         //require(xfer, "ERR_ERC20_FALSE");
     }
 

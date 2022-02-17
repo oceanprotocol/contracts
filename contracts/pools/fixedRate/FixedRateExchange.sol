@@ -23,6 +23,9 @@ contract FixedRateExchange is ReentrancyGuard {
     using SafeMath for uint256;
     using SafeERC20 for IERC20;
     uint256 private constant BASE = 10**18;
+    uint public constant MIN_FEE           = BASE / 10**4;
+    uint public constant MAX_FEE           = BASE / 10;
+    uint public constant MIN_RATE          = 10 ** 10;
 
     address public router;
     address public opcCollector;
@@ -135,17 +138,23 @@ contract FixedRateExchange is ReentrancyGuard {
         address indexed feeToken,
         uint256 feeAmount
     );
-    event PublishMarketFee(
-        address caller,
-        address marketAddress,
-        address token,
-        uint256 amount
-    );
     // emited for fees sent to consumeMarket
-    event ConsumeMarketFee(address to, address token, uint256 amount);
-    event SWAP_FEES(uint oceanFeeAmount, uint marketFeeAmount,
-        uint consumeMarketFeeAmount, address tokenFeeAddress);
-    event PublishMarketFeeChanged(address caller, address newMarketCollector, uint256 swapFee);
+    event ConsumeMarketFee(
+        bytes32 indexed exchangeId,
+        address to,
+        address token,
+        uint256 amount);
+    event SWAP_FEES(
+        bytes32 indexed exchangeId,
+        uint oceanFeeAmount,
+        uint marketFeeAmount,
+        uint consumeMarketFeeAmount,
+        address tokenFeeAddress);
+    event PublishMarketFeeChanged(
+        bytes32 indexed exchangeId,
+        address caller,
+        address newMarketCollector,
+        uint256 swapFee);
 
     constructor(address _router, address _opcCollector) {
         require(_router != address(0), "FixedRateExchange: Wrong Router address");
@@ -204,7 +213,7 @@ contract FixedRateExchange is ReentrancyGuard {
             "FixedRateExchange: Invalid datatoken,  equals baseToken"
         );
         require(
-            uints[2] != 0,
+            uints[2] >= MIN_RATE,
             "FixedRateExchange: Invalid exchange rate value"
         );
         exchangeId = generateExchangeId(addresses[0], datatoken, addresses[1]);
@@ -231,7 +240,8 @@ contract FixedRateExchange is ReentrancyGuard {
             withMint: withMint,
             allowedSwapper: addresses[3]
         });
-
+        require(uints[3] ==0 || uints[3] >= MIN_FEE,'SwapFee too low');
+        require(uints[3] <= MAX_FEE,'SwapFee too high');
         exchangeIds.push(exchangeId);
 
         emit ExchangeCreated(
@@ -244,7 +254,7 @@ contract FixedRateExchange is ReentrancyGuard {
 
         emit ExchangeActivated(exchangeId, addresses[1]);
         emit ExchangeAllowedSwapperChanged(exchangeId, addresses[3]);
-        emit PublishMarketFeeChanged(msg.sender, addresses[2], uints[3]);
+        emit PublishMarketFeeChanged(exchangeId,msg.sender, addresses[2], uints[3]);
     }
 
     /**
@@ -298,7 +308,7 @@ contract FixedRateExchange is ReentrancyGuard {
 
     {
         uint256 baseTokenAmountBeforeFee = getBaseTokenOutPrice(exchangeId, datatokenAmount);
-        Fees memory fee;
+        Fees memory fee = Fees(0,0,0,0);
         uint256 opcFee = getOPCFee(exchanges[exchangeId].baseToken);
         if (opcFee != 0) {
             fee.oceanFeeAmount = baseTokenAmountBeforeFee
@@ -346,15 +356,15 @@ contract FixedRateExchange is ReentrancyGuard {
         view
         onlyActiveExchange(exchangeId)
         returns (
-            uint256,
-            uint256,
-            uint256,
-            uint256
+            uint256 baseTokenAmount,
+            uint256 oceanFeeAmount,
+            uint256 publishMarketFeeAmount,
+            uint256 consumeMarketFeeAmount
         )
     {
         uint256 baseTokenAmountBeforeFee = getBaseTokenOutPrice(exchangeId, datatokenAmount);
 
-        Fees memory fee;
+        Fees memory fee = Fees(0,0,0,0);
         uint256 opcFee = getOPCFee(exchanges[exchangeId].baseToken);
         if (opcFee != 0) {
             fee.oceanFeeAmount = baseTokenAmountBeforeFee
@@ -406,6 +416,8 @@ contract FixedRateExchange is ReentrancyGuard {
             datatokenAmount != 0,
             "FixedRateExchange: zero datatoken amount"
         );
+        require(consumeMarketSwapFeeAmount ==0 || consumeMarketSwapFeeAmount >= MIN_FEE,'ConsumeSwapFee too low');
+        require(consumeMarketSwapFeeAmount <= MAX_FEE,'ConsumeSwapFee too high');
         if(exchanges[exchangeId].allowedSwapper != address(0)){
             require(
                 exchanges[exchangeId].allowedSwapper == msg.sender,
@@ -413,7 +425,7 @@ contract FixedRateExchange is ReentrancyGuard {
             );
         }
         if(consumeMarketAddress == address(0)) consumeMarketSwapFeeAmount=0; 
-        Fees memory fee;
+        Fees memory fee = Fees(0,0,0,0);
         (fee.baseTokenAmount,
             fee.oceanFeeAmount,
             fee.publishMarketFeeAmount,
@@ -460,9 +472,14 @@ contract FixedRateExchange is ReentrancyGuard {
                 datatokenAmount
             );
         }
-        if(consumeMarketAddress!= address(0) && fee.consumeMarketFeeAmount>0)
+        if(consumeMarketAddress!= address(0) && fee.consumeMarketFeeAmount>0){
             IERC20(exchanges[exchangeId].baseToken).safeTransfer(consumeMarketAddress, fee.consumeMarketFeeAmount);
-        
+            emit ConsumeMarketFee(
+                exchangeId,
+                consumeMarketAddress,
+                exchanges[exchangeId].baseToken,
+                fee.consumeMarketFeeAmount);
+        }
         emit Swapped(
             exchangeId,
             msg.sender,
@@ -495,13 +512,15 @@ contract FixedRateExchange is ReentrancyGuard {
             datatokenAmount != 0,
             "FixedRateExchange: zero datatoken amount"
         );
+        require(consumeMarketSwapFeeAmount ==0 || consumeMarketSwapFeeAmount >= MIN_FEE,'ConsumeSwapFee too low');
+        require(consumeMarketSwapFeeAmount <= MAX_FEE,'ConsumeSwapFee too high');
         if(exchanges[exchangeId].allowedSwapper != address(0)){
             require(
                 exchanges[exchangeId].allowedSwapper == msg.sender,
                 "FixedRateExchange: This address is not allowed to swap"
             );
         }
-        Fees memory fee;
+        Fees memory fee = Fees(0,0,0,0);
         if(consumeMarketAddress == address(0)) consumeMarketSwapFeeAmount=0; 
         (fee.baseTokenAmount,
             fee.oceanFeeAmount,
@@ -542,8 +561,14 @@ contract FixedRateExchange is ReentrancyGuard {
                 fee.baseTokenAmount
             );
         }
-        if(consumeMarketAddress!= address(0) && fee.consumeMarketFeeAmount>0)
+        if(consumeMarketAddress!= address(0) && fee.consumeMarketFeeAmount>0){
             IERC20(exchanges[exchangeId].baseToken).safeTransfer(consumeMarketAddress, fee.consumeMarketFeeAmount);    
+             emit ConsumeMarketFee(
+                exchangeId,
+                consumeMarketAddress,
+                exchanges[exchangeId].baseToken,
+                fee.consumeMarketFeeAmount);
+        }
         emit Swapped(
             exchangeId,
             msg.sender,
@@ -640,7 +665,7 @@ contract FixedRateExchange is ReentrancyGuard {
             "not marketFeeCollector"
         );
         exchanges[exchangeId].marketFeeCollector = _newMarketCollector;
-        emit PublishMarketFeeChanged(msg.sender, _newMarketCollector, exchanges[exchangeId].marketFee);
+        emit PublishMarketFeeChanged(exchangeId, msg.sender, _newMarketCollector, exchanges[exchangeId].marketFee);
     }
 
     function updateMarketFee(
@@ -651,8 +676,10 @@ contract FixedRateExchange is ReentrancyGuard {
             msg.sender == exchanges[exchangeId].marketFeeCollector,
             "not marketFeeCollector"
         );
+        require(_newMarketFee ==0 || _newMarketFee >= MIN_FEE,'SwapFee too low');
+        require(_newMarketFee <= MAX_FEE,'SwapFee too high');
         exchanges[exchangeId].marketFee = _newMarketFee;
-        emit PublishMarketFeeChanged(msg.sender, exchanges[exchangeId].marketFeeCollector, _newMarketFee);
+        emit PublishMarketFeeChanged(exchangeId, msg.sender, exchanges[exchangeId].marketFeeCollector, _newMarketFee);
     }
 
     function getMarketFee(bytes32 exchangeId) view public returns(uint256){
@@ -898,7 +925,7 @@ contract FixedRateExchange is ReentrancyGuard {
     ) internal {
         uint256 balanceBefore = IERC20(erc20).balanceOf(to);
         IERC20(erc20).safeTransferFrom(from, to, amount);
-        require(IERC20(erc20).balanceOf(to) == balanceBefore.add(amount),
-                    "Transfer amount was not exact");
+        require(IERC20(erc20).balanceOf(to) >= balanceBefore.add(amount),
+                    "Transfer amount is too low");
     }
 }

@@ -71,7 +71,6 @@ async function main() {
       OceanTokenAddress = "0x8967bcf84170c91b0d24d4302c2376283b0b3a07";
       OPFOwner = "0x0e901bC5D49636eC75B3B4fB88238698E5322dE6";
       routerOwner = OPFOwner;
-      gasLimit= 30000000;
       break;
     case 0x89:
       networkName = "polygon";
