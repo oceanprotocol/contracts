@@ -36,7 +36,8 @@
     "test:flow": "npx hardhat test test/flow/*.test.js ",
     "test:swap": "npx hardhat test test/flow/SwapFees.test.js ",
     "test:unit": "npx hardhat test test/unit/datatokens/ERC20TemplateEnterprise.test.js ",
-    "test:full:cover": "npx hardhat coverage"
+    "test:full:cover": "npx hardhat coverage",
+    "deploy": "npx hardhat run scripts/deploy-contracts.js"
   },
   "devDependencies": {
     "@nomiclabs/hardhat-ethers": "^2.0.2",

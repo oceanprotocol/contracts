@@ -32,10 +32,12 @@ async function main() {
   const network = provider.getNetwork();
   // utils
   const networkDetails = await network;
-  
-
+  let owner
   let wallet;
-  if (process.env.MNEMONIC)
+  if(url == 'http://127.0.0.1:8545') {
+    [owner] = await ethers.getSigners()
+  } else {
+    if (process.env.MNEMONIC)
     wallet = new Wallet.fromMnemonic(process.env.MNEMONIC);
   if (process.env.PRIVATE_KEY) wallet = new Wallet(process.env.PRIVATE_KEY);
   if (!wallet) {
@@ -43,6 +45,9 @@ async function main() {
     return null;
   }
   owner = wallet.connect(provider);
+  }
+  
+ 
   //let OPFOwner = '0x7DF5273aD9A6fCce64D45c64c1E43cfb6F861725';
   let OPFOwner = null;
   let routerOwner = null

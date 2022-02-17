@@ -41,30 +41,30 @@ This is in alpha state and you can expect running into problems. If you run into
   - [Integration Tests](#integration-tests)
 - [🏛 License](#-license)
 
-## 📚 Prerequisites
+## 🏗 Installation
 
-- node.js ([Install from here](https://nodejs.org/en/download/))
-<!-- - A Unix based operating system (Mac or Linux) -->
+For quick installation of the contract `ABIs`:
 
-<!-- ### Note
-
-Any function that uses `getPastEvents()` will only work on Eth (see: <https://github.com/oceanprotocol/ocean.js/issues/741>). This includes:
-
-- searchPoolforDT()
-- getPoolsbyCreator()
-- getPoolSharesByAddress()
-- getAllPoolLogs()
-- getPreviousValidOrders()
-- searchforDT()
-- getExchangesbyCreator()
-- getExchangeSwaps()
-- getAllExchangesSwaps() -->
-
-<!-- ## 🏗 Installation
-
+### Javascript/Typescript
 ```bash
-npm install @oceanprotocol/lib
-``` -->
+yarn add @oceanprotocol/contracts
+```
+### Python
+```bash
+pip3 install ocean-contracts
+```
+## ⚙️ Usage
+By default, Python does not support importing `json` files directly, so it is recommended to use `json-sempai` package in order to automatically importing `ABIs/json` artifacts.
+```
+pip3 install json-sempai
+# install the ocean-contracts package.
+```
+```python
+from jsonsempai import magic
+from artifacts import address
+address.mainnet
+{'DTFactory': '0x57317f97E9EA49eBd19f7c9bB7c180b8cDcbDeB9', 'BFactory': '0xbe0083053744ECb871510C88dC0f6b77Da162706', 'FixedRateExchange': '0x608d05214E42722B94a54cF6114d4840FCfF84e1', 'Metadata': '0x1a4b70d8c9DcA47cD6D0Fb3c52BB8634CA1C0Fdf', 'Ocean': '0x967da4048cD07aB37855c090aAF366e4ce1b9F48'}
+```
 
 ## 🏄 Quickstart
 
@@ -141,6 +141,33 @@ How to integrate v3 Datatokens into the new contracts.
 If you have any difficulties with the quickstarts, or if you have further questions about how to use ocean.js please reach out to us on [Discord](https://discord.gg/TnXjkR5).
 
 If you notice any bugs or issues with ocean.js please [open an issue on github](https://github.com/oceanprotocol/ocean.js/issues/new?assignees=&labels=bug&template=bug_report.md&title=). -->
+
+## 🏄 Quickstart
+
+The [ocean.js](https://github.com/oceanprotocol/ocean.js) and [ocean.py](https://github.com/oceanprotocol/ocean.py) libraries wrap `contracts` in JavaScript and Python respectively. They each have quickstart guides.
+
+
+## 🛳 Network Deployments
+
+You can use an existing deployment of Ocean contracts, deploy locally, or deploy to a remote network. Let's review each.
+
+#### Use existing deployments
+
+Ocean contracts are deployed to Rinkeby, Mumbai, and more. [Here are details](docs/README.md#deployments).
+
+#### 🦑Deploy Locally or Remote (e.g. Rinkeby)
+
+* In your main terminal:
+```bash
+deploy on hardhat:
+export NETWORK_RPC_URL='NETWORK_RPC_URL SHOULD BE HERE' (i.e: http://127.0.0.1:8545)
+
+deploy on remote networks:
+export NETWORK_RPC_URL='NETWORK_RPC_URL SHOULD BE HERE' (i.e: INFURA OR ALCHEMY URL)
+
+npm run deploy
+```
+
 
 ## 🦑 Development
 
