@@ -73,23 +73,22 @@ from artifacts import address
 
 - Base IP is now represented by an NFT, from which a datapublisher can deploy multiple ERC20 which can represent different type of access for the same dataset. (Link to NFT blog)
 
-- Rug pulls are solved thanks to a special 1 Sided Staking contract which acts as a bot, preventing big prices swings:
- An automated DT staking and vesting contract which helps with initial DT distribution and price stability.
+- Rug pulls in datatoken pools are avoided thanks to an automated datatoken Staking and Vesting contract which helps with initial DTs distribution and price stability.
 more info on how it works: (link to Side staking blog)
 
-- Help Ocean community: if Ocean is not the basetoken, Ocean Community will receive 1% swap fee on pools or fixed price exchange.
-Detailed information: (link to blog post on ocean community monetization)
+- Help Ocean Community monetization: if Ocean is not the basetoken, Ocean Community will receive 1% swap fee on pools or fixed price exchange.
+Detailed information: (link to blog post on Ocean community monetization)
 
 
 
 
 #### Flexibility
 
+- Advanced fee structure both for Markets and Provider. (link to fee post/docs)
+
 - Roles Administration: there are now multiple roles for a more flexible administation both at NFT and ERC20 levels.
 
 - Key-value store in the NFT contract : NFT contract can be used to store custom key-value pairs (ERC725Y standard)
-
-- Advanced fee structure both for Markets and Provider. (link to fee post/docs)
 
 - Multiple NFT template support: the Factory can deploy different types of NFT templates. 
 
@@ -127,12 +126,11 @@ Selection of most common functions.
 
 [Go to functions](docs/quickstart_functions.md)
 
-### Bundled functions
+### Bundle functions
 
-Selection of functions which can perform multiple steps in 1 call.
+Helper functions which can perform multiple steps in 1 call.
 
-[Go to functions](docs/quickstart_functions.md)
-
+[Go to helpers](docs/quickstart_bundle.md)
 <!-- ### v3 Integration and support
 
 How to integrate v3 Datatokens into the new contracts.
