@@ -29,7 +29,7 @@ This is in alpha state and you can expect running into problems. If you run into
 
 - [📚 Installation](#-installation)
 - [🏄 Quickstart](#-quickstart)
-  - [Features](#features)
+  - [What's New](#features)
   - [Publisher Flow](#publisher-flow)
   - [Roles Diagram](#roles-diagram)
   - [Functions you will need](#functions-you-will-need)
@@ -69,7 +69,7 @@ from artifacts import address
 
 
 
-### What's new - Features
+### What's New - Features
 
 - Base IP is now represented by an NFT, from which a datapublisher can deploy multiple ERC20 which can represent different type of access for the same dataset. (Link to NFT blog)
 
@@ -77,14 +77,15 @@ from artifacts import address
  An automated DT staking and vesting contract which helps with initial DT distribution and price stability.
 more info on how it works: (link to Side staking blog)
 
-- Roles Administration: there are now multiple roles for a more flexible administation both at NFT and ERC20 levels.
-
 - Help Ocean community: if Ocean is not the basetoken, Ocean Community will receive 1% swap fee on pools or fixed price exchange.
 Detailed information: (link to blog post on ocean community monetization)
 
 
 
-Flexibility:
+
+#### Flexibility
+
+- Roles Administration: there are now multiple roles for a more flexible administation both at NFT and ERC20 levels.
 
 - Key-value store in the NFT contract : NFT contract can be used to store custom key-value pairs (ERC725Y standard)
 
@@ -123,6 +124,12 @@ This batteries-included flow includes metadata, multiple services for one datato
 ### Functions you will need
 
 Selection of most common functions.
+
+[Go to functions](docs/quickstart_functions.md)
+
+### Bundled functions
+
+Selection of functions which can perform multiple steps in 1 call.
 
 [Go to functions](docs/quickstart_functions.md)
 

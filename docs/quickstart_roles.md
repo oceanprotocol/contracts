@@ -56,8 +56,8 @@ ERC20 Roles are managed by the ERC20Deployers at 721 LEVEL
 
 
 
-Both in ERC725 and ERC20 contract there’s a function called cleanPermissions:
-ERC725: clean all permissions: Manager, ERC20Deployer, MetadataUpdate,Store Updater. After this call even the NFT Owner has to reassign itself as Manager.
+Both in ERC721 and ERC20 contract there’s a function called cleanPermissions:
+ERC721: clean all permissions: Manager, ERC20Deployer, MetadataUpdate,Store Updater. After this call even the NFT Owner has to reassign itself as Manager.
 ERC20: clean Minter and Payment Manager Permissions. 
 
 
