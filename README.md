@@ -33,6 +33,7 @@ This is in alpha state and you can expect running into problems. If you run into
   - [Publisher Flow](#publisher-flow)
   - [Roles Diagram](#roles-diagram)
   - [Functions you will need](#functions-you-will-need)
+  - [Bundle functions](#bundle-functions)
   <!-- - [v3 Integration and support](#v3-integration-and-support) -->
   
 - [🦑 Development](#-development)
@@ -71,10 +72,10 @@ from artifacts import address
 
 ### What's New - Features
 
-- Base IP is now represented by an NFT, from which a datapublisher can deploy multiple ERC20 which can represent different type of access for the same dataset. (Link to NFT blog)
+- Base IP is now represented by an NFT, from which a datapublisher can deploy multiple ERC20s representing different type of access for the same dataset. (Link to NFT blog)
 
-- Rug pulls in datatoken pools are avoided thanks to an automated datatoken Staking and Vesting contract which helps with initial DTs distribution and price stability.
-more info on how it works: (link to Side staking blog)
+- Rug pulls in Datatoken Pools are avoided thanks to an automated datatoken Staking and Vesting contract which helps with the initial DTs distribution and price stability.
+More info on how it works: (link to Side staking blog)
 
 - Help Ocean Community monetization: if Ocean is not the basetoken, Ocean Community will receive 1% swap fee on pools or fixed price exchange.
 Detailed information: (link to blog post on Ocean community monetization)
@@ -168,7 +169,7 @@ You can use an existing deployment of Ocean contracts, deploy locally or deploy 
 
 #### Use existing deployments
 
-Ocean contracts are deployed to Rinkeby, Mumbai, and more. [Here are details](../artifacts/address.json).
+Ocean contracts are deployed to Rinkeby, Mumbai, and more. [Here are details](https://github.com/oceanprotocol/contracts/blob/v4main_postaudit/addresses/address.json).
 
 #### 🦑Deploy Locally or Remote (e.g. Rinkeby)
 

@@ -1,8 +1,8 @@
 # 🦑 Collection of bundled functions:
 
-## All there functions can be found in ERC721Factory.sol
+## All helper functions can be found in [ERC721Factory.sol](https://github.com/oceanprotocol/contracts/blob/v4main_postaudit/contracts/ERC721Factory.sol).
 
-
+ 
 ### createNftWithErc20
 
 #### deploys a new NFT Contract, then a new ERC20 datatoken
