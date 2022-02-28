@@ -29,7 +29,7 @@ This is in alpha state and you can expect running into problems. If you run into
 
 - [📚 Installation](#-installation)
 - [🏄 Quickstart](#-quickstart)
-  - [What's New](#what's-new)
+  - [What's New](#new-features)
   - [Publisher Flow](#publisher-flow)
   - [Roles Diagram](#roles-diagram)
   - [Functions you will need](#functions-you-will-need)
@@ -70,22 +70,20 @@ from artifacts import address
 
 
 
-### What's New 
+### New Features 
 
-- Base IP is now represented by an NFT, from which a datapublisher can deploy multiple ERC20s representing different type of access for the same dataset. (Link to NFT blog)
+- Base IP is now represented by an NFT, from which a datapublisher can create multiple ERC20s representing different type of access for the same dataset. (Link to NFT blog)
 
-- Rug pulls in Datatoken Pools are avoided thanks to an automated datatoken Staking and Vesting contract which helps with the initial DTs distribution and price stability.
-More info on how it works: (link to Side staking blog)
+- An automated Datatoken Staking and Vesting contract helps with the initial DTs distribution and price stability. Good bye rug pulls! More info on how it works: (link to Side staking blog)
 
-- Help Ocean Community monetization: if Ocean is not the basetoken, Ocean Community will receive 1% swap fee on pools or fixed price exchange.
-Detailed information: (link to blog post on Ocean community monetization)
+- Help Ocean Community monetization: if Ocean or allied tokens are not the basetoken, Ocean Community will receive 1% swap fee on pools or fixed price exchange. More details here: (link to blog post on Ocean community monetization)
 
 
 
 
 #### Flexibility
 
-- Advanced fee structure both for Markets and Provider. (link to fee post/docs)
+- Introduce an advanced Fee Structure both for Market and Provider runners. (add link to fee post/docs when available)
 
 - Roles Administration: there are now multiple roles for a more flexible administation both at NFT and ERC20 levels.
 
