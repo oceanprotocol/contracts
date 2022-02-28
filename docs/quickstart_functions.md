@@ -1,6 +1,6 @@
 # 🦑 Collection of useful functions:
 
-## ERC721Factory.sol
+## [ERC721Factory.sol](https://github.com/oceanprotocol/contracts/blob/v4main_postaudit/contracts/ERC721Factory.sol).
 
 ### deployERC721Contract.
 
@@ -30,7 +30,7 @@
 
 
 
-## ERC721Template.sol
+## [ERC721Template.sol](https://github.com/oceanprotocol/contracts/blob/v4main_postaudit/contracts/templates/ERC721Template.sol).
 
 ### createERC20
 
@@ -99,7 +99,8 @@
 ```
 
 
-## ERC20Template.sol
+
+## [ERC20Template.sol](https://github.com/oceanprotocol/contracts/blob/v4main_postaudit/contracts/templates/ERC20Template.sol).
 
 ### deployPool
 
@@ -128,13 +129,15 @@ swapFees[2] in order:
 - swapMarketFee (fee for marketplace)
 
 addresses[5] in order:
-    - side staking contract address
-    - baseToken address for pool creation(OCEAN or other)
-    - baseTokenSender user which will provide the baseToken amount for initial liquidity
-    - publisherAddress user which will be assigned the vested amount
-    - marketFeeCollector address
-    - pool template address
+- side staking contract address
+- baseToken address for pool creation(OCEAN or other)
+- baseTokenSender user which will provide the baseToken amount for initial liquidity
+- publisherAddress user which will be assigned the vested amount
+- marketFeeCollector address
+- pool template address
 
+
+    
 ```Javascript
    /**
      * @dev deployPool

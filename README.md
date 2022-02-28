@@ -54,7 +54,7 @@ npm install @oceanprotocol/contracts
 ```bash
 pip3 install ocean-contracts
 ```
-## ⚙️ Usage
+#### ⚙️ Usage
 By default, Python does not support importing `json` files directly, so it is recommended to use `json-sempai` package in order to automatically importing `ABIs/json` artifacts.
 ```
 pip3 install json-sempai
