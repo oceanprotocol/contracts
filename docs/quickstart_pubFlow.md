@@ -6,7 +6,7 @@
 
 
 
-![alt text](https://github.com/oceanprotocol/contracts/blob/v4main/publisher.jpg?raw=true)
+![alt text](https://github.com/oceanprotocol/contracts/blob/v4main/DataPublisherFlow.jpg?raw=true)
 
 
 
