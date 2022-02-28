@@ -23,7 +23,7 @@
 - **Transfer** datatokens to another owner, and **all other ERC20 actions**
   using [web3.js](https://web3js.readthedocs.io/en/v1.2.9/web3-eth-contract.html) etc. -->
 
-ocean v4 is part of the [Ocean Protocol](https://oceanprotocol.com) toolset.
+Ocean v4 is part of the [Ocean Protocol](https://oceanprotocol.com) toolset.
 
 This is in alpha state and you can expect running into problems. If you run into them, please open up a [new issue](https://github.com/oceanprotocol/contracts/issues/new?assignees=&labels=bug&template=bug_report.md&title=).
 

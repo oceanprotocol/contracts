@@ -1,6 +1,6 @@
 # 🦑 Collection of useful functions:
 
-## [ERC721Factory.sol](https://github.com/oceanprotocol/contracts/blob/v4main_postaudit/contracts/ERC721Factory.sol).
+## [ERC721Factory.sol](https://github.com/oceanprotocol/contracts/blob/v4main_postaudit/contracts/ERC721Factory.sol)
 
 ### deployERC721Contract.
 
@@ -30,7 +30,7 @@
 
 
 
-## [ERC721Template.sol](https://github.com/oceanprotocol/contracts/blob/v4main_postaudit/contracts/templates/ERC721Template.sol).
+## [ERC721Template.sol](https://github.com/oceanprotocol/contracts/blob/v4main_postaudit/contracts/templates/ERC721Template.sol)
 
 ### createERC20
 
@@ -100,7 +100,7 @@
 
 
 
-## [ERC20Template.sol](https://github.com/oceanprotocol/contracts/blob/v4main_postaudit/contracts/templates/ERC20Template.sol).
+## [ERC20Template.sol](https://github.com/oceanprotocol/contracts/blob/v4main_postaudit/contracts/templates/ERC20Template.sol)
 
 ### deployPool
 
