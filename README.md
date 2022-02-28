@@ -25,11 +25,11 @@
 
 ocean v4 is part of the [Ocean Protocol](https://oceanprotocol.com) toolset.
 
-This is in alpha state and you can expect running into problems. If you run into them, please open up a [new issue](https://github.com/oceanprotocol/ocean.js/issues/new?assignees=&labels=bug&template=bug_report.md&title=).
+This is in alpha state and you can expect running into problems. If you run into them, please open up a [new issue](https://github.com/oceanprotocol/contracts/issues/new?assignees=&labels=bug&template=bug_report.md&title=).
 
 - [📚 Installation](#-installation)
 - [🏄 Quickstart](#-quickstart)
-  - [What's New](#features)
+  - [What's New](#what's-new)
   - [Publisher Flow](#publisher-flow)
   - [Roles Diagram](#roles-diagram)
   - [Functions you will need](#functions-you-will-need)
@@ -70,7 +70,7 @@ from artifacts import address
 
 
 
-### What's New - Features
+### What's New 
 
 - Base IP is now represented by an NFT, from which a datapublisher can deploy multiple ERC20s representing different type of access for the same dataset. (Link to NFT blog)
 
@@ -105,21 +105,15 @@ Detailed information: (link to blog post on Ocean community monetization)
 
 ### Publisher Flow
 
-Interaction flow from Publisher point of view.
+Interaction flow from DataPublisher point of view.
 
 [Go to publisher flow](docs/quickstart_pubFlow.md)
 
 ### Roles Diagram
 
-This is a diagram which shows how roles are handled in the v4.
+How roles are handled in the v4.
 
 [Go to roles diagram](docs/quickstart_roles.md)
-
-<!-- ### Marketplace Flow
-
-This batteries-included flow includes metadata, multiple services for one datatoken, and compute-to-data.
-
-[Go to marketplace flow](docs/quickstart_marketplace.md) -->
 
 ### Functions you will need
 
@@ -132,23 +126,11 @@ Selection of most common functions.
 Helper functions which can perform multiple steps in 1 call.
 
 [Go to helpers](docs/quickstart_bundle.md)
-<!-- ### v3 Integration and support
 
-How to integrate v3 Datatokens into the new contracts.
-
-[Go to v3 integration](docs/quickstart_v3.md) -->
-
-<!-- ### 📖 Learn more
-
-- [Get test OCEAN](docs/get-test-OCEAN.md) - from rinkeby
-- [Understand config parameters](docs/parameters.md) - envvars vs files
-- [Learn about off-chain services](docs/services.md) - Ocean Provider for data services, Aquarius metadata store
-- [Learn about wallets](docs/wallets.md) - on generating, storing, and accessing private keys
-- [Get an overview of ocean.js](docs/overview.md) - key modules and functions
 
 If you have any difficulties with the quickstarts, or if you have further questions about how to use ocean.js please reach out to us on [Discord](https://discord.gg/TnXjkR5).
 
-If you notice any bugs or issues with ocean.js please [open an issue on github](https://github.com/oceanprotocol/ocean.js/issues/new?assignees=&labels=bug&template=bug_report.md&title=). -->
+If you notice any bugs or issues with ocean.js please [open an issue on github](https://github.com/oceanprotocol/contracts/issues/new?assignees=&labels=bug&template=bug_report.md&title=). -->
 
 ## 🏄 Quickstart
 

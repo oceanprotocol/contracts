@@ -1,11 +1,11 @@
-# 🦑 Collection of bundled functions:
+# 🦑 Collection of bundle functions:
 
 ## All helper functions can be found in [ERC721Factory.sol](https://github.com/oceanprotocol/contracts/blob/v4main_postaudit/contracts/ERC721Factory.sol).
 
  
 ### createNftWithErc20
 
-#### deploys a new NFT Contract, then a new ERC20 datatoken
+#### Deploys a new NFT Contract, then a new ERC20 datatoken
 
 ```Javascript
      /**
@@ -44,7 +44,7 @@
 
 ### createNftWithErc20WithPool
 
-#### deploys a new NFT Contract, then a new ERC20 datatoken and a pool with SideStaking and Vesting contract
+#### Deploys a new NFT Contract, then a new ERC20 datatoken and a pool with SideStaking and Vesting contract
 
 #### Requires basetoken approval before
 
@@ -97,7 +97,7 @@
 
 ### createNftWithErc20WithFixedRate
 
-#### deploys a new NFT Contract, then a new ERC20 datatoken and a Fixed Rate Exchange
+#### Deploys a new NFT Contract, then a new ERC20 datatoken and a Fixed Rate Exchange
 
 
 ```Javascript
@@ -140,48 +140,83 @@
 ```
 
 
-### createNftWithErc20WithDispenser
+### startMultipleTokenOrder
 
-#### deploys a new NFT Contract, then a new ERC20 datatoken and a Dispenser contract.
+#### Allow to start multiple token orders in 1 call.
+
+#### Requires several approvals depending on the orders
 
 ```Javascript
-    /**
-     * @dev createNftWithErc20WithDispenser
-     *      Creates a new NFT, then a ERC20, then a Dispenser, all in one call
-     *      Use this carefully
-     * @param _NftCreateData input data for NFT Creation
-     * @param _ErcCreateData input data for ERC20 Creation
-     * @param _DispenserData input data for Dispenser Creation
+     /**
+     * @dev startMultipleTokenOrder
+     *      Used as a proxy to order multiple services
+     *      Users can have inifinite approvals for fees for factory instead of having one approval/ erc20 contract
+     *      Requires previous approval of all :
+     *          - consumeFeeTokens
+     *          - publishMarketFeeTokens
+     *          - erc20 datatokens
+     *          - providerFees
+     * @param orders an array of struct tokenOrder
      */
-    function createNftWithErc20WithDispenser(
-        NftCreateData calldata _NftCreateData,
-        ErcCreateData calldata _ErcCreateData,
-        DispenserData calldata _DispenserData
-    ) external nonReentrant returns (address erc721Address, address erc20Address){
-        //we are adding ourselfs as a ERC20 Deployer, because we need it in order to deploy the fixedrate
-        erc721Address = deployERC721Contract(
-            _NftCreateData.name,
-            _NftCreateData.symbol,
-            _NftCreateData.templateIndex,
-            address(this),
-            address(0),
-             _NftCreateData.tokenURI);
-        erc20Address = IERC721Template(erc721Address).createERC20(
-            _ErcCreateData.templateIndex,
-            _ErcCreateData.strings,
-            _ErcCreateData.addresses,
-            _ErcCreateData.uints,
-            _ErcCreateData.bytess
-        );
-        IERC20Template(erc20Address).createDispenser(
-            _DispenserData.dispenserAddress,
-            _DispenserData.maxTokens,
-            _DispenserData.maxBalance,
-            _DispenserData.withMint,
-            _DispenserData.allowedSwapper
+    function startMultipleTokenOrder(
+        tokenOrder[] memory orders
+    ) external nonReentrant {
+        // TODO: to avoid DOS attack, we set a limit to maximum order (50 ?)
+        require(orders.length <= 50, 'ERC721Factory: Too Many Orders');
+        // TO DO.  We can do better here , by groupping publishMarketFeeTokens and consumeFeeTokens and have a single 
+        // transfer for each one, instead of doing it per dt..
+        for (uint256 i = 0; i < orders.length; i++) {
+            (address publishMarketFeeAddress, address publishMarketFeeToken, uint256 publishMarketFeeAmount) 
+                = IERC20Template(orders[i].tokenAddress).getPublishingMarketFee();
+            
+            // check if we have publishFees, if so transfer them to us and approve dttemplate to take them
+            if (publishMarketFeeAmount > 0 && publishMarketFeeToken!=address(0) 
+            && publishMarketFeeAddress!=address(0)) {
+                _pullUnderlying(publishMarketFeeToken,msg.sender,
+                    address(this),
+                    publishMarketFeeAmount);
+                IERC20(publishMarketFeeToken).safeIncreaseAllowance(orders[i].tokenAddress, publishMarketFeeAmount);
+            }
+            // check if we have consumeMarketFee, if so transfer them to us and approve dttemplate to take them
+            if (orders[i]._consumeMarketFee.consumeMarketFeeAmount > 0
+            && orders[i]._consumeMarketFee.consumeMarketFeeAddress!=address(0) 
+            && orders[i]._consumeMarketFee.consumeMarketFeeToken!=address(0)) {
+                _pullUnderlying(orders[i]._consumeMarketFee.consumeMarketFeeToken,msg.sender,
+                    address(this),
+                    orders[i]._consumeMarketFee.consumeMarketFeeAmount);
+                IERC20(orders[i]._consumeMarketFee.consumeMarketFeeToken)
+                .safeIncreaseAllowance(orders[i].tokenAddress, orders[i]._consumeMarketFee.consumeMarketFeeAmount);
+            }
+            // handle provider fees
+            if (orders[i]._providerFee.providerFeeAmount > 0 && orders[i]._providerFee.providerFeeToken!=address(0) 
+            && orders[i]._providerFee.providerFeeAddress!=address(0)) {
+                _pullUnderlying(orders[i]._providerFee.providerFeeToken,msg.sender,
+                    address(this),
+                    orders[i]._providerFee.providerFeeAmount);
+                IERC20(orders[i]._providerFee.providerFeeToken)
+                .safeIncreaseAllowance(orders[i].tokenAddress, orders[i]._providerFee.providerFeeAmount);
+            }
+            // transfer erc20 datatoken from consumer to us
+            _pullUnderlying(orders[i].tokenAddress,msg.sender,
+                    address(this),
+                    1e18);
+            IERC20Template(orders[i].tokenAddress).startOrder(
+                orders[i].consumer,
+                orders[i].serviceIndex,
+                orders[i]._providerFee,
+                orders[i]._consumeMarketFee
             );
-        // remove our selfs from the erc20DeployerRole
-        IERC721Template(erc721Address).removeFromCreateERC20List(address(this));
+        }
+    }
     }
 ```
 
+
+
+
+
+
+
+
+
+  
