@@ -105,6 +105,7 @@ describe("ERC20TemplateEnterprise", () => {
     mockErc20Decimals,
     publishMarketFeeToken,
     EnterpriseToken;
+
   cap = web3.utils.toWei("100000");
   const fakeUSDAmount = cap;
 
@@ -1496,7 +1497,7 @@ describe("ERC20TemplateEnterprise", () => {
     await expectRevert(
       fixedRateExchange
         .connect(user4)
-        .buyDT(exchangeId, web3.utils.toWei("1"), web3.utils.toWei("1")),
+        .buyDT(exchangeId, web3.utils.toWei('1'), web3.utils.toWei('1'),addressZero, 0),
       "FixedRateExchange: This address is not allowed to swap"
     );
 
@@ -1591,6 +1592,7 @@ describe("ERC20TemplateEnterprise", () => {
     );
     expect(args.marketFeeAmount).to.equal(0);
 
+
     const balancePublish = await Mock20DecimalContract.balanceOf(publishFee[0]);
     const balanceOpfPublish = await Mock20DecimalContract.balanceOf(
       opcCollector.address
@@ -1672,7 +1674,7 @@ describe("ERC20TemplateEnterprise", () => {
     await expectRevert(
       fixedRateExchange
         .connect(user4)
-        .buyDT(exchangeId, web3.utils.toWei("1"), web3.utils.toWei("1")),
+        .buyDT(exchangeId, web3.utils.toWei('1'), web3.utils.toWei('1'),addressZero, 0),
       "FixedRateExchange: This address is not allowed to swap"
     );
 
@@ -1765,6 +1767,7 @@ describe("ERC20TemplateEnterprise", () => {
     // 0.1% of 1 token => 0.001 token
     expect(args.marketFeeAmount).to.equal(web3.utils.toWei("0.001"));
 
+
     const balancePublish = await Mock20DecimalContract.balanceOf(publishFee[0]);
     const balanceOpfPublish = await Mock20DecimalContract.balanceOf(
       opcCollector.address
@@ -1795,5 +1798,79 @@ describe("ERC20TemplateEnterprise", () => {
       )) == web3.utils.toWei("0"),
       "Invalid publisher reward, we should have burned the DT"
     );
+
+
+  })
+
+  it("#orderExecuted - provider should succeed to call orderExecuted on a ERC20", async () => {
+    const orderTxId = '0x826e9781f191ef2b4cee95eac10cfeced2bd1bd340e3f079304e3bfdd6a56106'
+    const providerData="some provider data"
+    const providerAddress = user5.address
+    const providerMessage = ethers.utils.solidityKeccak256(["bytes32", "bytes"], [orderTxId, ethers.utils.hexlify(ethers.utils.toUtf8Bytes(providerData))]);
+    const providerSignature = await web3.eth.sign(providerMessage, providerAddress);
+    const consumerData="12345";
+    const consumerAddress = user2.address
+    const consumerMessage = ethers.utils.solidityKeccak256(['bytes'],[ethers.utils.hexlify(ethers.utils.toUtf8Bytes(consumerData))]);
+    const consumerSignature = await web3.eth.sign(consumerMessage, consumerAddress);
+    const tx = await erc20Token
+      .connect(user5)
+      .orderExecuted(orderTxId,
+        ethers.utils.hexlify(ethers.utils.toUtf8Bytes(providerData)), providerSignature, 
+        ethers.utils.hexlify(ethers.utils.toUtf8Bytes(consumerData)), consumerSignature, consumerAddress);
+    const txReceipt = await tx.wait();
+    let event = getEventFromTx(txReceipt, 'OrderExecuted')
+    assert(event, "Cannot find OrderExecuted event")
   });
+
+  it("#orderExecuted - provider should fail to call orderExecuted on a ERC20 if consumerAddress == providerAddress", async () => {
+    const orderTxId = '0x826e9781f191ef2b4cee95eac10cfeced2bd1bd340e3f079304e3bfdd6a56106'
+    const providerData="some provider data"
+    const providerAddress = user5.address
+    const providerMessage = ethers.utils.solidityKeccak256(["bytes32", "bytes"], [orderTxId, ethers.utils.hexlify(ethers.utils.toUtf8Bytes(providerData))]);
+    const providerSignature = await web3.eth.sign(providerMessage, providerAddress);
+    const consumerData="12345";
+    const consumerAddress = user5.address
+    const consumerMessage = ethers.utils.solidityKeccak256(['bytes'],[ethers.utils.hexlify(ethers.utils.toUtf8Bytes(consumerData))]);
+    const consumerSignature = await web3.eth.sign(consumerMessage, consumerAddress);
+    await expectRevert(
+      erc20Token.connect(user5).orderExecuted(orderTxId,
+        ethers.utils.hexlify(ethers.utils.toUtf8Bytes(providerData)), providerSignature, 
+        ethers.utils.hexlify(ethers.utils.toUtf8Bytes(consumerData)), consumerSignature, consumerAddress),
+      'Provider cannot be the consumer')
+  });
+  it("#orderExecuted - provider should fail to call orderExecuted on a ERC20 if consumerAddress is not the signer of consumerData", async () => {
+    const orderTxId = '0x826e9781f191ef2b4cee95eac10cfeced2bd1bd340e3f079304e3bfdd6a56106'
+    const providerData="some provider data"
+    const providerAddress = user5.address
+    const providerMessage = ethers.utils.solidityKeccak256(["bytes32", "bytes"], [orderTxId, ethers.utils.hexlify(ethers.utils.toUtf8Bytes(providerData))]);
+    const providerSignature = await web3.eth.sign(providerMessage, providerAddress);
+    const consumerData="12345";
+    const consumerAddress = user2.address
+    const consumerMessage = ethers.utils.solidityKeccak256(['bytes'],[ethers.utils.hexlify(ethers.utils.toUtf8Bytes(consumerData))]);
+    const consumerSignature = await web3.eth.sign(consumerMessage, user3.address);
+    await expectRevert(erc20Token
+      .connect(user5)
+      .orderExecuted(orderTxId,
+        ethers.utils.hexlify(ethers.utils.toUtf8Bytes(providerData)), providerSignature, 
+        ethers.utils.hexlify(ethers.utils.toUtf8Bytes(consumerData)), consumerSignature, consumerAddress),
+      'Consumer signature check failed')
+  });
+  it("#orderExecuted - provider should fail to call orderExecuted on a ERC20 if msg.sender is not the signer of providerData", async () => {
+    const orderTxId = '0x826e9781f191ef2b4cee95eac10cfeced2bd1bd340e3f079304e3bfdd6a56106'
+    const providerData="some provider data"
+    const providerAddress = user5.address
+    const providerMessage = ethers.utils.solidityKeccak256(["bytes32", "bytes"], [orderTxId, ethers.utils.hexlify(ethers.utils.toUtf8Bytes(providerData))]);
+    const providerSignature = await web3.eth.sign(providerMessage, providerAddress);
+    const consumerData="12345";
+    const consumerAddress = user2.address
+    const consumerMessage = ethers.utils.solidityKeccak256(['bytes'],[ethers.utils.hexlify(ethers.utils.toUtf8Bytes(consumerData))]);
+    const consumerSignature = await web3.eth.sign(consumerMessage, consumerAddress);
+    await expectRevert(erc20Token
+      .connect(user3)
+      .orderExecuted(orderTxId,
+        ethers.utils.hexlify(ethers.utils.toUtf8Bytes(providerData)), providerSignature, 
+        ethers.utils.hexlify(ethers.utils.toUtf8Bytes(consumerData)), consumerSignature, consumerAddress),
+      'Provider signature check failed')
+  });
+
 });

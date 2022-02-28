@@ -23,6 +23,9 @@ contract FixedRateExchange is ReentrancyGuard {
     using SafeMath for uint256;
     using SafeERC20 for IERC20;
     uint256 private constant BASE = 10**18;
+    uint public constant MIN_FEE           = BASE / 10**4;
+    uint public constant MAX_FEE           = BASE / 10;
+    uint public constant MIN_RATE          = 10 ** 10;
 
     address public router;
     address public opcCollector;
@@ -114,7 +117,8 @@ contract FixedRateExchange is ReentrancyGuard {
         uint256 datatokenSwappedAmount,
         address tokenOutAddress,
         uint256 marketFeeAmount,
-        uint256 oceanFeeAmount
+        uint256 oceanFeeAmount,
+        uint256 consumeMarketFeeAmount
     );
 
     event TokenCollected(
@@ -134,6 +138,23 @@ contract FixedRateExchange is ReentrancyGuard {
         address indexed feeToken,
         uint256 feeAmount
     );
+    // emited for fees sent to consumeMarket
+    event ConsumeMarketFee(
+        bytes32 indexed exchangeId,
+        address to,
+        address token,
+        uint256 amount);
+    event SWAP_FEES(
+        bytes32 indexed exchangeId,
+        uint oceanFeeAmount,
+        uint marketFeeAmount,
+        uint consumeMarketFeeAmount,
+        address tokenFeeAddress);
+    event PublishMarketFeeChanged(
+        bytes32 indexed exchangeId,
+        address caller,
+        address newMarketCollector,
+        uint256 swapFee);
 
     constructor(address _router, address _opcCollector) {
         require(_router != address(0), "FixedRateExchange: Wrong Router address");
@@ -192,7 +213,7 @@ contract FixedRateExchange is ReentrancyGuard {
             "FixedRateExchange: Invalid datatoken,  equals baseToken"
         );
         require(
-            uints[2] != 0,
+            uints[2] >= MIN_RATE,
             "FixedRateExchange: Invalid exchange rate value"
         );
         exchangeId = generateExchangeId(addresses[0], datatoken, addresses[1]);
@@ -219,7 +240,8 @@ contract FixedRateExchange is ReentrancyGuard {
             withMint: withMint,
             allowedSwapper: addresses[3]
         });
-
+        require(uints[3] ==0 || uints[3] >= MIN_FEE,'SwapFee too low');
+        require(uints[3] <= MAX_FEE,'SwapFee too high');
         exchangeIds.push(exchangeId);
 
         emit ExchangeCreated(
@@ -232,6 +254,7 @@ contract FixedRateExchange is ReentrancyGuard {
 
         emit ExchangeActivated(exchangeId, addresses[1]);
         emit ExchangeAllowedSwapperChanged(exchangeId, addresses[3]);
+        emit PublishMarketFeeChanged(exchangeId,msg.sender, addresses[2], uints[3]);
     }
 
     /**
@@ -249,98 +272,142 @@ contract FixedRateExchange is ReentrancyGuard {
         return keccak256(abi.encode(baseToken, datatoken, exchangeOwner));
     }
 
-    /**
-     * @dev CalcInGivenOut
-     *      Calculates how many baseTokens are needed to get specifyed amount of datatokens
-     * @param exchangeId a unique exchange idnetifier
-     * @param datatokenAmount the amount of datatokens to be exchanged
-     */
-    function calcBaseInGivenOutDT(bytes32 exchangeId, uint256 datatokenAmount)
-        public
-        view
-        onlyActiveExchange(exchangeId)
-        returns (
-            uint256 baseTokenAmount,
-            uint256 baseTokenAmountBeforeFee,
-            uint256 oceanFeeAmount,
-            uint256 marketFeeAmount
-        )
-    {
-        baseTokenAmountBeforeFee = datatokenAmount
-            .mul(exchanges[exchangeId].fixedRate)
-            .mul(10**exchanges[exchangeId].btDecimals)
-            .div(10**exchanges[exchangeId].dtDecimals)
-            .div(BASE);
-
-      
-        uint256 opcFee = getOPCFee(exchanges[exchangeId].baseToken);
-        if (opcFee != 0) {
-            oceanFeeAmount = baseTokenAmountBeforeFee
-                .mul(opcFee)
-                .div(BASE);
-        }
-     
-        marketFeeAmount = baseTokenAmountBeforeFee
-            .mul(exchanges[exchangeId].marketFee)
-            .div(BASE);
-
-       
-        baseTokenAmount = baseTokenAmountBeforeFee.add(marketFeeAmount).add(
-            oceanFeeAmount
-        );
-      
+    struct Fees{
+            uint256 baseTokenAmount;
+            uint256 oceanFeeAmount;
+            uint256 publishMarketFeeAmount;
+            uint256 consumeMarketFeeAmount;
     }
-
+        
+    function getBaseTokenOutPrice(bytes32 exchangeId, uint256 datatokenAmount) 
+    internal view returns (uint256 baseTokenAmount){
+        baseTokenAmount = datatokenAmount
+            .mul(exchanges[exchangeId].fixedRate)
+            .mul(10**exchanges[exchangeId].btDecimals)
+            .div(10**exchanges[exchangeId].dtDecimals)
+            .div(BASE);
+    }
     /**
-     * @dev CalcInGivenOut
-     *      Calculates how many baseTokens are needed to get specifyed amount of datatokens
+     * @dev calcBaseInGivenOutDT
+     *      Calculates how many baseTokens are needed to get exact amount of datatokens
      * @param exchangeId a unique exchange idnetifier
      * @param datatokenAmount the amount of datatokens to be exchanged
+     * @param consumeMarketSwapFeeAmount fee amount for consume market
      */
-    function calcBaseOutGivenInDT(bytes32 exchangeId, uint256 datatokenAmount)
+    function calcBaseInGivenOutDT(bytes32 exchangeId, uint256 datatokenAmount, uint256 consumeMarketSwapFeeAmount)
         public
         view
         onlyActiveExchange(exchangeId)
         returns (
             uint256 baseTokenAmount,
-            uint256 baseTokenAmountBeforeFee,
             uint256 oceanFeeAmount,
-            uint256 marketFeeAmount
+            uint256 publishMarketFeeAmount,
+            uint256 consumeMarketFeeAmount
         )
-    {
-        baseTokenAmountBeforeFee = datatokenAmount
-            .mul(exchanges[exchangeId].fixedRate)
-            .mul(10**exchanges[exchangeId].btDecimals)
-            .div(10**exchanges[exchangeId].dtDecimals)
-            .div(BASE);
 
-       
+
+    {
+        uint256 baseTokenAmountBeforeFee = getBaseTokenOutPrice(exchangeId, datatokenAmount);
+        Fees memory fee = Fees(0,0,0,0);
         uint256 opcFee = getOPCFee(exchanges[exchangeId].baseToken);
         if (opcFee != 0) {
-            oceanFeeAmount = baseTokenAmountBeforeFee
+            fee.oceanFeeAmount = baseTokenAmountBeforeFee
                 .mul(opcFee)
                 .div(BASE);
         }
-      
-        marketFeeAmount = baseTokenAmountBeforeFee
+        else
+            fee.oceanFeeAmount = 0;
+
+        if( exchanges[exchangeId].marketFee !=0){
+            fee.publishMarketFeeAmount = baseTokenAmountBeforeFee
             .mul(exchanges[exchangeId].marketFee)
             .div(BASE);
+        }
+        else{
+            fee.publishMarketFeeAmount = 0;
+        }
+
+        if( consumeMarketSwapFeeAmount !=0){
+            fee.consumeMarketFeeAmount = baseTokenAmountBeforeFee
+            .mul(consumeMarketSwapFeeAmount)
+            .div(BASE);
+        }
+        else{
+            fee.consumeMarketFeeAmount = 0;
+        }
+       
+        
+        fee.baseTokenAmount = baseTokenAmountBeforeFee.add(fee.publishMarketFeeAmount)
+            .add(fee.oceanFeeAmount).add(fee.consumeMarketFeeAmount);
+      
+        return(fee.baseTokenAmount,fee.oceanFeeAmount,fee.publishMarketFeeAmount,fee.consumeMarketFeeAmount);
+    }
 
     
-        baseTokenAmount = baseTokenAmountBeforeFee.sub(marketFeeAmount).sub(
-            oceanFeeAmount
-        );
-   
+    /**
+     * @dev calcBaseOutGivenInDT
+     *      Calculates how many basteTokens you will get for selling exact amount of baseTokens
+     * @param exchangeId a unique exchange idnetifier
+     * @param datatokenAmount the amount of datatokens to be exchanged
+     * @param consumeMarketSwapFeeAmount fee amount for consume market
+     */
+    function calcBaseOutGivenInDT(bytes32 exchangeId, uint256 datatokenAmount, uint256 consumeMarketSwapFeeAmount)
+        public
+        view
+        onlyActiveExchange(exchangeId)
+        returns (
+            uint256 baseTokenAmount,
+            uint256 oceanFeeAmount,
+            uint256 publishMarketFeeAmount,
+            uint256 consumeMarketFeeAmount
+        )
+    {
+        uint256 baseTokenAmountBeforeFee = getBaseTokenOutPrice(exchangeId, datatokenAmount);
+
+        Fees memory fee = Fees(0,0,0,0);
+        uint256 opcFee = getOPCFee(exchanges[exchangeId].baseToken);
+        if (opcFee != 0) {
+            fee.oceanFeeAmount = baseTokenAmountBeforeFee
+                .mul(opcFee)
+                .div(BASE);
+        }
+        else fee.oceanFeeAmount=0;
+      
+        if(exchanges[exchangeId].marketFee !=0 ){
+            fee.publishMarketFeeAmount = baseTokenAmountBeforeFee
+                .mul(exchanges[exchangeId].marketFee)
+                .div(BASE);
+        }
+        else{
+            fee.publishMarketFeeAmount = 0;
+        }
+
+        if( consumeMarketSwapFeeAmount !=0){
+            fee.consumeMarketFeeAmount = baseTokenAmountBeforeFee
+                .mul(consumeMarketSwapFeeAmount)
+                .div(BASE);
+        }
+        else{
+            fee.consumeMarketFeeAmount = 0;
+        }
+
+        fee.baseTokenAmount = baseTokenAmountBeforeFee.sub(fee.publishMarketFeeAmount)
+            .sub(fee.oceanFeeAmount).sub(fee.consumeMarketFeeAmount);
+        return(fee.baseTokenAmount,fee.oceanFeeAmount,fee.publishMarketFeeAmount,fee.consumeMarketFeeAmount);
     }
 
+    
     /**
      * @dev swap
      *      atomic swap between two registered fixed rate exchange.
      * @param exchangeId a unique exchange idnetifier
      * @param datatokenAmount the amount of datatokens to be exchanged
      * @param maxBaseTokenAmount maximum amount of base tokens to pay
+     * @param consumeMarketAddress consumeMarketAddress
+     * @param consumeMarketSwapFeeAmount fee amount for consume market
      */
-    function buyDT(bytes32 exchangeId, uint256 datatokenAmount, uint256 maxBaseTokenAmount)
+    function buyDT(bytes32 exchangeId, uint256 datatokenAmount, uint256 maxBaseTokenAmount,
+        address consumeMarketAddress, uint256 consumeMarketSwapFeeAmount)
         external
         onlyActiveExchange(exchangeId)
         nonReentrant
@@ -349,32 +416,38 @@ contract FixedRateExchange is ReentrancyGuard {
             datatokenAmount != 0,
             "FixedRateExchange: zero datatoken amount"
         );
+        require(consumeMarketSwapFeeAmount ==0 || consumeMarketSwapFeeAmount >= MIN_FEE,'ConsumeSwapFee too low');
+        require(consumeMarketSwapFeeAmount <= MAX_FEE,'ConsumeSwapFee too high');
         if(exchanges[exchangeId].allowedSwapper != address(0)){
             require(
                 exchanges[exchangeId].allowedSwapper == msg.sender,
                 "FixedRateExchange: This address is not allowed to swap"
             );
         }
-        (
-            uint256 baseTokenAmount,
-            uint256 baseTokenAmountBeforeFee,
-            uint256 oceanFeeAmount,
-            uint256 marketFeeAmount
-        ) = calcBaseInGivenOutDT(exchangeId, datatokenAmount);
+        if(consumeMarketAddress == address(0)) consumeMarketSwapFeeAmount=0; 
+        Fees memory fee = Fees(0,0,0,0);
+        (fee.baseTokenAmount,
+            fee.oceanFeeAmount,
+            fee.publishMarketFeeAmount,
+            fee.consumeMarketFeeAmount
+        )
+         = calcBaseInGivenOutDT(exchangeId, datatokenAmount, consumeMarketSwapFeeAmount);
         require(
-            baseTokenAmount <= maxBaseTokenAmount,
+            fee.baseTokenAmount <= maxBaseTokenAmount,
             "FixedRateExchange: Too many base tokens"
         );
         // we account fees , fees are always collected in baseToken
         exchanges[exchangeId].oceanFeeAvailable = exchanges[exchangeId]
             .oceanFeeAvailable
-            .add(oceanFeeAmount);
+            .add(fee.oceanFeeAmount);
         exchanges[exchangeId].marketFeeAvailable = exchanges[exchangeId]
             .marketFeeAvailable
-            .add(marketFeeAmount);
+            .add(fee.publishMarketFeeAmount);
         _pullUnderlying(exchanges[exchangeId].baseToken,msg.sender,
                 address(this),
-                baseTokenAmount);
+                fee.baseTokenAmount);
+        uint256 baseTokenAmountBeforeFee = fee.baseTokenAmount.sub(fee.oceanFeeAmount).
+            sub(fee.publishMarketFeeAmount).sub(fee.consumeMarketFeeAmount);
         exchanges[exchangeId].btBalance = (exchanges[exchangeId].btBalance).add(
             baseTokenAmountBeforeFee
         );
@@ -399,26 +472,38 @@ contract FixedRateExchange is ReentrancyGuard {
                 datatokenAmount
             );
         }
-
+        if(consumeMarketAddress!= address(0) && fee.consumeMarketFeeAmount>0){
+            IERC20(exchanges[exchangeId].baseToken).safeTransfer(consumeMarketAddress, fee.consumeMarketFeeAmount);
+            emit ConsumeMarketFee(
+                exchangeId,
+                consumeMarketAddress,
+                exchanges[exchangeId].baseToken,
+                fee.consumeMarketFeeAmount);
+        }
         emit Swapped(
             exchangeId,
             msg.sender,
-            baseTokenAmount,
+            fee.baseTokenAmount,
             datatokenAmount,
             exchanges[exchangeId].datatoken,
-            marketFeeAmount,
-            oceanFeeAmount
+            fee.publishMarketFeeAmount,
+            fee.oceanFeeAmount,
+            fee.consumeMarketFeeAmount
         );
     }
 
+
     /**
-     * @dev swap
-     *      atomic swap between two registered fixed rate exchange.
+     * @dev sellDT
+     *      Sell datatokenAmount while expecting at least minBaseTokenAmount
      * @param exchangeId a unique exchange idnetifier
      * @param datatokenAmount the amount of datatokens to be exchanged
      * @param minBaseTokenAmount minimum amount of base tokens to cash in
+     * @param consumeMarketAddress consumeMarketAddress
+     * @param consumeMarketSwapFeeAmount fee amount for consume market
      */
-    function sellDT(bytes32 exchangeId, uint256 datatokenAmount, uint256 minBaseTokenAmount)
+    function sellDT(bytes32 exchangeId, uint256 datatokenAmount,
+    uint256 minBaseTokenAmount, address consumeMarketAddress, uint256 consumeMarketSwapFeeAmount)
         external
         onlyActiveExchange(exchangeId)
         nonReentrant
@@ -427,57 +512,72 @@ contract FixedRateExchange is ReentrancyGuard {
             datatokenAmount != 0,
             "FixedRateExchange: zero datatoken amount"
         );
+        require(consumeMarketSwapFeeAmount ==0 || consumeMarketSwapFeeAmount >= MIN_FEE,'ConsumeSwapFee too low');
+        require(consumeMarketSwapFeeAmount <= MAX_FEE,'ConsumeSwapFee too high');
         if(exchanges[exchangeId].allowedSwapper != address(0)){
             require(
                 exchanges[exchangeId].allowedSwapper == msg.sender,
                 "FixedRateExchange: This address is not allowed to swap"
             );
         }
-        (
-            uint256 baseTokenAmount,
-            uint256 baseTokenAmountBeforeFee,
-            uint256 oceanFeeAmount,
-            uint256 marketFeeAmount
-        ) = calcBaseOutGivenInDT(exchangeId, datatokenAmount);
+        Fees memory fee = Fees(0,0,0,0);
+        if(consumeMarketAddress == address(0)) consumeMarketSwapFeeAmount=0; 
+        (fee.baseTokenAmount,
+            fee.oceanFeeAmount,
+            fee.publishMarketFeeAmount,
+            fee.consumeMarketFeeAmount
+        ) = calcBaseOutGivenInDT(exchangeId, datatokenAmount, consumeMarketSwapFeeAmount);
         require(
-            baseTokenAmount >= minBaseTokenAmount,
+            fee.baseTokenAmount >= minBaseTokenAmount,
             "FixedRateExchange: Too few base tokens"
         );
         // we account fees , fees are always collected in baseToken
         exchanges[exchangeId].oceanFeeAvailable = exchanges[exchangeId]
             .oceanFeeAvailable
-            .add(oceanFeeAmount);
+            .add(fee.oceanFeeAmount);
         exchanges[exchangeId].marketFeeAvailable = exchanges[exchangeId]
             .marketFeeAvailable
-            .add(marketFeeAmount);
+            .add(fee.publishMarketFeeAmount);
+        uint256 baseTokenAmountWithFees = fee.baseTokenAmount.add(fee.oceanFeeAmount)
+            .add(fee.publishMarketFeeAmount).add(fee.consumeMarketFeeAmount);
         _pullUnderlying(exchanges[exchangeId].datatoken,msg.sender,
                 address(this),
                 datatokenAmount);
         exchanges[exchangeId].dtBalance = (exchanges[exchangeId].dtBalance).add(
             datatokenAmount
         );
-
-        if (baseTokenAmount > exchanges[exchangeId].btBalance) {
+        if (baseTokenAmountWithFees > exchanges[exchangeId].btBalance) {
                 _pullUnderlying(exchanges[exchangeId].baseToken,exchanges[exchangeId].exchangeOwner,
+                    address(this),
+                    baseTokenAmountWithFees);
+                IERC20(exchanges[exchangeId].baseToken).safeTransfer(
                     msg.sender,
-                    baseTokenAmount);
+                    fee.baseTokenAmount);
         } else {
             exchanges[exchangeId].btBalance = (exchanges[exchangeId].btBalance)
-                .sub(baseTokenAmountBeforeFee);
+                .sub(baseTokenAmountWithFees);
             IERC20(exchanges[exchangeId].baseToken).safeTransfer(
                 msg.sender,
-                baseTokenAmount
+                fee.baseTokenAmount
             );
         }
-
+        if(consumeMarketAddress!= address(0) && fee.consumeMarketFeeAmount>0){
+            IERC20(exchanges[exchangeId].baseToken).safeTransfer(consumeMarketAddress, fee.consumeMarketFeeAmount);    
+             emit ConsumeMarketFee(
+                exchangeId,
+                consumeMarketAddress,
+                exchanges[exchangeId].baseToken,
+                fee.consumeMarketFeeAmount);
+        }
         emit Swapped(
             exchangeId,
             msg.sender,
-            baseTokenAmount,
+            fee.baseTokenAmount,
             datatokenAmount,
             exchanges[exchangeId].baseToken,
-            marketFeeAmount,
-            oceanFeeAmount
+            fee.publishMarketFeeAmount,
+            fee.oceanFeeAmount,
+            fee.consumeMarketFeeAmount
         );
     }
 
@@ -551,6 +651,11 @@ contract FixedRateExchange is ReentrancyGuard {
         );
     }
 
+     /**
+     * @dev updateMarketFeeCollector
+     *      Set _newMarketCollector as _publishMarketCollector
+     * @param _newMarketCollector new _publishMarketCollector
+     */
     function updateMarketFeeCollector(
         bytes32 exchangeId,
         address _newMarketCollector
@@ -560,6 +665,7 @@ contract FixedRateExchange is ReentrancyGuard {
             "not marketFeeCollector"
         );
         exchanges[exchangeId].marketFeeCollector = _newMarketCollector;
+        emit PublishMarketFeeChanged(exchangeId, msg.sender, _newMarketCollector, exchanges[exchangeId].marketFee);
     }
 
     function updateMarketFee(
@@ -570,7 +676,14 @@ contract FixedRateExchange is ReentrancyGuard {
             msg.sender == exchanges[exchangeId].marketFeeCollector,
             "not marketFeeCollector"
         );
+        require(_newMarketFee ==0 || _newMarketFee >= MIN_FEE,'SwapFee too low');
+        require(_newMarketFee <= MAX_FEE,'SwapFee too high');
         exchanges[exchangeId].marketFee = _newMarketFee;
+        emit PublishMarketFeeChanged(exchangeId, msg.sender, exchanges[exchangeId].marketFeeCollector, _newMarketFee);
+    }
+
+    function getMarketFee(bytes32 exchangeId) view public returns(uint256){
+        return(exchanges[exchangeId].marketFee);
     }
 
     /**
@@ -812,7 +925,7 @@ contract FixedRateExchange is ReentrancyGuard {
     ) internal {
         uint256 balanceBefore = IERC20(erc20).balanceOf(to);
         IERC20(erc20).safeTransferFrom(from, to, amount);
-        require(IERC20(erc20).balanceOf(to) == balanceBefore.add(amount),
-                    "Transfer amount was not exact");
+        require(IERC20(erc20).balanceOf(to) >= balanceBefore.add(amount),
+                    "Transfer amount is too low");
     }
 }

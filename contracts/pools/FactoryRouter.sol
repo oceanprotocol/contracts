@@ -670,10 +670,11 @@ contract FactoryRouter is BFactory {
                     amountIn
                 );
                 // perform swap
-                IPool(_operations[i].source).swapExactAmountOut(
+                (uint tokenAmountIn,) = IPool(_operations[i].source).swapExactAmountOut(
                     tokenInOutMarket,
                     amountsInOutMaxFee
                 );
+                require(tokenAmountIn <= amountsInOutMaxFee[0], 'TOO MANY TOKENS IN');
                 // send amount out back to user
                 IERC20(_operations[i].tokenOut).safeTransfer(
                     msg.sender,
@@ -689,7 +690,8 @@ contract FactoryRouter is BFactory {
                     _operations[i].source
                 ).calcBaseInGivenOutDT(
                         _operations[i].exchangeIds,
-                        _operations[i].amountsOut
+                        _operations[i].amountsOut,
+                        _operations[i].swapMarketFee
                     );
 
                 // pull tokenIn amount
@@ -705,7 +707,9 @@ contract FactoryRouter is BFactory {
                 IFixedRateExchange(_operations[i].source).buyDT(
                     _operations[i].exchangeIds,
                     _operations[i].amountsOut,
-                    _operations[i].amountsIn
+                    _operations[i].amountsIn,
+                    _operations[i].marketFeeAddress,
+                    _operations[i].swapMarketFee
                 );
                 // send dt out to user
                 IERC20(datatoken).safeTransfer(
@@ -744,7 +748,10 @@ contract FactoryRouter is BFactory {
                     _stakes[i].poolAddress,
                     _stakes[i].tokenAmountIn);
             //now stake
-            IPool(_stakes[i].poolAddress).joinswapExternAmountIn(_stakes[i].tokenAmountIn, _stakes[i].minPoolAmountOut);
+            uint poolAmountOut = IPool(_stakes[i].poolAddress).joinswapExternAmountIn(
+                _stakes[i].tokenAmountIn, _stakes[i].minPoolAmountOut
+                );
+            require(poolAmountOut >=  _stakes[i].minPoolAmountOut,'NOT ENOUGH LP');
             uint256 balanceAfter = IERC20(_stakes[i].poolAddress).balanceOf(address(this));
             //send LP shares to user
              console.log("i: %s, balanceAfter: %s, balanceBefore %s", i, balanceAfter, balanceBefore);
@@ -764,7 +771,7 @@ contract FactoryRouter is BFactory {
     ) internal {
         uint256 balanceBefore = IERC20(erc20).balanceOf(to);
         IERC20(erc20).safeTransferFrom(from, to, amount);
-        require(IERC20(erc20).balanceOf(to) == balanceBefore.add(amount),
-                    "Transfer amount was not exact");
+        require(IERC20(erc20).balanceOf(to) >= balanceBefore.add(amount),
+                    "Transfer amount is too low");
     }
 }

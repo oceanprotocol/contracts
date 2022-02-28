@@ -9,8 +9,6 @@ on:
   pull_request:
     branches:
       - '**'
-  # This workflow is callable by other workflows
-  workflow_call:
 
 jobs:
   lint:
@@ -74,6 +72,31 @@ jobs:
         with:
           name: coverage
           path: coverage/
+
+  slither:
+    name: Slither Analysis
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      security-events: write
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v2
+
+      - name: Run Slither
+        uses: crytic/slither-action@v0.1.0
+        continue-on-error: true
+        id: slither
+        with:
+          node-version: 16
+          sarif: results.sarif
+        env:
+          ALCHEMY_URL: ${{secrets.ALCHEMY_URL}}`
+
+      - name: Upload SARIF file
+        uses: github/codeql-action/upload-sarif@v1
+        with:
+          sarif_file: ${{ steps.slither.outputs.sarif }}
 
   coverage:
     runs-on: ubuntu-latest
@@ -182,4 +205,4 @@ jobs:
         with:
           user: __token__
           password: ${{ secrets.PYPI_API_TOKEN }}
-      
+

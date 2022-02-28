@@ -101,6 +101,18 @@ contract ERC20TemplateEnterprise is
             uint256 number
     );
 
+    event OrderExecuted( 
+        address indexed providerAddress,
+        address indexed consumerAddress,
+        bytes32 orderTxId,
+        bytes providerData,
+        bytes providerSignature,
+        bytes consumerData,
+        bytes consumerSignature,
+        uint256 timestamp,
+        uint256 blockNumber
+    );
+    
     // emited for every order
     event PublishMarketFee(
         address indexed PublishMarketFeeAddress,
@@ -145,12 +157,6 @@ contract ERC20TemplateEnterprise is
         address indexed _newPaymentCollector,
         uint256 timestamp,
         uint256 blockNumber
-    );
-
-    event BuyAndOrder(
-        address buyer,
-        uint256 baseTokenAmount,
-        uint256 marketFeeAmount
     );
 
     modifier onlyNotInitialized() {
@@ -336,10 +342,7 @@ contract ERC20TemplateEnterprise is
         );
         if (uints[4] > 0) _addMinter(fixedPriceAddress);
         emit NewFixedRate(exchangeId, addresses[1], fixedPriceAddress, addresses[0]);
-        fixedRate memory fixedRate;
-        fixedRate.contractAddress=fixedPriceAddress;
-        fixedRate.id = exchangeId;
-        fixedRateExchanges.push(fixedRate);
+        fixedRateExchanges.push(fixedRate(fixedPriceAddress,exchangeId));
     }
 
     /**
@@ -758,6 +761,10 @@ contract ERC20TemplateEnterprise is
             _publishMarketFeeAddress != address(0),
             "Invalid _publishMarketFeeAddress address"
         );
+        require(
+            _publishMarketFeeToken != address(0),
+            "Invalid _publishMarketFeeToken address"
+        );
         publishMarketFeeAddress = _publishMarketFeeAddress;
         publishMarketFeeToken = _publishMarketFeeToken;
         publishMarketFeeAmount = _publishMarketFeeAmount;
@@ -999,23 +1006,21 @@ contract ERC20TemplateEnterprise is
         );
         // get token amounts needed
         (
-            uint256 baseTokenAmount,
-            uint256 baseTokenAmountBeforeFee,
+            uint256 baseTokenAmount
+            ,
+            ,
             ,
 
         ) = IFixedRateExchange(_freParams.exchangeContract)
                 .calcBaseInGivenOutDT(
                     _freParams.exchangeId,
-                    1e18  // we always take 1 DT
+                    1e18,  // we always take 1 DT
+                    _freParams.swapMarketFee
                 );
         require(
             baseTokenAmount <= _freParams.maxBaseTokenAmount,
             "FixedRateExchange: Too many base tokens"
         );
-        // we calculate the dynamic market fee and add it to the baseTokenAmount to be transferred
-        uint256 marketFeeAmount = (baseTokenAmountBeforeFee *
-            _freParams.swapMarketFee) / 1e18;
-        baseTokenAmount = baseTokenAmount + marketFeeAmount;
 
         //transfer baseToken to us first
         _pullUnderlying(baseToken,msg.sender,
@@ -1030,7 +1035,9 @@ contract ERC20TemplateEnterprise is
         IFixedRateExchange(_freParams.exchangeContract).buyDT(
             _freParams.exchangeId,
             1e18, // we always take 1 dt
-            baseTokenAmount
+            baseTokenAmount,
+            _freParams.marketFeeAddress,
+            _freParams.swapMarketFee
         );
         require(
             balanceOf(address(this)) >= 1e18,
@@ -1041,16 +1048,6 @@ contract ERC20TemplateEnterprise is
         //startOrder and burn it
         startOrder(_orderParams.consumer, _orderParams.serviceIndex,
         _orderParams._providerFee, _orderParams._consumeMarketFee);
-
-        // Transfer Market Fee to market fee collector
-        if (marketFeeAmount > 0) {
-            IERC20(baseToken).safeTransfer(
-                _freParams.marketFeeAddress,
-                marketFeeAmount
-            );
-        }
-
-        emit BuyAndOrder(msg.sender, baseTokenAmount, marketFeeAmount);
     }
 
     /**
@@ -1109,7 +1106,75 @@ contract ERC20TemplateEnterprise is
     ) internal {
         uint256 balanceBefore = IERC20(erc20).balanceOf(to);
         IERC20(erc20).safeTransferFrom(from, to, amount);
-        require(IERC20(erc20).balanceOf(to) == balanceBefore.add(amount),
-                    "Transfer amount was not exact");
+        require(IERC20(erc20).balanceOf(to) >= balanceBefore.add(amount),
+                    "Transfer amount is too low");
+    }
+
+    /**
+     * @dev orderExecuted
+     *      Providers should call this to prove order execution
+     * @param orderTxId order tx
+     * @param providerData provider data
+     * @param providerSignature provider signature
+     * @param consumerData consumer data
+     * @param consumerSignature consumer signature
+     * @param consumerAddress consumer address
+     */
+    function orderExecuted(
+        bytes32 orderTxId,
+        bytes calldata providerData,
+        bytes calldata providerSignature,
+        bytes calldata consumerData,
+        bytes calldata consumerSignature,
+        address consumerAddress
+    ) external {
+        require(msg.sender != consumerAddress, "Provider cannot be the consumer");
+        bytes memory prefix = "\x19Ethereum Signed Message:\n32";
+        bytes32 providerHash = keccak256(
+            abi.encodePacked(prefix,
+                keccak256(
+                    abi.encodePacked(
+                        orderTxId,
+                        providerData
+                    )
+                )
+            )
+        );
+        require(ecrecovery(providerHash, providerSignature) == msg.sender, "Provider signature check failed");
+        bytes32 consumerHash = keccak256(
+            abi.encodePacked(prefix,
+                keccak256(
+                    abi.encodePacked(
+                        consumerData
+                    )
+                )
+            )
+        );
+        require(ecrecovery(consumerHash, consumerSignature) == consumerAddress, "Consumer signature check failed");
+        emit OrderExecuted(msg.sender, consumerAddress ,orderTxId, providerData, providerSignature,
+                consumerData, consumerSignature, block.timestamp, block.number);
+    }
+
+
+
+    function ecrecovery(bytes32 hash, bytes memory sig) pure internal returns (address) {
+        bytes32 r;
+        bytes32 s;
+        uint8 v;
+        if (sig.length != 65) {
+          return address(0);
+        }
+        assembly {
+          r := mload(add(sig, 32))
+        s := mload(add(sig, 64))
+        v := and(mload(add(sig, 65)), 255)
+        }
+        if (v < 27) {
+          v += 27;
+        }   
+        if (v != 27 && v != 28) {
+        return address(0);
+        }
+        return ecrecover(hash, v, r, s);
     }
 }
