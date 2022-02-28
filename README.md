@@ -69,23 +69,26 @@ from artifacts import address
 
 
 
-### Features
+### What's new - Features
 
-- NFT-ize base IP: a new way of representing baseIP, all newly ERC20 DTs are linked to the NFT contract
+- Base IP is now represented by an NFT, from which a datapublisher can deploy multiple ERC20 which can represent different type of access for the same dataset. (Link to NFT blog)
+
+- Rug pulls are solved thanks to a special 1 Sided Staking contract which acts as a bot, preventing big prices swings:
+ An automated DT staking and vesting contract which helps with initial DT distribution and price stability.
+more info on how it works: (link to Side staking blog)
 
 - Roles Administration: there are now multiple roles for a more flexible administation both at NFT and ERC20 levels.
 
-- Safer Staking - Better IDOs: An automated DT staking and vesting contract which helps with initial DT distribution and price stability.
+- Help Ocean community: if Ocean is not the basetoken, Ocean Community will receive 1% swap fee on pools or fixed price exchange.
+Detailed information: (link to blog post on ocean community monetization)
 
-  It also provides a customizable vesting schedule for the publisher.
 
-- Help Ocean community: if Ocean is not the basetoken, Ocean Community will receive 0.1% swap fee on pools or fixed price exchange 
 
-- Flexible key-value store in the NFT contract : NFT contract can be used to store custom key-value pairs
+Flexibility:
 
-- Metadata is also stored in the NFT contract store (even if it still supports Metadata.sol)
+- Key-value store in the NFT contract : NFT contract can be used to store custom key-value pairs (ERC725Y standard)
 
-- Marketplace fees flexibility: now any marketplace runner can set more customized fees structure.
+- Advanced fee structure both for Markets and Provider. (link to fee post/docs)
 
 - Multiple NFT template support: the Factory can deploy different types of NFT templates. 
 

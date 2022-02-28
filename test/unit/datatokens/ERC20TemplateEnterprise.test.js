@@ -105,7 +105,6 @@ describe("ERC20TemplateEnterprise", () => {
     mockErc20Decimals,
     publishMarketFeeToken,
     EnterpriseToken;
-
   cap = web3.utils.toWei("100000");
   const fakeUSDAmount = cap;
 
@@ -1448,51 +1447,46 @@ describe("ERC20TemplateEnterprise", () => {
     );
   });
 
-  it("#Enterprise - buyFromFreAndOrder with dynamic market fee at 0%", async () => {
+
+  it('#Enterprise - buyFromFreAndOrder with dynamic market fee at 0%', async () => {
+
     const Mock20DecimalContract = await ethers.getContractAt(
       "contracts/interfaces/IERC20.sol:IERC20",
       publishMarketFeeToken
     );
 
     // create an ERC20 with publish Fee ( 5 USDC, going to publishMarketAddress)
-    const trxEnterpriseERC20 = await tokenERC721
-      .connect(user3)
-      .createERC20(
-        1,
-        ["ERC20DT1P", "ERC20DT1SymbolP"],
-        [
-          user3.address,
-          user6.address,
-          publishMarketFeeAddress,
-          publishMarketFeeToken,
-        ],
-        [cap, web3.utils.toWei(publishMarketFeeAmount)],
-        []
-      );
-    const trxReceiptEnterpriseERC20 = await trxEnterpriseERC20.wait();
-    let event = getEventFromTx(trxReceiptEnterpriseERC20, "TokenCreated");
-    assert(event, "Cannot find TokenCreated event");
-    const erc20Address = event.args[0];
-    EnterpriseToken = await ethers.getContractAt(
-      "ERC20TemplateEnterprise",
-      erc20Address
+    const trxEnterpriseERC20 = await tokenERC721.connect(user3).createERC20(1,
+      ["ERC20DT1P", "ERC20DT1SymbolP"],
+      [user3.address, user6.address, publishMarketFeeAddress, publishMarketFeeToken],
+      [cap, web3.utils.toWei(publishMarketFeeAmount)],
+      []
+
     );
-    assert((await EnterpriseToken.totalSupply()) == 0, "Invalid Total Supply");
+    const trxReceiptEnterpriseERC20 = await trxEnterpriseERC20.wait();
+    let event = getEventFromTx(trxReceiptEnterpriseERC20, 'TokenCreated')
+    assert(event, "Cannot find TokenCreated event")
+    const erc20Address = event.args[0];
+    EnterpriseToken = await ethers.getContractAt("ERC20TemplateEnterprise", erc20Address);
+    assert(await EnterpriseToken.totalSupply() == 0, "Invalid Total Supply")
 
     let tx = await EnterpriseToken.connect(user3).createFixedRate(
       fixedRateExchange.address,
       [publishMarketFeeToken, user3.address, user3.address, ZERO_ADDRESS],
-      ["18", "18", web3.utils.toWei("1"), web3.utils.toWei("0.01"), 1]
-    );
+      ['18', '18', web3.utils.toWei("1"), web3.utils.toWei("0.01"), 1]
+    )
 
-    assert(tx, "Cannot create fixed rate exchange");
+
+
+    assert(tx,
+      'Cannot create fixed rate exchange')
 
     let txReceipt = await tx.wait();
-    event = getEventFromTx(txReceipt, "NewFixedRate");
-    const exchangeId = event.args[0];
-    const status = await fixedRateExchange.getExchange(exchangeId);
-    assert(status.active === true, "FRE not active");
-    assert(status.withMint === true, "FRE is not a minter");
+    event = getEventFromTx(txReceipt, 'NewFixedRate')
+    const exchangeId = event.args[0]
+    const status = await fixedRateExchange.getExchange(exchangeId)
+    assert(status.active === true, 'FRE not active')
+    assert(status.withMint === true, 'FRE is not a minter')
     // let's make sure that nobody else can buy DT
     await expectRevert(
       fixedRateExchange
@@ -1502,38 +1496,36 @@ describe("ERC20TemplateEnterprise", () => {
     );
 
     //let's get publishMarketFee and transfer tokens
-
-    const publishFee = await EnterpriseToken.connect(
-      user2
-    ).getPublishingMarketFee();
+   
+    const publishFee = await EnterpriseToken
+      .connect(user2)
+      .getPublishingMarketFee();
     // GET SOME consumeFeeToken
-    await Mock20DecimalContract.connect(owner).transfer(
-      user3.address,
-      publishFee[2]
-    );
+    await Mock20DecimalContract
+      .connect(owner)
+      .transfer(user3.address, publishFee[2]);
     //transfer tokens to pay for FRE.  We are transfering 1.5, because we need to pay 1 + fee
-    await Mock20DecimalContract.connect(owner).transfer(
-      user3.address,
-      web3.utils.toWei("1.5")
-    );
-    const totalToApprove = publishFee[2].add(web3.utils.toWei("1.5"));
+    await Mock20DecimalContract
+      .connect(owner)
+      .transfer(user3.address, web3.utils.toWei('1.5'));
+    const totalToApprove = publishFee[2].add(web3.utils.toWei('1.5'))
     // we approve the erc20Token contract to pull feeAmount
-    await Mock20DecimalContract.connect(user3)
-    .approve(EnterpriseToken.address, totalToApprove);
+    await Mock20DecimalContract
+      .connect(user3)
 
+      .approve(EnterpriseToken.address, totalToApprove);
+    
     // we store balance of user5 which is the one who's going to get the dynamic market fee
-    const user5BalBeforBuy = await Mock20DecimalContract.balanceOf(
-      user5.address
-    );
-    const consumeMarketFeeAddress = user5.address; // marketplace fee Collector
+      const user5BalBeforBuy =  await Mock20DecimalContract.balanceOf(user5.address)
+      const consumeMarketFeeAddress = user5.address; // marketplace fee Collector
     const consumeMarketFeeAmount = 0; // fee to be collected on top, requires approval
     const consumeMarketFeeToken = mockErc20.address; // token address for the feeAmount,
 
-    const providerFeeAmount = "0";
-    const providerFeeAddress = user5.address;
+    const providerFeeAmount = "0"
+    const providerFeeAddress = user5.address
     const providerFeeToken = addressZero;
     //sign provider data
-    const providerData = JSON.stringify({ timeout: 0 });
+    const providerData=JSON.stringify({ "timeout":0 })
     const providerValidUntil = 0;
     const message = ethers.utils.solidityKeccak256(
       ["bytes", "address", "address", "uint256", "uint256"],
@@ -1542,7 +1534,7 @@ describe("ERC20TemplateEnterprise", () => {
         providerFeeAddress,
         providerFeeToken,
         providerFeeAmount,
-        providerValidUntil,
+        providerValidUntil
       ]
     );
 
@@ -1550,126 +1542,105 @@ describe("ERC20TemplateEnterprise", () => {
     //let's order in one click
     tx = await EnterpriseToken.connect(user3).buyFromFreAndOrder(
       {
-        consumer: user2.address,
-        amount: web3.utils.toWei("1"),
-        serviceIndex: 1,
-        _providerFee: {
+        "consumer": user2.address,
+        "amount": web3.utils.toWei("1"),
+        "serviceIndex": 1,
+        "_providerFee": {
           providerFeeAddress: providerFeeAddress,
-          providerFeeToken: providerFeeToken,
-          providerFeeAmount: providerFeeAmount,
-          v: signedMessage.v,
-          r: signedMessage.r,
-          s: signedMessage.s,
-          providerData: ethers.utils.hexlify(
-            ethers.utils.toUtf8Bytes(providerData)
-          ),
-          validUntil: providerValidUntil,
+          providerFeeToken:providerFeeToken,
+          providerFeeAmount:providerFeeAmount,
+          v:signedMessage.v,
+          r:signedMessage.r,
+          s:signedMessage.s,
+          providerData:ethers.utils.hexlify(ethers.utils.toUtf8Bytes(providerData)),
+          validUntil:providerValidUntil
         },
-        _consumeMarketFee: {
+        "_consumeMarketFee":  {
           consumeMarketFeeAddress: consumeMarketFeeAddress,
           consumeMarketFeeToken: consumeMarketFeeToken,
           consumeMarketFeeAmount: consumeMarketFeeAmount,
-        },
+        }
       },
       {
-        exchangeContract: fixedRateExchange.address,
-        exchangeId: exchangeId,
-        maxBaseTokenAmount: web3.utils.toWei("2"),
-        swapMarketFee: 0,
-        marketFeeAddress: user5.address,
+        "exchangeContract": fixedRateExchange.address,
+        "exchangeId": exchangeId,
+        "maxBaseTokenAmount": web3.utils.toWei("2"),
+        "swapMarketFee":0,
+        "marketFeeAddress":user5.address
       }
-    );
-    assert(tx, "buyFromFreAndOrder failed");
+    )
+    assert(tx,
+      'buyFromFreAndOrder failed')
     txReceipt = await tx.wait();
-    assert((await EnterpriseToken.totalSupply()) == 0, "Invalid Total Supply");
+    assert(await EnterpriseToken.totalSupply() == 0, "Invalid Total Supply")
 
-    // Check for event
-    event = txReceipt.events.filter((e) => e.event === "BuyAndOrder");
-    const args = event[0].args;
-    // balance increasead as expected, dynamic market fee has been received
-    expect(await Mock20DecimalContract.balanceOf(user5.address)).to.equal(
-      user5BalBeforBuy.add(args.marketFeeAmount)
-    );
-    expect(args.marketFeeAmount).to.equal(0);
+    
+   
+    
 
+    const balancePublish = await Mock20DecimalContract.balanceOf(publishFee[0])
+    const balanceOpfPublish = await Mock20DecimalContract.balanceOf(opcCollector.address)
+    const expectedPublish = new BN(publishFee[2].toString()).sub(new BN(publishFee[2].toString()).div(new BN(100)))
+    const expectedOpfPublish = new BN(publishFee[2].toString()).div(new BN(100))
 
-    const balancePublish = await Mock20DecimalContract.balanceOf(publishFee[0]);
-    const balanceOpfPublish = await Mock20DecimalContract.balanceOf(
-      opcCollector.address
-    );
-    const expectedPublish = new BN(publishFee[2].toString()).sub(
-      new BN(publishFee[2].toString()).div(new BN(100))
-    );
-    const expectedOpfPublish = new BN(publishFee[2].toString()).div(
-      new BN(100)
-    );
+  
+    assert(balancePublish.toString() === expectedPublish.toString(), 'Invalid publish Fee')
 
-    assert(
-      balancePublish.toString() === expectedPublish.toString(),
-      "Invalid publish Fee"
-    );
 
     assert(
       (await EnterpriseToken.balanceOf(user3.address)) == web3.utils.toWei("0")
     );
 
+    
     assert(
-      balanceOpfPublish.toString() == expectedOpfPublish.toString(),
-      "Invalid OPF fee, we should have 1% of the publish fee"
+      balanceOpfPublish.toString() == expectedOpfPublish.toString(), 'Invalid OPF fee, we should have 1% of the publish fee'
     );
     assert(
-      (await EnterpriseToken.balanceOf(
-        await EnterpriseToken.getPaymentCollector()
-      )) == web3.utils.toWei("0"),
-      "Invalid publisher reward, we should have burned the DT"
+      (await EnterpriseToken.balanceOf(await EnterpriseToken.getPaymentCollector())) ==
+      web3.utils.toWei("0"), 'Invalid publisher reward, we should have burned the DT'
     );
-  });
 
-  it("#Enterprise - buyFromFreAndOrder with dynamic market fee at 0.1%", async () => {
+  })
+
+  it('#Enterprise - buyFromFreAndOrder with dynamic market fee at 0.1%', async () => {
+
     const Mock20DecimalContract = await ethers.getContractAt(
       "contracts/interfaces/IERC20.sol:IERC20",
       publishMarketFeeToken
     );
 
     // create an ERC20 with publish Fee ( 5 USDC, going to publishMarketAddress)
-    const trxEnterpriseERC20 = await tokenERC721
-      .connect(user3)
-      .createERC20(
-        1,
-        ["ERC20DT1P", "ERC20DT1SymbolP"],
-        [
-          user3.address,
-          user6.address,
-          publishMarketFeeAddress,
-          publishMarketFeeToken,
-        ],
-        [cap, web3.utils.toWei(publishMarketFeeAmount)],
-        []
-      );
-    const trxReceiptEnterpriseERC20 = await trxEnterpriseERC20.wait();
-    let event = getEventFromTx(trxReceiptEnterpriseERC20, "TokenCreated");
-    assert(event, "Cannot find TokenCreated event");
-    const erc20Address = event.args[0];
-    EnterpriseToken = await ethers.getContractAt(
-      "ERC20TemplateEnterprise",
-      erc20Address
+    const trxEnterpriseERC20 = await tokenERC721.connect(user3).createERC20(1,
+      ["ERC20DT1P", "ERC20DT1SymbolP"],
+      [user3.address, user6.address, publishMarketFeeAddress, publishMarketFeeToken],
+      [cap, web3.utils.toWei(publishMarketFeeAmount)],
+      []
+
     );
-    assert((await EnterpriseToken.totalSupply()) == 0, "Invalid Total Supply");
+    const trxReceiptEnterpriseERC20 = await trxEnterpriseERC20.wait();
+    let event = getEventFromTx(trxReceiptEnterpriseERC20, 'TokenCreated')
+    assert(event, "Cannot find TokenCreated event")
+    const erc20Address = event.args[0];
+    EnterpriseToken = await ethers.getContractAt("ERC20TemplateEnterprise", erc20Address);
+    assert(await EnterpriseToken.totalSupply() == 0, "Invalid Total Supply")
 
     let tx = await EnterpriseToken.connect(user3).createFixedRate(
       fixedRateExchange.address,
       [publishMarketFeeToken, user3.address, user3.address, ZERO_ADDRESS],
-      ["18", "18", web3.utils.toWei("1"), web3.utils.toWei("0.01"), 1]
-    );
+      ['18', '18', web3.utils.toWei("1"), web3.utils.toWei("0.01"), 1]
+    )
 
-    assert(tx, "Cannot create fixed rate exchange");
+
+
+    assert(tx,
+      'Cannot create fixed rate exchange')
 
     let txReceipt = await tx.wait();
-    event = getEventFromTx(txReceipt, "NewFixedRate");
-    const exchangeId = event.args[0];
-    const status = await fixedRateExchange.getExchange(exchangeId);
-    assert(status.active === true, "FRE not active");
-    assert(status.withMint === true, "FRE is not a minter");
+    event = getEventFromTx(txReceipt, 'NewFixedRate')
+    const exchangeId = event.args[0]
+    const status = await fixedRateExchange.getExchange(exchangeId)
+    assert(status.active === true, 'FRE not active')
+    assert(status.withMint === true, 'FRE is not a minter')
     // let's make sure that nobody else can buy DT
     await expectRevert(
       fixedRateExchange
@@ -1679,37 +1650,35 @@ describe("ERC20TemplateEnterprise", () => {
     );
 
     //let's get publishMarketFee and transfer tokens
-
-    const publishFee = await EnterpriseToken.connect(
-      user2
-    ).getPublishingMarketFee();
+  
+    const publishFee = await EnterpriseToken
+      .connect(user2)
+      .getPublishingMarketFee();
     // GET SOME consumeFeeToken
-    await Mock20DecimalContract.connect(owner).transfer(
-      user3.address,
-      publishFee[2]
-    );
+    await Mock20DecimalContract
+      .connect(owner)
+      .transfer(user3.address, publishFee[2]);
     //transfer tokens to pay for FRE.  We are transfering 1.5, because we need to pay 1 + fee
-    await Mock20DecimalContract.connect(owner).transfer(
-      user3.address,
-      web3.utils.toWei("1.5")
-    );
-    const totalToApprove = publishFee[2].add(web3.utils.toWei("1.5"));
+    await Mock20DecimalContract
+      .connect(owner)
+      .transfer(user3.address, web3.utils.toWei('1.5'));
+    const totalToApprove = publishFee[2].add(web3.utils.toWei('1.5'))
     // we approve the erc20Token contract to pull feeAmount
-    await Mock20DecimalContract.connect(user3)
-    .approve(EnterpriseToken.address, totalToApprove);
+    await Mock20DecimalContract
+      .connect(user3)
 
+      .approve(EnterpriseToken.address, totalToApprove);
+  
     //let's order in one click
-    const user5BalBeforBuy = await Mock20DecimalContract.balanceOf(
-      user5.address
-    );
+    const user5BalBeforBuy =  await Mock20DecimalContract.balanceOf(user5.address)
     const consumeMarketFeeAddress = user5.address; // marketplace fee Collector
     const consumeMarketFeeAmount = 0; // fee to be collected on top, requires approval
     const consumeMarketFeeToken = mockErc20.address; // token address for the feeAmount,
 
-    const providerFeeAmount = "0";
-    const providerFeeAddress = user5.address;
+    const providerFeeAmount = "0"
+    const providerFeeAddress = user5.address
     const providerFeeToken = addressZero;
-    const providerData = JSON.stringify({ timeout: 0 });
+    const providerData=JSON.stringify({ "timeout":0 })
     const providerValidUntil = 0;
     //sign provider data
     const message = ethers.utils.solidityKeccak256(
@@ -1719,86 +1688,69 @@ describe("ERC20TemplateEnterprise", () => {
         providerFeeAddress,
         providerFeeToken,
         providerFeeAmount,
-        providerValidUntil,
+        providerValidUntil
       ]
     );
 
     const signedMessage = await signMessage(message, providerFeeAddress);
     tx = await EnterpriseToken.connect(user3).buyFromFreAndOrder(
       {
-        consumer: user2.address,
-        amount: web3.utils.toWei("1"),
-        serviceIndex: 1,
-        _providerFee: {
+        "consumer": user2.address,
+        "amount": web3.utils.toWei("1"),
+        "serviceIndex": 1,
+        "_providerFee": {
           providerFeeAddress: providerFeeAddress,
-          providerFeeToken: providerFeeToken,
-          providerFeeAmount: providerFeeAmount,
-          v: signedMessage.v,
-          r: signedMessage.r,
-          s: signedMessage.s,
-          providerData: ethers.utils.hexlify(
-            ethers.utils.toUtf8Bytes(providerData)
-          ),
-          validUntil: providerValidUntil,
+          providerFeeToken:providerFeeToken,
+          providerFeeAmount:providerFeeAmount,
+          v:signedMessage.v,
+          r:signedMessage.r,
+          s:signedMessage.s,
+          providerData:ethers.utils.hexlify(ethers.utils.toUtf8Bytes(providerData)),
+          validUntil:providerValidUntil
         },
-        _consumeMarketFee: {
+        "_consumeMarketFee":  {
           consumeMarketFeeAddress: consumeMarketFeeAddress,
           consumeMarketFeeToken: consumeMarketFeeToken,
           consumeMarketFeeAmount: consumeMarketFeeAmount,
-        },
+        }
       },
       {
-        exchangeContract: fixedRateExchange.address,
-        exchangeId: exchangeId,
-        maxBaseTokenAmount: web3.utils.toWei("2"),
-        swapMarketFee: web3.utils.toWei("0.001"), //1e15 => 0.1%
-        marketFeeAddress: user5.address,
+        "exchangeContract": fixedRateExchange.address,
+        "exchangeId": exchangeId,
+        "maxBaseTokenAmount": web3.utils.toWei("2"),
+        "swapMarketFee":web3.utils.toWei("0.001"),//1e15 => 0.1%
+        "marketFeeAddress":user5.address
       }
-    );
-    assert(tx, "buyFromFreAndOrder failed");
+    )
+    assert(tx,
+      'buyFromFreAndOrder failed')
     txReceipt = await tx.wait();
-    assert((await EnterpriseToken.totalSupply()) == 0, "Invalid Total Supply");
+    assert(await EnterpriseToken.totalSupply() == 0, "Invalid Total Supply")
 
-    event = txReceipt.events.filter((e) => e.event === "BuyAndOrder");
-    const args = event[0].args;
-    expect(await Mock20DecimalContract.balanceOf(user5.address)).to.equal(
-      user5BalBeforBuy.add(args.marketFeeAmount)
-    );
-    // 0.1% of 1 token => 0.001 token
-    expect(args.marketFeeAmount).to.equal(web3.utils.toWei("0.001"));
+    
 
 
-    const balancePublish = await Mock20DecimalContract.balanceOf(publishFee[0]);
-    const balanceOpfPublish = await Mock20DecimalContract.balanceOf(
-      opcCollector.address
-    );
-    const expectedPublish = new BN(publishFee[2].toString()).sub(
-      new BN(publishFee[2].toString()).div(new BN(100))
-    );
-    const expectedOpfPublish = new BN(publishFee[2].toString()).div(
-      new BN(100)
-    );
+    const balancePublish = await Mock20DecimalContract.balanceOf(publishFee[0])
+    const balanceOpfPublish = await Mock20DecimalContract.balanceOf(opcCollector.address)
+    const expectedPublish = new BN(publishFee[2].toString()).sub(new BN(publishFee[2].toString()).div(new BN(100)))
+    const expectedOpfPublish = new BN(publishFee[2].toString()).div(new BN(100))
 
-    assert(
-      balancePublish.toString() === expectedPublish.toString(),
-      "Invalid publish Fee"
-    );
+  
+    assert(balancePublish.toString() === expectedPublish.toString(), 'Invalid publish Fee')
+
 
     assert(
       (await EnterpriseToken.balanceOf(user3.address)) == web3.utils.toWei("0")
     );
 
+  
     assert(
-      balanceOpfPublish.toString() == expectedOpfPublish.toString(),
-      "Invalid OPF fee, we should have 1% of the publish fee"
+      balanceOpfPublish.toString() == expectedOpfPublish.toString(), 'Invalid OPF fee, we should have 1% of the publish fee'
     );
     assert(
-      (await EnterpriseToken.balanceOf(
-        await EnterpriseToken.getPaymentCollector()
-      )) == web3.utils.toWei("0"),
-      "Invalid publisher reward, we should have burned the DT"
+      (await EnterpriseToken.balanceOf(await EnterpriseToken.getPaymentCollector())) ==
+      web3.utils.toWei("0"), 'Invalid publisher reward, we should have burned the DT'
     );
-
 
   })
 
@@ -1872,5 +1824,10 @@ describe("ERC20TemplateEnterprise", () => {
         ethers.utils.hexlify(ethers.utils.toUtf8Bytes(consumerData)), consumerSignature, consumerAddress),
       'Provider signature check failed')
   });
+
+
+
+
+
 
 });
