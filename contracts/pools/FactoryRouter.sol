@@ -21,9 +21,9 @@ contract FactoryRouter is BFactory {
     address public fixedRate;
     uint256 public minVestingPeriodInBlocks = 2426000;
 
-    uint256 public swapOceanFee = 0;
-    uint256 public swapNonOceanFee = 1e15;  // 0.1%
-    uint256 public consumeFee = 1e16; // 1%
+    uint256 public swapOceanFee = 1e15; //0.1%
+    uint256 public swapNonOceanFee = 2e15;  // 0.2%
+    uint256 public consumeFee = 3e16; // 0.03 DT
     uint256 public providerFee = 0; // 0%
     address[] public oceanTokens;
     address[] public ssContracts;

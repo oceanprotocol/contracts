@@ -621,14 +621,14 @@ describe("ERC20Template", () => {
 
     assert(
       (await erc20Token.balanceOf(opcCollector.address)) ==
-      web3.utils.toWei("0"), 'Invalid OPF balance, we should not get any DTs'
+      web3.utils.toWei("0.03"), 'Invalid OPF balance, we should get 0.03 DTs'
     );
     assert(
       (await erc20Token.balanceOf(user3.address)) == web3.utils.toWei("0"), 'Invalid consumeFee, we should have DT as fee'
     );
     assert(
       (await erc20Token.balanceOf(await erc20Token.getPaymentCollector())) ==
-      web3.utils.toWei("1"), 'Invalid publisher reward, we should have 1 DT'
+      web3.utils.toWei("0.97"), 'Invalid publisher reward, we should have 0.97 DT'
     );
   });
 
@@ -701,14 +701,14 @@ describe("ERC20Template", () => {
 
     assert(
       (await erc20Token.balanceOf(opcCollector.address)) ==
-      web3.utils.toWei("0"), 'Invalid OPF balance, we should not get any DTs'
+      web3.utils.toWei("0.03"), 'Invalid OPF balance, we should get 0.03 DTs'
     );
     assert(
       (await erc20Token.balanceOf(user3.address)) == web3.utils.toWei("0"), 'Invalid consumeFee, we should have DT as fee'
     );
     assert(
       (await erc20Token.balanceOf(await erc20Token.getPaymentCollector())) ==
-      web3.utils.toWei("1"), 'Invalid publisher reward, we should have 1 DT'
+      web3.utils.toWei("0.97"), 'Invalid publisher reward, we should have 0.97 DT'
     );
 
     const reuseTx = await erc20Token
@@ -817,14 +817,14 @@ describe("ERC20Template", () => {
 
     assert(
       (await erc20Token.balanceOf(opcCollector.address)) ==
-      web3.utils.toWei("0"), 'Invalid OPF balance, we should not get any DTs'
+      web3.utils.toWei("0.03"), 'Invalid OPF balance, we should get 0.03 DTs'
     );
     assert(
       (await erc20Token.balanceOf(user3.address)) == web3.utils.toWei("0"), 'Invalid consumeFee, we should have DT as fee'
     );
     assert(
       (await erc20Token.balanceOf(await erc20Token.getPaymentCollector())) ==
-      web3.utils.toWei("1"), 'Invalid publisher reward, we should have 1 DT'
+      web3.utils.toWei("0.97"), 'Invalid publisher reward, we should have 0.97 DT'
     );
   });
 
@@ -1005,14 +1005,14 @@ describe("ERC20Template", () => {
 
     assert(
       (await erc20TokenWithPublishFee.balanceOf(opcCollector.address)) ==
-      web3.utils.toWei("0"), 'Invalid OPF balance, we should not get any DTs'
+      web3.utils.toWei("0.03"), 'Invalid OPF balance, we should get 0.03 DTs'
     );
     assert(
       (await erc20TokenWithPublishFee.balanceOf(user3.address)) == web3.utils.toWei("0"), 'Invalid consumeFee, we should have DT as fee'
     );
     assert(
       (await erc20TokenWithPublishFee.balanceOf(await erc20TokenWithPublishFee.getPaymentCollector())) ==
-      web3.utils.toWei("1"), 'Invalid publisher reward, we should have 1 DT'
+      web3.utils.toWei("0.97"), 'Invalid publisher reward, we should have 0.97 DT'
     );
   });
 
@@ -1109,14 +1109,14 @@ describe("ERC20Template", () => {
 
     assert(
       (await erc20TokenWithPublishFee.balanceOf(opcCollector.address)) ==
-      web3.utils.toWei("0"), 'Invalid OPF balance, we should not get any DTs'
+      web3.utils.toWei("0.03"), 'Invalid OPF balance, we should get 0.03 DTs'
     );
     assert(
       (await erc20TokenWithPublishFee.balanceOf(user3.address)) == web3.utils.toWei("0"), 'Invalid consumeFee, we should have DT as fee'
     );
     assert(
       (await erc20TokenWithPublishFee.balanceOf(await erc20TokenWithPublishFee.getPaymentCollector())) ==
-      web3.utils.toWei("1"), 'Invalid publisher reward, we should have 1 DT'
+      web3.utils.toWei("0.97"), 'Invalid publisher reward, we should have 0.97 DT'
     );
   });
 

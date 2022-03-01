@@ -631,7 +631,7 @@ describe("ERC20TemplateEnterprise", () => {
 
     assert(
       (await erc20Token.balanceOf(opcCollector.address)) ==
-      web3.utils.toWei("0"), 'Invalid OPF balance, we should not get any DTs'
+      web3.utils.toWei("0.03"), 'Invalid OPF balance, we should get 0.03 DTs'
     );
     assert(
       (await erc20Token.balanceOf(user3.address)) == web3.utils.toWei("0"), 'Invalid consumeFee, we should have DT as fee'
@@ -710,7 +710,7 @@ describe("ERC20TemplateEnterprise", () => {
 
     assert(
       (await erc20Token.balanceOf(opcCollector.address)) ==
-      web3.utils.toWei("0"), 'Invalid OPF balance, we should not get any DTs'
+      web3.utils.toWei("0.03"), 'Invalid OPF balance, we should get 0.03 DTs'
     );
     assert(
       (await erc20Token.balanceOf(user3.address)) == web3.utils.toWei("0"), 'Invalid consumeFee, we should have DT as fee'
@@ -825,7 +825,7 @@ describe("ERC20TemplateEnterprise", () => {
 
     assert(
       (await erc20Token.balanceOf(opcCollector.address)) ==
-      web3.utils.toWei("0"), 'Invalid OPF balance, we should not get any DTs'
+      web3.utils.toWei("0.03"), 'Invalid OPF balance, we should get 0.03 DTs'
     );
     assert(
       (await erc20Token.balanceOf(user3.address)) == web3.utils.toWei("0"), 'Invalid consumeFee, we should have DT as fee'
@@ -1007,7 +1007,7 @@ describe("ERC20TemplateEnterprise", () => {
 
     assert(
       (await erc20TokenWithPublishFee.balanceOf(opcCollector.address)) ==
-      web3.utils.toWei("0"), 'Invalid OPF balance, we should not get any DTs'
+      web3.utils.toWei("0.03"), 'Invalid OPF balance, we should get 0.03 DTs'
     );
     assert(
       (await erc20TokenWithPublishFee.balanceOf(user3.address)) == web3.utils.toWei("0"), 'Invalid consumeFee, we should have DT as fee'
@@ -1112,7 +1112,7 @@ describe("ERC20TemplateEnterprise", () => {
 
     assert(
       (await erc20TokenWithPublishFee.balanceOf(opcCollector.address)) ==
-      web3.utils.toWei("0"), 'Invalid OPF balance, we should not get any DTs'
+      web3.utils.toWei("0.03"), 'Invalid OPF balance, we should get 0.03 DTs'
     );
     assert(
       (await erc20TokenWithPublishFee.balanceOf(user3.address)) == web3.utils.toWei("0"), 'Invalid consumeFee, we should have DT as fee'
@@ -1304,14 +1304,14 @@ describe("ERC20TemplateEnterprise", () => {
       'buyFromDispenserAndOrder failed')
     txReceipt = await tx.wait();
 
-    assert(await EnterpriseToken.totalSupply() == 0, "Invalid Total Supply")
+    assert(await EnterpriseToken.totalSupply() == web3.utils.toWei('0.03'), "Invalid Total Supply")
     
   
   
 
     const balancePublish = await Mock20DecimalContract.balanceOf(publishFee[0])
     const balanceOpfPublish = await Mock20DecimalContract.balanceOf(opcCollector.address)
-    const expectedPublish = new BN(publishFee[2].toString()).sub(new BN(publishFee[2].toString()).div(new BN(100)))
+    const expectedPublish = new BN(publishFee[2].toString())
     const expectedOpfPublish = new BN(publishFee[2].toString()).div(new BN(100))
 
     
@@ -1322,9 +1322,9 @@ describe("ERC20TemplateEnterprise", () => {
       (await EnterpriseToken.balanceOf(user3.address)) == web3.utils.toWei("0")
     );
 
- 
     assert(
-      balanceOpfPublish.toString() == expectedOpfPublish.toString(), 'Invalid OPF fee, we should have 1% of the publish fee'
+      (await EnterpriseToken.balanceOf(opcCollector.address)) ==
+        web3.utils.toWei("0.03"), 'Invalid OPF balance, we should get 0.03 DTs'
     );
     assert(
       (await EnterpriseToken.balanceOf(await EnterpriseToken.getPaymentCollector())) ==
@@ -1457,7 +1457,7 @@ describe("ERC20TemplateEnterprise", () => {
     assert(tx,
       'buyFromFreAndOrder failed')
     txReceipt = await tx.wait();
-    assert(await EnterpriseToken.totalSupply() == 0, "Invalid Total Supply")
+    assert(await EnterpriseToken.totalSupply() == web3.utils.toWei('0.03'), "Invalid Total Supply")
 
     
    
@@ -1465,7 +1465,7 @@ describe("ERC20TemplateEnterprise", () => {
 
     const balancePublish = await Mock20DecimalContract.balanceOf(publishFee[0])
     const balanceOpfPublish = await Mock20DecimalContract.balanceOf(opcCollector.address)
-    const expectedPublish = new BN(publishFee[2].toString()).sub(new BN(publishFee[2].toString()).div(new BN(100)))
+    const expectedPublish = new BN(publishFee[2].toString())
     const expectedOpfPublish = new BN(publishFee[2].toString()).div(new BN(100))
 
   
@@ -1476,9 +1476,9 @@ describe("ERC20TemplateEnterprise", () => {
       (await EnterpriseToken.balanceOf(user3.address)) == web3.utils.toWei("0")
     );
 
-    
     assert(
-      balanceOpfPublish.toString() == expectedOpfPublish.toString(), 'Invalid OPF fee, we should have 1% of the publish fee'
+      (await EnterpriseToken.balanceOf(opcCollector.address)) ==
+        web3.utils.toWei("0.03"), 'Invalid OPF balance, we should get 0.03 DTs'
     );
     assert(
       (await EnterpriseToken.balanceOf(await EnterpriseToken.getPaymentCollector())) ==
@@ -1610,14 +1610,14 @@ describe("ERC20TemplateEnterprise", () => {
     assert(tx,
       'buyFromFreAndOrder failed')
     txReceipt = await tx.wait();
-    assert(await EnterpriseToken.totalSupply() == 0, "Invalid Total Supply")
+    assert(await EnterpriseToken.totalSupply() == web3.utils.toWei('0.03'), "Invalid Total Supply")
 
     
 
 
     const balancePublish = await Mock20DecimalContract.balanceOf(publishFee[0])
     const balanceOpfPublish = await Mock20DecimalContract.balanceOf(opcCollector.address)
-    const expectedPublish = new BN(publishFee[2].toString()).sub(new BN(publishFee[2].toString()).div(new BN(100)))
+    const expectedPublish = new BN(publishFee[2].toString())
     const expectedOpfPublish = new BN(publishFee[2].toString()).div(new BN(100))
 
   
@@ -1628,10 +1628,6 @@ describe("ERC20TemplateEnterprise", () => {
       (await EnterpriseToken.balanceOf(user3.address)) == web3.utils.toWei("0")
     );
 
-  
-    assert(
-      balanceOpfPublish.toString() == expectedOpfPublish.toString(), 'Invalid OPF fee, we should have 1% of the publish fee'
-    );
     assert(
       (await EnterpriseToken.balanceOf(await EnterpriseToken.getPaymentCollector())) ==
       web3.utils.toWei("0"), 'Invalid publisher reward, we should have burned the DT'

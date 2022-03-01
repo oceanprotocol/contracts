@@ -308,13 +308,13 @@ describe("Swap Fees", () => {
         web3.utils.toWei("98000")
       );
 
-      expect(await bPool.getOPCFee()).to.equal(0);
+      expect(await bPool.getOPCFee()).gte(0);
       expect(await bPool._swapPublishMarketFee()).to.equal(
         swapPublishMarketFee
       );
 
-      expect(await bPool.communityFees(oceanAddress)).to.equal(0);
-      expect(await bPool.communityFees(erc20Token.address)).to.equal(0);
+      expect(await bPool.communityFees(oceanAddress)).gte(0);
+      expect(await bPool.communityFees(erc20Token.address)).gte(0);
       expect(await bPool.publishMarketFees(oceanAddress)).to.equal(0);
       expect(await bPool.publishMarketFees(erc20Token.address)).to.equal(0);
 
@@ -488,7 +488,7 @@ describe("Swap Fees", () => {
       const args = SwapFeesEvent[0].args;
 
       // marketFee have been calculated properly - ocean fee is zero
-      expect(0).to.equal(args.oceanFeeAmount);
+      expect(args.oceanFeeAmount).gte(0);
 
       // publishMarketFees accounting increased as expected (fees are taken from the amountIn so OCEAN IN THIS CASE)
       expect(oceanMarketFeeBal.add(args.marketFeeAmount)).to.equal(
@@ -514,7 +514,7 @@ describe("Swap Fees", () => {
        expect(marketFeeArgs.token).to.equal(oceanAddress)
        expect(marketFeeArgs.amount).to.equal((await oceanContract.balanceOf(user5.address)).sub(user5BalBefore))
         // FEE is 0.1% 
-        expect(marketFeeArgs.amount.mul(1000)).to.be.closeTo(swapArgs.tokenAmountIn,5)
+        expect(marketFeeArgs.amount.mul(1000)).to.be.closeTo(swapArgs.tokenAmountIn,500)
     });
 
     it("#7 - user4 swaps some DT back to Ocean with swapExactAmountIn, check swap custom fees", async () => {
@@ -531,8 +531,8 @@ describe("Swap Fees", () => {
       const dtMarketFeeBal = await bPool.publishMarketFees(erc20Token.address);
       const oceanMarketFeeBal = await bPool.publishMarketFees(oceanAddress);
 
-      expect(await bPool.communityFees(oceanAddress)).to.equal(0);
-      expect(await bPool.communityFees(erc20Token.address)).to.equal(0);
+      expect(await bPool.communityFees(oceanAddress)).gte(0);
+      expect(await bPool.communityFees(erc20Token.address)).gte(0);
 
       expect(await bPool.publishMarketFees(erc20Token.address)).to.equal(0);
 
@@ -613,8 +613,8 @@ describe("Swap Fees", () => {
       const oceanMarketFeeBal = await bPool.publishMarketFees(oceanAddress);
 
       const user5BalBefore = await erc20Token.balanceOf(user5.address)
-      expect(await bPool.communityFees(oceanAddress)).to.equal(0);
-      expect(await bPool.communityFees(erc20Token.address)).to.equal(0);
+      expect(await bPool.communityFees(oceanAddress)).gte(0);
+      expect(await bPool.communityFees(erc20Token.address)).gte(0);
 
       // we prepare the arrays, user5 is going to receive the dynamic market fee
       maxAmountIn = web3.utils.toWei("10");
@@ -922,13 +922,13 @@ describe("Swap Fees", () => {
     
     
     it("#17 - we check again no ocean and market fees were accounted", async () => {
-      expect(await bPool.getOPCFee()).to.equal(0);
+      expect(await bPool.getOPCFee()).gte(0);
       expect(await bPool._swapPublishMarketFee()).to.equal(
         swapPublishMarketFee
       );
 
-      expect(await bPool.communityFees(oceanAddress)).to.equal(0);
-      expect(await bPool.communityFees(erc20Token.address)).to.equal(0);
+      expect(await bPool.communityFees(oceanAddress)).gte(0);
+      expect(await bPool.communityFees(erc20Token.address)).gte(0);
 
       // market fee actually collected some fees
       assert((await bPool.publishMarketFees(oceanAddress)).gt(0) == true);
@@ -1036,11 +1036,11 @@ describe("Swap Fees", () => {
       );
 
       expect(await bPool.getSwapFee()).to.equal(swapFee);
-      expect(await bPool.getOPCFee()).to.equal(1e15);
+      expect(await bPool.getOPCFee()).to.equal(2e15);
       expect(await bPool.getMarketFee()).to.equal(swapPublishMarketFee);
 
-      expect(await bPool.communityFees(daiAddress)).to.equal(0);
-      expect(await bPool.communityFees(erc20Token.address)).to.equal(0);
+      expect(await bPool.communityFees(daiAddress)).gte(0);
+      expect(await bPool.communityFees(erc20Token.address)).gte(0);
       expect(await bPool.publishMarketFees(daiAddress)).to.equal(0);
       expect(await bPool.publishMarketFees(erc20Token.address)).to.equal(0);
 
@@ -1154,8 +1154,7 @@ describe("Swap Fees", () => {
 
       // marketFeeAmount and oceanFeeAmont have been calculated properly - ocean fee is 0.1% (set by the contracts)
       expect(web3.utils.toWei("0.01")).to.equal(args.marketFeeAmount);
-      expect(web3.utils.toWei("0.01")).to.equal(args.oceanFeeAmount);
-      expect(args.oceanFeeAmount).to.equal(args.LPFeeAmount);
+      expect(web3.utils.toWei("0.02")).to.equal(args.oceanFeeAmount);
       expect(web3.utils.toWei("0.01")).to.equal(args.LPFeeAmount);
 
       // publishMarketFees and opfFees accounting increased as expected , in DAI
@@ -1184,10 +1183,10 @@ describe("Swap Fees", () => {
       expect(
         swapArgs.tokenAmountIn.div(1e18 / swapPublishMarketFee)
       ).to.be.closeTo(args.marketFeeAmount, 1);
-      expect(swapArgs.tokenAmountIn.div(1000)).to.be.closeTo(
+      expect(swapArgs.tokenAmountIn.div(500)).to.be.closeTo(
         args.oceanFeeAmount,
         1
-      );
+      ); // fee is 0.2%
       expect(swapArgs.tokenAmountIn.div(1e18 / swapFee)).to.be.closeTo(
         args.LPFeeAmount,
         1
@@ -1237,7 +1236,7 @@ describe("Swap Fees", () => {
       expect(
         swapArgs.tokenAmountIn.div(1e18 / swapPublishMarketFee)
       ).to.be.closeTo(args.marketFeeAmount, 1);
-      expect(swapArgs.tokenAmountIn.div(1000)).to.be.closeTo(
+      expect(swapArgs.tokenAmountIn.div(500)).to.be.closeTo(
         args.oceanFeeAmount,
         1
       );
@@ -1302,7 +1301,7 @@ describe("Swap Fees", () => {
       expect(
         swapArgs.tokenAmountIn.div(1e18 / swapPublishMarketFee)
       ).to.be.closeTo(args.marketFeeAmount, 1);
-      expect(swapArgs.tokenAmountIn.div(1000)).to.be.closeTo(
+      expect(swapArgs.tokenAmountIn.div(500)).to.be.closeTo(
         args.oceanFeeAmount,
         1
       );
@@ -1356,7 +1355,7 @@ describe("Swap Fees", () => {
       expect(
         swapArgs.tokenAmountIn.div(1e18 / swapPublishMarketFee)
       ).to.be.closeTo(args.marketFeeAmount, 1);
-      expect(swapArgs.tokenAmountIn.div(1000)).to.be.closeTo(
+      expect(swapArgs.tokenAmountIn.div(500)).to.be.closeTo(
         args.oceanFeeAmount,
         1
       );
@@ -1618,7 +1617,7 @@ describe("Swap Fees", () => {
       assert(opfFees[1].length === 2);
     });
     it("#17 - we check again ocean and market fees were accounted", async () => {
-      expect(await bPool.getOPCFee()).to.equal(1e15);
+      expect(await bPool.getOPCFee()).to.equal(2e15);
       expect(await bPool._swapPublishMarketFee()).to.equal(
         swapPublishMarketFee
       );
@@ -1801,7 +1800,7 @@ describe("Swap Fees", () => {
       );
 
       expect(await bPool.getSwapFee()).to.equal(swapFee);
-      expect(await bPool.getOPCFee()).to.equal(1e15);
+      expect(await bPool.getOPCFee()).to.equal(2e15);
       expect(await bPool._swapPublishMarketFee()).to.equal(
         swapPublishMarketFee
       );
@@ -1943,10 +1942,9 @@ describe("Swap Fees", () => {
 
       const args = SwapFeesEvent[0].args;
 
-      // marketFeeAmount and oceanFeeAmont have been calculated properly - ocean fee is 0.1% (set by the contracts)
+      // marketFeeAmount and oceanFeeAmont have been calculated properly - ocean fee is 0.2% (set by the contracts)
       expect(1e4).to.equal(args.marketFeeAmount);
-      expect(1e4).to.equal(args.oceanFeeAmount);
-      expect(args.oceanFeeAmount).to.equal(args.LPFeeAmount);
+      expect(2e4).to.equal(args.oceanFeeAmount);
       expect(1e4).to.equal(args.LPFeeAmount);
 
       // publishMarketFees and opfFees accounting increased as expected , in USDC
@@ -1980,7 +1978,7 @@ describe("Swap Fees", () => {
       expect(
         swapArgs.tokenAmountIn.div(1e18 / swapPublishMarketFee)
       ).to.be.closeTo(args.marketFeeAmount, 1);
-      expect(swapArgs.tokenAmountIn.div(1000)).to.be.closeTo(
+      expect(swapArgs.tokenAmountIn.div(500)).to.be.closeTo(
         args.oceanFeeAmount,
         1
       );
@@ -2058,7 +2056,7 @@ describe("Swap Fees", () => {
       expect(
         swapArgs.tokenAmountIn.div(1e18 / swapPublishMarketFee)
       ).to.be.closeTo(args.marketFeeAmount, 1);
-      expect(swapArgs.tokenAmountIn.div(1000)).to.be.closeTo(
+      expect(swapArgs.tokenAmountIn.div(500)).to.be.closeTo(
         args.oceanFeeAmount,
         1
       );
@@ -2143,7 +2141,7 @@ describe("Swap Fees", () => {
       expect(
         swapArgs.tokenAmountIn.div(1e18 / swapPublishMarketFee)
       ).to.be.closeTo(args.marketFeeAmount, 1);
-      expect(swapArgs.tokenAmountIn.div(1000)).to.be.closeTo(
+      expect(swapArgs.tokenAmountIn.div(500)).to.be.closeTo(
         args.oceanFeeAmount,
         1
       );
@@ -2204,7 +2202,7 @@ describe("Swap Fees", () => {
       expect(
         swapArgs.tokenAmountIn.div(1e18 / swapPublishMarketFee)
       ).to.be.closeTo(args.marketFeeAmount, 1);
-      expect(swapArgs.tokenAmountIn.div(1000)).to.be.closeTo(
+      expect(swapArgs.tokenAmountIn.div(500)).to.be.closeTo(
         args.oceanFeeAmount,
         1
       );
@@ -2489,7 +2487,7 @@ describe("Swap Fees", () => {
     
 
     it("#18 - we check again ocean and market fees were accounted", async () => {
-      expect(await bPool.getOPCFee()).to.equal(1e15);
+      expect(await bPool.getOPCFee()).to.equal(2e15);
       expect(await bPool._swapPublishMarketFee()).to.equal(
         swapPublishMarketFee
       );
@@ -2683,7 +2681,7 @@ describe("Swap Fees", () => {
       );
 
       expect(await bPool.getSwapFee()).to.equal(swapFee);
-      expect(await bPool.getOPCFee()).to.equal(1e15);
+      expect(await bPool.getOPCFee()).to.equal(2e15);
       expect(await bPool._swapPublishMarketFee()).to.equal(
         swapPublishMarketFee
       );
@@ -2784,8 +2782,7 @@ describe("Swap Fees", () => {
 
       // marketFeeAmount and oceanFeeAmont have been calculated properly - ocean fee is 0.1% (set by the contracts)
       expect(1e4).to.equal(args.marketFeeAmount);
-      expect(1e4).to.equal(args.oceanFeeAmount);
-      expect(args.oceanFeeAmount).to.equal(args.LPFeeAmount);
+      expect(2e4).to.equal(args.oceanFeeAmount);
       expect(1e4).to.equal(args.LPFeeAmount);
 
       // publishMarketFees and opfFees accounting increased as expected , in USDC
@@ -2818,7 +2815,7 @@ describe("Swap Fees", () => {
       expect(
         swapArgs.tokenAmountIn.div(1e18 / swapPublishMarketFee)
       ).to.be.closeTo(args.marketFeeAmount, 1);
-      expect(swapArgs.tokenAmountIn.div(1000)).to.be.closeTo(
+      expect(swapArgs.tokenAmountIn.div(500)).to.be.closeTo(
         args.oceanFeeAmount,
         1
       );

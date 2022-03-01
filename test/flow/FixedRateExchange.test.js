@@ -321,9 +321,9 @@ describe("FixedRateExchange", () => {
       );
       expect(feeInfo.marketFee).to.equal(marketFee);
       expect(feeInfo.marketFeeCollector).to.equal(marketFeeCollector.address);
-      expect(feeInfo.opcFee).to.equal(0);
-      expect(feeInfo.marketFeeAvailable).to.equal(0);
-      expect(feeInfo.oceanFeeAvailable).to.equal(0);
+      expect(feeInfo.opcFee).gt(0);
+      expect(feeInfo.marketFeeAvailable).gte(0);
+      expect(feeInfo.oceanFeeAvailable).gte(0);
     });
 
     it("#7 - should get the exchange rate", async () => {
@@ -431,8 +431,8 @@ describe("FixedRateExchange", () => {
       const SwappedEvent = receipt.events.filter((e) => e.event === "Swapped");
       const args = SwappedEvent[0].args;
 
-      // oceanFeeAmount is always zero in this pool
-      expect(args.oceanFeeAmount).to.equal(0);
+      // oceanFeeAmount is always gt zero
+      expect(args.oceanFeeAmount).gt(0);
 
       // we check that proper amount is being swapped (rate=1)
       expect(
@@ -496,8 +496,8 @@ describe("FixedRateExchange", () => {
       const SwappedEvent = receipt.events.filter((e) => e.event === "Swapped");
       const args = SwappedEvent[0].args;
 
-      // oceanFeeAmount is always zero in this pool
-      expect(args.oceanFeeAmount).to.equal(0);
+      // oceanFeeAmount is always gt zero
+      expect(args.oceanFeeAmount).gt(0);
 
       // we check that proper amount is being swapped (rate=1)
       expect(
@@ -674,7 +674,7 @@ describe("FixedRateExchange", () => {
         eventsExchange[0].args.exchangeId
       );
 
-      expect(feeInfo.oceanFeeAvailable).to.equal(0);
+      expect(feeInfo.oceanFeeAvailable).gt(0);
 
       assert(feeInfo.marketFeeAvailable > 0);
 
@@ -926,7 +926,7 @@ describe("FixedRateExchange", () => {
         eventsExchange[0].args.exchangeId
       );
 
-      expect(feeInfo.oceanFeeAvailable).to.equal(0);
+      expect(feeInfo.oceanFeeAvailable).gt(0);
 
       assert(feeInfo.marketFeeAvailable > 0);
 
@@ -1050,9 +1050,9 @@ describe("FixedRateExchange", () => {
       );
       expect(feeInfo.marketFee).to.equal(marketFee);
       expect(feeInfo.marketFeeCollector).to.equal(marketFeeCollector.address);
-      expect(feeInfo.opcFee).to.equal(oceanFee);
-      expect(feeInfo.marketFeeAvailable).to.equal(0);
-      expect(feeInfo.oceanFeeAvailable).to.equal(0);
+      expect(feeInfo.opcFee).gte(oceanFee);
+      expect(feeInfo.marketFeeAvailable).gte(0);
+      expect(feeInfo.oceanFeeAvailable).gte(0);
     });
 
     it("#7 - should get the exchange rate", async () => {
@@ -1836,9 +1836,9 @@ describe("FixedRateExchange", () => {
       );
       expect(feeInfo.marketFee).to.equal(marketFee);
       expect(feeInfo.marketFeeCollector).to.equal(marketFeeCollector.address);
-      expect(feeInfo.opcFee).to.equal(0);
-      expect(feeInfo.marketFeeAvailable).to.equal(0);
-      expect(feeInfo.oceanFeeAvailable).to.equal(0);
+      expect(feeInfo.opcFee).gt(0);
+      expect(feeInfo.marketFeeAvailable).gte(0);
+      expect(feeInfo.oceanFeeAvailable).gte(0);
     });
 
     it("#7 - should get the exchange rate", async () => {
@@ -1933,8 +1933,8 @@ describe("FixedRateExchange", () => {
       const SwappedEvent = receipt.events.filter((e) => e.event === "Swapped");
       const args = SwappedEvent[0].args;
 
-      // oceanFeeAmount is always zero in this pool
-      expect(args.oceanFeeAmount).to.equal(0);
+      // oceanFeeAmount is always gt zero in this pool
+      expect(args.oceanFeeAmount).gt(0);
       // we check that proper amount is being swapped (rate=2)
       expect(
         args.baseTokenSwappedAmount
@@ -1995,8 +1995,8 @@ describe("FixedRateExchange", () => {
       const SwappedEvent = receipt.events.filter((e) => e.event === "Swapped");
       const args = SwappedEvent[0].args;
 
-      // oceanFeeAmount is always zero in this pool
-      expect(args.oceanFeeAmount).to.equal(0);
+      // oceanFeeAmount is always gt zero in this pool
+      expect(args.oceanFeeAmount).gt(0);
 
       // we check that proper amount is being swapped (rate=2)
       expect(
@@ -2173,7 +2173,7 @@ describe("FixedRateExchange", () => {
         eventsExchange[0].args.exchangeId
       );
 
-      expect(feeInfo.oceanFeeAvailable).to.equal(0);
+      expect(feeInfo.oceanFeeAvailable).gt(0);
 
       assert(feeInfo.marketFeeAvailable > 0);
 
@@ -2417,7 +2417,7 @@ describe("FixedRateExchange", () => {
         eventsExchange[0].args.exchangeId
       );
 
-      expect(feeInfo.oceanFeeAvailable).to.equal(0);
+      expect(feeInfo.oceanFeeAvailable).gte(0);
 
       assert(feeInfo.marketFeeAvailable > 0);
 
@@ -2543,7 +2543,7 @@ describe("FixedRateExchange", () => {
       );
       expect(feeInfo.marketFee).to.equal(marketFee);
       expect(feeInfo.marketFeeCollector).to.equal(marketFeeCollector.address);
-      expect(feeInfo.opcFee).to.equal(oceanFee);
+      expect(feeInfo.opcFee).gte(oceanFee);
       expect(feeInfo.marketFeeAvailable).to.equal(0);
       expect(feeInfo.oceanFeeAvailable).to.equal(0);
     });
@@ -3245,7 +3245,7 @@ describe("FixedRateExchange", () => {
       );
       expect(feeInfo.marketFee).to.equal(marketFee);
       expect(feeInfo.marketFeeCollector).to.equal(marketFeeCollector.address);
-      expect(feeInfo.opcFee).to.equal(oceanFee);
+      expect(feeInfo.opcFee).gte(oceanFee);
       expect(feeInfo.marketFeeAvailable).to.equal(0);
       expect(feeInfo.oceanFeeAvailable).to.equal(0);
     });
@@ -3953,7 +3953,7 @@ describe("FixedRateExchange", () => {
       );
       expect(feeInfo.marketFee).to.equal(marketFee);
       expect(feeInfo.marketFeeCollector).to.equal(marketFeeCollector.address);
-      expect(feeInfo.opcFee).to.equal(oceanFee);
+      expect(feeInfo.opcFee).gte(oceanFee);
       expect(feeInfo.marketFeeAvailable).to.equal(0);
       expect(feeInfo.oceanFeeAvailable).to.equal(0);
     });
@@ -4657,7 +4657,7 @@ describe("FixedRateExchange", () => {
       );
       expect(feeInfo.marketFee).to.equal(marketFee);
       expect(feeInfo.marketFeeCollector).to.equal(marketFeeCollector.address);
-      expect(feeInfo.opcFee).to.equal(oceanFee);
+      expect(feeInfo.opcFee).gte(oceanFee);
       expect(feeInfo.marketFeeAvailable).to.equal(0);
       expect(feeInfo.oceanFeeAvailable).to.equal(0);
     });

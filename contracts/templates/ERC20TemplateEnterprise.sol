@@ -501,33 +501,13 @@ contract ERC20TemplateEnterprise is
             publishMarketFeeAddress != address(0)
         ) {
             _pullUnderlying(publishMarketFeeToken,msg.sender,
-                address(this),
-                publishMarketFeeAmount);
-            uint256 OPCFee = IFactoryRouter(router).getOPCConsumeFee();
-            if(OPCFee > 0)
-                communityFeePublish = publishMarketFeeAmount.mul(OPCFee).div(BASE); 
-            //send publishMarketFee
-            IERC20(publishMarketFeeToken).safeTransfer(
                 publishMarketFeeAddress,
-                publishMarketFeeAmount.sub(communityFeePublish)
-            );
+                publishMarketFeeAmount);
             emit PublishMarketFee(
                 publishMarketFeeAddress,
                 publishMarketFeeToken,
-                publishMarketFeeAmount.sub(communityFeePublish)
+                publishMarketFeeAmount
             );
-            //send fee to OPC
-            if (communityFeePublish > 0) {
-                IERC20(publishMarketFeeToken).safeTransfer(
-                    _communityFeeCollector,
-                    communityFeePublish
-                );
-                emit PublishMarketFee(
-                    _communityFeeCollector,
-                    publishMarketFeeToken,
-                    communityFeePublish
-                );
-            }
         }
 
         // consumeMarketFee
@@ -539,41 +519,24 @@ contract ERC20TemplateEnterprise is
             _consumeMarketFee.consumeMarketFeeAddress != address(0)
         ) {
             _pullUnderlying(_consumeMarketFee.consumeMarketFeeToken,msg.sender,
-                address(this),
-                _consumeMarketFee.consumeMarketFeeAmount);
-            uint256 OPCFee = IFactoryRouter(router).getOPCConsumeFee();
-            if(OPCFee > 0)
-                communityFeePublish = _consumeMarketFee.consumeMarketFeeAmount.mul(OPCFee).div(BASE); 
-            //send publishMarketFee
-            IERC20(_consumeMarketFee.consumeMarketFeeToken).safeTransfer(
                 _consumeMarketFee.consumeMarketFeeAddress,
-                _consumeMarketFee.consumeMarketFeeAmount.sub(communityFeePublish)
-            );
-
+                _consumeMarketFee.consumeMarketFeeAmount);
             emit ConsumeMarketFee(
                 _consumeMarketFee.consumeMarketFeeAddress,
                 _consumeMarketFee.consumeMarketFeeToken,
-                _consumeMarketFee.consumeMarketFeeAmount.sub(communityFeePublish)
+                _consumeMarketFee.consumeMarketFeeAmount
             );
-            //send fee to OPC
-            if (communityFeePublish > 0) {
-                //since both fees are in the same token, have just one transaction for both, to save gas
-                IERC20(_consumeMarketFee.consumeMarketFeeToken).safeTransfer(
-                    _communityFeeCollector,
-                    communityFeePublish
-                );
-                emit ConsumeMarketFee(
-                    _communityFeeCollector,
-                    _consumeMarketFee.consumeMarketFeeToken,
-                    communityFeePublish
-                );
-            }
         }
 
         checkProviderFee(_providerFee);
         
         // instead of sending datatoken to publisher, we burn them
-        burn(amount);
+        uint256 OPCFee = IFactoryRouter(router).getOPCConsumeFee();
+        burn(amount.sub(OPCFee));
+        require(
+            transfer(_communityFeeCollector, OPCFee),
+            "Failed to send DT to OPC"
+        );
     }
 
     /**
