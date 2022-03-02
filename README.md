@@ -76,7 +76,7 @@ from artifacts import address
 
 - An automated Datatoken Staking and Vesting contract helps with the initial DTs distribution and price stability. Goodbye rug pulls! More info on how it works: (link to Side staking blog)
 
-- Help Ocean Community Monetize: There's a swap fee for the Ocean Community: if Ocean or allied tokens are the basetoken in a pool, Ocean Community will receive 0.1% swap fee, otherwhise it will be 0.2%. More details here: (link to blog post on Ocean community monetization)
+- Help Ocean Community Monetize: there's a swap fee for the Ocean Community, if Ocean or allied tokens are the basetoken in a pool, Ocean Community will receive 0.1% swap fee, otherwhise it will be 0.2%. More details here: (link to blog post on Ocean community monetization)
 
 
 
@@ -149,7 +149,7 @@ You can use an existing deployment of Ocean contracts, deploy locally or deploy 
 
 #### Use existing deployments
 
-Ocean contracts are deployed to Rinkeby, Mumbai, and more. [Here are details](https://github.com/oceanprotocol/contracts/blob/v4main_postaudit/addresses/address.json).
+[Ocean contracts are deployed to Rinkeby, Mumbai, and more.](https://github.com/oceanprotocol/contracts/blob/v4main_postaudit/addresses/address.json).
 
 #### 🦑Deploy Locally or Remote (e.g. Rinkeby)
 
