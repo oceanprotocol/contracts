@@ -76,7 +76,7 @@ from artifacts import address
 
 - An automated Datatoken Staking and Vesting contract helps with the initial DTs distribution and price stability. Good bye rug pulls! More info on how it works: (link to Side staking blog)
 
-- Help Ocean Community monetization: if Ocean or allied tokens are not the basetoken, Ocean Community will receive 1% swap fee on pools or fixed price exchange. More details here: (link to blog post on Ocean community monetization)
+- Help Ocean Community Monetize: There's a swap fee for the Ocean Community: if Ocean or allied tokens are the basetoken in a pool, Ocean Community will receive 0.1% swap fee, otherwhise it will be 0.2%. More details here: (link to blog post on Ocean community monetization)
 
 
 
