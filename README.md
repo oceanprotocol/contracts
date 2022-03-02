@@ -74,7 +74,7 @@ from artifacts import address
 
 - Base IP is now represented by an NFT, from which a datapublisher can create multiple ERC20s representing different type of access for the same dataset. (Link to NFT blog)
 
-- An automated Datatoken Staking and Vesting contract helps with the initial DTs distribution and price stability. Good bye rug pulls! More info on how it works: (link to Side staking blog)
+- An automated Datatoken Staking and Vesting contract helps with the initial DTs distribution and price stability. Goodbye rug pulls! More info on how it works: (link to Side staking blog)
 
 - Help Ocean Community Monetize: There's a swap fee for the Ocean Community: if Ocean or allied tokens are the basetoken in a pool, Ocean Community will receive 0.1% swap fee, otherwhise it will be 0.2%. More details here: (link to blog post on Ocean community monetization)
 
@@ -126,7 +126,7 @@ Helper functions which can perform multiple steps in 1 call.
 [Go to helpers](docs/quickstart_bundle.md)
 
 
-If you have any difficulties with the quickstarts, or if you have further questions about how to use ocean.js please reach out to us on [Discord](https://discord.gg/TnXjkR5).
+If you have any difficulties with the quickstarts, or if you have further questions about how to use the contracts please reach out to us on [Discord](https://discord.gg/TnXjkR5).
 
 If you notice any bugs or issues with ocean.js please [open an issue on github](https://github.com/oceanprotocol/contracts/issues/new?assignees=&labels=bug&template=bug_report.md&title=). -->
 
