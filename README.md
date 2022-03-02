@@ -74,9 +74,9 @@ from artifacts import address
 
 - Base IP is now represented by an NFT, from which a datapublisher can create multiple ERC20s representing different type of access for the same dataset. (Link to NFT blog)
 
-- An automated Datatoken Staking and Vesting contract helps with the initial DTs distribution and price stability. Goodbye rug pulls! More info on how it works: (link to Side staking blog)
+- An automated Datatoken Staking and Vesting contract helps with the initial DTs distribution and price stability. Goodbye rug pulls! More info on how it works: (Link to SideStaking blog)
 
-- Help Ocean Community Monetize: there's a swap fee for the Ocean Community, if Ocean or allied tokens are the basetoken in a pool, Ocean Community will receive 0.1% swap fee, otherwhise it will be 0.2%. More details here: (link to blog post on Ocean community monetization)
+- Help Ocean Community Monetize: there's a swap fee for the Ocean Community, if Ocean or allied tokens are the basetoken in a pool, Ocean Community will receive 0.1% swap fee, otherwhise it will be 0.2%. More details here: (Link to blog post on Ocean community monetization)
 
 
 
@@ -85,11 +85,11 @@ from artifacts import address
 
 - Introduce an advanced Fee Structure both for Market and Provider runners. (add link to fee post/docs when available)
 
-- Roles Administration: there are now multiple roles for a more flexible administation both at NFT and ERC20 levels.
+- Roles Administration: there are now multiple roles for a more flexible administation both at NFT and ERC20 levels
 
 - Key-value store in the NFT contract : NFT contract can be used to store custom key-value pairs (ERC725Y standard)
 
-- Multiple NFT template support: the Factory can deploy different types of NFT templates. 
+- Multiple NFT template support: the Factory can deploy different types of NFT templates
 
 - Multiple ERC20 template support: the Factory can deploy different types of ERC20 templates
 
@@ -128,7 +128,7 @@ Helper functions which can perform multiple steps in 1 call.
 
 If you have any difficulties with the quickstarts, or if you have further questions about how to use the contracts please reach out to us on [Discord](https://discord.gg/TnXjkR5).
 
-If you notice any bugs or issues with ocean.js please [open an issue on github](https://github.com/oceanprotocol/contracts/issues/new?assignees=&labels=bug&template=bug_report.md&title=). -->
+If you notice any bugs or issues with this repo please [open an issue on github](https://github.com/oceanprotocol/contracts/issues/new?assignees=&labels=bug&template=bug_report.md&title=). -->
 
 ## 🏄 Quickstart
 
@@ -145,11 +145,11 @@ npx hardhat node
 
 ## 🛳 Network Deployments
 
-You can use an existing deployment of Ocean contracts, deploy locally or deploy to a remote network. Let's review each.
+You can use an existing deployment of Ocean contracts, deploy locally or deploy to a remote network.
 
 #### Use existing deployments
 
-[Ocean contracts are deployed to Rinkeby, Mumbai, and more.](https://github.com/oceanprotocol/contracts/blob/v4main_postaudit/addresses/address.json).
+[Ocean contracts are deployed to Rinkeby, Mumbai, and more.](https://github.com/oceanprotocol/contracts/blob/v4main_postaudit/addresses/address.json)
 
 #### 🦑Deploy Locally or Remote (e.g. Rinkeby)
 
