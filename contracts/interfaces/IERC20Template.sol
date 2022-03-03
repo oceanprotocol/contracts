@@ -110,7 +110,7 @@ interface IERC20Template {
 
      function startOrder(
         address consumer,
-        uint256 serviceId,
+        uint256 serviceIndex,
         providerFee calldata _providerFee,
         consumeMarketFee calldata _consumeMarketFee
      ) external;
