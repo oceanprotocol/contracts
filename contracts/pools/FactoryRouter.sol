@@ -11,7 +11,7 @@ import "../interfaces/IPool.sol";
 import "../interfaces/IDispenser.sol";
 import "../utils/SafeERC20.sol";
 import "@openzeppelin/contracts/utils/math/SafeMath.sol";
-import "hardhat/console.sol";
+
 
 contract FactoryRouter is BFactory {
     using SafeERC20 for IERC20;
@@ -737,11 +737,9 @@ contract FactoryRouter is BFactory {
         require(_stakes.length <= 50, "FactoryRouter: Too Many Operations");
         for (uint256 i = 0; i < _stakes.length; i++) {
             address baseToken = IPool(_stakes[i].poolAddress).getBaseTokenAddress();
-            console.log("Start %s",i);
             _pullUnderlying(baseToken,msg.sender,
                     address(this),
                     _stakes[i].tokenAmountIn);
-            console.log("got funds %s",i);
             uint256 balanceBefore = IERC20(_stakes[i].poolAddress).balanceOf(address(this));
             // we approve pool to pull token from router
             IERC20(baseToken).safeIncreaseAllowance(
@@ -754,12 +752,10 @@ contract FactoryRouter is BFactory {
             require(poolAmountOut >=  _stakes[i].minPoolAmountOut,'NOT ENOUGH LP');
             uint256 balanceAfter = IERC20(_stakes[i].poolAddress).balanceOf(address(this));
             //send LP shares to user
-             console.log("i: %s, balanceAfter: %s, balanceBefore %s", i, balanceAfter, balanceBefore);
             IERC20(_stakes[i].poolAddress).safeTransfer(
                     msg.sender,
                     balanceAfter.sub(balanceBefore)
                 );
-            console.log("Done %s",i);
         }
     }
     
