@@ -786,7 +786,7 @@ contract ERC721Factory is Deployer, Ownable, ReentrancyGuard {
         NftCreateData calldata _NftCreateData,
         MetaData calldata _MetaData
     ) external nonReentrant returns (address erc721Address){
-        //we are adding ourselfs as a ERC20 Deployer, because we need it in order to deploy the fixedrate
+        //we are adding ourselfs as metadataDeployer , because we need it in order to set metadata
         erc721Address = deployERC721Contract(
             _NftCreateData.name,
             _NftCreateData.symbol,
@@ -798,7 +798,7 @@ contract ERC721Factory is Deployer, Ownable, ReentrancyGuard {
         IERC721Template(erc721Address).setMetaData(_MetaData._metaDataState, _MetaData._metaDataDecryptorUrl
         , _MetaData._metaDataDecryptorAddress, _MetaData.flags, 
         _MetaData.data,_MetaData._metaDataHash, _MetaData._metadataProofs);
-        // remove our selfs from the erc20DeployerRole
+        // remove our selfs from the metadataDeployer role
         IERC721Template(erc721Address).removeFromMetadataList(address(this));
     }
 
