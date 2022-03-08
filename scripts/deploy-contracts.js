@@ -98,6 +98,7 @@ async function main() {
       routerOwner = OPFOwner;
       OceanTokenAddress = "0xd8992Ed72C445c35Cb4A2be468568Ed1079357c8";
       gasLimit = 20000000
+      gasPrice = ethers.utils.parseUnits('100', 'gwei')
       break;
     case 0x38:
       networkName = "bsc";
@@ -138,8 +139,12 @@ async function main() {
     console.error("We need OPFOwner and routerOwner in order to deploy!");
     return null;
   }
-  
-  const options = { gasLimit }
+  let options
+  if(gasPrice){
+    options = {gasLimit: gasLimit, gasPrice: gasPrice}
+  }
+  else
+    options = { gasLimit }
   const addressFile = process.env.ADDRESS_FILE;
   let oldAddresses;
   if (addressFile) {
