@@ -3,12 +3,12 @@ pragma solidity 0.8.12;
 // SPDX-License-Identifier: (Apache-2.0 AND CC-BY-4.0)
 // Code is Apache-2.0 and docs are CC-BY-4.0
 
-import "@openzeppelin/contracts/utils/introspection/IERC165.sol";
+
 
 /**
  * @dev Required interface of an ERC721 compliant contract.
  */
-interface IERC721Template is IERC165 {
+interface IERC721Template {
     /**
      * @dev Emitted when `tokenId` token is transferred from `from` to `to`.
      */

@@ -7,7 +7,6 @@ import "./utils/Deployer.sol";
 import "./interfaces/IERC721Template.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
 import "./interfaces/IERC20Template.sol";
-import "./interfaces/IERC721Template.sol";
 import "./interfaces/IERC20.sol";
 import "./utils/SafeERC20.sol";
 import "@openzeppelin/contracts/utils/math/SafeMath.sol";
@@ -86,6 +85,8 @@ contract ERC721Factory is Deployer, Ownable, ReentrancyGuard {
         address allowedSwapper
     );
     
+    // erc721 transfer event, stored here just for readability
+    event Transfer(address indexed from, address indexed to, uint256 indexed tokenId);
 
     /**
      * @dev constructor
