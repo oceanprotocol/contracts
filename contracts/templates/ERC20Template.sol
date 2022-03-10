@@ -6,7 +6,6 @@ pragma solidity 0.8.12;
 import "../interfaces/IERC721Template.sol";
 import "../interfaces/IERC20Template.sol";
 import "../interfaces/IFactoryRouter.sol";
-import "../utils/ERC725/ERC725Ocean.sol";
 import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
 import "@openzeppelin/contracts/token/ERC20/extensions/ERC20Burnable.sol";
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
