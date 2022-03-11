@@ -132,4 +132,5 @@ interface IERC20Template {
     function getFixedRates() external view returns(fixedRate[] memory);
     function getDispensers() external view returns(address[] memory);
     function getId() pure external returns (uint8);
+    function getPaymentCollector() external view returns (address);
 }

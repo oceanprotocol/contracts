@@ -510,18 +510,18 @@ contract SideStaking is ReentrancyGuard {
             amount > 0 &&
             _datatokens[datatokenAddress].datatokenBalance >= amount
         ) {
-            IERC20 dt = IERC20(datatokenAddress);
+            IERC20Template dt = IERC20Template(datatokenAddress);
             _datatokens[datatokenAddress].vestingLastBlock = block.number;
             _datatokens[datatokenAddress].datatokenBalance -= amount;
             _datatokens[datatokenAddress].vestingAmountSoFar += amount;
             emit Vesting(
                 datatokenAddress,
-                _datatokens[datatokenAddress].publisherAddress,
+                dt.getPaymentCollector(),
                 msg.sender,
                 amount
             );
-            dt.safeTransfer(
-                _datatokens[datatokenAddress].publisherAddress,
+            dt.transfer(
+                dt.getPaymentCollector(),
                 amount
             );
             
