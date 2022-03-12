@@ -25,11 +25,11 @@ contract FactoryRouter is BFactory {
     uint256 public swapNonOceanFee = 2e15;  // 0.2%
     uint256 public consumeFee = 3e16; // 0.03 DT
     uint256 public providerFee = 0; // 0%
-    address[] public oceanTokens;
+    address[] public approvedTokens;
     address[] public ssContracts;
     address[] public fixedrates;
     address[] public dispensers;
-    // mapping(address => bool) public oceanTokens;
+    // mapping(address => bool) public approvedTokens;
     // mapping(address => bool) public ssContracts;
     // mapping(address => bool) public fixedPrice;
     // mapping(address => bool) public dispenser;
@@ -97,7 +97,7 @@ contract FactoryRouter is BFactory {
         );
         routerOwner = _routerOwner;
         opcCollector = _opcCollector;
-        _addOceanToken(_oceanToken);
+        _addApprovedToken(_oceanToken);
     }
 
     function changeRouterOwner(address _routerOwner) external onlyRouterOwner {
@@ -107,64 +107,64 @@ contract FactoryRouter is BFactory {
     }
 
     /**
-     * @dev addOceanToken
+     * @dev addApprovedToken
      *      Adds a token to the list of tokens with reduced fees
-     *  @param oceanTokenAddress address Token to be added
+     *  @param tokenAddress address Token to be added
      */
-    function addOceanToken(address oceanTokenAddress) external onlyRouterOwner {
-        _addOceanToken(oceanTokenAddress);
+    function addApprovedToken(address tokenAddress) external onlyRouterOwner {
+        _addApprovedToken(tokenAddress);
     }
     
-    function _addOceanToken(address oceanTokenAddress) internal {
-        if(!isOceanToken(oceanTokenAddress)){
-            oceanTokens.push(oceanTokenAddress);
-            emit TokenAdded(msg.sender, oceanTokenAddress);
+    function _addApprovedToken(address tokenAddress) internal {
+        if(!isApprovedToken(tokenAddress)){
+            approvedTokens.push(tokenAddress);
+            emit TokenAdded(msg.sender, tokenAddress);
         }
     }
 
     /**
-     * @dev removeOceanToken
+     * @dev removeApprovedToken
      *      Removes a token if exists from the list of tokens with reduced fees
-     *  @param oceanTokenAddress address Token to be removed
+     *  @param tokenAddress address Token to be removed
      */
-    function removeOceanToken(address oceanTokenAddress)
+    function removeApprovedToken(address tokenAddress)
         external
         onlyRouterOwner
     {
         require(
-            oceanTokenAddress != address(0),
+            tokenAddress != address(0),
             "FactoryRouter: Invalid Ocean Token address"
         );
         uint256 i;
-        for (i = 0; i < oceanTokens.length; i++) {
-            if(oceanTokens[i] == oceanTokenAddress) break;
+        for (i = 0; i < approvedTokens.length; i++) {
+            if(approvedTokens[i] == tokenAddress) break;
         }
-        if(i < oceanTokens.length){
+        if(i < approvedTokens.length){
             // it's in the array
-            for (uint c = i; c < oceanTokens.length - 1; c++) {
-                    oceanTokens[c] = oceanTokens[c + 1];
+            for (uint c = i; c < approvedTokens.length - 1; c++) {
+                    approvedTokens[c] = approvedTokens[c + 1];
             }
-            oceanTokens.pop();
-            emit TokenRemoved(msg.sender, oceanTokenAddress);
+            approvedTokens.pop();
+            emit TokenRemoved(msg.sender, tokenAddress);
         }
     }
     /**
-     * @dev isOceanToken
+     * @dev isApprovedToken
      *      Returns true if token exists in the list of tokens with reduced fees
-     *  @param oceanTokenAddress address Token to be checked
+     *  @param tokenAddress address Token to be checked
      */
-    function isOceanToken(address oceanTokenAddress) public view returns(bool) {
-        for (uint256 i = 0; i < oceanTokens.length; i++) {
-            if(oceanTokens[i] == oceanTokenAddress) return true;
+    function isApprovedToken(address tokenAddress) public view returns(bool) {
+        for (uint256 i = 0; i < approvedTokens.length; i++) {
+            if(approvedTokens[i] == tokenAddress) return true;
         }
         return false;
     }
     /**
-     * @dev getOceanTokens
+     * @dev getApprovedTokens
      *      Returns the list of tokens with reduced fees
      */
-    function getOceanTokens() public view returns(address[] memory) {
-        return(oceanTokens);
+    function getApprovedTokens() public view returns(address[] memory) {
+        return(approvedTokens);
     }
 
 
@@ -366,7 +366,7 @@ contract FactoryRouter is BFactory {
      * @param baseToken  address token to be checked
      */
     function getOPCFee(address baseToken) public view returns (uint256) {
-        if (isOceanToken(baseToken)) {
+        if (isApprovedToken(baseToken)) {
             return swapOceanFee;
         } else return swapNonOceanFee;
     }
@@ -488,7 +488,7 @@ contract FactoryRouter is BFactory {
         
         address pool = newBPool(tokens, ssParams, swapFees, addresses);
         require(pool != address(0), "FAILED TO DEPLOY POOL");
-        if (isOceanToken(tokens[1])) emit NewPool(pool, true);
+        if (isApprovedToken(tokens[1])) emit NewPool(pool, true);
         else emit NewPool(pool, false);
         return pool;
     }

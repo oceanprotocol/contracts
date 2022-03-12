@@ -32,8 +32,8 @@ interface IFactoryRouter {
         address allowedSwapper
     ) external;
 
-    function isOceanToken(address) external view returns(bool);
-    function getOceanTokens() external view returns(address[] memory);
+    function isApprovedToken(address) external view returns(bool);
+    function getApprovedTokens() external view returns(address[] memory);
     function isSSContract(address) external view returns(bool);
     function getSSContracts() external view returns(address[] memory);
     function isFixedRateContract(address) external view returns(bool);
