@@ -3009,7 +3009,7 @@ describe("Swap Fees", () => {
     it("#10 - USDC token is added as ocean tokens list, now opfFee will be ZERO", async () => {
       // we already approved pool to withdraw Ocean tokens
 
-      await router.addOceanToken(usdcContract.address);
+      await router.addApprovedToken(usdcContract.address);
       expect(await bPool.getSwapFee()).to.equal(swapFee);
       expect(await bPool.getOPCFee()).to.equal(0);
       expect(await bPool._swapPublishMarketFee()).to.equal(
@@ -3718,7 +3718,7 @@ describe("Swap Fees", () => {
     it("#10 - DAI token is added as ocean tokens list, now opfFee will be ZERO", async () => {
       // we already approved pool to withdraw Ocean tokens
 
-      await router.addOceanToken(daiContract.address);
+      await router.addApprovedToken(daiContract.address);
       expect(await bPool.getSwapFee()).to.equal(swapFee);
       expect(await bPool.getOPCFee()).to.equal(0);
       expect(await bPool._swapPublishMarketFee()).to.equal(

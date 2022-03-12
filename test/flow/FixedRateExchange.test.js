@@ -4919,7 +4919,7 @@ describe("FixedRateExchange", () => {
     });
 
     it("#13 - DAI token is added into Ocean List, now opcFee is ZERO", async () => {
-      await router.addOceanToken(daiContract.address)
+      await router.addApprovedToken(daiContract.address)
       const feeInfo = await fixedRateExchange.getFeesInfo(
         eventsExchange[0].args.exchangeId
       );
