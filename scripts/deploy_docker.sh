@@ -14,7 +14,7 @@ then
     rm -f /ocean-contracts/artifacts/ready
 
     export NETWORK="${NETWORK_NAME:-barge}"
-    npx hardhat compile
+    npx hardhat compile --force
     #remove unneeded debug artifacts
     find /ocean-contracts/artifacts/* -name "*.dbg.json" -type f -delete
     #copy address.json
