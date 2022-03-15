@@ -1358,7 +1358,7 @@ describe("ERC20TemplateEnterprise", () => {
     let tx = await EnterpriseToken.connect(user3).createFixedRate(
       fixedRateExchange.address,
       [publishMarketFeeToken, user3.address, user3.address, ZERO_ADDRESS],
-      ['18', '18', web3.utils.toWei("1"), web3.utils.toWei("0.01"), 1]
+      ['18', '18', web3.utils.toWei("1"), web3.utils.toWei("0.01"), 1, 0]
     )
 
 
@@ -1512,7 +1512,7 @@ describe("ERC20TemplateEnterprise", () => {
     let tx = await EnterpriseToken.connect(user3).createFixedRate(
       fixedRateExchange.address,
       [publishMarketFeeToken, user3.address, user3.address, ZERO_ADDRESS],
-      ['18', '18', web3.utils.toWei("1"), web3.utils.toWei("0.01"), 1]
+      ['18', '18', web3.utils.toWei("1"), web3.utils.toWei("0.01"), 1, 0]
     )
 
 

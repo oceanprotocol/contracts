@@ -253,7 +253,7 @@ describe("FixedRateExchange", () => {
           .createFixedRate(
             fixedRateExchange.address,
             [oceanContract.address, alice.address, marketFeeCollector.address, ZERO_ADDRESS],
-            [18, 18, rate, marketFee, 0]
+            [18, 18, rate, marketFee, 0, 0]
             // 18,
             // rate,
             // alice.address,
@@ -558,7 +558,6 @@ describe("FixedRateExchange", () => {
       const exchangeDetailsBefore = await fixedRateExchange.getExchange(
         eventsExchange[0].args.exchangeId
       );
-
       expect(exchangeDetailsBefore.btBalance).to.equal(
         web3.utils.toWei("2000")
       );
@@ -566,20 +565,13 @@ describe("FixedRateExchange", () => {
       const btAliceBeforeSwap = await oceanContract.balanceOf(alice.address);
       expect(btAliceBeforeSwap).to.equal(0); // Alice(owner) has no BT
 
-      // only exchange owner can withdraw
-      await expectRevert(
-        fixedRateExchange.collectBT(eventsExchange[0].args.exchangeId),
-        "FixedRateExchange: invalid exchange owner"
-      );
-
       const receipt = await (
         await fixedRateExchange
           .connect(alice)
-          .collectBT(eventsExchange[0].args.exchangeId)
+          .collectBT(eventsExchange[0].args.exchangeId, exchangeDetailsBefore.btBalance)
       ).wait();
 
       const Event = receipt.events.filter((e) => e.event === "TokenCollected");
-
       expect(Event[0].args.amount).to.equal(
         btAliceBeforeSwap.add(await oceanContract.balanceOf(alice.address))
       );
@@ -587,7 +579,7 @@ describe("FixedRateExchange", () => {
       const exchangeDetailsAfter = await fixedRateExchange.getExchange(
         eventsExchange[0].args.exchangeId
       );
-
+      
       // alice withdrew all btBalance
       expect(exchangeDetailsAfter.btBalance).to.equal(0);
     });
@@ -999,7 +991,7 @@ describe("FixedRateExchange", () => {
           .createFixedRate(
             fixedRateExchange.address,
             [daiContract.address, alice.address, marketFeeCollector.address, ZERO_ADDRESS],
-            [18, 18, rate, marketFee,0]
+            [18, 18, rate, marketFee,0, 0]
           )
       ).wait(); // from exchangeOwner (alice)
 
@@ -1280,16 +1272,10 @@ describe("FixedRateExchange", () => {
       // alice has as default 5 DAI
       expect(btAliceBeforeSwap).to.equal(web3.utils.toWei("5"));
 
-      // only exchange owner can withdraw
-      await expectRevert(
-        fixedRateExchange.collectBT(eventsExchange[0].args.exchangeId),
-        "FixedRateExchange: invalid exchange owner"
-      );
-
       const receipt = await (
         await fixedRateExchange
           .connect(alice)
-          .collectBT(eventsExchange[0].args.exchangeId)
+          .collectBT(eventsExchange[0].args.exchangeId, exchangeDetailsBefore.btBalance)
       ).wait();
 
       const Event = receipt.events.filter((e) => e.event === "TokenCollected");
@@ -1785,7 +1771,7 @@ describe("FixedRateExchange", () => {
           .createFixedRate(
             fixedRateExchange.address,
             [oceanContract.address, alice.address, marketFeeCollector.address, ZERO_ADDRESS],
-            [18, 18, rate, marketFee, 0]
+            [18, 18, rate, marketFee, 0, 0]
           )
       ).wait(); // from exchangeOwner (alice)
 
@@ -2064,16 +2050,10 @@ describe("FixedRateExchange", () => {
 
       const btAliceBeforeSwap = await oceanContract.balanceOf(alice.address);
 
-      // only exchange owner can withdraw
-      await expectRevert(
-        fixedRateExchange.collectBT(eventsExchange[0].args.exchangeId),
-        "FixedRateExchange: invalid exchange owner"
-      );
-
       const receipt = await (
         await fixedRateExchange
           .connect(alice)
-          .collectBT(eventsExchange[0].args.exchangeId)
+          .collectBT(eventsExchange[0].args.exchangeId, exchangeDetailsBefore.btBalance)
       ).wait();
 
       // console.log(receipt)
@@ -2492,7 +2472,7 @@ describe("FixedRateExchange", () => {
           .createFixedRate(
             fixedRateExchange.address,
             [daiContract.address, alice.address, marketFeeCollector.address, ZERO_ADDRESS],
-            [18, 18, rate, marketFee, 0]
+            [18, 18, rate, marketFee, 0, 0]
           )
       ).wait(); // from exchangeOwner (alice)
 
@@ -2769,16 +2749,10 @@ describe("FixedRateExchange", () => {
       const btAliceBeforeSwap = await daiContract.balanceOf(alice.address);
       expect(btAliceBeforeSwap).to.equal(web3.utils.toWei("2005")); // Alice(owner) has 2005 dai  (we already collected from previous test)
 
-      // only exchange owner can withdraw
-      await expectRevert(
-        fixedRateExchange.collectBT(eventsExchange[0].args.exchangeId),
-        "FixedRateExchange: invalid exchange owner"
-      );
-
       const receipt = await (
         await fixedRateExchange
           .connect(alice)
-          .collectBT(eventsExchange[0].args.exchangeId)
+          .collectBT(eventsExchange[0].args.exchangeId,exchangeDetailsBefore.btBalance)
       ).wait();
 
       const Event = receipt.events.filter((e) => e.event === "TokenCollected");
@@ -3194,7 +3168,7 @@ describe("FixedRateExchange", () => {
           .createFixedRate(
             fixedRateExchange.address,
             [usdcContract.address, alice.address, marketFeeCollector.address, ZERO_ADDRESS],
-            [6, 18, rate, marketFee, 0]
+            [6, 18, rate, marketFee, 0, 0]
           )
       ).wait(); // from exchangeOwner (alice)
 
@@ -3472,16 +3446,10 @@ describe("FixedRateExchange", () => {
       const btAliceBeforeSwap = await usdcContract.balanceOf(alice.address);
       expect(btAliceBeforeSwap).to.equal(0); //  Alice(owner) has no USDC
 
-      // only exchange owner can withdraw
-      await expectRevert(
-        fixedRateExchange.collectBT(eventsExchange[0].args.exchangeId),
-        "FixedRateExchange: invalid exchange owner"
-      );
-
       const receipt = await (
         await fixedRateExchange
           .connect(alice)
-          .collectBT(eventsExchange[0].args.exchangeId)
+          .collectBT(eventsExchange[0].args.exchangeId,exchangeDetailsBefore.btBalance)
       ).wait();
 
       const Event = receipt.events.filter((e) => e.event === "TokenCollected");
@@ -3902,7 +3870,7 @@ describe("FixedRateExchange", () => {
           .createFixedRate(
             fixedRateExchange.address,
             [usdcContract.address, alice.address, marketFeeCollector.address, ZERO_ADDRESS],
-            [6, 18, rate, marketFee, 0]
+            [6, 18, rate, marketFee, 0, 0]
           )
       ).wait(); // from exchangeOwner (alice)
 
@@ -4180,16 +4148,10 @@ describe("FixedRateExchange", () => {
       const btAliceBeforeSwap = await usdcContract.balanceOf(alice.address);
       expect(btAliceBeforeSwap).to.equal(4000 * 1e6); // Alice(owner) has 4000 USDC collected from previous test
 
-      // only exchange owner can withdraw
-      await expectRevert(
-        fixedRateExchange.collectBT(eventsExchange[0].args.exchangeId),
-        "FixedRateExchange: invalid exchange owner"
-      );
-
       const receipt = await (
         await fixedRateExchange
           .connect(alice)
-          .collectBT(eventsExchange[0].args.exchangeId)
+          .collectBT(eventsExchange[0].args.exchangeId,exchangeDetailsBefore.btBalance)
       ).wait();
 
       const Event = receipt.events.filter((e) => e.event === "TokenCollected");
@@ -4606,7 +4568,7 @@ describe("FixedRateExchange", () => {
           .createFixedRate(
             fixedRateExchange.address,
             [daiContract.address, alice.address, marketFeeCollector.address, ZERO_ADDRESS],
-            [18, 18, rate, marketFee, 0]
+            [18, 18, rate, marketFee, 0, 0]
           )
       ).wait(); // from exchangeOwner (alice)
 
@@ -4880,7 +4842,7 @@ describe("FixedRateExchange", () => {
       );
     });
 
-    it("#12 - Alice withdraws BT balance available on the FixedRate contract", async () => {
+    it("#12 - Alice sets collector to ERC20.getPaymentCollector and then withdraws BT balance available on the FixedRate contract", async () => {
       const exchangeDetailsBefore = await fixedRateExchange.getExchange(
         eventsExchange[0].args.exchangeId
       );
@@ -4888,26 +4850,36 @@ describe("FixedRateExchange", () => {
       expect(exchangeDetailsBefore.btBalance).to.equal(
         web3.utils.toWei("2000")
       );
-
-      const btAliceBeforeSwap = await daiContract.balanceOf(alice.address);
-
-
-      // only exchange owner can withdraw
-      await expectRevert(
-        fixedRateExchange.collectBT(eventsExchange[0].args.exchangeId),
-        "FixedRateExchange: invalid exchange owner"
+      
+      expect(exchangeDetailsBefore.toPaymentCollector).to.equal(
+        false
       );
 
-      const receipt = await (
+      //set payment collector
+      let receipt = await (await fixedRateExchange
+        .connect(alice)
+        .setToPaymentCollector(eventsExchange[0].args.exchangeId,true)
+      ).wait();
+      
+      datatoken = await ethers.getContractAt(
+        "contracts/interfaces/IERC20Template.sol:IERC20Template",
+        exchangeDetailsBefore.datatoken
+      );
+        const paymentCollector = datatoken.getPaymentCollector()
+    const btAliceBeforeSwap = await daiContract.balanceOf(paymentCollector);
+
+
+      receipt = await (
         await fixedRateExchange
           .connect(alice)
-          .collectBT(eventsExchange[0].args.exchangeId)
+          .collectBT(eventsExchange[0].args.exchangeId,exchangeDetailsBefore.btBalance)
       ).wait();
 
       const Event = receipt.events.filter((e) => e.event === "TokenCollected");
 
+      expect(Event[0].args.to==paymentCollector)
       expect(Event[0].args.amount.add(btAliceBeforeSwap)).to.equal(
-        await daiContract.balanceOf(alice.address)
+        await daiContract.balanceOf(paymentCollector)
       );
 
       const exchangeDetailsAfter = await fixedRateExchange.getExchange(
@@ -5391,7 +5363,7 @@ describe("FixedRateExchange", () => {
           .createFixedRate(
             fixedRateExchange.address,
             [oceanContract.address, alice.address, marketFeeCollector.address, ZERO_ADDRESS],
-            [18, 18, rate, marketFee, 1]
+            [18, 18, rate, marketFee, 1, 0]
             // 18,
             // rate,
             // alice.address,

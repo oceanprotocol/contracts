@@ -1271,7 +1271,7 @@ describe("ERC721Factory", () => {
 
         "fixedPriceAddress":fixedRateExchange.address,
         "addresses":[erc20TokenWithPublishFee.address,user3.address,user6.address, ZERO_ADDRESS],
-        "uints":[18,18,rate,marketFee,0]
+        "uints":[18,18,rate,marketFee,0, 0]
        
       }
       );
