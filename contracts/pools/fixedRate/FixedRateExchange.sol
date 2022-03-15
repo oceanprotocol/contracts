@@ -46,6 +46,7 @@ contract FixedRateExchange is ReentrancyGuard {
         uint256 oceanFeeAvailable;
         bool withMint;
         address allowedSwapper;
+        bool toPaymentCollector;
     }
 
     // maps an exchangeId to an exchange
@@ -156,6 +157,10 @@ contract FixedRateExchange is ReentrancyGuard {
         address newMarketCollector,
         uint256 swapFee);
 
+    event CollectorChanged(
+        bytes32 indexed exchangeId,
+        bool toPaymentCollector);
+
     constructor(address _router, address _opcCollector) {
         require(_router != address(0), "FixedRateExchange: Wrong Router address");
         require(_opcCollector != address(0), "FixedRateExchange: Wrong OPC address");
@@ -193,13 +198,15 @@ contract FixedRateExchange is ReentrancyGuard {
      *                [2] - fixedRate
      *                [3] - marketFee
      *                [4] - withMint
+     *                [5] - owner if 0, DT.getPaymentCollector if 1
      */
     function createWithDecimals(
         address datatoken,
         address[] memory addresses, 
         uint256[] memory uints 
     ) external onlyRouter returns (bytes32 exchangeId) {
-       
+       require(uints.length >=6, 'Invalid uints length');
+       require(addresses.length >=4, 'Invalid addresses length');
         require(
             addresses[0] != address(0),
             "FixedRateExchange: Invalid baseToken,  zero address"
@@ -223,6 +230,8 @@ contract FixedRateExchange is ReentrancyGuard {
         );
         bool withMint=true;
         if(uints[4] == 0) withMint = false;
+        bool toCollector = true;
+        if(uints[5] == 0) toCollector = false;
         exchanges[exchangeId] = Exchange({
             active: true,
             exchangeOwner: addresses[1],
@@ -238,7 +247,8 @@ contract FixedRateExchange is ReentrancyGuard {
             marketFeeAvailable: 0,
             oceanFeeAvailable: 0,
             withMint: withMint,
-            allowedSwapper: addresses[3]
+            allowedSwapper: addresses[3],
+            toPaymentCollector: toCollector
         });
         require(uints[3] ==0 || uints[3] >= MIN_FEE,'SwapFee too low');
         require(uints[3] <= MAX_FEE,'SwapFee too high');
@@ -581,46 +591,76 @@ contract FixedRateExchange is ReentrancyGuard {
         );
     }
 
-    function collectBT(bytes32 exchangeId)
+    /**
+     * @dev collectBT
+     *      Collects and send basetokens.
+     *      This function can be called by anyone, because fees are being sent to either owner or PaymentCollector
+     */
+    function collectBT(bytes32 exchangeId, uint256 amount)
         external
-        onlyExchangeOwner(exchangeId)
         nonReentrant
     {
-        uint256 amount = exchanges[exchangeId].btBalance;
-        exchanges[exchangeId].btBalance = 0;
-        IERC20(exchanges[exchangeId].baseToken).safeTransfer(
-            exchanges[exchangeId].exchangeOwner,
-            amount
-        );
-
+        require(amount <= exchanges[exchangeId].btBalance);
+        address destination = exchanges[exchangeId].exchangeOwner;
+        if(exchanges[exchangeId].toPaymentCollector)
+            destination = IERC20Template(exchanges[exchangeId].datatoken).getPaymentCollector();
+        exchanges[exchangeId].btBalance = exchanges[exchangeId].btBalance.sub(amount);
         emit TokenCollected(
             exchangeId,
-            exchanges[exchangeId].exchangeOwner,
+            destination,
             exchanges[exchangeId].baseToken,
             amount
         );
-    }
-
-    function collectDT(bytes32 exchangeId)
-        external
-        onlyExchangeOwner(exchangeId)
-        nonReentrant
-    {
-        uint256 amount = exchanges[exchangeId].dtBalance;
-        exchanges[exchangeId].dtBalance = 0;
-        IERC20(exchanges[exchangeId].datatoken).safeTransfer(
-            exchanges[exchangeId].exchangeOwner,
+        IERC20(exchanges[exchangeId].baseToken).safeTransfer(
+            destination,
             amount
         );
-
+    }
+    /**
+     * @dev collectDT
+     *      Collects and send datatokens.
+     *      This function can be called by anyone, because fees are being sent to either owner or PaymentCollector
+     */
+    function collectDT(bytes32 exchangeId, uint256 amount)
+        external
+        nonReentrant
+    {
+        require(amount <= exchanges[exchangeId].btBalance);
+        address destination = exchanges[exchangeId].exchangeOwner;
+        if(exchanges[exchangeId].toPaymentCollector)
+            destination = IERC20Template(exchanges[exchangeId].datatoken).getPaymentCollector();
+        exchanges[exchangeId].dtBalance = exchanges[exchangeId].dtBalance.sub(amount);
         emit TokenCollected(
             exchangeId,
-            exchanges[exchangeId].exchangeOwner,
+            destination,
             exchanges[exchangeId].datatoken,
             amount
         );
+        IERC20(exchanges[exchangeId].datatoken).safeTransfer(
+            destination,
+            amount
+        );
     }
 
+    /**
+     * @dev setToPaymentCollector
+     *      changes the collector to either owner or ERC20.getPaymentCollector
+     * @param exchangeId a unique exchange idnetifier
+     * @param toPaymentCollector if false, owner will received the tokens. Otherwise, it's ERC20.getPaymentCollector
+     */
+    function setToPaymentCollector(bytes32 exchangeId, bool toPaymentCollector)
+        external
+        onlyExchangeOwner(exchangeId)
+    {
+        exchanges[exchangeId].toPaymentCollector = toPaymentCollector;
+        emit CollectorChanged(exchangeId, toPaymentCollector);
+    }
+
+    /**
+     * @dev collectMarketFee
+     *      Collects and send publishingMarketFee.
+     *      This function can be called by anyone, because fees are being sent to exchanges.marketFeeCollector
+     */
     function collectMarketFee(bytes32 exchangeId) external nonReentrant {
         // anyone call call this function, because funds are sent to the correct address
         uint256 amount = exchanges[exchangeId].marketFeeAvailable;
@@ -636,6 +676,11 @@ contract FixedRateExchange is ReentrancyGuard {
         );
     }
 
+    /**
+     * @dev collectOceanFee
+     *      Collects and send OP Community fees.
+     *      This function can be called by anyone, because fees are being sent to opcCollector
+     */
     function collectOceanFee(bytes32 exchangeId) external nonReentrant {
         // anyone call call this function, because funds are sent to the correct address
         uint256 amount = exchanges[exchangeId].oceanFeeAvailable;
@@ -842,23 +887,24 @@ contract FixedRateExchange is ReentrancyGuard {
             uint256 btSupply,
             uint256 dtBalance,
             uint256 btBalance,
-            bool withMint
+            bool withMint,
+            bool toPaymentCollector
            // address allowedSwapper
         )
     {
-        Exchange memory exchange = exchanges[exchangeId];
-        exchangeOwner = exchange.exchangeOwner;
-        datatoken = exchange.datatoken;
-        dtDecimals = exchange.dtDecimals;
-        baseToken = exchange.baseToken;
-        btDecimals = exchange.btDecimals;
-        fixedRate = exchange.fixedRate;
-        active = exchange.active;
+        exchangeOwner = exchanges[exchangeId].exchangeOwner;
+        datatoken = exchanges[exchangeId].datatoken;
+        dtDecimals = exchanges[exchangeId].dtDecimals;
+        baseToken = exchanges[exchangeId].baseToken;
+        btDecimals = exchanges[exchangeId].btDecimals;
+        fixedRate = exchanges[exchangeId].fixedRate;
+        active = exchanges[exchangeId].active;
         dtSupply = getDTSupply(exchangeId);
         btSupply = getBTSupply(exchangeId);
-        dtBalance = exchange.dtBalance;
-        btBalance = exchange.btBalance;
-        withMint = exchange.withMint;
+        dtBalance = exchanges[exchangeId].dtBalance;
+        btBalance = exchanges[exchangeId].btBalance;
+        withMint = exchanges[exchangeId].withMint;
+        toPaymentCollector = exchanges[exchangeId].toPaymentCollector;
        // allowedSwapper = exchange.allowedSwapper;
     }
 
