@@ -282,7 +282,7 @@ contract Dispenser is ReentrancyGuard{
      *      can only be called by ERC20Template (datatoken). It will:
      *           - set the mapping to 0, deleting the dispenser
      */
-    function terminateDispenser(address datatoken) external {
+    function terminateDispenser(address datatoken) external nonReentrant{
         if(datatoken == msg.sender){
             if(datatokens[datatoken].owner!=address(0)){
                 if(IERC20Template(datatoken).isMinter(address(this))){

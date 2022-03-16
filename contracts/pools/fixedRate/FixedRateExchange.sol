@@ -604,6 +604,10 @@ contract FixedRateExchange is ReentrancyGuard {
     function collectBT(bytes32 exchangeId, uint256 amount) public
         nonReentrant
     {
+        _collectBT(exchangeId, amount);
+    }
+
+    function _collectBT(bytes32 exchangeId, uint256 amount) internal{
         require(amount <= exchanges[exchangeId].btBalance);
         address destination = exchanges[exchangeId].exchangeOwner;
         if(exchanges[exchangeId].toPaymentCollector)
@@ -628,6 +632,9 @@ contract FixedRateExchange is ReentrancyGuard {
     function collectDT(bytes32 exchangeId, uint256 amount) public
         nonReentrant
     {
+        _collectDT(exchangeId, amount);
+    }
+    function _collectDT(bytes32 exchangeId, uint256 amount) internal {
         require(amount <= exchanges[exchangeId].dtBalance);
         address destination = exchanges[exchangeId].exchangeOwner;
         if(exchanges[exchangeId].toPaymentCollector)
@@ -666,6 +673,10 @@ contract FixedRateExchange is ReentrancyGuard {
      */
     function collectMarketFee(bytes32 exchangeId) public nonReentrant {
         // anyone call call this function, because funds are sent to the correct address
+        _collectMarketFee(exchangeId);
+    }
+
+    function _collectMarketFee(bytes32 exchangeId) internal {
         uint256 amount = exchanges[exchangeId].marketFeeAvailable;
         exchanges[exchangeId].marketFeeAvailable = 0;
         IERC20(exchanges[exchangeId].baseToken).safeTransfer(
@@ -686,6 +697,10 @@ contract FixedRateExchange is ReentrancyGuard {
      */
     function collectOceanFee(bytes32 exchangeId) public nonReentrant {
         // anyone call call this function, because funds are sent to the correct address
+        _collectOceanFee(exchangeId);
+        
+    }
+    function _collectOceanFee(bytes32 exchangeId) internal {
         uint256 amount = exchanges[exchangeId].oceanFeeAvailable;
         exchanges[exchangeId].oceanFeeAvailable = 0;
         IERC20(exchanges[exchangeId].baseToken).safeTransfer(
@@ -1006,16 +1021,16 @@ contract FixedRateExchange is ReentrancyGuard {
      *           - set the mapping to 0, deleting the fixedrate
      * @param exchangeId a unique exchange idnetifier
      */
-    function terminateExchange(bytes32 exchangeId) external{
+    function terminateExchange(bytes32 exchangeId) external nonReentrant{
         if(exchanges[exchangeId].exchangeOwner!=address(0)){
             if(msg.sender == exchanges[exchangeId].datatoken){
                 //erc20 contract is calling this
                 if(exchanges[exchangeId].withMint==true){
                     //let transfer funds first
-                    collectBT(exchangeId, exchanges[exchangeId].btBalance);
-                    collectDT(exchangeId, exchanges[exchangeId].dtBalance);
-                    collectOceanFee(exchangeId);
-                    collectMarketFee(exchangeId);
+                    _collectBT(exchangeId, exchanges[exchangeId].btBalance);
+                    _collectDT(exchangeId, exchanges[exchangeId].dtBalance);
+                    _collectOceanFee(exchangeId);
+                    _collectMarketFee(exchangeId);
                     emit Terminated(exchangeId);
                     exchanges[exchangeId] = Exchange({
                         active: false,
