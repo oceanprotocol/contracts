@@ -9,7 +9,7 @@ import "@openzeppelin/contracts/utils/math/SafeMath.sol";
 
 import "../../utils/SafeERC20.sol";
 import "@openzeppelin/contracts/security/ReentrancyGuard.sol";
-import "hardhat/console.sol";
+
 contract Dispenser is ReentrancyGuard{
     using SafeMath for uint256;
     using SafeERC20 for IERC20;
