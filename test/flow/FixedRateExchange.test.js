@@ -21,6 +21,7 @@ describe("FixedRateExchange", () => {
   let alice, // DT Owner and exchange Owner
     exchangeOwner,
     bob, // baseToken Holder
+    charlie,
     fixedRateExchange,
     rate,
     MockERC20,
@@ -84,6 +85,7 @@ describe("FixedRateExchange", () => {
     alice = user3;
     exchangeOwner = user3;
     bob = user4;
+    charlie = user5;
 
     rate = web3.utils.toWei("1");
 
@@ -5431,6 +5433,39 @@ describe("FixedRateExchange", () => {
       expect(await oceanContract.balanceOf(alice.address)).to.equal(
         btAliceBeforeSwap
       );
+    });
+
+    it("#7 - When NFT is transfered, make sure that exchange is deleted", async () => {
+      let exchangeDetails = await fixedRateExchange.getExchange(eventsExchange[0].args.exchangeId);
+      let feesInfo = await fixedRateExchange.getFeesInfo(eventsExchange[0].args.exchangeId)
+      const opcAddress = await fixedRateExchange.opcCollector()
+      const btBalanceBefore = await oceanContract.balanceOf(exchangeDetails.exchangeOwner)
+      const dtBalanceBefore = await mockDT18.balanceOf(exchangeDetails.exchangeOwner)
+      const OPCBalanceBefore = await oceanContract.balanceOf(opcAddress)
+      const PublishMarketBalanceBefore = await oceanContract.balanceOf(feesInfo.marketFeeCollector)
+        const receipt = await ( await tokenERC721.transferFrom(owner.address, charlie.address, 1)).wait()
+        //check new onwer
+        assert(await tokenERC721.ownerOf(1) == charlie.address)
+
+        //make sure all funds in the exchange were transfered
+        expect(await oceanContract.balanceOf(exchangeDetails.exchangeOwner)).to.equal(
+          btBalanceBefore.add(exchangeDetails.btBalance)
+        );
+        expect(await mockDT18.balanceOf(exchangeDetails.exchangeOwner)).to.equal(
+          dtBalanceBefore.add(exchangeDetails.dtBalance)
+        );
+        expect(await oceanContract.balanceOf(opcAddress)).to.equal(
+          OPCBalanceBefore.add(feesInfo.oceanFeeAvailable)
+        );
+        expect(await oceanContract.balanceOf(feesInfo.marketFeeCollector)).to.equal(
+          PublishMarketBalanceBefore.add(feesInfo.marketFeeAvailable)
+        );
+        exchangeDetails = await fixedRateExchange.getExchange(
+          eventsExchange[0].args.exchangeId
+        );
+        assert(exchangeDetails.exchangeOwner == ZERO_ADDRESS)
+        assert(exchangeDetails.active == false)
+
     });
   });
 });

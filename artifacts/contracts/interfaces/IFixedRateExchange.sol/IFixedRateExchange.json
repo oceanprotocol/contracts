@@ -374,6 +374,19 @@
           "internalType": "bytes32",
           "name": "exchangeId",
           "type": "bytes32"
+        }
+      ],
+      "name": "terminateExchange",
+      "outputs": [],
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "bytes32",
+          "name": "exchangeId",
+          "type": "bytes32"
         },
         {
           "internalType": "uint256",
