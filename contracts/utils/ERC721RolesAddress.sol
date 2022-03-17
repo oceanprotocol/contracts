@@ -43,10 +43,12 @@ contract ERC721RolesAddress {
     );
 
     function addTo725StoreList(address _allowedAddress) public onlyManager {
-        Roles storage user = permissions[_allowedAddress];
-        user.store = true;
-        auth.push(_allowedAddress);
-        emit AddedTo725StoreList(_allowedAddress,msg.sender,block.timestamp,block.number);
+        if(_allowedAddress != address(0)){
+            Roles storage user = permissions[_allowedAddress];
+            user.store = true;
+            auth.push(_allowedAddress);
+            emit AddedTo725StoreList(_allowedAddress,msg.sender,block.timestamp,block.number);
+        }
     }
 
     function removeFrom725StoreList(address _allowedAddress) public {
@@ -77,10 +79,7 @@ contract ERC721RolesAddress {
         uint256 blockNumber
     );
     function addToCreateERC20List(address _allowedAddress) public onlyManager {
-        Roles storage user = permissions[_allowedAddress];
-        user.deployERC20 = true;
-        auth.push(_allowedAddress);
-        emit AddedToCreateERC20List(_allowedAddress,msg.sender,block.timestamp,block.number);
+        _addToCreateERC20List(_allowedAddress);
     }
 
     //it's only called internally, so is without checking onlyManager
@@ -119,17 +118,16 @@ contract ERC721RolesAddress {
         uint256 blockNumber
     );
     function addToMetadataList(address _allowedAddress) public onlyManager {
-        Roles storage user = permissions[_allowedAddress];
-        user.updateMetadata = true;
-        auth.push(_allowedAddress);
-        emit AddedToMetadataList(_allowedAddress,msg.sender,block.timestamp,block.number);
+        _addToMetadataList(_allowedAddress);
     }
     //it's only called internally, so is without checking onlyManager
     function _addToMetadataList(address _allowedAddress) internal {
-        Roles storage user = permissions[_allowedAddress];
-        user.updateMetadata = true;
-        auth.push(_allowedAddress);
-        emit AddedToMetadataList(_allowedAddress,msg.sender,block.timestamp,block.number);
+        if(_allowedAddress != address(0)){
+            Roles storage user = permissions[_allowedAddress];
+            user.updateMetadata = true;
+            auth.push(_allowedAddress);
+            emit AddedToMetadataList(_allowedAddress,msg.sender,block.timestamp,block.number);
+        }
     }
 
     function removeFromMetadataList(address _allowedAddress)
@@ -160,10 +158,12 @@ contract ERC721RolesAddress {
         uint256 blockNumber
     );
     function _addManager(address _managerAddress) internal {
-        Roles storage user = permissions[_managerAddress];
-        user.manager = true;
-        auth.push(_managerAddress);
-        emit AddedManager(_managerAddress,msg.sender,block.timestamp,block.number);
+        if(_managerAddress != address(0)){
+            Roles storage user = permissions[_managerAddress];
+            user.manager = true;
+            auth.push(_managerAddress);
+            emit AddedManager(_managerAddress,msg.sender,block.timestamp,block.number);
+        }
     }
 
     function _removeManager(address _managerAddress) internal {

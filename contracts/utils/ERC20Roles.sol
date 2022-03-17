@@ -33,11 +33,13 @@ contract ERC20Roles {
     }
 
     function _addMinter(address _minter) internal {
-        RolesERC20 storage user = permissions[_minter];
-        require(user.minter == false, "ERC20Roles:  ALREADY A MINTER");
-        user.minter = true;
-        authERC20.push(_minter);
-        emit AddedMinter(_minter,msg.sender,block.timestamp,block.number);
+        if(_minter != address(0)){
+            RolesERC20 storage user = permissions[_minter];
+            require(user.minter == false, "ERC20Roles:  ALREADY A MINTER");
+            user.minter = true;
+            authERC20.push(_minter);
+            emit AddedMinter(_minter,msg.sender,block.timestamp,block.number);
+        }
     }
 
     function _removeMinter(address _minter) internal {
@@ -59,11 +61,13 @@ contract ERC20Roles {
         uint256 blockNumber
     );
     function _addPaymentManager(address _paymentCollector) internal {
-        RolesERC20 storage user = permissions[_paymentCollector];
-        require(user.paymentManager == false, "ERC20Roles:  ALREADY A FEE MANAGER");
-        user.paymentManager = true;
-        authERC20.push(_paymentCollector);
-        emit AddedPaymentManager(_paymentCollector,msg.sender,block.timestamp,block.number);
+        if(_paymentCollector != address(0)){
+            RolesERC20 storage user = permissions[_paymentCollector];
+            require(user.paymentManager == false, "ERC20Roles:  ALREADY A FEE MANAGER");
+            user.paymentManager = true;
+            authERC20.push(_paymentCollector);
+            emit AddedPaymentManager(_paymentCollector,msg.sender,block.timestamp,block.number);
+        }
     }
 
     function _removePaymentManager(address _paymentCollector) internal {
@@ -96,4 +100,6 @@ contract ERC20Roles {
         emit CleanedPermissions(msg.sender,block.timestamp,block.number);
         
     }
+
+    
 }
