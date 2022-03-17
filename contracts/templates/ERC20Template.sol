@@ -44,7 +44,7 @@ contract ERC20Template is
     address private publishMarketFeeAddress;
     address private publishMarketFeeToken;
     uint256 private publishMarketFeeAmount;
-    uint256 public constant BASE = 10**18;
+    uint256 public constant BASE = 1e18;
     
     // EIP 2612 SUPPORT
     bytes32 public DOMAIN_SEPARATOR;

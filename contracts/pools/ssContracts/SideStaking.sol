@@ -62,7 +62,7 @@ contract SideStaking is ReentrancyGuard {
     }
 
     mapping(address => Record) private _datatokens;
-    uint256 private constant BASE = 10**18;
+    uint256 private constant BASE = 1e18;
 
     modifier onlyRouter() {
         require(msg.sender == router, "ONLY ROUTER");
