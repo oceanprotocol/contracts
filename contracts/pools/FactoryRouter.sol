@@ -140,10 +140,7 @@ contract FactoryRouter is BFactory {
             if(approvedTokens[i] == tokenAddress) break;
         }
         if(i < approvedTokens.length){
-            // it's in the array
-            for (uint c = i; c < approvedTokens.length - 1; c++) {
-                    approvedTokens[c] = approvedTokens[c + 1];
-            }
+            approvedTokens[i] = approvedTokens[approvedTokens.length -1];
             approvedTokens.pop();
             emit TokenRemoved(msg.sender, tokenAddress);
         }
@@ -201,9 +198,7 @@ contract FactoryRouter is BFactory {
         }
         if(i < ssContracts.length){
             // it's in the array
-            for (uint c = i; c < ssContracts.length - 1; c++) {
-                    ssContracts[c] = ssContracts[c + 1];
-            }
+            ssContracts[i] = ssContracts[ssContracts.length -1];
             ssContracts.pop();
             emit SSContractRemoved(msg.sender, _ssContract);
         }
@@ -273,9 +268,7 @@ contract FactoryRouter is BFactory {
         }
         if(i < fixedrates.length){
             // it's in the array
-            for (uint c = i; c < fixedrates.length - 1; c++) {
-                    fixedrates[c] = fixedrates[c + 1];
-            }
+            fixedrates[i] = fixedrates[fixedrates.length -1];
             fixedrates.pop();
             emit FixedRateContractRemoved(msg.sender, _fixedRate);
         }
@@ -334,9 +327,7 @@ contract FactoryRouter is BFactory {
         }
         if(i < dispensers.length){
             // it's in the array
-            for (uint c = i; c < dispensers.length - 1; c++) {
-                    dispensers[c] = dispensers[c + 1];
-            }
+            dispensers[i] = dispensers[dispensers.length -1];
             dispensers.pop();
             emit DispenserContractRemoved(msg.sender, _dispenser);
         }
