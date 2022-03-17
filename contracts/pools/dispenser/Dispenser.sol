@@ -58,6 +58,8 @@ contract Dispenser is ReentrancyGuard{
         uint256 amount
     );
 
+    event Terminated(address datatoken);
+
     modifier onlyRouter() {
         require(msg.sender == router, "Dispenser: only router");
         _;
@@ -263,11 +265,45 @@ contract Dispenser is ReentrancyGuard{
             datatokens[datatoken].owner == msg.sender,
             'Invalid owner'
         );
+        _ownerWithdraw(datatoken);
+    }
+
+    function _ownerWithdraw(address datatoken) internal{
         IERC20Template tokenInstance = IERC20Template(datatoken);
         uint256 ourBalance = tokenInstance.balanceOf(address(this));
         if(ourBalance>0){
-            IERC20(datatoken).safeTransfer(msg.sender,ourBalance);
-            emit OwnerWithdrawed(datatoken, msg.sender, ourBalance);
+            IERC20(datatoken).safeTransfer(datatokens[datatoken].owner,ourBalance);
+            emit OwnerWithdrawed(datatoken, datatokens[datatoken].owner, ourBalance);
+        }
+    }
+
+    /**
+     * @dev terminateDispenser
+     *      can only be called by ERC20Template (datatoken). It will:
+     *           - set the mapping to 0, deleting the dispenser
+     */
+    function terminateDispenser(address datatoken) external nonReentrant{
+        if(datatoken == msg.sender){
+            if(datatokens[datatoken].owner!=address(0)){
+                if(IERC20Template(datatoken).isMinter(address(this))){
+                    _ownerWithdraw(datatoken);
+                    datatokens[datatoken].active = false;
+                    datatokens[datatoken].owner = address(0);
+                    datatokens[datatoken].maxTokens = 0;
+                    datatokens[datatoken].maxBalance = 0;
+                    datatokens[datatoken].allowedSwapper = address(0);
+                    //remote datatoken from list
+                    uint256 i;
+                    for (i = 0; i < datatokensList.length; i++) {
+                        if(datatokensList[i] == datatoken) break;
+                    }
+                    if(i < datatokensList.length){
+                        datatokensList[i] = datatokensList[datatokensList.length -1];
+                        datatokensList.pop();
+                    }
+                    emit Terminated(datatoken);
+                }
+            }
         }
     }
 }

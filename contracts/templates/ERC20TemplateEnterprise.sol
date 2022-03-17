@@ -629,6 +629,8 @@ contract ERC20TemplateEnterprise is
      */
 
     function cleanPermissions() external onlyNFTOwner {
+        _terminateAllMintFixedRates();
+        _terminateAllMintDispensers();
         _cleanPermissions();
         paymentCollector = address(0);
     }
@@ -646,8 +648,36 @@ contract ERC20TemplateEnterprise is
             msg.sender == _erc721Address,
             "ERC20Template: NOT 721 Contract"
         );
+        _terminateAllMintFixedRates();
+        _terminateAllMintDispensers();
         _cleanPermissions();
         paymentCollector = address(0);
+        
+    }
+
+
+    function terminateAllMintFixedRates() external onlyNFTOwner{
+        _terminateAllMintFixedRates();
+    }
+
+    function _terminateAllMintFixedRates() internal {
+            // loop though all fixedrates and terminate all with mint rights for this datatoken
+            uint256 i;
+            for(i=0; i<fixedRateExchanges.length; i++) {
+                IFixedRateExchange(fixedRateExchanges[i].contractAddress).terminateExchange(fixedRateExchanges[i].id);
+            }
+    }
+
+    function terminateAllMintDispensers() external onlyNFTOwner{
+        _terminateAllMintDispensers();
+    }
+
+    function _terminateAllMintDispensers() internal {
+            // loop though all dispensers and terminate all with mint rights for this datatoken
+            uint256 i;
+            for(i=0; i<dispensers.length; i++) {
+                IDispenser(dispensers[i]).terminateDispenser(address(this));
+            }
     }
 
     /**
