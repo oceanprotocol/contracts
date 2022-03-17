@@ -630,10 +630,6 @@ describe("ERC20TemplateEnterprise", () => {
     );
 
     assert(
-      (await erc20Token.balanceOf(opcCollector.address)) ==
-      web3.utils.toWei("0.03"), 'Invalid OPF balance, we should get 0.03 DTs'
-    );
-    assert(
       (await erc20Token.balanceOf(user3.address)) == web3.utils.toWei("0"), 'Invalid consumeFee, we should have DT as fee'
     );
     assert(
@@ -708,10 +704,6 @@ describe("ERC20TemplateEnterprise", () => {
       (await erc20Token.balanceOf(user2.address)) == web3.utils.toWei("9"), 'Invalid user balance, DT was not substracted'
     );
 
-    assert(
-      (await erc20Token.balanceOf(opcCollector.address)) ==
-      web3.utils.toWei("0.03"), 'Invalid OPF balance, we should get 0.03 DTs'
-    );
     assert(
       (await erc20Token.balanceOf(user3.address)) == web3.utils.toWei("0"), 'Invalid consumeFee, we should have DT as fee'
     );
@@ -823,10 +815,6 @@ describe("ERC20TemplateEnterprise", () => {
       (await erc20Token.balanceOf(user2.address)) == web3.utils.toWei("9"), 'Invalid user balance, DT was not substracted'
     );
 
-    assert(
-      (await erc20Token.balanceOf(opcCollector.address)) ==
-      web3.utils.toWei("0.03"), 'Invalid OPF balance, we should get 0.03 DTs'
-    );
     assert(
       (await erc20Token.balanceOf(user3.address)) == web3.utils.toWei("0"), 'Invalid consumeFee, we should have DT as fee'
     );
@@ -1006,10 +994,6 @@ describe("ERC20TemplateEnterprise", () => {
     );
 
     assert(
-      (await erc20TokenWithPublishFee.balanceOf(opcCollector.address)) ==
-      web3.utils.toWei("0.03"), 'Invalid OPF balance, we should get 0.03 DTs'
-    );
-    assert(
       (await erc20TokenWithPublishFee.balanceOf(user3.address)) == web3.utils.toWei("0"), 'Invalid consumeFee, we should have DT as fee'
     );
     assert(
@@ -1110,10 +1094,6 @@ describe("ERC20TemplateEnterprise", () => {
       (await erc20TokenWithPublishFee.balanceOf(user2.address)) == web3.utils.toWei("9"), 'Invalid user balance, DT was not substracted'
     );
 
-    assert(
-      (await erc20TokenWithPublishFee.balanceOf(opcCollector.address)) ==
-      web3.utils.toWei("0.03"), 'Invalid OPF balance, we should get 0.03 DTs'
-    );
     assert(
       (await erc20TokenWithPublishFee.balanceOf(user3.address)) == web3.utils.toWei("0"), 'Invalid consumeFee, we should have DT as fee'
     );
@@ -1304,7 +1284,7 @@ describe("ERC20TemplateEnterprise", () => {
       'buyFromDispenserAndOrder failed')
     txReceipt = await tx.wait();
 
-    assert(await EnterpriseToken.totalSupply() == web3.utils.toWei('0.03'), "Invalid Total Supply")
+    assert(await EnterpriseToken.totalSupply() == web3.utils.toWei('0'), "Invalid Total Supply")
     
   
   
@@ -1322,10 +1302,6 @@ describe("ERC20TemplateEnterprise", () => {
       (await EnterpriseToken.balanceOf(user3.address)) == web3.utils.toWei("0")
     );
 
-    assert(
-      (await EnterpriseToken.balanceOf(opcCollector.address)) ==
-        web3.utils.toWei("0.03"), 'Invalid OPF balance, we should get 0.03 DTs'
-    );
     assert(
       (await EnterpriseToken.balanceOf(await EnterpriseToken.getPaymentCollector())) ==
       web3.utils.toWei("0"), 'Invalid publisher reward, we should have burned the DT'
@@ -1457,7 +1433,7 @@ describe("ERC20TemplateEnterprise", () => {
     assert(tx,
       'buyFromFreAndOrder failed')
     txReceipt = await tx.wait();
-    assert(await EnterpriseToken.totalSupply() == web3.utils.toWei('0.03'), "Invalid Total Supply")
+    assert(await EnterpriseToken.totalSupply() == web3.utils.toWei('0'), "Invalid Total Supply")
 
     
    
@@ -1476,10 +1452,6 @@ describe("ERC20TemplateEnterprise", () => {
       (await EnterpriseToken.balanceOf(user3.address)) == web3.utils.toWei("0")
     );
 
-    assert(
-      (await EnterpriseToken.balanceOf(opcCollector.address)) ==
-        web3.utils.toWei("0.03"), 'Invalid OPF balance, we should get 0.03 DTs'
-    );
     assert(
       (await EnterpriseToken.balanceOf(await EnterpriseToken.getPaymentCollector())) ==
       web3.utils.toWei("0"), 'Invalid publisher reward, we should have burned the DT'
@@ -1610,7 +1582,7 @@ describe("ERC20TemplateEnterprise", () => {
     assert(tx,
       'buyFromFreAndOrder failed')
     txReceipt = await tx.wait();
-    assert(await EnterpriseToken.totalSupply() == web3.utils.toWei('0.03'), "Invalid Total Supply")
+    assert(await EnterpriseToken.totalSupply() == web3.utils.toWei('0'), "Invalid Total Supply")
 
     
 

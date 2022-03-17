@@ -47,7 +47,7 @@ contract ERC20TemplateEnterprise is
     address private publishMarketFeeToken;
     uint256 private publishMarketFeeAmount;
     
-    uint256 public constant BASE = 10**18;
+    uint256 public constant BASE = 1e18;
     
 
     // EIP 2612 SUPPORT
@@ -529,13 +529,7 @@ contract ERC20TemplateEnterprise is
 
         checkProviderFee(_providerFee);
         
-        // instead of sending datatoken to publisher, we burn them
-        uint256 OPCFee = IFactoryRouter(router).getOPCConsumeFee();
-        burn(amount.sub(OPCFee));
-        require(
-            transfer(_communityFeeCollector, OPCFee),
-            "Failed to send DT to OPC"
-        );
+        burn(amount);
     }
 
     /**
