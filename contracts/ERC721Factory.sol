@@ -298,7 +298,7 @@ contract ERC721Factory is Deployer, Ownable, ReentrancyGuard {
      *                      [1] = symbol
      * @param addresses refers to an array of addresses
      *                     [0]  = minter account who can mint datatokens (can have multiple minters)
-     *                     [1]  = feeManager initial feeManager for this DT
+     *                     [1]  = paymentCollector  initial paymentCollector  for this DT
      *                     [2]  = publishing Market Address
      *                     [3]  = publishing Market Fee Token
      * @param uints  refers to an array of uints
