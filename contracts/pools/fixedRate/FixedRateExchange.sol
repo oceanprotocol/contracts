@@ -64,8 +64,12 @@ contract FixedRateExchange is ReentrancyGuard {
     }
 
     modifier onlyExchangeOwner(bytes32 exchangeId) {
+        // allow only ERC20 Deployers of NFT Owner
+        IERC20Template dt = IERC20Template(exchanges[exchangeId].datatoken);
         require(
-            exchanges[exchangeId].exchangeOwner == msg.sender,
+            dt.isERC20Deployer(msg.sender) || 
+            IERC721Template(dt.getERC721Address()).ownerOf(1) == msg.sender
+            ,
             "FixedRateExchange: invalid exchange owner"
         );
         _;
@@ -228,7 +232,7 @@ contract FixedRateExchange is ReentrancyGuard {
             uints[2] >= MIN_RATE,
             "FixedRateExchange: Invalid exchange rate value"
         );
-        exchangeId = generateExchangeId(addresses[0], datatoken, addresses[1]);
+        exchangeId = generateExchangeId(addresses[0], datatoken);
         require(
             exchanges[exchangeId].fixedRate == 0,
             "FixedRateExchange: Exchange already exists!"
@@ -277,14 +281,13 @@ contract FixedRateExchange is ReentrancyGuard {
      *      creates unique exchange identifier for two token pairs.
      * @param baseToken refers to a base token contract address
      * @param datatoken refers to a datatoken contract address
-     * @param exchangeOwner exchange owner address
      */
     function generateExchangeId(
         address baseToken,
-        address datatoken,
-        address exchangeOwner
+        address datatoken
     ) public pure returns (bytes32) {
-        return keccak256(abi.encode(baseToken, datatoken, exchangeOwner));
+        //make sure that there can only be one exchange for a given pair (datatoken <-> basetoken)
+        return keccak256(abi.encode(baseToken, datatoken));
     }
 
     struct Fees{

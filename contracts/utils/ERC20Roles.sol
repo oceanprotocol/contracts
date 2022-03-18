@@ -38,6 +38,16 @@ contract ERC20Roles {
     }
 
     /**
+     * @dev isMinter
+     *      Check if an address has the minter role
+     * @param account refers to an address that is checked
+     */
+    function isMinter(address account) external view returns (bool) {
+        return (permissions[account].minter);
+    }
+
+    
+    /**
     * @dev _addMinter
     *      Internal function to add minter role to an user.
     * @param _minter user address

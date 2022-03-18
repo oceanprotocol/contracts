@@ -193,7 +193,7 @@ contract ERC20Template is
         require(
             IERC721Template(_erc721Address)
                 .getPermissions(msg.sender)
-                .deployERC20,
+                .deployERC20 || IERC721Template(_erc721Address).ownerOf(1) == msg.sender,
             "ERC20Template: NOT DEPLOYER ROLE"
         );
         _;
@@ -445,15 +445,6 @@ contract ERC20Template is
             "DatatokenTemplate: cap exceeded"
         );
         _mint(account, value);
-    }
-
-    /**
-     * @dev isMinter
-     *      Check if an address has the minter role
-     * @param account refers to an address that is checked
-     */
-    function isMinter(address account) external view returns (bool) {
-        return (permissions[account].minter);
     }
 
     
@@ -755,9 +746,8 @@ contract ERC20Template is
         //we allow _newPaymentCollector = address(0), because it means that the collector is nft owner
         require(
             permissions[msg.sender].paymentManager ||
-                IERC721Template(_erc721Address)
-                    .getPermissions(msg.sender)
-                    .deployERC20,
+                IERC721Template(_erc721Address).getPermissions(msg.sender).deployERC20 ||
+                IERC721Template(_erc721Address).ownerOf(1)==msg.sender,
             "ERC20Template: NOT PAYMENT MANAGER or OWNER"
         );
         _setPaymentCollector(_newPaymentCollector);

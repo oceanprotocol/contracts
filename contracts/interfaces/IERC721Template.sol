@@ -9,6 +9,13 @@ pragma solidity 0.8.12;
  * @dev Required interface of an ERC721 compliant contract.
  */
 interface IERC721Template {
+    
+    enum RolesType {
+        Manager,
+        DeployERC20,
+        UpdateMetadata,
+        Store
+    }
     /**
      * @dev Emitted when `tokenId` token is transferred from `from` to `to`.
      */

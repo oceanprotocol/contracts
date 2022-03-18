@@ -499,11 +499,12 @@ contract ERC721Template is
      *      This function allows to remove all ROLES at erc721 level: 
      *              Managers, ERC20Deployer, MetadataUpdater, StoreUpdater
      *      Permissions at erc20 level stay.
-     *       Even NFT Owner has to readd himself as Manager
      */
     
     function cleanPermissions() external onlyNFTOwner {
         _cleanPermissions();
+        //make sure that owner still has permissions
+        _addManager(ownerOf(1));
     }
 
 
