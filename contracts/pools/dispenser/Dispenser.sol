@@ -5,6 +5,7 @@ pragma solidity 0.8.12;
 
 import "../../interfaces/IERC20.sol";
 import "../../interfaces/IERC20Template.sol";
+import "../../interfaces/IERC721Template.sol";
 import "@openzeppelin/contracts/utils/math/SafeMath.sol";
 
 import "../../utils/SafeERC20.sol";
@@ -65,6 +66,23 @@ contract Dispenser is ReentrancyGuard{
         _;
     }
 
+    modifier onlyOwner(address datatoken) {
+        // allow only ERC20 Deployers or NFT Owner
+        require(
+            datatoken != address(0),
+            'Invalid token contract address'
+        );
+        IERC20Template dt = IERC20Template(datatoken);
+        require(
+            dt.isERC20Deployer(msg.sender) || 
+            IERC721Template(dt.getERC721Address()).ownerOf(1) == msg.sender
+            ,
+            "Invalid owner"
+        );
+        _;
+    }
+
+    
     constructor(address _router) {
         require(_router != address(0), "Dispenser: Wrong Router address");
         router = _router;
@@ -144,14 +162,7 @@ contract Dispenser is ReentrancyGuard{
      * @param maxBalance - max balance of requester.
      */
     function activate(address datatoken,uint256 maxTokens, uint256 maxBalance)
-        external {
-        require(
-            datatoken != address(0),
-            'Invalid token contract address'
-        );
-        require(
-            datatokens[datatoken].owner == msg.sender, 'Invalid owner'
-        );
+        external onlyOwner(datatoken){
         datatokens[datatoken].active = true;
         datatokens[datatoken].maxTokens = maxTokens;
         datatokens[datatoken].maxBalance = maxBalance;
@@ -164,15 +175,7 @@ contract Dispenser is ReentrancyGuard{
      *      Deactivate an existing dispenser
      * @param datatoken refers to datatoken address.
      */
-    function deactivate(address datatoken) external{
-        require(
-            datatoken != address(0),
-            'Invalid token contract address'
-        );
-        require(
-            datatokens[datatoken].owner == msg.sender,
-            'Datatoken already activated'
-        );
+    function deactivate(address datatoken) external onlyOwner(datatoken){
         datatokens[datatoken].active = false;
         emit DispenserDeactivated(datatoken);
     }
@@ -183,15 +186,7 @@ contract Dispenser is ReentrancyGuard{
      * @param datatoken refers to datatoken address.
      * @param newAllowedSwapper refers to the new allowedSwapper
      */
-    function setAllowedSwapper(address datatoken, address newAllowedSwapper) external{
-        require(
-            datatoken != address(0),
-            'Invalid token contract address'
-        );
-        require(
-            datatokens[datatoken].owner == msg.sender,
-            'DataToken already activated'
-        );
+    function setAllowedSwapper(address datatoken, address newAllowedSwapper) external onlyOwner(datatoken){
         datatokens[datatoken].allowedSwapper= newAllowedSwapper;
         emit DispenserAllowedSwapperChanged(datatoken, newAllowedSwapper);
     }
@@ -253,7 +248,7 @@ contract Dispenser is ReentrancyGuard{
 
     /**
      * @dev ownerWithdraw
-     *      Allow owner to withdraw all datatokens in this dispenser balance
+     *      Withdraw all datatokens in this dispenser balance to ERC20.getPaymentCollector()
      * @param datatoken refers to datatoken address.
      */
     function ownerWithdraw(address datatoken) external nonReentrant {
@@ -261,49 +256,16 @@ contract Dispenser is ReentrancyGuard{
             datatoken != address(0),
             'Invalid token contract address'
         );
-        require(
-            datatokens[datatoken].owner == msg.sender,
-            'Invalid owner'
-        );
         _ownerWithdraw(datatoken);
     }
 
     function _ownerWithdraw(address datatoken) internal{
         IERC20Template tokenInstance = IERC20Template(datatoken);
+        address destination = tokenInstance.getPaymentCollector();
         uint256 ourBalance = tokenInstance.balanceOf(address(this));
         if(ourBalance>0){
-            IERC20(datatoken).safeTransfer(datatokens[datatoken].owner,ourBalance);
-            emit OwnerWithdrawed(datatoken, datatokens[datatoken].owner, ourBalance);
-        }
-    }
-
-    /**
-     * @dev terminateDispenser
-     *      can only be called by ERC20Template (datatoken). It will:
-     *           - set the mapping to 0, deleting the dispenser
-     */
-    function terminateDispenser(address datatoken) external nonReentrant{
-        if(datatoken == msg.sender){
-            if(datatokens[datatoken].owner!=address(0)){
-                if(IERC20Template(datatoken).isMinter(address(this))){
-                    _ownerWithdraw(datatoken);
-                    datatokens[datatoken].active = false;
-                    datatokens[datatoken].owner = address(0);
-                    datatokens[datatoken].maxTokens = 0;
-                    datatokens[datatoken].maxBalance = 0;
-                    datatokens[datatoken].allowedSwapper = address(0);
-                    //remote datatoken from list
-                    uint256 i;
-                    for (i = 0; i < datatokensList.length; i++) {
-                        if(datatokensList[i] == datatoken) break;
-                    }
-                    if(i < datatokensList.length){
-                        datatokensList[i] = datatokensList[datatokensList.length -1];
-                        datatokensList.pop();
-                    }
-                    emit Terminated(datatoken);
-                }
-            }
+            IERC20(datatoken).safeTransfer(destination,ourBalance);
+            emit OwnerWithdrawed(datatoken, destination, ourBalance);
         }
     }
 }

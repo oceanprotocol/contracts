@@ -47,7 +47,6 @@ contract FixedRateExchange is ReentrancyGuard {
         uint256 oceanFeeAvailable;
         bool withMint;
         address allowedSwapper;
-        bool toPaymentCollector;
     }
 
     // maps an exchangeId to an exchange
@@ -64,7 +63,7 @@ contract FixedRateExchange is ReentrancyGuard {
     }
 
     modifier onlyExchangeOwner(bytes32 exchangeId) {
-        // allow only ERC20 Deployers of NFT Owner
+        // allow only ERC20 Deployers or NFT Owner
         IERC20Template dt = IERC20Template(exchanges[exchangeId].datatoken);
         require(
             dt.isERC20Deployer(msg.sender) || 
@@ -162,10 +161,7 @@ contract FixedRateExchange is ReentrancyGuard {
         address newMarketCollector,
         uint256 swapFee);
 
-    event CollectorChanged(
-        bytes32 indexed exchangeId,
-        bool toPaymentCollector);
-
+    
     event Terminated(
         bytes32 exchangeId
         );
@@ -207,14 +203,13 @@ contract FixedRateExchange is ReentrancyGuard {
      *                [2] - fixedRate
      *                [3] - marketFee
      *                [4] - withMint
-     *                [5] - owner if 0, DT.getPaymentCollector if 1
      */
     function createWithDecimals(
         address datatoken,
         address[] memory addresses, 
         uint256[] memory uints 
     ) external onlyRouter returns (bytes32 exchangeId) {
-       require(uints.length >=6, 'Invalid uints length');
+       require(uints.length >=5, 'Invalid uints length');
        require(addresses.length >=4, 'Invalid addresses length');
         require(
             addresses[0] != address(0),
@@ -239,8 +234,6 @@ contract FixedRateExchange is ReentrancyGuard {
         );
         bool withMint=true;
         if(uints[4] == 0) withMint = false;
-        bool toCollector = true;
-        if(uints[5] == 0) toCollector = false;
         exchanges[exchangeId] = Exchange({
             active: true,
             exchangeOwner: addresses[1],
@@ -256,8 +249,7 @@ contract FixedRateExchange is ReentrancyGuard {
             marketFeeAvailable: 0,
             oceanFeeAvailable: 0,
             withMint: withMint,
-            allowedSwapper: addresses[3],
-            toPaymentCollector: toCollector
+            allowedSwapper: addresses[3]
         });
         require(uints[3] ==0 || uints[3] >= MIN_FEE,'SwapFee too low');
         require(uints[3] <= MAX_FEE,'SwapFee too high');
@@ -602,7 +594,7 @@ contract FixedRateExchange is ReentrancyGuard {
     /**
      * @dev collectBT
      *      Collects and send basetokens.
-     *      This function can be called by anyone, because fees are being sent to either owner or PaymentCollector
+     *      This function can be called by anyone, because fees are being sent to ERC20.getPaymentCollector
      */
     function collectBT(bytes32 exchangeId, uint256 amount) public
         nonReentrant
@@ -612,9 +604,7 @@ contract FixedRateExchange is ReentrancyGuard {
 
     function _collectBT(bytes32 exchangeId, uint256 amount) internal{
         require(amount <= exchanges[exchangeId].btBalance);
-        address destination = exchanges[exchangeId].exchangeOwner;
-        if(exchanges[exchangeId].toPaymentCollector)
-            destination = IERC20Template(exchanges[exchangeId].datatoken).getPaymentCollector();
+        address destination = IERC20Template(exchanges[exchangeId].datatoken).getPaymentCollector();
         exchanges[exchangeId].btBalance = exchanges[exchangeId].btBalance.sub(amount);
         emit TokenCollected(
             exchangeId,
@@ -630,7 +620,7 @@ contract FixedRateExchange is ReentrancyGuard {
     /**
      * @dev collectDT
      *      Collects and send datatokens.
-     *      This function can be called by anyone, because fees are being sent to either owner or PaymentCollector
+     *      This function can be called by anyone, because fees are being sent to ERC20.getPaymentCollector
      */
     function collectDT(bytes32 exchangeId, uint256 amount) public
         nonReentrant
@@ -639,9 +629,7 @@ contract FixedRateExchange is ReentrancyGuard {
     }
     function _collectDT(bytes32 exchangeId, uint256 amount) internal {
         require(amount <= exchanges[exchangeId].dtBalance);
-        address destination = exchanges[exchangeId].exchangeOwner;
-        if(exchanges[exchangeId].toPaymentCollector)
-            destination = IERC20Template(exchanges[exchangeId].datatoken).getPaymentCollector();
+        address destination = IERC20Template(exchanges[exchangeId].datatoken).getPaymentCollector();
         exchanges[exchangeId].dtBalance = exchanges[exchangeId].dtBalance.sub(amount);
         emit TokenCollected(
             exchangeId,
@@ -653,20 +641,6 @@ contract FixedRateExchange is ReentrancyGuard {
             destination,
             amount
         );
-    }
-
-    /**
-     * @dev setToPaymentCollector
-     *      changes the collector to either owner or ERC20.getPaymentCollector
-     * @param exchangeId a unique exchange idnetifier
-     * @param toPaymentCollector if false, owner will received the tokens. Otherwise, it's ERC20.getPaymentCollector
-     */
-    function setToPaymentCollector(bytes32 exchangeId, bool toPaymentCollector)
-        external
-        onlyExchangeOwner(exchangeId)
-    {
-        exchanges[exchangeId].toPaymentCollector = toPaymentCollector;
-        emit CollectorChanged(exchangeId, toPaymentCollector);
     }
 
     /**
@@ -929,8 +903,7 @@ contract FixedRateExchange is ReentrancyGuard {
             uint256 btSupply,
             uint256 dtBalance,
             uint256 btBalance,
-            bool withMint,
-            bool toPaymentCollector
+            bool withMint
            // address allowedSwapper
         )
     {
@@ -946,8 +919,7 @@ contract FixedRateExchange is ReentrancyGuard {
         dtBalance = exchanges[exchangeId].dtBalance;
         btBalance = exchanges[exchangeId].btBalance;
         withMint = exchanges[exchangeId].withMint;
-        toPaymentCollector = exchanges[exchangeId].toPaymentCollector;
-       // allowedSwapper = exchange.allowedSwapper;
+        // allowedSwapper = exchange.allowedSwapper;
     }
 
     // /**
@@ -1015,47 +987,5 @@ contract FixedRateExchange is ReentrancyGuard {
         IERC20(erc20).safeTransferFrom(from, to, amount);
         require(IERC20(erc20).balanceOf(to) >= balanceBefore.add(amount),
                     "Transfer amount is too low");
-    }
-
-    /**
-     * @dev terminateExchange
-     *      can only be called by ERC20Template (datatoken). It will:
-     *           - transfer all datatokens, basetokens, marketFees, OPC Fees
-     *           - set the mapping to 0, deleting the fixedrate
-     * @param exchangeId a unique exchange idnetifier
-     */
-    function terminateExchange(bytes32 exchangeId) external nonReentrant{
-        if(exchanges[exchangeId].exchangeOwner!=address(0)){
-            if(msg.sender == exchanges[exchangeId].datatoken){
-                //erc20 contract is calling this
-                if(exchanges[exchangeId].withMint==true){
-                    //let transfer funds first
-                    _collectBT(exchangeId, exchanges[exchangeId].btBalance);
-                    _collectDT(exchangeId, exchanges[exchangeId].dtBalance);
-                    _collectOceanFee(exchangeId);
-                    _collectMarketFee(exchangeId);
-                    emit Terminated(exchangeId);
-                    exchanges[exchangeId] = Exchange({
-                        active: false,
-                        exchangeOwner: address(0),
-                        datatoken: address(0),
-                        baseToken: address(0),
-                        fixedRate: 0,
-                        dtDecimals: 0,
-                        btDecimals: 0,
-                        dtBalance: 0,
-                        btBalance: 0,
-                        marketFee: 0,
-                        marketFeeCollector: address(0),
-                        marketFeeAvailable: 0,
-                        oceanFeeAvailable: 0,
-                        withMint: false,
-                        allowedSwapper: address(0),
-                        toPaymentCollector: false
-                    });
-                }
-            }
-        }
-
     }
 }
