@@ -1,6 +1,6 @@
 {
   "name": "@oceanprotocol/contracts",
-  "version": "v1.0.0-alpha.22",
+  "version": "v1.0.0-alpha.23",
   "description": "Ocean Protocol Smartcontracts",
   "bugs": {
     "url": "https://github.com/oceanprotocol/contracts/issues"
@@ -27,6 +27,7 @@
     "test:full": "npx hardhat test test/unit/*/*.test.js test/flow/*.test.js ",
     "test:batch": "npx hardhat test test/flow/SwapBatch.test.js ",
     "test:fre": "npx hardhat test test/flow/FixedRateExchange.test.js ",
+    "test:dispenser": "npx hardhat test test/flow/Dispenser.test.js ",
     "test:ss": "npx hardhat test test/flow/SideStaking.test.js ",
     "test:pools": "npx hardhat test test/flow/SwapFees.test.js test/flow/SideStaking.test.js test/flow/Vesting.test.js",
     "test:debug": "npx hardhat test test/flow/Vesting.test.js ",
@@ -47,7 +48,7 @@
     "@nomiclabs/hardhat-waffle": "^2.0.1",
     "chai": "^4.3.4",
     "ethereum-waffle": "^3.4.0",
-    "ethers": "^5.6.0",
+    "ethers": "^5.6.1",
     "hardhat": "^2.7.0",
     "hardhat-gas-reporter": "^1.0.4",
     "solidity-coverage": "^0.7.17"
