@@ -613,8 +613,7 @@ contract ERC20TemplateEnterprise is
      */
 
     function cleanPermissions() external onlyNFTOwner {
-        _cleanPermissions();
-        paymentCollector = address(0);
+        _internalCleanPermissions();
     }
 
     /**
@@ -630,11 +629,57 @@ contract ERC20TemplateEnterprise is
             msg.sender == _erc721Address,
             "ERC20Template: NOT 721 Contract"
         );
-        _cleanPermissions();
-        paymentCollector = address(0);
+        _internalCleanPermissions();
         
     }
-
+    
+    function _internalCleanPermissions() internal {
+        uint256 totalLen = fixedRateExchanges.length + dispensers.length;
+        uint256 curentLen = 0;
+        address[] memory previousMinters=new address[](totalLen);
+        // loop though fixedrates, empty and preserve the minter rols if exists
+        uint256 i;
+        for(i=0; i<fixedRateExchanges.length; i++) {
+                IFixedRateExchange fre = IFixedRateExchange(fixedRateExchanges[i].contractAddress);
+                (
+                    ,
+                    ,
+                    ,
+                    ,
+                    ,
+                    ,
+                    ,
+                    ,
+                    uint256 dtBalance,
+                    uint256 btBalance,
+                    ,
+                ) = fre.getExchange(fixedRateExchanges[i].id);
+                fre.collectBT(fixedRateExchanges[i].id, btBalance);
+                fre.collectDT(fixedRateExchanges[i].id, dtBalance);
+                // add it to the list of minters
+                if(isMinter(fixedRateExchanges[i].contractAddress)){
+                    previousMinters[curentLen]=fixedRateExchanges[i].contractAddress;
+                    curentLen++;
+                }
+        }
+        // loop though dispenser and preserve the minter rols if exists
+        for(i=0; i<dispensers.length; i++) {
+                IDispenser(dispensers[i]).ownerWithdraw(address(this));
+                if(isMinter(dispensers[i])){
+                    previousMinters[curentLen]=dispensers[i];
+                    curentLen++;
+                }
+        }
+        // clear all permisions
+         _cleanPermissions();
+        // set collector to 0
+        paymentCollector = address(0);
+        // add existing minter roles for fixedrate & dispensers
+        for(i=0; i<curentLen; i++) {
+            _addMinter(previousMinters[i]);
+        }
+        
+    }
     /**
      * @dev setPaymentCollector
      *      Only feeManager can call it

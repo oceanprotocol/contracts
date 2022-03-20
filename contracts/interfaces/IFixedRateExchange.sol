@@ -70,5 +70,6 @@ interface IFixedRateExchange {
     function updateMarketFeeCollector(bytes32 exchangeId, address _newMarketCollector) external;
     function setAllowedSwapper(bytes32 exchangeId, address newAllowedSwapper) external;
     function getId() pure external returns (uint8);
-    function terminateExchange(bytes32 exchangeId) external;
+    function collectBT(bytes32 exchangeId, uint256 amount) external;
+    function collectDT(bytes32 exchangeId, uint256 amount) external;
 }
