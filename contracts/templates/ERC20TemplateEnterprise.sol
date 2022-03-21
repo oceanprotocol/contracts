@@ -650,14 +650,17 @@ contract ERC20TemplateEnterprise is
                     ,
                     ,
                     ,
+                    ,
                     uint256 dtBalance,
                     uint256 btBalance,
-                    ,
+                    bool withMint
                 ) = fre.getExchange(fixedRateExchanges[i].id);
-                fre.collectBT(fixedRateExchanges[i].id, btBalance);
-                fre.collectDT(fixedRateExchanges[i].id, dtBalance);
+                if(btBalance>0)
+                    fre.collectBT(fixedRateExchanges[i].id, btBalance);
+                if(dtBalance>0)
+                    fre.collectDT(fixedRateExchanges[i].id, dtBalance);
                 // add it to the list of minters
-                if(isMinter(fixedRateExchanges[i].contractAddress)){
+                if(isMinter(fixedRateExchanges[i].contractAddress) && withMint == true){
                     previousMinters[curentLen]=fixedRateExchanges[i].contractAddress;
                     curentLen++;
                 }

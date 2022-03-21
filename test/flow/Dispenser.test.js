@@ -310,7 +310,17 @@ describe("Dispenser", () => {
       assert(status.balance.eq(0), 'Balance > 0')
     })
 
-    
+    it("When NFT is transfered, make sure that dispenser is deleted", async () => {
+      let status = await dispenser.status(erc20Token.address)
+      assert(status.active == true)
+      const receipt = await ( await tokenERC721.transferFrom(owner.address, charlie.address, 1)).wait()
+      //check new onwer
+      assert(await tokenERC721.ownerOf(1) == charlie.address)
+      status = await dispenser.status(erc20Token.address)
+      assert(status.owner != ZERO_ADDRESS)
+      assert(status.active == true)
+
+    });
 
   });
 

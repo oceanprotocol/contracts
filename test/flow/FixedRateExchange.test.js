@@ -5242,6 +5242,25 @@ describe("FixedRateExchange", () => {
       );
     });
 
-    
+    it("#7 - When NFT is transfered, make sure that exchange is deleted", async () => {
+      let exchangeDetails = await fixedRateExchange.getExchange(eventsExchange[0].args.exchangeId);
+      let feesInfo = await fixedRateExchange.getFeesInfo(eventsExchange[0].args.exchangeId)
+      const opcAddress = await fixedRateExchange.opcCollector()
+      const tx = await tokenERC721.transferFrom(owner.address, charlie.address, 1)
+      await tx.wait()
+      //check new onwer
+      assert(await tokenERC721.ownerOf(1) == charlie.address)
+      //make sure all funds in the exchange were transfered
+      exchangeDetails = await fixedRateExchange.getExchange(
+          eventsExchange[0].args.exchangeId
+      );
+      assert(exchangeDetails.exchangeOwner != ZERO_ADDRESS)
+      assert(exchangeDetails.active == true)
+      assert(exchangeDetails.withMint == true)
+      const isMinter = await mockDT18.isMinter(fixedRateExchange.address)
+      assert(isMinter === true, "Exchange has no minting role!");
+
+    });
+
   });
 });
