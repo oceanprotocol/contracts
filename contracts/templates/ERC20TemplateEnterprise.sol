@@ -978,6 +978,7 @@ contract ERC20TemplateEnterprise is
         FreParams calldata _freParams
     ) external nonReentrant{
         // get exchange info
+        IFixedRateExchange fre=IFixedRateExchange(_freParams.exchangeContract);
         (
             ,
             address datatoken,
@@ -991,9 +992,7 @@ contract ERC20TemplateEnterprise is
             ,
             ,
 
-        ) = IFixedRateExchange(_freParams.exchangeContract).getExchange(
-                _freParams.exchangeId
-            );
+        ) = fre.getExchange(_freParams.exchangeId);
         require(
             datatoken == address(this),
             "This FixedRate is not providing this DT"
@@ -1005,8 +1004,7 @@ contract ERC20TemplateEnterprise is
             ,
             ,
 
-        ) = IFixedRateExchange(_freParams.exchangeContract)
-                .calcBaseInGivenOutDT(
+        ) = fre.calcBaseInGivenOutDT(
                     _freParams.exchangeId,
                     1e18,  // we always take 1 DT
                     _freParams.swapMarketFee
@@ -1026,7 +1024,7 @@ contract ERC20TemplateEnterprise is
             baseTokenAmount
         );
         //buy DT
-        IFixedRateExchange(_freParams.exchangeContract).buyDT(
+        fre.buyDT(
             _freParams.exchangeId,
             1e18, // we always take 1 dt
             baseTokenAmount,
@@ -1042,6 +1040,24 @@ contract ERC20TemplateEnterprise is
         //startOrder and burn it
         startOrder(_orderParams.consumer, _orderParams.serviceIndex,
         _orderParams._providerFee, _orderParams._consumeMarketFee);
+        // collect the basetoken from fixedrate and sent it
+        (
+                    ,
+                    ,
+                    ,
+                    ,
+                    ,
+                    ,
+                    ,
+                    ,
+                    ,
+                    uint256 dtBalance,
+                    uint256 btBalance,
+                    bool withMint
+        ) = fre.getExchange(_freParams.exchangeId);
+        if(btBalance>0)
+            fre.collectBT(_freParams.exchangeId, btBalance);
+                
     }
 
     /**
