@@ -67,9 +67,9 @@ async function main() {
       OceanTokenAddress = "0x5e8DCB2AfA23844bcc311B00Ad1A0C30025aADE9";
       OPFOwner = '0x58F76AE5BC7Fe80D2fb2781d92189e6eE6Eb8F76';
       routerOwner = OPFOwner;
-      gasLimit = 7500000;
-      gasPrice = ethers.utils.parseUnits('30', 'gwei')
-      sleepAmount = 2
+      gasLimit = 6000000;
+      gasPrice = ethers.utils.parseUnits('50', 'gwei')
+      sleepAmount = 1
       break;
     case 0x4:
       networkName = "rinkeby";
@@ -91,7 +91,7 @@ async function main() {
       OPFOwner = '0xd8992Ed72C445c35Cb4A2be468568Ed1079357c8';
       OceanTokenAddress = "0xF6410bf5d773C7a41ebFf972f38e7463FA242477";
       routerOwner = OPFOwner;
-      sleepAmount = 240
+      sleepAmount = 20
       break;
     case 2021000:
       networkName = "gaiaxtestnet";
@@ -104,9 +104,9 @@ async function main() {
       OPFOwner = '0x06100AB868206861a4D7936166A91668c2Ce1312'
       routerOwner = OPFOwner;
       OceanTokenAddress = "0xd8992Ed72C445c35Cb4A2be468568Ed1079357c8";
-      //gasLimit = 20000000
-      //gasPrice = ethers.utils.parseUnits('12', 'wei')
-      sleepAmount = 60
+      gasLimit = 20000000
+      gasPrice = ethers.utils.parseUnits('50', 'gwei')
+      sleepAmount = 2
       break;
     case 0x38:
       networkName = "bsc";
