@@ -161,10 +161,6 @@ contract FixedRateExchange is ReentrancyGuard {
         address newMarketCollector,
         uint256 swapFee);
 
-    
-    event Terminated(
-        bytes32 exchangeId
-        );
 
     constructor(address _router, address _opcCollector) {
         require(_router != address(0), "FixedRateExchange: Wrong Router address");
@@ -603,7 +599,7 @@ contract FixedRateExchange is ReentrancyGuard {
     }
 
     function _collectBT(bytes32 exchangeId, uint256 amount) internal{
-        require(amount <= exchanges[exchangeId].btBalance);
+        require(amount <= exchanges[exchangeId].btBalance, "Amount too high");
         address destination = IERC20Template(exchanges[exchangeId].datatoken).getPaymentCollector();
         exchanges[exchangeId].btBalance = exchanges[exchangeId].btBalance.sub(amount);
         emit TokenCollected(
@@ -628,7 +624,7 @@ contract FixedRateExchange is ReentrancyGuard {
         _collectDT(exchangeId, amount);
     }
     function _collectDT(bytes32 exchangeId, uint256 amount) internal {
-        require(amount <= exchanges[exchangeId].dtBalance);
+        require(amount <= exchanges[exchangeId].dtBalance, "Amount too high");
         address destination = IERC20Template(exchanges[exchangeId].datatoken).getPaymentCollector();
         exchanges[exchangeId].dtBalance = exchanges[exchangeId].dtBalance.sub(amount);
         emit TokenCollected(

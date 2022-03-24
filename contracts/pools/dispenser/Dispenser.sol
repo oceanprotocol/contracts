@@ -59,8 +59,6 @@ contract Dispenser is ReentrancyGuard{
         uint256 amount
     );
 
-    event Terminated(address datatoken);
-
     modifier onlyRouter() {
         require(msg.sender == router, "Dispenser: only router");
         _;
