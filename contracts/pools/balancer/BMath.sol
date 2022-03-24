@@ -338,8 +338,8 @@ contract BMath is BConst, BNum {
         //     ``` pAo == joinswap_ExternAmountIn(Ti, joinswap_PoolAmountOut(pAo, Ti)) ```
         //uint tAi = tAiAfterFee / (1 - (1-weightTi) * swapFee) ;
         
-        uint zar = bmul(bsub(BONE, normalizedWeight), _swapFee);
-        tokenAmountIn = bdiv(tokenAmountInAfterFee, bsub(BONE, zar));
+        //uint zar = bmul(bsub(BONE, normalizedWeight), _swapFee);
+        //tokenAmountIn = bdiv(tokenAmountInAfterFee, bsub(BONE, zar));
         return tokenAmountInAfterFee;
     }
 
