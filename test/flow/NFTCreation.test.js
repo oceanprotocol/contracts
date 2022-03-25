@@ -41,7 +41,7 @@ describe("NFT Creation, roles and erc20 deployments", () => {
       user3,
       user4,
       newOwner,
-      opfCollector
+      opcCollector
     ] = await ethers.getSigners();
 
     data = web3.utils.asciiToHex("SomeData");
@@ -55,7 +55,7 @@ describe("NFT Creation, roles and erc20 deployments", () => {
       owner.address,
       oceanAddress,
       poolTemplate.address,
-      opfCollector.address,
+      opcCollector.address,
       []
     );
 
@@ -88,6 +88,7 @@ describe("NFT Creation, roles and erc20 deployments", () => {
       "NFT",
       "NFTSYMBOL",
       1,
+      "0x0000000000000000000000000000000000000000",
       "0x0000000000000000000000000000000000000000",
       "https://oceanprotocol.com/nft/"
     );

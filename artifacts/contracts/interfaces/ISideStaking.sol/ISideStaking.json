@@ -11,11 +11,6 @@
           "type": "address"
         },
         {
-          "internalType": "address",
-          "name": "stakeToken",
-          "type": "address"
-        },
-        {
           "internalType": "uint256",
           "name": "amount",
           "type": "uint256"
@@ -31,11 +26,6 @@
         {
           "internalType": "address",
           "name": "datatokenAddress",
-          "type": "address"
-        },
-        {
-          "internalType": "address",
-          "name": "stakeToken",
           "type": "address"
         },
         {
@@ -62,11 +52,6 @@
           "type": "address"
         },
         {
-          "internalType": "address",
-          "name": "stakeToken",
-          "type": "address"
-        },
-        {
           "internalType": "uint256",
           "name": "amount",
           "type": "uint256"
@@ -88,11 +73,6 @@
         {
           "internalType": "address",
           "name": "datatokenAddress",
-          "type": "address"
-        },
-        {
-          "internalType": "address",
-          "name": "stakeToken",
           "type": "address"
         },
         {
@@ -139,7 +119,7 @@
           "type": "address"
         }
       ],
-      "name": "getBaseTokenBalance",
+      "name": "getDatatokenBalance",
       "outputs": [
         {
           "internalType": "uint256",
@@ -158,7 +138,7 @@
           "type": "address"
         }
       ],
-      "name": "getDataTokenBalance",
+      "name": "getDatatokenCirculatingSupply",
       "outputs": [
         {
           "internalType": "uint256",
@@ -170,22 +150,16 @@
       "type": "function"
     },
     {
-      "inputs": [
-        {
-          "internalType": "address",
-          "name": "datatokenAddress",
-          "type": "address"
-        }
-      ],
-      "name": "getDataTokenCirculatingSupply",
+      "inputs": [],
+      "name": "getId",
       "outputs": [
         {
-          "internalType": "uint256",
+          "internalType": "uint8",
           "name": "",
-          "type": "uint256"
+          "type": "uint8"
         }
       ],
-      "stateMutability": "view",
+      "stateMutability": "pure",
       "type": "function"
     },
     {
@@ -221,6 +195,25 @@
           "internalType": "address",
           "name": "",
           "type": "address"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "address",
+          "name": "datatokenAddress",
+          "type": "address"
+        }
+      ],
+      "name": "getbBaseTokenBalance",
+      "outputs": [
+        {
+          "internalType": "uint256",
+          "name": "",
+          "type": "uint256"
         }
       ],
       "stateMutability": "view",
@@ -311,7 +304,7 @@
         },
         {
           "internalType": "address",
-          "name": "basetokenAddress",
+          "name": "baseTokenAddress",
           "type": "address"
         },
         {
@@ -330,7 +323,7 @@
           "type": "uint256[]"
         }
       ],
-      "name": "newDataTokenCreated",
+      "name": "newDatatokenCreated",
       "outputs": [
         {
           "internalType": "bool",
@@ -351,94 +344,6 @@
       ],
       "name": "notifyFinalize",
       "outputs": [],
-      "stateMutability": "nonpayable",
-      "type": "function"
-    },
-    {
-      "inputs": [
-        {
-          "internalType": "address",
-          "name": "datatokenAddress",
-          "type": "address"
-        },
-        {
-          "internalType": "address",
-          "name": "userAddress",
-          "type": "address"
-        },
-        {
-          "internalType": "address",
-          "name": "tokenIn",
-          "type": "address"
-        },
-        {
-          "internalType": "uint256",
-          "name": "tokenAmountIn",
-          "type": "uint256"
-        },
-        {
-          "internalType": "address",
-          "name": "tokenOut",
-          "type": "address"
-        },
-        {
-          "internalType": "uint256",
-          "name": "minAmountOut",
-          "type": "uint256"
-        }
-      ],
-      "name": "swapExactAmountIn",
-      "outputs": [
-        {
-          "internalType": "uint256",
-          "name": "tokenAmountOut",
-          "type": "uint256"
-        }
-      ],
-      "stateMutability": "nonpayable",
-      "type": "function"
-    },
-    {
-      "inputs": [
-        {
-          "internalType": "address",
-          "name": "datatokenAddress",
-          "type": "address"
-        },
-        {
-          "internalType": "address",
-          "name": "userAddress",
-          "type": "address"
-        },
-        {
-          "internalType": "address",
-          "name": "tokenIn",
-          "type": "address"
-        },
-        {
-          "internalType": "uint256",
-          "name": "maxTokenAmountIn",
-          "type": "uint256"
-        },
-        {
-          "internalType": "address",
-          "name": "tokenOut",
-          "type": "address"
-        },
-        {
-          "internalType": "uint256",
-          "name": "amountOut",
-          "type": "uint256"
-        }
-      ],
-      "name": "swapExactAmountOut",
-      "outputs": [
-        {
-          "internalType": "uint256",
-          "name": "tokenAmountIn",
-          "type": "uint256"
-        }
-      ],
       "stateMutability": "nonpayable",
       "type": "function"
     }
