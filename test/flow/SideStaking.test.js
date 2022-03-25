@@ -321,9 +321,8 @@ describe("1SS flow", () => {
   it("#5 - user3 fails to mints new erc20 tokens even if it's minter", async () => {
     assert((await erc20Token.permissions(user3.address)).minter == true);
 
-    await expectRevert(
-      erc20Token.connect(user3).mint(user3.address, web3.utils.toWei("10000")),
-      "DatatokenTemplate: cap exceeded"
+    await expectRevert.unspecified(
+      erc20Token.connect(user3).mint(user3.address, web3.utils.toWei("10000"))
     );
 
     assert((await erc20Token.balanceOf(user3.address)) == 0);

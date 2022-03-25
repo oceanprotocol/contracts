@@ -408,7 +408,7 @@ describe("Batch Swap", () => {
       assert((await bPool2.isFinalized()) == true);
 
       expect(await erc20Token2.balanceOf(sideStaking.address)).to.equal(
-        web3.utils.toWei("300")
+        "300000000000000000000"
       );
 
       expect(await bPool2.getSwapFee()).to.equal(swapFee);
