@@ -715,7 +715,7 @@ describe("FixedRateExchange", () => {
         fixedRateExchange
           .connect(bob)
           .buyDT(eventsExchange[0].args.exchangeId, amountDT, noLimit,ZERO_ADDRESS, 0),
-        "ERC20: transfer amount exceeds allowance"
+        "ERC20: insufficient allowance"
       );
 
       // now alice approves more DT (8000)
@@ -1442,7 +1442,7 @@ describe("FixedRateExchange", () => {
         fixedRateExchange
           .connect(bob)
           .buyDT(eventsExchange[0].args.exchangeId, amountDT, noLimit,ZERO_ADDRESS, 0),
-        "ERC20: transfer amount exceeds allowance"
+        "ERC20: insufficient allowance"
       );
 
       // now alice approves more DT (8000)
@@ -2158,7 +2158,7 @@ describe("FixedRateExchange", () => {
         fixedRateExchange
           .connect(bob)
           .buyDT(eventsExchange[0].args.exchangeId, amountDT, noLimit,ZERO_ADDRESS, 0),
-        "ERC20: transfer amount exceeds allowance"
+        "ERC20: insufficient allowance"
       );
 
       // now alice approves more DT (8000)
@@ -2813,7 +2813,7 @@ describe("FixedRateExchange", () => {
         fixedRateExchange
           .connect(bob)
           .buyDT(eventsExchange[0].args.exchangeId, amountDT, noLimit,ZERO_ADDRESS, 0),
-        "ERC20: transfer amount exceeds allowance"
+        "ERC20: insufficient allowance"
       );
 
       // now alice approves more DT (8000)
@@ -3486,7 +3486,7 @@ describe("FixedRateExchange", () => {
         fixedRateExchange
           .connect(bob)
           .buyDT(eventsExchange[0].args.exchangeId, amountDT, noLimit,ZERO_ADDRESS, 0),
-        "ERC20: transfer amount exceeds allowance"
+        "ERC20: insufficient allowance"
       );
 
       // now alice approves more DT (8000)
@@ -4146,7 +4146,7 @@ describe("FixedRateExchange", () => {
         fixedRateExchange
           .connect(bob)
           .buyDT(eventsExchange[0].args.exchangeId, amountDT, noLimit,ZERO_ADDRESS, 0),
-        "ERC20: transfer amount exceeds allowance"
+        "ERC20: insufficient allowance"
       );
 
       // now alice approves more DT (8000)
@@ -4882,7 +4882,7 @@ describe("FixedRateExchange", () => {
         fixedRateExchange
           .connect(bob)
           .buyDT(eventsExchange[0].args.exchangeId, amountDT, noLimit,ZERO_ADDRESS, 0),
-        "ERC20: transfer amount exceeds allowance"
+        "ERC20: insufficient allowance"
       );
 
       // now alice approves more DT (8000)
