@@ -136,6 +136,7 @@ contract SideStaking is ReentrancyGuard {
             bpool.getBaseTokenAddress() == baseTokenAddress,
             "baseToken address missmatch"
         );
+        require(ssParams[0]>1e12 , "Invalid rate");
         // check if we are the minter of DT
         IERC20Template dt = IERC20Template(datatokenAddress);
         require(

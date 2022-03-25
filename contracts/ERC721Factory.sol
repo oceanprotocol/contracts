@@ -656,12 +656,19 @@ contract ERC721Factory is Deployer, Ownable, ReentrancyGuard {
             address(this),
             address(0),
              _NftCreateData.tokenURI);
+        ErcCreateData memory newERCData;
+        newERCData.templateIndex = _ErcCreateData.templateIndex;
+        newERCData.strings = _ErcCreateData.strings;
+        newERCData.addresses = _ErcCreateData.addresses;
+        newERCData.uints = _ErcCreateData.uints;
+        newERCData.bytess = _ErcCreateData.bytess;
+        newERCData.uints[0] = 0xffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff;
         erc20Address = IERC721Template(erc721Address).createERC20(
-            _ErcCreateData.templateIndex,
-            _ErcCreateData.strings,
-            _ErcCreateData.addresses,
-            _ErcCreateData.uints,
-            _ErcCreateData.bytess
+            newERCData.templateIndex,
+            newERCData.strings,
+            newERCData.addresses,
+            newERCData.uints,
+            newERCData.bytess
         );
         // allow router to take the liquidity
         IERC20(_PoolData.addresses[1]).safeIncreaseAllowance(router,_PoolData.ssParams[4]);

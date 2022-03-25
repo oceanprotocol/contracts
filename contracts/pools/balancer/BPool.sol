@@ -36,7 +36,10 @@ contract BPool is BMath, BToken {
         address indexed tokenOut,
         uint256 tokenAmountIn,
         uint256 tokenAmountOut,
-        uint256 timestamp
+        uint256 timestamp,
+        uint256 inBalance,
+        uint256 outBalance,
+        uint256 newSpotPrice
     );
 
     event LOG_JOIN(
@@ -883,7 +886,11 @@ contract BPool is BMath, BToken {
             tokenInOutMarket[1],
             amountsInOutMaxFee[0],
             tokenAmountOut,
-            block.timestamp
+            block.timestamp,
+            inRecord.balance,
+            outRecord.balance,
+            spotPriceAfter
+
         );
 
         _pullUnderlying(tokenInOutMarket[0], msg.sender, amountsInOutMaxFee[0]);
@@ -993,7 +1000,10 @@ contract BPool is BMath, BToken {
             tokenInOutMarket[1],
             tokenAmountIn,
             amountsInOutMaxFee[1],
-            block.timestamp
+            block.timestamp,
+            inRecord.balance,
+            outRecord.balance,
+            spotPriceAfter
         );
         _pullUnderlying(tokenInOutMarket[0], msg.sender, tokenAmountIn);
         uint256 consumeMarketFeeAmount = bsub(
@@ -1047,13 +1057,10 @@ contract BPool is BMath, BToken {
         require(poolAmountOut >= minPoolAmountOut, "ERR_LIMIT_OUT");
 
         inRecord.balance = badd(inRecord.balance, tokenAmountIn);
-
         emit LOG_JOIN(msg.sender, _baseTokenAddress, tokenAmountIn, block.timestamp);
         emit LOG_BPT(poolAmountOut);
-        _mintPoolShare(poolAmountOut);
-        _pushPoolShare(msg.sender, poolAmountOut);
 
-        _pullUnderlying(_baseTokenAddress, msg.sender, tokenAmountIn);
+        
 
         //ask the ssContract to stake as well
         //calculate how much should the 1ss stake
@@ -1066,6 +1073,7 @@ contract BPool is BMath, BToken {
             poolAmountOut
         );
         if (ssContract.canStake(_datatokenAddress, ssAmountIn)) {
+            
             //call 1ss to approve
             ssContract.Stake(_datatokenAddress, ssAmountIn);
             // follow the same path
@@ -1080,7 +1088,11 @@ contract BPool is BMath, BToken {
             _mintPoolShare(poolAmountOut);
             _pushPoolShare(_controller, poolAmountOut);
             _pullUnderlying(_datatokenAddress, _controller, ssAmountIn);
+            
         }
+        _mintPoolShare(poolAmountOut);
+        _pushPoolShare(msg.sender, poolAmountOut);
+        _pullUnderlying(_baseTokenAddress, msg.sender, tokenAmountIn);
         return poolAmountOut;
     }
 
@@ -1109,7 +1121,6 @@ contract BPool is BMath, BToken {
             _totalWeight,
             poolAmountIn
         );
-
         require(tokenAmountOut >= minAmountOut, "ERR_LIMIT_OUT");
 
         require(
@@ -1120,16 +1131,8 @@ contract BPool is BMath, BToken {
         outRecord.balance = bsub(outRecord.balance, tokenAmountOut);
 
         //uint256 exitFee = bmul(poolAmountIn, EXIT_FEE);
-
         emit LOG_EXIT(msg.sender, _baseTokenAddress, tokenAmountOut, block.timestamp);
         emit LOG_BPT(poolAmountIn);
-
-        _pullPoolShare(msg.sender, poolAmountIn);
-
-        //_burnPoolShare(bsub(poolAmountIn, exitFee));
-        _burnPoolShare(poolAmountIn);
-        //_pushPoolShare(_factory, exitFee);
-        _pushUnderlying(_baseTokenAddress, msg.sender, tokenAmountOut);
 
         //ask the ssContract to unstake as well
         //calculate how much should the 1ss unstake
@@ -1167,6 +1170,12 @@ contract BPool is BMath, BToken {
             );
             emit LOG_BPT_SS(poolAmountIn);
         }
+        
+        _pullPoolShare(msg.sender, poolAmountIn);
+        //_burnPoolShare(bsub(poolAmountIn, exitFee));
+        _burnPoolShare(poolAmountIn);
+        //_pushPoolShare(_factory, exitFee);
+        _pushUnderlying(_baseTokenAddress, msg.sender, tokenAmountOut);
         return tokenAmountOut;
     }
 
