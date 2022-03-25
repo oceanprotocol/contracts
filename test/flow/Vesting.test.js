@@ -76,7 +76,7 @@ describe("Vesting flow", () => {
       marketFeeCollector, // POOL1
       newMarketFeeCollector, // POOL1
       pool2MarketFeeCollector,
-      opfCollector,
+      opcCollector,
     ] = await ethers.getSigners();
 
     // GET SOME OCEAN TOKEN FROM OUR MAINNET FORK and send them to user3
@@ -123,7 +123,7 @@ describe("Vesting flow", () => {
       owner.address,
       oceanAddress,
       poolTemplate.address, 
-      opfCollector.address,
+      opcCollector.address,
       []
     );
 
@@ -131,7 +131,7 @@ describe("Vesting flow", () => {
 
     fixedRateExchange = await FixedRateExchange.deploy(
       router.address,
-      opfCollector.address
+      opcCollector.address
     );
 
     templateERC20 = await ERC20Template.deploy();
@@ -142,7 +142,7 @@ describe("Vesting flow", () => {
     factoryERC721 = await ERC721Factory.deploy(
       templateERC721.address,
       templateERC20.address,
-      opfCollector.address,
+      opcCollector.address,
       router.address
     );
 
@@ -162,6 +162,7 @@ describe("Vesting flow", () => {
       "NFT",
       "NFTSYMBOL",
       1,
+      "0x0000000000000000000000000000000000000000",
       "0x0000000000000000000000000000000000000000",
       "https://oceanprotocol.com/nft/"
     );
@@ -207,9 +208,44 @@ describe("Vesting flow", () => {
 
   const swapFee = 1e15;
   const swapOceanFee = 1e15;
-  const swapMarketFee = 1e15;
+  const swapPublishMarketFee = 1e15;
+  
+  it("#4 - user3 calls deployPool(), but with a low vesting period. It should fail", async () => {
+    // user3 hasn't minted any token so he can call deployPool()
 
-  it("#4 - user3 calls deployPool(), we then check ocean and market fee", async () => {
+    const ssDTBalance = await erc20Token.balanceOf(sideStaking.address);
+
+    const initialOceanLiquidity = web3.utils.toWei("2000");
+    const initialDTLiquidity = initialOceanLiquidity;
+    // approve exact amount
+    await oceanContract
+      .connect(user3)
+      .approve(router.address, web3.utils.toWei("2000"));
+
+    // we deploy a new pool with burnInEndBlock as 0
+    
+    await expectRevert(erc20Token.connect(user3).deployPool(
+       // sideStaking.address,
+       // oceanAddress,
+        [
+          web3.utils.toWei("1"), // rate
+          18, // baseTokenDecimals
+          web3.utils.toWei('10000'),
+          20, // vested blocks  - this is our failure point
+          initialOceanLiquidity, // baseToken initial pool liquidity
+        ],
+      //  user3.address,
+        [
+          swapFee, //
+          swapPublishMarketFee,
+        ],
+       // marketFeeCollector.address,
+       // user3.address // publisherAddress (get vested amount)
+        [sideStaking.address,oceanAddress,user3.address,user3.address,marketFeeCollector.address,poolTemplate.address]
+      ), "ERC20Template: Vesting period too low. See FactoryRouter.minVestingPeriodInBlocks");
+  });
+  
+  it("#5 - user3 calls deployPool(), we then check ocean and market fee", async () => {
     // user3 hasn't minted any token so he can call deployPool()
 
     const ssDTBalance = await erc20Token.balanceOf(sideStaking.address);
@@ -228,7 +264,7 @@ describe("Vesting flow", () => {
        // oceanAddress,
         [
           web3.utils.toWei("1"), // rate
-          18, // basetokenDecimals
+          18, // baseTokenDecimals
           web3.utils.toWei('10000'),
           2500000, // vested blocks
           initialOceanLiquidity, // baseToken initial pool liquidity
@@ -236,19 +272,20 @@ describe("Vesting flow", () => {
       //  user3.address,
         [
           swapFee, //
-          swapMarketFee,
+          swapPublishMarketFee,
         ],
        // marketFeeCollector.address,
        // user3.address // publisherAddress (get vested amount)
         [sideStaking.address,oceanAddress,user3.address,user3.address,marketFeeCollector.address,poolTemplate.address]
       )
     ).wait();
+    const PoolEvent = getEventFromTx(receipt, 'NewPool')
+    assert(PoolEvent, "Cannot find NewPool event")
+    const VestingCreatedEvent = getEventFromTx(receipt, 'VestingCreated')
+    assert(VestingCreatedEvent, "Cannot find VestingCreated event")
+    assert(PoolEvent.args.ssContract == sideStaking.address);
 
-    const PoolEvent = receipt.events.filter((e) => e.event === "NewPool");
-
-    assert(PoolEvent[0].args.ssContract == sideStaking.address);
-
-    bPoolAddress = PoolEvent[0].args.poolAddress;
+    bPoolAddress = PoolEvent.args.poolAddress;
 
     bPool = await ethers.getContractAt("BPool", bPoolAddress);
 
@@ -258,27 +295,27 @@ describe("Vesting flow", () => {
       web3.utils.toWei("98000")
     );
 
-    expect(await bPool.getOPFFee()).to.equal(0);
-    expect(await bPool._swapMarketFee()).to.equal(swapMarketFee);
+    expect(await bPool.getOPCFee()).to.equal(1e15);
+    expect(await bPool._swapPublishMarketFee()).to.equal(swapPublishMarketFee);
 
     expect(await bPool.communityFees(oceanAddress)).to.equal(0);
     expect(await bPool.communityFees(erc20Token.address)).to.equal(0);
-    expect(await bPool.marketFees(oceanAddress)).to.equal(0);
-    expect(await bPool.marketFees(erc20Token.address)).to.equal(0);
+    expect(await bPool.publishMarketFees(oceanAddress)).to.equal(0);
+    expect(await bPool.publishMarketFees(erc20Token.address)).to.equal(0);
   });
 
-  it("#5 - user3 fails to mints new erc20 tokens even if it's minter", async () => {
+  it("#6 - user3 fails to mints new erc20 tokens even if it's minter", async () => {
     assert((await erc20Token.permissions(user3.address)).minter == true);
 
     await expectRevert(
       erc20Token.connect(user3).mint(user3.address, web3.utils.toWei("10000")),
-      "DataTokenTemplate: cap exceeded"
+      "DatatokenTemplate: cap exceeded"
     );
 
     assert((await erc20Token.balanceOf(user3.address)) == 0);
   });
 
-  it("#6 - we check vesting amount is correct", async () => {
+  it("#7 - we check vesting amount is correct", async () => {
     expect(await sideStaking.getvestingAmount(erc20Token.address)).to.equal(
       vestingAmount
     );
@@ -289,30 +326,38 @@ describe("Vesting flow", () => {
     // console.log((await time.latestBlock()).toString());
   });
 
-  xit("#7 - we check vesting amount is correct", async () => {
+  it("#8 - we check vesting", async () => {
     const pubDTbalBEFORE = await erc20Token.balanceOf(tokenERC721.address);
     expect(await sideStaking.getvestingAmount(erc20Token.address)).to.equal(
       vestingAmount
     );
-    console.log(pubDTbalBEFORE.toString());
-
+    //console.log(pubDTbalBEFORE.toString());
+    const availableVesting = await sideStaking.getAvailableVesting(erc20Token.address)
+    console.log("Available vesting: "+ethers.utils.formatEther(availableVesting));
     //console.log((await sideStaking.getvestingAmountSoFar(erc20Token.address)).toString())
-    console.log((await time.latestBlock()).toString());
+    //console.log((await time.latestBlock()).toString());
 
-    console.log((await time.latestBlock()).toString());
     //await sideStaking.getVesting(erc20Token.address)
 
-    // to many blocks to advance, previous commit shows it works (500 blocks vesting) 
+    // advance 1000 blocks
     // TODO: add test for intermediate steps (50%, etc)
-    for (let i = 0; i < 2500000; i++) {
+    
+    for (let i = 0; i < 1000; i++) {
       // each one advance a block
-      await signer.sendTransaction({
+      const dummyTx=await signer.sendTransaction({
         to: user4.address,
         value: ethers.utils.parseEther("0.0"),
       });
+      await dummyTx.wait()
     }
-    await sideStaking.getVesting(erc20Token.address);
+    const availableVestingAfterAdvance = await sideStaking.getAvailableVesting(erc20Token.address)
+    console.log("Available vesting after 1000 blocks: "+ethers.utils.formatEther(availableVestingAfterAdvance));
+    expect(availableVestingAfterAdvance.gt(availableVesting), 'Available vesting was not increased!')
+    const tx=await sideStaking.getVesting(erc20Token.address);
+    const txReceipt = await tx.wait();
+    const VestingCreatedEvent = getEventFromTx(txReceipt, 'Vesting')
+    assert(VestingCreatedEvent, "Cannot find Vesting event")
     const pubDTbalAFTER = await erc20Token.balanceOf(tokenERC721.address);
-    console.log(ethers.utils.formatEther(pubDTbalAFTER));
+    expect(pubDTbalAFTER.gt(pubDTbalBEFORE), 'Publisher balance was not increased!')
   });
 });

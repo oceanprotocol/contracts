@@ -3,7 +3,6 @@
 <h1 align="center">contracts-v4</h1>
 
 > 🦑 Smart contracts for Ocean Protocol v4. https://oceanprotocol.com
-
 Ocean v4 is part of the [Ocean Protocol](https://oceanprotocol.com) toolset.
 
 This is in beta state and you can expect running into problems. If you run into them, please open up a [new issue](https://github.com/oceanprotocol/contracts/issues/new?assignees=&labels=bug&template=bug_report.md&title=).
@@ -43,6 +42,10 @@ from artifacts import address
 ```
 
 
+## Overview
+
+![image](docs/images/smart-contracts.png)
+
 ## 🏄 Quickstart
 
 ### New Features 
@@ -52,8 +55,6 @@ from artifacts import address
 - An automated Datatoken Staking and Vesting contract helps with the initial DTs distribution and price stability. Goodbye rug pulls! More info on how it works: (Link to SideStaking blog)
 
 - Help Ocean Community Monetize: there's a swap fee for the Ocean Community, if Ocean or allied tokens are the basetoken in a pool, Ocean Community will receive 0.1% swap fee, otherwhise it will be 0.2%. More details here: (Link to blog post on Ocean community monetization)
-
-
 
 
 #### Flexibility
@@ -66,7 +67,7 @@ from artifacts import address
 
 - Multiple NFT template support: the Factory can deploy different types of NFT templates
 
-- Multiple ERC20 template support: the Factory can deploy different types of ERC20 templates
+- Multiple datatoken template support: the Factory can deploy different types of Datatoken templates
 
 
 
@@ -148,7 +149,6 @@ npm run test:flow
 
 ## Known issues
  Vesting:
-
   - when (vestingAmount/vestedBlocks) is a Periodic number, there’s a rounding issue of 1 wei. So if a publisher will call it once per day, over a period of 2 years, you may have a rounding error combined of 730 Weis. That is a neglectable amount.
 
 
@@ -156,7 +156,7 @@ npm run test:flow
 ## 🏛 License
 
 ```
-Copyright ((C)) 2021 Ocean Protocol Foundation
+Copyright ((C)) 2022 Ocean Protocol Foundation
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.

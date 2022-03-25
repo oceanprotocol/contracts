@@ -1,12 +1,13 @@
-//pragma solidity 0.5.7;
-pragma solidity >=0.6.0;
-// Copyright BigchainDB GmbH and Ocean Protocol contributors
+pragma solidity 0.8.12;
+// Copyright Balancer, BigchainDB GmbH and Ocean Protocol contributors
 // SPDX-License-Identifier: (Apache-2.0 AND CC-BY-4.0)
 // Code is Apache-2.0 and docs are CC-BY-4.0
 
 import "./BToken.sol";
 import "./BMath.sol";
 import "../../interfaces/ISideStaking.sol";
+import "../../utils/SafeERC20.sol";
+
 
 /**
  * @title BPool
@@ -14,16 +15,14 @@ import "../../interfaces/ISideStaking.sol";
  * @dev Used by the (Ocean version) BFactory contract as a bytecode reference to
  *      deploy new BPools.
  *
- * This contract is is nearly identical to the BPool.sol contract at [1]
- *  The only difference is the "Proxy contract functionality" section
- *  given below. We'd inherit from BPool if we could, for simplicity.
- *  But we can't, because the proxy section needs to access private
- *  variables declared in BPool, and Solidity disallows this. Therefore
- *  the best we can do for now is clearly demarcate the proxy section.
- *
+ * This contract is a friendly fork of Balancer [1]
  *  [1] https://github.com/balancer-labs/balancer-core/contracts/.
+
+ * All fees are expressed in wei.  Examples:
+ *  (1e17 = 10 % , 1e16 = 1% , 1e15 = 0.1%, 1e14 = 0.01%)
  */
 contract BPool is BMath, BToken {
+    using SafeERC20 for IERC20;
     struct Record {
         bool bound; // is token bound to pool
         uint256 index; // private
@@ -37,7 +36,10 @@ contract BPool is BMath, BToken {
         address indexed tokenOut,
         uint256 tokenAmountIn,
         uint256 tokenAmountOut,
-        uint256 timestamp
+        uint256 timestamp,
+        uint256 inBalance,
+        uint256 outBalance,
+        uint256 newSpotPrice
     );
 
     event LOG_JOIN(
@@ -51,9 +53,9 @@ contract BPool is BMath, BToken {
         address indexed baseToken,
         uint256 baseTokenAmountIn,
         uint256 baseTokenWeight,
-        address indexed dataToken,
-        uint256 dataTokenAmountIn,
-        uint256 dataTokenWeight
+        address indexed datatoken,
+        uint256 datatokenAmountIn,
+        uint256 datatokenWeight
     );
 
     event LOG_EXIT(
@@ -71,6 +73,27 @@ contract BPool is BMath, BToken {
     );
 
     event LOG_BPT(uint256 bptAmount);
+    event LOG_BPT_SS(uint256 bptAmount); //emitted for SS contract
+
+    event OPCFee(
+        address caller,
+        address OPCWallet,
+        address token,
+        uint256 amount
+    );
+    event SwapFeeChanged(address caller, uint256 amount);
+    event PublishMarketFee(
+        address caller,
+        address marketAddress,
+        address token,
+        uint256 amount
+    );
+    // emited for fees sent to consumeMarket
+    event ConsumeMarketFee(address to, address token, uint256 amount);
+    event SWAP_FEES(uint LPFeeAmount, uint oceanFeeAmount, uint marketFeeAmount,
+        uint consumeMarketFeeAmount, address tokenFeeAddress);
+    //emitted for every change done by publisherMarket
+    event PublishMarketFeeChanged(address caller, address newMarketCollector, uint256 swapFee);
 
     modifier _lock_() {
         require(!_mutex, "ERR_REENTRY");
@@ -89,8 +112,9 @@ contract BPool is BMath, BToken {
     address private _controller; // has CONTROL role
     bool private _publicSwap; // true if PUBLIC can call SWAP functions
 
-    address public _marketCollector;
-    address public _opfCollector;
+    //address public _publishMarketCollector;
+    address public _publishMarketCollector;
+    address public _opcCollector;
     // `setSwapFee` and `finalize` require CONTROL
     // `finalize` sets `PUBLIC can SWAP`, `PUBLIC can JOIN`
     bool private _finalized;
@@ -104,24 +128,18 @@ contract BPool is BMath, BToken {
     //Proxy contract functionality: begin
     bool private initialized;
 
+    /**
+     * @dev getId
+     *      Return template id in case we need different ABIs. 
+     *      If you construct your own template, please make sure to change the hardcoded value
+     */
+    function getId() pure public returns (uint8) {
+        return 1;
+    }
+
     function isInitialized() external view returns (bool) {
         return initialized;
     }
-
-    // Called prior to contract deployment
-    // constructor() public {
-
-    //     // _initialize(
-    //     //     msg.sender,
-    //     //     msg.sender,
-    //     //     MIN_FEE,
-    //     //     0,
-    //     //     false,
-    //     //     false,
-    //     //     msg.sender,
-    //     //     msg.sender
-    //     // );
-    // }
 
     // Called prior to contract initialization (e.g creating new BPool instance)
     // Calls private _initialize function. Only if contract is not initialized.
@@ -139,6 +157,8 @@ contract BPool is BMath, BToken {
         require(factory != address(0), "ERR_INVALID_FACTORY_ADDRESS");
         require(swapFees[0] >= MIN_FEE, "ERR_MIN_FEE");
         require(swapFees[0] <= MAX_FEE, "ERR_MAX_FEE");
+        require(swapFees[1] == 0 || swapFees[1]>= MIN_FEE, "ERR_MIN_FEE");
+        require(swapFees[1] <= MAX_FEE, "ERR_MAX_FEE");
         return
             _initialize(
                 controller,
@@ -164,49 +184,61 @@ contract BPool is BMath, BToken {
         _controller = controller;
         _factory = factory;
         _swapFee = swapFees[0];
-
-        _swapMarketFee = swapFees[1];
+        emit SwapFeeChanged(msg.sender, _swapFee);
+        _swapPublishMarketFee = swapFees[1];
         _publicSwap = publicSwap;
         _finalized = finalized;
         _datatokenAddress = tokens[0];
-        _basetokenAddress = tokens[1];
-        _marketCollector = feeCollectors[0];
-        _opfCollector = feeCollectors[1];
+        _baseTokenAddress = tokens[1];
+        _publishMarketCollector = feeCollectors[0];
+        emit PublishMarketFeeChanged(msg.sender, _publishMarketCollector, _swapPublishMarketFee);
+        _opcCollector = feeCollectors[1];
         initialized = true;
         ssContract = ISideStaking(_controller);
         return initialized;
     }
 
-    //can be called only by the controller
+    
+    /**
+     * @dev setup
+     *      Initial setup of the pool
+     *      Can be called only by the controller
+     * @param datatokenAddress datatokenAddress
+     * @param datatokenAmount how many datatokens in the initial reserve
+     * @param datatokenWeight datatoken weight (hardcoded in deployer at 50%)
+     * @param baseTokenAddress base token
+     * @param baseTokenAmount how many basetokens in the initial reserve
+     * @param baseTokenWeight base weight (hardcoded in deployer at 50%)
+     */
     function setup(
-        address dataTokenAddress,
-        uint256 dataTokenAmount,
-        uint256 dataTokenWeight,
+        address datatokenAddress,
+        uint256 datatokenAmount,
+        uint256 datatokenWeight,
         address baseTokenAddress,
         uint256 baseTokenAmount,
         uint256 baseTokenWeight
-    ) external {
+    ) external _lock_ {
         require(msg.sender == _controller, "ERR_INVALID_CONTROLLER");
         require(
-            dataTokenAddress == _datatokenAddress,
+            datatokenAddress == _datatokenAddress,
             "ERR_INVALID_DATATOKEN_ADDRESS"
         );
         require(
-            baseTokenAddress == _basetokenAddress,
-            "ERR_INVALID_BASETOKEN_ADDRESS"
+            baseTokenAddress == _baseTokenAddress,
+            "ERR_INVALID_baseToken_ADDRESS"
         );
         // other inputs will be validated prior
         // calling the below functions
-        // bind data token
-        bind(dataTokenAddress, dataTokenAmount, dataTokenWeight);
+        // bind datatoken
+        bind(datatokenAddress, datatokenAmount, datatokenWeight);
         emit LOG_JOIN(
             msg.sender,
-            dataTokenAddress,
-            dataTokenAmount,
+            datatokenAddress,
+            datatokenAmount,
             block.timestamp
         );
 
-        // bind base token
+        // bind baseToken
         bind(baseTokenAddress, baseTokenAmount, baseTokenWeight);
         emit LOG_JOIN(
             msg.sender,
@@ -216,30 +248,59 @@ contract BPool is BMath, BToken {
         );
         // finalize
         finalize();
-        emit LOG_SETUP(msg.sender, baseTokenAddress, baseTokenAmount, baseTokenWeight,
-            dataTokenAddress, dataTokenAmount, dataTokenWeight
+        emit LOG_SETUP(
+            msg.sender,
+            baseTokenAddress,
+            baseTokenAmount,
+            baseTokenWeight,
+            datatokenAddress,
+            datatokenAmount,
+            datatokenWeight
         );
     }
 
     //Proxy contract functionality: end
     //-----------------------------------------------------------------------
-
+    /**
+     * @dev isPublicSwap
+     *      Returns true if swapping is allowed
+     */
     function isPublicSwap() external view returns (bool) {
         return _publicSwap;
     }
-
+    /**
+     * @dev isFinalized
+     *      Returns true if pool is finalized
+     */
     function isFinalized() external view returns (bool) {
         return _finalized;
     }
 
+    /**
+     * @dev isBound
+     *      Returns true if token is bound
+     * @param t token to be checked
+     */
     function isBound(address t) external view returns (bool) {
         return _records[t].bound;
     }
 
+    function _checkBound(address token) internal view {
+        require(_records[token].bound, "ERR_NOT_BOUND");
+    }
+
+    /**
+     * @dev getNumTokens
+     *      Returns number of tokens bounded to pool
+     */
     function getNumTokens() external view returns (uint256) {
         return _tokens.length;
     }
 
+    /**
+     * @dev getCurrentTokens
+     *      Returns tokens bounded to pool, before the pool is finalized
+     */
     function getCurrentTokens()
         external
         view
@@ -249,6 +310,10 @@ contract BPool is BMath, BToken {
         return _tokens;
     }
 
+    /**
+     * @dev getFinalTokens
+     *      Returns tokens bounded to pool, after the pool was finalized
+     */
     function getFinalTokens()
         public
         view
@@ -259,41 +324,118 @@ contract BPool is BMath, BToken {
         return _tokens;
     }
 
-    function collectOPF() external {
+    /**
+     * @dev collectOPC
+     *      Collects and send all OPC Fees to _opcCollector.
+     *      This funtion can be called by anyone, because fees are being sent to _opcCollector
+     */
+    function collectOPC() external {
         address[] memory tokens = getFinalTokens();
         for (uint256 i = 0; i < tokens.length; i++) {
             uint256 amount = communityFees[tokens[i]];
             communityFees[tokens[i]] = 0;
-            IERC20(tokens[i]).transfer(_opfCollector, amount);
+            IERC20(tokens[i]).safeTransfer(_opcCollector, amount);
+            emit OPCFee(msg.sender, _opcCollector, tokens[i], amount);
         }
     }
 
-    function collectMarketFee(address to) external {
-        require(_marketCollector == msg.sender, "ONLY MARKET COLLECTOR");
+    /**
+     * @dev getCurrentOPCFees
+     *      Get the current amount of fees which can be withdrawned by OPC
+     * @return address[] - array of tokens addresses
+     *         uint256[] - array of amounts
+     */
+    function getCurrentOPCFees()
+        public
+        view
+        returns (address[] memory, uint256[] memory)
+    {
+        address[] memory poolTokens = getFinalTokens();
+        address[] memory tokens = new address[](poolTokens.length);
+        uint256[] memory amounts = new uint256[](poolTokens.length);
+        for (uint256 i = 0; i < poolTokens.length; i++) {
+            tokens[i] = poolTokens[i];
+            amounts[i] = communityFees[poolTokens[i]];
+        }
+        return (tokens, amounts);
+    }
 
+    /**
+     * @dev getCurrentMarketFees
+     *      Get the current amount of fees which can be withdrawned by _publishMarketCollector
+     * @return address[] - array of tokens addresses
+     *         uint256[] - array of amounts
+     */
+    function getCurrentMarketFees()
+        public
+        view
+        returns (address[] memory, uint256[] memory)
+    {
+        address[] memory poolTokens = getFinalTokens();
+        address[] memory tokens = new address[](poolTokens.length);
+        uint256[] memory amounts = new uint256[](poolTokens.length);
+        for (uint256 i = 0; i < poolTokens.length; i++) {
+            tokens[i] = poolTokens[i];
+            amounts[i] = publishMarketFees[poolTokens[i]];
+        }
+        return (tokens, amounts);
+    }
+
+    /**
+     * @dev collectMarketFee
+     *      Collects and send all Market Fees to _publishMarketCollector.
+     *      This function can be called by anyone, because fees are being sent to _publishMarketCollector
+     */
+    function collectMarketFee() external {
         address[] memory tokens = getFinalTokens();
         for (uint256 i = 0; i < tokens.length; i++) {
-            uint256 amount = marketFees[tokens[i]];
-            marketFees[tokens[i]] = 0;
-            IERC20(tokens[i]).transfer(to, amount);
+            uint256 amount = publishMarketFees[tokens[i]];
+            publishMarketFees[tokens[i]] = 0;
+            IERC20(tokens[i]).safeTransfer(_publishMarketCollector, amount);
+            emit PublishMarketFee(
+                msg.sender,
+                _publishMarketCollector,
+                tokens[i],
+                amount
+            );
         }
     }
 
-    function updateMarketFeeCollector(address _newCollector) external {
-        require(_marketCollector == msg.sender, "ONLY MARKET COLLECTOR");
-        _marketCollector = _newCollector;
+    /**
+     * @dev updatePublishMarketFee
+     *      Set _newCollector as _publishMarketCollector
+     * @param _newCollector new _publishMarketCollector
+     * @param _newSwapFee new swapFee
+     */
+    function updatePublishMarketFee(address _newCollector, uint256 _newSwapFee) external {
+        require(_publishMarketCollector == msg.sender, "ONLY MARKET COLLECTOR");
+        require(_newCollector != address(0), "Invalid _newCollector address");
+        require(_newSwapFee ==0 || _newSwapFee >= MIN_FEE, "ERR_MIN_FEE");
+        require(_newSwapFee <= MAX_FEE, "ERR_MAX_FEE");
+        _publishMarketCollector = _newCollector;
+        _swapPublishMarketFee = _newSwapFee;
+        emit PublishMarketFeeChanged(msg.sender, _publishMarketCollector, _swapPublishMarketFee);
     }
 
+    /**
+     * @dev getDenormalizedWeight
+     *      Returns denormalized weight of a token
+     * @param token token to be checked
+     */
     function getDenormalizedWeight(address token)
         external
         view
         _viewlock_
         returns (uint256)
     {
-        require(_records[token].bound, "ERR_NOT_BOUND");
+        _checkBound(token);
         return _records[token].denorm;
     }
 
+     /**
+     * @dev getTotalDenormalizedWeight
+     *      Returns total denormalized weught of the pool
+     */
     function getTotalDenormalizedWeight()
         external
         view
@@ -303,51 +445,97 @@ contract BPool is BMath, BToken {
         return _totalWeight;
     }
 
+    /**
+     * @dev getNormalizedWeight
+     *      Returns normalized weight of a token
+     * @param token token to be checked
+     */
+    
     function getNormalizedWeight(address token)
         external
         view
         _viewlock_
         returns (uint256)
     {
-        require(_records[token].bound, "ERR_NOT_BOUND");
+        _checkBound(token);
         uint256 denorm = _records[token].denorm;
         return bdiv(denorm, _totalWeight);
     }
 
+
+    /**
+     * @dev getBalance
+     *      Returns the current token reserve amount
+     * @param token token to be checked
+     */
     function getBalance(address token)
         external
         view
         _viewlock_
         returns (uint256)
     {
-        require(_records[token].bound, "ERR_NOT_BOUND");
+        _checkBound(token);
         return _records[token].balance;
     }
 
+    /**
+     * @dev getSwapFee
+     *      Returns the current Liquidity Providers swap fee
+     */
     function getSwapFee() external view returns (uint256) {
         return _swapFee;
     }
 
+    /**
+     * @dev getMarketFee
+     *      Returns the current fee of publishingMarket
+     */
+    function getMarketFee() external view returns (uint256) {
+        return _swapPublishMarketFee;
+    }
+
+    /**
+     * @dev getController
+     *      Returns the current controller address (ssBot)
+     */
     function getController() external view returns (address) {
         return _controller;
     }
 
-    function getDataTokenAddress() external view returns (address) {
+    /**
+     * @dev getDatatokenAddress
+     *      Returns the current datatoken address
+     */
+    function getDatatokenAddress() external view returns (address) {
         return _datatokenAddress;
     }
 
+    /**
+     * @dev getBaseTokenAddress
+     *      Returns the current baseToken address
+     */
     function getBaseTokenAddress() external view returns (address) {
-        return _basetokenAddress;
+        return _baseTokenAddress;
     }
 
+
+    /**
+     * @dev setSwapFee
+     *      Allows controller to change the swapFee
+     * @param swapFee new swap fee (max 1e17 = 10 % , 1e16 = 1% , 1e15 = 0.1%, 1e14 = 0.01%)
+     */
     function setSwapFee(uint256 swapFee) public {
-        require(!_finalized, "ERR_IS_FINALIZED");
         require(msg.sender == _controller, "ERR_NOT_CONTROLLER");
         require(swapFee >= MIN_FEE, "ERR_MIN_FEE");
         require(swapFee <= MAX_FEE, "ERR_MAX_FEE");
         _swapFee = swapFee;
+        emit SwapFeeChanged(msg.sender, swapFee);
     }
 
+    /**
+     * @dev finalize
+     *      Finalize pool. After this,new tokens cannot be bound
+     */
     function finalize() internal {
         _finalized = true;
         _publicSwap = true;
@@ -356,6 +544,13 @@ contract BPool is BMath, BToken {
         _pushPoolShare(msg.sender, INIT_POOL_SUPPLY);
     }
 
+    /**
+     * @dev bind
+     *      Bind a new token to the pool.
+     * @param token token address
+     * @param balance initial reserve
+     * @param denorm denormalized weight
+     */
     function bind(
         address token,
         uint256 balance,
@@ -377,6 +572,13 @@ contract BPool is BMath, BToken {
         rebind(token, balance, denorm);
     }
 
+    /**
+     * @dev rebind
+     *      Update pool reserves & weight after a token bind
+     * @param token token address
+     * @param balance initial reserve
+     * @param denorm denormalized weight
+     */
     function rebind(
         address token,
         uint256 balance,
@@ -402,32 +604,30 @@ contract BPool is BMath, BToken {
         if (balance > oldBalance) {
             _pullUnderlying(token, msg.sender, bsub(balance, oldBalance));
         } else if (balance < oldBalance) {
-            // In this case liquidity is being withdrawn, so charge EXIT_FEE
+            // In this case liquidity is being withdrawn, we don't have EXIT_FEES
             uint256 tokenBalanceWithdrawn = bsub(oldBalance, balance);
-            uint256 tokenExitFee = bmul(tokenBalanceWithdrawn, EXIT_FEE);
             _pushUnderlying(
                 token,
                 msg.sender,
-                bsub(tokenBalanceWithdrawn, tokenExitFee)
+                tokenBalanceWithdrawn
             );
-            _pushUnderlying(token, _factory, tokenExitFee);
         }
     }
 
-    // Absorb any tokens that have been sent to this contract into the pool
-    // function gulp(address token) external _lock_ {
-    //     require(_records[token].bound, "ERR_NOT_BOUND");
-    //     _records[token].balance = IERC20(token).balanceOf(address(this));
-    // }
-
-    function getSpotPrice(address tokenIn, address tokenOut)
-        external
-        view
-        _viewlock_
-        returns (uint256 spotPrice)
-    {
-        require(_records[tokenIn].bound, "ERR_NOT_BOUND");
-        require(_records[tokenOut].bound, "ERR_NOT_BOUND");
+    /**
+     * @dev getSpotPrice
+     *      Return the spot price of swapping tokenIn to tokenOut
+     * @param tokenIn in token
+     * @param tokenOut out token
+     * @param _consumeMarketSwapFee consume market swap fee 
+     */
+    function getSpotPrice(
+        address tokenIn,
+        address tokenOut,
+        uint256 _consumeMarketSwapFee
+    ) external view _viewlock_ returns (uint256 spotPrice) {
+        _checkBound(tokenIn);
+        _checkBound(tokenOut);
         Record storage inRecord = _records[tokenIn];
         Record storage outRecord = _records[tokenOut];
         return
@@ -435,65 +635,115 @@ contract BPool is BMath, BToken {
                 inRecord.balance,
                 inRecord.denorm,
                 outRecord.balance,
-                outRecord.denorm
+                outRecord.denorm,
+                _consumeMarketSwapFee
             );
     }
 
     // view function used for batch buy. useful for frontend
+     /**
+     * @dev getAmountInExactOut
+     *      How many tokensIn do you need in order to get exact tokenAmountOut.
+            Returns: tokenAmountIn, LPFee, opcFee , publishMarketSwapFee, consumeMarketSwapFee
+     * @param tokenIn token to be swaped
+     * @param tokenOut token to get
+     * @param tokenAmountOut exact amount of tokenOut
+     * @param _consumeMarketSwapFee consume market swap fee
+     */
+
     function getAmountInExactOut(
         address tokenIn,
         address tokenOut,
-        uint256 tokenAmountOut
+        uint256 tokenAmountOut,
+        uint256 _consumeMarketSwapFee
     )
         external
         view
         returns (
             // _viewlock_
-            uint256 tokenAmountIn
+            uint256 tokenAmountIn, uint lpFeeAmount, 
+            uint oceanFeeAmount, 
+            uint publishMarketSwapFeeAmount,
+            uint consumeMarketSwapFeeAmount
         )
     {
-        require(_records[tokenIn].bound, "ERR_NOT_BOUND");
-        require(_records[tokenOut].bound, "ERR_NOT_BOUND");
-        Record storage inRecord = _records[tokenIn];
-        Record storage outRecord = _records[tokenOut];
-
-        return
+        _checkBound(tokenIn);
+        _checkBound(tokenOut);
+        uint256[4] memory data = [
+            _records[tokenIn].balance,
+            _records[tokenIn].denorm,
+            _records[tokenOut].balance,
+            _records[tokenOut].denorm
+        ];
+        uint tokenAmountInBalance;
+        swapfees memory _swapfees;
+        (tokenAmountIn, tokenAmountInBalance, _swapfees) =        
             calcInGivenOut(
-                inRecord.balance,
-                inRecord.denorm,
-                outRecord.balance,
-                outRecord.denorm,
-                tokenAmountOut
+                data,
+                tokenAmountOut,
+                // tokenIn,
+                _consumeMarketSwapFee
             );
+        return(tokenAmountIn, _swapfees.LPFee, _swapfees.oceanFeeAmount, 
+        _swapfees.publishMarketFeeAmount, _swapfees.consumeMarketFee);
+
     }
 
     // view function useful for frontend
+    /**
+     * @dev getAmountOutExactIn
+     *      How many tokensOut you will get for a exact tokenAmountIn
+            Returns: tokenAmountOut, LPFee, opcFee ,  publishMarketSwapFee, consumeMarketSwapFee
+     * @param tokenIn token to be swaped
+     * @param tokenOut token to get
+     * @param tokenAmountOut exact amount of tokenOut
+     * @param _consumeMarketSwapFee consume market swap fee
+     */
     function getAmountOutExactIn(
         address tokenIn,
         address tokenOut,
-        uint256 tokenAmountIn
+        uint256 tokenAmountIn,
+        uint256 _consumeMarketSwapFee
     )
         external
         view
         returns (
             //  _viewlock_
-            uint256 tokenAmountOut
+            uint256 tokenAmountOut,
+            uint lpFeeAmount, 
+            uint oceanFeeAmount, 
+            uint publishMarketSwapFeeAmount,
+            uint consumeMarketSwapFeeAmount
         )
     {
-        require(_records[tokenIn].bound, "ERR_NOT_BOUND");
-        require(_records[tokenOut].bound, "ERR_NOT_BOUND");
-        Record storage inRecord = _records[tokenIn];
-        Record storage outRecord = _records[tokenOut];
-        return
+        _checkBound(tokenIn);
+        _checkBound(tokenOut);
+        uint256[4] memory data = [
+            _records[tokenIn].balance,
+            _records[tokenIn].denorm,
+            _records[tokenOut].balance,
+            _records[tokenOut].denorm
+        ];
+        uint balanceInToAdd;
+        swapfees memory _swapfees;
+         (tokenAmountOut, balanceInToAdd, _swapfees) =        
             calcOutGivenIn(
-                inRecord.balance,
-                inRecord.denorm,
-                outRecord.balance,
-                outRecord.denorm,
-                tokenAmountIn
+                data,
+                tokenAmountIn,
+               // tokenIn,
+                _consumeMarketSwapFee
             );
+        return(tokenAmountOut, _swapfees.LPFee, 
+        _swapfees.oceanFeeAmount, _swapfees.publishMarketFeeAmount, _swapfees.consumeMarketFee);
     }
 
+
+    /**
+     * @dev joinPool
+     *      Adds dual side liquidity to the pool (both datatoken and basetoken)
+     * @param poolAmountOut expected number of pool shares that you will get
+     * @param maxAmountsIn array with maxium amounts spent
+     */
     function joinPool(uint256 poolAmountOut, uint256[] calldata maxAmountsIn)
         external
         _lock_
@@ -518,6 +768,12 @@ contract BPool is BMath, BToken {
         emit LOG_BPT(poolAmountOut);
     }
 
+    /**
+     * @dev exitPool
+     *      Removes dual side liquidity from the pool (both datatoken and basetoken)
+     * @param poolAmountIn amount of pool shares spent
+     * @param minAmountsOut array with minimum amount of tokens expected
+     */
     function exitPool(uint256 poolAmountIn, uint256[] calldata minAmountsOut)
         external
         _lock_
@@ -525,14 +781,15 @@ contract BPool is BMath, BToken {
         require(_finalized, "ERR_NOT_FINALIZED");
 
         uint256 poolTotal = totalSupply();
-        uint256 exitFee = bmul(poolAmountIn, EXIT_FEE);
-        uint256 pAiAfterExitFee = bsub(poolAmountIn, exitFee);
-        uint256 ratio = bdiv(pAiAfterExitFee, poolTotal);
+        //uint256 exitFee = bmul(poolAmountIn, EXIT_FEE);
+        //uint256 pAiAfterExitFee = bsub(poolAmountIn, exitFee);
+        
+        uint256 ratio = bdiv(poolAmountIn, poolTotal);
         require(ratio != 0, "ERR_MATH_APPROX");
 
         _pullPoolShare(msg.sender, poolAmountIn);
-        _pushPoolShare(_factory, exitFee);
-        _burnPoolShare(pAiAfterExitFee);
+        //_pushPoolShare(_factory, exitFee);
+        _burnPoolShare(poolAmountIn);
 
         for (uint256 i = 0; i < _tokens.length; i++) {
             address t = _tokens[i];
@@ -544,24 +801,29 @@ contract BPool is BMath, BToken {
             emit LOG_EXIT(msg.sender, t, tokenAmountOut, block.timestamp);
             _pushUnderlying(t, msg.sender, tokenAmountOut);
         }
+        emit LOG_BPT(poolAmountIn);
     }
 
+    /**
+     * @dev swapExactAmountIn
+     *      Swaps an exact amount of tokensIn to get a mimum amount of tokenOut
+     * @param tokenInOutMarket array of addreses: [tokenIn, tokenOut, consumeMarketFeeAddress]
+     * @param amountsInOutMaxFee array of ints: [tokenAmountIn, minAmountOut, maxPrice, consumeMarketSwapFee]
+     */
     function swapExactAmountIn(
-        address tokenIn,
-        uint256 tokenAmountIn,
-        address tokenOut,
-        uint256 minAmountOut,
-        uint256 maxPrice
+        address[3] calldata tokenInOutMarket, 
+        uint256[4] calldata amountsInOutMaxFee
     ) external _lock_ returns (uint256 tokenAmountOut, uint256 spotPriceAfter) {
         require(_finalized, "ERR_NOT_FINALIZED");
-
-        require(_records[tokenIn].bound, "ERR_NOT_BOUND");
-        require(_records[tokenOut].bound, "ERR_NOT_BOUND");
-        Record storage inRecord = _records[address(tokenIn)];
-        Record storage outRecord = _records[address(tokenOut)];
-
+        require(tokenInOutMarket[0] != tokenInOutMarket[1], 'Cannot swap same token');
+        _checkBound(tokenInOutMarket[0]);
+        _checkBound(tokenInOutMarket[1]);
+        Record storage inRecord = _records[address(tokenInOutMarket[0])];
+        Record storage outRecord = _records[address(tokenInOutMarket[1])];
+        require(amountsInOutMaxFee[3] ==0 || amountsInOutMaxFee[3] >= MIN_FEE,'ConsumeSwapFee too low');
+        require(amountsInOutMaxFee[3] <= MAX_FEE,'ConsumeSwapFee too high');
         require(
-            tokenAmountIn <= bmul(inRecord.balance, MAX_IN_RATIO),
+            amountsInOutMaxFee[0] <= bmul(inRecord.balance, MAX_IN_RATIO),
             "ERR_MAX_IN_RATIO"
         );
 
@@ -569,10 +831,14 @@ contract BPool is BMath, BToken {
             inRecord.balance,
             inRecord.denorm,
             outRecord.balance,
-            outRecord.denorm
+            outRecord.denorm,
+            amountsInOutMaxFee[3]
         );
 
-        require(spotPriceBefore <= maxPrice, "ERR_BAD_LIMIT_PRICE");
+        require(
+            spotPriceBefore <= amountsInOutMaxFee[2],
+            "ERR_BAD_LIMIT_PRICE"
+        );
         uint256 balanceInToAdd;
         uint256[4] memory data = [
             inRecord.balance,
@@ -580,13 +846,20 @@ contract BPool is BMath, BToken {
             outRecord.balance,
             outRecord.denorm
         ];
-        (tokenAmountOut, balanceInToAdd) = calcOutGivenInSwap(
+        swapfees memory _swapfees;
+        (tokenAmountOut, balanceInToAdd, _swapfees) = calcOutGivenIn(
             data,
-            tokenAmountIn,
-            tokenIn
+            amountsInOutMaxFee[0],
+           // tokenInOutMarket[0],
+            amountsInOutMaxFee[3]
         );
-
-        require(tokenAmountOut >= minAmountOut, "ERR_LIMIT_OUT");
+        // update balances
+        communityFees[tokenInOutMarket[0]] = badd(communityFees[tokenInOutMarket[0]],_swapfees.oceanFeeAmount);
+        publishMarketFees[tokenInOutMarket[0]] = 
+        badd(publishMarketFees[tokenInOutMarket[0]],_swapfees.publishMarketFeeAmount);
+        emit SWAP_FEES(_swapfees.LPFee, _swapfees.oceanFeeAmount,
+        _swapfees.publishMarketFeeAmount,_swapfees.consumeMarketFee, tokenInOutMarket[0]);
+        require(tokenAmountOut >= amountsInOutMaxFee[1], "ERR_LIMIT_OUT");
 
         inRecord.balance = badd(inRecord.balance, balanceInToAdd);
         outRecord.balance = bsub(outRecord.balance, tokenAmountOut);
@@ -595,48 +868,74 @@ contract BPool is BMath, BToken {
             inRecord.balance,
             inRecord.denorm,
             outRecord.balance,
-            outRecord.denorm
+            outRecord.denorm,
+            amountsInOutMaxFee[3]
         );
 
         require(spotPriceAfter >= spotPriceBefore, "ERR_MATH_APPROX");
-        require(spotPriceAfter <= maxPrice, "ERR_LIMIT_PRICE");
+        require(spotPriceAfter <= amountsInOutMaxFee[2], "ERR_LIMIT_PRICE");
 
         require(
-            spotPriceBefore <= bdiv(tokenAmountIn, tokenAmountOut),
+            spotPriceBefore <= bdiv(amountsInOutMaxFee[0], tokenAmountOut),
             "ERR_MATH_APPROX"
         );
 
         emit LOG_SWAP(
             msg.sender,
-            tokenIn,
-            tokenOut,
-            tokenAmountIn,
+            tokenInOutMarket[0],
+            tokenInOutMarket[1],
+            amountsInOutMaxFee[0],
             tokenAmountOut,
-            block.timestamp
+            block.timestamp,
+            inRecord.balance,
+            outRecord.balance,
+            spotPriceAfter
+
         );
 
-        _pullUnderlying(tokenIn, msg.sender, tokenAmountIn);
-        _pushUnderlying(tokenOut, msg.sender, tokenAmountOut);
+        _pullUnderlying(tokenInOutMarket[0], msg.sender, amountsInOutMaxFee[0]);
+        uint256 consumeMarketFeeAmount = bsub(
+            amountsInOutMaxFee[0],
+            bmul(amountsInOutMaxFee[0], bsub(BONE, amountsInOutMaxFee[3]))
+        );
+        if (amountsInOutMaxFee[3] > 0) {
+            IERC20(tokenInOutMarket[0]).safeTransfer(
+                tokenInOutMarket[2],
+                consumeMarketFeeAmount
+            );
+            emit ConsumeMarketFee(
+                tokenInOutMarket[2],
+                tokenInOutMarket[0],
+                consumeMarketFeeAmount
+            );
+        }
+        _pushUnderlying(tokenInOutMarket[1], msg.sender, tokenAmountOut);
 
         return (tokenAmountOut, spotPriceAfter); //returning spot price 0 because there is no public spotPrice
     }
 
+
+    /**
+     * @dev swapExactAmountOut
+     *      Swaps a maximum  maxAmountIn of tokensIn to get an exact amount of tokenOut
+     * @param tokenInOutMarket array of addreses: [tokenIn, tokenOut, consumeMarketFeeAddress]
+     * @param amountsInOutMaxFee array of ints: [maxAmountIn,tokenAmountOut,maxPrice, consumeMarketSwapFee]
+     */
     function swapExactAmountOut(
-        address tokenIn,
-        uint256 maxAmountIn,
-        address tokenOut,
-        uint256 tokenAmountOut,
-        uint256 maxPrice
+        address[3] calldata tokenInOutMarket,
+        uint256[4] calldata amountsInOutMaxFee
     ) external _lock_ returns (uint256 tokenAmountIn, uint256 spotPriceAfter) {
         require(_finalized, "ERR_NOT_FINALIZED");
-        require(_records[tokenIn].bound, "ERR_NOT_BOUND");
-        require(_records[tokenOut].bound, "ERR_NOT_BOUND");
-
-        Record storage inRecord = _records[address(tokenIn)];
-        Record storage outRecord = _records[address(tokenOut)];
+        require(tokenInOutMarket[0] != tokenInOutMarket[1], 'Cannot swap same token');
+        require(amountsInOutMaxFee[3] ==0 || amountsInOutMaxFee[3] >= MIN_FEE,'ConsumeSwapFee too low');
+        require(amountsInOutMaxFee[3] <= MAX_FEE,'ConsumeSwapFee too high');
+        _checkBound(tokenInOutMarket[0]);
+        _checkBound(tokenInOutMarket[1]);
+        Record storage inRecord = _records[address(tokenInOutMarket[0])];
+        Record storage outRecord = _records[address(tokenInOutMarket[1])];
 
         require(
-            tokenAmountOut <= bmul(outRecord.balance, MAX_OUT_RATIO),
+            amountsInOutMaxFee[1] <= bmul(outRecord.balance, MAX_OUT_RATIO),
             "ERR_MAX_OUT_RATIO"
         );
 
@@ -644,12 +943,17 @@ contract BPool is BMath, BToken {
             inRecord.balance,
             inRecord.denorm,
             outRecord.balance,
-            outRecord.denorm
+            outRecord.denorm,
+            amountsInOutMaxFee[3]
         );
 
-        require(spotPriceBefore <= maxPrice, "ERR_BAD_LIMIT_PRICE");
+        require(
+            spotPriceBefore <= amountsInOutMaxFee[2],
+            "ERR_BAD_LIMIT_PRICE"
+        );
         // this is the amount we are going to register in balances
-        // (only takes account of swapFee, not OPF and market fee, in order to not affect price during following swaps, fee wtihdrawl etc)
+        // (only takes account of swapFee, not OPC and market fee,
+        //in order to not affect price during following swaps, fee wtihdrawl etc)
         uint256 balanceToAdd;
         uint256[4] memory data = [
             inRecord.balance,
@@ -657,60 +961,90 @@ contract BPool is BMath, BToken {
             outRecord.balance,
             outRecord.denorm
         ];
-
-        (tokenAmountIn, balanceToAdd) = calcInGivenOutSwap(
+        swapfees memory _swapfees;
+        (tokenAmountIn, balanceToAdd,
+        _swapfees) = calcInGivenOut(
             data,
-            tokenAmountOut,
-            tokenIn
+            amountsInOutMaxFee[1],
+            //tokenInOutMarket[0],
+            amountsInOutMaxFee[3]
         );
-
-        require(tokenAmountIn <= maxAmountIn, "ERR_LIMIT_IN");
+        communityFees[tokenInOutMarket[0]] = badd(communityFees[tokenInOutMarket[0]],_swapfees.oceanFeeAmount);
+        publishMarketFees[tokenInOutMarket[0]] 
+        = badd(publishMarketFees[tokenInOutMarket[0]],_swapfees.publishMarketFeeAmount);
+        emit SWAP_FEES(_swapfees.LPFee, _swapfees.oceanFeeAmount,
+        _swapfees.publishMarketFeeAmount,_swapfees.consumeMarketFee, tokenInOutMarket[0]);
+        require(tokenAmountIn <= amountsInOutMaxFee[0], "ERR_LIMIT_IN");
 
         inRecord.balance = badd(inRecord.balance, balanceToAdd);
-        outRecord.balance = bsub(outRecord.balance, tokenAmountOut);
+        outRecord.balance = bsub(outRecord.balance, amountsInOutMaxFee[1]);
 
         spotPriceAfter = calcSpotPrice(
             inRecord.balance,
             inRecord.denorm,
             outRecord.balance,
-            outRecord.denorm
+            outRecord.denorm,
+            amountsInOutMaxFee[3]
         );
 
         require(spotPriceAfter >= spotPriceBefore, "ERR_MATH_APPROX");
-        require(spotPriceAfter <= maxPrice, "ERR_LIMIT_PRICE");
+        require(spotPriceAfter <= amountsInOutMaxFee[2], "ERR_LIMIT_PRICE");
         require(
-            spotPriceBefore <= bdiv(tokenAmountIn, tokenAmountOut),
+            spotPriceBefore <= bdiv(tokenAmountIn, amountsInOutMaxFee[1]),
             "ERR_MATH_APPROX"
         );
 
         emit LOG_SWAP(
             msg.sender,
-            tokenIn,
-            tokenOut,
+            tokenInOutMarket[0],
+            tokenInOutMarket[1],
             tokenAmountIn,
-            tokenAmountOut,
-            block.timestamp
+            amountsInOutMaxFee[1],
+            block.timestamp,
+            inRecord.balance,
+            outRecord.balance,
+            spotPriceAfter
         );
-
-        _pullUnderlying(tokenIn, msg.sender, tokenAmountIn);
-        _pushUnderlying(tokenOut, msg.sender, tokenAmountOut);
-
+        _pullUnderlying(tokenInOutMarket[0], msg.sender, tokenAmountIn);
+        uint256 consumeMarketFeeAmount = bsub(
+            tokenAmountIn,
+            bmul(tokenAmountIn, bsub(BONE, amountsInOutMaxFee[3]))
+        );
+        if (amountsInOutMaxFee[3] > 0) {
+            IERC20(tokenInOutMarket[0]).safeTransfer(
+                tokenInOutMarket[2],// market address
+                consumeMarketFeeAmount
+            );
+            emit ConsumeMarketFee(
+                tokenInOutMarket[2], // to (market address)
+                tokenInOutMarket[0], // token
+                consumeMarketFeeAmount
+            );
+        }
+        _pushUnderlying(tokenInOutMarket[1], msg.sender, amountsInOutMaxFee[1]);
         return (tokenAmountIn, spotPriceAfter);
     }
 
+    /**
+     * @dev joinswapExternAmountIn
+     *      Single side add liquidity to the pool,
+     *      expecting a minPoolAmountOut of shares for spending tokenAmountIn basetokens
+     * @param tokenAmountIn exact number of base tokens to spend
+     * @param minPoolAmountOut minimum of pool shares expectex
+     */
     function joinswapExternAmountIn(
-        address tokenIn,
         uint256 tokenAmountIn,
         uint256 minPoolAmountOut
     ) external _lock_ returns (uint256 poolAmountOut) {
+        //tokenIn = _baseTokenAddress;
         require(_finalized, "ERR_NOT_FINALIZED");
-        require(_records[tokenIn].bound, "ERR_NOT_BOUND");
+        _checkBound(_baseTokenAddress);
         require(
-            tokenAmountIn <= bmul(_records[tokenIn].balance, MAX_IN_RATIO),
+            tokenAmountIn <= bmul(_records[_baseTokenAddress].balance, MAX_IN_RATIO),
             "ERR_MAX_IN_RATIO"
         );
         //ask ssContract
-        Record storage inRecord = _records[tokenIn];
+        Record storage inRecord = _records[_baseTokenAddress];
 
         poolAmountOut = calcPoolOutGivenSingleIn(
             inRecord.balance,
@@ -723,18 +1057,14 @@ contract BPool is BMath, BToken {
         require(poolAmountOut >= minPoolAmountOut, "ERR_LIMIT_OUT");
 
         inRecord.balance = badd(inRecord.balance, tokenAmountIn);
-
-        emit LOG_JOIN(msg.sender, tokenIn, tokenAmountIn, block.timestamp);
+        emit LOG_JOIN(msg.sender, _baseTokenAddress, tokenAmountIn, block.timestamp);
         emit LOG_BPT(poolAmountOut);
-        _mintPoolShare(poolAmountOut);
-        _pushPoolShare(msg.sender, poolAmountOut);
 
-        _pullUnderlying(tokenIn, msg.sender, tokenAmountIn);
+        
 
         //ask the ssContract to stake as well
         //calculate how much should the 1ss stake
         Record storage ssInRecord = _records[_datatokenAddress];
-        address ssStakeToken;
         uint256 ssAmountIn = calcSingleInGivenPoolOut(
             ssInRecord.balance,
             ssInRecord.denorm,
@@ -742,117 +1072,47 @@ contract BPool is BMath, BToken {
             _totalWeight,
             poolAmountOut
         );
-        if (tokenIn == _datatokenAddress) {
-            ssStakeToken = _basetokenAddress;
-        } else {
-            // ssInRecord = _records[_basetokenAddress];
-            ssStakeToken = _datatokenAddress;
-        }
-        if (
-            ssContract.canStake(_datatokenAddress, ssStakeToken, ssAmountIn) ==
-            true
-        ) {
+        if (ssContract.canStake(_datatokenAddress, ssAmountIn)) {
+            
             //call 1ss to approve
-
-            ssContract.Stake(_datatokenAddress, ssStakeToken, ssAmountIn);
+            ssContract.Stake(_datatokenAddress, ssAmountIn);
             // follow the same path
             ssInRecord.balance = badd(ssInRecord.balance, ssAmountIn);
             emit LOG_JOIN(
                 _controller,
-                ssStakeToken,
+                _datatokenAddress,
                 ssAmountIn,
                 block.timestamp
             );
-            emit LOG_BPT(poolAmountOut);
+            emit LOG_BPT_SS(poolAmountOut);
             _mintPoolShare(poolAmountOut);
             _pushPoolShare(_controller, poolAmountOut);
-            _pullUnderlying(ssStakeToken, _controller, ssAmountIn);
+            _pullUnderlying(_datatokenAddress, _controller, ssAmountIn);
+            
         }
+        _mintPoolShare(poolAmountOut);
+        _pushPoolShare(msg.sender, poolAmountOut);
+        _pullUnderlying(_baseTokenAddress, msg.sender, tokenAmountIn);
         return poolAmountOut;
     }
 
-    function joinswapPoolAmountOut(
-        address tokenIn,
-        uint256 poolAmountOut,
-        uint256 maxAmountIn
-    ) external _lock_ returns (uint256 tokenAmountIn) {
-        require(_finalized, "ERR_NOT_FINALIZED");
-        require(_records[tokenIn].bound, "ERR_NOT_BOUND");
-
-        Record storage inRecord = _records[tokenIn];
-
-        tokenAmountIn = calcSingleInGivenPoolOut(
-            inRecord.balance,
-            inRecord.denorm,
-            _totalSupply,
-            _totalWeight,
-            poolAmountOut
-        );
-
-        //ask ssContract
-        require(tokenAmountIn != 0, "ERR_MATH_APPROX");
-        require(tokenAmountIn <= maxAmountIn, "ERR_LIMIT_IN");
-
-        require(
-            tokenAmountIn <= bmul(_records[tokenIn].balance, MAX_IN_RATIO),
-            "ERR_MAX_IN_RATIO"
-        );
-
-        inRecord.balance = badd(inRecord.balance, tokenAmountIn);
-
-        emit LOG_JOIN(msg.sender, tokenIn, tokenAmountIn, block.timestamp);
-        emit LOG_BPT(poolAmountOut);
-        _mintPoolShare(poolAmountOut);
-        _pushPoolShare(msg.sender, poolAmountOut);
-        _pullUnderlying(tokenIn, msg.sender, tokenAmountIn);
-
-        Record storage ssInRecord = _records[_datatokenAddress];
-        //ask the ssContract to stake as well
-        //calculate how much should the 1ss stake
-        uint256 ssAmountIn = calcSingleInGivenPoolOut(
-            ssInRecord.balance,
-            ssInRecord.denorm,
-            _totalSupply,
-            _totalWeight,
-            poolAmountOut
-        );
-        address ssStakeToken;
-
-        if (tokenIn == _datatokenAddress) {
-            ssStakeToken = _basetokenAddress;
-        } else {
-            ssStakeToken = _datatokenAddress;
-        }
-        if (
-            ssContract.canStake(_datatokenAddress, ssStakeToken, ssAmountIn) ==
-            true
-        ) {
-            //call 1ss to approve
-            ssContract.Stake(_datatokenAddress, ssStakeToken, ssAmountIn);
-            // follow the same path
-            ssInRecord.balance = badd(ssInRecord.balance, ssAmountIn);
-            emit LOG_JOIN(
-                _controller,
-                ssStakeToken,
-                ssAmountIn,
-                block.timestamp
-            );
-            _mintPoolShare(poolAmountOut);
-            _pushPoolShare(_controller, poolAmountOut);
-            _pullUnderlying(ssStakeToken, _controller, ssAmountIn);
-        }
-        return tokenAmountIn;
-    }
-
+    
+    /**
+     * @dev exitswapPoolAmountIn
+     *      Single side remove liquidity from the pool,
+     *      expecting a minAmountOut of basetokens for spending poolAmountIn pool shares
+     * @param poolAmountIn exact number of pool shares to spend
+     * @param minAmountOut minimum amount of basetokens expected
+     */
     function exitswapPoolAmountIn(
-        address tokenOut,
         uint256 poolAmountIn,
         uint256 minAmountOut
     ) external _lock_ returns (uint256 tokenAmountOut) {
+        //tokenOut = _baseTokenAddress;
         require(_finalized, "ERR_NOT_FINALIZED");
-        require(_records[tokenOut].bound, "ERR_NOT_BOUND");
+        _checkBound(_baseTokenAddress);
 
-        Record storage outRecord = _records[tokenOut];
+        Record storage outRecord = _records[_baseTokenAddress];
 
         tokenAmountOut = calcSingleOutGivenPoolIn(
             outRecord.balance,
@@ -861,42 +1121,24 @@ contract BPool is BMath, BToken {
             _totalWeight,
             poolAmountIn
         );
-
         require(tokenAmountOut >= minAmountOut, "ERR_LIMIT_OUT");
 
         require(
-            tokenAmountOut <= bmul(_records[tokenOut].balance, MAX_OUT_RATIO),
+            tokenAmountOut <= bmul(_records[_baseTokenAddress].balance, MAX_OUT_RATIO),
             "ERR_MAX_OUT_RATIO"
         );
 
         outRecord.balance = bsub(outRecord.balance, tokenAmountOut);
 
-        uint256 exitFee = bmul(poolAmountIn, EXIT_FEE);
-
-        emit LOG_EXIT(msg.sender, tokenOut, tokenAmountOut, block.timestamp);
+        //uint256 exitFee = bmul(poolAmountIn, EXIT_FEE);
+        emit LOG_EXIT(msg.sender, _baseTokenAddress, tokenAmountOut, block.timestamp);
         emit LOG_BPT(poolAmountIn);
-
-        _pullPoolShare(msg.sender, poolAmountIn);
-
-        _burnPoolShare(bsub(poolAmountIn, exitFee));
-        _pushPoolShare(_factory, exitFee);
-        _pushUnderlying(tokenOut, msg.sender, tokenAmountOut);
 
         //ask the ssContract to unstake as well
         //calculate how much should the 1ss unstake
-        address ssStakeToken;
-        if (tokenOut == _datatokenAddress) {
-            ssStakeToken = _basetokenAddress;
-        } else {
-            ssStakeToken = _datatokenAddress;
-        }
-
+        
         if (
-            ssContract.canUnStake(
-                _datatokenAddress,
-                ssStakeToken,
-                poolAmountIn
-            ) == true
+            ssContract.canUnStake(_datatokenAddress, poolAmountIn)
         ) {
             Record storage ssOutRecord = _records[_datatokenAddress];
             uint256 ssAmountOut = calcSingleOutGivenPoolIn(
@@ -908,112 +1150,43 @@ contract BPool is BMath, BToken {
             );
 
             ssOutRecord.balance = bsub(ssOutRecord.balance, ssAmountOut);
-            exitFee = bmul(poolAmountIn, EXIT_FEE);
+            //exitFee = bmul(poolAmountIn, EXIT_FEE);
             emit LOG_EXIT(
                 _controller,
-                ssStakeToken,
+                _datatokenAddress,
                 ssAmountOut,
                 block.timestamp
             );
             _pullPoolShare(_controller, poolAmountIn);
-            _burnPoolShare(bsub(poolAmountIn, exitFee));
-            _pushPoolShare(_factory, exitFee);
-            _pushUnderlying(ssStakeToken, _controller, ssAmountOut);
+            //_burnPoolShare(bsub(poolAmountIn, exitFee));
+            _burnPoolShare(poolAmountIn);
+            //_pushPoolShare(_factory, exitFee);
+            _pushUnderlying(_datatokenAddress, _controller, ssAmountOut);
             //call unstake on 1ss to do cleanup on their side
             ssContract.UnStake(
                 _datatokenAddress,
-                ssStakeToken,
                 ssAmountOut,
                 poolAmountIn
             );
+            emit LOG_BPT_SS(poolAmountIn);
         }
+        
+        _pullPoolShare(msg.sender, poolAmountIn);
+        //_burnPoolShare(bsub(poolAmountIn, exitFee));
+        _burnPoolShare(poolAmountIn);
+        //_pushPoolShare(_factory, exitFee);
+        _pushUnderlying(_baseTokenAddress, msg.sender, tokenAmountOut);
         return tokenAmountOut;
     }
 
-    function exitswapExternAmountOut(
-        address tokenOut,
-        uint256 tokenAmountOut,
-        uint256 maxPoolAmountIn
-    ) external _lock_ returns (uint256 poolAmountIn) {
-        require(_finalized, "ERR_NOT_FINALIZED");
-        require(_records[tokenOut].bound, "ERR_NOT_BOUND");
-        require(
-            tokenAmountOut <= bmul(_records[tokenOut].balance, MAX_OUT_RATIO),
-            "ERR_MAX_OUT_RATIO"
-        );
+    
 
-        Record storage outRecord = _records[tokenOut];
-
-        poolAmountIn = calcPoolInGivenSingleOut(
-            outRecord.balance,
-            outRecord.denorm,
-            _totalSupply,
-            _totalWeight,
-            tokenAmountOut
-        );
-
-        require(poolAmountIn != 0, "ERR_MATH_APPROX");
-        require(poolAmountIn <= maxPoolAmountIn, "ERR_LIMIT_IN");
-
-        outRecord.balance = bsub(outRecord.balance, tokenAmountOut);
-
-        uint256 exitFee = bmul(poolAmountIn, EXIT_FEE);
-
-        emit LOG_EXIT(msg.sender, tokenOut, tokenAmountOut, block.timestamp);
-        emit LOG_BPT(poolAmountIn);
-        _pullPoolShare(msg.sender, poolAmountIn);
-        _burnPoolShare(bsub(poolAmountIn, exitFee));
-        _pushPoolShare(_factory, exitFee);
-        _pushUnderlying(tokenOut, msg.sender, tokenAmountOut);
-
-        //ask the ssContract to unstake as well
-        //calculate how much should the 1ss unstake
-        //ask ssContract
-        address ssStakeToken;
-
-        if (tokenOut == _datatokenAddress) {
-            ssStakeToken = _basetokenAddress;
-        } else {
-            ssStakeToken = _datatokenAddress;
-        }
-        if (
-            ssContract.canUnStake(
-                _datatokenAddress,
-                ssStakeToken,
-                poolAmountIn
-            ) == true
-        ) {
-            Record storage ssOutRecord = _records[_datatokenAddress];
-            uint256 ssAmountOut = calcSingleOutGivenPoolIn(
-                ssOutRecord.balance,
-                ssOutRecord.denorm,
-                _totalSupply,
-                _totalWeight,
-                poolAmountIn
-            );
-            ssOutRecord.balance = bsub(ssOutRecord.balance, ssAmountOut);
-            exitFee = bmul(poolAmountIn, EXIT_FEE);
-            emit LOG_EXIT(
-                _controller,
-                ssStakeToken,
-                ssAmountOut,
-                block.timestamp
-            );
-            _pullPoolShare(_controller, poolAmountIn);
-            _burnPoolShare(bsub(poolAmountIn, exitFee));
-            _pushPoolShare(_factory, exitFee);
-            _pushUnderlying(ssStakeToken, _controller, ssAmountOut);
-            //call unstake on 1ss to do cleanup on their side
-            ssContract.UnStake(
-                _datatokenAddress,
-                ssStakeToken,
-                ssAmountOut,
-                poolAmountIn
-            );
-        }
-        return poolAmountIn;
-    }
-
+    /**
+     * @dev calcSingleOutPoolIn
+     *      Returns expected amount of tokenOut for removing exact poolAmountIn pool shares from the pool
+     * @param tokenOut tokenOut
+     * @param poolAmountIn amount of shares spent
+     */
     function calcSingleOutPoolIn(address tokenOut, uint256 poolAmountIn)
         external
         view
@@ -1032,6 +1205,12 @@ contract BPool is BMath, BToken {
         return tokenAmountOut;
     }
 
+    /**
+     * @dev calcPoolInSingleOut
+     *      Returns number of poolshares needed to withdraw exact tokenAmountOut tokens
+     * @param tokenOut tokenOut
+     * @param tokenAmountOut expected amount of tokensOut
+     */
     function calcPoolInSingleOut(address tokenOut, uint256 tokenAmountOut)
         external
         view
@@ -1049,6 +1228,12 @@ contract BPool is BMath, BToken {
         return poolAmountIn;
     }
 
+    /**
+     * @dev calcSingleInPoolOut
+     *      Returns number of tokens to be staked to the pool in order to get an exact number of poolshares
+     * @param tokenIn tokenIn
+     * @param poolAmountOut expected amount of pool shares
+     */
     function calcSingleInPoolOut(address tokenIn, uint256 poolAmountOut)
         external
         view
@@ -1067,6 +1252,12 @@ contract BPool is BMath, BToken {
         return tokenAmountIn;
     }
 
+    /**
+     * @dev calcPoolOutSingleIn
+     *      Returns number of poolshares obtain by staking exact tokenAmountIn tokens
+     * @param tokenIn tokenIn
+     * @param tokenAmountIn exact number of tokens staked
+     */
     function calcPoolOutSingleIn(address tokenIn, uint256 tokenAmountIn)
         external
         view
@@ -1085,18 +1276,22 @@ contract BPool is BMath, BToken {
         return poolAmountOut;
     }
 
+
+    // Internal functions below
+
     // ==
     // 'Underlying' token-manipulation functions make external calls but are NOT locked
     // You must `_lock_` or otherwise ensure reentry-safety
-
     function _pullUnderlying(
         address erc20,
         address from,
         uint256 amount
     ) internal {
-        bool xfer = IERC20(erc20).transferFrom(from, address(this), amount);
-
-        require(xfer, "ERR_ERC20_FALSE");
+        uint256 balanceBefore = IERC20(erc20).balanceOf(address(this));
+        IERC20(erc20).safeTransferFrom(from, address(this), amount);
+        require(IERC20(erc20).balanceOf(address(this)) >= balanceBefore + amount,
+                    "Transfer amount is too low");
+        //require(xfer, "ERR_ERC20_FALSE");
     }
 
     function _pushUnderlying(
@@ -1104,8 +1299,8 @@ contract BPool is BMath, BToken {
         address to,
         uint256 amount
     ) internal {
-        bool xfer = IERC20(erc20).transfer(to, amount);
-        require(xfer, "ERR_ERC20_FALSE");
+        IERC20(erc20).safeTransfer(to, amount);
+        //require(xfer, "ERR_ERC20_FALSE");
     }
 
     function _pullPoolShare(address from, uint256 amount) internal {
