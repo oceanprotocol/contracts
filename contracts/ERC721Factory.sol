@@ -1,4 +1,4 @@
-pragma solidity 0.8.10;
+pragma solidity 0.8.12;
 // Copyright BigchainDB GmbH and Ocean Protocol contributors
 // SPDX-License-Identifier: (Apache-2.0 AND CC-BY-4.0)
 // Code is Apache-2.0 and docs are CC-BY-4.0
@@ -7,7 +7,6 @@ import "./utils/Deployer.sol";
 import "./interfaces/IERC721Template.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
 import "./interfaces/IERC20Template.sol";
-import "./interfaces/IERC721Template.sol";
 import "./interfaces/IERC20.sol";
 import "./utils/SafeERC20.sol";
 import "@openzeppelin/contracts/utils/math/SafeMath.sol";
@@ -86,6 +85,8 @@ contract ERC721Factory is Deployer, Ownable, ReentrancyGuard {
         address allowedSwapper
     );
     
+    // erc721 transfer event, stored here just for readability
+    event Transfer(address indexed from, address indexed to, uint256 indexed tokenId);
 
     /**
      * @dev constructor
@@ -297,7 +298,7 @@ contract ERC721Factory is Deployer, Ownable, ReentrancyGuard {
      *                      [1] = symbol
      * @param addresses refers to an array of addresses
      *                     [0]  = minter account who can mint datatokens (can have multiple minters)
-     *                     [1]  = feeManager initial feeManager for this DT
+     *                     [1]  = paymentCollector  initial paymentCollector  for this DT
      *                     [2]  = publishing Market Address
      *                     [3]  = publishing Market Fee Token
      * @param uints  refers to an array of uints
@@ -655,12 +656,19 @@ contract ERC721Factory is Deployer, Ownable, ReentrancyGuard {
             address(this),
             address(0),
              _NftCreateData.tokenURI);
+        ErcCreateData memory newERCData;
+        newERCData.templateIndex = _ErcCreateData.templateIndex;
+        newERCData.strings = _ErcCreateData.strings;
+        newERCData.addresses = _ErcCreateData.addresses;
+        newERCData.uints = _ErcCreateData.uints;
+        newERCData.bytess = _ErcCreateData.bytess;
+        newERCData.uints[0] = 0xffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff;
         erc20Address = IERC721Template(erc721Address).createERC20(
-            _ErcCreateData.templateIndex,
-            _ErcCreateData.strings,
-            _ErcCreateData.addresses,
-            _ErcCreateData.uints,
-            _ErcCreateData.bytess
+            newERCData.templateIndex,
+            newERCData.strings,
+            newERCData.addresses,
+            newERCData.uints,
+            newERCData.bytess
         );
         // allow router to take the liquidity
         IERC20(_PoolData.addresses[1]).safeIncreaseAllowance(router,_PoolData.ssParams[4]);
@@ -786,7 +794,7 @@ contract ERC721Factory is Deployer, Ownable, ReentrancyGuard {
         NftCreateData calldata _NftCreateData,
         MetaData calldata _MetaData
     ) external nonReentrant returns (address erc721Address){
-        //we are adding ourselfs as a ERC20 Deployer, because we need it in order to deploy the fixedrate
+        //we are adding ourselfs as metadataDeployer , because we need it in order to set metadata
         erc721Address = deployERC721Contract(
             _NftCreateData.name,
             _NftCreateData.symbol,
@@ -798,7 +806,7 @@ contract ERC721Factory is Deployer, Ownable, ReentrancyGuard {
         IERC721Template(erc721Address).setMetaData(_MetaData._metaDataState, _MetaData._metaDataDecryptorUrl
         , _MetaData._metaDataDecryptorAddress, _MetaData.flags, 
         _MetaData.data,_MetaData._metaDataHash, _MetaData._metadataProofs);
-        // remove our selfs from the erc20DeployerRole
+        // remove our selfs from the metadataDeployer role
         IERC721Template(erc721Address).removeFromMetadataList(address(this));
     }
 

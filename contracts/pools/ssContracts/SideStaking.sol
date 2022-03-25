@@ -1,9 +1,10 @@
-pragma solidity 0.8.10;
+pragma solidity 0.8.12;
 // Copyright BigchainDB GmbH and Ocean Protocol contributors
 // SPDX-License-Identifier: (Apache-2.0 AND CC-BY-4.0)
 // Code is Apache-2.0 and docs are CC-BY-4.0
 import "../../interfaces/IERC20.sol";
 import "../../interfaces/IERC20Template.sol";
+import "../../interfaces/IERC721Template.sol";
 import "../../interfaces/IPool.sol";
 import "@openzeppelin/contracts/utils/math/SafeMath.sol";
 import "../../utils/SafeERC20.sol";
@@ -62,13 +63,28 @@ contract SideStaking is ReentrancyGuard {
     }
 
     mapping(address => Record) private _datatokens;
-    uint256 private constant BASE = 10**18;
+    uint256 private constant BASE = 1e18;
 
     modifier onlyRouter() {
         require(msg.sender == router, "ONLY ROUTER");
         _;
     }
 
+    modifier onlyOwner(address datatoken) {
+        require(
+            datatoken != address(0),
+            'Invalid token contract address'
+        );
+        // allow only ERC20 Deployers or NFT Owner
+        IERC20Template dt = IERC20Template(datatoken);
+        require(
+            dt.isERC20Deployer(msg.sender) || 
+            IERC721Template(dt.getERC721Address()).ownerOf(1) == msg.sender
+            ,
+            "Invalid owner"
+        );
+        _;
+    }
     /**
      * @dev constructor
      *      Called on contract deployment.
@@ -120,6 +136,7 @@ contract SideStaking is ReentrancyGuard {
             bpool.getBaseTokenAddress() == baseTokenAddress,
             "baseToken address missmatch"
         );
+        require(ssParams[0]>1e12 , "Invalid rate");
         // check if we are the minter of DT
         IERC20Template dt = IERC20Template(datatokenAddress);
         require(
@@ -476,7 +493,7 @@ contract SideStaking is ReentrancyGuard {
         returns (uint256)
     {
         uint256 blocksPassed;
-
+        if (!_datatokens[datatokenAddress].bound) return (0);
         if (_datatokens[datatokenAddress].vestingEndBlock < block.number) {
             blocksPassed =
                 _datatokens[datatokenAddress].vestingEndBlock -
@@ -510,18 +527,19 @@ contract SideStaking is ReentrancyGuard {
             amount > 0 &&
             _datatokens[datatokenAddress].datatokenBalance >= amount
         ) {
-            IERC20 dt = IERC20(datatokenAddress);
+            IERC20Template dt = IERC20Template(datatokenAddress);
             _datatokens[datatokenAddress].vestingLastBlock = block.number;
             _datatokens[datatokenAddress].datatokenBalance -= amount;
             _datatokens[datatokenAddress].vestingAmountSoFar += amount;
+            address collector = dt.getPaymentCollector();
             emit Vesting(
                 datatokenAddress,
-                _datatokens[datatokenAddress].publisherAddress,
+                collector,
                 msg.sender,
                 amount
             );
-            dt.safeTransfer(
-                _datatokens[datatokenAddress].publisherAddress,
+            dt.transfer(
+                collector,
                 amount
             );
             
@@ -540,7 +558,8 @@ contract SideStaking is ReentrancyGuard {
         address datatokenAddress,
         address poolAddress,
         uint256 swapFee
-    ) external nonReentrant {
+    ) external onlyOwner(datatokenAddress) nonReentrant {
+        require(_datatokens[datatokenAddress].bound, "Invalid datatoken");
         require(poolAddress != address(0), "Invalid poolAddress");
         IPool bpool = IPool(poolAddress);
         require(
@@ -552,8 +571,6 @@ contract SideStaking is ReentrancyGuard {
             bpool.getDatatokenAddress() == datatokenAddress,
             "Datatoken address missmatch"
         );
-        IERC20Template dt = IERC20Template(datatokenAddress);
-        require(dt.isERC20Deployer(msg.sender), "Not ERC20 Deployer");
         bpool.setSwapFee(swapFee);
     }
 }

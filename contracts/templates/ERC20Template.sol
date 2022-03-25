@@ -1,12 +1,13 @@
-pragma solidity 0.8.10;
+pragma solidity 0.8.12;
 // Copyright BigchainDB GmbH and Ocean Protocol contributors
 // SPDX-License-Identifier: (Apache-2.0 AND CC-BY-4.0)
 // Code is Apache-2.0 and docs are CC-BY-4.0
 
-import "../interfaces/IERC20Template.sol";
 import "../interfaces/IERC721Template.sol";
+import "../interfaces/IERC20Template.sol";
 import "../interfaces/IFactoryRouter.sol";
-import "../utils/ERC725/ERC725Ocean.sol";
+import "../interfaces/IFixedRateExchange.sol";
+import "../interfaces/IDispenser.sol";
 import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
 import "@openzeppelin/contracts/token/ERC20/extensions/ERC20Burnable.sol";
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
@@ -43,7 +44,7 @@ contract ERC20Template is
     address private publishMarketFeeAddress;
     address private publishMarketFeeToken;
     uint256 private publishMarketFeeAmount;
-    uint256 public constant BASE = 10**18;
+    uint256 public constant BASE = 1e18;
     
     // EIP 2612 SUPPORT
     bytes32 public DOMAIN_SEPARATOR;
@@ -192,7 +193,7 @@ contract ERC20Template is
         require(
             IERC721Template(_erc721Address)
                 .getPermissions(msg.sender)
-                .deployERC20,
+                .deployERC20 || IERC721Template(_erc721Address).ownerOf(1) == msg.sender,
             "ERC20Template: NOT DEPLOYER ROLE"
         );
         _;
@@ -446,15 +447,6 @@ contract ERC20Template is
         _mint(account, value);
     }
 
-    /**
-     * @dev isMinter
-     *      Check if an address has the minter role
-     * @param account refers to an address that is checked
-     */
-    function isMinter(address account) external view returns (bool) {
-        return (permissions[account].minter);
-    }
-
     
     /**
      * @dev checkProviderFee
@@ -558,35 +550,14 @@ contract ERC20Template is
             publishMarketFeeAddress != address(0)
         ) {
             _pullUnderlying(publishMarketFeeToken,msg.sender,
-                address(this),
-                publishMarketFeeAmount);
-            uint256 OPCFee = IFactoryRouter(router).getOPCConsumeFee();
-            if(OPCFee > 0)
-                communityFeePublish = publishMarketFeeAmount.mul(OPCFee).div(BASE); 
-            //send publishMarketFee
-            IERC20(publishMarketFeeToken).safeTransfer(
                 publishMarketFeeAddress,
-                publishMarketFeeAmount.sub(communityFeePublish)
-            );
-
+                publishMarketFeeAmount);
+            
             emit PublishMarketFee(
                 publishMarketFeeAddress,
                 publishMarketFeeToken,
-                publishMarketFeeAmount.sub(communityFeePublish)
+                publishMarketFeeAmount
             );
-            //send fee to OPC
-            if (communityFeePublish > 0) {
-                //since both fees are in the same token, have just one transaction for both, to save gas
-                IERC20(publishMarketFeeToken).safeTransfer(
-                    _communityFeeCollector,
-                    communityFeePublish
-                );
-                emit PublishMarketFee(
-                    _communityFeeCollector,
-                    publishMarketFeeToken,
-                    communityFeePublish
-                );
-            }
         }
 
         // consumeMarketFee
@@ -598,42 +569,25 @@ contract ERC20Template is
             _consumeMarketFee.consumeMarketFeeAddress != address(0)
         ) {
             _pullUnderlying(_consumeMarketFee.consumeMarketFeeToken,msg.sender,
-                address(this),
-                _consumeMarketFee.consumeMarketFeeAmount);
-            uint256 OPCFee = IFactoryRouter(router).getOPCConsumeFee();
-            if(OPCFee > 0)
-                communityFeePublish = _consumeMarketFee.consumeMarketFeeAmount.mul(OPCFee).div(BASE); 
-            //send publishMarketFee
-            IERC20(_consumeMarketFee.consumeMarketFeeToken).safeTransfer(
                 _consumeMarketFee.consumeMarketFeeAddress,
-                _consumeMarketFee.consumeMarketFeeAmount.sub(communityFeePublish)
-            );
-
+                _consumeMarketFee.consumeMarketFeeAmount);
             emit ConsumeMarketFee(
                 _consumeMarketFee.consumeMarketFeeAddress,
                 _consumeMarketFee.consumeMarketFeeToken,
-                _consumeMarketFee.consumeMarketFeeAmount.sub(communityFeePublish)
+                _consumeMarketFee.consumeMarketFeeAmount
             );
-            //send fee to OPC
-            if (communityFeePublish > 0) {
-                //since both fees are in the same token, have just one transaction for both, to save gas
-                IERC20(_consumeMarketFee.consumeMarketFeeToken).safeTransfer(
-                    _communityFeeCollector,
-                    communityFeePublish
-                );
-                emit ConsumeMarketFee(
-                    _communityFeeCollector,
-                    _consumeMarketFee.consumeMarketFeeToken,
-                    communityFeePublish
-                );
-            }
         }
         checkProviderFee(_providerFee);
+        uint256 OPCFee = IFactoryRouter(router).getOPCConsumeFee();
         
         // send datatoken to publisher
         require(
-            transfer(getPaymentCollector(), amount),
+            transfer(getPaymentCollector(), amount.sub(OPCFee)),
             "Failed to send DT to publisher"
+        );
+        require(
+            transfer(_communityFeeCollector, OPCFee),
+            "Failed to send DT to OPC"
         );
     }
 
@@ -728,10 +682,11 @@ contract ERC20Template is
      */
 
     function cleanPermissions() external onlyNFTOwner {
-        _cleanPermissions();
-        paymentCollector = address(0);
+        _internalCleanPermissions();
+        
     }
-
+    
+    
     /**
      * @dev cleanFrom721()
      *      OnlyNFT(721) Contract can call it.
@@ -745,10 +700,60 @@ contract ERC20Template is
             msg.sender == _erc721Address,
             "ERC20Template: NOT 721 Contract"
         );
-        _cleanPermissions();
-        paymentCollector = address(0);
+        _internalCleanPermissions();
+        
     }
 
+    function _internalCleanPermissions() internal {
+        uint256 totalLen = fixedRateExchanges.length + dispensers.length;
+        uint256 curentLen = 0;
+        address[] memory previousMinters=new address[](totalLen);
+        // loop though fixedrates, empty and preserve the minter rols if exists
+        uint256 i;
+        for(i=0; i<fixedRateExchanges.length; i++) {
+                IFixedRateExchange fre = IFixedRateExchange(fixedRateExchanges[i].contractAddress);
+                (
+                    ,
+                    ,
+                    ,
+                    ,
+                    ,
+                    ,
+                    ,
+                    ,
+                    ,
+                    uint256 dtBalance,
+                    uint256 btBalance,
+                    bool withMint
+                ) = fre.getExchange(fixedRateExchanges[i].id);
+                if(btBalance>0)
+                    fre.collectBT(fixedRateExchanges[i].id, btBalance);
+                if(dtBalance>0)
+                    fre.collectDT(fixedRateExchanges[i].id, dtBalance);
+                // add it to the list of minters
+                if(isMinter(fixedRateExchanges[i].contractAddress) && withMint == true){
+                    previousMinters[curentLen]=fixedRateExchanges[i].contractAddress;
+                    curentLen++;
+                }
+        }
+        // loop though dispenser and preserve the minter rols if exists
+        for(i=0; i<dispensers.length; i++) {
+                IDispenser(dispensers[i]).ownerWithdraw(address(this));
+                if(isMinter(dispensers[i])){
+                    previousMinters[curentLen]=dispensers[i];
+                    curentLen++;
+                }
+        }
+        // clear all permisions
+         _cleanPermissions();
+        // set collector to 0
+        paymentCollector = address(0);
+        // add existing minter roles for fixedrate & dispensers
+        for(i=0; i<curentLen; i++) {
+            _addMinter(previousMinters[i]);
+        }
+        
+    }
     /**
      * @dev setPaymentCollector
      *      Only feeManager can call it
@@ -761,9 +766,8 @@ contract ERC20Template is
         //we allow _newPaymentCollector = address(0), because it means that the collector is nft owner
         require(
             permissions[msg.sender].paymentManager ||
-                IERC721Template(_erc721Address)
-                    .getPermissions(msg.sender)
-                    .deployERC20,
+                IERC721Template(_erc721Address).getPermissions(msg.sender).deployERC20 ||
+                IERC721Template(_erc721Address).ownerOf(1)==msg.sender,
             "ERC20Template: NOT PAYMENT MANAGER or OWNER"
         );
         _setPaymentCollector(_newPaymentCollector);

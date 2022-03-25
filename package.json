@@ -1,6 +1,6 @@
 {
   "name": "@oceanprotocol/contracts",
-  "version": "v1.0.0-alpha.21",
+  "version": "v1.0.0-alpha.26",
   "description": "Ocean Protocol Smartcontracts",
   "bugs": {
     "url": "https://github.com/oceanprotocol/contracts/issues"
@@ -27,13 +27,16 @@
     "test:full": "npx hardhat test test/unit/*/*.test.js test/flow/*.test.js ",
     "test:batch": "npx hardhat test test/flow/SwapBatch.test.js ",
     "test:fre": "npx hardhat test test/flow/FixedRateExchange.test.js ",
+    "test:dispenser": "npx hardhat test test/flow/Dispenser.test.js ",
     "test:ss": "npx hardhat test test/flow/SideStaking.test.js ",
     "test:pools": "npx hardhat test test/flow/SwapFees.test.js test/flow/SideStaking.test.js test/flow/Vesting.test.js",
     "test:debug": "npx hardhat test test/flow/Vesting.test.js ",
     "test:v3": "npx hardhat test test/flow/V3Integration.test.js ",
     "test:erc721": "npx hardhat test test/unit/datatokens/ERC721Template.test.js",
     "test:erc20": "npx hardhat test test/unit/datatokens/ERC20Template.test.js",
+    "test:enterprise": "npx hardhat test test/unit/datatokens/ERC20TemplateEnterprise.test.js",
     "test:factory": "npx hardhat test test/unit/factories/ERC721Factory.test.js",
+    "test:router": "npx hardhat test test/unit/pools/FactoryRouter.test.js",
     "test:flow": "npx hardhat test test/flow/*.test.js ",
     "test:swap": "npx hardhat test test/flow/SwapFees.test.js ",
     "test:unit": "npx hardhat test test/unit/datatokens/ERC20TemplateEnterprise.test.js ",
@@ -45,7 +48,7 @@
     "@nomiclabs/hardhat-waffle": "^2.0.1",
     "chai": "^4.3.4",
     "ethereum-waffle": "^3.4.0",
-    "ethers": "^5.5.1",
+    "ethers": "^5.6.1",
     "hardhat": "^2.7.0",
     "hardhat-gas-reporter": "^1.0.4",
     "solidity-coverage": "^0.7.17"

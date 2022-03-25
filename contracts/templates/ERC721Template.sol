@@ -1,16 +1,18 @@
-pragma solidity 0.8.10;
+pragma solidity 0.8.12;
 // Copyright BigchainDB GmbH and Ocean Protocol contributors
 // SPDX-License-Identifier: (Apache-2.0 AND CC-BY-4.0)
 // Code is Apache-2.0 and docs are CC-BY-4.0
-
+import "../interfaces/IERC721Template.sol";
 import "../utils/ERC721/ERC721.sol";
 import "../utils/ERC725/ERC725Ocean.sol";
+import "../utils/ERC721/IERC721Enumerable.sol";
 import "@openzeppelin/contracts/utils/Create2.sol";
 import "@openzeppelin/contracts/security/ReentrancyGuard.sol";
 import "../interfaces/IV3ERC20.sol";
 import "../interfaces/IFactory.sol";
 import "../interfaces/IERC20Template.sol";
 import "../utils/ERC721RolesAddress.sol";
+
 
 
 contract ERC721Template is
@@ -90,6 +92,7 @@ contract ERC721Template is
         _;
     }
 
+     
     /**
      * @dev initialize
      *      Calls private _initialize function. Only if contract is not initialized.
@@ -127,6 +130,11 @@ contract ERC721Template is
                 tokenFactory,
                 tokenURI
             );
+        //register all erc721 interfaces
+        registerAllInterfaces();
+        //register erc725 interfaces
+        _registerInterface(_INTERFACE_ID_ERC725X);
+        _registerInterface(_INTERFACE_ID_ERC725Y);
         return(initResult);
     }
 
@@ -491,11 +499,12 @@ contract ERC721Template is
      *      This function allows to remove all ROLES at erc721 level: 
      *              Managers, ERC20Deployer, MetadataUpdater, StoreUpdater
      *      Permissions at erc20 level stay.
-     *       Even NFT Owner has to readd himself as Manager
      */
     
     function cleanPermissions() external onlyNFTOwner {
         _cleanPermissions();
+        //make sure that owner still has permissions
+        _addManager(ownerOf(1));
     }
 
 
@@ -548,7 +557,7 @@ contract ERC721Template is
         user.deployERC20 = true;
         user.store = true;
         // no need to push to auth since it has been already added in _addManager()
-        safeTransferFrom(from, to, tokenId, "");
+        _safeTransferFrom(from, to, tokenId, "");
         
     }
 

@@ -11,12 +11,13 @@
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-pragma solidity 0.8.10;
+pragma solidity 0.8.12;
 // Copyright Balancer, BigchainDB GmbH and Ocean Protocol contributors
 // SPDX-License-Identifier: (Apache-2.0 AND CC-BY-4.0)
 // Code is Apache-2.0 and docs are CC-BY-4.0
 
 import './BNum.sol';
+
 
 import "../../interfaces/IFactoryRouter.sol";
 
@@ -291,14 +292,12 @@ contract BMath is BConst, BNum {
          That proportion is (1- weightTokenIn)
          tokenAiAfterFee = tAi * (1 - (1-weightTi) * poolFee);
         */
-
         uint normalizedWeight = bdiv(tokenWeightIn, totalWeight);
         uint zaz = bmul(bsub(BONE, normalizedWeight), _swapFee); 
-        uint tokenAmountInAfterFee = bmul(tokenAmountIn, bsub(BONE, zaz));
-
+        //uint tokenAmountInAfterFee = bmul(tokenAmountIn, bsub(BONE, zaz));
+        uint tokenAmountInAfterFee = bmul(tokenAmountIn, BONE);
         uint newTokenBalanceIn = badd(tokenBalanceIn, tokenAmountInAfterFee);
         uint tokenInRatio = bdiv(newTokenBalanceIn, tokenBalanceIn);
-
         // uint newPoolSupply = (ratioTi ^ weightTi) * poolSupply;
         uint poolRatio = bpow(tokenInRatio, normalizedWeight);
         uint newPoolSupply = bmul(poolRatio, poolSupply);
@@ -330,7 +329,6 @@ contract BMath is BConst, BNum {
         uint normalizedWeight = bdiv(tokenWeightIn, totalWeight);
         uint newPoolSupply = badd(poolSupply, poolAmountOut);
         uint poolRatio = bdiv(newPoolSupply, poolSupply);
-      
         //uint newBalTi = poolRatio^(1/weightTi) * balTi;
         uint boo = bdiv(BONE, normalizedWeight); 
         uint tokenInRatio = bpow(poolRatio, boo);
@@ -339,9 +337,10 @@ contract BMath is BConst, BNum {
         // Do reverse order of fees charged in joinswap_ExternAmountIn, this way 
         //     ``` pAo == joinswap_ExternAmountIn(Ti, joinswap_PoolAmountOut(pAo, Ti)) ```
         //uint tAi = tAiAfterFee / (1 - (1-weightTi) * swapFee) ;
-        uint zar = bmul(bsub(BONE, normalizedWeight), _swapFee);
-        tokenAmountIn = bdiv(tokenAmountInAfterFee, bsub(BONE, zar));
-        return tokenAmountIn;
+        
+        //uint zar = bmul(bsub(BONE, normalizedWeight), _swapFee);
+        //tokenAmountIn = bdiv(tokenAmountInAfterFee, bsub(BONE, zar));
+        return tokenAmountInAfterFee;
     }
 
     /**********************************************************************************************
@@ -374,21 +373,21 @@ contract BMath is BConst, BNum {
         );
         uint newPoolSupply = bsub(poolSupply, poolAmountInAfterExitFee);
         uint poolRatio = bdiv(newPoolSupply, poolSupply);
-     
         // newBalTo = poolRatio^(1/weightTo) * balTo;
         uint tokenOutRatio = bpow(poolRatio, bdiv(BONE, normalizedWeight));
         uint newTokenBalanceOut = bmul(tokenOutRatio, tokenBalanceOut);
-
+        
         uint tokenAmountOutBeforeSwapFee = bsub(
             tokenBalanceOut, 
             newTokenBalanceOut
         );
-        
-        // charge swap fee on the output token side 
+        return tokenAmountOutBeforeSwapFee;
+        /*/ charge swap fee on the output token side 
         //uint tAo = tAoBeforeSwapFee * (1 - (1-weightTo) * swapFee)
         uint zaz = bmul(bsub(BONE, normalizedWeight), _swapFee); 
         tokenAmountOut = bmul(tokenAmountOutBeforeSwapFee, bsub(BONE, zaz));
         return tokenAmountOut;
+        */
     }
 
     /**********************************************************************************************

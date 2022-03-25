@@ -1,4 +1,4 @@
-pragma solidity 0.8.10;
+pragma solidity 0.8.12;
 // Copyright BigchainDB GmbH and Ocean Protocol contributors
 // SPDX-License-Identifier: (Apache-2.0 AND CC-BY-4.0)
 // Code is Apache-2.0 and docs are CC-BY-4.0
@@ -19,4 +19,5 @@ interface IDispenser {
     function ownerWithdraw(address datatoken) external;
     function setAllowedSwapper(address datatoken, address newAllowedSwapper) external;
     function getId() pure external returns (uint8);
+    
 }

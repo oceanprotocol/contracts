@@ -6,7 +6,7 @@
  * @dev Utils functions
  */
 
-pragma solidity 0.8.10;
+pragma solidity 0.8.12;
 
 
 library UtilsLib {

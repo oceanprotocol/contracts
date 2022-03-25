@@ -270,6 +270,13 @@ describe("Dispenser", () => {
       );
     })
 
+    it('Alice re-deactivates the dispenser', async () => {
+      await dispenser.connect(alice).activate(erc20Token.address,web3.utils.toWei('1'), web3.utils.toWei('1'))
+      const status = await dispenser.status(erc20Token.address)
+      assert(status.active === true, 'Dispenser is still deactivated')
+    })
+
+    
     it('Alice creates a dispenser without minter role', async () => {
       const tx = await erc20Token2.connect(alice).createDispenser(
         dispenser.address, web3.utils.toWei('1'), web3.utils.toWei('1'), false, ZERO_ADDRESS)
@@ -294,14 +301,7 @@ describe("Dispenser", () => {
       assert(tx,
         'Bob failed to get 1DT')
     })
-    it('Bob tries to withdraw all datatokens', async () => {
-      await expectRevert(
-        dispenser
-          .connect(bob)
-          .ownerWithdraw(erc20Token2.address),
-        "Invalid owner"
-      );
-    })
+    
     it('Alice withdraws all datatokens', async () => {
       const tx = await dispenser.connect(alice).ownerWithdraw(erc20Token2.address)
       assert(tx,
@@ -310,7 +310,17 @@ describe("Dispenser", () => {
       assert(status.balance.eq(0), 'Balance > 0')
     })
 
+    it("When NFT is transfered, make sure that dispenser is deleted", async () => {
+      let status = await dispenser.status(erc20Token.address)
+      assert(status.active == true)
+      const receipt = await ( await tokenERC721.transferFrom(owner.address, charlie.address, 1)).wait()
+      //check new onwer
+      assert(await tokenERC721.ownerOf(1) == charlie.address)
+      status = await dispenser.status(erc20Token.address)
+      assert(status.owner != ZERO_ADDRESS)
+      assert(status.active == true)
 
+    });
 
   });
 

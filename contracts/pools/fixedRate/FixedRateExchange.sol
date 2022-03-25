@@ -1,9 +1,10 @@
-pragma solidity 0.8.10;
+pragma solidity 0.8.12;
 // Copyright BigchainDB GmbH and Ocean Protocol contributors
 // SPDX-License-Identifier: (Apache-2.0 AND CC-BY-4.0)
 // Code is Apache-2.0 and docs are CC-BY-4.0
 import "../../interfaces/IERC20.sol";
 import "../../interfaces/IERC20Template.sol";
+import "../../interfaces/IERC721Template.sol";
 import "../../interfaces/IFactoryRouter.sol";
 import "@openzeppelin/contracts/utils/math/SafeMath.sol";
 import "../../utils/SafeERC20.sol";
@@ -22,10 +23,10 @@ import "@openzeppelin/contracts/security/ReentrancyGuard.sol";
 contract FixedRateExchange is ReentrancyGuard {
     using SafeMath for uint256;
     using SafeERC20 for IERC20;
-    uint256 private constant BASE = 10**18;
-    uint public constant MIN_FEE           = BASE / 10**4;
+    uint256 private constant BASE = 1e18;
+    uint public constant MIN_FEE           = BASE / 1e4;
     uint public constant MAX_FEE           = BASE / 10;
-    uint public constant MIN_RATE          = 10 ** 10;
+    uint public constant MIN_RATE          = 1e10;
 
     address public router;
     address public opcCollector;
@@ -62,8 +63,12 @@ contract FixedRateExchange is ReentrancyGuard {
     }
 
     modifier onlyExchangeOwner(bytes32 exchangeId) {
+        // allow only ERC20 Deployers or NFT Owner
+        IERC20Template dt = IERC20Template(exchanges[exchangeId].datatoken);
         require(
-            exchanges[exchangeId].exchangeOwner == msg.sender,
+            dt.isERC20Deployer(msg.sender) || 
+            IERC721Template(dt.getERC721Address()).ownerOf(1) == msg.sender
+            ,
             "FixedRateExchange: invalid exchange owner"
         );
         _;
@@ -156,6 +161,7 @@ contract FixedRateExchange is ReentrancyGuard {
         address newMarketCollector,
         uint256 swapFee);
 
+
     constructor(address _router, address _opcCollector) {
         require(_router != address(0), "FixedRateExchange: Wrong Router address");
         require(_opcCollector != address(0), "FixedRateExchange: Wrong OPC address");
@@ -199,7 +205,8 @@ contract FixedRateExchange is ReentrancyGuard {
         address[] memory addresses, 
         uint256[] memory uints 
     ) external onlyRouter returns (bytes32 exchangeId) {
-       
+       require(uints.length >=5, 'Invalid uints length');
+       require(addresses.length >=4, 'Invalid addresses length');
         require(
             addresses[0] != address(0),
             "FixedRateExchange: Invalid baseToken,  zero address"
@@ -216,7 +223,7 @@ contract FixedRateExchange is ReentrancyGuard {
             uints[2] >= MIN_RATE,
             "FixedRateExchange: Invalid exchange rate value"
         );
-        exchangeId = generateExchangeId(addresses[0], datatoken, addresses[1]);
+        exchangeId = generateExchangeId(addresses[0], datatoken);
         require(
             exchanges[exchangeId].fixedRate == 0,
             "FixedRateExchange: Exchange already exists!"
@@ -262,14 +269,13 @@ contract FixedRateExchange is ReentrancyGuard {
      *      creates unique exchange identifier for two token pairs.
      * @param baseToken refers to a base token contract address
      * @param datatoken refers to a datatoken contract address
-     * @param exchangeOwner exchange owner address
      */
     function generateExchangeId(
         address baseToken,
-        address datatoken,
-        address exchangeOwner
+        address datatoken
     ) public pure returns (bytes32) {
-        return keccak256(abi.encode(baseToken, datatoken, exchangeOwner));
+        //make sure that there can only be one exchange for a given pair (datatoken <-> basetoken)
+        return keccak256(abi.encode(baseToken, datatoken));
     }
 
     struct Fees{
@@ -581,48 +587,69 @@ contract FixedRateExchange is ReentrancyGuard {
         );
     }
 
-    function collectBT(bytes32 exchangeId)
-        external
-        onlyExchangeOwner(exchangeId)
+    /**
+     * @dev collectBT
+     *      Collects and send basetokens.
+     *      This function can be called by anyone, because fees are being sent to ERC20.getPaymentCollector
+     */
+    function collectBT(bytes32 exchangeId, uint256 amount) public
         nonReentrant
     {
-        uint256 amount = exchanges[exchangeId].btBalance;
-        exchanges[exchangeId].btBalance = 0;
-        IERC20(exchanges[exchangeId].baseToken).safeTransfer(
-            exchanges[exchangeId].exchangeOwner,
-            amount
-        );
+        _collectBT(exchangeId, amount);
+    }
 
+    function _collectBT(bytes32 exchangeId, uint256 amount) internal{
+        require(amount <= exchanges[exchangeId].btBalance, "Amount too high");
+        address destination = IERC20Template(exchanges[exchangeId].datatoken).getPaymentCollector();
+        exchanges[exchangeId].btBalance = exchanges[exchangeId].btBalance.sub(amount);
         emit TokenCollected(
             exchangeId,
-            exchanges[exchangeId].exchangeOwner,
+            destination,
             exchanges[exchangeId].baseToken,
             amount
         );
-    }
-
-    function collectDT(bytes32 exchangeId)
-        external
-        onlyExchangeOwner(exchangeId)
-        nonReentrant
-    {
-        uint256 amount = exchanges[exchangeId].dtBalance;
-        exchanges[exchangeId].dtBalance = 0;
-        IERC20(exchanges[exchangeId].datatoken).safeTransfer(
-            exchanges[exchangeId].exchangeOwner,
+        IERC20(exchanges[exchangeId].baseToken).safeTransfer(
+            destination,
             amount
         );
-
+    }
+    /**
+     * @dev collectDT
+     *      Collects and send datatokens.
+     *      This function can be called by anyone, because fees are being sent to ERC20.getPaymentCollector
+     */
+    function collectDT(bytes32 exchangeId, uint256 amount) public
+        nonReentrant
+    {
+        _collectDT(exchangeId, amount);
+    }
+    function _collectDT(bytes32 exchangeId, uint256 amount) internal {
+        require(amount <= exchanges[exchangeId].dtBalance, "Amount too high");
+        address destination = IERC20Template(exchanges[exchangeId].datatoken).getPaymentCollector();
+        exchanges[exchangeId].dtBalance = exchanges[exchangeId].dtBalance.sub(amount);
         emit TokenCollected(
             exchangeId,
-            exchanges[exchangeId].exchangeOwner,
+            destination,
             exchanges[exchangeId].datatoken,
             amount
         );
+        IERC20(exchanges[exchangeId].datatoken).safeTransfer(
+            destination,
+            amount
+        );
     }
 
-    function collectMarketFee(bytes32 exchangeId) external nonReentrant {
+    /**
+     * @dev collectMarketFee
+     *      Collects and send publishingMarketFee.
+     *      This function can be called by anyone, because fees are being sent to exchanges.marketFeeCollector
+     */
+    function collectMarketFee(bytes32 exchangeId) public nonReentrant {
         // anyone call call this function, because funds are sent to the correct address
+        _collectMarketFee(exchangeId);
+    }
+
+    function _collectMarketFee(bytes32 exchangeId) internal {
         uint256 amount = exchanges[exchangeId].marketFeeAvailable;
         exchanges[exchangeId].marketFeeAvailable = 0;
         IERC20(exchanges[exchangeId].baseToken).safeTransfer(
@@ -636,8 +663,17 @@ contract FixedRateExchange is ReentrancyGuard {
         );
     }
 
-    function collectOceanFee(bytes32 exchangeId) external nonReentrant {
+    /**
+     * @dev collectOceanFee
+     *      Collects and send OP Community fees.
+     *      This function can be called by anyone, because fees are being sent to opcCollector
+     */
+    function collectOceanFee(bytes32 exchangeId) public nonReentrant {
         // anyone call call this function, because funds are sent to the correct address
+        _collectOceanFee(exchangeId);
+        
+    }
+    function _collectOceanFee(bytes32 exchangeId) internal {
         uint256 amount = exchanges[exchangeId].oceanFeeAvailable;
         exchanges[exchangeId].oceanFeeAvailable = 0;
         IERC20(exchanges[exchangeId].baseToken).safeTransfer(
@@ -721,8 +757,29 @@ contract FixedRateExchange is ReentrancyGuard {
         external
         onlyExchangeOwner(exchangeId)
     {
-        exchanges[exchangeId].withMint = withMint;
+        // check if owner still has role, maybe he was an ERC20Deployer when fixedrate was created, but not anymore
+        exchanges[exchangeId].withMint = 
+            checkAllowedWithMint(exchanges[exchangeId].exchangeOwner, exchanges[exchangeId].datatoken,withMint);
         emit ExchangeMintStateChanged(exchangeId, msg.sender, withMint);
+    }
+
+    /**
+     * @dev checkAllowedWithMint
+     *      internal function which establishes if a withMint flag can be set.  
+     *      It does this by checking if the owner has rights for that datatoken
+     * @param owner exchange owner
+     * @param datatoken datatoken address
+     * @param withMint desired flag, might get overwritten if owner has no roles
+     */
+    function checkAllowedWithMint(address owner, address datatoken, bool withMint) internal returns(bool){
+            //if owner does not want withMint, return false
+            if(withMint == false) return false;
+            IERC721Template nft = IERC721Template(IERC20Template(datatoken).getERC721Address());
+            IERC721Template.Roles memory roles = nft.getPermissions(owner);
+            if(roles.manager == true || roles.deployERC20 == true || nft.ownerOf(1) == owner)
+                return true;
+            else
+                return false;
     }
 
     /**
@@ -846,20 +903,19 @@ contract FixedRateExchange is ReentrancyGuard {
            // address allowedSwapper
         )
     {
-        Exchange memory exchange = exchanges[exchangeId];
-        exchangeOwner = exchange.exchangeOwner;
-        datatoken = exchange.datatoken;
-        dtDecimals = exchange.dtDecimals;
-        baseToken = exchange.baseToken;
-        btDecimals = exchange.btDecimals;
-        fixedRate = exchange.fixedRate;
-        active = exchange.active;
+        exchangeOwner = exchanges[exchangeId].exchangeOwner;
+        datatoken = exchanges[exchangeId].datatoken;
+        dtDecimals = exchanges[exchangeId].dtDecimals;
+        baseToken = exchanges[exchangeId].baseToken;
+        btDecimals = exchanges[exchangeId].btDecimals;
+        fixedRate = exchanges[exchangeId].fixedRate;
+        active = exchanges[exchangeId].active;
         dtSupply = getDTSupply(exchangeId);
         btSupply = getBTSupply(exchangeId);
-        dtBalance = exchange.dtBalance;
-        btBalance = exchange.btBalance;
-        withMint = exchange.withMint;
-       // allowedSwapper = exchange.allowedSwapper;
+        dtBalance = exchanges[exchangeId].dtBalance;
+        btBalance = exchanges[exchangeId].btBalance;
+        withMint = exchanges[exchangeId].withMint;
+        // allowedSwapper = exchange.allowedSwapper;
     }
 
     // /**

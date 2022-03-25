@@ -177,67 +177,68 @@ describe("FactoryRouter", () => {
 
 
   it("#oceanTokens - should confirm Ocean token has been added to the mapping",async () => {
-    assert(await router.isOceanToken(oceanAddress) == true, "oceanAddress is not an ocean token");
-    const contractOceanTokens = await router.getOceanTokens();
-    assert(contractOceanTokens.includes(web3.utils.toChecksumAddress(oceanAddress)), "oceanAddress not found in router.getOceanTokens()")
+    assert(await router.isApprovedToken(oceanAddress) == true, "oceanAddress is not an ocean token");
+    const contractOceanTokens = await router.getApprovedTokens();
+    assert(contractOceanTokens.includes(web3.utils.toChecksumAddress(oceanAddress)), "oceanAddress not found in router.getApprovedTokens()")
   })
 
   it("#addOceanToken - should add and remove new token address to the mapping if Router Owner",async () => {
-    assert(await router.isOceanToken(newToken.address) === false, "newToken.address is an ocean token");
-    await router.addOceanToken(newToken.address)
-    assert(await router.isOceanToken(newToken.address) == true, "newToken.address is not an ocean token");
-    let contractOceanTokens = await router.getOceanTokens();
+    assert(await router.isApprovedToken(newToken.address) === false, "newToken.address is an ocean token");
+    await router.addApprovedToken(newToken.address)
+    assert(await router.isApprovedToken(newToken.address) == true, "newToken.address is not an ocean token");
+    let contractOceanTokens = await router.getApprovedTokens();
     assert(contractOceanTokens.length>1)
-    assert(contractOceanTokens.includes(web3.utils.toChecksumAddress(newToken.address)), "newToken.address not found in router.getOceanTokens()")
+    assert(contractOceanTokens.includes(web3.utils.toChecksumAddress(newToken.address)), "newToken.address not found in router.getApprovedTokens()")
 
     // remove it
-    await router.removeOceanToken(newToken.address)
-    assert(await router.isOceanToken(newToken.address) === false, "newToken.address is not an ocean token");
-    contractOceanTokens = await router.getOceanTokens();
-    assert(!contractOceanTokens.includes(web3.utils.toChecksumAddress(newToken.address)), "newToken.address found in router.getOceanTokens()")
+    await router.removeApprovedToken(newToken.address)
+    assert(await router.isApprovedToken(newToken.address) === false, "newToken.address is not an ocean token");
+    contractOceanTokens = await router.getApprovedTokens();
+    assert(!contractOceanTokens.includes(web3.utils.toChecksumAddress(newToken.address)), "newToken.address found in router.getApprovedTokens()")
   })
 
 
   it("#addOceanToken - should fail to add a new token address to the mapping if NOT Router Owner",async () => {
-    await expectRevert(router.connect(user2).addOceanToken(newToken.address), "OceanRouter: NOT OWNER")
-    assert(await router.isOceanToken(newToken.address) === false, "newToken.address is an ocean token");
+    await expectRevert(router.connect(user2).addApprovedToken(newToken.address), "OceanRouter: NOT OWNER")
+    assert(await router.isApprovedToken(newToken.address) === false, "newToken.address is an ocean token");
    
   })
 
   it("#removeOceanToken - should remove a token previously added if Router Owner, check OPF fee updates properly",async () => {
     // newToken is not mapped so fee is 1e15
-    assert(await router.isOceanToken(newToken.address) == false);
-    assert(await router.getOPCFee(newToken.address) == 1e15);
+    assert(await router.isApprovedToken(newToken.address) == false);
+    assert(await router.getOPCFee(newToken.address) == 2e15);
     
     // router owner adds newToken address
-    await router.addOceanToken(newToken.address)
-    assert(await router.isOceanToken(newToken.address) == true);
+    await router.addApprovedToken(newToken.address)
+    assert(await router.isApprovedToken(newToken.address) == true);
 
     // OPF Fee is ZERO now
-    assert(await router.getOPCFee(newToken.address) == 0);
+    assert(await router.getOPCFee(newToken.address) == 1e15);
 
     // router owner removes newToken address
-    await router.removeOceanToken(newToken.address)
-    assert(await router.isOceanToken(newToken.address) == false);
+    await router.removeApprovedToken(newToken.address)
+    assert(await router.isApprovedToken(newToken.address) == false);
 
-    // OPF Fee is again the default 1e15 => 0.1%
-    assert(await router.getOPCFee(newToken.address) == 1e15);
+    // OPF Fee is again the default 2e15 => 0.2%
+    assert(await router.getOPCFee(newToken.address) == 2e15);
   })
 
   it("#removeOceanToken - should fail to remove a new token address to the mapping if NOT Router Owner",async () => {
-    await router.addOceanToken(newToken.address)
-    assert(await router.isOceanToken(newToken.address) == true);
-    await expectRevert(router.connect(user2).removeOceanToken(newToken.address), "OceanRouter: NOT OWNER")
-    assert(await router.isOceanToken(newToken.address) === true);
+    await router.addApprovedToken(newToken.address)
+    assert(await router.isApprovedToken(newToken.address) == true);
+    await expectRevert(router.connect(user2).removeApprovedToken(newToken.address), "OceanRouter: NOT OWNER")
+    assert(await router.isApprovedToken(newToken.address) === true);
   })
 
   it("#updateOPCFee - should update opf Fee if router owner",async () => {
-    assert(await router.isOceanToken(newToken.address) == false);
-    assert(await router.getOPCFee(newToken.address) == 1e15);
-    assert(await router.swapOceanFee() == 0)
-    assert(await router.swapNonOceanFee() == 1e15)
+    assert(await router.isApprovedToken(newToken.address) == false);
+    assert(await router.getOPCFee(newToken.address) == 2e15);
+    assert(await router.swapOceanFee() == 1e15)
+    assert(await router.swapNonOceanFee() == 2e15)
+    assert(await router.getOPCConsumeFee() == 3e16)
     await router.updateOPCFee("0", web3.utils.toWei('0.01'), web3.utils.toWei('0.001'), 0);
-    assert(await router.isOceanToken(newToken.address) == false);
+    assert(await router.isApprovedToken(newToken.address) == false);
     assert(await router.getOPCFee(newToken.address) == 1e16);
     assert(await router.swapNonOceanFee() == 1e16)
     assert(await router.swapOceanFee() == 0)
@@ -246,15 +247,15 @@ describe("FactoryRouter", () => {
   })
 
   it("#updateOPCFee - should fail to update OPF Fee if NOT Router Owner",async () => {
-    assert(await router.swapNonOceanFee() == 1e15)
+    assert(await router.swapNonOceanFee() == 2e15)
     await expectRevert(router.connect(user2).updateOPCFee("0", web3.utils.toWei('0.01'), web3.utils.toWei('0.001'), 0), "OceanRouter: NOT OWNER")
-    assert(await router.swapNonOceanFee() == 1e15)
+    assert(await router.swapNonOceanFee() == 2e15)
   })
 
   it("#getOPCFees - should get OPF fees",async () => {
     const fees = await router.getOPCFees();
-    assert(fees[0] == 0);
-    assert(fees[1] == 1e15);
+    assert(fees[0] == 1e15);
+    assert(fees[1] == 2e15);
   })
   
   it("#ssContracts - should confirm ssContract has been added to the mapping",async () => {

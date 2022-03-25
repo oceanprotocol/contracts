@@ -1,4 +1,4 @@
-pragma solidity 0.8.10;
+pragma solidity 0.8.12;
 // Copyright BigchainDB GmbH and Ocean Protocol contributors
 // SPDX-License-Identifier: (Apache-2.0 AND CC-BY-4.0)
 // Code is Apache-2.0 and docs are CC-BY-4.0
@@ -32,8 +32,8 @@ interface IFactoryRouter {
         address allowedSwapper
     ) external;
 
-    function isOceanToken(address) external view returns(bool);
-    function getOceanTokens() external view returns(address[] memory);
+    function isApprovedToken(address) external view returns(bool);
+    function getApprovedTokens() external view returns(address[] memory);
     function isSSContract(address) external view returns(bool);
     function getSSContracts() external view returns(address[] memory);
     function isFixedRateContract(address) external view returns(bool);

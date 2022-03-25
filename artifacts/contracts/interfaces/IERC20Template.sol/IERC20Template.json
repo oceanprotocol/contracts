@@ -317,6 +317,19 @@
     },
     {
       "inputs": [],
+      "name": "getPaymentCollector",
+      "outputs": [
+        {
+          "internalType": "address",
+          "name": "",
+          "type": "address"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [],
       "name": "getPools",
       "outputs": [
         {
@@ -644,7 +657,7 @@
         },
         {
           "internalType": "uint256",
-          "name": "serviceId",
+          "name": "serviceIndex",
           "type": "uint256"
         },
         {

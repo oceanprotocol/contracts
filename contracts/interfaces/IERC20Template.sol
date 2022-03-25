@@ -1,4 +1,4 @@
-pragma solidity 0.8.10;
+pragma solidity 0.8.12;
 // Copyright BigchainDB GmbH and Ocean Protocol contributors
 // SPDX-License-Identifier: (Apache-2.0 AND CC-BY-4.0)
 // Code is Apache-2.0 and docs are CC-BY-4.0
@@ -110,7 +110,7 @@ interface IERC20Template {
 
      function startOrder(
         address consumer,
-        uint256 serviceId,
+        uint256 serviceIndex,
         providerFee calldata _providerFee,
         consumeMarketFee calldata _consumeMarketFee
      ) external;
@@ -132,4 +132,5 @@ interface IERC20Template {
     function getFixedRates() external view returns(fixedRate[] memory);
     function getDispensers() external view returns(address[] memory);
     function getId() pure external returns (uint8);
+    function getPaymentCollector() external view returns (address);
 }

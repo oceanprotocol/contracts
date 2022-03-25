@@ -1,4 +1,4 @@
-pragma solidity 0.8.10;
+pragma solidity 0.8.12;
 // SPDX-License-Identifier: (Apache-2.0 AND CC-BY-4.0)
 import "@openzeppelin/contracts/utils/Context.sol";
 import "./IERC721.sol";
@@ -6,14 +6,26 @@ import "./IERC721Metadata.sol";
 import "./Address.sol";
 import "./Strings.sol";
 import "./IERC721Receiver.sol";
+import "./IERC721Enumerable.sol";
+import "./IERC721Receiver.sol";
+import "./ERC165.sol";
+import "./EnumerableSet.sol";
+import "./EnumerableMap.sol";
+
+
 /**
  * @dev Implementation of https://eips.ethereum.org/EIPS/eip-721[ERC721] Non-Fungible Token Standard, including
  * the Metadata extension, but not including the Enumerable extension, which is available separately as
  * {ERC721Enumerable}.
  */
-contract ERC721 is Context, IERC721, IERC721Metadata {
+contract ERC721 is Context, ERC165, IERC721, IERC721Metadata, IERC721Enumerable  {
     using Address for address;
     using Strings for uint256;
+    using EnumerableSet for EnumerableSet.UintSet;
+    using EnumerableMap for EnumerableMap.UintToAddressMap;
+    // Equals to `bytes4(keccak256("onERC721Received(address,address,uint256,bytes)"))`
+    // which can be also obtained as `IERC721Receiver(0).onERC721Received.selector`
+    bytes4 private constant _ERC721_RECEIVED = 0x150b7a02;
 
     // Token name
     string private _name;
@@ -24,12 +36,13 @@ contract ERC721 is Context, IERC721, IERC721Metadata {
     // baseURI
     string internal defaultBaseURI;
 
-    // Mapping from token ID to owner address
-    mapping (uint256 => address) private _owners;
+     
+    // Mapping from holder address to their (enumerable) set of owned tokens
+    mapping (address => EnumerableSet.UintSet) private _holderTokens;
 
-    // Mapping owner address to token count
-    mapping (address => uint256) private _balances;
-
+    // Enumerable mapping from token ids to their owners
+    EnumerableMap.UintToAddressMap private _tokenOwners;
+    
     // Mapping from token ID to approved address
     mapping (uint256 => address) private _tokenApprovals;
 
@@ -39,29 +52,70 @@ contract ERC721 is Context, IERC721, IERC721Metadata {
      // Optional mapping for token URIs
     mapping (uint256 => string) private _tokenURIs;
     
+     /*
+     *     bytes4(keccak256('balanceOf(address)')) == 0x70a08231
+     *     bytes4(keccak256('ownerOf(uint256)')) == 0x6352211e
+     *     bytes4(keccak256('approve(address,uint256)')) == 0x095ea7b3
+     *     bytes4(keccak256('getApproved(uint256)')) == 0x081812fc
+     *     bytes4(keccak256('setApprovalForAll(address,bool)')) == 0xa22cb465
+     *     bytes4(keccak256('isApprovedForAll(address,address)')) == 0xe985e9c5
+     *     bytes4(keccak256('transferFrom(address,address,uint256)')) == 0x23b872dd
+     *     bytes4(keccak256('safeTransferFrom(address,address,uint256)')) == 0x42842e0e
+     *     bytes4(keccak256('safeTransferFrom(address,address,uint256,bytes)')) == 0xb88d4fde
+     *
+     *     => 0x70a08231 ^ 0x6352211e ^ 0x095ea7b3 ^ 0x081812fc ^
+     *        0xa22cb465 ^ 0xe985e9c5 ^ 0x23b872dd ^ 0x42842e0e ^ 0xb88d4fde == 0x80ac58cd
+     */
+    bytes4 private constant _INTERFACE_ID_ERC721 = 0x80ac58cd;
+
+    /*
+     *     bytes4(keccak256('name()')) == 0x06fdde03
+     *     bytes4(keccak256('symbol()')) == 0x95d89b41
+     *     bytes4(keccak256('tokenURI(uint256)')) == 0xc87b56dd
+     *
+     *     => 0x06fdde03 ^ 0x95d89b41 ^ 0xc87b56dd == 0x5b5e139f
+     */
+    bytes4 private constant _INTERFACE_ID_ERC721_METADATA = 0x5b5e139f;
+
+    /*
+     *     bytes4(keccak256('totalSupply()')) == 0x18160ddd
+     *     bytes4(keccak256('tokenOfOwnerByIndex(address,uint256)')) == 0x2f745c59
+     *     bytes4(keccak256('tokenByIndex(uint256)')) == 0x4f6ccce7
+     *
+     *     => 0x18160ddd ^ 0x2f745c59 ^ 0x4f6ccce7 == 0x780e9d63
+     */
+    bytes4 private constant _INTERFACE_ID_ERC721_ENUMERABLE = 0x780e9d63;
+
     /**
      * @dev Initializes the contract by setting a `name` and a `symbol` to the token collection.
      */
-    constructor (string memory name_, string memory symbol_) {
+    constructor (string memory name_, string memory symbol_){
         _name = name_;
         _symbol = symbol_;
+        registerAllInterfaces();
+        
     }
 
+    function registerAllInterfaces() internal {
+        // register the supported interfaces to conform to ERC721 via ERC165
+        _registerInterface(_INTERFACE_ID_ERC721);
+        _registerInterface(_INTERFACE_ID_ERC721_METADATA);
+        _registerInterface(_INTERFACE_ID_ERC721_ENUMERABLE);
+    }
     /**
      * @dev See {IERC721-balanceOf}.
      */
     function balanceOf(address owner) public view virtual override returns (uint256) {
         require(owner != address(0), "ERC721: balance query for the zero address");
-        return _balances[owner];
+        return _holderTokens[owner].length();
     }
 
     /**
      * @dev See {IERC721-ownerOf}.
      */
     function ownerOf(uint256 tokenId) public view virtual override returns (address) {
-        address owner = _owners[tokenId];
-        require(owner != address(0), "ERC721: owner query for nonexistent token");
-        return owner;
+        return _tokenOwners.get(tokenId, "ERC721: owner query for nonexistent token");
+        
     }
 
     /**
@@ -77,7 +131,36 @@ contract ERC721 is Context, IERC721, IERC721Metadata {
     function symbol() public view virtual override returns (string memory) {
         return _symbol;
     }
+     /**
+     * @dev See {IERC721Enumerable-tokenOfOwnerByIndex}.
+     */
+    function tokenOfOwnerByIndex(address owner, uint256 index) public view virtual override returns (uint256) {
+        return _holderTokens[owner].at(index);
+    }
+    
+    /**
+     * @dev See {IERC721Enumerable-totalSupply}.
+     */
+    function totalSupply() public view virtual override returns (uint256) {
+        // _tokenOwners are indexed by tokenIds, so .length() returns the number of tokenIds
+        return _tokenOwners.length();
+    }
 
+    /**
+     * @dev See {IERC721Enumerable-tokenByIndex}.
+     */
+    function tokenByIndex(uint256 index) public view virtual override returns (uint256) {
+        (uint256 tokenId, ) = _tokenOwners.at(index);
+        return tokenId;
+    }
+    /**
+    * @dev Returns the base URI set via {_setBaseURI}. This will be
+    * automatically added as a prefix in {tokenURI} to each token's URI, or
+    * to the token ID if no specific URI is set for that token ID.
+    */
+    function baseURI() public view virtual returns (string memory) {
+        return _baseURI();
+    }
      /**
      * @dev Sets `_tokenURI` as the tokenURI of `tokenId`.
      *
@@ -162,7 +245,7 @@ contract ERC721 is Context, IERC721, IERC721Metadata {
         //solhint-disable-next-line max-line-length
         require(_isApprovedOrOwner(_msgSender(), tokenId), "ERC721: transfer caller is not owner nor approved");
 
-        safeTransferFrom(from, to, tokenId, "");
+        _safeTransferFrom(from, to, tokenId, "");
     }
 
    
@@ -170,15 +253,15 @@ contract ERC721 is Context, IERC721, IERC721Metadata {
      * @dev See {IERC721-safeTransferFrom}.
      */
     function _safeTransferFrom(address from, address to, uint256 tokenId) internal virtual {
-        safeTransferFrom(from, to, tokenId, "");
+        _safeTransferFrom(from, to, tokenId, "");
     }
 
     /**
      * @dev See {IERC721-safeTransferFrom}.
      */
-    function safeTransferFrom(address from, address to, uint256 tokenId, bytes memory _data) internal virtual {
+    function _safeTransferFrom(address from, address to, uint256 tokenId, bytes memory data) internal virtual {
         require(_isApprovedOrOwner(_msgSender(), tokenId), "ERC721: transfer caller is not owner nor approved");
-        _safeTransfer(from, to, tokenId, _data);
+        _safeTransfer(from, to, tokenId, data);
     }
 
     /**
@@ -213,7 +296,7 @@ contract ERC721 is Context, IERC721, IERC721Metadata {
      * and stop existing when they are burned (`_burn`).
      */
     function _exists(uint256 tokenId) internal view virtual returns (bool) {
-        return _owners[tokenId] != address(0);
+        return _tokenOwners.contains(tokenId);
     }
 
     /**
@@ -270,8 +353,8 @@ contract ERC721 is Context, IERC721, IERC721Metadata {
 
         _beforeTokenTransfer(address(0), to, tokenId);
 
-        _balances[to] += 1;
-        _owners[tokenId] = to;
+         _holderTokens[to].add(tokenId);
+        _tokenOwners.set(tokenId, to);
 
         emit Transfer(address(0), to, tokenId);
     }
@@ -294,8 +377,9 @@ contract ERC721 is Context, IERC721, IERC721Metadata {
         // Clear approvals
         _approve(address(0), tokenId);
 
-        _balances[owner] -= 1;
-        delete _owners[tokenId];
+         _holderTokens[owner].remove(tokenId);
+        _tokenOwners.remove(tokenId);
+
 
         emit Transfer(owner, address(0), tokenId);
     }
@@ -320,9 +404,10 @@ contract ERC721 is Context, IERC721, IERC721Metadata {
         // Clear approvals from the previous owner
         _approve(address(0), tokenId);
 
-        _balances[from] -= 1;
-        _balances[to] += 1;
-        _owners[tokenId] = to;
+
+        _holderTokens[from].remove(tokenId);
+        _holderTokens[to].add(tokenId);
+        _tokenOwners.set(tokenId, to);
 
         emit Transfer(from, to, tokenId);
     }
@@ -368,21 +453,6 @@ contract ERC721 is Context, IERC721, IERC721Metadata {
         }
     }
 
-    /**
-     * @dev Hook that is called before any token transfer. This includes minting
-     * and burning.
-     *
-     * Calling conditions:
-     *
-     * - When `from` and `to` are both non-zero, ``from``'s `tokenId` will be
-     * transferred to `to`.
-     * - When `from` is zero, `tokenId` will be minted for `to`.
-     * - When `to` is zero, ``from``'s `tokenId` will be burned.
-     * - `from` cannot be the zero address.
-     * - `to` cannot be the zero address.
-     *
-     * To learn more about hooks, head to xref:ROOT:extending-contracts.adoc#using-hooks[Using Hooks].
-     */
     function _beforeTokenTransfer(address from, address to, uint256 tokenId) internal virtual { }
 }
 
