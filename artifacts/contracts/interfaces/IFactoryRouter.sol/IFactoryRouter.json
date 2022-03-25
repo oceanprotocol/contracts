@@ -6,6 +6,71 @@
     {
       "inputs": [
         {
+          "components": [
+            {
+              "internalType": "bytes32",
+              "name": "exchangeIds",
+              "type": "bytes32"
+            },
+            {
+              "internalType": "address",
+              "name": "source",
+              "type": "address"
+            },
+            {
+              "internalType": "enum IFactoryRouter.operationType",
+              "name": "operation",
+              "type": "uint8"
+            },
+            {
+              "internalType": "address",
+              "name": "tokenIn",
+              "type": "address"
+            },
+            {
+              "internalType": "uint256",
+              "name": "amountsIn",
+              "type": "uint256"
+            },
+            {
+              "internalType": "address",
+              "name": "tokenOut",
+              "type": "address"
+            },
+            {
+              "internalType": "uint256",
+              "name": "amountsOut",
+              "type": "uint256"
+            },
+            {
+              "internalType": "uint256",
+              "name": "maxPrice",
+              "type": "uint256"
+            },
+            {
+              "internalType": "uint256",
+              "name": "swapMarketFee",
+              "type": "uint256"
+            },
+            {
+              "internalType": "address",
+              "name": "marketFeeAddress",
+              "type": "address"
+            }
+          ],
+          "internalType": "struct IFactoryRouter.Operations[]",
+          "name": "",
+          "type": "tuple[]"
+        }
+      ],
+      "name": "buyDTBatch",
+      "outputs": [],
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
           "internalType": "address",
           "name": "_dispenser",
           "type": "address"
@@ -105,14 +170,47 @@
       "type": "function"
     },
     {
-      "inputs": [
+      "inputs": [],
+      "name": "getApprovedTokens",
+      "outputs": [
         {
-          "internalType": "address",
-          "name": "baseToken",
-          "type": "address"
+          "internalType": "address[]",
+          "name": "",
+          "type": "address[]"
         }
       ],
-      "name": "getOPFFee",
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [],
+      "name": "getDispensersContracts",
+      "outputs": [
+        {
+          "internalType": "address[]",
+          "name": "",
+          "type": "address[]"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [],
+      "name": "getFixedRatesContracts",
+      "outputs": [
+        {
+          "internalType": "address[]",
+          "name": "",
+          "type": "address[]"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [],
+      "name": "getMinVestingPeriod",
       "outputs": [
         {
           "internalType": "uint256",
@@ -121,6 +219,220 @@
         }
       ],
       "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [],
+      "name": "getOPCConsumeFee",
+      "outputs": [
+        {
+          "internalType": "uint256",
+          "name": "",
+          "type": "uint256"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "address",
+          "name": "baseToken",
+          "type": "address"
+        }
+      ],
+      "name": "getOPCFee",
+      "outputs": [
+        {
+          "internalType": "uint256",
+          "name": "",
+          "type": "uint256"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [],
+      "name": "getOPCFees",
+      "outputs": [
+        {
+          "internalType": "uint256",
+          "name": "",
+          "type": "uint256"
+        },
+        {
+          "internalType": "uint256",
+          "name": "",
+          "type": "uint256"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [],
+      "name": "getOPCProviderFee",
+      "outputs": [
+        {
+          "internalType": "uint256",
+          "name": "",
+          "type": "uint256"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [],
+      "name": "getPoolTemplates",
+      "outputs": [
+        {
+          "internalType": "address[]",
+          "name": "",
+          "type": "address[]"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [],
+      "name": "getSSContracts",
+      "outputs": [
+        {
+          "internalType": "address[]",
+          "name": "",
+          "type": "address[]"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "address",
+          "name": "",
+          "type": "address"
+        }
+      ],
+      "name": "isApprovedToken",
+      "outputs": [
+        {
+          "internalType": "bool",
+          "name": "",
+          "type": "bool"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "address",
+          "name": "",
+          "type": "address"
+        }
+      ],
+      "name": "isDispenserContract",
+      "outputs": [
+        {
+          "internalType": "bool",
+          "name": "",
+          "type": "bool"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "address",
+          "name": "",
+          "type": "address"
+        }
+      ],
+      "name": "isFixedRateContract",
+      "outputs": [
+        {
+          "internalType": "bool",
+          "name": "",
+          "type": "bool"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "address",
+          "name": "",
+          "type": "address"
+        }
+      ],
+      "name": "isPoolTemplate",
+      "outputs": [
+        {
+          "internalType": "bool",
+          "name": "",
+          "type": "bool"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "address",
+          "name": "",
+          "type": "address"
+        }
+      ],
+      "name": "isSSContract",
+      "outputs": [
+        {
+          "internalType": "bool",
+          "name": "",
+          "type": "bool"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "components": [
+            {
+              "internalType": "address",
+              "name": "poolAddress",
+              "type": "address"
+            },
+            {
+              "internalType": "uint256",
+              "name": "tokenAmountIn",
+              "type": "uint256"
+            },
+            {
+              "internalType": "uint256",
+              "name": "minPoolAmountOut",
+              "type": "uint256"
+            }
+          ],
+          "internalType": "struct IFactoryRouter.Stakes[]",
+          "name": "",
+          "type": "tuple[]"
+        }
+      ],
+      "name": "stakeBatch",
+      "outputs": [],
+      "stateMutability": "nonpayable",
       "type": "function"
     }
   ],

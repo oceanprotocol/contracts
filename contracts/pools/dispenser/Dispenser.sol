@@ -1,14 +1,19 @@
-pragma solidity >=0.5.7;
+pragma solidity 0.8.12;
 // Copyright BigchainDB GmbH and Ocean Protocol contributors
 // SPDX-License-Identifier: (Apache-2.0 AND CC-BY-4.0)
 // Code is Apache-2.0 and docs are CC-BY-4.0
 
+import "../../interfaces/IERC20.sol";
 import "../../interfaces/IERC20Template.sol";
+import "../../interfaces/IERC721Template.sol";
 import "@openzeppelin/contracts/utils/math/SafeMath.sol";
 
+import "../../utils/SafeERC20.sol";
+import "@openzeppelin/contracts/security/ReentrancyGuard.sol";
 
-contract Dispenser {
+contract Dispenser is ReentrancyGuard{
     using SafeMath for uint256;
+    using SafeERC20 for IERC20;
     address public router;
 
     struct DataToken {
@@ -59,11 +64,36 @@ contract Dispenser {
         _;
     }
 
+    modifier onlyOwner(address datatoken) {
+        // allow only ERC20 Deployers or NFT Owner
+        require(
+            datatoken != address(0),
+            'Invalid token contract address'
+        );
+        IERC20Template dt = IERC20Template(datatoken);
+        require(
+            dt.isERC20Deployer(msg.sender) || 
+            IERC721Template(dt.getERC721Address()).ownerOf(1) == msg.sender
+            ,
+            "Invalid owner"
+        );
+        _;
+    }
+
+    
     constructor(address _router) {
         require(_router != address(0), "Dispenser: Wrong Router address");
         router = _router;
     }
 
+    /**
+     * @dev getId
+     *      Return template id in case we need different ABIs. 
+     *      If you construct your own template, please make sure to change the hardcoded value
+     */
+    function getId() pure public returns (uint8) {
+        return 1;
+    }
     /**
      * @dev status
      *      Get information about a datatoken dispenser
@@ -111,7 +141,7 @@ contract Dispenser {
         );
         require(
             datatokens[datatoken].owner == address(0) || datatokens[datatoken].owner == owner,
-            'DataToken already created'
+            'Datatoken already created'
         );
         datatokens[datatoken].active = true;
         datatokens[datatoken].owner = owner;
@@ -130,14 +160,7 @@ contract Dispenser {
      * @param maxBalance - max balance of requester.
      */
     function activate(address datatoken,uint256 maxTokens, uint256 maxBalance)
-        external {
-        require(
-            datatoken != address(0),
-            'Invalid token contract address'
-        );
-        require(
-            datatokens[datatoken].owner == msg.sender, 'Invalid owner'
-        );
+        external onlyOwner(datatoken){
         datatokens[datatoken].active = true;
         datatokens[datatoken].maxTokens = maxTokens;
         datatokens[datatoken].maxBalance = maxBalance;
@@ -150,15 +173,7 @@ contract Dispenser {
      *      Deactivate an existing dispenser
      * @param datatoken refers to datatoken address.
      */
-    function deactivate(address datatoken) external{
-        require(
-            datatoken != address(0),
-            'Invalid token contract address'
-        );
-        require(
-            datatokens[datatoken].owner == msg.sender,
-            'DataToken already activated'
-        );
+    function deactivate(address datatoken) external onlyOwner(datatoken){
         datatokens[datatoken].active = false;
         emit DispenserDeactivated(datatoken);
     }
@@ -169,15 +184,7 @@ contract Dispenser {
      * @param datatoken refers to datatoken address.
      * @param newAllowedSwapper refers to the new allowedSwapper
      */
-    function setAllowedSwapper(address datatoken, address newAllowedSwapper) external{
-        require(
-            datatoken != address(0),
-            'Invalid token contract address'
-        );
-        require(
-            datatokens[datatoken].owner == msg.sender,
-            'DataToken already activated'
-        );
+    function setAllowedSwapper(address datatoken, address newAllowedSwapper) external onlyOwner(datatoken){
         datatokens[datatoken].allowedSwapper= newAllowedSwapper;
         emit DispenserAllowedSwapperChanged(datatoken, newAllowedSwapper);
     }
@@ -193,13 +200,13 @@ contract Dispenser {
      * @param amount amount of datatokens required.
      * @param destination refers to who will receive the tokens
      */
-    function dispense(address datatoken, uint256 amount, address destination) external payable{
+    function dispense(address datatoken, uint256 amount, address destination) external nonReentrant payable{
         require(
             datatoken != address(0),
             'Invalid token contract address'
         );
         require(
-            datatokens[datatoken].active == true,
+            datatokens[datatoken].active,
             'Dispenser not active'
         );
         require(
@@ -233,29 +240,30 @@ contract Dispenser {
             ourBalance>=amount,
             'Not enough reserves'
         );
-        tokenInstance.transfer(destination,amount);
+        IERC20(datatoken).safeTransfer(destination,amount);
         emit TokensDispensed(datatoken, destination, amount);
     }
 
     /**
      * @dev ownerWithdraw
-     *      Allow owner to withdraw all datatokens in this dispenser balance
+     *      Withdraw all datatokens in this dispenser balance to ERC20.getPaymentCollector()
      * @param datatoken refers to datatoken address.
      */
-    function ownerWithdraw(address datatoken) external{
+    function ownerWithdraw(address datatoken) external nonReentrant {
         require(
             datatoken != address(0),
             'Invalid token contract address'
         );
-        require(
-            datatokens[datatoken].owner == msg.sender,
-            'Invalid owner'
-        );
+        _ownerWithdraw(datatoken);
+    }
+
+    function _ownerWithdraw(address datatoken) internal{
         IERC20Template tokenInstance = IERC20Template(datatoken);
+        address destination = tokenInstance.getPaymentCollector();
         uint256 ourBalance = tokenInstance.balanceOf(address(this));
         if(ourBalance>0){
-            tokenInstance.transfer(msg.sender,ourBalance);
-            emit OwnerWithdrawed(datatoken, msg.sender, ourBalance);
+            IERC20(datatoken).safeTransfer(destination,ourBalance);
+            emit OwnerWithdrawed(datatoken, destination, ourBalance);
         }
     }
 }

@@ -48,10 +48,10 @@ describe("Batch Swap", () => {
     bPool2,
     bPool3,
     signer,
-    opfCollector,
+    opcCollector,
     SwapFeesEvent,
     fixedRateExchange,
-    basetokenDecimals,
+    baseTokenDecimals,
     exchangeIdFPE,
     exchangeIdDispenser,
     vestingAmount = web3.utils.toWei("10000"),
@@ -93,17 +93,17 @@ describe("Batch Swap", () => {
       user5,
       user6,
       marketFeeCollector,
-      opfCollector,
+      opcCollector,
     ] = await ethers.getSigners();
 
     // GET SOME OCEAN TOKEN FROM OUR MAINNET FORK and send them to user3
     const userWithOcean = "0x53aB4a93B31F480d17D3440a6329bDa86869458A";
     await impersonate(userWithOcean);
-
     oceanContract = await ethers.getContractAt(
       "contracts/interfaces/IERC20.sol:IERC20",
       oceanAddress
     );
+
     signer = ethers.provider.getSigner(userWithOcean);
     await oceanContract
       .connect(signer)
@@ -111,7 +111,7 @@ describe("Batch Swap", () => {
 
     await oceanContract
       .connect(signer)
-      .transfer(user4.address, ethers.utils.parseEther("10000"));
+      .transfer(user4.address, ethers.utils.parseEther("20000"));
 
     // GET SOME DAI (A NEW TOKEN different from OCEAN)
     const userWithDAI = "0x16de59092dAE5CcF4A1E6439D611fd0653f0Bd01";
@@ -129,7 +129,7 @@ describe("Batch Swap", () => {
 
     await daiContract
       .connect(signer)
-      .transfer(user4.address, ethers.utils.parseEther("10000"));
+      .transfer(user4.address, ethers.utils.parseEther("100000"));
 
     // GET SOME USDC (token with !18 decimals (6 in this case))
     const userWithUSDC = "0xF977814e90dA44bFA03b6295A0616a897441aceC";
@@ -143,11 +143,9 @@ describe("Batch Swap", () => {
 
     signer = ethers.provider.getSigner(userWithUSDC);
 
-    const amount = 1e12; // 100000 USDC
+    const amount = 1e11; // 100000 
     await usdcContract.connect(signer).transfer(user3.address, amount);
-
     await usdcContract.connect(signer).transfer(user4.address, amount);
-
     // expect(
     //   await usdcContract.balanceOf(user3.address)).to.equal(amount)
 
@@ -165,7 +163,7 @@ describe("Batch Swap", () => {
       owner.address,
       oceanAddress,
       poolTemplate.address,
-      opfCollector.address,
+      opcCollector.address,
       []
     );
 
@@ -175,7 +173,7 @@ describe("Batch Swap", () => {
 
     fixedRateExchange = await FixedRateExchange.deploy(
       router.address,
-      opfCollector.address
+      opcCollector.address
     );
 
     templateERC20 = await ERC20Template.deploy();
@@ -185,7 +183,7 @@ describe("Batch Swap", () => {
     factoryERC721 = await ERC721Factory.deploy(
       templateERC721.address,
       templateERC20.address,
-      opfCollector.address,
+      opcCollector.address,
       router.address
     );
 
@@ -206,6 +204,7 @@ describe("Batch Swap", () => {
       "NFT",
       "NFTSYMBOL",
       1,
+      "0x0000000000000000000000000000000000000000",
       "0x0000000000000000000000000000000000000000",
       "https://oceanprotocol.com/nft/"
     );
@@ -283,7 +282,7 @@ describe("Batch Swap", () => {
           //  oceanAddress,
           [
             web3.utils.toWei("1"), // rate
-            18, // basetokenDecimals
+            18, // baseTokenDecimals
             vestingAmount,
             2500000, // vested blocks
             initialOceanLiquidity, // baseToken initial pool liquidity
@@ -291,7 +290,7 @@ describe("Batch Swap", () => {
           //   user3.address,
           [
             swapFee, //
-            swapMarketFee,
+            swapMarketFee, // publishMarketFee
           ],
           //   marketFeeCollector.address,
           //    user3.address// publisher address (vested token)
@@ -320,13 +319,13 @@ describe("Batch Swap", () => {
         web3.utils.toWei("98000")
       );
 
-      expect(await bPool.getOPFFee()).to.equal(0);
-      expect(await bPool._swapMarketFee()).to.equal(swapMarketFee);
+      expect(await bPool.getOPCFee()).to.equal(1e15);
+      expect(await bPool._swapPublishMarketFee()).to.equal(swapMarketFee);
 
       expect(await bPool.communityFees(oceanAddress)).to.equal(0);
       expect(await bPool.communityFees(erc20Token.address)).to.equal(0);
-      expect(await bPool.marketFees(oceanAddress)).to.equal(0);
-      expect(await bPool.marketFees(erc20Token.address)).to.equal(0);
+      expect(await bPool.publishMarketFees(oceanAddress)).to.equal(0);
+      expect(await bPool.publishMarketFees(erc20Token.address)).to.equal(0);
     });
   });
 
@@ -378,7 +377,7 @@ describe("Batch Swap", () => {
           //  daiAddress,
           [
             web3.utils.toWei("1"), // rate
-            18, // basetokenDecimals
+            18, // baseTokenDecimals
             web3.utils.toWei("100"), //vestingAmount
             2500000, // vested blocks
             initialDAILiquidity, // baseToken initial pool liquidity
@@ -413,13 +412,13 @@ describe("Batch Swap", () => {
       );
 
       expect(await bPool2.getSwapFee()).to.equal(swapFee);
-      expect(await bPool2.getOPFFee()).to.equal(1e15);
-      expect(await bPool2._swapMarketFee()).to.equal(swapMarketFee);
+      expect(await bPool2.getOPCFee()).to.equal(2e15);
+      expect(await bPool2._swapPublishMarketFee()).to.equal(swapMarketFee);
 
       expect(await bPool2.communityFees(daiAddress)).to.equal(0);
       expect(await bPool2.communityFees(erc20Token.address)).to.equal(0);
-      expect(await bPool2.marketFees(daiAddress)).to.equal(0);
-      expect(await bPool2.marketFees(erc20Token2.address)).to.equal(0);
+      expect(await bPool2.publishMarketFees(daiAddress)).to.equal(0);
+      expect(await bPool2.publishMarketFees(erc20Token2.address)).to.equal(0);
     });
   });
 
@@ -458,7 +457,7 @@ describe("Batch Swap", () => {
       const ssDTBalance = await erc20Token.balanceOf(sideStaking.address);
 
       initialUSDCLiquidity = 88000 * 1e6; // 88000 usdc
-      basetokenDecimals = 6;
+      baseTokenDecimals = 6;
       // approve exact amount
       await usdcContract
         .connect(user3)
@@ -471,7 +470,7 @@ describe("Batch Swap", () => {
           // usdcAddress,
           [
             web3.utils.toWei("1"), // rate
-            basetokenDecimals, // basetokenDecimals
+            baseTokenDecimals, // baseTokenDecimals
             vestingAmount, // DT vesting amount
             2500000, // vested blocks
             initialUSDCLiquidity, // baseToken initial pool liquidity
@@ -510,26 +509,26 @@ describe("Batch Swap", () => {
         web3.utils.toWei("88000")
       );
 
-      // check the dt balance available for adding liquidity doesn't account for vesting amount
+      // check the dt balance available for adding liquidity, which includes vesting amount left 
 
       expect(
-        await sideStaking.getDataTokenBalance(erc20Token3.address)
+        await sideStaking.getDatatokenBalance(erc20Token3.address)
       ).to.equal(
-        (await erc20Token3.balanceOf(sideStaking.address)).sub(vestingAmount)
+        (await erc20Token3.balanceOf(sideStaking.address))
       );
 
       expect(await bPool3.getSwapFee()).to.equal(swapFee);
-      expect(await bPool3.getOPFFee()).to.equal(1e15);
-      expect(await bPool3._swapMarketFee()).to.equal(swapMarketFee);
+      expect(await bPool3.getOPCFee()).to.equal(2e15);
+      expect(await bPool3._swapPublishMarketFee()).to.equal(swapMarketFee);
 
       expect(await bPool3.communityFees(usdcAddress)).to.equal(0);
       expect(await bPool3.communityFees(erc20Token3.address)).to.equal(0);
-      expect(await bPool3.marketFees(usdcAddress)).to.equal(0);
-      expect(await bPool3.marketFees(erc20Token.address)).to.equal(0);
+      expect(await bPool3.publishMarketFees(usdcAddress)).to.equal(0);
+      expect(await bPool3.publishMarketFees(erc20Token.address)).to.equal(0);
     });
   });
 
-  describe("#4 - Exchange with baseToken(OCEAN) 18 Decimals and dataToken 18 Decimals, RATE = 1", async () => {
+  describe("#4 - Exchange with baseToken(OCEAN) 18 Decimals and datatoken 18 Decimals, RATE = 1", async () => {
     let amountDTtoSell = web3.utils.toWei("10000"); // exact amount so that we can check if balances works
     marketFee = 1e15;
     rate = web3.utils.toWei("1");
@@ -568,7 +567,7 @@ describe("Batch Swap", () => {
         await erc20Token4.connect(user3).createFixedRate(
           fixedRateExchange.address,
           [oceanContract.address, user3.address, marketFeeCollector.address, ZERO_ADDRESS],
-          [18, 18, rate, marketFee, 0]
+          [18, 18, rate, marketFee, 0, 0]
           // 18,
           // rate,
           // user3.address,
@@ -580,9 +579,9 @@ describe("Batch Swap", () => {
       eventsExchange = receipt.events.filter((e) => e.event === "NewFixedRate");
 
       // commented out for now
-      // expect(eventsExchange[0].args.basetoken).to.equal(oceanContract.address);
+      // expect(eventsExchange[0].args.baseToken).to.equal(oceanContract.address);
       // expect(eventsExchange[0].args.owner).to.equal(user3.address);
-      expect(eventsExchange[0].args.owner).to.equal(oceanContract.address);
+      expect(eventsExchange[0].args.baseToken).to.equal(oceanContract.address);
     });
 
     it("#3 - exchange is active", async () => {
@@ -688,7 +687,9 @@ describe("Batch Swap", () => {
         amountsIn: web3.utils.toWei("1"), // when swapExactAmountIn is EXACT amount IN
         tokenOut: erc20Token.address,
         amountsOut: web3.utils.toWei('0.001'), // when swapExactAmountIn is MIN amount OUT
-        maxPrice: web3.utils.toWei('100') // max price (only for pools)
+        maxPrice: web3.utils.toWei('100'), // max price (only for pools)
+        swapMarketFee:0,
+        marketFeeAddress:user5.address
       };
       
       const operations2 = {
@@ -699,7 +700,9 @@ describe("Batch Swap", () => {
         amountsIn: web3.utils.toWei("10"), // when swapExactAmountOut is MAX amount IN
         tokenOut: erc20Token2.address,
         amountsOut: web3.utils.toWei('1'),  // when swapExactAmountOut is EXACT amount OUT
-        maxPrice: web3.utils.toWei('100') // max price (only for pools) but has to be filled in any case
+        maxPrice: web3.utils.toWei('100'), // max price (only for pools) but has to be filled in any case,
+        swapMarketFee:0,
+        marketFeeAddress:user5.address
       };
 
       const operations3 = {
@@ -710,7 +713,9 @@ describe("Batch Swap", () => {
         amountsIn: web3.utils.toWei("10"), // when swapExactAmountOut is MAX amount IN
         tokenOut: erc20Token3.address,
         amountsOut: web3.utils.toWei('1'),  // when swapExactAmountOut is EXACT amount OUT
-        maxPrice: web3.utils.toWei('100') // max price (only for pools) but has to be filled in any case
+        maxPrice: web3.utils.toWei('100'), // max price (only for pools) but has to be filled in any case,
+        swapMarketFee:0,
+        marketFeeAddress:user5.address
       };
 
       const operations4 = {
@@ -721,7 +726,9 @@ describe("Batch Swap", () => {
         amountsIn: web3.utils.toWei("10"), // maximum amount of base tokens to spend
         tokenOut: erc20Token4.address,
         amountsOut: web3.utils.toWei('1'),  // how many DT we want to buy
-        maxPrice: web3.utils.toWei('100') // unused in this case
+        maxPrice: web3.utils.toWei('100'), // unused in this case,
+        swapMarketFee:0,
+        marketFeeAddress:user5.address
       };
 
       const operations5 = {
@@ -732,7 +739,9 @@ describe("Batch Swap", () => {
         amountsIn: web3.utils.toWei("10"), // unused
         tokenOut: erc20Token5.address,
         amountsOut: web3.utils.toWei('1'),  // how many DT we want to receive
-        maxPrice: web3.utils.toWei('100') // unused in this case
+        maxPrice: web3.utils.toWei('100'), // unused in this case,
+        swapMarketFee:0,
+        marketFeeAddress:user5.address
       };
 
       expect(await erc20Token.balanceOf(user4.address)).to.equal(0)
@@ -766,6 +775,63 @@ describe("Batch Swap", () => {
 
       expect(await erc20Token5.balanceOf(user4.address)).to.equal(operations5.amountsOut)
       expect(await erc20Token5.balanceOf(router.address)).to.equal(0)
+    });
+  });
+
+  describe("user4 attemps to add liquidity to 3 pools in the same transaction", async () => {
+    
+    it("#1 - user4 checks he has enough balance in USDC, DAI, and OCEAN, then approves router to spend his tokens", async () => {
+      amount = web3.utils.toWei("1");
+      usdc_amount = "998996980"
+      expect(await usdcContract.balanceOf(user4.address)).gt(usdc_amount);
+      expect(await daiContract.balanceOf(user4.address)).gt(amount);
+      expect(await oceanContract.balanceOf(user4.address)).gt(amount);
+
+      await usdcContract.connect(user4).approve(router.address, amount);
+      await daiContract.connect(user4).approve(router.address, amount);
+      await oceanContract.connect(user4).approve(router.address, amount);
+    });
+
+    it("#2 - user4 calls stakeBatch", async () => {
+      const stake1 = {
+        poolAddress: bPool.address, // pool Address
+        tokenAmountIn: amount, // when swapExactAmountIn is EXACT amount IN
+        minPoolAmountOut:0
+      }
+
+      const stake2 = {
+        poolAddress: bPool2.address, // pool Address
+        tokenAmountIn: amount, // when swapExactAmountIn is EXACT amount IN
+        minPoolAmountOut:0
+      }
+
+      const stake3 = {
+        poolAddress: bPool3.address, // pool Address
+        tokenAmountIn: usdc_amount, // when swapExactAmountIn is EXACT amount IN
+        minPoolAmountOut:0
+      }
+
+      BPool1Token1 = await ethers.getContractAt("ERC20Template", bPool.address);
+      BPool1Token2 = await ethers.getContractAt("ERC20Template", bPool2.address);
+      BPool1Token3 = await ethers.getContractAt("ERC20Template", bPool3.address);
+      //make sure that both router and user4 does not have pool shares
+      expect(await BPool1Token1.balanceOf(router.address)).to.equal(0)
+      expect(await BPool1Token2.balanceOf(router.address)).to.equal(0)
+      expect(await BPool1Token3.balanceOf(router.address)).to.equal(0)
+      expect(await BPool1Token1.balanceOf(user4.address)).to.equal(0)
+      expect(await BPool1Token2.balanceOf(user4.address)).to.equal(0)
+      expect(await BPool1Token3.balanceOf(user4.address)).to.equal(0)
+
+      await router.connect(user4).stakeBatch([stake1,stake2,stake3]);
+
+      //make sure that router has no pool shares
+      expect(await BPool1Token1.balanceOf(router.address)).to.equal(0)
+      expect(await BPool1Token2.balanceOf(router.address)).to.equal(0)
+      expect(await BPool1Token3.balanceOf(router.address)).to.equal(0)
+      //make sure that user4 has pool shares
+      expect(await BPool1Token1.balanceOf(user4.address)).gt(0)
+      expect(await BPool1Token2.balanceOf(user4.address)).gt(0)
+      expect(await BPool1Token3.balanceOf(user4.address)).gt(0)
     });
   });
 });

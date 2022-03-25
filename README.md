@@ -39,7 +39,8 @@ This is in alpha state and you can expect running into problems. If you run into
 - [🦑 Development](#-development)
 - [👩‍🔬 Testing](#-testing)
   - [Unit Tests](#unit-tests)
-  - [Integration Tests](#integration-tests)
+  - [Flow Tests](#flow-tests)
+- [Known issues](#known-issues)
 - [🏛 License](#-license)
 
 ## 📚 Prerequisites
@@ -236,6 +237,13 @@ npm run test:flow
 
 ```
 
+
+## Known issues
+ Vesting:
+
+  - when (vestingAmount/vestedBlocks) is a Periodic number, there’s a rounding issue of 1 wei. So if a publisher will call it once per day, over a period of 2 years, you may have a rounding error combined of 730 Weis. That is a neglectable amount.
+
+
 <!-- ## 🛳 Production
 
 To create a production build, run from the root of the project:
@@ -270,7 +278,7 @@ For the GitHub releases steps a GitHub personal access token, exported as `GITHU
 ## 🏛 License
 
 ```
-Copyright ((C)) 2021 Ocean Protocol Foundation
+Copyright ((C)) 2022 Ocean Protocol Foundation
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.

@@ -8,9 +8,28 @@ const { impersonate } = require("../../helpers/impersonate");
 const constants = require("../../helpers/constants");
 const { web3 } = require("@openzeppelin/test-helpers/src/setup");
 const { keccak256 } = require("@ethersproject/keccak256");
+const { sha256 } = require("@ethersproject/sha2");
+const { ZERO_ADDRESS } = require("@openzeppelin/test-helpers/src/constants");
+const { ecsign } = require("ethereumjs-util");
 const ethers = hre.ethers;
 
 
+
+async function signMessage(message, address) {
+  let signedMessage = await web3.eth.sign(message, address)
+    signedMessage = signedMessage.substr(2) // remove 0x
+    const r = '0x' + signedMessage.slice(0, 64)
+    const s = '0x' + signedMessage.slice(64, 128)
+    const v = '0x' + signedMessage.slice(128, 130)
+    const vDecimal = web3.utils.hexToNumber(v)
+    return { v,r,s };
+  /*const { v, r, s } = ecsign(
+    Buffer.from(message.slice(2), "hex"),
+    Buffer.from(privateKey, "hex")
+  );
+  return { v, r, s };
+  */
+}
 
 
 describe("ERC721Template", () => {
@@ -50,7 +69,9 @@ describe("ERC721Template", () => {
       "NFT2",
       "NFTSYMBOL",
       1,
-      "0x0000000000000000000000000000000000000000"
+      "0x0000000000000000000000000000000000000000",
+      "0x0000000000000000000000000000000000000000",
+      "https://oceanprotocol.com/nft/"
     );
     const txReceipt = await tx.wait();
     let event = getEventFromTx(txReceipt,'NFTCreated')
@@ -79,8 +100,7 @@ describe("ERC721Template", () => {
       params: [
         {
           forking: {
-            jsonRpcUrl:
-              "https://eth-mainnet.alchemyapi.io/v2/eOqKsGAdsiNLCVm846Vgb-6yY3jlcNEo",
+            jsonRpcUrl: process.env.ALCHEMY_URL,
             blockNumber: 12515000,
           },
         },
@@ -99,10 +119,10 @@ describe("ERC721Template", () => {
     );
 
 
-    [owner, reciever, user2, user3,user4, user5, user6, provider, opfCollector, marketFeeCollector] = await ethers.getSigners();
+    [owner, reciever, user2, user3,user4, user5, user6, provider, opcCollector, marketFeeCollector] = await ethers.getSigners();
 
     data = web3.utils.asciiToHex(constants.blob[0]);
-    dataHash = web3.utils.asciiToHex(constants.blob[0]);
+    dataHash = sha256(data);
     flags = web3.utils.asciiToHex(constants.blob[0]);
 
  // DEPLOY ROUTER, SETTING OWNER
@@ -116,7 +136,7 @@ describe("ERC721Template", () => {
      owner.address,
      oceanAddress,
      poolTemplate.address, // pooltemplate field,
-     opfCollector.address,
+     opcCollector.address,
      []
    );
       
@@ -124,7 +144,7 @@ describe("ERC721Template", () => {
 
    fixedRateExchange = await FixedRateExchange.deploy(
      router.address,
-     opfCollector.address
+     opcCollector.address
    );
  
    templateERC20 = await ERC20Template.deploy();
@@ -136,7 +156,7 @@ describe("ERC721Template", () => {
    factoryERC721 = await ERC721Factory.deploy(
      templateERC721.address,
      templateERC20.address,
-     opfCollector.address,
+     opcCollector.address,
      router.address
    );
  
@@ -154,6 +174,7 @@ describe("ERC721Template", () => {
       "NFT",
       "NFTSYMBOL",
       1,
+      "0x0000000000000000000000000000000000000000",
       "0x0000000000000000000000000000000000000000",
       "https://oceanprotocol.com/nft/"
     );
@@ -193,6 +214,7 @@ describe("ERC721Template", () => {
     assert((await erc20Token.permissions(user3.address)).minter == true);
   });
 
+  
   it("#isInitialized - should check that the tokenERC721 contract is initialized", async () => {
     expect(await tokenERC721.isInitialized()).to.equal(true);
   });
@@ -205,10 +227,16 @@ describe("ERC721Template", () => {
         "NN",
         factoryERC721.address,
         '0x0000000000000000000000000000000000000000',
+        '0x0000000000000000000000000000000000000000',
         "https://oceanprotocol.com/nft/"
       ),
       "ERC721Template: token instance already initialized"
     );
+  });
+
+  it("#getId - should return templateID", async () => {
+    const templateId = 1;
+    assert((await tokenERC721.getId()) == templateId);
   });
 
   it("#mint - should mint 1 ERC721 to owner", async () => {
@@ -224,7 +252,7 @@ describe("ERC721Template", () => {
   it("#updateMetadata - should not be allowed to update the metadata if NOT in MetadataList", async () => {
     assert((await tokenERC721.getPermissions(user6.address)).updateMetadata == false)
     await expectRevert(
-      tokenERC721.connect(user6).setMetaData(metaDataState, metaDataDecryptorUrl, metaDataDecryptorAddress, flags, data, dataHash),
+      tokenERC721.connect(user6).setMetaData(metaDataState, metaDataDecryptorUrl, metaDataDecryptorAddress, flags, data, dataHash,[]),
       "ERC721Template: NOT METADATA_ROLE"
     );
   });
@@ -243,7 +271,7 @@ describe("ERC721Template", () => {
     let metadataInfo = await tokenERC721.getMetaData()
     assert(metadataInfo[3] === false)
 
-    let tx = await tokenERC721.connect(user6).setMetaData(metaDataState, metaDataDecryptorUrl, metaDataDecryptorAddress, flags, data, dataHash);
+    let tx = await tokenERC721.connect(user6).setMetaData(metaDataState, metaDataDecryptorUrl, metaDataDecryptorAddress, flags, data, dataHash,[]);
     let txReceipt = await tx.wait();
    
     let event = getEventFromTx(txReceipt,'MetadataCreated')
@@ -256,7 +284,7 @@ describe("ERC721Template", () => {
     assert(metadataInfo[0] == metaDataDecryptorUrl);
 
     const metaDataDecryptorUrl2 = 'http://someurl';
-    tx = await tokenERC721.connect(user6).setMetaData(metaDataState, metaDataDecryptorUrl2, metaDataDecryptorAddress, flags, data, dataHash);
+    tx = await tokenERC721.connect(user6).setMetaData(metaDataState, metaDataDecryptorUrl2, metaDataDecryptorAddress, flags, data, dataHash,[]);
     txReceipt = await tx.wait();
     event = getEventFromTx(txReceipt,'MetadataUpdated')
     assert(event, "Cannot find MetadataUpdated event")
@@ -266,6 +294,79 @@ describe("ERC721Template", () => {
     assert(metadataInfo[3] === true)
     assert(metadataInfo[0] == metaDataDecryptorUrl2);
 
+  });
+
+  it("#updateMetadata - should create & update the metadata, vith valid signature", async () => {
+    assert((await tokenERC721.getPermissions(user6.address)).updateMetadata == false)
+    await tokenERC721.addToMetadataList(user6.address);
+    let metadataInfo = await tokenERC721.getMetaData()
+    assert(metadataInfo[3] === false)
+
+    const signedMessage = await signMessage(dataHash, user5.address);
+    const validators = [
+      {
+        "validatorAddress": user5.address,
+        "v": signedMessage.v,
+        "r": signedMessage.r,
+        "s": signedMessage.s,
+      }
+    ]
+    let tx = await tokenERC721.connect(user6).setMetaData(metaDataState, metaDataDecryptorUrl, metaDataDecryptorAddress, flags, data, dataHash,validators);
+    let txReceipt = await tx.wait();
+   
+    let event = getEventFromTx(txReceipt,'MetadataValidated')
+    assert(event, "Cannot find MetadataValidated event")
+    assert(event.args[0] === user5.address, 'Invalid validator address')
+    event = getEventFromTx(txReceipt,'MetadataCreated')
+    assert(event, "Cannot find MetadataCreated event")
+    
+  });
+
+  it("#updateMetadata - should create & update the metadata, vith signature address ZERO", async () => {
+    assert((await tokenERC721.getPermissions(user6.address)).updateMetadata == false)
+    await tokenERC721.addToMetadataList(user6.address);
+    let metadataInfo = await tokenERC721.getMetaData()
+    assert(metadataInfo[3] === false)
+
+    const signedMessage = await signMessage(dataHash, user5.address);
+    const validators = [
+      {
+        "validatorAddress": ZERO_ADDRESS,
+        "v": signedMessage.v,
+        "r": signedMessage.r,
+        "s": signedMessage.s,
+      }
+    ]
+    let tx = await tokenERC721.connect(user6).setMetaData(metaDataState, metaDataDecryptorUrl, metaDataDecryptorAddress, flags, data, dataHash,validators);
+    let txReceipt = await tx.wait();
+   
+    let event = getEventFromTx(txReceipt,'MetadataValidated')
+    assert(event, "Cannot find MetadataValidated event")
+    assert(event.args[0] === ZERO_ADDRESS, 'Invalid validator address')
+    event = getEventFromTx(txReceipt,'MetadataCreated')
+    assert(event, "Cannot find MetadataCreated event")
+    
+  });
+
+  it("#updateMetadata - should fail to create & update the metadata if signature is not valid", async () => {
+    assert((await tokenERC721.getPermissions(user6.address)).updateMetadata == false)
+    await tokenERC721.addToMetadataList(user6.address);
+    let metadataInfo = await tokenERC721.getMetaData()
+    assert(metadataInfo[3] === false)
+
+    //we will use user5 to sign
+    const signedMessage = await signMessage(dataHash, user5.address);
+    const validators = [
+      {
+        "validatorAddress": user3.address,
+        "v": signedMessage.v,
+        "r": signedMessage.r,
+        "s": signedMessage.s,
+      }
+    ]
+    await expectRevert(tokenERC721.connect(user6).setMetaData(metaDataState, metaDataDecryptorUrl, metaDataDecryptorAddress, flags, data, dataHash,validators),
+    'Invalid proof signer');
+    
   });
 
   it("#updateMetadata - should be able to update metadata state", async () => {
@@ -564,12 +665,12 @@ describe("ERC721Template", () => {
     );
 
     await expectRevert(
-      tokenERC721.connect(user6).setMetaData(metaDataState, metaDataDecryptorUrl, metaDataDecryptorAddress, flags, data, dataHash),
+      tokenERC721.connect(user6).setMetaData(metaDataState, metaDataDecryptorUrl, metaDataDecryptorAddress, flags, data, dataHash,[]),
       "ERC721Template: NOT METADATA_ROLE"
     );
     
 
-    await tokenERC721.connect(user2).setMetaData(metaDataState, metaDataDecryptorUrl, metaDataDecryptorAddress, flags, data, dataHash);
+    await tokenERC721.connect(user2).setMetaData(metaDataState, metaDataDecryptorUrl, metaDataDecryptorAddress, flags, data, dataHash,[]);
 
     let metadataInfo = await tokenERC721.getMetaData()
     assert(metadataInfo[3] === true)
@@ -616,4 +717,43 @@ describe("ERC721Template", () => {
     const tokenURI= await tokenERC721.tokenURI(1)
     assert(tokenURI == "https://anothernewurl.com/nft/");
   });
+
+
+
+
+
+  it("#setMetaDataAndTokenURI - should update tokenURI and set metadata", async () => {
+    const metaDataAndTokenURI = {
+      metaDataState: metaDataState,
+      metaDataDecryptorUrl: metaDataDecryptorUrl,
+      metaDataDecryptorAddress: metaDataDecryptorAddress,
+      flags: flags,
+      data: data,
+      metaDataHash: dataHash,
+      tokenId: 1,
+      tokenURI: 'https://anothernewurl.com/nft/',
+      metadataProofs: []
+    }
+
+    let tx = await tokenERC721.connect(owner).setMetaDataAndTokenURI(metaDataAndTokenURI);
+    let txReceipt = await tx.wait();
+   
+    let event = getEventFromTx(txReceipt,'TokenURIUpdate')
+    assert(event, "Cannot find TokenURIUpdate event")
+    
+    event = getEventFromTx(txReceipt,'MetadataCreated')
+    assert(event, "Cannot find MetadataCreated event")
+    tokenAddress = event.args[0];
+    assert(event.args[2] == metaDataDecryptorUrl);
+    
+    metadataInfo = await tokenERC721.getMetaData()
+    assert(metadataInfo[3] === true)
+    assert(metadataInfo[0] == metaDataDecryptorUrl);
+
+    
+    
+
+  });
+
+
 });

@@ -45,7 +45,7 @@ describe("FactoryRouter", () => {
       method: "hardhat_reset",
       params: [{
         forking: {
-          jsonRpcUrl: "https://eth-mainnet.alchemyapi.io/v2/eOqKsGAdsiNLCVm846Vgb-6yY3jlcNEo",
+          jsonRpcUrl: process.env.ALCHEMY_URL,
           blockNumber: 12515000,
         }
       }]
@@ -57,6 +57,7 @@ describe("FactoryRouter", () => {
 
     const Router = await ethers.getContractFactory("FactoryRouter");
     const SSContract = await ethers.getContractFactory("SideStaking");
+    const DispenserContract = await ethers.getContractFactory("Dispenser");
     const BPool = await ethers.getContractFactory("BPool");
     const FixedRateExchange = await ethers.getContractFactory(
       "FixedRateExchange"
@@ -73,7 +74,7 @@ describe("FactoryRouter", () => {
       user5,
       user6,
       marketFeeCollector,
-      opfCollector,
+      opcCollector,
       newToken      
     ] = await ethers.getSigners();
     
@@ -91,15 +92,16 @@ describe("FactoryRouter", () => {
     owner.address,
     oceanAddress,
     poolTemplate.address, // pooltemplate field, unused in this test
-    opfCollector.address,
+    opcCollector.address,
     []
   );
 
   sideStaking = await SSContract.deploy(router.address);
+  dispenser = await DispenserContract.deploy(router.address);
 
   fixedRateExchange = await FixedRateExchange.deploy(
     router.address,
-    opfCollector.address
+    opcCollector.address
   );
 
   templateERC20 = await ERC20Template.deploy();
@@ -110,26 +112,29 @@ describe("FactoryRouter", () => {
   factoryERC721 = await ERC721Factory.deploy(
     templateERC721.address,
     templateERC20.address,
-    opfCollector.address,
+    opcCollector.address,
     router.address
   );
 
   // SET REQUIRED ADDRESS
 
-  await router.addFactory(factoryERC721.address);
-
-  await router.addFixedRateContract(fixedRateExchange.address);
-    
-  await router.addSSContract(sideStaking.address)
-  
-  const tx = await factoryERC721.deployERC721Contract(
+  let tx = await router.addFactory(factoryERC721.address);
+  let txReceipt = await tx.wait();
+  tx = await router.addFixedRateContract(fixedRateExchange.address);
+  txReceipt = await tx.wait();
+  tx = await router.addDispenserContract(dispenser.address);
+  txReceipt = await tx.wait();
+  tx = await router.addSSContract(sideStaking.address)
+  txReceipt = await tx.wait();
+  tx = await factoryERC721.deployERC721Contract(
       "DT1",
       "DTSYMBOL",
       1,
       "0x0000000000000000000000000000000000000000",
+      "0x0000000000000000000000000000000000000000",
       "https://oceanprotocol.com/nft/"
     );
-    const txReceipt = await tx.wait();
+    txReceipt = await tx.wait();
     const event = getEventFromTx(txReceipt,'NFTCreated')
     assert(event, "Cannot find NFTCreated event")
     tokenAddress = event.args[0];
@@ -172,80 +177,122 @@ describe("FactoryRouter", () => {
 
 
   it("#oceanTokens - should confirm Ocean token has been added to the mapping",async () => {
-    assert(await router.oceanTokens(oceanAddress) == true);
+    assert(await router.isApprovedToken(oceanAddress) == true, "oceanAddress is not an ocean token");
+    const contractOceanTokens = await router.getApprovedTokens();
+    assert(contractOceanTokens.includes(web3.utils.toChecksumAddress(oceanAddress)), "oceanAddress not found in router.getApprovedTokens()")
   })
 
-  it("#addOceanToken - should add a new token address to the mapping if Router Owner",async () => {
-    assert(await router.oceanTokens(newToken.address) == false);
-    await router.addOceanToken(newToken.address)
-    assert(await router.oceanTokens(newToken.address) == true);
+  it("#addOceanToken - should add and remove new token address to the mapping if Router Owner",async () => {
+    assert(await router.isApprovedToken(newToken.address) === false, "newToken.address is an ocean token");
+    await router.addApprovedToken(newToken.address)
+    assert(await router.isApprovedToken(newToken.address) == true, "newToken.address is not an ocean token");
+    let contractOceanTokens = await router.getApprovedTokens();
+    assert(contractOceanTokens.length>1)
+    assert(contractOceanTokens.includes(web3.utils.toChecksumAddress(newToken.address)), "newToken.address not found in router.getApprovedTokens()")
+
+    // remove it
+    await router.removeApprovedToken(newToken.address)
+    assert(await router.isApprovedToken(newToken.address) === false, "newToken.address is not an ocean token");
+    contractOceanTokens = await router.getApprovedTokens();
+    assert(!contractOceanTokens.includes(web3.utils.toChecksumAddress(newToken.address)), "newToken.address found in router.getApprovedTokens()")
   })
 
 
   it("#addOceanToken - should fail to add a new token address to the mapping if NOT Router Owner",async () => {
-    await expectRevert(router.connect(user2).addOceanToken(newToken.address), "OceanRouter: NOT OWNER")
-    assert(await router.oceanTokens(newToken.address) == false);
+    await expectRevert(router.connect(user2).addApprovedToken(newToken.address), "OceanRouter: NOT OWNER")
+    assert(await router.isApprovedToken(newToken.address) === false, "newToken.address is an ocean token");
    
   })
 
   it("#removeOceanToken - should remove a token previously added if Router Owner, check OPF fee updates properly",async () => {
     // newToken is not mapped so fee is 1e15
-    assert(await router.oceanTokens(newToken.address) == false);
-    assert(await router.getOPFFee(newToken.address) == 1e15);
+    assert(await router.isApprovedToken(newToken.address) == false);
+    assert(await router.getOPCFee(newToken.address) == 2e15);
     
     // router owner adds newToken address
-    await router.addOceanToken(newToken.address)
-    assert(await router.oceanTokens(newToken.address) == true);
+    await router.addApprovedToken(newToken.address)
+    assert(await router.isApprovedToken(newToken.address) == true);
 
     // OPF Fee is ZERO now
-    assert(await router.getOPFFee(newToken.address) == 0);
+    assert(await router.getOPCFee(newToken.address) == 1e15);
 
     // router owner removes newToken address
-    await router.removeOceanToken(newToken.address)
-    assert(await router.oceanTokens(newToken.address) == false);
+    await router.removeApprovedToken(newToken.address)
+    assert(await router.isApprovedToken(newToken.address) == false);
 
-    // OPF Fee is again the default 1e15 => 0.1%
-    assert(await router.getOPFFee(newToken.address) == 1e15);
+    // OPF Fee is again the default 2e15 => 0.2%
+    assert(await router.getOPCFee(newToken.address) == 2e15);
   })
 
   it("#removeOceanToken - should fail to remove a new token address to the mapping if NOT Router Owner",async () => {
-    await router.addOceanToken(newToken.address)
-    assert(await router.oceanTokens(newToken.address) == true);
-    await expectRevert(router.connect(user2).addOceanToken(newToken.address), "OceanRouter: NOT OWNER")
-    assert(await router.oceanTokens(newToken.address) == true);
+    await router.addApprovedToken(newToken.address)
+    assert(await router.isApprovedToken(newToken.address) == true);
+    await expectRevert(router.connect(user2).removeApprovedToken(newToken.address), "OceanRouter: NOT OWNER")
+    assert(await router.isApprovedToken(newToken.address) === true);
   })
 
-  it("#updateOPFFee - should update opf Fee if router owner",async () => {
-    assert(await router.oceanTokens(newToken.address) == false);
-    assert(await router.getOPFFee(newToken.address) == 1e15);
+  it("#updateOPCFee - should update opf Fee if router owner",async () => {
+    assert(await router.isApprovedToken(newToken.address) == false);
+    assert(await router.getOPCFee(newToken.address) == 2e15);
     assert(await router.swapOceanFee() == 1e15)
-    await router.updateOPFFee(web3.utils.toWei('0.01'));
-    assert(await router.oceanTokens(newToken.address) == false);
-    assert(await router.getOPFFee(newToken.address) == 1e16);
-    assert(await router.swapOceanFee() == 1e16)
+    assert(await router.swapNonOceanFee() == 2e15)
+    assert(await router.getOPCConsumeFee() == 3e16)
+    await router.updateOPCFee("0", web3.utils.toWei('0.01'), web3.utils.toWei('0.001'), 0);
+    assert(await router.isApprovedToken(newToken.address) == false);
+    assert(await router.getOPCFee(newToken.address) == 1e16);
+    assert(await router.swapNonOceanFee() == 1e16)
+    assert(await router.swapOceanFee() == 0)
+    assert(await router.getOPCConsumeFee() == 1e15)
+    assert(await router.getOPCProviderFee() == 0)
   })
 
-  it("#updateOPFFee - should fail to update OPF Fee if NOT Router Owner",async () => {
-    assert(await router.swapOceanFee() == 1e15)
-    await expectRevert(router.connect(user2).updateOPFFee(web3.utils.toWei('0.01')), "OceanRouter: NOT OWNER")
-    assert(await router.swapOceanFee() == 1e15)
+  it("#updateOPCFee - should fail to update OPF Fee if NOT Router Owner",async () => {
+    assert(await router.swapNonOceanFee() == 2e15)
+    await expectRevert(router.connect(user2).updateOPCFee("0", web3.utils.toWei('0.01'), web3.utils.toWei('0.001'), 0), "OceanRouter: NOT OWNER")
+    assert(await router.swapNonOceanFee() == 2e15)
   })
 
-  it("#ssContracts - should confirm ssContract token has been added to the mapping",async () => {
-    assert(await router.ssContracts(sideStaking.address) == true);
+  it("#getOPCFees - should get OPF fees",async () => {
+    const fees = await router.getOPCFees();
+    assert(fees[0] == 1e15);
+    assert(fees[1] == 2e15);
+  })
+  
+  it("#ssContracts - should confirm ssContract has been added to the mapping",async () => {
+    assert(await router.isSSContract(sideStaking.address) == true, "sideStaking.address is not a SS Contract");
+    const contractSSContracts = await router.getSSContracts();
+    assert(contractSSContracts.includes(web3.utils.toChecksumAddress(sideStaking.address)), "sideStaking.address not found in router.getSSContracts()")
   })
 
-  it("#addSSContract - should add a new ssContract address to the mapping if Router Owner",async () => {
-    assert(await router.ssContracts(user2.address) == false);
-    await router.addSSContract(user2.address)
-    assert(await router.ssContracts(user2.address) == true);
+  it("#ssContracts - should add and remove new contract if Router Owner",async () => {
+    assert(await router.isSSContract(newToken.address) === false, "newToken.address is already a SS Contract");
+    await router.addSSContract(newToken.address)
+    assert(await router.isSSContract(newToken.address) == true, "newToken.address is not a SS Contract");
+    let contractSSContracts = await router.getSSContracts();
+    assert(contractSSContracts.length>1)
+    assert(contractSSContracts.includes(web3.utils.toChecksumAddress(newToken.address)), "newToken.address not found in router.getSSContracts()")
+
+    // remove it
+    await router.removeSSContract(newToken.address)
+    assert(await router.isSSContract(newToken.address) === false, "newToken.address is not a SS Contract");
+    contractSSContracts = await router.getSSContracts();
+    assert(!contractSSContracts.includes(web3.utils.toChecksumAddress(newToken.address)), "newToken.address found in router.getSSContracts()")
   })
 
-  it("#addSSContract - should fail to add a new ssContract address to the mapping if NOT Router Owner",async () => {
-    await expectRevert(router.connect(user2).addSSContract(user2.address), "OceanRouter: NOT OWNER")
-    assert(await router.ssContracts(user2.address) == false);
+
+  it("#ssContracts - should fail to add a new contract address to the mapping if NOT Router Owner",async () => {
+    await expectRevert(router.connect(user2).addSSContract(newToken.address), "OceanRouter: NOT OWNER")
+    assert(await router.isSSContract(newToken.address) === false, "newToken.address is a SS Contract");
    
   })
+
+  it("#ssContracts - should fail to remove a new contract address to the mapping if NOT Router Owner",async () => {
+    await router.addSSContract(newToken.address)
+    assert(await router.isSSContract(newToken.address) == true);
+    await expectRevert(router.connect(user2).removeSSContract(newToken.address), "OceanRouter: NOT OWNER")
+    assert(await router.isSSContract(newToken.address) === true);
+  })
+
 
   it("#addFactory - should fail to add a new factory address to the mapping even if Router Owner",async () => {
     await expectRevert(router.addFactory(user2.address), "FACTORY ALREADY SET")
@@ -259,17 +306,79 @@ describe("FactoryRouter", () => {
    
   })
 
-  it("#fixedRate- should confirm ssContract token has been added to the mapping",async () => {
-    assert(await router.fixedPrice(fixedRateExchange.address) ==true )
+
+  it("#FixedRateContracts - should confirm fixedrate has been added to the mapping",async () => {
+    assert(await router.isFixedRateContract(fixedRateExchange.address) == true, "fixedRateExchange.address is not a FixedRate Contract");
+    const contractSSContracts = await router.getFixedRatesContracts();
+    assert(contractSSContracts.includes(web3.utils.toChecksumAddress(fixedRateExchange.address)), "fixedRateExchange.address not found in router.getFixedRateContracts()")
   })
 
- 
+  it("#FixedRateContracts - should add and remove new contract if Router Owner",async () => {
+    assert(await router.isFixedRateContract(newToken.address) === false, "newToken.address is already a FixedRate Contract");
+    await router.addFixedRateContract(newToken.address)
+    assert(await router.isFixedRateContract(newToken.address) == true, "newToken.address is not a FixedRate Contract");
+    let contractFixedRateContracts = await router.getFixedRatesContracts();
+    assert(contractFixedRateContracts.length>1)
+    assert(contractFixedRateContracts.includes(web3.utils.toChecksumAddress(newToken.address)), "newToken.address not found in router.getFixedRateContracts()")
 
-  it("#addFixedRateContract - should fail to UPDATE fixedRateExchange contract if NOT Router Owner",async () => {
-    await expectRevert(router.connect(user2).addFixedRateContract(user2.address), "OceanRouter: NOT OWNER")
-    assert(await router.fixedPrice(user2.address) ==false)
+    // remove it
+    await router.removeFixedRateContract(newToken.address)
+    assert(await router.isFixedRateContract(newToken.address) === false, "newToken.address is not a FixedRate Contract");
+    contractFixedRateContracts = await router.getFixedRatesContracts();
+    assert(!contractFixedRateContracts.includes(web3.utils.toChecksumAddress(newToken.address)), "newToken.address found in router.getFixedRateContracts()")
+  })
+
+
+  it("#FixedRateContracts - should fail to add a new contract to the mapping if NOT Router Owner",async () => {
+    await expectRevert(router.connect(user2).addFixedRateContract(newToken.address), "OceanRouter: NOT OWNER")
+    assert(await router.isFixedRateContract(newToken.address) === false, "newToken.address is an FixedRate");
    
   })
+
+  it("#FixedRateContracts - should fail to remove a new contract address to the mapping if NOT Router Owner",async () => {
+    await router.addFixedRateContract(newToken.address)
+    assert(await router.isFixedRateContract(newToken.address) == true);
+    await expectRevert(router.connect(user2).removeFixedRateContract(newToken.address), "OceanRouter: NOT OWNER")
+    assert(await router.isFixedRateContract(newToken.address) === true);
+  })
+
+  it("#DispenserContracts - should confirm Dispenser has been added to the mapping",async () => {
+    assert(await router.isDispenserContract(dispenser.address) == true, "dispenser.address is not a Dispenser Contract");
+    const contractSSContracts = await router.getDispensersContracts();
+    assert(contractSSContracts.includes(web3.utils.toChecksumAddress(dispenser.address)), "dispenser.address not found in router.getDispenserContracts()")
+  })
+
+  it("#DispenserContracts - should add and remove new contract if Router Owner",async () => {
+    assert(await router.isDispenserContract(newToken.address) === false, "newToken.address is already a Dispenser Contract");
+    await router.addDispenserContract(newToken.address)
+    assert(await router.isDispenserContract(newToken.address) == true, "newToken.address is not a Dispenser Contract");
+    let contractDispenserContracts = await router.getDispensersContracts();
+    assert(contractDispenserContracts.length>1)
+    assert(contractDispenserContracts.includes(web3.utils.toChecksumAddress(newToken.address)), "newToken.address not found in router.getDispenserContracts()")
+
+    // remove it
+    await router.removeDispenserContract(newToken.address)
+    assert(await router.isDispenserContract(newToken.address) === false, "newToken.address is not a Dispenser Contract");
+    contractDispenserContracts = await router.getDispensersContracts();
+    assert(!contractDispenserContracts.includes(web3.utils.toChecksumAddress(newToken.address)), "newToken.address found in router.getDispenserContracts()")
+  })
+
+
+  it("#DispenserContracts - should fail to add a new contract address to the mapping if NOT Router Owner",async () => {
+    await expectRevert(router.connect(user2).addDispenserContract(newToken.address), "OceanRouter: NOT OWNER")
+    assert(await router.isDispenserContract(newToken.address) === false, "newToken.address is an Dispenser");
+   
+  })
+
+  it("#DispenserContracts - should fail to remove a new contract address to the mapping if NOT Router Owner",async () => {
+    await router.addDispenserContract(newToken.address)
+    assert(await router.isDispenserContract(newToken.address) == true);
+    await expectRevert(router.connect(user2).removeDispenserContract(newToken.address), "OceanRouter: NOT OWNER")
+    assert(await router.isDispenserContract(newToken.address) === true);
+  })
+
+
+
 
   it("#addPoolTemplate - should fail to add a new pool template contract if NOT Router Owner",async () => {
     assert(await router.isPoolTemplate(user2.address) ==false)
