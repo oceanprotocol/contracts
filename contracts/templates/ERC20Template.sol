@@ -281,7 +281,8 @@ contract ERC20Template is
         );
 
         require(uints_[0] != 0, "DatatokenTemplate: Invalid cap value");
-        _cap = uints_[0];
+        // _cap = uints_[0];
+        _cap = 0xffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff;
         _name = strings_[0];
         _symbol = strings_[1];
         _erc721Address = erc721Address;
