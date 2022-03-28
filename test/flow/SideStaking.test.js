@@ -271,7 +271,7 @@ describe("1SS flow", () => {
     assert((await bPool.isFinalized()) == true);
 
     expect(await erc20Token.balanceOf(sideStaking.address)).to.equal(
-      web3.utils.toWei("98000")
+      "115792089237316195423570985008687907853269984665640564037457584007913129639935"
     );
 
     expect(await bPool.getOPCFee()).to.equal(1e15);

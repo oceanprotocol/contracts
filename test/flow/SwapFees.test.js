@@ -305,7 +305,7 @@ describe("Swap Fees", () => {
       assert((await bPool.isFinalized()) == true);
 
       expect(await erc20Token.balanceOf(sideStaking.address)).to.equal(
-        web3.utils.toWei("98000")
+        "115792089237316195423570985008687907853269984665640564037457584007913129639935"
       );
 
       expect(await bPool.getOPCFee()).gte(0);
@@ -1032,7 +1032,7 @@ describe("Swap Fees", () => {
       assert((await bPool.isFinalized()) == true);
 
       expect(await erc20Token.balanceOf(sideStaking.address)).to.equal(
-        web3.utils.toWei("300")
+        "115792089237316195423570985008687907853269984665640564038757584007913129639935"
       );
 
       expect(await bPool.getSwapFee()).to.equal(swapFee);
@@ -3490,7 +3490,7 @@ describe("Swap Fees", () => {
       assert((await bPool.isFinalized()) == true);
 
       expect(await erc20Token.balanceOf(sideStaking.address)).to.equal(
-        web3.utils.toWei("300")
+        "115792089237316195423570985008687907853269984665640564038757584007913129639935"
       );
 
       expect(await bPool.getSwapFee()).to.equal(swapFee);
