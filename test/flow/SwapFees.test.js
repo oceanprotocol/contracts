@@ -3399,7 +3399,7 @@ describe("Swap Fees", () => {
       console.log(ssContractDTbalance.toString());
       console.log((await erc20Token.balanceOf(sideStaking.address)).toString());
 
-      expect(dtSSContractBalance).to.equal(dtSSContractBalanceAfter);
+      expect(dtSSContractBalance).lte(dtSSContractBalanceAfter);
       expect(ssContractDTbalance).to.equal(
         await erc20Token.balanceOf(sideStaking.address)
       );

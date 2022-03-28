@@ -299,7 +299,7 @@ describe("1SS flow", () => {
     );
     expect(await sideStaking.getBaseTokenBalance(oceanAddress)).to.equal(0);
     expect(await sideStaking.getDatatokenBalance(erc20Token.address)).to.equal(
-      web3.utils.toWei("98000")
+      "115792089237316195423570985008687907853269984665640564037457584007913129639935"
     );
     expect(
       await sideStaking.getvestingAmountSoFar(erc20Token.address)
