@@ -2568,10 +2568,7 @@ describe("Swap Fees", () => {
       //);
 
       const BPTEvent = receipt.events.filter((e) => e.event === "LOG_BPT");
-
-      expect(ssContractBPTbalance).to.equal(
-        await bPool.balanceOf(sideStaking.address)
-      );
+      expect(await bPool.balanceOf(sideStaking.address)).gte(ssContractBPTbalance);
 
       // no dt token where taken from user3
       expect(await erc20Token.balanceOf(user3.address)).to.equal(
@@ -3385,9 +3382,7 @@ describe("Swap Fees", () => {
       const BPTEvent = receipt.events.filter((e) => e.event === "LOG_BPT");
 
       assert(BPTEvent[1] == null);
-      expect(ssContractBPTbalance).to.equal(
-        await bPool.balanceOf(sideStaking.address)
-      );
+      expect(await bPool.balanceOf(sideStaking.address)).gte(ssContractBPTbalance);
 
       // no dt token where taken from user3
       expect(await erc20Token.balanceOf(user3.address)).to.equal(
