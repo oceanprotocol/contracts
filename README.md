@@ -9,7 +9,7 @@ This is in beta state and you can expect running into problems. If you run into 
 
 - [📚 Installation](#-installation)
 - [🏄 Quickstart](#-quickstart)
-  - [What's New](#new-features)
+  - [Features](#features)
   - [Publisher Flow](#publisher-flow)
   - [Roles Diagram](#roles-diagram)
   - [Functions you will need](#functions-you-will-need)
@@ -48,7 +48,7 @@ from artifacts import address
 
 ## 🏄 Quickstart
 
-### New Features 
+### Features 
 
 - Base IP is now represented by an NFT, from which a datapublisher can create multiple ERC20s representing different type of access for the same dataset. (Link to NFT blog)
 
