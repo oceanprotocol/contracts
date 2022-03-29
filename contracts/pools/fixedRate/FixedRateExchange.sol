@@ -25,7 +25,7 @@ contract FixedRateExchange is ReentrancyGuard {
     using SafeERC20 for IERC20;
     uint256 private constant BASE = 1e18;
     uint public constant MIN_FEE           = BASE / 1e4;
-    uint public constant MAX_FEE           = BASE / 10;
+    uint public constant MAX_FEE           = 5e17;
     uint public constant MIN_RATE          = 1e10;
 
     address public router;
