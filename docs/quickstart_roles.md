@@ -1,19 +1,17 @@
 # Quickstart: ROLES
 
-### ALL ROLES CAN BE ASSIGNED TO MULTIPLE USERS, NFT Owner excluded :D
+All roles can be assigned to multiple users
 
 ## ERC721 ROLES
 
 
 ### - NFT Owner: 
-   - assign Managers
+- assign Managers
 - when creating the NFT, the NFT Owner is added as Manager and all main roles.
 
 ### - Managers:
 - can assign or revoke main roles for the ERC721 contract.
 - can call executeCall (ERC725X implementation) 
-
-### Main roles:
 
 ### - ERC20Deployer:
 
@@ -36,9 +34,6 @@
 
 
 
-
-
-
 ## ERC20 ROLES
 
 ERC20 Roles are managed by the ERC20Deployers at 721 LEVEL
@@ -46,8 +41,8 @@ ERC20 Roles are managed by the ERC20Deployers at 721 LEVEL
 ### Minter: 
    - can mint new DT20 tokens if cap is not exceeded
 
-### Fee Manager: 
-   - can set a new Fee Collector(better a DT collector), if not set, NFT Owner is the fee Collector (gets DT consumed after market and community fee)
+### Payment Manager: 
+   - can set a new Payment Collector, if not set, NFT Owner is the Payment Collector (gets DT consumed after market and community fee)
 
 
 
@@ -56,9 +51,9 @@ ERC20 Roles are managed by the ERC20Deployers at 721 LEVEL
 
 
 
-Both in ERC725 and ERC20 contract there’s a function called cleanPermissions:
-ERC725: clean all permissions: Manager, ERC20Deployer, MetadataUpdate,Store Updater. After this call even the NFT Owner has to reassign itself as Manager.
-ERC20: clean Minter and Fee Manager Permissions. 
+Both in ERC721 and ERC20 contract there’s a function called cleanPermissions:
+ERC721: clean all permissions: Manager, ERC20Deployer, MetadataUpdate,Store Updater. After this call even the NFT Owner has to reassign itself as Manager.
+ERC20: clean Minter and Payment Manager Permissions. 
 
 
-![alt text](https://github.com/oceanprotocol/contracts/blob/feature/1SS/V4Roles.jpg?raw=true)
+![alt text](V4Roles.jpg)

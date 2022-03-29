@@ -3,70 +3,44 @@
 <h1 align="center">contracts-v4</h1>
 
 > 🦑 Smart contracts for Ocean Protocol v4. https://oceanprotocol.com
-<!-- 
-[![npm](https://img.shields.io/npm/v/@oceanprotocol/lib.svg)](https://www.npmjs.com/package/@oceanprotocol/lib)
-[![Build Status](https://github.com/oceanprotocol/ocean.js/workflows/CI/badge.svg)](https://github.com/oceanprotocol/ocean.js/actions)
-[![Maintainability](https://api.codeclimate.com/v1/badges/6381c81b8ac568a53537/maintainability)](https://codeclimate.com/github/oceanprotocol/ocean.js/maintainability)
-[![Test Coverage](https://api.codeclimate.com/v1/badges/6381c81b8ac568a53537/test_coverage)](https://codeclimate.com/github/oceanprotocol/ocean.js/test_coverage)
-[![code style: prettier](https://img.shields.io/badge/code_style-prettier-7b1173.svg?style=flat-square)](https://github.com/prettier/prettier)
-[![js oceanprotocol](https://img.shields.io/badge/js-oceanprotocol-7b1173.svg)](https://github.com/oceanprotocol/eslint-config-oceanprotocol) -->
-
-<!-- With ocean v4, you can:
-
-- **Publish** data services: downloadable files or compute-to-data.
-  Ocean creates a new [ERC20](https://github.com/ethereum/EIPs/blob/7f4f0377730f5fc266824084188cc17cf246932e/EIPS/eip-20.md)
-  datatoken for each dataset / data service.
-- **Mint** datatokens for the service
-- **Sell** datatokens via an OCEAN-datatoken Balancer pool (for auto price discovery), or for a fixed price
-- **Stake** OCEAN on datatoken pools
-- **Consume** datatokens, to access the service
-- **Transfer** datatokens to another owner, and **all other ERC20 actions**
-  using [web3.js](https://web3js.readthedocs.io/en/v1.2.9/web3-eth-contract.html) etc. -->
-
 Ocean v4 is part of the [Ocean Protocol](https://oceanprotocol.com) toolset.
 
-This is in alpha state and you can expect running into problems. If you run into them, please open up a [new issue](https://github.com/oceanprotocol/ocean.js/issues/new?assignees=&labels=bug&template=bug_report.md&title=).
+This is in beta state and you can expect running into problems. If you run into them, please open up a [new issue](https://github.com/oceanprotocol/contracts/issues/new?assignees=&labels=bug&template=bug_report.md&title=).
 
-- [📚 Prerequisites](#-prerequisites)
-- [Overview](#-overview)
+- [📚 Installation](#-installation)
 - [🏄 Quickstart](#-quickstart)
   - [Features](#features)
   - [Publisher Flow](#publisher-flow)
   - [Roles Diagram](#roles-diagram)
   - [Functions you will need](#functions-you-will-need)
-  <!-- - [v3 Integration and support](#v3-integration-and-support) -->
-  
-- [🦑 Development](#-development)
-- [👩‍🔬 Testing](#-testing)
-  - [Unit Tests](#unit-tests)
-  - [Flow Tests](#flow-tests)
+  - [Bundle functions](#bundle-functions)
+- [🦑 Development and testing](#-development-testing)
 - [Known issues](#known-issues)
 - [🏛 License](#-license)
 
-## 📚 Prerequisites
+## 📚 Installation
 
-- node.js ([Install from here](https://nodejs.org/en/download/))
-<!-- - A Unix based operating system (Mac or Linux) -->
+For quick installation of the contract `ABIs`:
 
-<!-- ### Note
-
-Any function that uses `getPastEvents()` will only work on Eth (see: <https://github.com/oceanprotocol/ocean.js/issues/741>). This includes:
-
-- searchPoolforDT()
-- getPoolsbyCreator()
-- getPoolSharesByAddress()
-- getAllPoolLogs()
-- getPreviousValidOrders()
-- searchforDT()
-- getExchangesbyCreator()
-- getExchangeSwaps()
-- getAllExchangesSwaps() -->
-
-<!-- ## 🏗 Installation
-
+### Javascript/Typescript
 ```bash
-npm install @oceanprotocol/lib
-``` -->
+npm install @oceanprotocol/contracts
+```
+### Python
+```bash
+pip3 install ocean-contracts
+```
+#### ⚙️ Usage
+By default, Python does not support importing `json` files directly, so it is recommended to use `json-sempai` package in order to automatically importing `ABIs/json` artifacts.
+```
+pip3 install json-sempai
+# install the ocean-contracts package.
+```
+```python
+from jsonsempai import magic
+from artifacts import address
+```
+
 
 ## Overview
 
@@ -74,27 +48,24 @@ npm install @oceanprotocol/lib
 
 ## 🏄 Quickstart
 
+### Features 
+
+- Base IP is now represented by an NFT, from which a datapublisher can create multiple ERC20s representing different type of access for the same dataset. (Link to NFT blog)
+
+- An automated Datatoken Staking and Vesting contract helps with the initial DTs distribution and price stability. Goodbye rug pulls! More info on how it works: (Link to SideStaking blog)
+
+- Help Ocean Community Monetize: there's a swap fee for the Ocean Community, if Ocean or allied tokens are the basetoken in a pool, Ocean Community will receive 0.1% swap fee, otherwhise it will be 0.2%. More details here: (Link to blog post on Ocean community monetization)
 
 
-### Features
+#### Flexibility
 
-- NFT-ize base IP: a new way of representing baseIP, all newly ERC20 DTs are linked to the Data NFT contract
+- Introduce an advanced Fee Structure both for Market and Provider runners. (add link to fee post/docs when available)
 
-- Roles Administration: there are now multiple roles for a more flexible administation both at data NFT and datatoken levels.
+- Roles Administration: there are now multiple roles for a more flexible administation both at NFT and ERC20 levels
 
-- Safer Staking - Better IDOs: An automated Datatoken staking and vesting contract which helps with initial datatoken distribution and price stability.
+- Key-value store in the NFT contract : NFT contract can be used to store custom key-value pairs (ERC725Y standard)
 
-  It also provides a customizable vesting schedule for the publisher.
-
-- Help Ocean community: if Ocean is not the basetoken, Ocean Community will receive 0.1% swap fee on pools or fixed price exchange 
-
-- Flexible key-value store in the data NFT contract : data NFT contract can be used to store custom key-value pairs
-
-- Metadata is also stored in the data NFT contract store (even if it still supports Metadata.sol)
-
-- Marketplace fees flexibility: now any marketplace runner can set more customized fees structure.
-
-- Multiple data NFT template support: the Factory can deploy different types of data NFT templates. 
+- Multiple NFT template support: the Factory can deploy different types of NFT templates
 
 - Multiple datatoken template support: the Factory can deploy different types of Datatoken templates
 
@@ -102,27 +73,18 @@ npm install @oceanprotocol/lib
 
 
 
-<!-- This introduction is aimed at developers who are completely new to blockchain, no coding experience is required.
-
-[Go to beginners guide](docs/beginners_guide.md) -->
-
 ### Publisher Flow
 
-Interaction flow from Publisher point of view.
+Interaction flow from DataPublisher point of view.
 
 [Go to publisher flow](docs/quickstart_pubFlow.md)
 
 ### Roles Diagram
 
-This is a diagram which shows how roles are handled in the v4.
+How roles are handled in the v4.
 
 [Go to roles diagram](docs/quickstart_roles.md)
 
-<!-- ### Marketplace Flow
-
-This batteries-included flow includes metadata, multiple services for one datatoken, and compute-to-data.
-
-[Go to marketplace flow](docs/quickstart_marketplace.md) -->
 
 ### Functions you will need
 
@@ -130,150 +92,66 @@ Selection of most common functions.
 
 [Go to functions](docs/quickstart_functions.md)
 
-<!-- ### v3 Integration and support
 
-How to integrate v3 Datatokens into the new contracts.
+### Bundle functions
 
-[Go to v3 integration](docs/quickstart_v3.md) -->
+Helper functions which can perform multiple steps in 1 call.
 
-<!-- ### 📖 Learn more
-
-- [Get test OCEAN](docs/get-test-OCEAN.md) - from rinkeby
-- [Understand config parameters](docs/parameters.md) - envvars vs files
-- [Learn about off-chain services](docs/services.md) - Ocean Provider for data services, Aquarius metadata store
-- [Learn about wallets](docs/wallets.md) - on generating, storing, and accessing private keys
-- [Get an overview of ocean.js](docs/overview.md) - key modules and functions
-
-If you have any difficulties with the quickstarts, or if you have further questions about how to use ocean.js please reach out to us on [Discord](https://discord.gg/TnXjkR5).
-
-If you notice any bugs or issues with ocean.js please [open an issue on github](https://github.com/oceanprotocol/ocean.js/issues/new?assignees=&labels=bug&template=bug_report.md&title=). -->
-
-## 🦑 Development
+[Go to helpers](docs/quickstart_bundle.md)
 
 
+
+If you have any difficulties with the quickstarts, or if you have further questions about how to use the contracts please reach out to us on [Discord](https://discord.gg/TnXjkR5).
+
+If you notice any bugs or issues with this repo please [open an issue on github](https://github.com/oceanprotocol/contracts/issues/new?assignees=&labels=bug&template=bug_report.md&title=). -->
+
+
+
+The [ocean.js](https://github.com/oceanprotocol/ocean.js) and [ocean.py](https://github.com/oceanprotocol/ocean.py) libraries wrap `contracts` in JavaScript and Python respectively. They each have quickstart guides.
+
+
+## 🦑 Development and Testing
+
+Run hardhat in a new terminal:
 ```bash
+export ALCHEMY_URL="https://eth-mainnet.alchemyapi.io/v2/XXXXXXXX"
 npm install
 npx hardhat node
 ```
 
-<!-- ## ✨ Code Style
-
-For linting and auto-formatting you can use from the root of the project:
+Open a new terminal to run the tests:
 
 ```bash
-# lint all js with eslint
-npm run lint
-
-# auto format all js & css with prettier, taking all configs into account
-npm run format
-``` -->
-
-## 👩‍🔬 Testing
-
-
-You can execute all tests with:
-
-```bash
-# run hardhat node each time you want to test with the current settings
-npx hardhat node
+export ALCHEMY_URL="https://eth-mainnet.alchemyapi.io/v2/XXXXXXXX"
 
 npm run test:full
 # same thing, but with coverage reporting
 npm run test:full:cover
 ```
 
-<!-- Test suite for unit & integration tests is setup with [Mocha](https://mochajs.org) as test runner, and [nyc](https://github.com/istanbuljs/nyc) for coverage reporting. A combined coverage report is sent to CodeClimate via the `coverage` GitHub Actions job.
-
-Running all tests requires running Ocean Protocol components beforehand with [Barge](https://github.com/oceanprotocol/barge), which also runs a `ganache-cli` instance:
-
-```bash
-git clone https://github.com/oceanprotocol/barge
-cd barge
-
-./start_ocean.sh --with-provider2 --no-dashboard
-```
-
-You can then proceed to run in another terminal.
-
-Let ocean.js know where to pickup the smart contract addresses, which has been written out by Barge in this location:
-
-```
-export ADDRESS_FILE="${HOME}/.ocean/ocean-contracts/artifacts/address.json"
-```
-
-Build metadata:
-
-```
-npm run build:metadata
-```
-
-Executing linting, type checking, unit, and integration tests with coverage reporting all in one go:
-
-```bash
-npm test
-``` -->
-
 ### Unit Tests
 
-You can execute unit tests with:
+You can execute just unit tests with:
 
 ```bash
-# run hardhat node each time you want to test with the current settings
-npx hardhat node
-
 npm run test:unit
 
 ```
 
 ### Flow Tests
 
-You can execute flow tests with:
+You can execute just flow tests with:
 
 ```bash
-# run hardhat node each time you want to test with the current settings
-npx hardhat node
-
 npm run test:flow
 
 ```
 
-
 ## Known issues
  Vesting:
-
   - when (vestingAmount/vestedBlocks) is a Periodic number, there’s a rounding issue of 1 wei. So if a publisher will call it once per day, over a period of 2 years, you may have a rounding error combined of 730 Weis. That is a neglectable amount.
 
 
-<!-- ## 🛳 Production
-
-To create a production build, run from the root of the project:
-
-```bash
-npm run build
-``` -->
-
-<!-- ## ⬆️ Releases
-
-Releases are managed semi-automatically. They are always manually triggered from a developer's machine with release scripts.
-
-### Production
-
-From a clean `main` branch you can run the release task bumping the version accordingly based on semantic versioning:
-
-```bash
-npm run release
-```
-
-The task does the following:
-
-- bumps the project version in `package.json`, `package-lock.json`
-- auto-generates and updates the CHANGELOG.md file from commit messages
-- creates a Git tag
-- commits and pushes everything
-- creates a GitHub release with commit messages as description
-- Git tag push will trigger a GitHub Action workflow to do a npm release
-
-For the GitHub releases steps a GitHub personal access token, exported as `GITHUB_TOKEN` is required. [Setup](https://github.com/release-it/release-it#github-releases) -->
 
 ## 🏛 License
 
