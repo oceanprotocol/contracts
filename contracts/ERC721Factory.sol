@@ -123,6 +123,7 @@ contract ERC721Factory is Deployer, Ownable, ReentrancyGuard {
      * @param _templateIndex template index we want to use
      * @param additionalERC20Deployer if != address(0), we will add it with ERC20Deployer role
      * @param additionalMetaDataUpdater if != address(0), we will add it with updateMetadata role
+     * @param transferable if NFT is transferable. Cannot be changed afterwards
      */
 
     function deployERC721Contract(
