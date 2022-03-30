@@ -35,6 +35,7 @@ contract ERC721Template is
     address public ssContract;
     uint8 private constant templateId = 1;
     mapping(address => bool) private deployedERC20;
+    bool public transferable;
 
     //stored here only for ABI reasons
     event TokenCreated(
@@ -101,6 +102,10 @@ contract ERC721Template is
      * @param name_ NFT name
      * @param symbol_ NFT Symbol
      * @param tokenFactory NFT factory address
+     * @param additionalERC20Deployer address of additionalERC20Deployer
+     * @param additionalMetaDataUpdater address of additionalMetaDataUpdater
+     * @param tokenURI tokenURI
+     * @param transferable_ if set to false, this NFT is non-transferable
      
      @return boolean
      */
@@ -112,7 +117,8 @@ contract ERC721Template is
         address tokenFactory,
         address additionalERC20Deployer,
         address additionalMetaDataUpdater,
-        string memory tokenURI
+        string memory tokenURI,
+        bool transferable_
     ) external returns (bool) {
         require(
             !initialized,
@@ -128,7 +134,8 @@ contract ERC721Template is
                 name_,
                 symbol_,
                 tokenFactory,
-                tokenURI
+                tokenURI,
+                transferable_
             );
         //register all erc721 interfaces
         registerAllInterfaces();
@@ -157,7 +164,8 @@ contract ERC721Template is
         string memory name_,
         string memory symbol_,
         address tokenFactory,
-        string memory tokenURI
+        string memory tokenURI,
+        bool transferable_
     ) internal returns (bool) {
         require(
             owner != address(0),
@@ -170,6 +178,7 @@ contract ERC721Template is
         defaultBaseURI = "";
         initialized = true;
         hasMetaData = false;
+        transferable = transferable_;
         _safeMint(owner, 1);
         _addManager(owner);
 
@@ -523,6 +532,7 @@ contract ERC721Template is
         address to,
         uint256 tokenId
     ) external {
+        require(transferable, "ERC721Template: Is non transferable");
         require(tokenId == 1, "ERC721Template: Cannot transfer this tokenId");
         _cleanERC20Permissions(getAddressLength(deployedERC20List));
         _cleanPermissions();
@@ -547,6 +557,7 @@ contract ERC721Template is
      */
 
     function safeTransferFrom(address from, address to,uint256 tokenId) external {
+        require(transferable, "ERC721Template: Is non transferable");
         require(tokenId == 1, "ERC721Template: Cannot transfer this tokenId");
         _cleanERC20Permissions(getAddressLength(deployedERC20List));
         _cleanPermissions();

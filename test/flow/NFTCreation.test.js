@@ -90,7 +90,8 @@ describe("NFT Creation, roles and erc20 deployments", () => {
       1,
       "0x0000000000000000000000000000000000000000",
       "0x0000000000000000000000000000000000000000",
-      "https://oceanprotocol.com/nft/"
+      "https://oceanprotocol.com/nft/",
+      true
     );
     const txReceipt = await tx.wait();
     const event = getEventFromTx(txReceipt,'NFTCreated')
@@ -270,5 +271,32 @@ describe("NFT Creation, roles and erc20 deployments", () => {
     
   });
 
-  
+  it("#13 - owner deploys a new non-transferable ERC721 Contract and fails to transfer", async () => {
+    // by default connect() in ethers goes with the first address (owner in this case)
+    const tx = await factoryERC721.deployERC721Contract(
+      "NFT",
+      "NFTSYMBOL",
+      1,
+      "0x0000000000000000000000000000000000000000",
+      "0x0000000000000000000000000000000000000000",
+      "https://oceanprotocol.com/nft/",
+      false
+    );
+    const txReceipt = await tx.wait();
+    const event = getEventFromTx(txReceipt,'NFTCreated')
+    assert(event, "Cannot find NFTCreated event")
+    tokenAddress = event.args[0];
+    tokenERC721 = await ethers.getContractAt("ERC721Template", tokenAddress);
+
+    assert((await tokenERC721.balanceOf(owner.address)) == 1);
+
+    assert((await tokenERC721.ownerOf(1)) == owner.address);
+
+    await expectRevert(
+      tokenERC721
+        .connect(user2)
+        .transferFrom(owner.address, newOwner.address, 1),
+      "ERC721Template: Is non transferable"
+    );
+  });
 });

@@ -199,7 +199,8 @@ interface IERC721Template {
         address erc20Factory,
         address additionalERC20Deployer,
         address additionalMetaDataUpdater,
-        string calldata tokenURI
+        string calldata tokenURI,
+        bool transferable
     ) external returns (bool);
 
     function hasRole(bytes32 role, address account)

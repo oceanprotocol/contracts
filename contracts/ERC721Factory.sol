@@ -131,7 +131,8 @@ contract ERC721Factory is Deployer, Ownable, ReentrancyGuard {
         uint256 _templateIndex,
         address additionalERC20Deployer,
         address additionalMetaDataUpdater,
-        string memory tokenURI
+        string memory tokenURI,
+        bool transferable
     ) public returns (address token) {
         require(
             _templateIndex <= nftTemplateCount && _templateIndex != 0,
@@ -162,7 +163,8 @@ contract ERC721Factory is Deployer, Ownable, ReentrancyGuard {
                 address(this),
                 additionalERC20Deployer,
                 additionalMetaDataUpdater,
-                tokenURI
+                tokenURI,
+                transferable
             ),
             "ERC721DTFactory: Unable to initialize token instance"
         );
@@ -583,6 +585,7 @@ contract ERC721Factory is Deployer, Ownable, ReentrancyGuard {
         string symbol;
         uint256 templateIndex;
         string tokenURI;
+        bool transferable;
     }
     struct ErcCreateData{
         uint256 templateIndex;
@@ -614,7 +617,8 @@ contract ERC721Factory is Deployer, Ownable, ReentrancyGuard {
             _NftCreateData.templateIndex,
             address(this),
             address(0),
-            _NftCreateData.tokenURI);
+            _NftCreateData.tokenURI,
+            _NftCreateData.transferable);
         erc20Address = IERC721Template(erc721Address).createERC20(
             _ErcCreateData.templateIndex,
             _ErcCreateData.strings,
@@ -655,7 +659,8 @@ contract ERC721Factory is Deployer, Ownable, ReentrancyGuard {
             _NftCreateData.templateIndex,
             address(this),
             address(0),
-             _NftCreateData.tokenURI);
+            _NftCreateData.tokenURI,
+            _NftCreateData.transferable);
         erc20Address = IERC721Template(erc721Address).createERC20(
             _ErcCreateData.templateIndex,
             _ErcCreateData.strings,
@@ -701,7 +706,8 @@ contract ERC721Factory is Deployer, Ownable, ReentrancyGuard {
             _NftCreateData.templateIndex,
             address(this),
             address(0),
-             _NftCreateData.tokenURI);
+            _NftCreateData.tokenURI,
+            _NftCreateData.transferable);
         erc20Address = IERC721Template(erc721Address).createERC20(
             _ErcCreateData.templateIndex,
             _ErcCreateData.strings,
@@ -745,7 +751,8 @@ contract ERC721Factory is Deployer, Ownable, ReentrancyGuard {
             _NftCreateData.templateIndex,
             address(this),
             address(0),
-             _NftCreateData.tokenURI);
+            _NftCreateData.tokenURI,
+            _NftCreateData.transferable);
         erc20Address = IERC721Template(erc721Address).createERC20(
             _ErcCreateData.templateIndex,
             _ErcCreateData.strings,
@@ -794,7 +801,8 @@ contract ERC721Factory is Deployer, Ownable, ReentrancyGuard {
             _NftCreateData.templateIndex,
             address(0),
             address(this),
-             _NftCreateData.tokenURI);
+            _NftCreateData.tokenURI,
+            _NftCreateData.transferable);
         // set metadata
         IERC721Template(erc721Address).setMetaData(_MetaData._metaDataState, _MetaData._metaDataDecryptorUrl
         , _MetaData._metaDataDecryptorAddress, _MetaData.flags, 

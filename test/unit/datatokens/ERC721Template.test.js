@@ -71,7 +71,8 @@ describe("ERC721Template", () => {
       1,
       "0x0000000000000000000000000000000000000000",
       "0x0000000000000000000000000000000000000000",
-      "https://oceanprotocol.com/nft/"
+      "https://oceanprotocol.com/nft/",
+      true
     );
     const txReceipt = await tx.wait();
     let event = getEventFromTx(txReceipt,'NFTCreated')
@@ -176,7 +177,8 @@ describe("ERC721Template", () => {
       1,
       "0x0000000000000000000000000000000000000000",
       "0x0000000000000000000000000000000000000000",
-      "https://oceanprotocol.com/nft/"
+      "https://oceanprotocol.com/nft/",
+      true
     );
     const txReceipt = await tx.wait();
     let event = getEventFromTx(txReceipt,'NFTCreated')
@@ -228,7 +230,8 @@ describe("ERC721Template", () => {
         factoryERC721.address,
         '0x0000000000000000000000000000000000000000',
         '0x0000000000000000000000000000000000000000',
-        "https://oceanprotocol.com/nft/"
+        "https://oceanprotocol.com/nft/",
+        true
       ),
       "ERC721Template: token instance already initialized"
     );

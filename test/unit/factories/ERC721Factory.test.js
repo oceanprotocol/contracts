@@ -151,7 +151,8 @@ describe("ERC721Factory", () => {
       1,
       "0x0000000000000000000000000000000000000000",
       "0x0000000000000000000000000000000000000000",
-      "https://oceanprotocol.com/nft/"
+      "https://oceanprotocol.com/nft/",
+      true
     );
     
     const txReceipt = await tx.wait();
@@ -212,7 +213,8 @@ describe("ERC721Factory", () => {
       1,
       "0x0000000000000000000000000000000000000000",
       "0x0000000000000000000000000000000000000000",
-      "https://oceanprotocol.com/nft/"
+      "https://oceanprotocol.com/nft/",
+      true
     );
     const txReceipt = await tx.wait();
     const event = getEventFromTx(txReceipt,'NFTCreated')
@@ -235,7 +237,8 @@ describe("ERC721Factory", () => {
       1,
       "0x0000000000000000000000000000000000000000",
       "0x0000000000000000000000000000000000000000",
-      "https://oceanprotocol.com/nft/"
+      "https://oceanprotocol.com/nft/",
+      true
     );
     const txReceipt = await tx.wait();
     const event = getEventFromTx(txReceipt,'NFTCreated')
@@ -251,7 +254,8 @@ describe("ERC721Factory", () => {
       factoryERC721.deployERC721Contract("DT1", "DTSYMBOL", 7,
       "0x0000000000000000000000000000000000000000",
       "0x0000000000000000000000000000000000000000",
-      "https://oceanprotocol.com/nft/"),
+      "https://oceanprotocol.com/nft/",
+      true),
       "ERC721DTFactory: Template index doesnt exist"
     );
   });
@@ -261,7 +265,8 @@ describe("ERC721Factory", () => {
       factoryERC721.deployERC721Contract("DT1", "DTSYMBOL", 0,
       "0x0000000000000000000000000000000000000000",
       "0x0000000000000000000000000000000000000000",
-      "https://oceanprotocol.com/nft/"),
+      "https://oceanprotocol.com/nft/",
+      true),
       "ERC721DTFactory: Template index doesnt exist"
     );
   });
@@ -279,7 +284,8 @@ describe("ERC721Factory", () => {
       factoryERC721.deployERC721Contract("DT1", "DTSYMBOL",  templateIndex,
       "0x0000000000000000000000000000000000000000",
       "0x0000000000000000000000000000000000000000",
-      "https://oceanprotocol.com/nft/"),
+      "https://oceanprotocol.com/nft/",
+      true),
       "ERC721DTFactory: ERC721Token Template disabled"
     );
   });
@@ -290,7 +296,8 @@ describe("ERC721Factory", () => {
     await factoryERC721.deployERC721Contract("DT1", "DTSYMBOL",  1,
     "0x0000000000000000000000000000000000000000",
     "0x0000000000000000000000000000000000000000",
-    "https://oceanprotocol.com/nft/");
+    "https://oceanprotocol.com/nft/",
+    true);
 
     assert((await factoryERC721.getCurrentNFTCount()) == 2);
   });
@@ -1145,8 +1152,8 @@ describe("ERC721Factory", () => {
       "name": "72120Bundle",
       "symbol": "72Bundle",
       "templateIndex": 1,
-      "tokenURI":"https://oceanprotocol.com/nft/" 
-
+      "tokenURI":"https://oceanprotocol.com/nft/",
+      "transferable": true
       },
       {
       "strings":["ERC20B1","ERC20DT1Symbol"],
@@ -1189,7 +1196,8 @@ describe("ERC721Factory", () => {
       "name": "72120PBundle",
       "symbol": "72PBundle",
       "templateIndex": 1,
-      "tokenURI":"https://oceanprotocol.com/nft/"   
+      "tokenURI":"https://oceanprotocol.com/nft/",
+      "transferable": true
       },
       {
       "strings":["ERC20WithPool","ERC20P"],
@@ -1258,7 +1266,8 @@ describe("ERC721Factory", () => {
       "name": "72120PBundle",
       "symbol": "72PBundle",
       "templateIndex": 1, 
-      "tokenURI":"https://oceanprotocol.com/nft/" 
+      "tokenURI":"https://oceanprotocol.com/nft/",
+      "transferable": true
       },
       {
       "strings":["ERC20WithPool","ERC20P"],
@@ -1310,7 +1319,8 @@ describe("ERC721Factory", () => {
       "name": "72120PBundle",
       "symbol": "72PBundle",
       "templateIndex": 1, 
-      "tokenURI":"https://oceanprotocol.com/nft/" 
+      "tokenURI":"https://oceanprotocol.com/nft/",
+      "transferable": true
       },
       {
       "strings":["ERC20WithPool","ERC20P"],
@@ -1368,7 +1378,8 @@ describe("ERC721Factory", () => {
       "name": "72120PBundle",
       "symbol": "72PBundle",
       "templateIndex": 1, 
-      "tokenURI":"https://oceanprotocol.com/nft/" 
+      "tokenURI":"https://oceanprotocol.com/nft/",
+      "transferable": true
       },
       {
         "_metaDataState": 1,

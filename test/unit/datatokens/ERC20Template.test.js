@@ -200,7 +200,8 @@ describe("ERC20Template", () => {
       1,
       "0x0000000000000000000000000000000000000000",
       "0x0000000000000000000000000000000000000000",
-      "https://oceanprotocol.com/nft/"
+      "https://oceanprotocol.com/nft/",
+      true
     );
     const txReceipt = await tx.wait();
     let event = getEventFromTx(txReceipt, 'NFTCreated')
