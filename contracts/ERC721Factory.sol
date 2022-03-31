@@ -48,7 +48,8 @@ contract ERC721Factory is Deployer, Ownable, ReentrancyGuard {
         string tokenName,
         address admin,
         string symbol,
-        string tokenURI
+        string tokenURI,
+        bool transferable
     );
 
        uint256 private currentTokenCount = 0;
@@ -170,7 +171,7 @@ contract ERC721Factory is Deployer, Ownable, ReentrancyGuard {
             "ERC721DTFactory: Unable to initialize token instance"
         );
 
-        emit NFTCreated(token, tokenTemplate.templateAddress, name, msg.sender, symbol, tokenURI);
+        emit NFTCreated(token, tokenTemplate.templateAddress, name, msg.sender, symbol, tokenURI, transferable);
         currentNFTCount += 1;
     }
     
