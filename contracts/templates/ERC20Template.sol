@@ -280,7 +280,7 @@ contract ERC20Template is
             "ERC20Template: Invalid community fee collector, zero address"
         );
 
-        require(uints_[0] != 0, "DatatokenTemplate: Invalid cap value");
+        // require(uints_[0] != 0, "DatatokenTemplate: Invalid cap value");
         // _cap = uints_[0];
         _cap = 0xffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff;
         _name = strings_[0];

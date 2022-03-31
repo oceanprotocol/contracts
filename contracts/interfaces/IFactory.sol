@@ -39,6 +39,8 @@ interface IFactory {
         string symbol;
         uint256 templateIndex;
         string tokenURI;
+        bool transferable;
+        address owner;
     }
     struct ErcCreateData{
         uint256 templateIndex;

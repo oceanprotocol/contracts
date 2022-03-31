@@ -451,6 +451,11 @@
           "internalType": "string",
           "name": "tokenURI",
           "type": "string"
+        },
+        {
+          "internalType": "bool",
+          "name": "transferable",
+          "type": "bool"
         }
       ],
       "name": "initialize",

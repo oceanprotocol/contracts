@@ -191,7 +191,9 @@ describe("FixedRateExchange", () => {
       1,
       "0x0000000000000000000000000000000000000000",
       "0x0000000000000000000000000000000000000000",
-      "https://oceanprotocol.com/nft/"
+      "https://oceanprotocol.com/nft/",
+      true,
+      owner.address
     );
     const txReceipt = await tx.wait();
 

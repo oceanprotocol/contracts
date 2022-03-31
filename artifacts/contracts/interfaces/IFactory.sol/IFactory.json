@@ -39,6 +39,16 @@
               "internalType": "string",
               "name": "tokenURI",
               "type": "string"
+            },
+            {
+              "internalType": "bool",
+              "name": "transferable",
+              "type": "bool"
+            },
+            {
+              "internalType": "address",
+              "name": "owner",
+              "type": "address"
             }
           ],
           "internalType": "struct IFactory.NftCreateData",
@@ -117,6 +127,16 @@
               "internalType": "string",
               "name": "tokenURI",
               "type": "string"
+            },
+            {
+              "internalType": "bool",
+              "name": "transferable",
+              "type": "bool"
+            },
+            {
+              "internalType": "address",
+              "name": "owner",
+              "type": "address"
             }
           ],
           "internalType": "struct IFactory.NftCreateData",
@@ -227,6 +247,16 @@
               "internalType": "string",
               "name": "tokenURI",
               "type": "string"
+            },
+            {
+              "internalType": "bool",
+              "name": "transferable",
+              "type": "bool"
+            },
+            {
+              "internalType": "address",
+              "name": "owner",
+              "type": "address"
             }
           ],
           "internalType": "struct IFactory.NftCreateData",
@@ -332,6 +362,16 @@
               "internalType": "string",
               "name": "tokenURI",
               "type": "string"
+            },
+            {
+              "internalType": "bool",
+              "name": "transferable",
+              "type": "bool"
+            },
+            {
+              "internalType": "address",
+              "name": "owner",
+              "type": "address"
             }
           ],
           "internalType": "struct IFactory.NftCreateData",
