@@ -152,7 +152,8 @@ describe("ERC721Factory", () => {
       "0x0000000000000000000000000000000000000000",
       "0x0000000000000000000000000000000000000000",
       "https://oceanprotocol.com/nft/",
-      true
+      true,
+      owner.address
     );
     
     const txReceipt = await tx.wait();
@@ -214,7 +215,8 @@ describe("ERC721Factory", () => {
       "0x0000000000000000000000000000000000000000",
       "0x0000000000000000000000000000000000000000",
       "https://oceanprotocol.com/nft/",
-      true
+      true,
+      owner.address
     );
     const txReceipt = await tx.wait();
     const event = getEventFromTx(txReceipt,'NFTCreated')
@@ -238,7 +240,8 @@ describe("ERC721Factory", () => {
       "0x0000000000000000000000000000000000000000",
       "0x0000000000000000000000000000000000000000",
       "https://oceanprotocol.com/nft/",
-      true
+      true,
+      owner.address
     );
     const txReceipt = await tx.wait();
     const event = getEventFromTx(txReceipt,'NFTCreated')
@@ -255,7 +258,8 @@ describe("ERC721Factory", () => {
       "0x0000000000000000000000000000000000000000",
       "0x0000000000000000000000000000000000000000",
       "https://oceanprotocol.com/nft/",
-      true),
+      true,
+      owner.address),
       "ERC721DTFactory: Template index doesnt exist"
     );
   });
@@ -266,7 +270,8 @@ describe("ERC721Factory", () => {
       "0x0000000000000000000000000000000000000000",
       "0x0000000000000000000000000000000000000000",
       "https://oceanprotocol.com/nft/",
-      true),
+      true,
+      owner.address),
       "ERC721DTFactory: Template index doesnt exist"
     );
   });
@@ -285,7 +290,8 @@ describe("ERC721Factory", () => {
       "0x0000000000000000000000000000000000000000",
       "0x0000000000000000000000000000000000000000",
       "https://oceanprotocol.com/nft/",
-      true),
+      true,
+      owner.address),
       "ERC721DTFactory: ERC721Token Template disabled"
     );
   });
@@ -297,7 +303,8 @@ describe("ERC721Factory", () => {
     "0x0000000000000000000000000000000000000000",
     "0x0000000000000000000000000000000000000000",
     "https://oceanprotocol.com/nft/",
-    true);
+    true,
+    owner.address);
 
     assert((await factoryERC721.getCurrentNFTCount()) == 2);
   });
@@ -1153,7 +1160,8 @@ describe("ERC721Factory", () => {
       "symbol": "72Bundle",
       "templateIndex": 1,
       "tokenURI":"https://oceanprotocol.com/nft/",
-      "transferable": true
+      "transferable": true,
+      "owner": owner.address
       },
       {
       "strings":["ERC20B1","ERC20DT1Symbol"],
@@ -1197,7 +1205,8 @@ describe("ERC721Factory", () => {
       "symbol": "72PBundle",
       "templateIndex": 1,
       "tokenURI":"https://oceanprotocol.com/nft/",
-      "transferable": true
+      "transferable": true,
+      "owner": owner.address
       },
       {
       "strings":["ERC20WithPool","ERC20P"],
@@ -1267,7 +1276,8 @@ describe("ERC721Factory", () => {
       "symbol": "72PBundle",
       "templateIndex": 1, 
       "tokenURI":"https://oceanprotocol.com/nft/",
-      "transferable": true
+      "transferable": true,
+      "owner": owner.address
       },
       {
       "strings":["ERC20WithPool","ERC20P"],
@@ -1320,7 +1330,8 @@ describe("ERC721Factory", () => {
       "symbol": "72PBundle",
       "templateIndex": 1, 
       "tokenURI":"https://oceanprotocol.com/nft/",
-      "transferable": true
+      "transferable": true,
+      "owner": owner.address
       },
       {
       "strings":["ERC20WithPool","ERC20P"],
@@ -1379,7 +1390,8 @@ describe("ERC721Factory", () => {
       "symbol": "72PBundle",
       "templateIndex": 1, 
       "tokenURI":"https://oceanprotocol.com/nft/",
-      "transferable": true
+      "transferable": true,
+      "owner": owner.address
       },
       {
         "_metaDataState": 1,

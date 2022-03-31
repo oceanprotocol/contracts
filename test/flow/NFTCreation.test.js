@@ -91,7 +91,8 @@ describe("NFT Creation, roles and erc20 deployments", () => {
       "0x0000000000000000000000000000000000000000",
       "0x0000000000000000000000000000000000000000",
       "https://oceanprotocol.com/nft/",
-      true
+      true,
+      owner.address
     );
     const txReceipt = await tx.wait();
     const event = getEventFromTx(txReceipt,'NFTCreated')
@@ -280,7 +281,8 @@ describe("NFT Creation, roles and erc20 deployments", () => {
       "0x0000000000000000000000000000000000000000",
       "0x0000000000000000000000000000000000000000",
       "https://oceanprotocol.com/nft/",
-      false
+      false,
+      owner.address
     );
     const txReceipt = await tx.wait();
     const event = getEventFromTx(txReceipt,'NFTCreated')

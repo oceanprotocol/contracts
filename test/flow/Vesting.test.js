@@ -165,7 +165,8 @@ describe("Vesting flow", () => {
       "0x0000000000000000000000000000000000000000",
       "0x0000000000000000000000000000000000000000",
       "https://oceanprotocol.com/nft/",
-      true
+      true,
+      owner.address
     );
     const txReceipt = await tx.wait();
     const event = getEventFromTx(txReceipt,'NFTCreated')
