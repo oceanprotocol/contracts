@@ -771,7 +771,7 @@ contract FixedRateExchange is ReentrancyGuard {
      * @param datatoken datatoken address
      * @param withMint desired flag, might get overwritten if owner has no roles
      */
-    function checkAllowedWithMint(address owner, address datatoken, bool withMint) internal returns(bool){
+    function checkAllowedWithMint(address owner, address datatoken, bool withMint) internal view returns(bool){
             //if owner does not want withMint, return false
             if(withMint == false) return false;
             IERC721Template nft = IERC721Template(IERC20Template(datatoken).getERC721Address());

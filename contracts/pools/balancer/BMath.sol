@@ -284,7 +284,7 @@ contract BMath is BConst, BNum {
         uint tokenAmountIn
        
     )
-        internal view
+        internal pure
         returns (uint poolAmountOut)
     {
         /* Charge the trading fee for the proportion of tokenAi
@@ -293,7 +293,7 @@ contract BMath is BConst, BNum {
          tokenAiAfterFee = tAi * (1 - (1-weightTi) * poolFee);
         */
         uint normalizedWeight = bdiv(tokenWeightIn, totalWeight);
-        uint zaz = bmul(bsub(BONE, normalizedWeight), _swapFee); 
+        //uint zaz = bmul(bsub(BONE, normalizedWeight), _swapFee); 
         //uint tokenAmountInAfterFee = bmul(tokenAmountIn, bsub(BONE, zaz));
         uint tokenAmountInAfterFee = bmul(tokenAmountIn, BONE);
         uint newTokenBalanceIn = badd(tokenBalanceIn, tokenAmountInAfterFee);
@@ -323,7 +323,7 @@ contract BMath is BConst, BNum {
         uint poolAmountOut
         //uint swapFee
     )
-        internal view
+        internal pure
         returns (uint tokenAmountIn)
     {
         uint normalizedWeight = bdiv(tokenWeightIn, totalWeight);
@@ -361,7 +361,7 @@ contract BMath is BConst, BNum {
         uint totalWeight,
         uint poolAmountIn
     )
-        internal view
+        internal pure
         returns (uint tokenAmountOut)
     {
         uint normalizedWeight = bdiv(tokenWeightOut, totalWeight);

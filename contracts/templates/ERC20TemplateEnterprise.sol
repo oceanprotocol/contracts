@@ -467,7 +467,6 @@ contract ERC20TemplateEnterprise is
         consumeMarketFee calldata _consumeMarketFee
     ) public {
         uint256 amount = 1e18; // we always pay 1 DT. No more, no less
-        uint256 communityFeePublish = 0;
         require(
             balanceOf(msg.sender) >= amount,
             "Not enough datatokens to start Order"
@@ -1084,13 +1083,12 @@ contract ERC20TemplateEnterprise is
         _orderParams._providerFee, _orderParams._consumeMarketFee);
     }
 
-     /**
-     * @dev isERC20Deployer
-     *      returns true if address has deployERC20 role
-     */
-    function isERC20Deployer(address user) public returns(bool deployer){
-        deployer = IERC721Template(_erc721Address).getPermissions(user).deployERC20;
-        return(deployer);
+    /**
+    * @dev isERC20Deployer
+    *      returns true if address has deployERC20 role
+    */
+    function isERC20Deployer(address user) public view returns(bool){
+        return(IERC721Template(_erc721Address).getPermissions(user).deployERC20);
     }
 
     /**

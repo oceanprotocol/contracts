@@ -221,7 +221,7 @@ interface IERC721Template {
         bytes32 r; // r of validator signed message
         bytes32 s; // s of validator signed message
     }
-    function getPermissions(address user) external returns (Roles memory);
+    function getPermissions(address user) external view returns (Roles memory);
 
     function setDataERC20(bytes32 _key, bytes calldata _value) external;
     function setMetaData(uint8 _metaDataState, string calldata _metaDataDecryptorUrl
