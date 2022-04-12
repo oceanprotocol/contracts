@@ -147,6 +147,10 @@ contract SideStaking is ReentrancyGuard {
         dt.mint(address(this), dt.cap());
 
         require(dt.balanceOf(address(this)) >= dt.totalSupply(), "Mint failed");
+
+        //force vesting to 0, see https://github.com/oceanprotocol/contracts/issues/603
+        ssParams[2] = 0;
+        ssParams[3] = 0;
         require(dt.totalSupply().div(10) >= ssParams[2], "Max vesting 10%");
         //we are rich :)let's setup the records and we are good to go
         _datatokens[datatokenAddress] = Record({
@@ -492,26 +496,8 @@ contract SideStaking is ReentrancyGuard {
         view
         returns (uint256)
     {
-        uint256 blocksPassed;
-        if (!_datatokens[datatokenAddress].bound) return (0);
-        if (_datatokens[datatokenAddress].vestingEndBlock < block.number) {
-            blocksPassed =
-                _datatokens[datatokenAddress].vestingEndBlock -
-                _datatokens[datatokenAddress].vestingLastBlock;
-        } else {
-            blocksPassed =
-                block.number -
-                _datatokens[datatokenAddress].vestingLastBlock;
-        }
-
-        uint256 availableVesting = blocksPassed
-            .mul(_datatokens[datatokenAddress].vestingAmount)
-            .div(
-                _datatokens[datatokenAddress].vestingEndBlock -
-                    _datatokens[datatokenAddress].blockDeployed
-            );
-
-        return availableVesting;
+        // see https://github.com/oceanprotocol/contracts/issues/603
+        return 0;
     }
 
     /**
