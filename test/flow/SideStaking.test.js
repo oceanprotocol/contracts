@@ -307,13 +307,13 @@ describe("1SS flow", () => {
       await sideStaking.getvestingAmountSoFar(erc20Token.address)
     ).to.equal(0);
     expect(await sideStaking.getvestingAmount(erc20Token.address)).to.equal(
-      web3.utils.toWei("10000")
+      web3.utils.toWei("0")
     );
     expect(await sideStaking.getvestingLastBlock(erc20Token.address)).to.equal(
       initialBlockNum
     );
     expect(await sideStaking.getvestingEndBlock(erc20Token.address)).to.equal(
-      initialBlockNum + vestedBlocks
+      initialBlockNum
     );
 
     const deployedPools = await erc20Token.getPools()
