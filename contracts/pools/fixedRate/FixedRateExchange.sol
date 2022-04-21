@@ -741,8 +741,10 @@ contract FixedRateExchange is ReentrancyGuard {
         external
         onlyExchangeOwner(exchangeId)
     {
-        require(newRate != 0, "FixedRateExchange: Ratio must be >0");
-
+        require(
+            newRate >= MIN_RATE,
+            "FixedRateExchange: Invalid exchange rate value"
+        );
         exchanges[exchangeId].fixedRate = newRate;
         emit ExchangeRateChanged(exchangeId, msg.sender, newRate);
     }
