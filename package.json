@@ -12,7 +12,6 @@
     "test": "test"
   },
   "files": [
-    "docs/**/*",
     "artifacts/**/*",
     "addresses/*",
     "README.md"
