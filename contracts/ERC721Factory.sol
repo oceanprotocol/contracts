@@ -4,6 +4,7 @@ pragma solidity 0.8.12;
 // Code is Apache-2.0 and docs are CC-BY-4.0
 
 import "./utils/Deployer.sol";
+import "./interfaces/IFactory.sol";
 import "./interfaces/IERC721Template.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
 import "./interfaces/IERC20Template.sol";
@@ -21,7 +22,7 @@ import "@openzeppelin/contracts/security/ReentrancyGuard.sol";
  *      New datatoken proxy contracts are links to the template contract's bytecode.
  *      Proxy contract functionality is based on Ocean Protocol custom implementation of ERC1167 standard.
  */
-contract ERC721Factory is Deployer, Ownable, ReentrancyGuard {
+contract ERC721Factory is Deployer, Ownable, ReentrancyGuard, IFactory {
     using SafeERC20 for IERC20;
     using SafeMath for uint256;
     address private communityFeeCollector;
@@ -588,25 +589,6 @@ contract ERC721Factory is Deployer, Ownable, ReentrancyGuard {
     }
 
     // helper functions to save number of transactions
-    struct NftCreateData{
-        string name;
-        string symbol;
-        uint256 templateIndex;
-        string tokenURI;
-        bool transferable;
-        address owner;
-    }
-    struct ErcCreateData{
-        uint256 templateIndex;
-        string[] strings;
-        address[] addresses;
-        uint256[] uints;
-        bytes[] bytess;
-    }
-    
-    
-
-    
   
     /**
      * @dev createNftWithErc20
@@ -639,12 +621,6 @@ contract ERC721Factory is Deployer, Ownable, ReentrancyGuard {
         );
         // remove our selfs from the erc20DeployerRole
         IERC721Template(erc721Address).removeFromCreateERC20List(address(this));
-    }
-
-    struct PoolData{
-        uint256[] ssParams;
-        uint256[] swapFees;
-        address[] addresses;
     }
 
     /**
@@ -693,11 +669,6 @@ contract ERC721Factory is Deployer, Ownable, ReentrancyGuard {
     
     }
 
-    struct FixedData{
-        address fixedPriceAddress;
-        address[] addresses;
-        uint256[] uints;
-    }
     /**
      * @dev createNftWithErc20WithFixedRate
      *      Creates a new NFT, then a ERC20, then a FixedRateExchange, all in one call
@@ -737,13 +708,6 @@ contract ERC721Factory is Deployer, Ownable, ReentrancyGuard {
         IERC721Template(erc721Address).removeFromCreateERC20List(address(this));
     }
 
-    struct DispenserData{
-        address dispenserAddress;
-        uint256 maxTokens;
-        uint256 maxBalance;
-        bool withMint;
-        address allowedSwapper;
-    }
     /**
      * @dev createNftWithErc20WithDispenser
      *      Creates a new NFT, then a ERC20, then a Dispenser, all in one call
