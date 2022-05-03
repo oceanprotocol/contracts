@@ -26,7 +26,7 @@ import "@openzeppelin/contracts/security/ReentrancyGuard.sol";
      *                     [4]  = initial liquidity in baseToken for pool creation
  *
  */
-contract SideStaking is ReentrancyGuard {
+contract SideStaking is ReentrancyGuard, ISideStaking {
     using SafeMath for uint256;
     using SafeERC20 for IERC20;
 
