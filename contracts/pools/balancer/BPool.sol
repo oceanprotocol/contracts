@@ -9,7 +9,6 @@ import "../../interfaces/IPool.sol";
 import "../../interfaces/ISideStaking.sol";
 import "../../utils/SafeERC20.sol";
 
-
 /**
  * @title BPool
  *
@@ -24,6 +23,7 @@ import "../../utils/SafeERC20.sol";
  */
 contract BPool is BMath, BToken, IPool {
     using SafeERC20 for IERC20;
+
     struct Record {
         bool bound; // is token bound to pool
         uint256 index; // private
@@ -49,6 +49,7 @@ contract BPool is BMath, BToken, IPool {
         uint256 tokenAmountIn,
         uint256 timestamp
     );
+
     event LOG_SETUP(
         address indexed caller,
         address indexed baseToken,
@@ -74,6 +75,7 @@ contract BPool is BMath, BToken, IPool {
     );
 
     event LOG_BPT(uint256 bptAmount);
+
     event LOG_BPT_SS(uint256 bptAmount); //emitted for SS contract
 
     event OPCFee(
@@ -82,17 +84,22 @@ contract BPool is BMath, BToken, IPool {
         address token,
         uint256 amount
     );
+
     event SwapFeeChanged(address caller, uint256 amount);
+
     event PublishMarketFee(
         address caller,
         address marketAddress,
         address token,
         uint256 amount
     );
+
     // emited for fees sent to consumeMarket
     event ConsumeMarketFee(address to, address token, uint256 amount);
+
     event SWAP_FEES(uint LPFeeAmount, uint oceanFeeAmount, uint marketFeeAmount,
         uint consumeMarketFeeAmount, address tokenFeeAddress);
+
     //emitted for every change done by publisherMarket
     event PublishMarketFeeChanged(address caller, address newMarketCollector, uint256 swapFee);
 
@@ -199,7 +206,6 @@ contract BPool is BMath, BToken, IPool {
         return initialized;
     }
 
-    
     /**
      * @dev setup
      *      Initial setup of the pool
@@ -269,6 +275,7 @@ contract BPool is BMath, BToken, IPool {
     function isPublicSwap() external view returns (bool) {
         return _publicSwap;
     }
+
     /**
      * @dev isFinalized
      *      Returns true if pool is finalized
@@ -433,10 +440,10 @@ contract BPool is BMath, BToken, IPool {
         return _records[token].denorm;
     }
 
-     /**
-     * @dev getTotalDenormalizedWeight
-     *      Returns total denormalized weught of the pool
-     */
+    /**
+    * @dev getTotalDenormalizedWeight
+    *      Returns total denormalized weught of the pool
+    */
     function getTotalDenormalizedWeight()
         external
         view
@@ -451,7 +458,6 @@ contract BPool is BMath, BToken, IPool {
      *      Returns normalized weight of a token
      * @param token token to be checked
      */
-    
     function getNormalizedWeight(address token)
         external
         view
@@ -462,7 +468,6 @@ contract BPool is BMath, BToken, IPool {
         uint256 denorm = _records[token].denorm;
         return bdiv(denorm, _totalWeight);
     }
-
 
     /**
      * @dev getBalance
@@ -518,7 +523,6 @@ contract BPool is BMath, BToken, IPool {
     function getBaseTokenAddress() external view returns (address) {
         return _baseTokenAddress;
     }
-
 
     /**
      * @dev setSwapFee
@@ -642,16 +646,15 @@ contract BPool is BMath, BToken, IPool {
     }
 
     // view function used for batch buy. useful for frontend
-     /**
+    /**
      * @dev getAmountInExactOut
      *      How many tokensIn do you need in order to get exact tokenAmountOut.
-            Returns: tokenAmountIn, LPFee, opcFee , publishMarketSwapFee, consumeMarketSwapFee
+           Returns: tokenAmountIn, LPFee, opcFee , publishMarketSwapFee, consumeMarketSwapFee
      * @param tokenIn token to be swaped
      * @param tokenOut token to get
      * @param tokenAmountOut exact amount of tokenOut
      * @param _consumeMarketSwapFee consume market swap fee
      */
-
     function getAmountInExactOut(
         address tokenIn,
         address tokenOut,
@@ -737,7 +740,6 @@ contract BPool is BMath, BToken, IPool {
         return(tokenAmountOut, _swapfees.LPFee, 
         _swapfees.oceanFeeAmount, _swapfees.publishMarketFeeAmount, _swapfees.consumeMarketFee);
     }
-
 
     /**
      * @dev swapExactAmountIn
@@ -848,7 +850,6 @@ contract BPool is BMath, BToken, IPool {
 
         return (tokenAmountOut, spotPriceAfter); //returning spot price 0 because there is no public spotPrice
     }
-
 
     /**
      * @dev swapExactAmountOut
@@ -995,8 +996,6 @@ contract BPool is BMath, BToken, IPool {
         emit LOG_JOIN(msg.sender, _baseTokenAddress, tokenAmountIn, block.timestamp);
         emit LOG_BPT(poolAmountOut);
 
-        
-
         //ask the ssContract to stake as well
         //calculate how much should the 1ss stake
         Record storage ssInRecord = _records[_datatokenAddress];
@@ -1031,7 +1030,6 @@ contract BPool is BMath, BToken, IPool {
         return poolAmountOut;
     }
 
-    
     /**
      * @dev exitswapPoolAmountIn
      *      Single side remove liquidity from the pool,
@@ -1113,8 +1111,6 @@ contract BPool is BMath, BToken, IPool {
         _pushUnderlying(_baseTokenAddress, msg.sender, tokenAmountOut);
         return tokenAmountOut;
     }
-
-    
 
     /**
      * @dev calcSingleOutPoolIn
@@ -1210,7 +1206,6 @@ contract BPool is BMath, BToken, IPool {
 
         return poolAmountOut;
     }
-
 
     // Internal functions below
 
