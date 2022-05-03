@@ -3,6 +3,7 @@ pragma solidity 0.8.12;
 // SPDX-License-Identifier: (Apache-2.0 AND CC-BY-4.0)
 // Code is Apache-2.0 and docs are CC-BY-4.0
 
+import "../../interfaces/IDispenser.sol";
 import "../../interfaces/IERC20.sol";
 import "../../interfaces/IERC20Template.sol";
 import "../../interfaces/IERC721Template.sol";
@@ -11,9 +12,10 @@ import "@openzeppelin/contracts/utils/math/SafeMath.sol";
 import "../../utils/SafeERC20.sol";
 import "@openzeppelin/contracts/security/ReentrancyGuard.sol";
 
-contract Dispenser is ReentrancyGuard{
+contract Dispenser is ReentrancyGuard, IDispenser{
     using SafeMath for uint256;
     using SafeERC20 for IERC20;
+
     address public router;
 
     struct DataToken {
@@ -24,10 +26,10 @@ contract Dispenser is ReentrancyGuard{
         address allowedSwapper;
         //If the balance is higher, the dispense is rejected
     }
+
     mapping(address => DataToken) datatokens;
     address[] public datatokensList;
-    
-    
+
     event DispenserCreated(  // emited when a dispenser is created
         address indexed datatokenAddress,
         address indexed owner,
@@ -35,6 +37,7 @@ contract Dispenser is ReentrancyGuard{
         uint256 maxBalance,
         address allowedSwapper
     );
+
     event DispenserActivated(  // emited when a dispenser is activated
         address indexed datatokenAddress
     );
@@ -42,6 +45,7 @@ contract Dispenser is ReentrancyGuard{
     event DispenserDeactivated( // emited when a dispenser is deactivated
         address indexed datatokenAddress
     );
+
     event DispenserAllowedSwapperChanged( // emited when allowedSwapper is changed
         address indexed datatoken,
         address indexed newAllowedSwapper);
@@ -80,7 +84,6 @@ contract Dispenser is ReentrancyGuard{
         _;
     }
 
-    
     constructor(address _router) {
         require(_router != address(0), "Dispenser: Wrong Router address");
         router = _router;
@@ -94,6 +97,7 @@ contract Dispenser is ReentrancyGuard{
     function getId() pure public returns (uint8) {
         return 1;
     }
+
     /**
      * @dev status
      *      Get information about a datatoken dispenser
@@ -152,6 +156,7 @@ contract Dispenser is ReentrancyGuard{
         emit DispenserCreated(datatoken, owner, maxTokens, maxBalance, allowedSwapper);
         emit DispenserAllowedSwapperChanged(datatoken, allowedSwapper);
     }
+
     /**
      * @dev activate
      *      Activate a new dispenser
@@ -188,8 +193,6 @@ contract Dispenser is ReentrancyGuard{
         datatokens[datatoken].allowedSwapper= newAllowedSwapper;
         emit DispenserAllowedSwapperChanged(datatoken, newAllowedSwapper);
     }
-
-    
 
     /**
      * @dev dispense
