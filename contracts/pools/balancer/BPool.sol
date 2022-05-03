@@ -94,7 +94,7 @@ contract BPool is BMath, BToken {
         uint consumeMarketFeeAmount, address tokenFeeAddress);
     //emitted for every change done by publisherMarket
     event PublishMarketFeeChanged(address caller, address newMarketCollector, uint256 swapFee);
-
+    event Gulped(address token, uint256 oldBalance, uint256 newBalance);
     modifier _lock_() {
         require(!_mutex, "ERR_REENTRY");
         _mutex = true;
@@ -1251,5 +1251,16 @@ contract BPool is BMath, BToken {
 
     function _burnPoolShare(uint256 amount) internal {
         _burn(amount);
+    }
+
+    // Absorb any tokens that have been sent to this contract into the pool
+    function gulp(address token)
+        external
+        _lock_
+    {
+        require(_records[token].bound, "ERR_NOT_BOUND");
+        uint256 oldBalance = _records[token].balance;
+        _records[token].balance = IERC20(token).balanceOf(address(this));
+        emit Gulped(token,oldBalance, _records[token].balance);
     }
 }
