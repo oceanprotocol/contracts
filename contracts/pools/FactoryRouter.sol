@@ -12,10 +12,10 @@ import "../interfaces/IDispenser.sol";
 import "../utils/SafeERC20.sol";
 import "@openzeppelin/contracts/utils/math/SafeMath.sol";
 
-
-contract FactoryRouter is BFactory {
+contract FactoryRouter is BFactory, IFactoryRouter {
     using SafeERC20 for IERC20;
     using SafeMath for uint256;
+
     address public routerOwner;
     address public factory;
     address public fixedRate;
@@ -82,7 +82,7 @@ contract FactoryRouter is BFactory {
         address _bpoolTemplate,
         address _opcCollector,
         address[] memory _preCreatedPools
-    ) public BFactory(_bpoolTemplate, _opcCollector, _preCreatedPools) {
+    ) BFactory(_bpoolTemplate, _opcCollector, _preCreatedPools) {
         require(
             _routerOwner != address(0),
             "FactoryRouter: Invalid router owner"
@@ -145,6 +145,7 @@ contract FactoryRouter is BFactory {
             emit TokenRemoved(msg.sender, tokenAddress);
         }
     }
+
     /**
      * @dev isApprovedToken
      *      Returns true if token exists in the list of tokens with reduced fees
@@ -156,6 +157,7 @@ contract FactoryRouter is BFactory {
         }
         return false;
     }
+
     /**
      * @dev getApprovedTokens
      *      Returns the list of tokens with reduced fees
@@ -164,13 +166,11 @@ contract FactoryRouter is BFactory {
         return(approvedTokens);
     }
 
-
-     /**
+    /**
      * @dev addSSContract
      *      Adds a token to the list of ssContracts
      *  @param _ssContract address Contract to be added
      */
-
     function addSSContract(address _ssContract) external onlyRouterOwner {
         require(
             _ssContract != address(0),
@@ -181,12 +181,12 @@ contract FactoryRouter is BFactory {
             emit SSContractAdded(msg.sender, _ssContract);
         }
     }
+
     /**
      * @dev removeSSContract
      *      Removes a token if exists from the list of ssContracts
      *  @param _ssContract address Contract to be removed
      */
-
     function removeSSContract(address _ssContract) external onlyRouterOwner {
         require(
             _ssContract != address(0),
@@ -215,6 +215,7 @@ contract FactoryRouter is BFactory {
         }
         return false;
     }
+
     /**
      * @dev getSSContracts
      *      Returns the list of ssContracts
@@ -233,7 +234,6 @@ contract FactoryRouter is BFactory {
         emit FactoryContractChanged(msg.sender, _factory);
     }
 
-
     /**
      * @dev addFixedRateContract
      *      Adds an address to the list of fixed rate contracts
@@ -249,7 +249,8 @@ contract FactoryRouter is BFactory {
             emit FixedRateContractAdded(msg.sender, _fixedRate);
         }
     }
-     /**
+
+    /**
      * @dev removeFixedRateContract
      *      Removes an address from the list of fixed rate contracts
      *  @param _fixedRate address Contract to be removed
@@ -273,6 +274,7 @@ contract FactoryRouter is BFactory {
             emit FixedRateContractRemoved(msg.sender, _fixedRate);
         }
     }
+
     /**
      * @dev isFixedRateContract
      *      Removes true if address exists in the list of fixed rate contracts
@@ -284,6 +286,7 @@ contract FactoryRouter is BFactory {
         }
         return false;
     }
+
     /**
      * @dev getFixedRatesContracts
      *      Returns the list of fixed rate contracts
@@ -332,6 +335,7 @@ contract FactoryRouter is BFactory {
             emit DispenserContractRemoved(msg.sender, _dispenser);
         }
     }
+
     /**
      * @dev isDispenserContract
      *      Returns true if address exists in the list of dispensers
@@ -343,6 +347,7 @@ contract FactoryRouter is BFactory {
         }
         return false;
     }
+
     /**
      * @dev getDispensersContracts
      *      Returns the list of fixed rate contracts
@@ -386,7 +391,6 @@ contract FactoryRouter is BFactory {
         return providerFee;
     }
 
-
     /**
      * @dev updateOPCFee
      *      Updates OP Community Fees
@@ -413,6 +417,7 @@ contract FactoryRouter is BFactory {
     function getMinVestingPeriod() public view returns (uint256) {
         return minVestingPeriodInBlocks;
     }
+
     /*
      * @dev updateMinVestingPeriod
      *      Set new minVestingPeriodInBlocks
@@ -422,10 +427,10 @@ contract FactoryRouter is BFactory {
         minVestingPeriodInBlocks = _newPeriod;
         emit VestingPeriodChanges(msg.sender, _newPeriod);
     }
+
     /**
      * @dev Deploys a new `OceanPool` on Ocean Friendly Fork modified for 1SS.
      This function cannot be called directly, but ONLY through the ERC20DT contract from a ERC20DEployer role
-
       ssContract address
      tokens [datatokenAddress, baseTokenAddress]
      publisherAddress user which will be assigned the vested amount.
@@ -439,8 +444,6 @@ contract FactoryRouter is BFactory {
      * @param swapFees swapFees (swapFee, swapMarketFee), swapOceanFee will be set automatically later
      *                     [0] = swapFee for LP Providers
      *                     [1] = swapFee for marketplace runner
-      
-      .
      * @param addresses refers to an array of addresses passed by user
      *                     [0]  = side staking contract address
      *                     [1]  = baseToken address for pool creation(OCEAN or other)
@@ -448,7 +451,6 @@ contract FactoryRouter is BFactory {
      *                     [3]  = publisherAddress user which will be assigned the vested amount
      *                     [4]  = marketFeeCollector marketFeeCollector address
                            [5]  = poolTemplateAddress
-       
         @return pool address
      */
     function deployPool(
@@ -498,7 +500,6 @@ contract FactoryRouter is BFactory {
      * @param uints array of uints [baseTokenDecimals,datatokenDecimals, fixedRate, marketFee, withMint]
        @return exchangeId
      */
-
     function deployFixedRate(
         address fixedPriceAddress,
         address[] calldata addresses,
@@ -532,7 +533,6 @@ contract FactoryRouter is BFactory {
      * @param owner - owner
      * @param allowedSwapper - if !=0, only this address can request DTs
      */
-
     function deployDispenser(
         address _dispenser,
         address datatoken,
@@ -558,7 +558,7 @@ contract FactoryRouter is BFactory {
         );
     }
 
-     /**
+    /**
      * @dev addPoolTemplate
      *      Adds an address to the list of pools templates
      *  @param poolTemplate address Contract to be added
@@ -566,7 +566,8 @@ contract FactoryRouter is BFactory {
     function addPoolTemplate(address poolTemplate) external onlyRouterOwner {
         _addPoolTemplate(poolTemplate);
     }
-     /**
+
+    /**
      * @dev removePoolTemplate
      *      Removes an address from the list of pool templates
      *  @param poolTemplate address Contract to be removed
@@ -581,26 +582,6 @@ contract FactoryRouter is BFactory {
     // Perks:
 
     // one single call to buy multiple DT for multiple assets (better UX, better gas optimization)
-
-    enum operationType {
-        SwapExactIn,
-        SwapExactOut,
-        FixedRate,
-        Dispenser
-    }
-
-    struct Operations {
-        bytes32 exchangeIds; // used for fixedRate or dispenser
-        address source; // pool, dispenser or fixed rate address
-        operationType operation; // type of operation: enum operationType
-        address tokenIn; // token in address, only for pools
-        uint256 amountsIn; // ExactAmount In for swapExactIn operation, maxAmount In for swapExactOut
-        address tokenOut; // token out address, only for pools
-        uint256 amountsOut; // minAmountOut for swapExactIn or exactAmountOut for swapExactOut
-        uint256 maxPrice; // maxPrice, only for pools
-        uint256 swapMarketFee;
-        address marketFeeAddress;
-    }
 
     // require tokenIn approvals for router from user. (except for dispenser operations)
     function buyDTBatch(Operations[] calldata _operations) external {
@@ -717,11 +698,6 @@ contract FactoryRouter is BFactory {
         }
     }
 
-    struct Stakes {
-        address poolAddress;
-        uint256 tokenAmountIn;
-        uint256 minPoolAmountOut;
-    }
     // require pool[].baseToken (for each pool) approvals for router from user.
     function stakeBatch(Stakes[] calldata _stakes) external {
         // TODO: to avoid DOS attack, we set a limit to maximum orders (50?)

@@ -1,4 +1,5 @@
 pragma solidity 0.8.12;
+
 // Copyright BigchainDB GmbH and Ocean Protocol contributors
 // SPDX-License-Identifier: (Apache-2.0 AND CC-BY-4.0)
 // Code is Apache-2.0 and docs are CC-BY-4.0
@@ -18,11 +19,15 @@ interface IFactoryRouter {
     ) external returns (bytes32 exchangeId);
 
     function getOPCFee(address baseToken) external view returns (uint256);
-    function getOPCFees() external view returns (uint256,uint256);
+
+    function getOPCFees() external view returns (uint256, uint256);
+
     function getOPCConsumeFee() external view returns (uint256);
+
     function getOPCProviderFee() external view returns (uint256);
 
     function getMinVestingPeriod() external view returns (uint256);
+
     function deployDispenser(
         address _dispenser,
         address datatoken,
@@ -32,22 +37,28 @@ interface IFactoryRouter {
         address allowedSwapper
     ) external;
 
-    function isApprovedToken(address) external view returns(bool);
-    function getApprovedTokens() external view returns(address[] memory);
-    function isSSContract(address) external view returns(bool);
-    function getSSContracts() external view returns(address[] memory);
-    function isFixedRateContract(address) external view returns(bool);
-    function getFixedRatesContracts() external view returns(address[] memory);
-    function isDispenserContract(address) external view returns(bool);
-    function getDispensersContracts() external view returns(address[] memory);
-     function isPoolTemplate(address) external view returns(bool);
-    function getPoolTemplates() external view returns(address[] memory);
+    function isApprovedToken(address) external view returns (bool);
+
+    function getApprovedTokens() external view returns (address[] memory);
+
+    function isSSContract(address) external view returns (bool);
+
+    function getSSContracts() external view returns (address[] memory);
+
+    function isFixedRateContract(address) external view returns (bool);
+
+    function getFixedRatesContracts() external view returns (address[] memory);
+
+    function isDispenserContract(address) external view returns (bool);
+
+    function getDispensersContracts() external view returns (address[] memory);
 
     struct Stakes {
         address poolAddress;
         uint256 tokenAmountIn;
         uint256 minPoolAmountOut;
     }
+
     function stakeBatch(Stakes[] calldata) external;
 
     enum operationType {
@@ -69,5 +80,6 @@ interface IFactoryRouter {
         uint256 swapMarketFee;
         address marketFeeAddress;
     }
+
     function buyDTBatch(Operations[] calldata) external;
 }
