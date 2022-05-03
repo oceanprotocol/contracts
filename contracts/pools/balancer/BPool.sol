@@ -5,6 +5,7 @@ pragma solidity 0.8.12;
 
 import "./BToken.sol";
 import "./BMath.sol";
+import "../../interfaces/IPool.sol";
 import "../../interfaces/ISideStaking.sol";
 import "../../utils/SafeERC20.sol";
 
@@ -21,7 +22,7 @@ import "../../utils/SafeERC20.sol";
  * All fees are expressed in wei.  Examples:
  *  (1e17 = 10 % , 1e16 = 1% , 1e15 = 0.1%, 1e14 = 0.01%)
  */
-contract BPool is BMath, BToken {
+contract BPool is BMath, BToken, IPool {
     using SafeERC20 for IERC20;
     struct Record {
         bool bound; // is token bound to pool
