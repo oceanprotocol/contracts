@@ -28,7 +28,6 @@ contract OPFCommunityFeeCollector is Ownable {
         address payable newCollector,
         address OPFOwnerAddress
     ) 
-        public
         Ownable()
     {
         require(
