@@ -7,13 +7,12 @@
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 pragma solidity 0.8.12;
+
 // Copyright BigchainDB GmbH and Ocean Protocol contributors
 // SPDX-License-Identifier: (Apache-2.0 AND CC-BY-4.0)
 // Code is Apache-2.0 and docs are CC-BY-4.0
 
 interface ISideStaking {
-
-
     function newDatatokenCreated(
         address datatokenAddress,
         address baseTokenAddress,
@@ -72,22 +71,17 @@ interface ISideStaking {
         view
         returns (uint256);
 
+    function canStake(address datatokenAddress, uint256 amount)
+        external
+        view
+        returns (bool);
 
+    function Stake(address datatokenAddress, uint256 amount) external;
 
-    function canStake(
-        address datatokenAddress,
-        uint256 amount
-    ) external view returns (bool);
-
-    function Stake(
-        address datatokenAddress,
-        uint256 amount
-    ) external;
-
-    function canUnStake(
-        address datatokenAddress,
-        uint256 amount
-    ) external view returns (bool);
+    function canUnStake(address datatokenAddress, uint256 amount)
+        external
+        view
+        returns (bool);
 
     function UnStake(
         address datatokenAddress,
@@ -96,7 +90,6 @@ interface ISideStaking {
     ) external;
 
     function notifyFinalize(address datatokenAddress) external;
-    function getId() pure external returns (uint8);
 
-  
+    function getId() external pure returns (uint8);
 }
