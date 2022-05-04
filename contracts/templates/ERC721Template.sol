@@ -32,7 +32,6 @@ contract ERC721Template is
     uint8 public metaDataState;
     address private _tokenFactory;
     address[] private deployedERC20List;
-    address public ssContract;
     uint8 private constant templateId = 1;
     mapping(address => bool) private deployedERC20;
     bool public transferable;
