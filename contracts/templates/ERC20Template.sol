@@ -258,7 +258,7 @@ contract ERC20Template is
      * @param uints_  refers to an array of uints
      *                     [0] = cap_ the total ERC20 cap
      *                     [1] = publishing Market Fee Amount
-     * @param bytes_  refers to an array of bytes
+     * param bytes_  refers to an array of bytes
      *                     Currently not used, usefull for future templates
      */
     function _initialize(
@@ -266,7 +266,7 @@ contract ERC20Template is
         address[] memory addresses_,
         address[] memory factoryAddresses_,
         uint256[] memory uints_,
-        bytes[] memory bytes_
+        bytes[] memory
     ) private returns (bool) {
         address erc721Address = factoryAddresses_[0];
         address communityFeeCollector = factoryAddresses_[1];
