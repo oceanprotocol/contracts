@@ -348,7 +348,7 @@ describe("Batch Swap", () => {
             user3.address,
             "0x0000000000000000000000000000000000000000",
           ],
-          [web3.utils.toWei("1000"), 0],
+          [web3.utils.toWei("10000"), 0],
           []
         );
       const trxReceiptERC20 = await trxERC20.wait();
@@ -422,6 +422,28 @@ describe("Batch Swap", () => {
       expect(await bPool2.publishMarketFees(daiAddress)).to.equal(0);
       expect(await bPool2.publishMarketFees(erc20Token2.address)).to.equal(0);
     });
+    
+    //gulp tests
+    it("gulp should update the internal balance", async () => {
+      poolContract = await ethers.getContractAt("BPool", bPoolAddress);
+      erc20Contract = await ethers.getContractAt("ERC20Template", daiAddress);
+      //check pool reserve
+      expect(await poolContract.getBalance(erc20Contract.address)).to.equal(web3.utils.toWei("700"));
+      //check pool balance
+      expect(await erc20Token2.balanceOf(bPoolAddress)).to.equal(web3.utils.toWei("700"));
+      //send some tokens to pool address
+      await erc20Contract.connect(user3).transfer(bPoolAddress, web3.utils.toWei("1"));
+      //check pool balance - it's changed
+      expect(await erc20Contract.balanceOf(bPoolAddress)).to.equal(web3.utils.toWei("701"));
+      //check pool reserve - it is not changed
+      expect(await poolContract.getBalance(erc20Contract.address)).to.equal(web3.utils.toWei("700"));
+      //call gulp
+      await poolContract.gulp(erc20Contract.address)
+      //check pool balance - it's changed
+      expect(await erc20Contract.balanceOf(bPoolAddress)).to.equal(web3.utils.toWei("701"));
+      //check pool reserve - it'schanged
+      expect(await poolContract.getBalance(erc20Contract.address)).to.equal(web3.utils.toWei("701"));
+    });    
   });
 
   describe("#3 - Pool with NO ocean token (USDC 6 decimals) and market fee 0.1%", async () => {
