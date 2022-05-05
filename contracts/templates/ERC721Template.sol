@@ -8,7 +8,6 @@ import "../utils/ERC725/ERC725Ocean.sol";
 import "../utils/ERC721/IERC721Enumerable.sol";
 import "@openzeppelin/contracts/utils/Create2.sol";
 import "@openzeppelin/contracts/security/ReentrancyGuard.sol";
-import "../interfaces/IV3ERC20.sol";
 import "../interfaces/IFactory.sol";
 import "../interfaces/IERC20Template.sol";
 import "../utils/ERC721RolesAddress.sol";
@@ -32,7 +31,6 @@ contract ERC721Template is
     uint8 public metaDataState;
     address private _tokenFactory;
     address[] private deployedERC20List;
-    address public ssContract;
     uint8 private constant templateId = 1;
     mapping(address => bool) private deployedERC20;
     bool public transferable;

@@ -250,7 +250,7 @@ contract ERC20TemplateEnterprise is
      * @param uints_  refers to an array of uints
      *                     [0] = cap_ the total ERC20 cap
      *                     [1] = publishing Market Fee Amount
-     * @param bytes_  refers to an array of bytes
+     * param bytes_  refers to an array of bytes
      *                     Currently not used, usefull for future templates
      */
     function _initialize(
@@ -258,7 +258,7 @@ contract ERC20TemplateEnterprise is
         address[] memory addresses_,
         address[] memory factoryAddresses_,
         uint256[] memory uints_,
-        bytes[] memory bytes_
+        bytes[] memory
     ) private returns (bool) {
         address erc721Address = factoryAddresses_[0];
         address communityFeeCollector = factoryAddresses_[1];
@@ -351,14 +351,14 @@ contract ERC20TemplateEnterprise is
      * @param maxTokens - max tokens to dispense
      * @param maxBalance - max balance of requester.
      * @param withMint - with MinterRole
-     * @param allowedSwapper - have it here for compat reasons, will be overwritten
+     * param allowedSwapper have it here for compat reasons, will be overwritten
      */
     function createDispenser(
         address _dispenser,
         uint256 maxTokens,
         uint256 maxBalance,
         bool withMint,
-        address allowedSwapper
+        address
     ) external onlyERC20Deployer nonReentrant {
         IFactoryRouter(router).deployDispenser(
             _dispenser,
@@ -1050,9 +1050,8 @@ contract ERC20TemplateEnterprise is
                     ,
                     ,
                     ,
-                    uint256 dtBalance,
+                    ,
                     uint256 btBalance,
-                    bool withMint
         ) = fre.getExchange(_freParams.exchangeId);
         if(btBalance>0)
             fre.collectBT(_freParams.exchangeId, btBalance);

@@ -488,10 +488,10 @@ contract SideStaking is ReentrancyGuard {
 
     /**
      *  Get available vesting now
-     * @param datatokenAddress - datatokenAddress
+     * param datatokenAddress - datatokenAddress
 
      */
-    function getAvailableVesting(address datatokenAddress)
+    function getAvailableVesting(address)
         public
         view
         returns (uint256)
