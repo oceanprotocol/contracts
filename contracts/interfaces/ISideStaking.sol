@@ -42,6 +42,11 @@ interface ISideStaking {
         view
         returns (address);
 
+    function getBaseTokenBalance(address datatokenAddress)
+        external
+        view
+        returns (uint256);
+
     function getDatatokenBalance(address datatokenAddress)
         external
         view
