@@ -18,10 +18,12 @@ import "@openzeppelin/contracts/security/ReentrancyGuard.sol";
  *      exchanging datatokens with ocean token using a fixed
  *      exchange rate.
  */
+
+
+
 contract FixedRateExchange is ReentrancyGuard, IFixedRateExchange {
     using SafeMath for uint256;
     using SafeERC20 for IERC20;
-
     uint256 private constant BASE = 1e18;
     uint public constant MIN_FEE           = BASE / 1e4;
     uint public constant MAX_FEE           = 5e17;
@@ -160,6 +162,7 @@ contract FixedRateExchange is ReentrancyGuard, IFixedRateExchange {
         address newMarketCollector,
         uint256 swapFee);
 
+
     constructor(address _router, address _opcCollector) {
         require(_router != address(0), "FixedRateExchange: Wrong Router address");
         require(_opcCollector != address(0), "FixedRateExchange: Wrong OPC address");
@@ -179,6 +182,7 @@ contract FixedRateExchange is ReentrancyGuard, IFixedRateExchange {
     function getOPCFee(address baseTokenAddress) public view returns (uint) {
         return IFactoryRouter(router).getOPCFee(baseTokenAddress);
     }
+  
 
     /**
      * @dev create
@@ -290,7 +294,6 @@ contract FixedRateExchange is ReentrancyGuard, IFixedRateExchange {
             .div(10**exchanges[exchangeId].dtDecimals)
             .div(BASE);
     }
-
     /**
      * @dev calcBaseInGivenOutDT
      *      Calculates how many baseTokens are needed to get exact amount of datatokens
@@ -308,6 +311,8 @@ contract FixedRateExchange is ReentrancyGuard, IFixedRateExchange {
             uint256 publishMarketFeeAmount,
             uint256 consumeMarketFeeAmount
         )
+
+
     {
         uint256 baseTokenAmountBeforeFee = getBaseTokenOutPrice(exchangeId, datatokenAmount);
         Fees memory fee = Fees(0,0,0,0);
@@ -337,13 +342,15 @@ contract FixedRateExchange is ReentrancyGuard, IFixedRateExchange {
         else{
             fee.consumeMarketFeeAmount = 0;
         }
-
+       
+        
         fee.baseTokenAmount = baseTokenAmountBeforeFee.add(fee.publishMarketFeeAmount)
             .add(fee.oceanFeeAmount).add(fee.consumeMarketFeeAmount);
       
         return(fee.baseTokenAmount,fee.oceanFeeAmount,fee.publishMarketFeeAmount,fee.consumeMarketFeeAmount);
     }
 
+    
     /**
      * @dev calcBaseOutGivenInDT
      *      Calculates how many basteTokens you will get for selling exact amount of baseTokens
@@ -396,6 +403,7 @@ contract FixedRateExchange is ReentrancyGuard, IFixedRateExchange {
         return(fee.baseTokenAmount,fee.oceanFeeAmount,fee.publishMarketFeeAmount,fee.consumeMarketFeeAmount);
     }
 
+    
     /**
      * @dev swap
      *      atomic swap between two registered fixed rate exchange.
@@ -490,6 +498,7 @@ contract FixedRateExchange is ReentrancyGuard, IFixedRateExchange {
             fee.consumeMarketFeeAmount
         );
     }
+
 
     /**
      * @dev sellDT
@@ -605,7 +614,6 @@ contract FixedRateExchange is ReentrancyGuard, IFixedRateExchange {
             amount
         );
     }
-
     /**
      * @dev collectDT
      *      Collects and send datatokens.
@@ -666,7 +674,6 @@ contract FixedRateExchange is ReentrancyGuard, IFixedRateExchange {
         _collectOceanFee(exchangeId);
         
     }
-
     function _collectOceanFee(bytes32 exchangeId) internal {
         uint256 amount = exchanges[exchangeId].oceanFeeAvailable;
         exchanges[exchangeId].oceanFeeAvailable = 0;

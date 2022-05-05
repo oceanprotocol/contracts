@@ -7,7 +7,6 @@
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 pragma solidity 0.8.12;
-
 // Copyright Balancer, BigchainDB GmbH and Ocean Protocol contributors
 // SPDX-License-Identifier: (Apache-2.0 AND CC-BY-4.0)
 // Code is Apache-2.0 and docs are CC-BY-4.0
@@ -43,41 +42,23 @@ interface IPool {
         address tokenOut,
         uint256 tokenAmountOut,
         uint256 _consumeMarketSwapFee
-    )
-        external
-        view
-        returns (
-            uint256,
-            uint256,
-            uint256,
-            uint256,
-            uint256
-        );
+    ) external view returns (uint256, uint256, uint256, uint256, uint256);
 
     function getAmountOutExactIn(
         address tokenIn,
         address tokenOut,
         uint256 tokenAmountIn,
         uint256 _consumeMarketSwapFee
-    )
-        external
-        view
-        returns (
-            uint256,
-            uint256,
-            uint256,
-            uint256,
-            uint256
-        );
+    ) external view returns (uint256, uint256, uint256, uint256, uint256);
 
     function setSwapFee(uint256 swapFee) external;
+    function getId() pure external returns (uint8);
 
-    function getId() external pure returns (uint8);
-
-    function exitswapPoolAmountIn(uint256 poolAmountIn, uint256 minAmountOut)
-        external
-        returns (uint256 tokenAmountOut);
-
+    function exitswapPoolAmountIn(
+        uint256 poolAmountIn,
+        uint256 minAmountOut
+    ) external returns (uint256 tokenAmountOut);
+    
     function joinswapExternAmountIn(
         uint256 tokenAmountIn,
         uint256 minPoolAmountOut

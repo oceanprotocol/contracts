@@ -29,7 +29,6 @@ import "@openzeppelin/contracts/security/ReentrancyGuard.sol";
 contract SideStaking is ReentrancyGuard, ISideStaking {
     using SafeMath for uint256;
     using SafeERC20 for IERC20;
-
     address public router;
 
     // emitted when a new vesting is created
@@ -39,7 +38,6 @@ contract SideStaking is ReentrancyGuard, ISideStaking {
         uint256 vestingEndBlock,
         uint256 totalVestingAmount
     );
-
     // emited each time when tokens are vested to the publisher
     event Vesting(
         address indexed datatokenAddress,
@@ -89,12 +87,11 @@ contract SideStaking is ReentrancyGuard, ISideStaking {
         );
         _;
     }
-
     /**
      * @dev constructor
      *      Called on contract deployment.
      */
-    constructor(address _router) {
+    constructor(address _router) public {
         require(_router != address(0), "Invalid _router address");
         router = _router;
     }
@@ -117,6 +114,7 @@ contract SideStaking is ReentrancyGuard, ISideStaking {
      * @param publisherAddress - publisherAddress
      * @param ssParams  - ss Params, see below
      */
+
     function newDatatokenCreated(
         address datatokenAddress,
         address baseTokenAddress,
@@ -188,9 +186,11 @@ contract SideStaking is ReentrancyGuard, ISideStaking {
 
     //public getters
     /**
-     * Returns  (total vesting amount + token released from the contract when adding liquidity)
+     *  Returns  (total vesting amount + token released from the contract when adding liquidity)
      * @param datatokenAddress - datatokenAddress
+
      */
+
     function getDatatokenCirculatingSupply(address datatokenAddress)
         external
         view
@@ -202,10 +202,12 @@ contract SideStaking is ReentrancyGuard, ISideStaking {
     }
 
     /**
-     * Returns actual dts in circulation (vested token withdrawn from the contract +
+     *  Returns actual dts in circulation (vested token withdrawn from the contract +
          token released from the contract when adding liquidity)
      * @param datatokenAddress - datatokenAddress
+
      */
+
     function getDatatokenCurrentCirculatingSupply(address datatokenAddress)
         external
         view
@@ -218,9 +220,11 @@ contract SideStaking is ReentrancyGuard, ISideStaking {
     }
 
     /**
-     * Returns publisher address
+     *  Returns publisher address
      * @param datatokenAddress - datatokenAddress
+
      */
+
     function getPublisherAddress(address datatokenAddress)
         external
         view
@@ -231,9 +235,11 @@ contract SideStaking is ReentrancyGuard, ISideStaking {
     }
 
     /**
-     * Returns baseToken address
+     *  Returns baseToken address
      * @param datatokenAddress - datatokenAddress
+
      */
+
     function getBaseTokenAddress(address datatokenAddress)
         external
         view
@@ -244,9 +250,11 @@ contract SideStaking is ReentrancyGuard, ISideStaking {
     }
 
     /**
-     * Returns pool address
+     *  Returns pool address
      * @param datatokenAddress - datatokenAddress
+
      */
+
     function getPoolAddress(address datatokenAddress)
         external
         view
@@ -257,8 +265,9 @@ contract SideStaking is ReentrancyGuard, ISideStaking {
     }
 
     /**
-     * Returns baseToken balance in the contract
+     *  Returns baseToken balance in the contract
      * @param datatokenAddress - datatokenAddress
+
      */
     function getBaseTokenBalance(address datatokenAddress)
         external
@@ -270,9 +279,11 @@ contract SideStaking is ReentrancyGuard, ISideStaking {
     }
 
     /**
-     * Returns datatoken balance in the contract
+     *  Returns datatoken balance in the contract
      * @param datatokenAddress - datatokenAddress
+
      */
+
     function getDatatokenBalance(address datatokenAddress)
         external
         view
@@ -283,9 +294,11 @@ contract SideStaking is ReentrancyGuard, ISideStaking {
     }
 
     /**
-     * Returns last vesting block
+     *  Returns last vesting block
      * @param datatokenAddress - datatokenAddress
+
      */
+
     function getvestingEndBlock(address datatokenAddress)
         external
         view
@@ -296,9 +309,11 @@ contract SideStaking is ReentrancyGuard, ISideStaking {
     }
 
     /**
-     * Returns total vesting amount
+     *  Returns total vesting amount
      * @param datatokenAddress - datatokenAddress
+
      */
+
     function getvestingAmount(address datatokenAddress)
         public
         view
@@ -309,9 +324,11 @@ contract SideStaking is ReentrancyGuard, ISideStaking {
     }
 
     /**
-     * Returns last block when some vesting tokens were collected
+     *  Returns last block when some vesting tokens were collected
      * @param datatokenAddress - datatokenAddress
+
      */
+
     function getvestingLastBlock(address datatokenAddress)
         external
         view
@@ -322,9 +339,11 @@ contract SideStaking is ReentrancyGuard, ISideStaking {
     }
 
     /**
-     * Returns amount of vested tokens that have been withdrawn from the contract so far
+     *  Returns amount of vested tokens that have been withdrawn from the contract so far
      * @param datatokenAddress - datatokenAddress
+
      */
+
     function getvestingAmountSoFar(address datatokenAddress)
         public
         view
@@ -447,7 +466,8 @@ contract SideStaking is ReentrancyGuard, ISideStaking {
             _datatokens[datatokenAddress].poolAddress,
             baseTokenAmount
         );
-
+        
+        
         // call the pool, bind the tokens, set the price, finalize pool
         IPool pool = IPool(_datatokens[datatokenAddress].poolAddress);
         pool.setup(
@@ -469,11 +489,13 @@ contract SideStaking is ReentrancyGuard, ISideStaking {
     }
 
     /**
-     * Get available vesting now
+     *  Get available vesting now
+     * @param datatokenAddress - datatokenAddress
+
      */
-    function getAvailableVesting(address)
+    function getAvailableVesting(address datatokenAddress)
         public
-        pure
+        view
         returns (uint256)
     {
         // see https://github.com/oceanprotocol/contracts/issues/603
@@ -481,8 +503,9 @@ contract SideStaking is ReentrancyGuard, ISideStaking {
     }
 
     /**
-     * Send available vested tokens to the publisher address, can be called by anyone
+     *  Send available vested tokens to the publisher address, can be called by anyone
      * @param datatokenAddress - datatokenAddress
+
      */
     // called by vester to get datatokens
     function getVesting(address datatokenAddress) external nonReentrant {
@@ -507,14 +530,16 @@ contract SideStaking is ReentrancyGuard, ISideStaking {
                 collector,
                 amount
             );
+            
         }
     }
 
     /**
-     * Change pool fee
+     *  Change pool fee
      * @param datatokenAddress - datatokenAddress
      * @param poolAddress - poolAddress
      * @param swapFee - new fee
+
      */
     // called by ERC20 Deployer of datatoken
     function setPoolSwapFee(

@@ -15,7 +15,6 @@ import "@openzeppelin/contracts/utils/math/SafeMath.sol";
 contract FactoryRouter is BFactory, IFactoryRouter {
     using SafeERC20 for IERC20;
     using SafeMath for uint256;
-
     address public routerOwner;
     address public factory;
     address public fixedRate;
@@ -82,7 +81,7 @@ contract FactoryRouter is BFactory, IFactoryRouter {
         address _bpoolTemplate,
         address _opcCollector,
         address[] memory _preCreatedPools
-    ) BFactory(_bpoolTemplate, _opcCollector, _preCreatedPools) {
+    ) public BFactory(_bpoolTemplate, _opcCollector, _preCreatedPools) {
         require(
             _routerOwner != address(0),
             "FactoryRouter: Invalid router owner"
@@ -145,7 +144,6 @@ contract FactoryRouter is BFactory, IFactoryRouter {
             emit TokenRemoved(msg.sender, tokenAddress);
         }
     }
-
     /**
      * @dev isApprovedToken
      *      Returns true if token exists in the list of tokens with reduced fees
@@ -157,7 +155,6 @@ contract FactoryRouter is BFactory, IFactoryRouter {
         }
         return false;
     }
-
     /**
      * @dev getApprovedTokens
      *      Returns the list of tokens with reduced fees
@@ -166,11 +163,13 @@ contract FactoryRouter is BFactory, IFactoryRouter {
         return(approvedTokens);
     }
 
-    /**
+
+     /**
      * @dev addSSContract
      *      Adds a token to the list of ssContracts
      *  @param _ssContract address Contract to be added
      */
+
     function addSSContract(address _ssContract) external onlyRouterOwner {
         require(
             _ssContract != address(0),
@@ -181,12 +180,12 @@ contract FactoryRouter is BFactory, IFactoryRouter {
             emit SSContractAdded(msg.sender, _ssContract);
         }
     }
-
     /**
      * @dev removeSSContract
      *      Removes a token if exists from the list of ssContracts
      *  @param _ssContract address Contract to be removed
      */
+
     function removeSSContract(address _ssContract) external onlyRouterOwner {
         require(
             _ssContract != address(0),
@@ -215,7 +214,6 @@ contract FactoryRouter is BFactory, IFactoryRouter {
         }
         return false;
     }
-
     /**
      * @dev getSSContracts
      *      Returns the list of ssContracts
@@ -234,6 +232,7 @@ contract FactoryRouter is BFactory, IFactoryRouter {
         emit FactoryContractChanged(msg.sender, _factory);
     }
 
+
     /**
      * @dev addFixedRateContract
      *      Adds an address to the list of fixed rate contracts
@@ -249,8 +248,7 @@ contract FactoryRouter is BFactory, IFactoryRouter {
             emit FixedRateContractAdded(msg.sender, _fixedRate);
         }
     }
-
-    /**
+     /**
      * @dev removeFixedRateContract
      *      Removes an address from the list of fixed rate contracts
      *  @param _fixedRate address Contract to be removed
@@ -274,7 +272,6 @@ contract FactoryRouter is BFactory, IFactoryRouter {
             emit FixedRateContractRemoved(msg.sender, _fixedRate);
         }
     }
-
     /**
      * @dev isFixedRateContract
      *      Removes true if address exists in the list of fixed rate contracts
@@ -286,7 +283,6 @@ contract FactoryRouter is BFactory, IFactoryRouter {
         }
         return false;
     }
-
     /**
      * @dev getFixedRatesContracts
      *      Returns the list of fixed rate contracts
@@ -335,7 +331,6 @@ contract FactoryRouter is BFactory, IFactoryRouter {
             emit DispenserContractRemoved(msg.sender, _dispenser);
         }
     }
-
     /**
      * @dev isDispenserContract
      *      Returns true if address exists in the list of dispensers
@@ -347,7 +342,6 @@ contract FactoryRouter is BFactory, IFactoryRouter {
         }
         return false;
     }
-
     /**
      * @dev getDispensersContracts
      *      Returns the list of fixed rate contracts
@@ -391,6 +385,7 @@ contract FactoryRouter is BFactory, IFactoryRouter {
         return providerFee;
     }
 
+
     /**
      * @dev updateOPCFee
      *      Updates OP Community Fees
@@ -417,7 +412,6 @@ contract FactoryRouter is BFactory, IFactoryRouter {
     function getMinVestingPeriod() public view returns (uint256) {
         return minVestingPeriodInBlocks;
     }
-
     /*
      * @dev updateMinVestingPeriod
      *      Set new minVestingPeriodInBlocks
@@ -427,10 +421,10 @@ contract FactoryRouter is BFactory, IFactoryRouter {
         minVestingPeriodInBlocks = _newPeriod;
         emit VestingPeriodChanges(msg.sender, _newPeriod);
     }
-
     /**
      * @dev Deploys a new `OceanPool` on Ocean Friendly Fork modified for 1SS.
      This function cannot be called directly, but ONLY through the ERC20DT contract from a ERC20DEployer role
+
       ssContract address
      tokens [datatokenAddress, baseTokenAddress]
      publisherAddress user which will be assigned the vested amount.
@@ -444,6 +438,8 @@ contract FactoryRouter is BFactory, IFactoryRouter {
      * @param swapFees swapFees (swapFee, swapMarketFee), swapOceanFee will be set automatically later
      *                     [0] = swapFee for LP Providers
      *                     [1] = swapFee for marketplace runner
+      
+      .
      * @param addresses refers to an array of addresses passed by user
      *                     [0]  = side staking contract address
      *                     [1]  = baseToken address for pool creation(OCEAN or other)
@@ -451,6 +447,7 @@ contract FactoryRouter is BFactory, IFactoryRouter {
      *                     [3]  = publisherAddress user which will be assigned the vested amount
      *                     [4]  = marketFeeCollector marketFeeCollector address
                            [5]  = poolTemplateAddress
+       
         @return pool address
      */
     function deployPool(
@@ -500,6 +497,7 @@ contract FactoryRouter is BFactory, IFactoryRouter {
      * @param uints array of uints [baseTokenDecimals,datatokenDecimals, fixedRate, marketFee, withMint]
        @return exchangeId
      */
+
     function deployFixedRate(
         address fixedPriceAddress,
         address[] calldata addresses,
@@ -533,6 +531,7 @@ contract FactoryRouter is BFactory, IFactoryRouter {
      * @param owner - owner
      * @param allowedSwapper - if !=0, only this address can request DTs
      */
+
     function deployDispenser(
         address _dispenser,
         address datatoken,
@@ -558,7 +557,7 @@ contract FactoryRouter is BFactory, IFactoryRouter {
         );
     }
 
-    /**
+     /**
      * @dev addPoolTemplate
      *      Adds an address to the list of pools templates
      *  @param poolTemplate address Contract to be added
@@ -566,8 +565,7 @@ contract FactoryRouter is BFactory, IFactoryRouter {
     function addPoolTemplate(address poolTemplate) external onlyRouterOwner {
         _addPoolTemplate(poolTemplate);
     }
-
-    /**
+     /**
      * @dev removePoolTemplate
      *      Removes an address from the list of pool templates
      *  @param poolTemplate address Contract to be removed
