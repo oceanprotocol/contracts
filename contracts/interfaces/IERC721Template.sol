@@ -203,11 +203,6 @@ interface IERC721Template {
         bool transferable
     ) external returns (bool);
 
-    function hasRole(bytes32 role, address account)
-        external
-        view
-        returns (bool);
-
      struct Roles {
         bool manager;
         bool deployERC20;
