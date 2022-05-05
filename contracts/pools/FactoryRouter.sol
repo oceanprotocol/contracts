@@ -735,4 +735,13 @@ contract FactoryRouter is BFactory, IFactoryRouter {
         require(IERC20(erc20).balanceOf(to) >= balanceBefore.add(amount),
                     "Transfer amount is too low");
     }
+
+    function getPoolTemplates() public view override(BFactory, IFactoryRouter) returns (address[] memory) {
+        BFactory.getPoolTemplates();
+    }
+
+    function isPoolTemplate(address poolTemplate) public view override(BFactory, IFactoryRouter)
+        returns (bool) {
+        return BFactory.isPoolTemplate(poolTemplate);
+    }
 }

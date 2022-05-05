@@ -4,7 +4,7 @@ pragma solidity 0.8.12;
 // Code is Apache-2.0 and docs are CC-BY-4.0
 
 interface IFactory {
-    function  createToken(
+    function createToken(
         uint256 _templateIndex,
         string[] calldata strings,
         address[] calldata addresses,

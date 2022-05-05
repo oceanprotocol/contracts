@@ -175,7 +175,7 @@ contract BFactory is BConst, Deployer {
      *      Removes true if address exists in the list of templates
      *  @param poolTemplate address Contract to be checked
      */
-    function isPoolTemplate(address poolTemplate) public view returns (bool) {
+    function isPoolTemplate(address poolTemplate) public view virtual returns (bool) {
         for (uint256 i = 0; i < poolTemplates.length; i++) {
             if (poolTemplates[i] == poolTemplate) return true;
         }
@@ -186,7 +186,7 @@ contract BFactory is BConst, Deployer {
      * @dev getPoolTemplates
      *      Returns the list of pool templates
      */
-    function getPoolTemplates() public view returns (address[] memory) {
+    function getPoolTemplates() public view virtual returns (address[] memory) {
         return (poolTemplates);
     }
 }
