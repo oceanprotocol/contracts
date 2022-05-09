@@ -1017,6 +1017,13 @@ contract ERC20Template is
      *      the collected ether.
      */
     fallback() external payable {}
+    
+    /**
+     * @dev receive function
+     *      this is a default receive function in which receives
+     *      the collected ether.
+     */
+    receive() external payable {}
 
     /**
      * @dev withdrawETH

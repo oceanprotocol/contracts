@@ -28,7 +28,6 @@ contract OPFCommunityFeeCollector is Ownable {
         address payable newCollector,
         address OPFOwnerAddress
     ) 
-        public
         Ownable()
     {
         require(
@@ -45,6 +44,13 @@ contract OPFCommunityFeeCollector is Ownable {
      *      the collected ether.
      */
     fallback() external payable {}
+
+    /**
+     * @dev receive function
+     *      this is a default receive function in which receives
+     *      the collected ether.
+     */
+    receive() external payable {}
 
     /**
      * @dev withdrawETH

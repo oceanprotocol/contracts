@@ -89,7 +89,7 @@ contract SideStaking is ReentrancyGuard {
      * @dev constructor
      *      Called on contract deployment.
      */
-    constructor(address _router) public {
+    constructor(address _router) {
         require(_router != address(0), "Invalid _router address");
         router = _router;
     }

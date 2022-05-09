@@ -947,6 +947,13 @@ contract ERC20TemplateEnterprise is
     fallback() external payable {}
 
     /**
+     * @dev receive function
+     *      this is a default receive function in which receives
+     *      the collected ether.
+     */
+    receive() external payable {}
+    
+    /**
      * @dev withdrawETH
      *      transfers all the accumlated ether the collector account
      */
