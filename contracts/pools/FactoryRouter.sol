@@ -737,7 +737,7 @@ contract FactoryRouter is BFactory, IFactoryRouter {
     }
 
     function getPoolTemplates() public view override(BFactory, IFactoryRouter) returns (address[] memory) {
-        BFactory.getPoolTemplates();
+        return BFactory.getPoolTemplates();
     }
 
     function isPoolTemplate(address poolTemplate) public view override(BFactory, IFactoryRouter)
