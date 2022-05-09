@@ -3,6 +3,7 @@ pragma solidity 0.8.12;
 // SPDX-License-Identifier: (Apache-2.0 AND CC-BY-4.0)
 // Code is Apache-2.0 and docs are CC-BY-4.0
 
+import "../../interfaces/IDispenser.sol";
 import "../../interfaces/IERC20.sol";
 import "../../interfaces/IERC20Template.sol";
 import "../../interfaces/IERC721Template.sol";
@@ -11,7 +12,7 @@ import "@openzeppelin/contracts/utils/math/SafeMath.sol";
 import "../../utils/SafeERC20.sol";
 import "@openzeppelin/contracts/security/ReentrancyGuard.sol";
 
-contract Dispenser is ReentrancyGuard{
+contract Dispenser is ReentrancyGuard, IDispenser{
     using SafeMath for uint256;
     using SafeERC20 for IERC20;
     address public router;

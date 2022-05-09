@@ -2,6 +2,8 @@ pragma solidity 0.8.12;
 // Copyright BigchainDB GmbH and Ocean Protocol contributors
 // SPDX-License-Identifier: (Apache-2.0 AND CC-BY-4.0)
 // Code is Apache-2.0 and docs are CC-BY-4.0
+
+import "../../interfaces/ISideStaking.sol";
 import "../../interfaces/IERC20.sol";
 import "../../interfaces/IERC20Template.sol";
 import "../../interfaces/IERC721Template.sol";
@@ -24,7 +26,7 @@ import "@openzeppelin/contracts/security/ReentrancyGuard.sol";
      *                     [4]  = initial liquidity in baseToken for pool creation
  *
  */
-contract SideStaking is ReentrancyGuard {
+contract SideStaking is ReentrancyGuard, ISideStaking {
     using SafeMath for uint256;
     using SafeERC20 for IERC20;
     address public router;

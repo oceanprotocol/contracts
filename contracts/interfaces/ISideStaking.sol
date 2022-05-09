@@ -42,7 +42,7 @@ interface ISideStaking {
         view
         returns (address);
 
-    function getbBaseTokenBalance(address datatokenAddress)
+    function getBaseTokenBalance(address datatokenAddress)
         external
         view
         returns (uint256);
@@ -95,7 +95,6 @@ interface ISideStaking {
         uint256 poolAmountIn
     ) external;
 
-    function notifyFinalize(address datatokenAddress) external;
     function getId() pure external returns (uint8);
 
   

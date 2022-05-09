@@ -5,8 +5,18 @@ pragma solidity 0.8.12;
 
 interface IDispenser {
     
-    function status(address datatoken) external view 
-    returns(bool active,address owner,bool isMinter,uint256 maxTokens,uint256 maxBalance, uint256 balance);
+    function status(address datatoken)
+    external
+    view
+    returns (
+        bool active,
+        address owner,
+        bool isMinter,
+        uint256 maxTokens,
+        uint256 maxBalance,
+        uint256 balance,
+        address allowedSwapper
+    );
     
     function create(
         address datatoken,uint256 maxTokens, uint256 maxBalance, address owner, address allowedSwapper) external;
@@ -14,7 +24,7 @@ interface IDispenser {
     
     function deactivate(address datatoken) external;
     
-    function dispense(address datatoken, uint256 amount, address destination) external;
+    function dispense(address datatoken, uint256 amount, address destination) external payable;
     
     function ownerWithdraw(address datatoken) external;
     function setAllowedSwapper(address datatoken, address newAllowedSwapper) external;

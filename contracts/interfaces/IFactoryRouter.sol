@@ -40,7 +40,7 @@ interface IFactoryRouter {
     function getFixedRatesContracts() external view returns(address[] memory);
     function isDispenserContract(address) external view returns(bool);
     function getDispensersContracts() external view returns(address[] memory);
-     function isPoolTemplate(address) external view returns(bool);
+    function isPoolTemplate(address) external view returns(bool);
     function getPoolTemplates() external view returns(address[] memory);
 
     struct Stakes {

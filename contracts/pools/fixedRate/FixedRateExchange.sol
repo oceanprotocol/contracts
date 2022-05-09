@@ -2,6 +2,7 @@ pragma solidity 0.8.12;
 // Copyright BigchainDB GmbH and Ocean Protocol contributors
 // SPDX-License-Identifier: (Apache-2.0 AND CC-BY-4.0)
 // Code is Apache-2.0 and docs are CC-BY-4.0
+import "../../interfaces/IFixedRateExchange.sol";
 import "../../interfaces/IERC20.sol";
 import "../../interfaces/IERC20Template.sol";
 import "../../interfaces/IERC721Template.sol";
@@ -20,7 +21,7 @@ import "@openzeppelin/contracts/security/ReentrancyGuard.sol";
 
 
 
-contract FixedRateExchange is ReentrancyGuard {
+contract FixedRateExchange is ReentrancyGuard, IFixedRateExchange {
     using SafeMath for uint256;
     using SafeERC20 for IERC20;
     uint256 private constant BASE = 1e18;
