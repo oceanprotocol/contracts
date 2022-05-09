@@ -162,7 +162,8 @@ contract ERC721Factory is Deployer, Ownable, ReentrancyGuard, IFactory {
         );
        
         erc721List[token] = token;
-
+        emit NFTCreated(token, tokenTemplate.templateAddress, name, owner, symbol, tokenURI, transferable, msg.sender);
+        currentNFTCount += 1;
         IERC721Template tokenInstance = IERC721Template(token);
         require(
             tokenInstance.initialize(
@@ -178,8 +179,7 @@ contract ERC721Factory is Deployer, Ownable, ReentrancyGuard, IFactory {
             "ERC721DTFactory: Unable to initialize token instance"
         );
 
-        emit NFTCreated(token, tokenTemplate.templateAddress, name, owner, symbol, tokenURI, transferable, msg.sender);
-        currentNFTCount += 1;
+        
     }
     
     /**

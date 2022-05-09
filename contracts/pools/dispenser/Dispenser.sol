@@ -241,8 +241,8 @@ contract Dispenser is ReentrancyGuard, IDispenser{
             ourBalance>=amount,
             'Not enough reserves'
         );
-        IERC20(datatoken).safeTransfer(destination,amount);
         emit TokensDispensed(datatoken, destination, amount);
+        IERC20(datatoken).safeTransfer(destination,amount);
     }
 
     /**
@@ -263,8 +263,8 @@ contract Dispenser is ReentrancyGuard, IDispenser{
         address destination = tokenInstance.getPaymentCollector();
         uint256 ourBalance = tokenInstance.balanceOf(address(this));
         if(ourBalance>0){
-            IERC20(datatoken).safeTransfer(destination,ourBalance);
             emit OwnerWithdrawed(datatoken, destination, ourBalance);
+            IERC20(datatoken).safeTransfer(destination,ourBalance);
         }
     }
 }

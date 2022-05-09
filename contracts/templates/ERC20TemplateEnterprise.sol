@@ -334,12 +334,12 @@ contract ERC20TemplateEnterprise is
     ) external onlyERC20Deployer nonReentrant returns (bytes32 exchangeId) {
         //force FRE allowedSwapper to this contract address. no one else can swap
         addresses[3] = address(this);
+        if (uints[4] > 0) _addMinter(fixedPriceAddress);
         exchangeId = IFactoryRouter(router).deployFixedRate(
             fixedPriceAddress,
             addresses,
             uints
         );
-        if (uints[4] > 0) _addMinter(fixedPriceAddress);
         emit NewFixedRate(exchangeId, addresses[1], fixedPriceAddress, addresses[0]);
         fixedRateExchanges.push(fixedRate(fixedPriceAddress,exchangeId));
     }
@@ -360,6 +360,10 @@ contract ERC20TemplateEnterprise is
         bool withMint,
         address
     ) external onlyERC20Deployer nonReentrant {
+        // add dispenser contract as minter if withMint == true
+        if (withMint) _addMinter(_dispenser);
+        dispensers.push(_dispenser);
+        emit NewDispenser(_dispenser);
         IFactoryRouter(router).deployDispenser(
             _dispenser,
             address(this),
@@ -368,10 +372,6 @@ contract ERC20TemplateEnterprise is
             msg.sender,
             address(this)
         );
-        // add FixedPriced contract as minter if withMint == true
-        if (withMint) _addMinter(_dispenser);
-        dispensers.push(_dispenser);
-        emit NewDispenser(_dispenser);
     }
 
     /**
