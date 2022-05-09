@@ -653,15 +653,16 @@ contract FixedRateExchange is ReentrancyGuard, IFixedRateExchange {
     function _collectMarketFee(bytes32 exchangeId) internal {
         uint256 amount = exchanges[exchangeId].marketFeeAvailable;
         exchanges[exchangeId].marketFeeAvailable = 0;
-        IERC20(exchanges[exchangeId].baseToken).safeTransfer(
-            exchanges[exchangeId].marketFeeCollector,
-            amount
-        );
         emit MarketFeeCollected(
             exchangeId,
             exchanges[exchangeId].baseToken,
             amount
         );
+        IERC20(exchanges[exchangeId].baseToken).safeTransfer(
+            exchanges[exchangeId].marketFeeCollector,
+            amount
+        );
+        
     }
 
     /**

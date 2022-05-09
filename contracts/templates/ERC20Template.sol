@@ -390,13 +390,13 @@ contract ERC20Template is
         address[] memory addresses,
         uint256[] memory uints
     ) external onlyERC20Deployer nonReentrant returns (bytes32 exchangeId) {
+        // add FixedPriced contract as minter if withMint == true
+        if (uints[4] > 0) _addMinter(fixedPriceAddress);
         exchangeId = IFactoryRouter(router).deployFixedRate(
             fixedPriceAddress,
             addresses,
             uints
         );
-        // add FixedPriced contract as minter if withMint == true
-        if (uints[4] > 0) _addMinter(fixedPriceAddress);
         emit NewFixedRate(exchangeId, addresses[1], fixedPriceAddress, addresses[0]);
         fixedRateExchanges.push(fixedRate(fixedPriceAddress,exchangeId));
 
@@ -418,6 +418,10 @@ contract ERC20Template is
         bool withMint,
         address allowedSwapper
     ) external onlyERC20Deployer nonReentrant {
+        // add FixedPriced contract as minter if withMint == true
+        if (withMint) _addMinter(_dispenser);
+        dispensers.push(_dispenser);
+        emit NewDispenser(_dispenser);
         IFactoryRouter(router).deployDispenser(
             _dispenser,
             address(this),
@@ -426,10 +430,6 @@ contract ERC20Template is
             msg.sender,
             allowedSwapper
         );
-        // add FixedPriced contract as minter if withMint == true
-        if (withMint) _addMinter(_dispenser);
-        dispensers.push(_dispenser);
-        emit NewDispenser(_dispenser);
     }
 
     /**

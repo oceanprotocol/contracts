@@ -335,8 +335,8 @@ contract BPool is BMath, BToken, IPool {
         for (uint256 i = 0; i < tokens.length; i++) {
             uint256 amount = communityFees[tokens[i]];
             communityFees[tokens[i]] = 0;
-            IERC20(tokens[i]).safeTransfer(_opcCollector, amount);
             emit OPCFee(msg.sender, _opcCollector, tokens[i], amount);
+            IERC20(tokens[i]).safeTransfer(_opcCollector, amount);
         }
     }
 
@@ -392,13 +392,13 @@ contract BPool is BMath, BToken, IPool {
         for (uint256 i = 0; i < tokens.length; i++) {
             uint256 amount = publishMarketFees[tokens[i]];
             publishMarketFees[tokens[i]] = 0;
-            IERC20(tokens[i]).safeTransfer(_publishMarketCollector, amount);
             emit PublishMarketFee(
                 msg.sender,
                 _publishMarketCollector,
                 tokens[i],
                 amount
             );
+            IERC20(tokens[i]).safeTransfer(_publishMarketCollector, amount);
         }
     }
 
