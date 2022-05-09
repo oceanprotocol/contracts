@@ -81,7 +81,7 @@ contract FactoryRouter is BFactory, IFactoryRouter {
         address _bpoolTemplate,
         address _opcCollector,
         address[] memory _preCreatedPools
-    ) public BFactory(_bpoolTemplate, _opcCollector, _preCreatedPools) {
+    ) BFactory(_bpoolTemplate, _opcCollector, _preCreatedPools) {
         require(
             _routerOwner != address(0),
             "FactoryRouter: Invalid router owner"
@@ -483,7 +483,7 @@ contract FactoryRouter is BFactory, IFactoryRouter {
         return pool;
     }
 
-    function getLength(IERC20[] memory array) internal pure returns (uint256) {
+    function _getLength(IERC20[] memory array) internal pure returns (uint256) {
         return array.length;
     }
 

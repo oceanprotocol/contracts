@@ -91,7 +91,7 @@ contract SideStaking is ReentrancyGuard, ISideStaking {
      * @dev constructor
      *      Called on contract deployment.
      */
-    constructor(address _router) public {
+    constructor(address _router) {
         require(_router != address(0), "Invalid _router address");
         router = _router;
     }
@@ -179,7 +179,7 @@ contract SideStaking is ReentrancyGuard, ISideStaking {
             _datatokens[datatokenAddress].vestingAmount
         );
 
-        notifyFinalize(datatokenAddress, ssParams[1]);
+        _notifyFinalize(datatokenAddress, ssParams[1]);
 
         return (true);
     }
@@ -434,7 +434,7 @@ contract SideStaking is ReentrancyGuard, ISideStaking {
     }
 
     //called by the pool (or by us) when we should finalize the pool
-    function notifyFinalize(address datatokenAddress, uint256 decimals)
+    function _notifyFinalize(address datatokenAddress, uint256 decimals)
         internal
     {
         if (!_datatokens[datatokenAddress].bound) return;

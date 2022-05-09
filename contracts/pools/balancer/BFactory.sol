@@ -52,7 +52,7 @@ contract BFactory is BConst, Deployer {
         address _bpoolTemplate,
         address _opcCollector,
         address[] memory _preCreatedPools
-    ) public {
+    ) {
         require(
             _bpoolTemplate != address(0),
             "BFactory: invalid bpool template zero address"

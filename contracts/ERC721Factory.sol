@@ -220,7 +220,7 @@ contract ERC721Factory is Deployer, Ownable, ReentrancyGuard, IFactory {
             _templateAddress != address(0),
             "ERC721DTFactory: ERC721 template address(0) NOT ALLOWED"
         );
-        require(isContract(_templateAddress), "ERC721Factory: NOT CONTRACT");
+        require(_isContract(_templateAddress), "ERC721Factory: NOT CONTRACT");
         nftTemplateCount += 1;
         Template memory template = Template(_templateAddress, true);
         nftTemplateList[nftTemplateCount] = template;
@@ -278,7 +278,7 @@ contract ERC721Factory is Deployer, Ownable, ReentrancyGuard, IFactory {
      *  - an address where a contract lived, but was destroyed
      * ====
      */
-    function isContract(address account) internal view returns (bool) {
+    function _isContract(address account) internal view returns (bool) {
         // This method relies on extcodesize, which returns 0 for contracts in
         // construction, since the code is only stored at the end of the
         // constructor execution.
@@ -436,7 +436,7 @@ contract ERC721Factory is Deployer, Ownable, ReentrancyGuard, IFactory {
             _templateAddress != address(0),
             "ERC20Factory: ERC721 template address(0) NOT ALLOWED"
         );
-        require(isContract(_templateAddress), "ERC20Factory: NOT CONTRACT");
+        require(_isContract(_templateAddress), "ERC20Factory: NOT CONTRACT");
         templateCount += 1;
         Template memory template = Template(_templateAddress, true);
         templateList[templateCount] = template;
