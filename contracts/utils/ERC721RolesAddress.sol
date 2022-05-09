@@ -62,7 +62,7 @@ contract ERC721RolesAddress {
         if(_allowedAddress != address(0)){
             Roles storage user = permissions[_allowedAddress];
             user.store = true;
-            pushToAuth(_allowedAddress);
+            _pushToAuth(_allowedAddress);
             emit AddedTo725StoreList(_allowedAddress,msg.sender,block.timestamp,block.number);
         }
     }
@@ -80,7 +80,7 @@ contract ERC721RolesAddress {
             Roles storage user = permissions[_allowedAddress];
             user.store = false;
             emit RemovedFrom725StoreList(_allowedAddress,msg.sender,block.timestamp,block.number);
-            SafeRemoveFromAuth(_allowedAddress);
+            _SafeRemoveFromAuth(_allowedAddress);
         }
         else{
             revert("ERC721RolesAddress: Not enough permissions to remove from 725StoreList");
@@ -116,7 +116,7 @@ contract ERC721RolesAddress {
     function _addToCreateERC20List(address _allowedAddress) internal {
         Roles storage user = permissions[_allowedAddress];
         user.deployERC20 = true;
-        pushToAuth(_allowedAddress);
+        _pushToAuth(_allowedAddress);
         emit AddedToCreateERC20List(_allowedAddress,msg.sender,block.timestamp,block.number);
     }
 
@@ -135,7 +135,7 @@ contract ERC721RolesAddress {
             Roles storage user = permissions[_allowedAddress];
             user.deployERC20 = false;
             emit RemovedFromCreateERC20List(_allowedAddress,msg.sender,block.timestamp,block.number);
-            SafeRemoveFromAuth(_allowedAddress);
+            _SafeRemoveFromAuth(_allowedAddress);
         }
         else{
             revert("ERC721RolesAddress: Not enough permissions to remove from ERC20List");
@@ -169,7 +169,7 @@ contract ERC721RolesAddress {
         if(_allowedAddress != address(0)){
             Roles storage user = permissions[_allowedAddress];
             user.updateMetadata = true;
-            pushToAuth(_allowedAddress);
+            _pushToAuth(_allowedAddress);
             emit AddedToMetadataList(_allowedAddress,msg.sender,block.timestamp,block.number);
         }
     }
@@ -189,7 +189,7 @@ contract ERC721RolesAddress {
             Roles storage user = permissions[_allowedAddress];
             user.updateMetadata = false;    
             emit RemovedFromMetadataList(_allowedAddress,msg.sender,block.timestamp,block.number);
-            SafeRemoveFromAuth(_allowedAddress);
+            _SafeRemoveFromAuth(_allowedAddress);
         }
         else{
             revert("ERC721RolesAddress: Not enough permissions to remove from metadata list");
@@ -218,7 +218,7 @@ contract ERC721RolesAddress {
         if(_managerAddress != address(0)){
             Roles storage user = permissions[_managerAddress];
             user.manager = true;
-            pushToAuth(_managerAddress);
+            _pushToAuth(_managerAddress);
             emit AddedManager(_managerAddress,msg.sender,block.timestamp,block.number);
         }
     }
@@ -232,7 +232,7 @@ contract ERC721RolesAddress {
         Roles storage user = permissions[_managerAddress];
         user.manager = false;
         emit RemovedManager(_managerAddress,msg.sender,block.timestamp,block.number);
-        SafeRemoveFromAuth(_managerAddress);
+        _SafeRemoveFromAuth(_managerAddress);
     }
 
 
@@ -287,17 +287,17 @@ contract ERC721RolesAddress {
                     user.store = true;
                     emit AddedTo725StoreList(addresses[i],msg.sender,block.timestamp,block.number);
                 }
-                pushToAuth(addresses[i]);
+                _pushToAuth(addresses[i]);
             }
         }
     }
 
     /**
-    * @dev pushToAuth
+    * @dev _pushToAuth
     *      Checks auth array and adds the user address if does not exists
     * @param user address to be checked
     */
-    function pushToAuth(address user) internal {
+    function _pushToAuth(address user) internal {
         uint256 i;
         for (i = 0; i < auth.length; i++) {
             if(auth[i] == user) break;
@@ -309,11 +309,11 @@ contract ERC721RolesAddress {
     }
 
     /**
-    * @dev SafeRemoveFromAuth
+    * @dev _SafeRemoveFromAuth
     *      Checks if user has any roles left, and if not, it will remove it from auth array
     * @param user address to be checked and removed
     */
-    function SafeRemoveFromAuth(address user) internal {
+    function _SafeRemoveFromAuth(address user) internal {
         Roles storage userRoles = permissions[user];
         if (userRoles.manager == false &&
             userRoles.deployERC20 == false && 
