@@ -450,12 +450,12 @@ contract ERC20Template is
 
     
     /**
-     * @dev checkProviderFee
+     * @dev _checkProviderFee
      *      Checks if a providerFee structure is valid, signed and 
      *      transfers fee to providerAddress
      * @param _providerFee providerFee structure
      */
-    function checkProviderFee(providerFee calldata _providerFee) internal{
+    function _checkProviderFee(providerFee calldata _providerFee) internal{
         // check if they are signed
         bytes memory prefix = "\x19Ethereum Signed Message:\n32";
         bytes32 message = keccak256(
@@ -577,7 +577,7 @@ contract ERC20Template is
                 _consumeMarketFee.consumeMarketFeeAmount
             );
         }
-        checkProviderFee(_providerFee);
+        _checkProviderFee(_providerFee);
         uint256 OPCFee = IFactoryRouter(router).getOPCConsumeFee();
         
         // send datatoken to publisher
@@ -609,7 +609,7 @@ contract ERC20Template is
             block.timestamp,
             block.number
         );
-        checkProviderFee(_providerFee);
+        _checkProviderFee(_providerFee);
     }
 
     /**
@@ -1099,7 +1099,7 @@ contract ERC20Template is
                 )
             )
         );
-        require(ecrecovery(providerHash, providerSignature) == msg.sender, "Provider signature check failed");
+        require(_ecrecovery(providerHash, providerSignature) == msg.sender, "Provider signature check failed");
         bytes32 consumerHash = keccak256(
             abi.encodePacked(prefix,
                 keccak256(
@@ -1109,14 +1109,14 @@ contract ERC20Template is
                 )
             )
         );
-        require(ecrecovery(consumerHash, consumerSignature) == consumerAddress, "Consumer signature check failed");
+        require(_ecrecovery(consumerHash, consumerSignature) == consumerAddress, "Consumer signature check failed");
         emit OrderExecuted(msg.sender, consumerAddress ,orderTxId, providerData, providerSignature,
                 consumerData, consumerSignature, block.timestamp, block.number);
     }
 
 
 
-    function ecrecovery(bytes32 hash, bytes memory sig) pure internal returns (address) {
+    function _ecrecovery(bytes32 hash, bytes memory sig) pure internal returns (address) {
         bytes32 r;
         bytes32 s;
         uint8 v;

@@ -57,7 +57,7 @@ contract ERC20Roles {
             RolesERC20 storage user = permissions[_minter];
             require(user.minter == false, "ERC20Roles:  ALREADY A MINTER");
             user.minter = true;
-            pushToAuthERC20(_minter);
+            _pushToAuthERC20(_minter);
             emit AddedMinter(_minter,msg.sender,block.timestamp,block.number);
         }
     }
@@ -71,7 +71,7 @@ contract ERC20Roles {
         RolesERC20 storage user = permissions[_minter];
         user.minter = false;
         emit RemovedMinter(_minter,msg.sender,block.timestamp,block.number);
-        SafeRemoveFromAuthERC20(_minter);
+        _SafeRemoveFromAuthERC20(_minter);
     }
 
     event AddedPaymentManager(
@@ -97,7 +97,7 @@ contract ERC20Roles {
             RolesERC20 storage user = permissions[_paymentCollector];
             require(user.paymentManager == false, "ERC20Roles:  ALREADY A FEE MANAGER");
             user.paymentManager = true;
-            pushToAuthERC20(_paymentCollector);
+            _pushToAuthERC20(_paymentCollector);
             emit AddedPaymentManager(_paymentCollector,msg.sender,block.timestamp,block.number);
         }
     }
@@ -111,7 +111,7 @@ contract ERC20Roles {
         RolesERC20 storage user = permissions[_paymentCollector];
         user.paymentManager = false;
         emit RemovedPaymentManager(_paymentCollector,msg.sender,block.timestamp,block.number);
-        SafeRemoveFromAuthERC20(_paymentCollector);
+        _SafeRemoveFromAuthERC20(_paymentCollector);
     }
 
 
@@ -142,11 +142,11 @@ contract ERC20Roles {
 
 
         /**
-    * @dev pushToAuthERC20
+    * @dev _pushToAuthERC20
     *      Checks authERC20 array and adds the user address if does not exists
     * @param user address to be checked
     */
-    function pushToAuthERC20(address user) internal {
+    function _pushToAuthERC20(address user) internal {
         uint256 i;
         for (i = 0; i < authERC20.length; i++) {
             if(authERC20[i] == user) break;
@@ -158,11 +158,11 @@ contract ERC20Roles {
     }
 
     /**
-    * @dev SafeRemoveFromAuthERC20
+    * @dev _SafeRemoveFromAuthERC20
     *      Checks if user has any roles left, and if not, it will remove it from auth array
     * @param user address to be checked and removed
     */
-    function SafeRemoveFromAuthERC20(address user) internal {
+    function _SafeRemoveFromAuthERC20(address user) internal {
         RolesERC20 storage userRoles = permissions[user];
         if (userRoles.minter == false &&
             userRoles.paymentManager == false

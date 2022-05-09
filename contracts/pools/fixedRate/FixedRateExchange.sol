@@ -285,7 +285,7 @@ contract FixedRateExchange is ReentrancyGuard {
             uint256 consumeMarketFeeAmount;
     }
         
-    function getBaseTokenOutPrice(bytes32 exchangeId, uint256 datatokenAmount) 
+    function _getBaseTokenOutPrice(bytes32 exchangeId, uint256 datatokenAmount) 
     internal view returns (uint256 baseTokenAmount){
         baseTokenAmount = datatokenAmount
             .mul(exchanges[exchangeId].fixedRate)
@@ -313,7 +313,7 @@ contract FixedRateExchange is ReentrancyGuard {
 
 
     {
-        uint256 baseTokenAmountBeforeFee = getBaseTokenOutPrice(exchangeId, datatokenAmount);
+        uint256 baseTokenAmountBeforeFee = _getBaseTokenOutPrice(exchangeId, datatokenAmount);
         Fees memory fee = Fees(0,0,0,0);
         uint256 opcFee = getOPCFee(exchanges[exchangeId].baseToken);
         if (opcFee != 0) {
@@ -368,7 +368,7 @@ contract FixedRateExchange is ReentrancyGuard {
             uint256 consumeMarketFeeAmount
         )
     {
-        uint256 baseTokenAmountBeforeFee = getBaseTokenOutPrice(exchangeId, datatokenAmount);
+        uint256 baseTokenAmountBeforeFee = _getBaseTokenOutPrice(exchangeId, datatokenAmount);
 
         Fees memory fee = Fees(0,0,0,0);
         uint256 opcFee = getOPCFee(exchanges[exchangeId].baseToken);
@@ -761,7 +761,7 @@ contract FixedRateExchange is ReentrancyGuard {
     {
         // check if owner still has role, maybe he was an ERC20Deployer when fixedrate was created, but not anymore
         exchanges[exchangeId].withMint = 
-            checkAllowedWithMint(exchanges[exchangeId].exchangeOwner, exchanges[exchangeId].datatoken,withMint);
+            _checkAllowedWithMint(exchanges[exchangeId].exchangeOwner, exchanges[exchangeId].datatoken,withMint);
         emit ExchangeMintStateChanged(exchangeId, msg.sender, withMint);
     }
 
@@ -773,7 +773,7 @@ contract FixedRateExchange is ReentrancyGuard {
      * @param datatoken datatoken address
      * @param withMint desired flag, might get overwritten if owner has no roles
      */
-    function checkAllowedWithMint(address owner, address datatoken, bool withMint) internal view returns(bool){
+    function _checkAllowedWithMint(address owner, address datatoken, bool withMint) internal view returns(bool){
             //if owner does not want withMint, return false
             if(withMint == false) return false;
             IERC721Template nft = IERC721Template(IERC20Template(datatoken).getERC721Address());

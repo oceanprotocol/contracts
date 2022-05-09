@@ -484,7 +484,7 @@ contract FactoryRouter is BFactory {
         return pool;
     }
 
-    function getLength(IERC20[] memory array) internal pure returns (uint256) {
+    function _getLength(IERC20[] memory array) internal pure returns (uint256) {
         return array.length;
     }
 
