@@ -82,9 +82,10 @@ async function main() {
       networkName = "polygon";
       productionNetwork = true;
       OceanTokenAddress = "0x282d8efCe846A88B159800bd4130ad77443Fa1A1";
-      OPFOwner = "0xc37f8341ac6e4a94538302bcd4d49cf0852d30c0";
+      OPFOwner = "0x6272E00741C16b9A337E29DB672d51Af09eA87dD";
       routerOwner = OPFOwner;
       gasLimit = 20000000;
+      gasPrice = ethers.utils.parseUnits('100', 'gwei')
       break;
     case 0x507:
       networkName = "moonbase";
@@ -105,7 +106,7 @@ async function main() {
       routerOwner = OPFOwner;
       OceanTokenAddress = "0xd8992Ed72C445c35Cb4A2be468568Ed1079357c8";
       gasLimit = 20000000
-      gasPrice = ethers.utils.parseUnits('70', 'gwei')
+      gasPrice = ethers.utils.parseUnits('60', 'gwei')
       sleepAmount = 2
       break;
     case 0x38:
@@ -266,14 +267,13 @@ async function main() {
   );
   const fixedPriceExchange = await FixedPriceExchange.connect(owner).deploy(
     router.address,
-    addresses.OPFCommunityFeeCollector,
     options
   );
   await fixedPriceExchange.deployTransaction.wait();
   addresses.FixedPrice = fixedPriceExchange.address;
   if(show_verify){
     console.log("\tRun the following to verify on etherscan");
-    console.log("\tnpx hardhat verify --network "+networkName+" "+addresses.FixedPrice+" "+router.address+" "+addresses.OPFCommunityFeeCollector)
+    console.log("\tnpx hardhat verify --network "+networkName+" "+addresses.FixedPrice+" "+router.address)
   }
   if(sleepAmount>0)  await sleep(sleepAmount)
   if (logging) console.info("Deploying StakingContract");
@@ -336,7 +336,6 @@ async function main() {
 
     "ERC721": templateERC721.address,
     "ERC20": templateERC20.address,
-    "OPFCommunityFeeCollector": addresses.OPFCommunityFeeCollector,
     "Router": router.address
     }
     console.info("Deploying ERC721 Factory");
@@ -347,14 +346,13 @@ async function main() {
   const factoryERC721 = await ERC721Factory.connect(owner).deploy(
     templateERC721.address,
     templateERC20.address,
-    addresses.OPFCommunityFeeCollector,
     router.address,
     options
   );
   await factoryERC721.deployTransaction.wait();
   if(show_verify){
     console.log("\tRun the following to verify on etherscan");
-    console.log("\tnpx hardhat verify --network "+networkName+" "+factoryERC721.address+" "+templateERC721.address+" "+templateERC20.address+" "+addresses.OPFCommunityFeeCollector+" "+router.address)
+    console.log("\tnpx hardhat verify --network "+networkName+" "+factoryERC721.address+" "+templateERC721.address+" "+templateERC20.address+" "+router.address)
   }
   if(sleepAmount>0)  await sleep(sleepAmount)
   addresses.ERC721Factory = factoryERC721.address;
