@@ -198,6 +198,7 @@ contract BMath is BConst, BNum {
         internal pure
         returns (uint tokenAmountOut)
     {
+        require(poolAmountIn >= 1, 'ERR_POOL_AMOUNT_IN_TOO_LOW'); 
         poolAmountIn = poolAmountIn * 2;
         uint newPoolSupply = bsub(poolSupply, poolAmountIn);
         uint poolRatio = bdiv(newPoolSupply, poolSupply);
@@ -221,6 +222,7 @@ contract BMath is BConst, BNum {
         uint tokenOutRatio = bdiv(newTokenBalanceOut, tokenBalanceOut);
         uint poolRatio = bsub(BONE,tokenOutRatio);
         uint newPoolSupply = bmul(poolRatio, poolSupply);
+        require(newPoolSupply >= 2, 'ERR_TOKEN_AMOUNT_OUT_TOO_LOW'); 
         newPoolSupply = newPoolSupply/2;
         return newPoolSupply;
     }
