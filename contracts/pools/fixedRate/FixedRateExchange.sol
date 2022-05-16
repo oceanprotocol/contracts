@@ -30,8 +30,7 @@ contract FixedRateExchange is ReentrancyGuard, IFixedRateExchange {
     uint public constant MIN_RATE          = 1e10;
 
     address public router;
-    address public opcCollector;
-
+    
     struct Exchange {
         bool active;
         address exchangeOwner;
@@ -163,11 +162,9 @@ contract FixedRateExchange is ReentrancyGuard, IFixedRateExchange {
         uint256 swapFee);
 
 
-    constructor(address _router, address _opcCollector) {
+    constructor(address _router) {
         require(_router != address(0), "FixedRateExchange: Wrong Router address");
-        require(_opcCollector != address(0), "FixedRateExchange: Wrong OPC address");
         router = _router;
-        opcCollector = _opcCollector;
     }
 
     /**
@@ -679,7 +676,7 @@ contract FixedRateExchange is ReentrancyGuard, IFixedRateExchange {
         uint256 amount = exchanges[exchangeId].oceanFeeAvailable;
         exchanges[exchangeId].oceanFeeAvailable = 0;
         IERC20(exchanges[exchangeId].baseToken).safeTransfer(
-            opcCollector,
+            IFactoryRouter(router).getOPCCollector(),
             amount
         );
         emit OceanFeeCollected(

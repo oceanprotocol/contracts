@@ -114,7 +114,6 @@ describe("Dispenser", () => {
     factoryERC721 = await ERC721Factory.deploy(
       templateERC721.address,
       templateERC20.address,
-      opcCollector.address,
       router.address
     );
 

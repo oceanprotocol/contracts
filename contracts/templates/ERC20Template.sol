@@ -37,7 +37,6 @@ contract ERC20Template is
     string private _symbol;
     uint256 private _cap;
     uint8 private constant _decimals = 18;
-    address private _communityFeeCollector;
     bool private initialized = false;
     address private _erc721Address;
     address private paymentCollector;
@@ -213,8 +212,7 @@ contract ERC20Template is
      *                     [3]  = publishing Market Fee Token
      * @param factoryAddresses_ refers to an array of addresses passed by the factory
      *                     [0]  = erc721Address
-     *                     [1]  = communityFeeCollector it is the community fee collector address
-     *                     [2]  = router address
+     *                     [1]  = router address
      *
      * @param uints_  refers to an array of uints
      *                     [0] = cap_ the total ERC20 cap
@@ -252,8 +250,7 @@ contract ERC20Template is
      *                     [3]  = publishing Market Fee Token
      * @param factoryAddresses_ refers to an array of addresses passed by the factory
      *                     [0]  = erc721Address
-     *                     [1]  = communityFeeCollector it is the community fee collector address
-     *                     [2]  = router address
+     *                     [1]  = router address
      *
      * @param uints_  refers to an array of uints
      *                     [0] = cap_ the total ERC20 cap
@@ -269,15 +266,15 @@ contract ERC20Template is
         bytes[] memory
     ) private returns (bool) {
         address erc721Address = factoryAddresses_[0];
-        address communityFeeCollector = factoryAddresses_[1];
+        router = factoryAddresses_[1];
         require(
             erc721Address != address(0),
             "ERC20Template: Invalid minter,  zero address"
         );
 
         require(
-            communityFeeCollector != address(0),
-            "ERC20Template: Invalid community fee collector, zero address"
+            router != address(0),
+            "ERC20Template: Invalid router, zero address"
         );
 
         // require(uints_[0] != 0, "DatatokenTemplate: Invalid cap value");
@@ -286,8 +283,6 @@ contract ERC20Template is
         _name = strings_[0];
         _symbol = strings_[1];
         _erc721Address = erc721Address;
-        router = factoryAddresses_[2];
-        _communityFeeCollector = communityFeeCollector;
         initialized = true;
         // add a default minter, similar to what happens with manager in the 721 contract
         _addMinter(addresses_[0]);
@@ -505,7 +500,7 @@ contract ERC20Template is
             );
             if(OPCcut > 0){
               IERC20(_providerFee.providerFeeToken).safeTransfer(
-                _communityFeeCollector,
+                IFactoryRouter(router).getOPCCollector(),
                 OPCcut
             );  
             }
@@ -586,7 +581,7 @@ contract ERC20Template is
             "Failed to send DT to publisher"
         );
         require(
-            transfer(_communityFeeCollector, OPCFee),
+            transfer(IFactoryRouter(router).getOPCCollector(), OPCFee),
             "Failed to send DT to OPC"
         );
     }

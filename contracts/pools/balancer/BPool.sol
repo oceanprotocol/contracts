@@ -115,7 +115,6 @@ contract BPool is BMath, BToken, IPool {
 
     //address public _publishMarketCollector;
     address public _publishMarketCollector;
-    address public _opcCollector;
     // `setSwapFee` and `finalize` require CONTROL
     // `finalize` sets `PUBLIC can SWAP`, `PUBLIC can JOIN`
     bool private _finalized;
@@ -151,7 +150,7 @@ contract BPool is BMath, BToken, IPool {
         bool publicSwap,
         bool finalized,
         address[2] calldata tokens,
-        address[2] calldata feeCollectors
+        address[1] calldata feeCollectors
     ) external returns (bool) {
         require(!initialized, "ERR_ALREADY_INITIALIZED");
         require(controller != address(0), "ERR_INVALID_CONTROLLER_ADDRESS");
@@ -180,7 +179,7 @@ contract BPool is BMath, BToken, IPool {
         bool publicSwap,
         bool finalized,
         address[2] memory tokens,
-        address[2] memory feeCollectors
+        address[1] memory feeCollectors
     ) private returns (bool) {
         _controller = controller;
         _factory = factory;
@@ -193,7 +192,6 @@ contract BPool is BMath, BToken, IPool {
         _baseTokenAddress = tokens[1];
         _publishMarketCollector = feeCollectors[0];
         emit PublishMarketFeeChanged(msg.sender, _publishMarketCollector, _swapPublishMarketFee);
-        _opcCollector = feeCollectors[1];
         initialized = true;
         ssContract = ISideStaking(_controller);
         return initialized;
@@ -335,6 +333,7 @@ contract BPool is BMath, BToken, IPool {
         for (uint256 i = 0; i < tokens.length; i++) {
             uint256 amount = communityFees[tokens[i]];
             communityFees[tokens[i]] = 0;
+            address _opcCollector = IFactoryRouter(_factory).getOPCCollector();
             emit OPCFee(msg.sender, _opcCollector, tokens[i], amount);
             IERC20(tokens[i]).safeTransfer(_opcCollector, amount);
         }

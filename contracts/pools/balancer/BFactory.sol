@@ -97,7 +97,7 @@ contract BFactory is BConst, Deployer {
         address[] memory addresses
     ) internal returns (address bpool) {
         require(isPoolTemplate(addresses[5]), "BFactory: Wrong Pool Template");
-        address[2] memory feeCollectors = [addresses[4], opcCollector];
+        address[1] memory feeCollectors = [addresses[4]];
 
         bpool = deploy(addresses[5]);
 

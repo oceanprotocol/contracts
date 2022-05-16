@@ -69,7 +69,6 @@ describe("NFT Creation, roles and erc20 deployments", () => {
     factoryERC721 = await ERC721Factory.deploy(
       templateERC721.address,
       templateERC20.address,
-      communityFeeCollector,
       router.address
     );
 

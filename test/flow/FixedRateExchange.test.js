@@ -155,8 +155,7 @@ describe("FixedRateExchange", () => {
 
 
     fixedRateExchange = await FixedRateExchange.deploy(
-      router.address,
-      opcCollector.address
+      router.address
     );
 
     templateERC20 = await ERC20Template.deploy();
@@ -168,7 +167,6 @@ describe("FixedRateExchange", () => {
     factoryERC721 = await ERC721Factory.deploy(
       templateERC721.address,
       templateERC20.address,
-      opcCollector.address,
       router.address
     );
 
@@ -5247,7 +5245,6 @@ describe("FixedRateExchange", () => {
     it("#7 - When NFT is transfered, make sure that exchange is deleted", async () => {
       let exchangeDetails = await fixedRateExchange.getExchange(eventsExchange[0].args.exchangeId);
       let feesInfo = await fixedRateExchange.getFeesInfo(eventsExchange[0].args.exchangeId)
-      const opcAddress = await fixedRateExchange.opcCollector()
       const tx = await tokenERC721.transferFrom(owner.address, charlie.address, 1)
       await tx.wait()
       //check new onwer

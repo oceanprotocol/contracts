@@ -139,7 +139,6 @@ describe("1SS flow", () => {
     factoryERC721 = await ERC721Factory.deploy(
       templateERC721.address,
       templateERC20.address,
-      communityFeeCollector,
       router.address
     );
 
