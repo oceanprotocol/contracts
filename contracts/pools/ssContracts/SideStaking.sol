@@ -495,7 +495,7 @@ contract SideStaking is ReentrancyGuard, ISideStaking {
      */
     function getAvailableVesting(address)
         public
-        view
+        pure
         returns (uint256)
     {
         // see https://github.com/oceanprotocol/contracts/issues/603

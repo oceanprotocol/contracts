@@ -983,9 +983,7 @@ contract BPool is BMath, BToken, IPool {
 
         poolAmountOut = calcPoolOutGivenSingleIn(
             inRecord.balance,
-            inRecord.denorm,
             _totalSupply,
-            _totalWeight,
             tokenAmountIn
         );
 
@@ -1002,9 +1000,7 @@ contract BPool is BMath, BToken, IPool {
         Record storage ssInRecord = _records[_datatokenAddress];
         uint256 ssAmountIn = calcSingleInGivenPoolOut(
             ssInRecord.balance,
-            ssInRecord.denorm,
             _totalSupply,
-            _totalWeight,
             poolAmountOut
         );
         if (ssContract.canStake(_datatokenAddress, ssAmountIn)) {
@@ -1051,9 +1047,7 @@ contract BPool is BMath, BToken, IPool {
 
         tokenAmountOut = calcSingleOutGivenPoolIn(
             outRecord.balance,
-            outRecord.denorm,
             _totalSupply,
-            _totalWeight,
             poolAmountIn
         );
         require(tokenAmountOut >= minAmountOut, "ERR_LIMIT_OUT");
@@ -1078,9 +1072,7 @@ contract BPool is BMath, BToken, IPool {
             Record storage ssOutRecord = _records[_datatokenAddress];
             uint256 ssAmountOut = calcSingleOutGivenPoolIn(
                 ssOutRecord.balance,
-                ssOutRecord.denorm,
                 _totalSupply,
-                _totalWeight,
                 poolAmountIn
             );
 
@@ -1131,9 +1123,7 @@ contract BPool is BMath, BToken, IPool {
 
         tokenAmountOut = calcSingleOutGivenPoolIn(
             outRecord.balance,
-            outRecord.denorm,
             _totalSupply,
-            _totalWeight,
             poolAmountIn
         );
 
@@ -1155,9 +1145,7 @@ contract BPool is BMath, BToken, IPool {
 
         poolAmountIn = calcPoolInGivenSingleOut(
             outRecord.balance,
-            outRecord.denorm,
             _totalSupply,
-            _totalWeight,
             tokenAmountOut
         );
         return poolAmountIn;
@@ -1178,9 +1166,7 @@ contract BPool is BMath, BToken, IPool {
 
         tokenAmountIn = calcSingleInGivenPoolOut(
             inRecord.balance,
-            inRecord.denorm,
             _totalSupply,
-            _totalWeight,
             poolAmountOut
         );
 
@@ -1202,9 +1188,7 @@ contract BPool is BMath, BToken, IPool {
 
         poolAmountOut = calcPoolOutGivenSingleIn(
             inRecord.balance,
-            inRecord.denorm,
             _totalSupply,
-            _totalWeight,
             tokenAmountIn
         );
 
