@@ -409,6 +409,19 @@ describe("FactoryRouter", () => {
    
   })
 
+  it("#getOPCCollector - should succedd to get OPC Collector address",async () => {
+    assert(await router.getOPCCollector() == opcCollector.address)
+  })
+  it("#updateOPCCollector - should fail to update OPC Collector if NOT Router Owner",async () => {
+    await expectRevert(router.connect(user2).updateOPCCollector(user2.address), "OceanRouter: NOT OWNER")
+  })
+      
+  it("#updateOPCCollector - should succedd to update OPC Collector if Router Owner",async () => {
+    await router.updateOPCCollector(user2.address)
+    assert(await router.getOPCCollector() == user2.address)
+  })
+
+
 });
 
 
