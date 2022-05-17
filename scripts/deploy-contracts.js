@@ -84,8 +84,8 @@ async function main() {
       OceanTokenAddress = "0x282d8efCe846A88B159800bd4130ad77443Fa1A1";
       OPFOwner = "0x6272E00741C16b9A337E29DB672d51Af09eA87dD";
       routerOwner = OPFOwner;
-      gasLimit = 20000000;
-      gasPrice = ethers.utils.parseUnits('100', 'gwei')
+      gasLimit = 19000000;
+      gasPrice = ethers.utils.parseUnits('40', 'gwei')
       break;
     case 0x507:
       networkName = "moonbase";
@@ -105,8 +105,8 @@ async function main() {
       OPFOwner = '0x06100AB868206861a4D7936166A91668c2Ce1312'
       routerOwner = OPFOwner;
       OceanTokenAddress = "0xd8992Ed72C445c35Cb4A2be468568Ed1079357c8";
-      gasLimit = 20000000
-      gasPrice = ethers.utils.parseUnits('60', 'gwei')
+      gasLimit = 15000000
+      gasPrice = ethers.utils.parseUnits('45', 'gwei')
       sleepAmount = 2
       break;
     case 0x38:
