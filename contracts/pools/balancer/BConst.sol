@@ -38,5 +38,5 @@ contract BConst {
     uint public constant BPOW_PRECISION    = BONE / 1e10;
 
     uint public constant MAX_IN_RATIO      = BONE / 2;
-    uint public constant MAX_OUT_RATIO     = (BONE / 3) + 1 wei;
+    uint public constant MAX_OUT_RATIO     = (BONE / 2) + 1 wei;
 }
