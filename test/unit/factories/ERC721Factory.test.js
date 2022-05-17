@@ -112,8 +112,7 @@ describe("ERC721Factory", () => {
    sideStaking = await SSContract.deploy(router.address);
 
    fixedRateExchange = await FixedRateExchange.deploy(
-     router.address,
-     opcCollector.address
+     router.address
    );
 
    dispenser = await Dispenser.deploy(
@@ -130,7 +129,6 @@ describe("ERC721Factory", () => {
    factoryERC721 = await ERC721Factory.deploy(
      templateERC721.address,
      templateERC20.address,
-     opcCollector.address,
      router.address
    );
  

@@ -25,7 +25,6 @@ import "@openzeppelin/contracts/security/ReentrancyGuard.sol";
 contract ERC721Factory is Deployer, Ownable, ReentrancyGuard, IFactory {
     using SafeERC20 for IERC20;
     using SafeMath for uint256;
-    address private communityFeeCollector;
     uint256 private currentNFTCount;
     address private erc20Factory;
     uint256 private nftTemplateCount;
@@ -94,27 +93,24 @@ contract ERC721Factory is Deployer, Ownable, ReentrancyGuard, IFactory {
     /**
      * @dev constructor
      *      Called on contract deployment. Could not be called with zero address parameters.
+     * @param _template721 refers to the address of ERC721 template
      * @param _template refers to the address of a deployed datatoken contract.
-     * @param _collector refers to the community fee collector address
      * @param _router router contract address
      */
     constructor(
         address _template721,
         address _template,
-        address _collector,
         address _router
     ) {
         require(
             _template != address(0) &&
-                _collector != address(0) &&
+                _router != address(0) &&
                 _template721 != address(0),
-            "ERC721DTFactory: Invalid template token/community fee collector address"
+            "ERC721DTFactory: Invalid template/router address"
         );
-        require(_router != address(0), "ERC721DTFactory: Invalid router address");
         add721TokenTemplate(_template721);
         addTokenTemplate(_template);
         router = _router;
-        communityFeeCollector = _collector;
     }
 
 
@@ -375,9 +371,7 @@ contract ERC721Factory is Deployer, Ownable, ReentrancyGuard, IFactory {
         address[] memory factoryAddresses = new address[](3);
         factoryAddresses[0] = tokenData.owner;
         
-        factoryAddresses[1] = communityFeeCollector;
-        
-        factoryAddresses[2] = router;
+        factoryAddresses[1] = router;
         
         require(
             tokenInstance.initialize(

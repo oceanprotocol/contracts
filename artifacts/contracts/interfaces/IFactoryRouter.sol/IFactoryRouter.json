@@ -223,6 +223,19 @@
     },
     {
       "inputs": [],
+      "name": "getOPCCollector",
+      "outputs": [
+        {
+          "internalType": "address",
+          "name": "",
+          "type": "address"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [],
       "name": "getOPCConsumeFee",
       "outputs": [
         {
@@ -431,6 +444,19 @@
         }
       ],
       "name": "stakeBatch",
+      "outputs": [],
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "address",
+          "name": "_opcCollector",
+          "type": "address"
+        }
+      ],
+      "name": "updateOPCCollector",
       "outputs": [],
       "stateMutability": "nonpayable",
       "type": "function"

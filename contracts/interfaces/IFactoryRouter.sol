@@ -70,4 +70,6 @@ interface IFactoryRouter {
         address marketFeeAddress;
     }
     function buyDTBatch(Operations[] calldata) external;
+    function updateOPCCollector(address _opcCollector) external;
+    function getOPCCollector() view external returns (address);
 }

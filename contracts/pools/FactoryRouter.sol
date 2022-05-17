@@ -75,6 +75,8 @@ contract FactoryRouter is BFactory, IFactoryRouter {
         _;
     }
 
+    event OPCCollectorChanged(address indexed caller, address indexed _newOpcCollector);
+
     constructor(
         address _routerOwner,
         address _oceanToken,
@@ -743,5 +745,24 @@ contract FactoryRouter is BFactory, IFactoryRouter {
     function isPoolTemplate(address poolTemplate) public view override(BFactory, IFactoryRouter)
         returns (bool) {
         return BFactory.isPoolTemplate(poolTemplate);
+    }
+
+
+    /*
+     * @dev updateOPCCollector
+     *      Set new opcCollector
+     * @param opcCollector
+     */
+    function updateOPCCollector(address _opcCollector) external onlyRouterOwner {
+        require(_opcCollector != address(0), "New opcCollector cannot be ZERO_ADDR");
+        opcCollector = _opcCollector;
+        emit OPCCollectorChanged(msg.sender, _opcCollector);
+    }
+    /*
+      * @dev getOPCCollector
+      * getter for opcCollector
+    */
+    function getOPCCollector() view public returns (address) {
+        return opcCollector;
     }
 }

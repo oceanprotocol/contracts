@@ -100,8 +100,7 @@ describe("FactoryRouter", () => {
   dispenser = await DispenserContract.deploy(router.address);
 
   fixedRateExchange = await FixedRateExchange.deploy(
-    router.address,
-    opcCollector.address
+    router.address
   );
 
   templateERC20 = await ERC20Template.deploy();
@@ -112,7 +111,6 @@ describe("FactoryRouter", () => {
   factoryERC721 = await ERC721Factory.deploy(
     templateERC721.address,
     templateERC20.address,
-    opcCollector.address,
     router.address
   );
 
@@ -410,6 +408,19 @@ describe("FactoryRouter", () => {
     assert(await router.isPoolTemplate(poolTemplate.address) ==false)
    
   })
+
+  it("#getOPCCollector - should succedd to get OPC Collector address",async () => {
+    assert(await router.getOPCCollector() == opcCollector.address)
+  })
+  it("#updateOPCCollector - should fail to update OPC Collector if NOT Router Owner",async () => {
+    await expectRevert(router.connect(user2).updateOPCCollector(user2.address), "OceanRouter: NOT OWNER")
+  })
+      
+  it("#updateOPCCollector - should succedd to update OPC Collector if Router Owner",async () => {
+    await router.updateOPCCollector(user2.address)
+    assert(await router.getOPCCollector() == user2.address)
+  })
+
 
 });
 
