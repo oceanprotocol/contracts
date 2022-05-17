@@ -21,7 +21,6 @@ import './BNum.sol';
 
 import "../../interfaces/IFactoryRouter.sol";
 
-
 contract BMath is BConst, BNum {
 
    // uint public _swapMarketFee;
@@ -187,6 +186,8 @@ contract BMath is BConst, BNum {
         uint poolRatio = bdiv(newPoolSupply, poolSupply);
         uint tokenInRatio = bsub(poolRatio, BONE);
         uint newTokenBalanceIn = bmul(tokenInRatio, tokenBalanceIn);
+        require(newTokenBalanceIn >= 1, 'ERR_POOL_AMOUNT_OUT_TOO_LOW'); 
+        newTokenBalanceIn = newTokenBalanceIn * 2;
         return newTokenBalanceIn;
     }
 
