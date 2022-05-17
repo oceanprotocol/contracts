@@ -81,6 +81,23 @@ contract Dispenser is ReentrancyGuard, IDispenser{
         _;
     }
 
+    modifier onlyOwnerAndTemplate(address datatoken) {
+        // allow only ERC20 Deployers or NFT Owner
+        require(
+            datatoken != address(0),
+            'Invalid token contract address'
+        );
+        IERC20Template dt = IERC20Template(datatoken);
+        require(
+            dt.isERC20Deployer(msg.sender) || 
+            IERC721Template(dt.getERC721Address()).ownerOf(1) == msg.sender ||
+            datatoken == msg.sender
+            ,
+            "Invalid owner"
+        );
+        _;
+    }
+
     
     constructor(address _router) {
         require(_router != address(0), "Dispenser: Wrong Router address");
@@ -250,7 +267,7 @@ contract Dispenser is ReentrancyGuard, IDispenser{
      *      Withdraw all datatokens in this dispenser balance to ERC20.getPaymentCollector()
      * @param datatoken refers to datatoken address.
      */
-    function ownerWithdraw(address datatoken) external nonReentrant {
+    function ownerWithdraw(address datatoken) external onlyOwnerAndTemplate(datatoken) nonReentrant {
         require(
             datatoken != address(0),
             'Invalid token contract address'
