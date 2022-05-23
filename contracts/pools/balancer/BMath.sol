@@ -149,7 +149,7 @@ contract BMath is BConst, BNum {
         _swapfees.consumeMarketFee = bsub(tokenAmountIn, bmul(tokenAmountIn, bsub(BONE, _consumeMarketSwapFee)));
         
       
-        tokenAmountInBalance = bdiv(bmul(data[0], foo), bsub(BONE, _swapFee));
+        tokenAmountInBalance = bsub(tokenAmountIn,(_swapfees.oceanFeeAmount+_swapfees.publishMarketFeeAmount+_swapfees.consumeMarketFee));
       
         
         return (tokenAmountIn, tokenAmountInBalance,_swapfees);
