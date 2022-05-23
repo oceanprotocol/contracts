@@ -182,7 +182,7 @@ contract BPool is BMath, BToken, IPool {
         address[1] memory feeCollectors
     ) private returns (bool) {
         _controller = controller;
-        _factory = factory;
+        router = factory;
         _swapFee = swapFees[0];
         emit SwapFeeChanged(msg.sender, _swapFee);
         _swapPublishMarketFee = swapFees[1];
@@ -333,7 +333,7 @@ contract BPool is BMath, BToken, IPool {
         for (uint256 i = 0; i < tokens.length; i++) {
             uint256 amount = communityFees[tokens[i]];
             communityFees[tokens[i]] = 0;
-            address _opcCollector = IFactoryRouter(_factory).getOPCCollector();
+            address _opcCollector = IFactoryRouter(router).getOPCCollector();
             emit OPCFee(msg.sender, _opcCollector, tokens[i], amount);
             IERC20(tokens[i]).safeTransfer(_opcCollector, amount);
         }
