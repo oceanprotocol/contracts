@@ -50,16 +50,16 @@ from artifacts import address
 
 ### Features 
 
-- Base IP is now represented by an NFT, from which a datapublisher can create multiple ERC20s representing different type of access for the same dataset. (Link to NFT blog)
+- Base IP is now represented by an [NFT](https://blog.oceanprotocol.com/what-is-a-data-nft-5804a2d88671), from which a datapublisher can create multiple ERC20s representing different type of access for the same dataset.
 
-- An automated Datatoken Staking and Vesting contract helps with the initial DTs distribution and price stability. Goodbye rug pulls! More info on how it works: (Link to SideStaking blog)
+- An automated Datatoken [Staking](https://blog.oceanprotocol.com/ocean-v4-one-sided-staking-93988f65e378) helps with the initial DTs distribution and price stability. Goodbye rug pulls!
 
-- Help Ocean Community Monetize: there's a swap fee for the Ocean Community, if Ocean or allied tokens are the basetoken in a pool, Ocean Community will receive 0.1% swap fee, otherwhise it will be 0.2%. More details here: (Link to blog post on Ocean community monetization)
+- Help [Ocean Community Monetize](https://blog.oceanprotocol.com/how-to-make-money-from-ocean-v4-477b3decad51): there's a swap fee for the Ocean Community, if Ocean or allied tokens are the basetoken in a pool, Ocean Community will receive 0.1% swap fee, otherwhise it will be 0.2%.
 
 
 #### Flexibility
 
-- Introduce an advanced Fee Structure both for Market and Provider runners. (add link to fee post/docs when available)
+- Introduce an advanced [Fee Structure](https://docs.oceanprotocol.com/concepts/fees/) both for Market and Provider runners.
 
 - Roles Administration: there are now multiple roles for a more flexible administation both at NFT and ERC20 levels
 
@@ -146,12 +146,6 @@ You can execute just flow tests with:
 npm run test:flow
 
 ```
-
-## Known issues
- Vesting:
-  - when (vestingAmount/vestedBlocks) is a Periodic number, there’s a rounding issue of 1 wei. So if a publisher will call it once per day, over a period of 2 years, you may have a rounding error combined of 730 Weis. That is a neglectable amount.
-
-
 
 ## 🏛 License
 
