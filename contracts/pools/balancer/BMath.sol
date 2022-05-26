@@ -27,7 +27,7 @@ contract BMath is BConst, BNum {
     uint public _swapPublishMarketFee;
     uint internal _swapFee;
   
-    address internal _factory; // BFactory address to push token exitFee to
+    address public router; // BFactory address to push token exitFee to
 
     address internal _datatokenAddress; //datatoken address
     address internal _baseTokenAddress; //base token address
@@ -38,7 +38,7 @@ contract BMath is BConst, BNum {
 
 
     function getOPCFee() public view returns (uint) {
-        return IFactoryRouter(_factory).getOPCFee(_baseTokenAddress);
+        return IFactoryRouter(router).getOPCFee(_baseTokenAddress);
     }
     
     struct swapfees{
@@ -117,7 +117,7 @@ contract BMath is BConst, BNum {
 
         tokenAmountOut = bmul(data[2], bar);
        
-        return (tokenAmountOut, bsub(tokenAmountIn,(_swapfees.oceanFeeAmount+_swapfees.publishMarketFeeAmount)), _swapfees);
+        return (tokenAmountOut, bsub(tokenAmountIn,(_swapfees.oceanFeeAmount+_swapfees.publishMarketFeeAmount+_swapfees.consumeMarketFee)), _swapfees);
         
     }
 
@@ -149,7 +149,7 @@ contract BMath is BConst, BNum {
         _swapfees.consumeMarketFee = bsub(tokenAmountIn, bmul(tokenAmountIn, bsub(BONE, _consumeMarketSwapFee)));
         
       
-        tokenAmountInBalance = bdiv(bmul(data[0], foo), bsub(BONE, _swapFee));
+        tokenAmountInBalance = bsub(tokenAmountIn,(_swapfees.oceanFeeAmount+_swapfees.publishMarketFeeAmount+_swapfees.consumeMarketFee));
       
         
         return (tokenAmountIn, tokenAmountInBalance,_swapfees);
