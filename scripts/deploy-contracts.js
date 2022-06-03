@@ -52,6 +52,7 @@ async function main() {
   let gasLimit = 8000000;
   let gasPrice = null;
   let sleepAmount = 10;
+  let additionalApprovedTokens=[]
   console.log("Using chain "+networkDetails.chainId);
   switch (networkDetails.chainId) {
     case 1:
@@ -61,6 +62,7 @@ async function main() {
       routerOwner = OPFOwner;
       OceanTokenAddress = "0x967da4048cD07aB37855c090aAF366e4ce1b9F48";
       gasLimit = 30000000;
+      additionalApprovedTokens=["0x0642026E7f0B6cCaC5925b4E7Fa61384250e1701"];
       break;
     case 0x3:
       networkName = "ropsten";
@@ -387,6 +389,13 @@ async function main() {
   if (logging) console.info("Adding ssPool.address(" + ssPool.address + ") to router");
   await router.connect(owner).addSSContract(ssPool.address, options);
   if(sleepAmount>0)  await sleep(sleepAmount)
+  
+  // add additional tokens
+  for (const token of additionalApprovedTokens) {  
+    if (logging) console.info("Adding "+token+" as approved token");
+    await router.connect(owner).addApprovedToken(token, options);
+  }
+  
   // Avoid setting Owner an account we cannot use on barge for now
   if (logging) console.info("Moving Router ownership to " + routerOwner)
   if (owner.address != routerOwner) await router.connect(owner).changeRouterOwner(routerOwner, options)
