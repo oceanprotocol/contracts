@@ -87,7 +87,8 @@ async function main() {
       OPFOwner = "0x6272E00741C16b9A337E29DB672d51Af09eA87dD";
       routerOwner = OPFOwner;
       gasLimit = 19000000;
-      gasPrice = ethers.utils.parseUnits('120', 'gwei')
+      gasPrice = ethers.utils.parseUnits('120', 'gwei');
+      additionalApprovedTokens=["0xC5248Aa0629C0b2d6A02834a5f172937Ac83CBD3"];
       break;
     case 0x507:
       networkName = "moonbase";
