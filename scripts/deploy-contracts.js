@@ -58,11 +58,12 @@ async function main() {
     case 1:
       networkName = "mainnet";
       productionNetwork = true;
-      OPFOwner = "0x7DF5273aD9A6fCce64D45c64c1E43cfb6F861725";
+      OPFOwner = "0x0d27cd67c4A3fd3Eb9C7C757582f59089F058167";
       routerOwner = OPFOwner;
       OceanTokenAddress = "0x967da4048cD07aB37855c090aAF366e4ce1b9F48";
-      gasLimit = 30000000;
       additionalApprovedTokens=["0x0642026E7f0B6cCaC5925b4E7Fa61384250e1701"];
+      gasPrice = ethers.utils.parseUnits('40', 'gwei')
+      sleepAmount = 30
       break;
     case 0x3:
       networkName = "ropsten";
@@ -115,9 +116,11 @@ async function main() {
     case 0x38:
       networkName = "bsc";
       productionNetwork = true;
-      OPFOwner = '0x30E4CC2C7A9c6aA2b2Ce93586E3Df24a3A00bcDD';
+      OPFOwner = '0x62012804e638A15a5beC5aDE01756A7C8d0E50Cc';
       routerOwner = OPFOwner;
       OceanTokenAddress = "0xdce07662ca8ebc241316a15b611c89711414dd1a";
+      gasPrice = ethers.utils.parseUnits('5', 'gwei')
+      sleepAmount = 5
       break;
     case 2021001:
       networkName = "catenaxtestnet";
@@ -129,8 +132,9 @@ async function main() {
       networkName = "energyweb";
       productionNetwork = true;
       OceanTokenAddress = "0x593122aae80a6fc3183b2ac0c4ab3336debee528";
-      OPFOwner = "0x06100AB868206861a4D7936166A91668c2Ce1312";
+      OPFOwner = "0xB98f46485e8b9206158D8127BAF81Dbfd6139Cef";
       routerOwner = OPFOwner;
+      sleepAmount = 5;
       break;
     case 1285:
       networkName = "moonriver";
@@ -379,27 +383,36 @@ async function main() {
   // SET REQUIRED ADDRESS
   if(sleepAmount>0)  await sleep(sleepAmount)
   if (logging) console.info("Adding factoryERC721.address(" + factoryERC721.address + ") to router");
-  await router.connect(owner).addFactory(factoryERC721.address, options);
+  const factoryAddTx=await router.connect(owner).addFactory(factoryERC721.address, options);
+  await factoryAddTx.wait();
   if(sleepAmount>0)  await sleep(sleepAmount)
   if (logging) console.info("Adding fixedPriceExchange.address(" + fixedPriceExchange.address + ") to router");
-  await router.connect(owner).addFixedRateContract(fixedPriceExchange.address, options);
+  const freAddTx=await router.connect(owner).addFixedRateContract(fixedPriceExchange.address, options);
+  await freAddTx.wait();
   if(sleepAmount>0)  await sleep(sleepAmount)
   if (logging) console.info("Adding dispenser.address(" + dispenser.address + ") to router");
-  await router.connect(owner).addDispenserContract(dispenser.address, options);
+  const dispenserAddTx=await router.connect(owner).addDispenserContract(dispenser.address, options);
+  await dispenserAddTx.wait();
   if(sleepAmount>0)  await sleep(sleepAmount)
   if (logging) console.info("Adding ssPool.address(" + ssPool.address + ") to router");
-  await router.connect(owner).addSSContract(ssPool.address, options);
+  const ssAddTx=await router.connect(owner).addSSContract(ssPool.address, options);
+  await ssAddTx.wait();
   if(sleepAmount>0)  await sleep(sleepAmount)
   
   // add additional tokens
   for (const token of additionalApprovedTokens) {  
     if (logging) console.info("Adding "+token+" as approved token");
-    await router.connect(owner).addApprovedToken(token, options);
+    const tokenTx=await router.connect(owner).addApprovedToken(token, options);
+    await tokenTx.wait();
   }
   
   // Avoid setting Owner an account we cannot use on barge for now
-  if (logging) console.info("Moving Router ownership to " + routerOwner)
-  if (owner.address != routerOwner) await router.connect(owner).changeRouterOwner(routerOwner, options)
+  
+  if (owner.address != routerOwner) {
+    if (logging) console.info("Moving Router ownership to " + routerOwner)
+    const routerOwnerTx=await router.connect(owner).changeRouterOwner(routerOwner, options)
+    await routerOwnerTx.wait()
+  }
 
   if (addressFile) {
     // write address.json if needed

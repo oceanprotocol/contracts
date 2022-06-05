@@ -93,5 +93,81 @@
     },
     "Dispenser": "0x257fe2e49530A4B7FC3Ed597465e2931db3f20b7",
     "ERC721Factory": "0x6fd867E5AEE6D62a24f97939db90C4e67A73A651"
+  },
+  "bsc": {
+    "chainId": 56,
+    "Ocean": "0xdce07662ca8ebc241316a15b611c89711414dd1a",
+    "OPFCommunityFeeCollector": "0x973e69303259B0c2543a38665122b773D28405fB",
+    "startBlock": 18407552,
+    "poolTemplate": "0x3E85e7Cb15880b6d4871092E74bF65CE03E8448D",
+    "Router": "0x4344D4Bc29531DB736378e9A3dA85BF1eff0CB22",
+    "FixedPrice": "0x8bA04715B1b210f710426b21A29887EEd4EA6751",
+    "Staking": "0x1706DF1f2d93558D1d77bEd49ccdB8B88fAfC306",
+    "ERC20Template": {
+      "1": "0x45dA5988d4fEAEdc5Ee60FC83eA7Caa8Fb485883",
+      "2": "0xA8513c0457AfaD54a57664Ba5C742c24f1D624be"
+    },
+    "ERC721Template": {
+      "1": "0xDB55DCBbAC940aCb5c28817802f17A48B15d558b"
+    },
+    "Dispenser": "0x042BFbd88c3998282153088604207b2AeF045b43",
+    "ERC721Factory": "0xbFBc7A21133B4e0e54a182BE8d4337A5e036A615"
+  },
+  "energyweb": {
+    "chainId": 246,
+    "Ocean": "0x593122aae80a6fc3183b2ac0c4ab3336debee528",
+    "OPFCommunityFeeCollector": "0x3c21a90599b5B7f37014cA5Bf30d3f1b73d7e391",
+    "startBlock": 18264850,
+    "poolTemplate": "0xCfDdA22C9837aE76E0faA845354f33C62E03653a",
+    "Router": "0x4E6058dC00e90C0DCA47A5d0D3346F409939A5ab",
+    "FixedPrice": "0xE9397625Df9B63f0C152f975234b7988b54710B8",
+    "Staking": "0x159924ca0F47D6F704B97E29099b89e518A17B5E",
+    "ERC20Template": {
+      "1": "0xc313e19146Fc9a04470689C9d41a4D3054693531",
+      "2": "0x98679D582AB3398C03D3308dEB9c7AeC50B52ded"
+    },
+    "ERC721Template": {
+      "1": "0x1d535147a97bd87c8443125376E6671B60556E07"
+    },
+    "Dispenser": "0x042D709b72B437d7d387F2679bD4ac060e561c9f",
+    "ERC721Factory": "0x4dD281EB67DED07E76E413Df16176D66ae69e240"
+  },
+  "moonriver": {
+    "chainId": 1285,
+    "Ocean": "0x99C409E5f62E4bd2AC142f17caFb6810B8F0BAAE",
+    "OPFCommunityFeeCollector": "0x12bB8D85a091A69A07E22E52d4567dBB91568f52",
+    "startBlock": 1960563,
+    "poolTemplate": "0x9497d1d64F2aFeBcd4f9916Eef3d9094E5Df962f",
+    "Router": "0x7b0576CF01E868bce46cca91b2a8E674141b0355",
+    "FixedPrice": "0x8389bC1306208488D665F939AFB4079adf6f5a06",
+    "Staking": "0xc97fa83746aDe91b0eeB16cb51326a0A980Af7c3",
+    "ERC20Template": {
+      "1": "0xE5aa2C9B551aFcA4C0A98BB3B37D7A43084d0a66",
+      "2": "0xf0c7A31D7Ee26bEBfb4BAD8e37490bEadE3F846f"
+    },
+    "ERC721Template": {
+      "1": "0xA0329eFFa1370eAb1DC5998Db4292ae0F535a282"
+    },
+    "Dispenser": "0x0Ee8b03Dafc868a0899ebE1c12d734D53A957250",
+    "ERC721Factory": "0x86F2BB9F8f18B5a836b342199a3eC89F282E4018"
+  },
+  "mainnet": {
+    "chainId": 1,
+    "Ocean": "0x967da4048cD07aB37855c090aAF366e4ce1b9F48",
+    "OPFCommunityFeeCollector": "0x49E35cd2bAE043Abd9074B6e5a649a5AdEB05C33",
+    "startBlock": 14907021,
+    "poolTemplate": "0x8daC419D5D81Af8c8E795D0D73f64d5220e28cd8",
+    "Router": "0x8149276f275EEFAc110D74AFE8AFECEaeC7d1593",
+    "FixedPrice": "0xfa48673a7C36A2A768f89AC1ee8C355D5c367B02",
+    "Staking": "0x7842Fa3B2d87Ff1cd52C4152382f7C4B3406E5A6",
+    "ERC20Template": {
+      "1": "0x973e69303259B0c2543a38665122b773D28405fB",
+      "2": "0x3E85e7Cb15880b6d4871092E74bF65CE03E8448D"
+    },
+    "ERC721Template": {
+      "1": "0x4344D4Bc29531DB736378e9A3dA85BF1eff0CB22"
+    },
+    "Dispenser": "0x8bA04715B1b210f710426b21A29887EEd4EA6751",
+    "ERC721Factory": "0x1706DF1f2d93558D1d77bEd49ccdB8B88fAfC306"
   }
 }

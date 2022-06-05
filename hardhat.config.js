@@ -44,6 +44,12 @@ module.exports = {
       },
       gasPrice:1000000000
     },
+    mainnet: {
+      url:
+        process.env.NETWORK_RPC_URL !== undefined ? process.env.NETWORK_RPC_URL : "",
+      accounts:
+        process.env.PRIVATE_KEY !== undefined ? [process.env.PRIVATE_KEY] : [],
+    },
     ropsten: {
       url:
         process.env.NETWORK_RPC_URL !== undefined ? process.env.NETWORK_RPC_URL : "",
@@ -69,6 +75,24 @@ module.exports = {
         process.env.PRIVATE_KEY !== undefined ? [process.env.PRIVATE_KEY] : [],
     },
     polygon: {
+      url:
+        process.env.NETWORK_RPC_URL !== undefined ? process.env.NETWORK_RPC_URL : "",
+      accounts:
+        process.env.PRIVATE_KEY !== undefined ? [process.env.PRIVATE_KEY] : [],
+    },
+    bsc: {
+      url:
+        process.env.NETWORK_RPC_URL !== undefined ? process.env.NETWORK_RPC_URL : "",
+      accounts:
+        process.env.PRIVATE_KEY !== undefined ? [process.env.PRIVATE_KEY] : [],
+    },
+    energyweb:{
+      url:
+        process.env.NETWORK_RPC_URL !== undefined ? process.env.NETWORK_RPC_URL : "",
+      accounts:
+        process.env.PRIVATE_KEY !== undefined ? [process.env.PRIVATE_KEY] : [],
+    },
+    moonriver: {
       url:
         process.env.NETWORK_RPC_URL !== undefined ? process.env.NETWORK_RPC_URL : "",
       accounts:
