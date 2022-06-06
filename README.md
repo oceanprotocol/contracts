@@ -14,8 +14,7 @@ This is in beta state and you can expect running into problems. If you run into 
   - [Roles Diagram](#roles-diagram)
   - [Functions you will need](#functions-you-will-need)
   - [Bundle functions](#bundle-functions)
-- [🦑 Development and testing](#-development-testing)
-- [Known issues](#known-issues)
+- [🦑 Development and testing](#-development-and-testing)
 - [🏛 License](#-license)
 
 ## 📚 Installation
