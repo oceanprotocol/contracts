@@ -1,7 +1,7 @@
 {
   "rinkeby": {
     "chainId": 4,
-    "Ocean": "0x8967bcf84170c91b0d24d4302c2376283b0b3a07",
+    "Ocean": "0x8967BCF84170c91B0d24D4302C2376283b0B3a07",
     "OPFCommunityFeeCollector": "0x39b50501c22578D084191d7E91cfDd1068A4e163",
     "startBlock": 10693767,
     "poolTemplate": "0x41016a5a0a21B24C5c8C3ae119902a5bF5999bE2",
@@ -96,7 +96,7 @@
   },
   "bsc": {
     "chainId": 56,
-    "Ocean": "0xdce07662ca8ebc241316a15b611c89711414dd1a",
+    "Ocean": "0xDCe07662CA8EbC241316a15B611c89711414Dd1a",
     "OPFCommunityFeeCollector": "0x973e69303259B0c2543a38665122b773D28405fB",
     "startBlock": 18407552,
     "poolTemplate": "0x3E85e7Cb15880b6d4871092E74bF65CE03E8448D",
@@ -115,7 +115,7 @@
   },
   "energyweb": {
     "chainId": 246,
-    "Ocean": "0x593122aae80a6fc3183b2ac0c4ab3336debee528",
+    "Ocean": "0x593122AAE80A6Fc3183b2AC0c4ab3336dEbeE528",
     "OPFCommunityFeeCollector": "0x3c21a90599b5B7f37014cA5Bf30d3f1b73d7e391",
     "startBlock": 18264850,
     "poolTemplate": "0xCfDdA22C9837aE76E0faA845354f33C62E03653a",
