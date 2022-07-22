@@ -11,9 +11,6 @@ WORKDIR /ocean-contracts
 RUN npm install --no-optional && npm cache clean --force
 ENV SLEEP_FOR_GANACHE=10
 RUN cp hardhat.config.barge.js hardhat.config.js
-#RUN mkdir -p /root/.cache/hardhat-nodejs/compilers/
-#RUN cp -r ./compilers/* /root/.cache/hardhat-nodejs/compilers/
-#RUN chmod +x /root/.cache/hardhat-nodejs/compilers/vyper/linux/0.3.1
 ENV NETWORK=barge
 ENV NETWORK_RPC_URL=127.0.0.1:8545
 RUN npx hardhat compile
