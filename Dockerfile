@@ -20,5 +20,6 @@ ENV SLEEP_FOR_GANACHE=10
 RUN cp hardhat.config.barge.js hardhat.config.js
 ENV NETWORK=barge
 ENV NETWORK_RPC_URL=127.0.0.1:8545
-RUN npx hardhat compile
+RUN npx hardhat clean
+RUN npx hardhat compile --force
 ENTRYPOINT ["/ocean-contracts/scripts/deploy_docker.sh"]
