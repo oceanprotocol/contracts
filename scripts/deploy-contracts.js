@@ -11,7 +11,8 @@ const { UV_FS_O_FILEMAP } = require("constants");
 const ethers = hre.ethers;
 require("dotenv").config();
 const shouldDeployV4 = true;
-const shouldDeployV3 = false;
+const shouldDeployDF = true;
+const shouldDeployVE = true;
 let shouldDeployOceanMock = false;
 let shouldDeployOPFCommunityFeeCollector = false;
 const shouldDeployOPFCommunity = true;
@@ -19,12 +20,12 @@ const logging = true;
 const show_verify = true;
 async function main() {
   const url = process.env.NETWORK_RPC_URL;
-  console.log("Using RPC: "+url);
+  console.log("Using RPC: " + url);
   if (!url) {
     console.error("Missing NETWORK_RPC_URL. Aborting..");
     return null;
   }
-  if( !process.env.ADDRESS_FILE){
+  if (!process.env.ADDRESS_FILE) {
     console.error("Missing ADDRESS_FILE. Aborting..");
     return null;
   }
@@ -32,7 +33,7 @@ async function main() {
   const network = provider.getNetwork();
   // utils
   const networkDetails = await network;
-  
+
 
   let wallet;
   if (process.env.MNEMONIC)
@@ -52,8 +53,8 @@ async function main() {
   let gasLimit = 8000000;
   let gasPrice = null;
   let sleepAmount = 10;
-  let additionalApprovedTokens=[]
-  console.log("Using chain "+networkDetails.chainId);
+  let additionalApprovedTokens = []
+  console.log("Using chain " + networkDetails.chainId);
   switch (networkDetails.chainId) {
     case 1:
       networkName = "mainnet";
@@ -61,7 +62,7 @@ async function main() {
       OPFOwner = "0x0d27cd67c4A3fd3Eb9C7C757582f59089F058167";
       routerOwner = OPFOwner;
       OceanTokenAddress = "0x967da4048cD07aB37855c090aAF366e4ce1b9F48";
-      additionalApprovedTokens=["0x0642026E7f0B6cCaC5925b4E7Fa61384250e1701"];
+      additionalApprovedTokens = ["0x0642026E7f0B6cCaC5925b4E7Fa61384250e1701"];
       gasPrice = ethers.utils.parseUnits('40', 'gwei')
       sleepAmount = 30
       break;
@@ -89,7 +90,7 @@ async function main() {
       routerOwner = OPFOwner;
       gasLimit = 19000000;
       gasPrice = ethers.utils.parseUnits('120', 'gwei');
-      additionalApprovedTokens=["0xC5248Aa0629C0b2d6A02834a5f172937Ac83CBD3"];
+      additionalApprovedTokens = ["0xC5248Aa0629C0b2d6A02834a5f172937Ac83CBD3"];
       break;
     case 0x507:
       networkName = "moonbase";
@@ -157,10 +158,10 @@ async function main() {
     return null;
   }
   let options
-  if(gasPrice){
-    options = {gasLimit: gasLimit, gasPrice: gasPrice}
+  if (gasPrice) {
+    options = { gasLimit: gasLimit, gasPrice: gasPrice }
   }
-  else{
+  else {
     options = { gasLimit }
   }
   const addressFile = process.env.ADDRESS_FILE;
@@ -214,205 +215,336 @@ async function main() {
     );
     await opfcommunityfeecollector.deployTransaction.wait();
     addresses.OPFCommunityFeeCollector = opfcommunityfeecollector.address;
-    if(show_verify){
+    if (show_verify) {
       console.log("\tRun the following to verify on etherscan");
-      console.log("\tnpx hardhat verify --network "+networkName+" "+opfcommunityfeecollector.address+" "+OPFOwner+" "+OPFOwner)
+      console.log("\tnpx hardhat verify --network " + networkName + " " + opfcommunityfeecollector.address + " " + OPFOwner + " " + OPFOwner)
     }
-    if(sleepAmount>0)  await sleep(sleepAmount)
+    if (sleepAmount > 0) await sleep(sleepAmount)
   }
   else {
     addresses.OPFCommunityFeeCollector = OPFCommunityFeeCollectorAddress;
   }
 
+  if (shouldDeployV4) {
+    if (logging) console.info("Deploying V4 contracts");
+    // v4 contracts
 
-  if (logging) console.info("Deploying V4 contracts");
-  // v4 contracts
+    // DEPLOY ROUTER, SETTING OWNER
 
-  // DEPLOY ROUTER, SETTING OWNER
-
-  if (logging) console.info("Deploying BPool");
-  const BPool = await ethers.getContractFactory("BPool", owner);
-  const poolTemplate = await BPool.connect(owner).deploy(options);
-  const receipt = await poolTemplate.deployTransaction.wait();
-  addresses.startBlock = receipt.blockNumber 
-  addresses.poolTemplate = poolTemplate.address;
-  if(show_verify){
-    console.log("\tRun the following to verify on etherscan");
-    console.log("\tnpx hardhat verify --network "+networkName+" "+addresses.poolTemplate)
-  }
-  if(sleepAmount>0)  await sleep(sleepAmount)
-  if (logging) console.log("Deploying Router");
-  const Router = await ethers.getContractFactory("FactoryRouter", owner);
-  const router = await Router.connect(owner).deploy(
-    owner.address,
-    addresses.Ocean,
-    poolTemplate.address,
-    addresses.OPFCommunityFeeCollector,
-    [],
-    options
-  );
-  await router.deployTransaction.wait();
-  addresses.Router = router.address;
-  if(show_verify){
-    console.log("\tRun the following to verify on etherscan");
-    console.log("\tcat > args1.js\n");
-    console.log("\tmodule.exports=[\n");
-    console.log("\t'"+owner.address+"',\n");
-    console.log("\t'"+addresses.Ocean+"',\n");
-    console.log("\t'"+poolTemplate.address+"',\n");
-    console.log("\t'"+addresses.OPFCommunityFeeCollector+"',\n");
-    console.log("\t[]\n");
-    console.log("\t];");
-    console.log("\tCTRL+D");
-    console.log("\tnpx hardhat verify --network "+networkName+" --constructor-args args1.js "+addresses.Router)
-  }
-  if(sleepAmount>0)  await sleep(sleepAmount)
-  if (logging) console.info("Deploying FixedrateExchange");
-  const FixedPriceExchange = await ethers.getContractFactory(
-    "FixedRateExchange",
-    owner
-  );
-  const fixedPriceExchange = await FixedPriceExchange.connect(owner).deploy(
-    router.address,
-    options
-  );
-  await fixedPriceExchange.deployTransaction.wait();
-  addresses.FixedPrice = fixedPriceExchange.address;
-  if(show_verify){
-    console.log("\tRun the following to verify on etherscan");
-    console.log("\tnpx hardhat verify --network "+networkName+" "+addresses.FixedPrice+" "+router.address)
-  }
-  if(sleepAmount>0)  await sleep(sleepAmount)
-  if (logging) console.info("Deploying StakingContract");
-  const SSContract = await ethers.getContractFactory("SideStaking", owner);
-  const ssPool = await SSContract.connect(owner).deploy(router.address, options);
-  await ssPool.deployTransaction.wait();
-  addresses.Staking = ssPool.address;
-  if(show_verify){
-    console.log("\tRun the following to verify on etherscan");
-    console.log("\tnpx hardhat verify --network "+networkName+" "+addresses.Staking+" "+router.address)
-  }
-  addresses.ERC20Template = {};
-  if(sleepAmount>0)  await sleep(sleepAmount)
-  if (logging) console.info("Deploying ERC20 Template");
-  const ERC20Template = await ethers.getContractFactory("ERC20Template", owner);
-  const templateERC20 = await ERC20Template.connect(owner).deploy(options);
-  await templateERC20.deployTransaction.wait();
-  if(show_verify){
-    console.log("\tRun the following to verify on etherscan");
-    console.log("\tnpx hardhat verify --network "+networkName+" "+templateERC20.address)
-  }
-  if(sleepAmount>0)  await sleep(sleepAmount)
-  if (logging) console.info("Deploying ERC20 Enterprise Template");
-  const ERC20TemplateEnterprise = await ethers.getContractFactory(
-    "ERC20TemplateEnterprise",
-    owner
-  );
-  const templateERC20Enterprise = await ERC20TemplateEnterprise.connect(owner).deploy(options);
-  await templateERC20Enterprise.deployTransaction.wait();
-  if(show_verify){
-    console.log("\tRun the following to verify on etherscan");
-    console.log("\tnpx hardhat verify --network "+networkName+" "+templateERC20Enterprise.address)
-  }
-  addresses.ERC721Template = {};
-  if(sleepAmount>0)  await sleep(sleepAmount)
-  if (logging) console.info("Deploying ERC721 Template");
-  const ERC721Template = await ethers.getContractFactory(
-    "ERC721Template",
-    owner
-  );
-  const templateERC721 = await ERC721Template.connect(owner).deploy(options);
-  await templateERC721.deployTransaction.wait();
-  if(show_verify){
-    console.log("\tRun the following to verify on etherscan");
-    console.log("\tnpx hardhat verify --network "+networkName+" "+templateERC721.address)
-  }
-  if(sleepAmount>0)  await sleep(sleepAmount)
-  if (logging) console.info("Deploying Dispenser");
-  const Dispenser = await ethers.getContractFactory("Dispenser", owner);
-  const dispenser = await Dispenser.connect(owner).deploy(router.address, options);
-  await dispenser.deployTransaction.wait();
-  addresses.Dispenser = dispenser.address;
-  if(show_verify){
-    console.log("\tRun the following to verify on etherscan");
-    console.log("\tnpx hardhat verify --network "+networkName+" "+dispenser.address+" "+router.address)
-  }
-  if(sleepAmount>0)  await sleep(sleepAmount)
-  if (logging) {
-    const params = {
-
-    "ERC721": templateERC721.address,
-    "ERC20": templateERC20.address,
-    "Router": router.address
+    if (logging) console.info("Deploying BPool");
+    const BPool = await ethers.getContractFactory("BPool", owner);
+    const poolTemplate = await BPool.connect(owner).deploy(options);
+    const receipt = await poolTemplate.deployTransaction.wait();
+    addresses.startBlock = receipt.blockNumber
+    addresses.poolTemplate = poolTemplate.address;
+    if (show_verify) {
+      console.log("\tRun the following to verify on etherscan");
+      console.log("\tnpx hardhat verify --network " + networkName + " " + addresses.poolTemplate)
     }
-    console.info("Deploying ERC721 Factory");
-    console.info(params)
+    if (sleepAmount > 0) await sleep(sleepAmount)
+    if (logging) console.log("Deploying Router");
+    const Router = await ethers.getContractFactory("FactoryRouter", owner);
+    const router = await Router.connect(owner).deploy(
+      owner.address,
+      addresses.Ocean,
+      poolTemplate.address,
+      addresses.OPFCommunityFeeCollector,
+      [],
+      options
+    );
+    await router.deployTransaction.wait();
+    addresses.Router = router.address;
+    if (show_verify) {
+      console.log("\tRun the following to verify on etherscan");
+      console.log("\tcat > args1.js\n");
+      console.log("\tmodule.exports=[\n");
+      console.log("\t'" + owner.address + "',\n");
+      console.log("\t'" + addresses.Ocean + "',\n");
+      console.log("\t'" + poolTemplate.address + "',\n");
+      console.log("\t'" + addresses.OPFCommunityFeeCollector + "',\n");
+      console.log("\t[]\n");
+      console.log("\t];");
+      console.log("\tCTRL+D");
+      console.log("\tnpx hardhat verify --network " + networkName + " --constructor-args args1.js " + addresses.Router)
+    }
+    if (sleepAmount > 0) await sleep(sleepAmount)
+    if (logging) console.info("Deploying FixedrateExchange");
+    const FixedPriceExchange = await ethers.getContractFactory(
+      "FixedRateExchange",
+      owner
+    );
+    const fixedPriceExchange = await FixedPriceExchange.connect(owner).deploy(
+      router.address,
+      options
+    );
+    await fixedPriceExchange.deployTransaction.wait();
+    addresses.FixedPrice = fixedPriceExchange.address;
+    if (show_verify) {
+      console.log("\tRun the following to verify on etherscan");
+      console.log("\tnpx hardhat verify --network " + networkName + " " + addresses.FixedPrice + " " + router.address)
+    }
+    if (sleepAmount > 0) await sleep(sleepAmount)
+    if (logging) console.info("Deploying StakingContract");
+    const SSContract = await ethers.getContractFactory("SideStaking", owner);
+    const ssPool = await SSContract.connect(owner).deploy(router.address, options);
+    await ssPool.deployTransaction.wait();
+    addresses.Staking = ssPool.address;
+    if (show_verify) {
+      console.log("\tRun the following to verify on etherscan");
+      console.log("\tnpx hardhat verify --network " + networkName + " " + addresses.Staking + " " + router.address)
+    }
+    addresses.ERC20Template = {};
+    if (sleepAmount > 0) await sleep(sleepAmount)
+    if (logging) console.info("Deploying ERC20 Template");
+    const ERC20Template = await ethers.getContractFactory("ERC20Template", owner);
+    const templateERC20 = await ERC20Template.connect(owner).deploy(options);
+    await templateERC20.deployTransaction.wait();
+    if (show_verify) {
+      console.log("\tRun the following to verify on etherscan");
+      console.log("\tnpx hardhat verify --network " + networkName + " " + templateERC20.address)
+    }
+    if (sleepAmount > 0) await sleep(sleepAmount)
+    if (logging) console.info("Deploying ERC20 Enterprise Template");
+    const ERC20TemplateEnterprise = await ethers.getContractFactory(
+      "ERC20TemplateEnterprise",
+      owner
+    );
+    const templateERC20Enterprise = await ERC20TemplateEnterprise.connect(owner).deploy(options);
+    await templateERC20Enterprise.deployTransaction.wait();
+    if (show_verify) {
+      console.log("\tRun the following to verify on etherscan");
+      console.log("\tnpx hardhat verify --network " + networkName + " " + templateERC20Enterprise.address)
+    }
+    addresses.ERC721Template = {};
+    if (sleepAmount > 0) await sleep(sleepAmount)
+    if (logging) console.info("Deploying ERC721 Template");
+    const ERC721Template = await ethers.getContractFactory(
+      "ERC721Template",
+      owner
+    );
+    const templateERC721 = await ERC721Template.connect(owner).deploy(options);
+    await templateERC721.deployTransaction.wait();
+    if (show_verify) {
+      console.log("\tRun the following to verify on etherscan");
+      console.log("\tnpx hardhat verify --network " + networkName + " " + templateERC721.address)
+    }
+    if (sleepAmount > 0) await sleep(sleepAmount)
+    if (logging) console.info("Deploying Dispenser");
+    const Dispenser = await ethers.getContractFactory("Dispenser", owner);
+    const dispenser = await Dispenser.connect(owner).deploy(router.address, options);
+    await dispenser.deployTransaction.wait();
+    addresses.Dispenser = dispenser.address;
+    if (show_verify) {
+      console.log("\tRun the following to verify on etherscan");
+      console.log("\tnpx hardhat verify --network " + networkName + " " + dispenser.address + " " + router.address)
+    }
+    if (sleepAmount > 0) await sleep(sleepAmount)
+    if (logging) {
+      const params = {
+
+        "ERC721": templateERC721.address,
+        "ERC20": templateERC20.address,
+        "Router": router.address
+      }
+      console.info("Deploying ERC721 Factory");
+      console.info(params)
+    }
+
+    const ERC721Factory = await ethers.getContractFactory("ERC721Factory", owner);
+    const factoryERC721 = await ERC721Factory.connect(owner).deploy(
+      templateERC721.address,
+      templateERC20.address,
+      router.address,
+      options
+    );
+    await factoryERC721.deployTransaction.wait();
+    if (show_verify) {
+      console.log("\tRun the following to verify on etherscan");
+      console.log("\tnpx hardhat verify --network " + networkName + " " + factoryERC721.address + " " + templateERC721.address + " " + templateERC20.address + " " + router.address)
+    }
+    if (sleepAmount > 0) await sleep(sleepAmount)
+    addresses.ERC721Factory = factoryERC721.address;
+    const nftCount = await factoryERC721.getCurrentNFTTemplateCount();
+    const nftTemplate = await factoryERC721.getNFTTemplate(nftCount);
+    addresses.ERC721Template[nftCount.toString()] = templateERC721.address;
+
+    let currentTokenCount = await factoryERC721.getCurrentTemplateCount();
+    let tokenTemplate = await factoryERC721.getTokenTemplate(currentTokenCount);
+    addresses.ERC20Template[currentTokenCount.toString()] = templateERC20.address;
+    if (sleepAmount > 0) await sleep(sleepAmount)
+    if (logging) console.info("Adding ERC20Enterprise to ERC721Factory");
+    const templateadd = await factoryERC721.connect(owner).addTokenTemplate(templateERC20Enterprise.address, options);
+    await templateadd.wait();
+    if (sleepAmount > 0) await sleep(sleepAmount)
+    currentTokenCount = await factoryERC721.getCurrentTemplateCount();
+    tokenTemplate = await factoryERC721.getTokenTemplate(currentTokenCount);
+    addresses.ERC20Template[currentTokenCount.toString()] =
+      templateERC20Enterprise.address;
+
+    // SET REQUIRED ADDRESS
+    if (sleepAmount > 0) await sleep(sleepAmount)
+    if (logging) console.info("Adding factoryERC721.address(" + factoryERC721.address + ") to router");
+    const factoryAddTx = await router.connect(owner).addFactory(factoryERC721.address, options);
+    await factoryAddTx.wait();
+    if (sleepAmount > 0) await sleep(sleepAmount)
+    if (logging) console.info("Adding fixedPriceExchange.address(" + fixedPriceExchange.address + ") to router");
+    const freAddTx = await router.connect(owner).addFixedRateContract(fixedPriceExchange.address, options);
+    await freAddTx.wait();
+    if (sleepAmount > 0) await sleep(sleepAmount)
+    if (logging) console.info("Adding dispenser.address(" + dispenser.address + ") to router");
+    const dispenserAddTx = await router.connect(owner).addDispenserContract(dispenser.address, options);
+    await dispenserAddTx.wait();
+    if (sleepAmount > 0) await sleep(sleepAmount)
+    if (logging) console.info("Adding ssPool.address(" + ssPool.address + ") to router");
+    const ssAddTx = await router.connect(owner).addSSContract(ssPool.address, options);
+    await ssAddTx.wait();
+    if (sleepAmount > 0) await sleep(sleepAmount)
+
+    // add additional tokens
+    for (const token of additionalApprovedTokens) {
+      if (logging) console.info("Adding " + token + " as approved token");
+      const tokenTx = await router.connect(owner).addApprovedToken(token, options);
+      await tokenTx.wait();
+    }
+    // Avoid setting Owner an account we cannot use on barge for now
+
+    if (owner.address != routerOwner) {
+      if (logging) console.info("Moving ownerships to " + routerOwner)
+      const routerOwnerTx = await router.connect(owner).changeRouterOwner(routerOwner, options)
+      await routerOwnerTx.wait()
+
+    }
   }
-  
-  const ERC721Factory = await ethers.getContractFactory("ERC721Factory", owner);
-  const factoryERC721 = await ERC721Factory.connect(owner).deploy(
-    templateERC721.address,
-    templateERC20.address,
-    router.address,
-    options
-  );
-  await factoryERC721.deployTransaction.wait();
-  if(show_verify){
-    console.log("\tRun the following to verify on etherscan");
-    console.log("\tnpx hardhat verify --network "+networkName+" "+factoryERC721.address+" "+templateERC721.address+" "+templateERC20.address+" "+router.address)
+  if (shouldDeployDF) {
+    //DF contracts
+    if (logging) console.info("Deploying DFRewards");
+    const DFRewards = await ethers.getContractFactory(
+      "DFRewards",
+      owner
+    );
+    const deployedDFRewards = await DFRewards.connect(owner).deploy(options);
+    await deployedDFRewards.deployTransaction.wait();
+    addresses.DFRewards = deployedDFRewards.address;
+    if (show_verify) {
+      console.log("\tRun the following to verify on etherscan");
+      console.log("\tnpx hardhat verify --network " + networkName + " " + addresses.DFRewards)
+    }
+    if (sleepAmount > 0) await sleep(sleepAmount)
+
+    if (logging) console.info("Deploying DFStrategyV1");
+    const DFStrategyV1 = await ethers.getContractFactory(
+      "DFStrategyV1",
+      owner
+    );
+    const deployedDFStrategyV1 = await DFStrategyV1.connect(owner).deploy(addresses.DFRewards, options);
+    await deployedDFStrategyV1.deployTransaction.wait();
+    addresses.DFStrategyV1 = deployedDFStrategyV1.address;
+    if (show_verify) {
+      console.log("\tRun the following to verify on etherscan");
+      console.log("\tnpx hardhat verify --network " + networkName + " " + addresses.DFStrategyV1 + " " + addresses.DFRewards)
+    }
+    if (sleepAmount > 0) await sleep(sleepAmount)
+    //add strategy to DFRewards
+    const strategyTx = await deployedDFRewards.connect(owner).addStrategy(addresses.DFStrategyV1, options);
+    await strategyTx.wait();
+    if (owner.address != routerOwner) {
+      if (logging) console.info("Moving ownerships to " + routerOwner)
+      const DFRewardsOwnerTx = await deployedDFRewards.connect(owner).transferOwnership(routerOwner, options)
+      await DFRewardsOwnerTx.wait()
+    }
+
   }
-  if(sleepAmount>0)  await sleep(sleepAmount)
-  addresses.ERC721Factory = factoryERC721.address;
-  const nftCount = await factoryERC721.getCurrentNFTTemplateCount();
-  const nftTemplate = await factoryERC721.getNFTTemplate(nftCount);
-  addresses.ERC721Template[nftCount.toString()] = templateERC721.address;
-  
-  let currentTokenCount = await factoryERC721.getCurrentTemplateCount();
-  let tokenTemplate = await factoryERC721.getTokenTemplate(currentTokenCount);
-  addresses.ERC20Template[currentTokenCount.toString()] = templateERC20.address;
-  if(sleepAmount>0)  await sleep(sleepAmount)
-  if (logging) console.info("Adding ERC20Enterprise to ERC721Factory");
-  const templateadd = await factoryERC721.connect(owner).addTokenTemplate(templateERC20Enterprise.address, options);
-  await templateadd.wait();
-  if(sleepAmount>0)  await sleep(sleepAmount)
-  currentTokenCount = await factoryERC721.getCurrentTemplateCount();
-  tokenTemplate = await factoryERC721.getTokenTemplate(currentTokenCount);
-  addresses.ERC20Template[currentTokenCount.toString()] =
-    templateERC20Enterprise.address;
-    
-  // SET REQUIRED ADDRESS
-  if(sleepAmount>0)  await sleep(sleepAmount)
-  if (logging) console.info("Adding factoryERC721.address(" + factoryERC721.address + ") to router");
-  const factoryAddTx=await router.connect(owner).addFactory(factoryERC721.address, options);
-  await factoryAddTx.wait();
-  if(sleepAmount>0)  await sleep(sleepAmount)
-  if (logging) console.info("Adding fixedPriceExchange.address(" + fixedPriceExchange.address + ") to router");
-  const freAddTx=await router.connect(owner).addFixedRateContract(fixedPriceExchange.address, options);
-  await freAddTx.wait();
-  if(sleepAmount>0)  await sleep(sleepAmount)
-  if (logging) console.info("Adding dispenser.address(" + dispenser.address + ") to router");
-  const dispenserAddTx=await router.connect(owner).addDispenserContract(dispenser.address, options);
-  await dispenserAddTx.wait();
-  if(sleepAmount>0)  await sleep(sleepAmount)
-  if (logging) console.info("Adding ssPool.address(" + ssPool.address + ") to router");
-  const ssAddTx=await router.connect(owner).addSSContract(ssPool.address, options);
-  await ssAddTx.wait();
-  if(sleepAmount>0)  await sleep(sleepAmount)
-  
-  // add additional tokens
-  for (const token of additionalApprovedTokens) {  
-    if (logging) console.info("Adding "+token+" as approved token");
-    const tokenTx=await router.connect(owner).addApprovedToken(token, options);
-    await tokenTx.wait();
+  //VE contracts
+  if (shouldDeployVE) {
+    //veAllocate
+    if (logging) console.info("Deploying veAllocate");
+    const veAllocate = await ethers.getContractFactory(
+      "veAllocate",
+      owner
+    );
+    const deployedVEAllocate = await veAllocate.connect(owner).deploy(options);
+    await deployedVEAllocate.deployTransaction.wait();
+    addresses.veAllocate = deployedVEAllocate.address;
+    if (show_verify) {
+      console.log("\tRun the following to verify on etherscan");
+      console.log("\tnpx hardhat verify --network " + networkName + " " + addresses.veAllocate)
+    }
+    if (sleepAmount > 0) await sleep(sleepAmount)
+
+    //veOCEAN
+    if (logging) console.info("Deploying veOCEAN");
+    const veOCEAN = await ethers.getContractFactory(
+      "veOCEAN",
+      owner
+    );
+    const deployedVEOCEAN = await veOCEAN.connect(owner).deploy(addresses.Ocean, "veOCEAN", "veOCEAN", "0.1.0", options);
+    await deployedVEOCEAN.deployTransaction.wait();
+    addresses.veOCEAN = deployedVEOCEAN.address;
+    if (show_verify) {
+      console.log("\tRun the following to verify on etherscan");
+      console.log("\tnpx hardhat verify --network " + networkName + " " + addresses.veOCEAN + " " + addresses.Ocean + " veOCEAN veOCEAN 0.1.0")
+    }
+    if (sleepAmount > 0) await sleep(sleepAmount)
+
+
+
+    //veDelegation
+    if (logging) console.info("Deploying veDelegation");
+    const veDelegation = await ethers.getContractFactory(
+      "veDelegation",
+      owner
+    );
+    const deployedVEDelegation = await veDelegation.connect(owner).deploy("Voting Escrow Boost Delegation",
+      "veDelegation",
+      "",
+      addresses.veOCEAN,
+      options);
+    await deployedVEDelegation.deployTransaction.wait();
+    addresses.veDelegation = deployedVEDelegation.address;
+    if (show_verify) {
+      console.log("\tRun the following to verify on etherscan");
+      console.log("\tnpx hardhat verify --network " + networkName + " " + addresses.veDelegation + " \"Voting Escrow Boost Delegation\" \"veDelegation\" \"\" " + addresses.veOCEAN)
+    }
+    if (sleepAmount > 0) await sleep(sleepAmount)
+
+    //FeeDistributor
+    if (logging) console.info("Deploying FeeDistributor");
+    const FeeDistributor = await ethers.getContractFactory(
+      "veFeeDistributor",
+      owner
+    );
+    const timestamp = Math.floor(new Date().getTime() / 1000)
+    const deployedFeeDistributor = await FeeDistributor.connect(owner).deploy(addresses.veOCEAN,
+      timestamp,
+      addresses.Ocean,
+      routerOwner,
+      owner.address, options);
+    await deployedFeeDistributor.deployTransaction.wait();
+    addresses.veFeeDistributor = deployedFeeDistributor.address;
+    if (show_verify) {
+      console.log("\tRun the following to verify on etherscan");
+      console.log("\tnpx hardhat verify --network " + networkName + " " + addresses.FeeDistributor + " " + addresses.veOCEAN + " " + timestamp + " " + addresses.Ocean + " " + routerOwner + " " + owner.address)
+    }
+    if (sleepAmount > 0) await sleep(sleepAmount)
+
+    //DelegationProxy
+    if (logging) console.info("Deploying DelegationProxy");
+    const DelegationProxy = await ethers.getContractFactory(
+      "veDelegationProxy",
+      owner
+    );
+    const deployedDelegationProxy = await DelegationProxy.connect(owner).deploy(addresses.veDelegation,
+      routerOwner,
+      owner.address, options);
+    await deployedDelegationProxy.deployTransaction.wait();
+    addresses.veDelegationProxy = deployedDelegationProxy.address;
+    if (show_verify) {
+      console.log("\tRun the following to verify on etherscan");
+      console.log("\tnpx hardhat verify --network " + networkName + " " + addresses.DelegationProxy + " " + addresses.veDelegation + " " + routerOwner + " " + owner.address)
+    }
+    if (sleepAmount > 0) await sleep(sleepAmount)
   }
-  
-  // Avoid setting Owner an account we cannot use on barge for now
-  
-  if (owner.address != routerOwner) {
-    if (logging) console.info("Moving Router ownership to " + routerOwner)
-    const routerOwnerTx=await router.connect(owner).changeRouterOwner(routerOwner, options)
-    await routerOwnerTx.wait()
-  }
+
 
   if (addressFile) {
     // write address.json if needed
@@ -436,7 +568,7 @@ async function main() {
 
 async function sleep(s) {
   return new Promise((resolve) => {
-    setTimeout(resolve, s*1000)
+    setTimeout(resolve, s * 1000)
   })
 }
 // We recommend this pattern to be able to use async/await everywhere
