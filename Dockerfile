@@ -1,17 +1,10 @@
-FROM node:16-alpine
+FROM ubuntu:20.04
 LABEL maintainer="Ocean Protocol <devops@oceanprotocol.com>"
-
-RUN apk add --no-cache --update\
-      bash\
-      g++\
-      gcc\
-      git\
-      krb5-dev\
-      krb5-libs\
-      krb5\
-      make\
-      python3
-
+RUN apt-get update && \
+      apt-get -y install build-essential python3 git bash curl
+RUN curl -sL https://deb.nodesource.com/setup_16.x -o /tmp/nodesource_setup.sh
+RUN bash /tmp/nodesource_setup.sh
+RUN apt install nodejs
 COPY . /ocean-contracts
 WORKDIR /ocean-contracts
 
