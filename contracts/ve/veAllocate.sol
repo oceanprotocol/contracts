@@ -10,7 +10,7 @@ contract veAllocate {
     event AllocationSet(
         address indexed sender,
         address indexed nft,
-        uint256 chainId,
+        uint256 indexed chainId,
         uint256 amount,
         bytes32 id
     );
