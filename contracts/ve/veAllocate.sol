@@ -16,19 +16,19 @@ contract veAllocate {
     );
 
     function getveAllocation(
-        address _address,
-        address _nft,
+        address user,
+        address nft,
         uint256 chainid
-    ) public view returns (uint256) {
-        return veAllocation[_address][_nft][chainid];
+    ) external view returns (uint256) {
+        return veAllocation[user][nft][chainid];
     }
 
-    function getTotalAllocation(address _address)
+    function getTotalAllocation(address user)
         public
         view
         returns (uint256)
     {
-        return _totalAllocation[_address];
+        return _totalAllocation[user];
     }
 
     function setAllocation(
