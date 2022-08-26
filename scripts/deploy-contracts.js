@@ -10,10 +10,12 @@ const { Wallet } = require("ethers");
 const { UV_FS_O_FILEMAP } = require("constants");
 const ethers = hre.ethers;
 require("dotenv").config();
-const shouldDeployV4 = true;
-const shouldDeployDF = true;
-const shouldDeployVE = true;
-let shouldDeployOceanMock = false;
+const DEAD_ADDRESS = "0x000000000000000000000000000000000000dEaD"
+let shouldDeployV4 = true;
+let shouldDeployDF = true;
+let shouldDeployVE = true;
+let shouldDeployOceanToken = false;
+let shouldDeployMocks = false;
 let shouldDeployOPFCommunityFeeCollector = false;
 const shouldDeployOPFCommunity = true;
 const logging = true;
@@ -82,6 +84,17 @@ async function main() {
       routerOwner = OPFOwner;
       sleepAmount = 2
       break;
+    case 0x5:
+      networkName = "goerli";
+      OceanTokenAddress = "0xCfDdA22C9837aE76E0faA845354f33C62E03653a";
+      OPFOwner = "0xEE1673089A4831D92324932e38e2EBDe6aB17274";
+      routerOwner = OPFOwner;
+      shouldDeployOceanToken = false;
+      shouldDeployDF = false;
+      shouldDeployVE = false;
+      sleepAmount = 2
+      gasPrice = ethers.utils.parseUnits('1.5', 'gwei')
+      break;
     case 0x89:
       networkName = "polygon";
       productionNetwork = true;
@@ -92,6 +105,16 @@ async function main() {
       gasPrice = ethers.utils.parseUnits('120', 'gwei');
       additionalApprovedTokens = ["0xC5248Aa0629C0b2d6A02834a5f172937Ac83CBD3"];
       break;
+    case 81001:
+        networkName = "polygonedge";
+        OceanTokenAddress = "0x282d8efCe846A88B159800bd4130ad77443Fa1A1";
+        OPFOwner = "0xad8a12eB81489FBdfb38B9598e523E5B976BcD04";
+        routerOwner = OPFOwner;
+        sleepAmount = 2
+        shouldDeployOceanToken = true;
+        shouldDeployDF = false;
+        shouldDeployVE = false;
+        break;
     case 0x507:
       networkName = "moonbase";
       OPFOwner = '0xd8992Ed72C445c35Cb4A2be468568Ed1079357c8';
@@ -145,10 +168,11 @@ async function main() {
       routerOwner = OPFOwner;
       break;
     default:
-      OPFOwner = "0x7DF5273aD9A6fCce64D45c64c1E43cfb6F861725";
+      OPFOwner = owner.address;
       networkName = "development";
       routerOwner = owner.address;
-      shouldDeployOceanMock = true;
+      shouldDeployMocks = true;
+      shouldDeployOceanToken = true;
       sleepAmount = 0
       break;
   }
@@ -182,11 +206,26 @@ async function main() {
     );
 
   addresses.chainId = networkDetails.chainId;
-  if (shouldDeployOceanMock) {
-    if (logging) console.info("Deploying OceanMock");
-    const Ocean = await ethers.getContractFactory("MockOcean", owner);
+  if (shouldDeployOceanToken || addresses.Ocean === null){
+    if (logging) console.info("Deploying OceanToken");
+    const Ocean = await ethers.getContractFactory("OceanToken", owner);
     const ocean = await Ocean.connect(owner).deploy(owner.address, options);
+    await ocean.deployTransaction.wait();
     addresses.Ocean = ocean.address;
+    if (show_verify) {
+      console.log("\tRun the following to verify on etherscan");
+      console.log("\tnpx hardhat verify --network " + networkName + " " + ocean.address + " " + owner.address)
+    }
+    if(OPFOwner != owner.address){
+      const ownershiptx = await ocean.connect(owner).transferOwnership(OPFOwner, options);
+      await ownershiptx.wait()
+    }
+  }
+  else {
+    addresses.Ocean = OceanTokenAddress;
+  }
+  if (shouldDeployMocks) {
+    if (logging) console.info("Deploying Mocks");
     // DEPLOY DAI and USDC for TEST (barge etc)
     // owner will already have a 10k balance both for DAI and USDC
     const ERC20Mock = await ethers.getContractFactory("MockERC20Decimals");
@@ -198,9 +237,7 @@ async function main() {
     addresses.MockUSDC = USDC.address;
 
   }
-  else {
-    addresses.Ocean = OceanTokenAddress;
-  }
+  
 
   if (shouldDeployOPFCommunityFeeCollector || !OPFCommunityFeeCollectorAddress) {
     if (logging) console.info("Deploying OPF Community Fee");
@@ -231,7 +268,7 @@ async function main() {
 
     // DEPLOY ROUTER, SETTING OWNER
 
-    if (logging) console.info("Deploying BPool");
+    /*if (logging) console.info("Deploying BPool");
     const BPool = await ethers.getContractFactory("BPool", owner);
     const poolTemplate = await BPool.connect(owner).deploy(options);
     const receipt = await poolTemplate.deployTransaction.wait();
@@ -242,17 +279,20 @@ async function main() {
       console.log("\tnpx hardhat verify --network " + networkName + " " + addresses.poolTemplate)
     }
     if (sleepAmount > 0) await sleep(sleepAmount)
+    */
+    
     if (logging) console.log("Deploying Router");
     const Router = await ethers.getContractFactory("FactoryRouter", owner);
     const router = await Router.connect(owner).deploy(
       owner.address,
       addresses.Ocean,
-      poolTemplate.address,
+      DEAD_ADDRESS,
       addresses.OPFCommunityFeeCollector,
       [],
       options
     );
-    await router.deployTransaction.wait();
+    const receipt = await router.deployTransaction.wait();
+    addresses.startBlock = receipt.blockNumber
     addresses.Router = router.address;
     if (show_verify) {
       console.log("\tRun the following to verify on etherscan");
@@ -260,7 +300,7 @@ async function main() {
       console.log("\tmodule.exports=[\n");
       console.log("\t'" + owner.address + "',\n");
       console.log("\t'" + addresses.Ocean + "',\n");
-      console.log("\t'" + poolTemplate.address + "',\n");
+      console.log("\t'" + DEAD_ADDRESS + "',\n");
       console.log("\t'" + addresses.OPFCommunityFeeCollector + "',\n");
       console.log("\t[]\n");
       console.log("\t];");
