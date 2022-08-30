@@ -17,7 +17,7 @@ let shouldDeployVE = true;
 let shouldDeployOceanToken = false;
 let shouldDeployMocks = false;
 let shouldDeployOPFCommunityFeeCollector = false;
-const shouldDeployOPFCommunity = true;
+let shouldDeployOPFCommunity = true;
 const logging = true;
 const show_verify = true;
 
@@ -99,7 +99,7 @@ async function main() {
       shouldDeployDF = false;
       shouldDeployVE = false;
       sleepAmount = 2
-      gasPrice = ethers.utils.parseUnits('1.5', 'gwei')
+      gasPrice = ethers.utils.parseUnits('5', 'gwei')
       break;
     case 0x89:
       networkName = "polygon";
@@ -246,7 +246,7 @@ async function main() {
   }
   
 
-  if (shouldDeployOPFCommunityFeeCollector || !OPFCommunityFeeCollectorAddress) {
+  if (shouldDeployOPFCommunityFeeCollector || !addresses.OPFCommunityFeeCollector) {
     if (logging) console.info("Deploying OPF Community Fee");
     const OPFCommunityFeeCollector = await ethers.getContractFactory(
       "OPFCommunityFeeCollector",
@@ -265,10 +265,7 @@ async function main() {
     }
     if (sleepAmount > 0) await sleep(sleepAmount)
   }
-  else {
-    addresses.OPFCommunityFeeCollector = OPFCommunityFeeCollectorAddress;
-  }
-
+  
   // v4 contracts
   if (shouldDeployV4) {
     if (logging) console.info("Deploying V4 contracts");
@@ -529,7 +526,7 @@ async function main() {
     addresses.veFeeDistributor = deployedFeeDistributor.address;
     if (show_verify) {
       console.log("\tRun the following to verify on etherscan");
-      console.log("\tnpx hardhat verify --network " + networkName + " " + addresses.FeeDistributor + " " + addresses.veOCEAN + " " + timestamp + " " + addresses.Ocean + " " + routerOwner + " " + owner.address)
+      console.log("\tnpx hardhat verify --network " + networkName + " " + addresses.veFeeDistributor + " " + addresses.veOCEAN + " " + timestamp + " " + addresses.Ocean + " " + routerOwner + " " + owner.address)
     }
     if (sleepAmount > 0) await sleep(sleepAmount)
 
@@ -546,7 +543,7 @@ async function main() {
     addresses.veDelegationProxy = deployedDelegationProxy.address;
     if (show_verify) {
       console.log("\tRun the following to verify on etherscan");
-      console.log("\tnpx hardhat verify --network " + networkName + " " + addresses.DelegationProxy + " " + addresses.veDelegation + " " + routerOwner + " " + owner.address)
+      console.log("\tnpx hardhat verify --network " + networkName + " " + addresses.veDelegationProxy + " " + addresses.veDelegation + " " + routerOwner + " " + owner.address)
     }
     if (sleepAmount > 0) await sleep(sleepAmount)
   }
