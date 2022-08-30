@@ -31,7 +31,11 @@ async function main() {
     console.error("Missing ADDRESS_FILE. Aborting..");
     return null;
   }
-  const provider = new ethers.providers.JsonRpcProvider(url);
+  const connection = {
+    url:url,
+    headers: { "User-Agent" : "Ocean Deployer"}
+  };
+  const provider = new ethers.providers.StaticJsonRpcProvider(connection);
   const network = provider.getNetwork();
   // utils
   const networkDetails = await network;
@@ -110,10 +114,11 @@ async function main() {
         OceanTokenAddress = "0x282d8efCe846A88B159800bd4130ad77443Fa1A1";
         OPFOwner = "0xad8a12eB81489FBdfb38B9598e523E5B976BcD04";
         routerOwner = OPFOwner;
-        sleepAmount = 2
+        sleepAmount = 10
         shouldDeployOceanToken = true;
         shouldDeployDF = false;
         shouldDeployVE = false;
+        gasLimit = 5242800;
         break;
     case 0x507:
       networkName = "moonbase";
