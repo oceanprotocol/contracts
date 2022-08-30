@@ -20,6 +20,8 @@ let shouldDeployOPFCommunityFeeCollector = false;
 const shouldDeployOPFCommunity = true;
 const logging = true;
 const show_verify = true;
+
+
 async function main() {
   const url = process.env.NETWORK_RPC_URL;
   console.log("Using RPC: " + url);
@@ -267,10 +269,9 @@ async function main() {
     addresses.OPFCommunityFeeCollector = OPFCommunityFeeCollectorAddress;
   }
 
+  // v4 contracts
   if (shouldDeployV4) {
     if (logging) console.info("Deploying V4 contracts");
-    // v4 contracts
-
     // DEPLOY ROUTER, SETTING OWNER
 
     /*if (logging) console.info("Deploying BPool");
@@ -460,45 +461,7 @@ async function main() {
 
     }
   }
-  if (shouldDeployDF) {
-    //DF contracts
-    if (logging) console.info("Deploying DFRewards");
-    const DFRewards = await ethers.getContractFactory(
-      "DFRewards",
-      owner
-    );
-    const deployedDFRewards = await DFRewards.connect(owner).deploy(options);
-    await deployedDFRewards.deployTransaction.wait();
-    addresses.DFRewards = deployedDFRewards.address;
-    if (show_verify) {
-      console.log("\tRun the following to verify on etherscan");
-      console.log("\tnpx hardhat verify --network " + networkName + " " + addresses.DFRewards)
-    }
-    if (sleepAmount > 0) await sleep(sleepAmount)
 
-    if (logging) console.info("Deploying DFStrategyV1");
-    const DFStrategyV1 = await ethers.getContractFactory(
-      "DFStrategyV1",
-      owner
-    );
-    const deployedDFStrategyV1 = await DFStrategyV1.connect(owner).deploy(addresses.DFRewards, options);
-    await deployedDFStrategyV1.deployTransaction.wait();
-    addresses.DFStrategyV1 = deployedDFStrategyV1.address;
-    if (show_verify) {
-      console.log("\tRun the following to verify on etherscan");
-      console.log("\tnpx hardhat verify --network " + networkName + " " + addresses.DFStrategyV1 + " " + addresses.DFRewards)
-    }
-    if (sleepAmount > 0) await sleep(sleepAmount)
-    //add strategy to DFRewards
-    const strategyTx = await deployedDFRewards.connect(owner).addStrategy(addresses.DFStrategyV1, options);
-    await strategyTx.wait();
-    if (owner.address != routerOwner) {
-      if (logging) console.info("Moving ownerships to " + routerOwner)
-      const DFRewardsOwnerTx = await deployedDFRewards.connect(owner).transferOwnership(routerOwner, options)
-      await DFRewardsOwnerTx.wait()
-    }
-
-  }
   //VE contracts
   if (shouldDeployVE) {
     //veAllocate
@@ -530,8 +493,6 @@ async function main() {
       console.log("\tnpx hardhat verify --network " + networkName + " " + addresses.veOCEAN + " " + addresses.Ocean + " veOCEAN veOCEAN 0.1.0")
     }
     if (sleepAmount > 0) await sleep(sleepAmount)
-
-
 
     //veDelegation
     if (logging) console.info("Deploying veDelegation");
@@ -590,6 +551,46 @@ async function main() {
     if (sleepAmount > 0) await sleep(sleepAmount)
   }
 
+  //DF contracts
+  if (shouldDeployDF) {
+    //DFRewards
+    if (logging) console.info("Deploying DFRewards");
+    const DFRewards = await ethers.getContractFactory(
+      "DFRewards",
+      owner
+    );
+    const deployedDFRewards = await DFRewards.connect(owner).deploy(options);
+    await deployedDFRewards.deployTransaction.wait();
+    addresses.DFRewards = deployedDFRewards.address;
+    if (show_verify) {
+      console.log("\tRun the following to verify on etherscan");
+      console.log("\tnpx hardhat verify --network " + networkName + " " + addresses.DFRewards)
+    }
+    if (sleepAmount > 0) await sleep(sleepAmount)
+
+    //DFStrategyV1
+    if (logging) console.info("Deploying DFStrategyV1");
+    const DFStrategyV1 = await ethers.getContractFactory(
+      "DFStrategyV1",
+      owner
+    );
+    const deployedDFStrategyV1 = await DFStrategyV1.connect(owner).deploy(addresses.DFRewards, options);
+    await deployedDFStrategyV1.deployTransaction.wait();
+    addresses.DFStrategyV1 = deployedDFStrategyV1.address;
+    if (show_verify) {
+      console.log("\tRun the following to verify on etherscan");
+      console.log("\tnpx hardhat verify --network " + networkName + " " + addresses.DFStrategyV1 + " " + addresses.DFRewards)
+    }
+    if (sleepAmount > 0) await sleep(sleepAmount)
+    //add strategy to DFRewards
+    const strategyTx = await deployedDFRewards.connect(owner).addStrategy(addresses.DFStrategyV1, options);
+    await strategyTx.wait();
+    if (owner.address != routerOwner) {
+      if (logging) console.info("Moving ownerships to " + routerOwner)
+      const DFRewardsOwnerTx = await deployedDFRewards.connect(owner).transferOwnership(routerOwner, options)
+      await DFRewardsOwnerTx.wait()
+    }
+  }
 
   if (addressFile) {
     // write address.json if needed
@@ -610,12 +611,13 @@ async function main() {
 }
 
 
-
 async function sleep(s) {
   return new Promise((resolve) => {
     setTimeout(resolve, s * 1000)
   })
 }
+
+
 // We recommend this pattern to be able to use async/await everywhere
 // and properly handle errors.
 main()

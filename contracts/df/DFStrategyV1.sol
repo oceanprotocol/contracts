@@ -8,7 +8,10 @@ import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 import "@openzeppelin/contracts/security/ReentrancyGuard.sol";
 import "../interfaces/IDFRewards.sol";
-import "../interfaces/IPool.sol";
+
+interface IveOCEAN {
+    function deposit_for(address _address, uint256 _amount) external;
+}
 
 contract DFStrategyV1 is ReentrancyGuard {
     using SafeERC20 for IERC20;
@@ -45,35 +48,21 @@ contract DFStrategyV1 is ReentrancyGuard {
         return result;
     }
 
-    /*
-     * @dev Claims rewards and stakes them into multiple pools.
-     * @param tokenAddress  Token address to claim
-     * @param poolAddress  Array of pool address to stake the rewards
-     * @param amount Array of amount to stake in each pool.
-     */
     function claimAndStake(
         address tokenAddress,
-        address[] calldata poolAddress,
-        uint256[] calldata amount
+        uint256 totalAmount,
+        address _veOCEAN
     ) public nonReentrant returns (bool) {
-        require(poolAddress.length == amount.length, "Lengths must match");
-        uint256 totalAmount = 0;
-        uint256 i;
-        for (i = 0; i < amount.length; i += 1) {
-            totalAmount += amount[i];
-        }
         require(
-            dfrewards.claimable(msg.sender, tokenAddress) > totalAmount,
+            dfrewards.claimable(msg.sender, tokenAddress) >= totalAmount,
             "Not enough rewards"
         );
         uint256 balanceBefore = IERC20(tokenAddress).balanceOf(address(this));
-        uint256 claimed = dfrewards.claimForStrat(msg.sender, tokenAddress); // claim rewards for strategy
+        uint256 claimed = dfrewards.claimForStrat(msg.sender, tokenAddress); // claim rewards for the strategy
         uint256 balanceAfter = IERC20(tokenAddress).balanceOf(address(this));
         require(balanceAfter - balanceBefore == claimed, "Not enough rewards");
-
-        for (i = 0; i < amount.length; i += 1) {
-            stake(tokenAddress, poolAddress[i], amount[i], msg.sender);
-        }
+        IERC20(tokenAddress).safeApprove(_veOCEAN, totalAmount);
+        IveOCEAN(_veOCEAN).deposit_for(msg.sender, totalAmount);
 
         if (claimed > totalAmount) {
             IERC20(tokenAddress).safeTransfer(
@@ -82,25 +71,6 @@ contract DFStrategyV1 is ReentrancyGuard {
             );
         }
 
-        return true;
-    }
-
-    function stake(
-        address tokenAddress,
-        address poolAddress,
-        uint256 amount,
-        address _to
-    ) internal returns (bool) {
-        require(
-            tokenAddress == IPool(poolAddress).getBaseTokenAddress(),
-            "Cannot stake"
-        );
-        uint256 balanceBefore = IERC20(poolAddress).balanceOf(address(this));
-        IERC20(tokenAddress).approve(poolAddress, amount);
-        IPool(poolAddress).joinswapExternAmountIn(amount, 0);
-        uint256 sharesBalance = IERC20(poolAddress).balanceOf(address(this)) -
-            balanceBefore;
-        IERC20(poolAddress).safeTransfer(_to, sharesBalance);
         return true;
     }
 }
