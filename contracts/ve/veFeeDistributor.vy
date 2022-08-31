@@ -14,8 +14,6 @@ interface VotingEscrow:
     def user_point_history(addr: address, loc: uint256) -> Point: view
     def point_history(loc: uint256) -> Point: view
     def checkpoint(): nonpayable
-    def locked__end(_addr:address) -> uint256: view
-    def deposit_for(_addr: address, _value: uint256): nonpayable
 
 
 event CommitAdmin:
@@ -323,15 +321,8 @@ def claim(_addr: address = msg.sender) -> uint256:
 
     amount: uint256 = self._claim(_addr, self.voting_escrow, last_token_time)
     if amount != 0:
-        ve: address = self.voting_escrow
         token: address = self.token
-
-        if VotingEscrow(ve).locked__end(_addr) < block.timestamp:
-            assert ERC20(token).transfer(_addr, amount)
-        else:
-            assert ERC20(token).approve(self.voting_escrow, amount)
-            VotingEscrow(ve).deposit_for(_addr, amount)
-
+        assert ERC20(token).transfer(_addr, amount)
         self.token_last_balance -= amount
 
     return amount
