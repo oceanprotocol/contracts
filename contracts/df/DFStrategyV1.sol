@@ -48,29 +48,4 @@ contract DFStrategyV1 is ReentrancyGuard {
         return result;
     }
 
-    function claimAndStake(
-        address tokenAddress,
-        uint256 totalAmount,
-        address _veOCEAN
-    ) public nonReentrant returns (bool) {
-        require(
-            dfrewards.claimable(msg.sender, tokenAddress) >= totalAmount,
-            "Not enough rewards"
-        );
-        uint256 balanceBefore = IERC20(tokenAddress).balanceOf(address(this));
-        uint256 claimed = dfrewards.claimForStrat(msg.sender, tokenAddress); // claim rewards for the strategy
-        uint256 balanceAfter = IERC20(tokenAddress).balanceOf(address(this));
-        require(balanceAfter - balanceBefore == claimed, "Not enough rewards");
-        IERC20(tokenAddress).safeApprove(_veOCEAN, totalAmount);
-        IveOCEAN(_veOCEAN).deposit_for(msg.sender, totalAmount);
-
-        if (claimed > totalAmount) {
-            IERC20(tokenAddress).safeTransfer(
-                msg.sender,
-                claimed - totalAmount
-            );
-        }
-
-        return true;
-    }
 }
