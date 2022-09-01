@@ -38,7 +38,7 @@ module.exports = {
     overrides: {},
   },
   vyper: {
-    compilers: [{ version: "0.3.1" }, { version: "0.2.7" }],
+    compilers: [{ version: "0.3.1" }, { version: "0.2.15" }, { version: "0.2.7" }, { version: "0.2.4" }],
   },
   networks: {
     ganache: {
