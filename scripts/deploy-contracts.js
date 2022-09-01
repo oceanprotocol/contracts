@@ -120,7 +120,7 @@ async function main() {
         shouldDeployOceanToken = true;
         shouldDeployDF = false;
         shouldDeployVE = false;
-        gasLimit = 5242800;
+        gasLimit = 8388608;
         break;
     case 0x507:
       networkName = "moonbase";
@@ -134,6 +134,11 @@ async function main() {
       OPFOwner = '0x2112Eb973af1DBf83a4f11eda82f7a7527D7Fde5'
       routerOwner = OPFOwner;
       OceanTokenAddress = "0x80E63f73cAc60c1662f27D2DFd2EA834acddBaa8";
+      gasLimit = 6666666
+      shouldDeployOceanToken = false;
+      shouldDeployDF = false;
+      shouldDeployVE = false;
+      sleepAmount = 1
       break;
     case 80001:
       networkName = "mumbai";
@@ -407,20 +412,19 @@ async function main() {
     }
     if (sleepAmount > 0) await sleep(sleepAmount)
     addresses.ERC721Factory = factoryERC721.address;
-    const nftCount = await factoryERC721.getCurrentNFTTemplateCount();
-    const nftTemplate = await factoryERC721.getNFTTemplate(nftCount);
+    const nftCount = await factoryERC721.getCurrentNFTTemplateCount(options);
+    const nftTemplate = await factoryERC721.getNFTTemplate(nftCount,options);
     addresses.ERC721Template[nftCount.toString()] = templateERC721.address;
-
-    let currentTokenCount = await factoryERC721.getCurrentTemplateCount();
-    let tokenTemplate = await factoryERC721.getTokenTemplate(currentTokenCount);
+    let currentTokenCount = await factoryERC721.getCurrentTemplateCount(options);
+    let tokenTemplate = await factoryERC721.getTokenTemplate(currentTokenCount,options);
     addresses.ERC20Template[currentTokenCount.toString()] = templateERC20.address;
     if (sleepAmount > 0) await sleep(sleepAmount)
     if (logging) console.info("Adding ERC20Enterprise to ERC721Factory");
     const templateadd = await factoryERC721.connect(owner).addTokenTemplate(templateERC20Enterprise.address, options);
     await templateadd.wait();
     if (sleepAmount > 0) await sleep(sleepAmount)
-    currentTokenCount = await factoryERC721.getCurrentTemplateCount();
-    tokenTemplate = await factoryERC721.getTokenTemplate(currentTokenCount);
+    currentTokenCount = await factoryERC721.getCurrentTemplateCount(options);
+    tokenTemplate = await factoryERC721.getTokenTemplate(currentTokenCount,options);
     addresses.ERC20Template[currentTokenCount.toString()] =
       templateERC20Enterprise.address;
 
