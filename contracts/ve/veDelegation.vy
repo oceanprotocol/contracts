@@ -92,8 +92,9 @@ IDENTITY_PRECOMPILE: constant(address) = 0x0000000000000000000000000000000000000
 MAX_PCT: constant(uint256) = 10_000
 WEEK: constant(uint256) = 86400 * 7
 
+VOTING_ESCROW: immutable(address)
 
-veOcean: public(address)
+
 balanceOf: public(HashMap[address, uint256])
 getApproved: public(HashMap[uint256, address])
 isApprovedForAll: public(HashMap[address, HashMap[address, bool]])
@@ -132,13 +133,14 @@ grey_list: public(HashMap[address, HashMap[address, bool]])
 
 
 @external
-def __init__(_name: String[32], _symbol: String[32], _base_uri: String[128], _ve:address):
+def __init__(_name: String[32], _symbol: String[32], _base_uri: String[128], _ve: address):
     self.name = _name
     self.symbol = _symbol
     self.base_uri = _base_uri
-    self.veOcean = _ve
 
     self.admin = msg.sender
+
+    VOTING_ESCROW = _ve
 
 
 @internal
@@ -309,7 +311,7 @@ def _burn_boost(_token_id: uint256, _delegator: address, _receiver: address, _bi
     next_expiry: uint256 = expiry_data % 2 ** 128
     active_delegations: uint256 = shift(expiry_data, -128) - 1
 
-    expiries: uint256 = self.account_expiries[_delegator][expire_time] - 1
+    expiries: uint256 = self.account_expiries[_delegator][expire_time]
 
     if active_delegations != 0 and expire_time == next_expiry and expiries == 0:
         # Will be passed if
@@ -331,7 +333,7 @@ def _burn_boost(_token_id: uint256, _delegator: address, _receiver: address, _bi
         next_expiry = 0
 
     self.boost[_delegator].expiry_data = shift(active_delegations, 128) + next_expiry
-    self.account_expiries[_delegator][expire_time] = expiries
+    self.account_expiries[_delegator][expire_time] = expiries - 1
 
 
 @internal
@@ -553,25 +555,6 @@ def burn(_token_id: uint256):
     self._burn(_token_id)
 
 
-#@ if mode == "test":
-@external
-def _mint_for_testing(_to: address, _token_id: uint256):
-    self._mint(_to, _token_id)
-
-
-@external
-def _burn_for_testing(_token_id: uint256):
-    self._burn(_token_id)
-
-
-@view
-@external
-def uint_to_string(_value: uint256) -> String[78]:
-    return self._uint_to_string(_value)
-
-#@ endif
-
-
 @external
 def create_boost(
     _delegator: address,
@@ -614,7 +597,7 @@ def create_boost(
     assert _cancel_time <= expire_time  # dev: cancel time is after expiry
 
     assert expire_time >= block.timestamp + WEEK  # dev: boost duration must be atleast WEEK
-    assert expire_time <= VotingEscrow(self.veOcean).locked__end(_delegator)  # dev: boost expiration is past voting escrow lock expiry
+    assert expire_time <= VotingEscrow(VOTING_ESCROW).locked__end(_delegator)  # dev: boost expiration is past voting escrow lock expiry
     assert _id < 2 ** 96  # dev: id out of bounds
 
     # [delegator address 160][cancel_time uint40][id uint56]
@@ -630,7 +613,7 @@ def create_boost(
     # delegated boost will be positive, if any of circulating boosts are negative
     # we have already reverted
     delegated_boost: int256 = point.slope * time + point.bias
-    y: int256 = _percentage * (VotingEscrow(self.veOcean).balanceOf(_delegator) - delegated_boost) / MAX_PCT
+    y: int256 = _percentage * (VotingEscrow(VOTING_ESCROW).balanceOf(_delegator) - delegated_boost) / MAX_PCT
     assert y > 0  # dev: no boost
 
     point = self._calc_bias_slope(time, y, convert(expire_time, int256))
@@ -679,7 +662,7 @@ def extend_boost(_token_id: uint256, _percentage: int256, _expire_time: uint256,
 
     assert _cancel_time <= expire_time  # dev: cancel time is after expiry
     assert expire_time >= block.timestamp + WEEK  # dev: boost duration must be atleast one day
-    assert expire_time <= VotingEscrow(self.veOcean).locked__end(delegator) # dev: boost expiration is past voting escrow lock expiry
+    assert expire_time <= VotingEscrow(VOTING_ESCROW).locked__end(delegator) # dev: boost expiration is past voting escrow lock expiry
 
     point: Point = self._deconstruct_bias_slope(token.data)
 
@@ -710,7 +693,7 @@ def extend_boost(_token_id: uint256, _percentage: int256, _expire_time: uint256,
 
     # verify delegated boost isn't negative, else it'll inflate out veOCEAN balance
     delegated_boost: int256 = point.slope * time + point.bias
-    y: int256 = _percentage * (VotingEscrow(self.veOcean).balanceOf(delegator) - delegated_boost) / MAX_PCT
+    y: int256 = _percentage * (VotingEscrow(VOTING_ESCROW).balanceOf(delegator) - delegated_boost) / MAX_PCT
     # a delegator can snipe the exact moment a token expires and create a boost
     # with 10_000 or some percentage of their boost, which is perfectly fine.
     # this check is here so the user can't extend a boost unless they actually
@@ -817,7 +800,7 @@ def adjusted_balance_of(_account: address) -> uint256:
         # value
         return 0
 
-    adjusted_balance: int256 = VotingEscrow(self.veOcean).balanceOf(_account)
+    adjusted_balance: int256 = VotingEscrow(VOTING_ESCROW).balanceOf(_account)
 
     boost: Boost = self.boost[_account]
     time: int256 = convert(block.timestamp, int256)
@@ -948,7 +931,7 @@ def calc_boost_bias_slope(
     assert _percentage <= MAX_PCT  # dev: percentage must be less than or equal to 100%
     assert _expire_time > time + WEEK  # dev: Invalid min expiry time
 
-    lock_expiry: int256 = convert(VotingEscrow(self.veOcean).locked__end(_delegator), int256)
+    lock_expiry: int256 = convert(VotingEscrow(VOTING_ESCROW).locked__end(_delegator), int256)
     assert _expire_time <= lock_expiry
 
     ddata: uint256 = self.boost[_delegator].delegated
@@ -963,7 +946,7 @@ def calc_boost_bias_slope(
     delegated_boost: int256 = dpoint.slope * time + dpoint.bias
     assert delegated_boost >= 0  # dev: outstanding negative boosts
 
-    y: int256 = _percentage * (VotingEscrow(self.veOcean).balanceOf(_delegator) - delegated_boost) / MAX_PCT
+    y: int256 = _percentage * (VotingEscrow(VOTING_ESCROW).balanceOf(_delegator) - delegated_boost) / MAX_PCT
     assert y > 0  # dev: no boost
 
     slope: int256 = -y / (_expire_time - time)
