@@ -15,6 +15,13 @@ contract veAllocate {
         uint256 amount
     );
 
+    event AllocationSetMultiple(
+        address indexed sender,
+        address[] nft,
+        uint256[] chainId,
+        uint256[] amount
+    );
+
     function getveAllocation(
         address user,
         address nft,
@@ -44,5 +51,24 @@ contract veAllocate {
         require(_totalAllocation[msg.sender] <= 10000, "Max Allocation");
         veAllocation[msg.sender][nft][chainId] = amount;
         emit AllocationSet(msg.sender, nft, chainId, amount);
+    }
+
+    function setBatchAllocation(
+        uint256[] calldata amount,
+        address[] calldata nft,
+        uint256[] calldata chainId
+    ) external {
+        require(amount.length <= 150, 'Too Many Operations');
+        require(amount.length == nft.length, 'Nft array size missmatch');
+        require(amount.length == chainId.length, 'Chain array size missmatch');
+        for (uint256 i = 0; i < amount.length; i++) {
+            _totalAllocation[msg.sender] =
+                _totalAllocation[msg.sender] +
+                amount[i] -
+                veAllocation[msg.sender][nft[i]][chainId[i]];
+            veAllocation[msg.sender][nft[i]][chainId[i]] = amount[i];
+        }
+        require(_totalAllocation[msg.sender] <= 10000, "Max Allocation");
+        emit AllocationSetMultiple(msg.sender, nft, chainId, amount);
     }
 }
