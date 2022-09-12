@@ -82,6 +82,9 @@ async function main() {
       gasLimit = 6000000;
       gasPrice = ethers.utils.parseUnits('25', 'gwei')
       sleepAmount = 1
+      shouldDeployV4 = false;
+      shouldDeployDF = true;
+      shouldDeployVE = true;
       break;
     case 0x4:
       networkName = "rinkeby";
@@ -89,17 +92,20 @@ async function main() {
       OPFOwner = "0x0e901bC5D49636eC75B3B4fB88238698E5322dE6";
       routerOwner = OPFOwner;
       sleepAmount = 2
+      shouldDeployV4 = false;
+      shouldDeployDF = true;
+      shouldDeployVE = true;
       break;
     case 0x5:
       networkName = "goerli";
       OceanTokenAddress = "0xCfDdA22C9837aE76E0faA845354f33C62E03653a";
       OPFOwner = "0xEE1673089A4831D92324932e38e2EBDe6aB17274";
       routerOwner = OPFOwner;
-      shouldDeployOceanToken = false;
-      shouldDeployDF = false;
-      shouldDeployVE = false;
       sleepAmount = 2
       gasPrice = ethers.utils.parseUnits('5', 'gwei')
+      shouldDeployV4 = false;
+      shouldDeployDF = true;
+      shouldDeployVE = true;
       break;
     case 0x89:
       networkName = "polygon";
@@ -148,6 +154,10 @@ async function main() {
       gasLimit = 15000000
       gasPrice = ethers.utils.parseUnits('45', 'gwei')
       sleepAmount = 2
+      shouldDeployOceanToken = false;
+      shouldDeployV4 = false;
+      shouldDeployDF = true;
+      shouldDeployVE = true;
       break;
     case 0x38:
       networkName = "bsc";
@@ -550,6 +560,21 @@ async function main() {
       console.log("\tnpx hardhat verify --network " + networkName + " " + addresses.veDelegationProxy + " " + addresses.veDelegation + " " + routerOwner + " " + owner.address)
     }
     if (sleepAmount > 0) await sleep(sleepAmount)
+
+    //veFeeEstimate
+    if (logging) console.info("Deploying veFeeEstimate");
+    const veFeeEstimate = await ethers.getContractFactory("veFeeEstimate", owner);
+    const deployedVeFeeEstimate = await veFeeEstimate.connect(owner).deploy(
+        addresses.veOCEAN,
+        addresses.veFeeDistributor,
+        options);
+    await deployedVeFeeEstimate.deployTransaction.wait();
+    addresses.veFeeEstimate = deployedVeFeeEstimate.address;
+    if(show_verify){
+      console.log("\tRun the following to verify on etherscan");
+      console.log("\tnpx hardhat verify --network "+networkName+" "+addresses.veFeeEstimate+" "+addresses.veOCEAN+" "+addresses.veFeeDistributor)
+    }
+
   }
 
   //DF contracts
