@@ -23,6 +23,7 @@ interface FeeDistributor:
     def user_epoch_of(addr: address) -> uint256: view
     def tokens_per_week(week: uint256) -> uint256: view
     def ve_supply(week: uint256) -> uint256: view
+    def TOKEN_CHECKPOINT_DEADLINE() -> uint256: view
 
 struct Point:
     bias: int128
@@ -91,11 +92,20 @@ def estimateClaim(addr: address) -> uint256:
     # Minimal user_epoch is 0 (if user had no point)
     user_epoch: uint256 = 0
     to_distribute: uint256 = 0
-
+    _last_token_time: uint256 = FeeDistributor(self.fee_distributor).last_token_time()
     max_user_epoch: uint256 = VotingEscrow(self.voting_escrow).user_point_epoch(addr)
     _start_time: uint256 = FeeDistributor(self.fee_distributor).start_time()
-    _last_token_time: uint256 = FeeDistributor(self.fee_distributor).last_token_time()
+    
+    # if checkpoints are missing, them we cannot have an accurate estimate
+    # veFeeDistributor can do the checks, but requires tx and not just some call functions
+    if block.timestamp >= FeeDistributor(self.fee_distributor).time_cursor():
+        raise("Call checkpoint function")
+    if block.timestamp > _last_token_time + TOKEN_CHECKPOINT_DEADLINE:
+        raise("Call checkpoint function")
 
+    # Round down to weeks
+    _last_token_time = _last_token_time / WEEK * WEEK
+    
     if max_user_epoch == 0:
         # No lock = no fees
         return 0
