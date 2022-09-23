@@ -475,21 +475,7 @@ async function main() {
 
   //VE contracts
   if (shouldDeployVE) {
-    //veAllocate
-    if (logging) console.info("Deploying veAllocate");
-    const veAllocate = await ethers.getContractFactory(
-      "veAllocate",
-      owner
-    );
-    const deployedVEAllocate = await veAllocate.connect(owner).deploy(options);
-    await deployedVEAllocate.deployTransaction.wait();
-    addresses.veAllocate = deployedVEAllocate.address;
-    if (show_verify) {
-      console.log("\tRun the following to verify on etherscan");
-      console.log("\tnpx hardhat verify --network " + networkName + " " + addresses.veAllocate)
-    }
-    if (sleepAmount > 0) await sleep(sleepAmount)
-
+    
     //veOCEAN
     if (logging) console.info("Deploying veOCEAN");
     const veOCEAN = await ethers.getContractFactory(
@@ -502,6 +488,21 @@ async function main() {
     if (show_verify) {
       console.log("\tRun the following to verify on etherscan");
       console.log("\tnpx hardhat verify --network " + networkName + " " + addresses.veOCEAN + " " + addresses.Ocean + " veOCEAN veOCEAN 0.1.0")
+    }
+    if (sleepAmount > 0) await sleep(sleepAmount)
+    
+    //veAllocate
+    if (logging) console.info("Deploying veAllocate");
+    const veAllocate = await ethers.getContractFactory(
+      "veAllocate",
+      owner
+    );
+    const deployedVEAllocate = await veAllocate.connect(owner).deploy(options);
+    await deployedVEAllocate.deployTransaction.wait();
+    addresses.veAllocate = deployedVEAllocate.address;
+    if (show_verify) {
+      console.log("\tRun the following to verify on etherscan");
+      console.log("\tnpx hardhat verify --network " + networkName + " " + addresses.veAllocate)
     }
     if (sleepAmount > 0) await sleep(sleepAmount)
 
@@ -535,7 +536,7 @@ async function main() {
       timestamp,
       addresses.Ocean,
       routerOwner,
-      owner.address, options);
+      routerOwner, options);
     await deployedFeeDistributor.deployTransaction.wait();
     addresses.veFeeDistributor = deployedFeeDistributor.address;
     if (show_verify) {
@@ -573,6 +574,35 @@ async function main() {
     if(show_verify){
       console.log("\tRun the following to verify on etherscan");
       console.log("\tnpx hardhat verify --network "+networkName+" "+addresses.veFeeEstimate+" "+addresses.veOCEAN+" "+addresses.veFeeDistributor)
+    }
+
+
+    if (logging) console.info("Deploying SmartWalletChecker");
+    const SmartWalletChecker = await ethers.getContractFactory("SmartWalletChecker", owner);
+    const deployedSmartWalletChecker = await SmartWalletChecker.connect(owner).deploy(options);
+    await deployedSmartWalletChecker.deployTransaction.wait();
+    addresses.SmartWalletChecker = deployedSmartWalletChecker.address;
+    const commit_checker = await deployedVEOCEAN.connect(owner).commit_smart_wallet_checker(addresses.SmartWalletChecker,options)
+    await commit_checker.wait();
+    const apply_checker = await deployedVEOCEAN.connect(owner).apply_smart_wallet_checker(options)
+    await apply_checker.wait();
+    if(show_verify){
+      console.log("\tRun the following to verify on etherscan");
+      console.log("\tnpx hardhat verify --network "+networkName+" "+addresses.SmartWalletChecker)
+    }
+
+    //ownerships
+    if(routerOwner != owner.address){
+      if (logging) console.info("Moving veOcean ownership to " + routerOwner)
+        let tx = await deployedVEOCEAN.connect(owner).commit_transfer_ownership(routerOwner,options)
+        await tx.wait();
+        tx = await deployedVEOCEAN.connect(owner).apply_transfer_ownership(options)
+        await tx.wait();
+        tx = await deployedSmartWalletChecker.connect(owner).setManager(routerOwner, true, options)
+        await tx.wait();
+        tx = await deployedSmartWalletChecker.connect(owner).setManager(owner.address, false, options)
+        await tx.wait();
+
     }
 
   }
