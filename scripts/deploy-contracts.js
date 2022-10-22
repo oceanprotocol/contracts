@@ -71,8 +71,12 @@ async function main() {
       routerOwner = OPFOwner;
       OceanTokenAddress = "0x967da4048cD07aB37855c090aAF366e4ce1b9F48";
       additionalApprovedTokens = ["0x0642026E7f0B6cCaC5925b4E7Fa61384250e1701"];
-      gasPrice = ethers.utils.parseUnits('40', 'gwei')
-      sleepAmount = 30
+      gasPrice = ethers.utils.parseUnits('12', 'gwei')
+      sleepAmount = 10
+      shouldDeployV4 = false;
+      shouldDeployDF = true;
+      shouldDeployVE = true;
+      shouldDeployOPFCommunityFeeCollector = false;
       break;
     case 0x3:
       networkName = "ropsten";

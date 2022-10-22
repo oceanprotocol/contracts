@@ -50,6 +50,7 @@ async function main() {
       OPFOwner = "0x7DF5273aD9A6fCce64D45c64c1E43cfb6F861725";
       routerOwner = OPFOwner;
       OceanTokenAddress = "0x967da4048cD07aB37855c090aAF366e4ce1b9F48";
+      gasPrice = ethers.utils.parseUnits('25', 'gwei')
       break;
     case 0x3:
       networkName = "ropsten";
