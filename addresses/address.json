@@ -154,7 +154,7 @@
     "veDelegation": "0xc768eDF2d21fe00ef5804A7Caa775E877e65A70E",
     "veFeeDistributor": "0x256c54219816603BB8327F9019533B020a76e936",
     "veDelegationProxy": "0x45E3BEc7D139Cd8Ed7FeB161F3B094688ddB0c20",
-    "veFeeEstimate": "0xe97a787420eD263583689Bd35B7Db1952A94710d",
+    "veFeeEstimate": "0x4aA261bC595abC6fDEf0255C83e2a9305261753f",
     "SmartWalletChecker": "0xd7ddf62257A41cc6cdAd7A3d36e4f1d925fD142a"
   },
   "goerli": {

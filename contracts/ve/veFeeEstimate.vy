@@ -84,24 +84,15 @@ def _find_timestamp_user_epoch(ve: address, user: address, _timestamp: uint256, 
             _max = _mid - 1
     return _min
 
-
-
-@external
+@internal
 @view
-def estimateClaim(addr: address) -> uint256:
+def _estimateClaim(addr: address) -> uint256:
     # Minimal user_epoch is 0 (if user had no point)
     user_epoch: uint256 = 0
     to_distribute: uint256 = 0
     _last_token_time: uint256 = FeeDistributor(self.fee_distributor).last_token_time()
     max_user_epoch: uint256 = VotingEscrow(self.voting_escrow).user_point_epoch(addr)
     _start_time: uint256 = FeeDistributor(self.fee_distributor).start_time()
-    
-    # if checkpoints are missing, them we cannot have an accurate estimate
-    # veFeeDistributor can do the checks, but requires tx and not just some call functions
-    if block.timestamp >= FeeDistributor(self.fee_distributor).time_cursor():
-        raise("Call checkpoint function")
-    if block.timestamp > _last_token_time + TOKEN_CHECKPOINT_DEADLINE:
-        raise("Call checkpoint function")
 
     # Round down to weeks
     _last_token_time = _last_token_time / WEEK * WEEK
@@ -162,3 +153,21 @@ def estimateClaim(addr: address) -> uint256:
 
 
     return to_distribute
+  
+@external
+@view
+def estimateClaimAcc(addr: address) -> uint256:
+    _last_token_time: uint256 = FeeDistributor(self.fee_distributor).last_token_time()
+    # if checkpoints are missing, them we cannot have an accurate estimate
+    # veFeeDistributor can do the checks, but requires tx and not just some call functions
+    if block.timestamp >= FeeDistributor(self.fee_distributor).time_cursor():
+        raise("Call checkpoint function")
+    if block.timestamp > _last_token_time + TOKEN_CHECKPOINT_DEADLINE:
+        raise("Call checkpoint function")
+    
+    return self._estimateClaim(addr)
+
+@external
+@view
+def estimateClaim(addr: address) -> uint256:
+    return self._estimateClaim(addr)
