@@ -26,25 +26,6 @@
     "DFStrategyV1": "0x1be9C72500B41c286C797D4FE727747Ae9C4E195",
     "veFeeEstimate": "0xCFeF55c6ae4d250586e293f29832967a04A9087d"
   },
-  "moonbase": {
-    "chainId": 1287,
-    "Ocean": "0xF6410bf5d773C7a41ebFf972f38e7463FA242477",
-    "OPFCommunityFeeCollector": "0xeD8CA02627867f459593DD35bC2B0C465B9E9518",
-    "startBlock": 2169229,
-    "poolTemplate": "0x3385Ff92e9A9fbE3A36672a3857c90351d2E56a9",
-    "Router": "0x08bEEfA4AD10C5Fcf5132326bebF1AA7181aC301",
-    "FixedPrice": "0x7c7d24E786887257a7EcAdBa03063E10B4Ff3655",
-    "Staking": "0x5FFE6649C7562F3bee1ca114c7c3316BF4B45b50",
-    "ERC20Template": {
-      "1": "0xa15024b732A8f2146423D14209eFd074e61964F3",
-      "2": "0x5ee92aD0760e380501780e2c11c16451F4d3E81C"
-    },
-    "ERC721Template": {
-      "1": "0x6468f7ffD373bE2A2371757554684766bf0F51e8"
-    },
-    "Dispenser": "0x04706CA5d439b342449f0F483b0da0E7B70CC1ef",
-    "ERC721Factory": "0x5b1E1b333B76BC81FA60cD986EA82487e4F72B8B"
-  },
   "polygon": {
     "chainId": 137,
     "Ocean": "0x282d8efCe846A88B159800bd4130ad77443Fa1A1",
