@@ -3,7 +3,7 @@
 <h1 align="center">contracts-v4</h1>
 
 > 🦑 Smart contracts for Ocean Protocol v4. https://oceanprotocol.com
-Ocean v4 is part of the [Ocean Protocol](https://oceanprotocol.com) toolset.
+> Ocean v4 is part of the [Ocean Protocol](https://oceanprotocol.com) toolset.
 
 This is in beta state and you can expect running into problems. If you run into them, please open up a [new issue](https://github.com/oceanprotocol/contracts/issues/new?assignees=&labels=bug&template=bug_report.md&title=).
 
@@ -22,24 +22,30 @@ This is in beta state and you can expect running into problems. If you run into 
 For quick installation of the contract `ABIs`:
 
 ### Javascript/Typescript
+
 ```bash
 npm install @oceanprotocol/contracts
 ```
+
 ### Python
+
 ```bash
 pip3 install ocean-contracts
 ```
+
 #### ⚙️ Usage
+
 By default, Python does not support importing `json` files directly, so it is recommended to use `json-sempai` package in order to automatically importing `ABIs/json` artifacts.
+
 ```
 pip3 install json-sempai
 # install the ocean-contracts package.
 ```
+
 ```python
 from jsonsempai import magic
 from artifacts import address
 ```
-
 
 ## Overview
 
@@ -47,7 +53,7 @@ from artifacts import address
 
 ## 🏄 Quickstart
 
-### Features 
+### Features
 
 - Base IP is now represented by an [NFT](https://blog.oceanprotocol.com/what-is-a-data-nft-5804a2d88671), from which a datapublisher can create multiple ERC20s representing different type of access for the same dataset.
 
@@ -55,10 +61,9 @@ from artifacts import address
 
 - Help [Ocean Community Monetize](https://blog.oceanprotocol.com/how-to-make-money-from-ocean-v4-477b3decad51): there's a swap fee for the Ocean Community, if Ocean or allied tokens are the basetoken in a pool, Ocean Community will receive 0.1% swap fee, otherwhise it will be 0.2%.
 
-
 #### Flexibility
 
-- Introduce an advanced [Fee Structure](https://docs.oceanprotocol.com/concepts/fees/) both for Market and Provider runners.
+- Introduce an advanced [Fee Structure](https://docs.oceanprotocol.com/core-concepts/fees) both for Market and Provider runners.
 
 - Roles Administration: there are now multiple roles for a more flexible administation both at NFT and ERC20 levels
 
@@ -67,10 +72,6 @@ from artifacts import address
 - Multiple NFT template support: the Factory can deploy different types of NFT templates
 
 - Multiple datatoken template support: the Factory can deploy different types of Datatoken templates
-
-
-
-
 
 ### Publisher Flow
 
@@ -84,13 +85,11 @@ How roles are handled in the v4.
 
 [Go to roles diagram](docs/quickstart_roles.md)
 
-
 ### Functions you will need
 
 Selection of most common functions.
 
 [Go to functions](docs/quickstart_functions.md)
-
 
 ### Bundle functions
 
@@ -98,20 +97,16 @@ Helper functions which can perform multiple steps in 1 call.
 
 [Go to helpers](docs/quickstart_bundle.md)
 
-
-
 If you have any difficulties with the quickstarts, or if you have further questions about how to use the contracts please reach out to us on [Discord](https://discord.gg/TnXjkR5).
 
 If you notice any bugs or issues with this repo please [open an issue on github](https://github.com/oceanprotocol/contracts/issues/new?assignees=&labels=bug&template=bug_report.md&title=). -->
 
-
-
 The [ocean.js](https://github.com/oceanprotocol/ocean.js) and [ocean.py](https://github.com/oceanprotocol/ocean.py) libraries wrap `contracts` in JavaScript and Python respectively. They each have quickstart guides.
-
 
 ## 🦑 Development and Testing
 
 Run hardhat in a new terminal:
+
 ```bash
 export ALCHEMY_URL="https://eth-mainnet.alchemyapi.io/v2/XXXXXXXX"
 npm install
