@@ -7,7 +7,9 @@ RUN bash /tmp/nodesource_setup.sh
 RUN apt install nodejs
 COPY . /ocean-contracts
 WORKDIR /ocean-contracts
-RUN npm install --no-optional && npm cache clean --force
+RUN rm package-lock.json
+RUN rm -rf ./node-modules/
+RUN npm i
 ENV SLEEP_FOR_GANACHE=10
 RUN cp hardhat.config.barge.js hardhat.config.js
 ENV NETWORK=barge
