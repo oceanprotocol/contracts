@@ -193,6 +193,20 @@ async function main() {
       OPFOwner = "0x06100AB868206861a4D7936166A91668c2Ce1312"
       routerOwner = OPFOwner;
       break;
+    case 44787:
+      networkName = "alfajores";
+      OPFOwner = '0x06100AB868206861a4D7936166A91668c2Ce1312'
+      routerOwner = OPFOwner;
+      OceanTokenAddress = "0xd8992Ed72C445c35Cb4A2be468568Ed1079357c8";
+      gasLimit = 15000000
+      gasPrice = ethers.utils.parseUnits('8', 'gwei')
+      sleepAmount = 2
+      shouldDeployOceanToken = false;
+      shouldDeployV4 = true;
+      shouldDeployDF = false;
+      shouldDeployVE = false;
+      break;
+      
     default:
       OPFOwner = owner.address;
       networkName = "development";
