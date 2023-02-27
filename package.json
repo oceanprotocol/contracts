@@ -58,6 +58,6 @@
     "hardhat-contract-sizer": "^2.6.1",
     "hardhat-gas-reporter": "^1.0.8",
     "solidity-bytes-utils": "^0.8.0",
-    "solidity-coverage": "^0.7.17"
+    "solidity-coverage": "^0.8.2"
   }
 }
