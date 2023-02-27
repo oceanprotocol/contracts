@@ -1,14 +1,15 @@
 FROM ubuntu:20.04
 LABEL maintainer="Ocean Protocol <devops@oceanprotocol.com>"
 RUN apt-get update && \
-      apt-get -y install build-essential python3 git bash curl
-RUN curl -sL https://deb.nodesource.com/setup_16.x -o /tmp/nodesource_setup.sh
+      apt-get -y install build-essential python3 git bash curl gcc g++ make
+RUN curl -sL https://deb.nodesource.com/setup_18.x -o /tmp/nodesource_setup.sh
 RUN bash /tmp/nodesource_setup.sh
 RUN apt install nodejs
 COPY . /ocean-contracts
 WORKDIR /ocean-contracts
-
-RUN npm install --no-optional && npm cache clean --force
+RUN rm package-lock.json
+RUN rm -rf ./node-modules/
+RUN npm i
 ENV SLEEP_FOR_GANACHE=10
 RUN cp hardhat.config.barge.js hardhat.config.js
 ENV NETWORK=barge

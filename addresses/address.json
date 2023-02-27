@@ -199,5 +199,39 @@
     },
     "Dispenser": "0x8c98ea273bA22327F896Aa1a1a46E1BFf56e9b1D",
     "ERC721Factory": "0x49E35cd2bAE043Abd9074B6e5a649a5AdEB05C33"
-  }
+  },
+  "alfajores": {
+    "chainId": 44787,
+    "Ocean": "0xd8992Ed72C445c35Cb4A2be468568Ed1079357c8",
+    "OPFCommunityFeeCollector": "0xEF62FB495266C72a5212A11Dce8baa79Ec0ABeB1",
+    "startBlock": 16422659,
+    "Router": "0xc37F8341Ac6e4a94538302bCd4d49Cf0852D30C0",
+    "FixedPrice": "0x3c21a90599b5B7f37014cA5Bf30d3f1b73d7e391",
+    "Staking": "0xCfDdA22C9837aE76E0faA845354f33C62E03653a",
+    "ERC20Template": {
+      "1": "0x4E6058dC00e90C0DCA47A5d0D3346F409939A5ab",
+      "2": "0xE9397625Df9B63f0C152f975234b7988b54710B8"
+    },
+    "ERC721Template": {
+      "1": "0x159924ca0F47D6F704B97E29099b89e518A17B5E"
+    },
+    "Dispenser": "0xc313e19146Fc9a04470689C9d41a4D3054693531",
+    "ERC721Factory": "0x98679D582AB3398C03D3308dEB9c7AeC50B52ded"
+  },
+  "gen-x-testnet":{
+    "chainId": 100,
+    "OceanToken": "0x0995527d3473b3a98c471f1ed8787acd77fbf009",
+    "CommunityFeeCollector": "0x2e0C9e15A45c9884F7768BB852E7399B9153525d",
+    "Router": "0x7A3C9F0729AB93e4F9945221168A56eCf450187D",
+    "FixedPrice": "0xAD8E7d2aFf5F5ae7c2645a52110851914eE6664b",
+    "ERC20Templates":  {
+      "1":"0xA7D7Cb8dDd46c1B13e9Ccab2fA7D4fC5926f0348", 
+      "2":"0x7fEcdEDaE245d3AD5ad93c6Df9603d06887786e8"
+    },
+    "ERC721Template": {
+      "1:":"0x2CBCD3b10783378e34209B760e5A70531198f65E"
+    },
+    "Dispenser": "0x94cb8FC8719Ed09bE3D9c696d2037EA95ef68d3e[5a7",
+    "ERC721Factory": "0x6cb85858183B82154921f68b434299EC4281da53"
+  } 
 }
