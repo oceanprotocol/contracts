@@ -1,6 +1,6 @@
 {
   "name": "@oceanprotocol/contracts",
-  "version": "v1.1.10",
+  "version": "v1.1.11",
   "description": "Ocean Protocol Smartcontracts",
   "bugs": {
     "url": "https://github.com/oceanprotocol/contracts/issues"
@@ -54,7 +54,7 @@
     "ethereum-waffle": "^3.4.4",
     "ethereumjs-util": "^7.1.5",
     "ethers": "^5.7.2",
-    "hardhat": "^2.12.7",
+    "hardhat": "^2.10.2",
     "hardhat-contract-sizer": "^2.6.1",
     "hardhat-gas-reporter": "^1.0.8",
     "solidity-bytes-utils": "^0.8.0",
