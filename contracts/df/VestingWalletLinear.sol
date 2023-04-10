@@ -2,10 +2,10 @@
 // OpenZeppelin Contracts (last updated v4.7.0) (finance/VestingWallet.sol)
 pragma solidity ^0.8.0;
 
-import "OpenZeppelin/openzeppelin-contracts@4.7.0/contracts/token/ERC20/utils/SafeERC20.sol";
-import "OpenZeppelin/openzeppelin-contracts@4.7.0/contracts/utils/Address.sol";
-import "OpenZeppelin/openzeppelin-contracts@4.7.0/contracts/utils/Context.sol";
-import "OpenZeppelin/openzeppelin-contracts@4.7.0/contracts/access/Ownable.sol";
+import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
+import "@openzeppelin/contracts/utils/Address.sol";
+import "@openzeppelin/contracts/utils/Context.sol";
+import "@openzeppelin/contracts/access/Ownable.sol";
 
 /**
  * @title VestingWalletLinear

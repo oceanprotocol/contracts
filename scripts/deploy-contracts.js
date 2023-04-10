@@ -745,7 +745,7 @@ async function main() {
       owner
     );
     const blockTimestamp = await ethers.provider.getBlock('latest').then(block => block.timestamp);
-    const endDate = "2024-03-07"
+    const endDate = "2024-03-14"
     const endDateUnix = parseInt(new Date(endDate).getTime() / 1000)
     const vestingPeriod = endDateUnix - blockTimestamp
     const deployVestingWallet0 = await VestingWallet0.connect(owner).deploy(addresses.Splitter, blockTimestamp, vestingPeriod, options)
