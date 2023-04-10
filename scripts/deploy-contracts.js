@@ -14,6 +14,7 @@ const DEAD_ADDRESS = "0x000000000000000000000000000000000000dEaD"
 let shouldDeployV4 = true;
 let shouldDeployDF = true;
 let shouldDeployVE = true;
+let shouldDeployVesting = false;
 let shouldDeployOceanToken = false;
 let shouldDeployMocks = false;
 let shouldDeployOPFCommunityFeeCollector = false;
@@ -77,6 +78,7 @@ async function main() {
       shouldDeployDF = true;
       shouldDeployVE = true;
       shouldDeployOPFCommunityFeeCollector = false;
+      shouldDeployVesting = true;
       break;
     case 0x3:
       networkName = "ropsten";
@@ -110,6 +112,7 @@ async function main() {
       shouldDeployV4 = false;
       shouldDeployDF = true;
       shouldDeployVE = true;
+      shouldDeployVesting = true;
       break;
     case 0x89:
       networkName = "polygon";
@@ -225,6 +228,7 @@ async function main() {
       routerOwner = owner.address;
       shouldDeployMocks = true;
       shouldDeployOceanToken = true;
+      shouldDeployVesting = true;
       sleepAmount = 0
       break;
   }
@@ -718,6 +722,40 @@ async function main() {
 
     }
 
+  }
+
+  if (shouldDeployVesting) {
+    if (logging) console.info("Deploying Vesting and Splitter contracts");
+    const Splitter = await ethers.getContractFactory(
+      "Splitter",
+      owner
+    );
+    const deploySplitter = await Splitter.connect(owner).deploy([OPFOwner], [100], options);
+    await deploySplitter.deployTransaction.wait();
+    addresses.Splitter = deploySplitter.address;
+    if (show_verify) {
+      console.log("\tRun the following to verify on etherscan");
+      console.log("\tnpx hardhat verify --network " + networkName + " " + addresses.Splitter)
+    }
+    if (sleepAmount > 0) await sleep(sleepAmount)
+
+    if (logging) console.info("Deploying VestingWallet0");
+    const VestingWallet0 = await ethers.getContractFactory(
+      "VestingWalletLinear",
+      owner
+    );
+    const blockTimestamp = await ethers.provider.getBlock('latest').then(block => block.timestamp);
+    const endDate = "2024-03-07"
+    const endDateUnix = parseInt(new Date(endDate).getTime() / 1000)
+    const vestingPeriod = endDateUnix - blockTimestamp
+    const deployVestingWallet0 = await VestingWallet0.connect(owner).deploy(addresses.Splitter, blockTimestamp, vestingPeriod, options)
+    await deployVestingWallet0.deployTransaction.wait();
+    addresses.VestingWallet0 = deployVestingWallet0.address;
+    if (show_verify) {
+      console.log("\tRun the following to verify on etherscan");
+      console.log("\tnpx hardhat verify --network " + networkName + " " + addresses.VestingWallet0)
+    }
+    if (sleepAmount > 0) await sleep(sleepAmount)
   }
 
   //DF contracts
