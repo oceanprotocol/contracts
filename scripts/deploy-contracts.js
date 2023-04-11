@@ -72,11 +72,11 @@ async function main() {
       routerOwner = OPFOwner;
       OceanTokenAddress = "0x967da4048cD07aB37855c090aAF366e4ce1b9F48";
       additionalApprovedTokens = ["0x0642026E7f0B6cCaC5925b4E7Fa61384250e1701"];
-      gasPrice = ethers.utils.parseUnits('12', 'gwei')
+      gasPrice = ethers.utils.parseUnits('25', 'gwei')
       sleepAmount = 10
       shouldDeployV4 = false;
-      shouldDeployDF = true;
-      shouldDeployVE = true;
+      shouldDeployDF = false;
+      shouldDeployVE = false;
       shouldDeployOPFCommunityFeeCollector = false;
       shouldDeployVesting = true;
       break;
@@ -110,8 +110,9 @@ async function main() {
       sleepAmount = 2
       gasPrice = ethers.utils.parseUnits('5', 'gwei')
       shouldDeployV4 = false;
-      shouldDeployDF = true;
-      shouldDeployVE = true;
+      shouldDeployDF = false;
+      shouldDeployVE = false;
+      shouldDeployOPFCommunityFeeCollector = false;
       shouldDeployVesting = true;
       break;
     case 0x89:
@@ -161,10 +162,11 @@ async function main() {
       gasLimit = 15000000
       gasPrice = ethers.utils.parseUnits('45', 'gwei')
       sleepAmount = 2
-      shouldDeployOceanToken = false;
       shouldDeployV4 = false;
-      shouldDeployDF = true;
-      shouldDeployVE = true;
+      shouldDeployDF = false;
+      shouldDeployVE = false;
+      shouldDeployOPFCommunityFeeCollector = false;
+      shouldDeployVesting = true;
       break;
     case 0x38:
       networkName = "bsc";
@@ -264,7 +266,6 @@ async function main() {
     console.info(
       "Use existing addresses:" + JSON.stringify(addresses, null, 2)
     );
-
   addresses.chainId = networkDetails.chainId;
   if (shouldDeployOceanToken || addresses.Ocean === null) {
     if (logging) console.info("Deploying OceanToken");
@@ -288,6 +289,8 @@ async function main() {
   else {
     addresses.Ocean = OceanTokenAddress;
   }
+
+
   if (shouldDeployMocks) {
     if (logging) console.info("Deploying Mocks");
     // DEPLOY DAI and USDC for TEST (barge etc)
@@ -735,7 +738,13 @@ async function main() {
     addresses.Splitter = deploySplitter.address;
     if (show_verify) {
       console.log("\tRun the following to verify on etherscan");
-      console.log("\tnpx hardhat verify --network " + networkName + " " + addresses.Splitter)
+      console.log("\tcat > splitter-args.js\n");
+      console.log("\tmodule.exports=[\n");
+      console.log("\t[\"" + OPFOwner + "\"],\n");
+      console.log("\t[100]\n");
+      console.log("\t];");
+      console.log("\tCTRL+D");
+      console.log("\tnpx hardhat verify --network " + networkName + " --constructor-args splitter-args.js " + addresses.Splitter)
     }
     if (sleepAmount > 0) await sleep(sleepAmount)
 
@@ -753,9 +762,18 @@ async function main() {
     addresses.VestingWallet0 = deployVestingWallet0.address;
     if (show_verify) {
       console.log("\tRun the following to verify on etherscan");
-      console.log("\tnpx hardhat verify --network " + networkName + " " + addresses.VestingWallet0)
+      console.log("\tnpx hardhat verify --network " + networkName + " " + addresses.VestingWallet0+" "+addresses.Splitter+" "+blockTimestamp+" "+vestingPeriod)
     }
     if (sleepAmount > 0) await sleep(sleepAmount)
+
+    //ownerships
+    if (routerOwner != owner.address) {
+      if (logging) console.info("Moving vesting ownership to " + routerOwner)
+      let tx = await deploySplitter.connect(owner).transferOwnership(routerOwner, options)
+      await tx.wait();
+      tx = await deployVestingWallet0.connect(owner).transferOwnership(routerOwner, options)
+      await tx.wait();
+    }
   }
 
   //DF contracts
