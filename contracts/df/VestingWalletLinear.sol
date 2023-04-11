@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: MIT
 // OpenZeppelin Contracts (last updated v4.7.0) (finance/VestingWallet.sol)
-pragma solidity ^0.8.0;
+pragma solidity 0.8.12;
 
 import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 import "@openzeppelin/contracts/utils/Address.sol";
@@ -105,6 +105,10 @@ contract VestingWalletLinear is Context, Ownable {
      * Emits a {EtherReleased} event.
      */
     function release() public virtual {
+        require(
+            beneficiary() != address(0),
+            "VestingWallet: beneficiary is zero address"
+        );
         uint256 amount = releasable();
         _released += amount;
         emit EtherReleased(amount);
@@ -117,6 +121,10 @@ contract VestingWalletLinear is Context, Ownable {
      * Emits a {ERC20Released} event.
      */
     function release(address token) public virtual {
+        require(
+            beneficiary() != address(0),
+            "VestingWallet: beneficiary is zero address"
+        );
         uint256 amount = releasable(token);
         _erc20Released[token] += amount;
         emit ERC20Released(token, amount);
@@ -175,7 +183,8 @@ contract VestingWalletLinear is Context, Ownable {
         SafeERC20.safeTransfer(IERC20(token), owner(), IERC20(token).balanceOf(address(this)));
     }
 
-    function changeBeneficiary(address beneficiary_) external onlyOwner {
-        _beneficiary = beneficiary_;
+    function changeBeneficiary(address beneficiary) external onlyOwner {
+        require(beneficiary!= address(0),"VestingWallet: beneficiary is zero address");
+        _beneficiary = beneficiary;
     }
 }
