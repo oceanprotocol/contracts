@@ -24,7 +24,9 @@
     "veDelegationProxy": "0x51B1b14b8bfb43a2fB0b49843787Ca440200F6b7",
     "DFRewards": "0x4259c164eedA7483dda2b4b622D761A88674D31f",
     "DFStrategyV1": "0x1be9C72500B41c286C797D4FE727747Ae9C4E195",
-    "veFeeEstimate": "0xCFeF55c6ae4d250586e293f29832967a04A9087d"
+    "veFeeEstimate": "0xCFeF55c6ae4d250586e293f29832967a04A9087d",
+    "Splitter": "0x648306FF10673e4eAad6F69473e49C973f9F5872",
+    "VestingWallet0": "0x4699B0f191C68975e89E70c5704537f7ad033f62"
   },
   "polygon": {
     "chainId": 137,
@@ -136,7 +138,9 @@
     "veFeeDistributor": "0x256c54219816603BB8327F9019533B020a76e936",
     "veDelegationProxy": "0x45E3BEc7D139Cd8Ed7FeB161F3B094688ddB0c20",
     "veFeeEstimate": "0x4aA261bC595abC6fDEf0255C83e2a9305261753f",
-    "SmartWalletChecker": "0xd7ddf62257A41cc6cdAd7A3d36e4f1d925fD142a"
+    "SmartWalletChecker": "0xd7ddf62257A41cc6cdAd7A3d36e4f1d925fD142a",
+    "Splitter": "0xadF0D06e58E618de36Af0F1b52891b14FAA61187",
+    "VestingWallet0": "0x6907Def01ff54a0a3bC4041133D57B1ECB5488E7"
   },
   "goerli": {
     "chainId": 5,
