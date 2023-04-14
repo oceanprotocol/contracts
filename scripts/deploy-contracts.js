@@ -753,7 +753,8 @@ async function main() {
       "VestingWalletLinear",
       owner
     );
-    const blockTimestamp = await ethers.provider.getBlock('latest').then(block => block.timestamp);
+    const block = await provider.getBlock("latest")
+    const blockTimestamp = block.timestamp
     const endDate = "2024-03-14"
     const endDateUnix = parseInt(new Date(endDate).getTime() / 1000)
     const vestingPeriod = endDateUnix - blockTimestamp
