@@ -767,6 +767,20 @@ async function main() {
     }
     if (sleepAmount > 0) await sleep(sleepAmount)
 
+    const Distribute = await ethers.getContractFactory(
+      "Distribute",
+      owner
+    );
+    const deployDistribute = await Distribute.connect(owner).deploy(options)
+    await deployDistribute.deployTransaction.wait();
+    addresses.Distribute = deployDistribute.address;
+    if (show_verify) {
+      console.log("\tRun the following to verify on etherscan");
+      console.log("\tnpx hardhat verify --network " + networkName + " " + addresses.Distribute)
+    }
+    if (sleepAmount > 0) await sleep(sleepAmount)
+
+
     //ownerships
     if (routerOwner != owner.address) {
       if (logging) console.info("Moving vesting ownership to " + routerOwner)
