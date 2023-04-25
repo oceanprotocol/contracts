@@ -19,10 +19,14 @@ interface IveFeeDistributor{
 }
 
 contract veFeeDistributorOwner is Ownable{
-    address private veFeeDistributorToken;
-    IveFeeDistributor private veFeeDistributorContract;
+    address public immutable veFeeDistributorToken;
+    address public immutable veFeeDistributorContract;
 
-
+    event CommitAdmin(address admin);
+    event ApplyAdmin(address admin);
+    event ToggleAllowCheckpointToken(bool toogle_flag);
+    event CheckpointToken(uint256 time,uint256 tokens);
+    
     constructor(
         address _veFeeDistributor
     ) payable {
@@ -30,40 +34,40 @@ contract veFeeDistributorOwner is Ownable{
             _veFeeDistributor != address(0),
             "_veFeeDistributor is zero address"
         );
-        veFeeDistributorContract=IveFeeDistributor(_veFeeDistributor);
+        veFeeDistributorContract=_veFeeDistributor;
         veFeeDistributorToken=IveFeeDistributor(_veFeeDistributor).token();
         require(
             veFeeDistributorToken != address(0),
             "_veFeeDistributor token is zero address"
         );
     }
-
+    
     function checkpoint_token() external{
-            veFeeDistributorContract.checkpoint_token();
+            IveFeeDistributor(veFeeDistributorContract).checkpoint_token();
     }
     function checkpoint_total_supply() external{
-            veFeeDistributorContract.checkpoint_total_supply();
+            IveFeeDistributor(veFeeDistributorContract).checkpoint_total_supply();
     }
     function checkpoint() external{
-            veFeeDistributorContract.checkpoint_token();
-            veFeeDistributorContract.checkpoint_total_supply();
+            IveFeeDistributor(veFeeDistributorContract).checkpoint_token();
+            IveFeeDistributor(veFeeDistributorContract).checkpoint_total_supply();
     }
     function commit_admin(address admin) external onlyOwner{
-            veFeeDistributorContract.commit_admin(admin);
+            IveFeeDistributor(veFeeDistributorContract).commit_admin(admin);
     }
     function apply_admin() external onlyOwner{
-            veFeeDistributorContract.apply_admin();
+            IveFeeDistributor(veFeeDistributorContract).apply_admin();
     }
     function toggle_allow_checkpoint_token() external onlyOwner{
-            veFeeDistributorContract.toggle_allow_checkpoint_token();
+            IveFeeDistributor(veFeeDistributorContract).toggle_allow_checkpoint_token();
     }
     function kill_me() external onlyOwner{
-            veFeeDistributorContract.kill_me();
+            IveFeeDistributor(veFeeDistributorContract).kill_me();
             uint256 balance = IERC20(veFeeDistributorToken).balanceOf(address(this));
             SafeERC20.safeTransfer(IERC20(veFeeDistributorToken), owner(), balance);
     }
     function recover_balance(address token) external onlyOwner{
-            veFeeDistributorContract.recover_balance(token);
+            IveFeeDistributor(veFeeDistributorContract).recover_balance(token);
             uint256 balance = IERC20(token).balanceOf(address(this));
             SafeERC20.safeTransfer(IERC20(token), owner(), balance);
     }
