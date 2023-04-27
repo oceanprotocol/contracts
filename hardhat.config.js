@@ -41,11 +41,11 @@ module.exports = {
   },
   networks: {
     hardhat: {
-      allowUnlimitedContractSize: true,
-      forking: {
-        url: process.env.ALCHEMY_URL,
-        blockNumber: 12545000,
-      },
+      //allowUnlimitedContractSize: true,
+      //forking: {
+      //  url: process.env.ALCHEMY_URL,
+      //  blockNumber: 12545000,
+      //},
       gasPrice:1000000000
     },
     mainnet: {
