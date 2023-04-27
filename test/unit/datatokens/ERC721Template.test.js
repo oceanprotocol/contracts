@@ -60,62 +60,13 @@ describe("ERC721Template", () => {
   const metaDataDecryptorAddress = "0x123";
   const metaDataState = 1;
 
-  const migrateFromV3 = async (v3DTOwner,v3Datatoken) => {
-    // WE IMPERSONATE THE ACTUAL v3DT OWNER and create a new ERC721 Contract, from which we are going to wrap the v3 datatoken
-    
-    await impersonate(v3DTOwner)
-    signer = ethers.provider.getSigner(v3DTOwner);
-    const tx = await factoryERC721.connect(signer).deployERC721Contract(
-      "NFT2",
-      "NFTSYMBOL",
-      1,
-      "0x0000000000000000000000000000000000000000",
-      "0x0000000000000000000000000000000000000000",
-      "https://oceanprotocol.com/nft/",
-      true,
-      owner.address
-    );
-    const txReceipt = await tx.wait();
-    let event = getEventFromTx(txReceipt,'NFTCreated')
-    assert(event, "Cannot find NFTCreated event")
-    tokenAddress = event.args[0];
-
-    tokenERC721 = await ethers.getContractAt("ERC721Template", tokenAddress);
-    assert(await tokenERC721.v3DT(v3Datatoken) == false)
-   
-    // WE then have to Propose a new minter for the v3Datatoken
-  
-    v3DTContract = await ethers.getContractAt("IV3ERC20", v3Datatoken);
-    await v3DTContract.connect(signer).proposeMinter(tokenAddress)
-  
-    // ONLY V3DTOwner can now call wrapV3DT() to transfer minter permission to the erc721Contract
-    await tokenERC721.connect(signer).wrapV3DT(v3Datatoken,v3DTOwner)
-    assert(await tokenERC721.v3DT(v3Datatoken) == true)
-    assert((await tokenERC721.getPermissions(v3DTOwner)).v3Minter == true);
-    
-    return tokenERC721;
-  }
-
   beforeEach("init contracts for each test", async () => {
-    await network.provider.request({
-      method: "hardhat_reset",
-      params: [
-        {
-          forking: {
-            jsonRpcUrl: process.env.ALCHEMY_URL,
-            blockNumber: 12515000,
-          },
-        },
-      ],
-    });
-
+    
     const ERC721Template = await ethers.getContractFactory("ERC721Template");
     const ERC20Template = await ethers.getContractFactory("ERC20Template");
     const ERC721Factory = await ethers.getContractFactory("ERC721Factory");
 
     const Router = await ethers.getContractFactory("FactoryRouter");
-    const SSContract = await ethers.getContractFactory("SideStaking");
-    const BPool = await ethers.getContractFactory("BPool");
     const FixedRateExchange = await ethers.getContractFactory(
       "FixedRateExchange"
     );
@@ -129,21 +80,14 @@ describe("ERC721Template", () => {
 
  // DEPLOY ROUTER, SETTING OWNER
 
-    poolTemplate = await BPool.deploy();
-
-    
-
-
     router = await Router.deploy(
      owner.address,
-     oceanAddress,
-     poolTemplate.address, // pooltemplate field,
+     '0x000000000000000000000000000000000000dead', // approved tokens list, unused in this test
+     '0x000000000000000000000000000000000000dead', // pooltemplate field, unused in this test
      opcCollector.address,
      []
    );
       
-   sideStaking = await SSContract.deploy(router.address);
-
    fixedRateExchange = await FixedRateExchange.deploy(
      router.address
    );
@@ -167,8 +111,7 @@ describe("ERC721Template", () => {
  
    await router.addFixedRateContract(fixedRateExchange.address); 
 
-   await router.addSSContract(sideStaking.address); 
-
+   
     // by default connect() in ethers goes with the first address (owner in this case)
     const tx = await factoryERC721.deployERC721Contract(
       "NFT",

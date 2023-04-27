@@ -114,32 +114,15 @@ describe("ERC20TemplateEnterprise", () => {
   const fakeUSDAmount = cap
 
   const communityFeeCollector = "0xeE9300b7961e0a01d9f0adb863C7A227A07AaD75";
-  const oceanAddress = "0x967da4048cD07aB37855c090aAF366e4ce1b9F48";
-  const daiAddress = "0x6B175474E89094C44Da98b954EedeAC495271d0F";
-  const usdcAddress = "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48";
   const publishMarketFeeAmount = "5"
   const addressZero = '0x0000000000000000000000000000000000000000';
 
   beforeEach("init contracts for each test", async () => {
-    await network.provider.request({
-      method: "hardhat_reset",
-      params: [
-        {
-          forking: {
-            jsonRpcUrl: process.env.ALCHEMY_URL,
-            blockNumber: 12515000,
-          },
-        },
-      ],
-    });
-
     const ERC721Template = await ethers.getContractFactory("ERC721Template");
     const ERC20Template = await ethers.getContractFactory("ERC20TemplateEnterprise");
     const ERC721Factory = await ethers.getContractFactory("ERC721Factory");
 
     const Router = await ethers.getContractFactory("FactoryRouter");
-    const SSContract = await ethers.getContractFactory("SideStaking");
-    const BPool = await ethers.getContractFactory("BPool");
     const FixedRateExchange = await ethers.getContractFactory(
       "FixedRateExchange"
     );
@@ -157,21 +140,20 @@ describe("ERC20TemplateEnterprise", () => {
 
     // DEPLOY ROUTER, SETTING OWNER
 
-    poolTemplate = await BPool.deploy();
-
+  
     mockErc20 = await MockErc20.deploy(owner.address, "MockERC20", 'MockERC20');
     mockErc20Decimals = await MockErc20Decimals.deploy("Mock6Digits", 'Mock6Digits', 6);
     publishMarketFeeToken = mockErc20Decimals.address
 
     router = await Router.deploy(
       owner.address,
-      oceanAddress,
-      poolTemplate.address,
+      '0x000000000000000000000000000000000000dead', // approved tokens list, unused in this test
+      '0x000000000000000000000000000000000000dead', // pooltemplate field, unused in this test
       opcCollector.address,
       []
     );
 
-    sideStaking = await SSContract.deploy(router.address);
+
 
     fixedRateExchange = await FixedRateExchange.deploy(
       router.address
@@ -197,7 +179,7 @@ describe("ERC20TemplateEnterprise", () => {
 
     await router.addFixedRateContract(fixedRateExchange.address); // DEPLOY ROUTER, SETTING OWNER
     await router.addDispenserContract(dispenser.address);
-    await router.addSSContract(sideStaking.address)
+    
 
 
     // by default connect() in ethers goes with the first address (owner in this case)
@@ -526,7 +508,7 @@ describe("ERC20TemplateEnterprise", () => {
     const TEST_AMOUNT = ethers.utils.parseEther("10");
     const nonce = await erc20Token.nonces(owner.address);
     const chainId = await owner.getChainId();
-    const deadline = (await provider.getBlockNumber()) + 50 // approx 10 minutes
+    const deadline = (await ethers.provider.getBlockNumber()) + 50 // approx 10 minutes
 
     const digest = await getApprovalDigest(
       erc20Token,

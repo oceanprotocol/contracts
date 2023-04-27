@@ -25,14 +25,13 @@ describe("NFT Creation, roles and erc20 deployments", () => {
 
   const communityFeeCollector = "0xeE9300b7961e0a01d9f0adb863C7A227A07AaD75";
 
-  const oceanAddress = "0x967da4048cD07aB37855c090aAF366e4ce1b9F48";
+  
   before("init contracts for each test", async () => {
     const ERC721Template = await ethers.getContractFactory("ERC721Template");
     const ERC20Template = await ethers.getContractFactory("ERC20Template");
     const ERC721Factory = await ethers.getContractFactory("ERC721Factory");
     const Router = await ethers.getContractFactory("FactoryRouter");
-    const SSContract = await ethers.getContractFactory("SideStaking");
-    const BPool = await ethers.getContractFactory("BPool");
+    
 
     [
       owner,
@@ -47,19 +46,14 @@ describe("NFT Creation, roles and erc20 deployments", () => {
     data = web3.utils.asciiToHex("SomeData");
     flags = web3.utils.asciiToHex(constants.blob[0]);
     
-    poolTemplate = await BPool.deploy();
-
-   
     // DEPLOY ROUTER, SETTING OWNER
     router = await Router.deploy(
       owner.address,
-      oceanAddress,
-      poolTemplate.address,
+      '0x000000000000000000000000000000000000dead', // approved tokens list, unused in this test
+      '0x000000000000000000000000000000000000dead', // pooltemplate field, unused in this test,
       opcCollector.address,
       []
     );
-
-    sideStaking = await SSContract.deploy(router.address);
 
     templateERC20 = await ERC20Template.deploy();
 
@@ -76,7 +70,7 @@ describe("NFT Creation, roles and erc20 deployments", () => {
     // SET REQUIRED ADDRESS
     await router.addFactory(factoryERC721.address);
 
-    await router.addSSContract(sideStaking.address)
+    
 
     //await router.addFixedRate()
   });

@@ -34,36 +34,22 @@ describe("FactoryRouter", () => {
     vault,
     fork
 
-  const oceanAddress = "0x967da4048cd07ab37855c090aaf366e4ce1b9f48";
-  const daiAddress = "0x6b175474e89094c44da98b954eedeac495271d0f"
-  const usdcAddress = '0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48'
   const communityFeeCollector = "0xeE9300b7961e0a01d9f0adb863C7A227A07AaD75";
  
 
   beforeEach("init contracts for each test", async () => {
-    await network.provider.request({
-      method: "hardhat_reset",
-      params: [{
-        forking: {
-          jsonRpcUrl: process.env.ALCHEMY_URL,
-          blockNumber: 12515000,
-        }
-      }]
-    })
-
     const ERC721Template = await ethers.getContractFactory("ERC721Template");
     const ERC20Template = await ethers.getContractFactory("ERC20Template");
     const ERC721Factory = await ethers.getContractFactory("ERC721Factory");
 
     const Router = await ethers.getContractFactory("FactoryRouter");
-    const SSContract = await ethers.getContractFactory("SideStaking");
     const DispenserContract = await ethers.getContractFactory("Dispenser");
-    const BPool = await ethers.getContractFactory("BPool");
     const FixedRateExchange = await ethers.getContractFactory(
       "FixedRateExchange"
     );
 
-  
+    const OceanContract = await ethers.getContractFactory("MockOcean");
+    
 
     [
       owner, // nft owner, 721 deployer
@@ -82,49 +68,49 @@ describe("FactoryRouter", () => {
     flags = web3.utils.asciiToHex(constants.blob[0]);
        
    // DEPLOY ROUTER, SETTING OWNER
+   oceanContract = await OceanContract.connect(owner).deploy(owner.address)
+   await oceanContract.deployed()
+   oceanAddress = oceanContract.address
 
-  poolTemplate = await BPool.deploy();
-
- 
-
-
-  router = await Router.deploy(
+   //deploy bogus contracts to simulate ss and pools
+   bogusSSContract = await OceanContract.connect(owner).deploy(owner.address)
+   bogusPoolContract = await OceanContract.connect(owner).deploy(owner.address)
+   router = await Router.connect(owner).deploy(
     owner.address,
-    oceanAddress,
-    poolTemplate.address, // pooltemplate field, unused in this test
+    oceanContract.address,
+    bogusPoolContract.address,
     opcCollector.address,
     []
   );
 
-  sideStaking = await SSContract.deploy(router.address);
-  dispenser = await DispenserContract.deploy(router.address);
+  
+  dispenser = await DispenserContract.connect(owner).deploy(router.address);
 
-  fixedRateExchange = await FixedRateExchange.deploy(
+  fixedRateExchange = await FixedRateExchange.connect(owner).deploy(
     router.address
   );
 
-  templateERC20 = await ERC20Template.deploy();
+  templateERC20 = await ERC20Template.connect(owner).deploy();
 
   
   // SETUP ERC721 Factory with template
-  templateERC721 = await ERC721Template.deploy();
-  factoryERC721 = await ERC721Factory.deploy(
+  templateERC721 = await ERC721Template.connect(owner).deploy();
+  factoryERC721 = await ERC721Factory.connect(owner).deploy(
     templateERC721.address,
     templateERC20.address,
     router.address
   );
 
   // SET REQUIRED ADDRESS
-
-  let tx = await router.addFactory(factoryERC721.address);
+  let tx = await router.connect(owner).addFactory(factoryERC721.address);
   let txReceipt = await tx.wait();
-  tx = await router.addFixedRateContract(fixedRateExchange.address);
+  tx = await router.connect(owner).addFixedRateContract(fixedRateExchange.address);
   txReceipt = await tx.wait();
-  tx = await router.addDispenserContract(dispenser.address);
+  tx = await router.connect(owner).addDispenserContract(dispenser.address);
   txReceipt = await tx.wait();
-  tx = await router.addSSContract(sideStaking.address)
+  tx = await router.addSSContract(bogusSSContract.address)
   txReceipt = await tx.wait();
-  tx = await factoryERC721.deployERC721Contract(
+  tx = await factoryERC721.connect(owner).deployERC721Contract(
       "DT1",
       "DTSYMBOL",
       1,
@@ -144,35 +130,6 @@ describe("FactoryRouter", () => {
     assert(name === "DT1");
     assert(symbol === "DTSYMBOL");
     assert((await tokenERC721.balanceOf(owner.address)) == 1);
-    
-  //   // INITIAL SET UP, THE MANAGER ADDS A NEW ROLE FOR ITSELF (erc20Deployer role)
-  //   await tokenERC721.addToCreateERC20List(owner.address);
-    
-  //   // WE THEN CREATE A NEW ERC20 CONTRACT
-  //   let receipt = await (
-  //   await tokenERC721.createERC20(
-  //       "ERC20DT1",
-  //       "ERC20DT1Symbol",
-  //       web3.utils.toWei("1000"),
-  //       1,
-  //       owner.address,
-  //       user3.address
-  //     )
-  //   ).wait();
-  //   const newERC20DT = receipt.events[3].args.erc20Address;
-
-  //   erc20DTContract = await ethers.getContractAt(
-  //     "ERC20Template",
-  //     newERC20DT
-  //   );
-
-  //   // WE ADD OURSELF AS MINTER AND THEN MINT SOME ERC20 DATATOKEN.
-  //   //await erc20DTContract.addMinter(owner.address);
-  //   await erc20DTContract.mint(owner.address, web3.utils.toWei("100"));
-  //   assert(await erc20DTContract.balanceOf(owner.address) == web3.utils.toWei("100"))
-
-   
-
   });
 
 
@@ -259,9 +216,9 @@ describe("FactoryRouter", () => {
   })
   
   it("#ssContracts - should confirm ssContract has been added to the mapping",async () => {
-    assert(await router.isSSContract(sideStaking.address) == true, "sideStaking.address is not a SS Contract");
+    assert(await router.isSSContract(bogusSSContract.address) == true, "sideStaking is not a SS Contract");
     const contractSSContracts = await router.getSSContracts();
-    assert(contractSSContracts.includes(web3.utils.toChecksumAddress(sideStaking.address)), "sideStaking.address not found in router.getSSContracts()")
+    assert(contractSSContracts.includes(web3.utils.toChecksumAddress(bogusSSContract.address)), "sideStaking.address not found in router.getSSContracts()")
   })
 
   it("#ssContracts - should add and remove new contract if Router Owner",async () => {
@@ -396,16 +353,16 @@ describe("FactoryRouter", () => {
   })
 
   it("#removePoolTemplate - should fail to remove pool template contract if NOT Router Owner",async () => {
-    assert(await router.isPoolTemplate(poolTemplate.address) ==true)
-    await expectRevert(router.connect(user2).removePoolTemplate(poolTemplate.address), "OceanRouter: NOT OWNER")
-    assert(await router.isPoolTemplate(poolTemplate.address) ==true)
+    assert(await router.isPoolTemplate(bogusPoolContract.address) ==true)
+    await expectRevert(router.connect(user2).removePoolTemplate(bogusPoolContract.address), "OceanRouter: NOT OWNER")
+    assert(await router.isPoolTemplate(bogusPoolContract.address) ==true)
    
   })
 
   it("#removePoolTemplate - should suceed to remove pool template contract if Router Owner",async () => {
-    assert(await router.isPoolTemplate(poolTemplate.address) ==true)
-    await router.removePoolTemplate(poolTemplate.address)
-    assert(await router.isPoolTemplate(poolTemplate.address) ==false)
+    assert(await router.isPoolTemplate(bogusPoolContract.address) ==true)
+    await router.removePoolTemplate(bogusPoolContract.address)
+    assert(await router.isPoolTemplate(bogusPoolContract.address) ==false)
    
   })
 
