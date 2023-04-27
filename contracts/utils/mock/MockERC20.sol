@@ -10,7 +10,7 @@ contract MockERC20 is ERC20{
 
 
     constructor(address owner, string memory name, string memory symbol) ERC20(name,symbol) {
-        _mint(owner, 1e23);
+        _mint(owner, 1e28);
     }
 
 }
