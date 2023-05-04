@@ -69,7 +69,7 @@ contract ERC20TemplatePredictoor is
     mapping(address => Subscription) subscriptions; // valid subscription per user
     uint256 blocks_per_epoch;
     uint256 blocks_per_subscription;
-    uint256 truval_submit_timeout = 3;
+    uint256 truval_submit_timeout_block = 3;
     address stake_token;
     bool paused = false;
     // -------------------------- PREDICTOOR --------------------------
@@ -210,6 +210,14 @@ contract ERC20TemplatePredictoor is
         _;
     }
 
+    modifier blocknumOnSlot(uint256 num) {
+        require(
+            blocknum_is_on_a_slot(num),
+            "Predictoor: blocknum must be on a slot"
+        );
+        _;
+    }
+
     /**
      * @dev initialize
      *      Called prior contract initialization (e.g creating new Datatoken instance)
@@ -341,12 +349,7 @@ contract ERC20TemplatePredictoor is
         );
 
         stake_token = addresses_[4];
-
-        require(uints_[4] % uints_[2] == 0, "must be divisible");
-        require(uints_[3] % uints_[2] == 0, "must be divisible");
-
-        blocks_per_epoch = uints_[3] / uints_[2];
-        blocks_per_subscription = uints_[4] / uints_[2];
+        _update_seconds(uints_[2], uints_[3], uints_[4], uints_[5]);
         return initialized;
     }
 
@@ -1009,38 +1012,38 @@ contract ERC20TemplatePredictoor is
         } else {
             _blocknum = slotted_blocknum + 2 * blocks_per_epoch;
         }
-        require(blocknum_is_on_a_slot(_blocknum), "blocknum must be on a slot");
         return _blocknum;
     }
 
     function submitted_predval(
         uint256 blocknum,
         address predictoor
-    ) public view returns (bool) {
-        require(blocknum_is_on_a_slot(blocknum), "blocknum must be on a slot");
+    ) public view blocknumOnSlot(blocknum) returns (bool) {
         return predobjs[blocknum][predictoor].predictoor != address(0);
     }
 
     function get_agg_predval(
         uint256 blocknum
-    ) public view returns (uint256, uint256) {
-        require(blocknum_is_on_a_slot(blocknum), "blocknum must be on a slot");
+    ) public view blocknumOnSlot(blocknum) returns (uint256, uint256) {
         require(is_valid_subscription(msg.sender), "Not valid subscription");
         return (agg_predvals_numer[blocknum], agg_predvals_denom[blocknum]);
     }
 
     function get_subscription_revenue_at_block(
         uint256 blocknum
-    ) public view returns (uint256) {
-        require(blocknum_is_on_a_slot(blocknum), "blocknum must be on a slot");
+    ) public view blocknumOnSlot(blocknum) returns (uint256) {
         return (subscription_revenue_at_block[blocknum]);
     }
 
     function get_prediction(
         uint256 blocknum,
         address predictoor
-    ) public view returns (Prediction memory prediction) {
-        require(blocknum_is_on_a_slot(blocknum), "blocknum must be on a slot");
+    )
+        public
+        view
+        blocknumOnSlot(blocknum)
+        returns (Prediction memory prediction)
+    {
         if (msg.sender != predictoor) {
             require(blocknum > soonest_block_to_predict(), "too early to view");
         }
@@ -1058,8 +1061,7 @@ contract ERC20TemplatePredictoor is
         bool predval,
         uint256 stake,
         uint256 blocknum
-    ) external {
-        require(blocknum_is_on_a_slot(blocknum), "blocknum must be on a slot");
+    ) external blocknumOnSlot(blocknum) {
         require(blocknum > soonest_block_to_predict(), "too late to submit");
         require(!submitted_predval(blocknum, msg.sender), "already submitted");
         require(paused == false, "paused");
@@ -1084,16 +1086,14 @@ contract ERC20TemplatePredictoor is
     function payout(
         uint256 blocknum,
         address predictoor_addr
-    ) external nonReentrant {
-        require(blocknum_is_on_a_slot(blocknum), "blocknum must be on a slot");
+    ) external blocknumOnSlot(blocknum) nonReentrant {
         Prediction memory predobj = get_prediction(blocknum, predictoor_addr);
         require(predobj.paid == false, "already paid");
 
         // if OPF hasn't submitted trueval in truval_submit_timeout days
         // refund stake to predictoor and cancel round
         if (
-            block.number >
-            blocknum + blocks_per_epoch * truval_submit_timeout &&
+            block.number > blocknum + truval_submit_timeout_block &&
             !truval_submitted[blocknum]
         ) {
             IERC20(stake_token).safeTransfer(predobj.predictoor, predobj.stake);
@@ -1127,12 +1127,41 @@ contract ERC20TemplatePredictoor is
     function submit_trueval(
         uint256 blocknum,
         bool trueval
-    ) external onlyERC20Deployer {
+    ) external blocknumOnSlot(blocknum) onlyERC20Deployer {
         // TODO, is onlyERC20Deployer the right modifier?
-        require(blocknum_is_on_a_slot(blocknum), "blocknum must be on a slot");
         require(blocknum < soonest_block_to_predict(), "too early to submit");
         truevals[blocknum] = trueval;
         truval_submitted[blocknum] = true;
+    }
+
+    function update_seconds(
+        uint256 s_per_block,
+        uint256 s_per_epoch,
+        uint256 s_per_subscription,
+        uint256 _truval_submit_timeout
+    ) external onlyERC20Deployer {
+        _update_seconds(
+            s_per_block,
+            s_per_epoch,
+            s_per_subscription,
+            _truval_submit_timeout
+        );
+    }
+
+    // ----------------------- INTERNAL FUNCTIONS -----------------------
+
+    function _update_seconds(
+        uint256 s_per_block,
+        uint256 s_per_epoch,
+        uint256 s_per_subscription,
+        uint256 _truval_submit_timeout
+    ) internal {
+        require(s_per_subscription % s_per_block == 0);
+        require(s_per_epoch % s_per_block == 0);
+
+        blocks_per_epoch = s_per_epoch / s_per_block;
+        blocks_per_subscription = s_per_subscription / s_per_block;
+        truval_submit_timeout_block = _truval_submit_timeout / s_per_block;
     }
 
     function add_revenue(uint256 blocknum, uint256 amount) internal {
