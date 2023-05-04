@@ -401,17 +401,6 @@ async function main() {
       console.log("\tnpx hardhat verify --network " + networkName + " " + addresses.FixedPrice + " " + router.address)
     }
     if (sleepAmount > 0) await sleep(sleepAmount)
-    if (logging) console.info("Deploying StakingContract");
-    const SSContract = await ethers.getContractFactory("SideStaking", owner);
-    let ssPool
-    if (options) ssPool = await SSContract.connect(owner).deploy(router.address, options);
-    else ssPool = await SSContract.connect(owner).deploy(router.address);
-    await ssPool.deployTransaction.wait();
-    addresses.Staking = ssPool.address;
-    if (show_verify) {
-      console.log("\tRun the following to verify on etherscan");
-      console.log("\tnpx hardhat verify --network " + networkName + " " + addresses.Staking + " " + router.address)
-    }
     addresses.ERC20Template = {};
     if (sleepAmount > 0) await sleep(sleepAmount)
     if (logging) console.info("Deploying ERC20 Template");
@@ -438,6 +427,21 @@ async function main() {
       console.log("\tRun the following to verify on etherscan");
       console.log("\tnpx hardhat verify --network " + networkName + " " + templateERC20Enterprise.address)
     }
+
+    if (logging) console.info("Deploying ERC20 Enterprise Template");
+    const ERC20PredictoorTemplate = await ethers.getContractFactory(
+      "ERC20TemplatePredictoor",
+      owner
+    );
+    let templateERC20TemplatePredictoor
+    if (options) templateERC20TemplatePredictoor = await ERC20PredictoorTemplate.connect(owner).deploy(options);
+    else templateERC20TemplatePredictoor = await ERC20PredictoorTemplate.connect(owner).deploy();
+    await templateERC20TemplatePredictoor.deployTransaction.wait();
+    if (show_verify) {
+      console.log("\tRun the following to verify on etherscan");
+      console.log("\tnpx hardhat verify --network " + networkName + " " + templateERC20TemplatePredictoor.address)
+    }
+
     addresses.ERC721Template = {};
     if (sleepAmount > 0) await sleep(sleepAmount)
     if (logging) console.info("Deploying ERC721 Template");
@@ -533,6 +537,20 @@ async function main() {
     addresses.ERC20Template[currentTokenCount.toString()] =
       templateERC20Enterprise.address;
 
+    if (logging) console.info("Adding ERC20TemplatePredictoor to ERC721Factory");
+    if (options) templateadd = await factoryERC721.connect(owner).addTokenTemplate(templateERC20TemplatePredictoor.address, options);
+    else templateadd = await factoryERC721.connect(owner).addTokenTemplate(templateERC20TemplatePredictoor.address);
+    await templateadd.wait();
+    if (sleepAmount > 0) await sleep(sleepAmount)
+    if (options) currentTokenCount = await factoryERC721.getCurrentTemplateCount(options);
+    else currentTokenCount = await factoryERC721.getCurrentTemplateCount(options);
+  
+    if (options) tokenTemplate = await factoryERC721.getTokenTemplate(currentTokenCount, options);
+    else tokenTemplate = await factoryERC721.getTokenTemplate(currentTokenCount);
+  
+    addresses.ERC20Template[currentTokenCount.toString()] =
+      templateERC20TemplatePredictoor.address;
+
     // SET REQUIRED ADDRESS
     if (sleepAmount > 0) await sleep(sleepAmount)
     if (logging) console.info("Adding factoryERC721.address(" + factoryERC721.address + ") to router");
@@ -558,13 +576,6 @@ async function main() {
     await dispenserAddTx.wait();
     if (sleepAmount > 0) await sleep(sleepAmount)
 
-
-    if (logging) console.info("Adding ssPool.address(" + ssPool.address + ") to router");
-    let ssAddTx
-    if (options) ssAddTx = await router.connect(owner).addSSContract(ssPool.address, options);
-    else ssAddTx = await router.connect(owner).addSSContract(ssPool.address);
-    await ssAddTx.wait();
-    if (sleepAmount > 0) await sleep(sleepAmount)
 
     // add additional tokens
     for (const token of additionalApprovedTokens) {
