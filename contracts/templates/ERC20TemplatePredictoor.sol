@@ -60,7 +60,6 @@ contract ERC20TemplatePredictoor is
         uint256 expires;
     }
     mapping(uint256 => mapping(address => Prediction)) predobjs; // id to prediction object
-    mapping(uint256 => uint256) predcounter; // block num to id counter
     mapping(uint256 => uint256) agg_predvals_numer;
     mapping(uint256 => uint256) agg_predvals_denom;
     mapping(uint256 => bool) truevals;
