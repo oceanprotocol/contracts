@@ -1167,6 +1167,7 @@ contract ERC20TemplatePredictoor is
         blocknum = rail_blocknum_to_slot(blocknum);
         // for loop and add revenue for blocks_per_epoch blocks
         for (uint256 i = 0; i < blocks_per_subscription; i++) {
+            // TODO FIND A WAY TO ACHIEVE THIS WITHOUT A LOOP
             subscription_revenue_at_block[blocknum + blocks_per_epoch] +=
                 amount /
                 blocks_per_subscription;
