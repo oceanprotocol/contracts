@@ -401,17 +401,6 @@ async function main() {
       console.log("\tnpx hardhat verify --network " + networkName + " " + addresses.FixedPrice + " " + router.address)
     }
     if (sleepAmount > 0) await sleep(sleepAmount)
-    if (logging) console.info("Deploying StakingContract");
-    const SSContract = await ethers.getContractFactory("SideStaking", owner);
-    let ssPool
-    if (options) ssPool = await SSContract.connect(owner).deploy(router.address, options);
-    else ssPool = await SSContract.connect(owner).deploy(router.address);
-    await ssPool.deployTransaction.wait();
-    addresses.Staking = ssPool.address;
-    if (show_verify) {
-      console.log("\tRun the following to verify on etherscan");
-      console.log("\tnpx hardhat verify --network " + networkName + " " + addresses.Staking + " " + router.address)
-    }
     addresses.ERC20Template = {};
     if (sleepAmount > 0) await sleep(sleepAmount)
     if (logging) console.info("Deploying ERC20 Template");
@@ -558,13 +547,6 @@ async function main() {
     await dispenserAddTx.wait();
     if (sleepAmount > 0) await sleep(sleepAmount)
 
-
-    if (logging) console.info("Adding ssPool.address(" + ssPool.address + ") to router");
-    let ssAddTx
-    if (options) ssAddTx = await router.connect(owner).addSSContract(ssPool.address, options);
-    else ssAddTx = await router.connect(owner).addSSContract(ssPool.address);
-    await ssAddTx.wait();
-    if (sleepAmount > 0) await sleep(sleepAmount)
 
     // add additional tokens
     for (const token of additionalApprovedTokens) {
