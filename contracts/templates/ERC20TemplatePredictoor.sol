@@ -88,7 +88,7 @@ contract ERC20TemplatePredictoor is
     address public stake_token;
     uint256 public blocks_per_subscription;
     uint256 public truval_submit_timeout_block = 3;
-    bool paused = false;
+    bool public paused = false;
     // -------------------------- PREDICTOOR --------------------------
 
     // EIP 2612 SUPPORT
@@ -825,7 +825,7 @@ contract ERC20TemplatePredictoor is
      * @dev buyFromFre
      *      Buys 1 DT from the FRE
      */
-    function buyFromFre(FreParams calldata _freParams) internal {
+    function buyFromFre(FreParams calldata _freParams) public {
         // get exchange info
         IFixedRateExchange fre = IFixedRateExchange(
             _freParams.exchangeContract
@@ -971,8 +971,12 @@ contract ERC20TemplatePredictoor is
         return subscriptions[user].expires <= block.number ? false : true;
     }
 
-    function epoch() public view returns (uint256) {
-        return block.number / blocks_per_epoch;
+    function epoch(uint256 blocknum) public view returns (uint256) {
+        return blocknum / blocks_per_epoch;
+    }
+
+    function cur_epoch() public view returns (uint256) {
+        return epoch(block.number);
     }
 
     function rail_blocknum_to_slot(
