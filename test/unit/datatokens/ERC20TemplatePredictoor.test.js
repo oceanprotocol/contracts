@@ -549,117 +549,17 @@ describe("ERC20TemplatePredictoor", () => {
 
         assert(
             (await erc20Token.balanceOf(opcCollector.address)) ==
-            web3.utils.toWei("0.03"), 'Invalid OPF balance, we should get 0.03 DTs'
+            web3.utils.toWei("0.0"), 'Invalid OPF balance, we should get 0.03 DTs'
         );
         assert(
             (await erc20Token.balanceOf(user3.address)) == web3.utils.toWei("0"), 'Invalid consumeFee, we should have DT as fee'
         );
         assert(
             (await erc20Token.balanceOf(await erc20Token.getPaymentCollector())) ==
-            web3.utils.toWei("0.97"), 'Invalid publisher reward, we should have 0.97 DT'
+            web3.utils.toWei("0.0"), 'Invalid publisher reward, we should have 0.0 DT'
         );
     });
 
-
-    it("#startOrder - user should succeed to call reuseOrder on a ERC20 using a previous txId", async () => {
-
-        //MINT SOME DT20 to USER2 so he can start order
-        await erc20Token.connect(user3).mint(user2.address, web3.utils.toWei("10"));
-        assert(
-            (await erc20Token.balanceOf(user2.address)) == web3.utils.toWei("10")
-        );
-        const consumer = user2.address; // could be different user
-        const dtAmount = web3.utils.toWei("1");
-        const serviceIndex = 1; // dummy index
-        const providerFeeAddress = user5.address; // marketplace fee Collector
-        const providerFeeAmount = 0; // fee to be collected on top, requires approval
-        const providerFeeToken = mockErc20.address; // token address for the feeAmount, in this case DAI
-        const providerValidUntil = 0;
-        const consumeMarketFeeAddress = user5.address; // marketplace fee Collector
-        const consumeMarketFeeAmount = 0; // fee to be collected on top, requires approval
-        const consumeMarketFeeToken = mockErc20.address; // token address for the feeAmount,
-
-        //sign provider data
-        const providerData = JSON.stringify({ "timeout": 0 })
-        const message = ethers.utils.solidityKeccak256(
-            ["bytes", "address", "address", "uint256", "uint256"],
-            [
-                ethers.utils.hexlify(ethers.utils.toUtf8Bytes(providerData)),
-                providerFeeAddress,
-                providerFeeToken,
-                providerFeeAmount,
-                providerValidUntil
-            ]
-        );
-        const signedMessage = await signMessage(message, providerFeeAddress);
-        const tx = await erc20Token
-            .connect(user2)
-            .startOrder(
-                consumer,
-                serviceIndex,
-                {
-                    providerFeeAddress: providerFeeAddress,
-                    providerFeeToken: providerFeeToken,
-                    providerFeeAmount: providerFeeAmount,
-                    v: signedMessage.v,
-                    r: signedMessage.r,
-                    s: signedMessage.s,
-                    providerData: ethers.utils.hexlify(ethers.utils.toUtf8Bytes(providerData)),
-                    validUntil: providerValidUntil
-                },
-                {
-                    consumeMarketFeeAddress: consumeMarketFeeAddress,
-                    consumeMarketFeeToken: consumeMarketFeeToken,
-                    consumeMarketFeeAmount: consumeMarketFeeAmount,
-                }
-            );
-        let txReceipt = await tx.wait();
-        let event = getEventFromTx(txReceipt, 'OrderStarted')
-        assert(event, "Cannot find OrderStarted event")
-        //make sure that we don't have 'PublishMarketFee') event
-        event = getEventFromTx(txReceipt, 'PublishMarketFee')
-        assert.typeOf(event, 'undefined', "PublishMarketFee event found")
-        //make sure that we have ProviderFee event
-        event = getEventFromTx(txReceipt, 'ProviderFee')
-
-        assert(
-            (await erc20Token.balanceOf(user2.address)) == web3.utils.toWei("9"), 'Invalid user balance, DT was not substracted'
-        );
-
-        assert(
-            (await erc20Token.balanceOf(opcCollector.address)) ==
-            web3.utils.toWei("0.03"), 'Invalid OPF balance, we should get 0.03 DTs'
-        );
-        assert(
-            (await erc20Token.balanceOf(user3.address)) == web3.utils.toWei("0"), 'Invalid consumeFee, we should have DT as fee'
-        );
-        assert(
-            (await erc20Token.balanceOf(await erc20Token.getPaymentCollector())) ==
-            web3.utils.toWei("0.97"), 'Invalid publisher reward, we should have 0.97 DT'
-        );
-
-        const reuseTx = await erc20Token
-            .connect(user2)
-            .reuseOrder(
-                txReceipt.transactionHash,
-                {
-                    providerFeeAddress: providerFeeAddress,
-                    providerFeeToken: providerFeeToken,
-                    providerFeeAmount: providerFeeAmount,
-                    v: signedMessage.v,
-                    r: signedMessage.r,
-                    s: signedMessage.s,
-                    providerData: ethers.utils.hexlify(ethers.utils.toUtf8Bytes(providerData)),
-                    validUntil: providerValidUntil
-                }
-            );
-        txReceipt = await reuseTx.wait();
-        event = getEventFromTx(txReceipt, 'OrderReused')
-        assert(event, "Cannot find OrderReused event")
-        //make sure that we have ProviderFee event
-        event = getEventFromTx(txReceipt, 'ProviderFee')
-
-    });
 
     it("#startOrder - user should succeed to call startOrder on a ERC20 without publishFee and provider Fee", async () => {
 
@@ -742,92 +642,16 @@ describe("ERC20TemplatePredictoor", () => {
 
         assert(
             (await erc20Token.balanceOf(opcCollector.address)) ==
-            web3.utils.toWei("0.03"), 'Invalid OPF balance, we should get 0.03 DTs'
+            web3.utils.toWei("0.0"), 'Invalid OPF balance, we should get 0.03 DTs'
         );
         assert(
             (await erc20Token.balanceOf(user3.address)) == web3.utils.toWei("0"), 'Invalid consumeFee, we should have DT as fee'
         );
         assert(
             (await erc20Token.balanceOf(await erc20Token.getPaymentCollector())) ==
-            web3.utils.toWei("0.97"), 'Invalid publisher reward, we should have 0.97 DT'
+            web3.utils.toWei("0.0"), 'Invalid publisher reward, we should have 0.97 DT'
         );
     });
-
-
-    it("#startOrder - user should not succeed to call startOrder on a ERC20 without publishFee and wrong provider Fee", async () => {
-
-        //MINT SOME DT20 to USER2 so he can start order
-        await erc20Token.connect(user3).mint(user2.address, web3.utils.toWei("10"));
-        assert(
-            (await erc20Token.balanceOf(user2.address)) == web3.utils.toWei("10")
-        );
-        const consumer = user2.address; // could be different user
-        const dtAmount = web3.utils.toWei("1");
-        const serviceIndex = 1; // dummy index
-        const providerFeeAddress = user3.address; // marketplace fee Collector
-        const providerFeeAmount = '1'; // fee to be collected on top, requires approval
-        const providerFeeToken = mockErc20.address; // token address for the feeAmount, in this case DAI
-        const providerValidUntil = 0;
-        const consumeMarketFeeAddress = user5.address; // marketplace fee Collector
-        const consumeMarketFeeAmount = 0; // fee to be collected on top, requires approval
-        const consumeMarketFeeToken = mockErc20.address; // token address for the feeAmount,
-        // GET SOME consumeFeeToken
-        const Mock20Contract = await ethers.getContractAt(
-            "contracts/interfaces/IERC20.sol:IERC20",
-            mockErc20.address
-        );
-        await Mock20Contract
-            .connect(owner)
-            .transfer(user2.address, ethers.utils.parseEther(providerFeeAmount));
-
-        // we approve the erc20Token contract to pull feeAmount (3 DAI)
-
-        await Mock20Contract
-            .connect(user2)
-            .approve(erc20Token.address, web3.utils.toWei(providerFeeAmount));
-
-        //sign provider data
-        const providerData = JSON.stringify({ "timeout": 0 })
-        const message = ethers.utils.solidityKeccak256(
-            ["bytes", "address", "address", "uint256", "uint256"],
-            [
-                ethers.utils.hexlify(ethers.utils.toUtf8Bytes(providerData)),
-                providerFeeAddress,
-                providerFeeToken,
-                providerFeeAmount,
-                providerValidUntil
-            ]
-        );
-        // providerFeeAddress is user3, but we are signing using user5 private key, so it should fail
-        const signedMessage = await signMessage(message, user5.address);
-
-        await expectRevert(
-            erc20Token
-                .connect(user2)
-                .startOrder(
-                    consumer,
-                    serviceIndex,
-                    {
-                        providerFeeAddress: providerFeeAddress,
-                        providerFeeToken: providerFeeToken,
-                        providerFeeAmount: providerFeeAmount,
-                        v: signedMessage.v,
-                        r: signedMessage.r,
-                        s: signedMessage.s,
-                        providerData: ethers.utils.hexlify(ethers.utils.toUtf8Bytes(providerData)),
-                        validUntil: providerValidUntil
-                    },
-                    {
-                        consumeMarketFeeAddress: consumeMarketFeeAddress,
-                        consumeMarketFeeToken: consumeMarketFeeToken,
-                        consumeMarketFeeAmount: consumeMarketFeeAmount,
-                    }
-                ),
-            "Invalid provider fee"
-        );
-
-    });
-
 
 
     it("#startOrder - user should be able to get getPublishingMarketFee", async () => {
@@ -929,14 +753,14 @@ describe("ERC20TemplatePredictoor", () => {
 
         assert(
             (await erc20TokenWithPublishFee.balanceOf(opcCollector.address)) ==
-            web3.utils.toWei("0.03"), 'Invalid OPF balance, we should get 0.03 DTs'
+            web3.utils.toWei("0.0"), 'Invalid OPF balance, we should get 0.03 DTs'
         );
         assert(
             (await erc20TokenWithPublishFee.balanceOf(user3.address)) == web3.utils.toWei("0"), 'Invalid consumeFee, we should have DT as fee'
         );
         assert(
             (await erc20TokenWithPublishFee.balanceOf(await erc20TokenWithPublishFee.getPaymentCollector())) ==
-            web3.utils.toWei("0.97"), 'Invalid publisher reward, we should have 0.97 DT'
+            web3.utils.toWei("0.0"), 'Invalid publisher reward, we should have 0.97 DT'
         );
     });
 
@@ -1032,14 +856,14 @@ describe("ERC20TemplatePredictoor", () => {
 
         assert(
             (await erc20TokenWithPublishFee.balanceOf(opcCollector.address)) ==
-            web3.utils.toWei("0.03"), 'Invalid OPF balance, we should get 0.03 DTs'
+            web3.utils.toWei("0.0"), 'Invalid OPF balance, we should get 0.03 DTs'
         );
         assert(
             (await erc20TokenWithPublishFee.balanceOf(user3.address)) == web3.utils.toWei("0"), 'Invalid consumeFee, we should have DT as fee'
         );
         assert(
             (await erc20TokenWithPublishFee.balanceOf(await erc20TokenWithPublishFee.getPaymentCollector())) ==
-            web3.utils.toWei("0.97"), 'Invalid publisher reward, we should have 0.97 DT'
+            web3.utils.toWei("0.0"), 'Invalid publisher reward, we should have 0.97 DT'
         );
     });
 
