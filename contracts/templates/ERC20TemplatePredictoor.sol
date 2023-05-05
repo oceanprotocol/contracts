@@ -49,6 +49,24 @@ contract ERC20TemplatePredictoor is
     uint256 public constant BASE = 1e18;
 
     // -------------------------- PREDICTOOR --------------------------
+    event PredictionSubmitted(
+        address indexed predictoor,
+        uint256 indexed epoch,
+        uint256 stake
+    );
+    event PredictionPayout(
+        address indexed predictoor,
+        uint256 indexed epoch,
+        uint256 stake,
+        uint256 payout,
+        bool prediction,
+        bool truval
+    );
+    event NewSubscription(
+        address indexed user,
+        uint256 expires,
+        uint256 blocknum
+    );
     struct Prediction {
         bool predval;
         uint256 stake;
@@ -66,10 +84,10 @@ contract ERC20TemplatePredictoor is
     mapping(uint256 => bool) truval_submitted;
     mapping(uint256 => uint256) subscription_revenue_at_block; //income registred
     mapping(address => Subscription) subscriptions; // valid subscription per user
-    uint256 blocks_per_epoch;
-    address stake_token;
-    uint256 blocks_per_subscription;
-    uint256 truval_submit_timeout_block = 3;
+    uint256 public blocks_per_epoch;
+    address public stake_token;
+    uint256 public blocks_per_subscription;
+    uint256 public truval_submit_timeout_block = 3;
     bool paused = false;
     // -------------------------- PREDICTOOR --------------------------
 
@@ -148,13 +166,6 @@ contract ERC20TemplatePredictoor is
         address indexed baseToken
     );
     event NewDispenser(address dispenserContract);
-
-    event NewPaymentCollector(
-        address indexed caller,
-        address indexed _newPaymentCollector,
-        uint256 timestamp,
-        uint256 blockNumber
-    );
 
     modifier onlyNotInitialized() {
         require(
@@ -296,12 +307,6 @@ contract ERC20TemplatePredictoor is
         _addMinter(addresses_[0]);
         // set payment collector to this contract, so we can get the $$$
         _setPaymentCollector(address(this));
-        emit NewPaymentCollector(
-            msg.sender,
-            addresses_[1],
-            block.timestamp,
-            block.number
-        );
 
         publishMarketFeeAddress = addresses_[2];
         publishMarketFeeToken = addresses_[3];
@@ -1005,7 +1010,7 @@ contract ERC20TemplatePredictoor is
     function get_agg_predval(
         uint256 blocknum
     ) public view blocknumOnSlot(blocknum) returns (uint256, uint256) {
-        require(is_valid_subscription(msg.sender), "Not valid subscription");
+        require(is_valid_subscription(msg.sender), "No subscription");
         return (agg_predvals_numer[blocknum], agg_predvals_denom[blocknum]);
     }
 
@@ -1061,6 +1066,8 @@ contract ERC20TemplatePredictoor is
         // update agg_predvals
         agg_predvals_numer[blocknum] += stake * (predval ? 1 : 0);
         agg_predvals_denom[blocknum] += stake;
+
+        emit PredictionSubmitted(msg.sender, epoch(), stake);
     }
 
     function payout(
@@ -1078,6 +1085,14 @@ contract ERC20TemplatePredictoor is
         ) {
             IERC20(stake_token).safeTransfer(predobj.predictoor, predobj.stake);
             predobj.paid = true;
+            emit PredictionPayout(
+                predictoor_addr,
+                epoch(),
+                predobj.stake,
+                predobj.stake,
+                predobj.predval,
+                truevals[blocknum]
+            );
             return;
         }
 
@@ -1097,6 +1112,15 @@ contract ERC20TemplatePredictoor is
             payout_amt
         );
         predobj.paid = true;
+
+        emit PredictionPayout(
+            predictoor_addr,
+            epoch(),
+            predobj.stake,
+            payout_amt,
+            predobj.predval,
+            truevals[blocknum]
+        );
     }
 
     // ----------------------- ADMIN FUNCTIONS -----------------------
