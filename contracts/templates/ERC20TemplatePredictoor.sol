@@ -820,7 +820,7 @@ contract ERC20TemplatePredictoor is
      * @dev buyFromFre
      *      Buys 1 DT from the FRE
      */
-    function buyFromFre(FreParams calldata _freParams) internal {
+    function buyFromFre(FreParams calldata _freParams) public {
         // get exchange info
         IFixedRateExchange fre = IFixedRateExchange(
             _freParams.exchangeContract
