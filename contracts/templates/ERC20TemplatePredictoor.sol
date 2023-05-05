@@ -116,25 +116,6 @@ contract ERC20TemplatePredictoor is
         uint256 blockNumber
     );
 
-    event OrderReused(
-        bytes32 orderTxId,
-        address caller,
-        uint256 timestamp,
-        uint256 number
-    );
-
-    event OrderExecuted(
-        address indexed providerAddress,
-        address indexed consumerAddress,
-        bytes32 orderTxId,
-        bytes providerData,
-        bytes providerSignature,
-        bytes consumerData,
-        bytes consumerSignature,
-        uint256 timestamp,
-        uint256 blockNumber
-    );
-
     // emited for every order
     event PublishMarketFee(
         address indexed PublishMarketFeeAddress,
