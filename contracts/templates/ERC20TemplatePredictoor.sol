@@ -1033,14 +1033,8 @@ contract ERC20TemplatePredictoor is
         blocknumOnSlot(blocknum)
         returns (Prediction memory prediction)
     {
-        if (msg.sender != predictoor) {
-            require(blocknum > soonest_block_to_predict(), "too early to view");
-        }
         //allow predictoors to see their own submissions
-        require(
-            is_valid_subscription(msg.sender) || msg.sender == predictoor,
-            "Not valid subscription"
-        );
+        require(msg.sender == predictoor || blocknum < block.number);
         prediction = predobjs[blocknum][predictoor];
     }
 
