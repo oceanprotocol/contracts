@@ -1163,7 +1163,7 @@ contract ERC20TemplatePredictoor is
         require(s_per_subscription % s_per_block == 0);
         require(s_per_epoch % s_per_block == 0);
 
-        if (!initialized) {
+        if (blocks_per_epoch == 0) {
             blocks_per_epoch = s_per_epoch / s_per_block; // immutaable
         }
 
