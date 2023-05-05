@@ -1071,7 +1071,7 @@ contract ERC20TemplatePredictoor is
         agg_predvals_numer[blocknum] += stake * (predval ? 1 : 0);
         agg_predvals_denom[blocknum] += stake;
 
-        emit PredictionSubmitted(msg.sender, epoch(), stake);
+        emit PredictionSubmitted(msg.sender, epoch(blocknum), stake);
     }
 
     function payout(
@@ -1091,7 +1091,7 @@ contract ERC20TemplatePredictoor is
             predobj.paid = true;
             emit PredictionPayout(
                 predictoor_addr,
-                epoch(),
+                epoch(blocknum),
                 predobj.stake,
                 predobj.stake,
                 predobj.predval,
@@ -1119,7 +1119,7 @@ contract ERC20TemplatePredictoor is
 
         emit PredictionPayout(
             predictoor_addr,
-            epoch(),
+            epoch(blocknum),
             predobj.stake,
             payout_amt,
             predobj.predval,
