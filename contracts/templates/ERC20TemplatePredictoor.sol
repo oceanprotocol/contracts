@@ -67,9 +67,9 @@ contract ERC20TemplatePredictoor is
     mapping(uint256 => uint256) subscription_revenue_at_block; //income registred
     mapping(address => Subscription) subscriptions; // valid subscription per user
     uint256 blocks_per_epoch;
+    address stake_token;
     uint256 blocks_per_subscription;
     uint256 truval_submit_timeout_block = 3;
-    address stake_token;
     bool paused = false;
     // -------------------------- PREDICTOOR --------------------------
 
@@ -1158,7 +1158,10 @@ contract ERC20TemplatePredictoor is
         require(s_per_subscription % s_per_block == 0);
         require(s_per_epoch % s_per_block == 0);
 
-        blocks_per_epoch = s_per_epoch / s_per_block;
+        if (!initialized) {
+            blocks_per_epoch = s_per_epoch / s_per_block; // immutaable
+        }
+
         blocks_per_subscription = s_per_subscription / s_per_block;
         truval_submit_timeout_block = _truval_submit_timeout / s_per_block;
     }
