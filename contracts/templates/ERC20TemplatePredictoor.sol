@@ -67,7 +67,7 @@ contract ERC20TemplatePredictoor is
     mapping(uint256 => uint256) subscription_revenue_at_block; //income registred
     mapping(address => Subscription) subscriptions; // valid subscription per user
     uint256 blocks_per_epoch;
-    address stake_token;
+    address public stake_token;
     uint256 blocks_per_subscription;
     uint256 truval_submit_timeout_block = 3;
     bool paused = false;
