@@ -275,13 +275,6 @@ describe("ERC20TemplatePredictoor", () => {
         );
     });
 
-    it("#setPaymentCollector - should fail to set new FeeCollector if not NFTOwner", async () => {
-        await expectRevert(
-            erc20Token.connect(user2).setPaymentCollector(user2.address),
-            "ERC20Template: NOT PAYMENT MANAGER or OWNER"
-        );
-    });
-
     it("#setPaymentCollector - should not modify paymentCollector address", async () => {
         await erc20Token.connect(user3).setPaymentCollector(owner.address);
         assert((await erc20Token.getPaymentCollector()) == erc20Token.address, 'PaymentCollector is not erc20Token');
