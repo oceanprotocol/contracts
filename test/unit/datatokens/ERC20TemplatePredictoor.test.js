@@ -947,5 +947,51 @@ describe("ERC20TemplatePredictoor", () => {
             , 'Invalid total supply'
         );
     });
+
+    // PREDICTOOR
+    it("#blocks_per_epoch - blocks_per_epoch should be set", async () => {
+        const blocksPerEpoch = await erc20Token.blocks_per_epoch();
+        assert(blocksPerEpoch > 0, 'Invalid blocks_per_epoch');
+    });
+    it("#stake_tokens - stake token should be set", async () => {
+        const stakeToken = await erc20Token.stake_token();
+        assert(stakeToken == mockErc20.address, 'Invalid stake_token');
+    });
+    it("#blocks_per_subscription - blocks_per_subscription should be set", async () => {
+        const blocksPerSubscription = await erc20Token.blocks_per_subscription();
+        assert(blocksPerSubscription > 0, 'Invalid blocks_per_subscription');
+    });
+    it("#epoch, cur_epoch - should return currenct epoch", async () => {
+        const blockNum = await ethers.provider.getBlockNumber();
+        const blocksPerEpoch = (await erc20Token.blocks_per_epoch())
+        const epoch = parseInt(blockNum / blocksPerEpoch);
+        assert((await erc20Token.epoch(blockNum))) == epoch;
+        assert((await erc20Token.cur_epoch())) == epoch;
+    });
+    it("#rail_blocknum_to_slot - should rail blocknum to slot", async () => {
+        const blockNum = await ethers.provider.getBlockNumber();
+        const blocksPerEpoch = (await erc20Token.blocks_per_epoch())
+        const slot = parseInt(blockNum / blocksPerEpoch) * blocksPerEpoch;
+        assert((await erc20Token.rail_blocknum_to_slot(blockNum)) == slot);
+    });
+    it("#soonest_block_to_predict - should return soonest block to predict", async () => {
+        const soonestBlockToPredict = await erc20Token.soonest_block_to_predict();
+        // this should be equal to
+        // 1 + (currentBlock - 1) / 100
+        const blocksPerEpoch = (await erc20Token.blocks_per_epoch())
+        const blockNumber = await ethers.provider.getBlockNumber();
+        const railed = parseInt(blockNumber / blocksPerEpoch) * blocksPerEpoch
+        const expected = railed + blocksPerEpoch * (railed == blockNumber ? 1 : 2);
+        assert(soonestBlockToPredict == expected, 'Invalid soonest block to predict');
+    });
+    it("#get_agg_predval - without subscription, should revert", async () => {
+        const blockNumber = await ethers.provider.getBlockNumber()
+        const blocksPerEpoch = (await erc20Token.blocks_per_epoch())
+        const railed = parseInt(blockNumber / blocksPerEpoch) * blocksPerEpoch
+        await expectRevert(
+            erc20Token.get_agg_predval(railed),
+            "No subscription"
+        );
+    });
 });
 
