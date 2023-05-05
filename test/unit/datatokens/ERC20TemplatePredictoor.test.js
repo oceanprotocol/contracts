@@ -282,12 +282,12 @@ describe("ERC20TemplatePredictoor", () => {
         );
     });
 
-    it("#setPaymentCollector - should succeed to set new paymentCollector if paymentManager", async () => {
+    it("#setPaymentCollector - should not modify paymentCollector address", async () => {
         await erc20Token.connect(user3).setPaymentCollector(owner.address);
-
-        assert((await erc20Token.getPaymentCollector()) == owner.address, 'PaymentCollector is not owner');
+        assert((await erc20Token.getPaymentCollector()) == erc20Token.address, 'PaymentCollector is not erc20Token');
         await erc20Token.connect(user3).setPaymentCollector(user2.address);
-        assert((await erc20Token.getPaymentCollector()) == user2.address, 'PaymentCollector is not user2');
+        assert((await erc20Token.getPaymentCollector()) == erc20Token.address, 'PaymentCollector is not erc20Token');
+
     });
 
     it("#getERC721Address - should succeed to get the parent ERC721 address", async () => {
@@ -472,9 +472,6 @@ describe("ERC20TemplatePredictoor", () => {
 
         assert((await erc20Token.permissions(user3.address)).minter == true);
         await erc20Token.connect(user3).addPaymentManager(owner.address);
-        // we set a new FeeCollector
-        await erc20Token.connect(owner).setPaymentCollector(user2.address);
-        assert((await erc20Token.getPaymentCollector()) == user2.address);
         // WE add 2 more minters
         await erc20Token.connect(user3).addMinter(user2.address);
         await erc20Token.connect(user3).addMinter(user4.address);
@@ -490,8 +487,7 @@ describe("ERC20TemplatePredictoor", () => {
         assert((await erc20Token.permissions(user2.address)).minter == false);
         assert((await erc20Token.permissions(user3.address)).minter == false);
         assert((await erc20Token.permissions(user4.address)).minter == false);
-        // we reassigned feeCollector to address(0) when cleaning permissions, so now getPaymentCollector points to NFT Owner
-        assert((await erc20Token.getPaymentCollector()) == owner.address);
+        assert((await erc20Token.getPaymentCollector()) == erc20Token.address);
     });
 
     it("#startOrder - user should succeed to call startOrder on a ERC20 without publishFee", async () => {
@@ -1078,7 +1074,7 @@ describe("ERC20TemplatePredictoor", () => {
         assert(publishFee[2] = web3.utils.toWei('10'))
     });
     it("#getId - should return templateId", async () => {
-        const templateId = 1;
+        const templateId = 3;
         assert((await erc20Token.getId()) == templateId);
     });
     it("#burn - user should succeed to burn tokens", async () => {
