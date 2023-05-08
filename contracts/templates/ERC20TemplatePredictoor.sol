@@ -1182,5 +1182,5 @@ contract ERC20TemplatePredictoor is
             // TODO FIND A WAY TO ACHIEVE THIS WITHOUT A LOOP
             subscription_revenue_at_block[blocknum + blocks_per_epoch * (i+1)] += amt_per_epoch;
         }
-    }   }
+    }
 }
