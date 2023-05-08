@@ -968,11 +968,12 @@ describe("ERC20TemplatePredictoor", () => {
         assert((await erc20Token.epoch(blockNum))) == epoch;
         assert((await erc20Token.cur_epoch())) == epoch;
     });
-    it("#rail_blocknum_to_slot - should rail blocknum to slot", async () => {
+    it("#rail_blocknum_to_slot, blocknum_is_on_a_slot - should rail blocknum to slot", async () => {
         const blockNum = await ethers.provider.getBlockNumber();
         const blocksPerEpoch = (await erc20Token.blocks_per_epoch())
         const slot = parseInt(blockNum / blocksPerEpoch) * blocksPerEpoch;
         assert((await erc20Token.rail_blocknum_to_slot(blockNum)) == slot);
+        assert((await erc20Token.blocknum_is_on_a_slot(blockNum)) == true);
     });
     it("#soonest_block_to_predict - should return soonest block to predict", async () => {
         const soonestBlockToPredict = await erc20Token.soonest_block_to_predict();
@@ -993,5 +994,17 @@ describe("ERC20TemplatePredictoor", () => {
             "No subscription"
         );
     });
+    it("#get_agg_predval - without subscription, should revert", async () => {
+        const blockNumber = await ethers.provider.getBlockNumber()
+        const blocksPerEpoch = (await erc20Token.blocks_per_epoch())
+        const railed = parseInt(blockNumber / blocksPerEpoch) * blocksPerEpoch
+        await expectRevert(
+            erc20Token.get_agg_predval(railed),
+            "No subscription"
+        );
+    });
+    it("#is_valid_subscription - without subscription, should return false", async () =>{
+      const is_valid_subscription = await erc20Token.is_valid_subscription(erc20Token.address);
+      assert(is_valid_subscription == false, "Subscription must be invalid");
+    });
 });
-
