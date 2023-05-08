@@ -45,7 +45,7 @@ contract ERC20TemplatePredictoor is
     address private publishMarketFeeAddress;
     address private publishMarketFeeToken;
     uint256 private publishMarketFeeAmount;
-
+    uint256 private rate =0;
     uint256 public constant BASE = 1e18;
 
     // -------------------------- PREDICTOOR --------------------------
@@ -351,6 +351,7 @@ contract ERC20TemplatePredictoor is
         address[] memory addresses,
         uint256[] memory uints
     ) external onlyERC20Deployer nonReentrant returns (bytes32 exchangeId) {
+        require(fixedRateExchanges.length==0, "Fixed rate already present");
         require(
             stake_token == addresses[0],
             "Cannot create FRE with baseToken!=stake_token"
@@ -370,37 +371,10 @@ contract ERC20TemplatePredictoor is
             addresses[0]
         );
         fixedRateExchanges.push(fixedRate(fixedPriceAddress, exchangeId));
+        rate = uints[2]; //set rate to be added in add_revenue
     }
 
-    /**
-     * @dev createDispenser
-     *      Creates a new Dispenser
-     * @param _dispenser dispenser contract address
-     * @param maxTokens - max tokens to dispense
-     * @param maxBalance - max balance of requester.
-     * @param withMint - with MinterRole
-     * @param allowedSwapper allowed swappers
-     */
-    function createDispenser(
-        address _dispenser,
-        uint256 maxTokens,
-        uint256 maxBalance,
-        bool withMint,
-        address allowedSwapper
-    ) external onlyERC20Deployer nonReentrant {
-        // add dispenser contract as minter if withMint == true
-        if (withMint) _addMinter(_dispenser);
-        dispensers.push(_dispenser);
-        emit NewDispenser(_dispenser);
-        IFactoryRouter(router).deployDispenser(
-            _dispenser,
-            address(this),
-            maxTokens,
-            maxBalance,
-            msg.sender,
-            allowedSwapper
-        );
-    }
+    
 
     /**
      * @dev mint
@@ -493,7 +467,9 @@ contract ERC20TemplatePredictoor is
             block.number + blocks_per_subscription
         );
         subscriptions[consumer] = sub;
-
+        //record income
+        add_revenue(block.number, rate);
+            
         burn(amount);
     }
 
@@ -871,8 +847,6 @@ contract ERC20TemplatePredictoor is
             _freParams.exchangeId
         );
         if (btBalance > 0) {
-            //record income
-            add_revenue(block.number, btBalance);
             fre.collectBT(_freParams.exchangeId, btBalance);
         }
     }

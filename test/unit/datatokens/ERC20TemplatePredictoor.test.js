@@ -154,7 +154,7 @@ describe("ERC20TemplatePredictoor", () => {
         );
 
         templateERC20 = await ERC20TemplatePredictoor.deploy();
-
+        
 
         // SETUP ERC721 Factory with template
         templateERC721 = await ERC721Template.deploy();
