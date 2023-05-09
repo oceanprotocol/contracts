@@ -87,7 +87,7 @@ contract ERC20TemplatePredictoor is
     uint256 public blocks_per_epoch;
     address public stake_token;
     uint256 public blocks_per_subscription;
-    uint256 public truval_submit_timeout_block = 3;
+    uint256 public truval_submit_timeout_block;
     bool public paused = false;
     // -------------------------- PREDICTOOR --------------------------
 
