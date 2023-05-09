@@ -45,7 +45,7 @@ contract ERC20TemplatePredictoor is
     address private publishMarketFeeAddress;
     address private publishMarketFeeToken;
     uint256 private publishMarketFeeAmount;
-    uint256 private rate =0;
+    uint256 private rate = 0;
     uint256 public constant BASE = 1e18;
 
     // -------------------------- PREDICTOOR --------------------------
@@ -351,7 +351,7 @@ contract ERC20TemplatePredictoor is
         address[] memory addresses,
         uint256[] memory uints
     ) external onlyERC20Deployer nonReentrant returns (bytes32 exchangeId) {
-        require(fixedRateExchanges.length==0, "Fixed rate already present");
+        require(fixedRateExchanges.length == 0, "Fixed rate already present");
         require(
             stake_token == addresses[0],
             "Cannot create FRE with baseToken!=stake_token"
@@ -373,8 +373,6 @@ contract ERC20TemplatePredictoor is
         fixedRateExchanges.push(fixedRate(fixedPriceAddress, exchangeId));
         rate = uints[2]; //set rate to be added in add_revenue
     }
-
-    
 
     /**
      * @dev mint
@@ -469,7 +467,7 @@ contract ERC20TemplatePredictoor is
         subscriptions[consumer] = sub;
         //record income
         add_revenue(block.number, rate);
-            
+
         burn(amount);
     }
 
@@ -1019,7 +1017,7 @@ contract ERC20TemplatePredictoor is
         uint256 stake,
         uint256 blocknum
     ) external blocknumOnSlot(blocknum) {
-        require(blocknum > soonest_block_to_predict(), "too late to submit");
+        require(blocknum <= soonest_block_to_predict(), "too late to submit");
         require(!submitted_predval(blocknum, msg.sender), "already submitted");
         require(paused == false, "paused");
 
@@ -1144,18 +1142,16 @@ contract ERC20TemplatePredictoor is
     }
 
     function add_revenue(uint256 blocknum, uint256 amount) internal {
-        if(amount>0){
+        if (amount > 0) {
             blocknum = rail_blocknum_to_slot(blocknum);
             uint256 num_epochs = blocks_per_subscription / blocks_per_epoch;
             uint256 amt_per_epoch = amount / num_epochs;
             // for loop and add revenue for blocks_per_epoch blocks
-            for (
-                uint256 i = 0;
-                i < num_epochs;
-                i++
-            ) {
+            for (uint256 i = 0; i < num_epochs; i++) {
                 // TODO FIND A WAY TO ACHIEVE THIS WITHOUT A LOOP
-                subscription_revenue_at_block[blocknum + blocks_per_epoch * (i+1)] += amt_per_epoch;
+                subscription_revenue_at_block[
+                    blocknum + blocks_per_epoch * (i + 1)
+                ] += amt_per_epoch;
             }
         }
     }
