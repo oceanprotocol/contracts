@@ -1003,8 +1003,9 @@ describe("ERC20TemplatePredictoor", () => {
             "No subscription"
         );
     });
-    it("#is_valid_subscription - without subscription, should return false", async () =>{
-      const is_valid_subscription = await erc20Token.is_valid_subscription(erc20Token.address);
-      assert(is_valid_subscription == false, "Subscription must be invalid");
+    it("#is_valid_subscription - without subscription, should return false", async () => {
+        const isValidSubscription = await erc20Token.is_valid_subscription(erc20Token.address);
+        assert(isValidSubscription == false, "Subscription must be invalid");
+    });
     });
 });
