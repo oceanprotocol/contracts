@@ -466,7 +466,7 @@ contract ERC20TemplatePredictoor is
         );
         subscriptions[consumer] = sub;
         //record income
-        add_revenue(soonest_block_to_predict(), rate);
+        add_revenue(block.number, rate);
 
         burn(amount);
     }
