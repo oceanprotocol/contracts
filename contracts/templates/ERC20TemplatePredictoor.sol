@@ -77,12 +77,12 @@ contract ERC20TemplatePredictoor is
         address user;
         uint256 expires;
     }
-    mapping(uint256 => mapping(address => Prediction)) predobjs; // id to prediction object
-    mapping(uint256 => uint256) agg_predvals_numer;
-    mapping(uint256 => uint256) agg_predvals_denom;
+    mapping(uint256 => mapping(address => Prediction)) private predobjs; // id to prediction object
+    mapping(uint256 => uint256) private agg_predvals_numer;
+    mapping(uint256 => uint256) private agg_predvals_denom;
     mapping(uint256 => bool) truevals;
     mapping(uint256 => bool) truval_submitted;
-    mapping(uint256 => uint256) subscription_revenue_at_block; //income registred
+    mapping(uint256 => uint256) private subscription_revenue_at_block; //income registred
     mapping(address => Subscription) public subscriptions; // valid subscription per user
     uint256 public blocks_per_epoch;
     address public stake_token;
