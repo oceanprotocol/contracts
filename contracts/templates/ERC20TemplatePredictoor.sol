@@ -1000,14 +1000,14 @@ contract ERC20TemplatePredictoor is
 
         predobjs[blocknum][msg.sender] = predobj;
 
-        // safe transfer stake
-        IERC20(stake_token).safeTransferFrom(msg.sender, address(this), stake);
-
+        
         // update agg_predvals
         agg_predvals_numer[blocknum] += stake * (predval ? 1 : 0);
         agg_predvals_denom[blocknum] += stake;
 
         emit PredictionSubmitted(msg.sender, epoch(blocknum), stake);
+        // safe transfer stake
+        IERC20(stake_token).safeTransferFrom(msg.sender, address(this), stake);
     }
 
     function payout(
@@ -1023,7 +1023,6 @@ contract ERC20TemplatePredictoor is
             block.number > blocknum + truval_submit_timeout_block &&
             !truval_submitted[blocknum]
         ) {
-            IERC20(stake_token).safeTransfer(predobj.predictoor, predobj.stake);
             predobj.paid = true;
             emit PredictionPayout(
                 predictoor_addr,
@@ -1033,6 +1032,7 @@ contract ERC20TemplatePredictoor is
                 predobj.predval,
                 truevals[blocknum]
             );
+            IERC20(stake_token).safeTransfer(predobj.predictoor, predobj.stake);
             return;
         }
 
@@ -1046,13 +1046,7 @@ contract ERC20TemplatePredictoor is
             agg_predvals_denom[blocknum] *
             get_subscription_revenue_at_block(blocknum)) / swe;
 
-        IERC20(stake_token).safeTransferFrom(
-            address(this),
-            predobj.predictoor,
-            payout_amt
-        );
         predobj.paid = true;
-
         emit PredictionPayout(
             predictoor_addr,
             epoch(blocknum),
@@ -1060,6 +1054,11 @@ contract ERC20TemplatePredictoor is
             payout_amt,
             predobj.predval,
             truevals[blocknum]
+        );
+        IERC20(stake_token).safeTransferFrom(
+            address(this),
+            predobj.predictoor,
+            payout_amt
         );
     }
 
