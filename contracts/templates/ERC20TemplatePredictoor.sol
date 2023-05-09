@@ -19,12 +19,10 @@ import "../utils/ERC20Roles.sol";
 /**
  * @title DatatokenTemplate
  *
- * @dev ERC20TemplateEnterprise is an ERC20 compliant token template
+ * @dev ERC20TemplatePredictoor is an ERC20 compliant token template
  *      Used by the factory contract as a bytecode reference to
  *      deploy new Datatokens.
  * IMPORTANT CHANGES:
- *  - buyFromFreAndOrder function:  one call to buy a DT from the minting capable FRE, startOrder and burn the DT
- *  - buyFromDispenserAndOrder function:  one call to fetch a DT from the Dispenser, startOrder and burn the DT
  *  - creation of pools is not allowed
  */
 contract ERC20TemplatePredictoor is
@@ -357,7 +355,6 @@ contract ERC20TemplatePredictoor is
             "Cannot create FRE with baseToken!=stake_token"
         );
         //force FRE allowedSwapper to this contract address. no one else can swap because we need to record the income
-        addresses[3] = address(this);
         if (uints[4] > 0) _addMinter(fixedPriceAddress);
         exchangeId = IFactoryRouter(router).deployFixedRate(
             fixedPriceAddress,
@@ -869,34 +866,7 @@ contract ERC20TemplatePredictoor is
             _orderParams._consumeMarketFee
         );
     }
-
-    /**
-     * @dev buyFromDispenserAndOrder
-     *      Gets DT from dispenser and then startsOrder, while burning that DT
-     */
-    function buyFromDispenserAndOrder(
-        OrderParams calldata _orderParams,
-        address dispenserContract
-    ) external nonReentrant {
-        uint256 amount = 1e18;
-        //get DT
-        IDispenser(dispenserContract).dispense(
-            address(this),
-            amount,
-            msg.sender
-        );
-        require(
-            balanceOf(address(msg.sender)) >= amount,
-            "Unable to get DT from Dispenser"
-        );
-        //startOrder and burn it
-        startOrder(
-            _orderParams.consumer,
-            _orderParams.serviceIndex,
-            _orderParams._providerFee,
-            _orderParams._consumeMarketFee
-        );
-    }
+   
 
     /**
      * @dev isERC20Deployer
