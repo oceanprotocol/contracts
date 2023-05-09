@@ -1144,17 +1144,19 @@ contract ERC20TemplatePredictoor is
     }
 
     function add_revenue(uint256 blocknum, uint256 amount) internal {
-        blocknum = rail_blocknum_to_slot(blocknum);
-        uint256 num_epochs = blocks_per_subscription / blocks_per_epoch;
-        uint256 amt_per_epoch = amount / num_epochs;
-        // for loop and add revenue for blocks_per_epoch blocks
-        for (
-            uint256 i = 0;
-            i < num_epochs;
-            i++
-        ) {
-            // TODO FIND A WAY TO ACHIEVE THIS WITHOUT A LOOP
-            subscription_revenue_at_block[blocknum + blocks_per_epoch * (i+1)] += amt_per_epoch;
+        if(amount>0){
+            blocknum = rail_blocknum_to_slot(blocknum);
+            uint256 num_epochs = blocks_per_subscription / blocks_per_epoch;
+            uint256 amt_per_epoch = amount / num_epochs;
+            // for loop and add revenue for blocks_per_epoch blocks
+            for (
+                uint256 i = 0;
+                i < num_epochs;
+                i++
+            ) {
+                // TODO FIND A WAY TO ACHIEVE THIS WITHOUT A LOOP
+                subscription_revenue_at_block[blocknum + blocks_per_epoch * (i+1)] += amt_per_epoch;
+            }
         }
     }
 }
