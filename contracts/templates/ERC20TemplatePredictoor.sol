@@ -83,7 +83,7 @@ contract ERC20TemplatePredictoor is
     mapping(uint256 => bool) truevals;
     mapping(uint256 => bool) truval_submitted;
     mapping(uint256 => uint256) subscription_revenue_at_block; //income registred
-    mapping(address => Subscription) subscriptions; // valid subscription per user
+    mapping(address => Subscription) public subscriptions; // valid subscription per user
     uint256 public blocks_per_epoch;
     address public stake_token;
     uint256 public blocks_per_subscription;
