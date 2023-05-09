@@ -466,7 +466,7 @@ contract ERC20TemplatePredictoor is
         );
         subscriptions[consumer] = sub;
         //record income
-        add_revenue(block.number, rate);
+        add_revenue(soonest_block_to_predict(), rate);
 
         burn(amount);
     }
@@ -1149,7 +1149,7 @@ contract ERC20TemplatePredictoor is
             for (uint256 i = 0; i < num_epochs; i++) {
                 // TODO FIND A WAY TO ACHIEVE THIS WITHOUT A LOOP
                 subscription_revenue_at_block[
-                    blocknum + blocks_per_epoch * (i + 1)
+                    blocknum + blocks_per_epoch * (i)
                 ] += amt_per_epoch;
             }
         }
