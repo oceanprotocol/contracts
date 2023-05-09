@@ -1017,8 +1017,9 @@ describe("ERC20TemplatePredictoor", () => {
         const predictionEpoch = await erc20Token.epoch(soonestBlockToPredict);
 
         const tx = await erc20Token.submit_predval(predval, stake, soonestBlockToPredict);
-        const tx_receipt = await tx.wait();
-        const event = tx_receipt.events[2];
+        const txReceipt = await tx.wait();
+        const event = getEventFromTx(txReceipt, 'PredictionSubmitted')
+        assert(event, "Cannot find PredictionSubmitted event")
         expect(event.event).to.equal("PredictionSubmitted");
         expect(event.args[0]).to.equal(owner.address);
         expect(event.args[1]).to.equal(predictionEpoch);
