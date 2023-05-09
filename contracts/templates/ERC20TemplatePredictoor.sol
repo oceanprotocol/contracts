@@ -1017,7 +1017,7 @@ contract ERC20TemplatePredictoor is
         uint256 stake,
         uint256 blocknum
     ) external blocknumOnSlot(blocknum) {
-        require(blocknum <= soonest_block_to_predict(), "too late to submit");
+        require(blocknum >= soonest_block_to_predict(), "too late to submit");
         require(!submitted_predval(blocknum, msg.sender), "already submitted");
         require(paused == false, "paused");
 
@@ -1110,13 +1110,12 @@ contract ERC20TemplatePredictoor is
 
     function update_seconds(
         uint256 s_per_block,
-        uint256 s_per_epoch,
         uint256 s_per_subscription,
         uint256 _truval_submit_timeout
     ) external onlyERC20Deployer {
         _update_seconds(
             s_per_block,
-            s_per_epoch,
+            0, // can only be set once
             s_per_subscription,
             _truval_submit_timeout
         );
@@ -1130,8 +1129,8 @@ contract ERC20TemplatePredictoor is
         uint256 s_per_subscription,
         uint256 _truval_submit_timeout
     ) internal {
-        require(s_per_subscription % s_per_block == 0);
-        require(s_per_epoch % s_per_block == 0);
+        require(s_per_subscription % s_per_block == 0, "%");
+        require(s_per_epoch % s_per_block == 0, "%");
 
         if (blocks_per_epoch == 0) {
             blocks_per_epoch = s_per_epoch / s_per_block; // immutaable
