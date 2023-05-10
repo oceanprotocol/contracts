@@ -1051,10 +1051,7 @@ contract ERC20TemplatePredictoor is
         uint256 swe = truevals[blocknum]
             ? agg_predvals_numer[blocknum]
             : agg_predvals_denom[blocknum] - agg_predvals_numer[blocknum];
-        uint256 payout_amt = (predobj.stake *
-            agg_predvals_denom[blocknum] *
-            get_subscription_revenue_at_block(blocknum)) / swe;
-
+        uint256 payout_amt = predobj.stake * (agg_predvals_denom[blocknum] + get_subscription_revenue_at_block(blocknum)) / swe;
         predobj.paid = true;
         emit PredictionPayout(
             predictoor_addr,
