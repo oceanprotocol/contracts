@@ -10,6 +10,7 @@ WORKDIR /ocean-contracts
 RUN rm package-lock.json
 RUN rm -rf ./node-modules/
 RUN npm i
+RUN rm -rf /root/.cache/hardhat-nodejs/
 RUN npx hardhat clean
 RUN npx hardhat compile --force
 ENV SLEEP_FOR_GANACHE=10
