@@ -1064,8 +1064,7 @@ contract ERC20TemplatePredictoor is
             predobj.predval,
             truevals[blocknum]
         );
-        IERC20(stake_token).safeTransferFrom(
-            address(this),
+        IERC20(stake_token).safeTransfer(
             predobj.predictoor,
             payout_amt
         );
