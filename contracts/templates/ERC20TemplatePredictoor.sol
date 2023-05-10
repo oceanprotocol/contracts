@@ -1010,10 +1010,19 @@ contract ERC20TemplatePredictoor is
         IERC20(stake_token).safeTransferFrom(msg.sender, address(this), stake);
     }
 
+    function payout_mul(
+        uint256[] calldata blocknums,
+        address predictoor_addr
+    ) external {
+      for (uint i = 0; i < blocknums.length; i++) {
+        payout(blocknums[i], predictoor_addr);
+      }
+    }
+
     function payout(
         uint256 blocknum,
         address predictoor_addr
-    ) external blocknumOnSlot(blocknum) nonReentrant {
+    ) public blocknumOnSlot(blocknum) nonReentrant {
         Prediction memory predobj = get_prediction(blocknum, predictoor_addr);
         require(predobj.paid == false, "already paid");
 
