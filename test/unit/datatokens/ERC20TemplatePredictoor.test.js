@@ -1333,7 +1333,6 @@ describe("ERC20TemplatePredictoor", () => {
         // opf submits truval
         await erc20Token.submit_trueval(soonestBlockToPredict, predval);
         const balBefore = await mockErc20.balanceOf(user3.address);
-        console.log("Doing payout")
         await erc20Token.connect(user3).payout(soonestBlockToPredict, user3.address);
         const balAfter = await mockErc20.balanceOf(user3.address);
         expect(balAfter).to.be.gt(balBefore);
