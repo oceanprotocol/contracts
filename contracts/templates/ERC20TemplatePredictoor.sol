@@ -1068,6 +1068,16 @@ contract ERC20TemplatePredictoor is
     }
 
     // ----------------------- ADMIN FUNCTIONS -----------------------
+    function redeem_unused_sub_revenue(uint256 blocknum) external onlyERC20Deployer {
+        require(block.number > blocknum);
+        require(agg_predvals_denom[blocknum] == 0);
+        IERC20(stake_token).safeTransfer(
+            msg.sender,
+            subscription_revenue_at_block(blocknum)
+        );
+    }
+
+
     function pause_predictions() external onlyERC20Deployer {
         paused = !paused;
     }
