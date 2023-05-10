@@ -10,11 +10,9 @@ WORKDIR /ocean-contracts
 RUN rm package-lock.json
 RUN rm -rf ./node-modules/
 RUN npm i
-RUN rm -rf /root/.cache/hardhat-nodejs/
-RUN npx hardhat clean --global
-RUN npx hardhat compile
 ENV SLEEP_FOR_GANACHE=10
 RUN cp hardhat.config.barge.js hardhat.config.js
 ENV NETWORK=barge
 ENV NETWORK_RPC_URL=127.0.0.1:8545
+RUN npx hardhat compile
 ENTRYPOINT ["/ocean-contracts/scripts/deploy_docker.sh"]
