@@ -1025,6 +1025,34 @@ describe("ERC20TemplatePredictoor", () => {
         expect(event.args[1]).to.equal(predictionEpoch);
         expect(event.args[2]).to.equal(stake);
     });
+    it("#submit_predval - predictoor can read their submitted predval", async () => {
+      const predval = true;
+      const stake = 100;
+      await mockErc20.approve(erc20Token.address, stake);
+      const soonestBlockToPredict = await erc20Token.soonest_block_to_predict();
+
+      await erc20Token.submit_predval(predval, stake, soonestBlockToPredict);
+      const prediction = await erc20Token.get_prediction(soonestBlockToPredict, owner.address);
+
+      expect(prediction.predval).to.be.eq(predval);
+      expect(prediction.stake).to.be.eq(stake);
+      expect(prediction.predictoor).to.be.eq(owner.address);
+      expect(prediction.paid).to.be.eq(false);
+    });
+    it("#submit_predval - others cannot read submitted predictions", async () => {
+      const predval = true;
+      const stake = 100;
+      await mockErc20.approve(erc20Token.address, stake);
+      const soonestBlockToPredict = await erc20Token.soonest_block_to_predict();
+
+      await erc20Token.submit_predval(predval, stake, soonestBlockToPredict);
+      expectRevert(erc20Token.connect(user2).get_prediction(soonestBlockToPredict, owner.address));
+      // fast forward blocks until next epoch
+      Array(30).fill(0).map(async _ => await ethers.provider.send("evm_mine"));
+      // user2 should be able to read the predval now
+      const prediction = await erc20Token.connect(user2).get_prediction(soonestBlockToPredict, owner.address);
+      expect(prediction.predval).to.be.eq(predval);
+    });
     it("#submit_predval - should revert when predictoor submits too early", async () => {
         const predval = true;
         const stake = 100;
