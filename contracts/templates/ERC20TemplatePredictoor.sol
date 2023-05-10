@@ -320,7 +320,7 @@ contract ERC20TemplatePredictoor is
         assembly {
             chainId := chainid()
         }
-        DOMAIN_SEPARATOR = keccak256(
+        /*DOMAIN_SEPARATOR = keccak256(
             abi.encode(
                 keccak256(
                     "EIP712Domain(string name,string version,uint256 chainId,address verifyingContract)"
@@ -331,6 +331,7 @@ contract ERC20TemplatePredictoor is
                 address(this)
             )
         );
+        */
 
         stake_token = addresses_[4];
         _update_seconds(uints_[2], uints_[3], uints_[4], uints_[5]);
@@ -457,6 +458,18 @@ contract ERC20TemplatePredictoor is
                 _consumeMarketFee.consumeMarketFeeToken,
                 _consumeMarketFee.consumeMarketFeeAmount
             );
+        }
+        //fetch bastetokens from fre
+        if(fixedRateExchanges.length>0){
+            IFixedRateExchange fre = IFixedRateExchange(
+                fixedRateExchanges[0].contractAddress
+            );
+            (, , , , , , , , , , uint256 btBalance, ) = fre.getExchange(
+            fixedRateExchanges[0].id
+            );
+            if (btBalance > 0) {
+                fre.collectBT(fixedRateExchanges[0].id, btBalance);
+            }
         }
         Subscription memory sub = Subscription(
             consumer,
@@ -591,14 +604,6 @@ contract ERC20TemplatePredictoor is
             ) {
                 previousMinters[curentLen] = fixedRateExchanges[i]
                     .contractAddress;
-                curentLen++;
-            }
-        }
-        // loop though dispenser and preserve the minter rols if exists
-        for (i = 0; i < dispensers.length; i++) {
-            IDispenser(dispensers[i]).ownerWithdraw(address(this));
-            if (isMinter(dispensers[i])) {
-                previousMinters[curentLen] = dispensers[i];
                 curentLen++;
             }
         }
