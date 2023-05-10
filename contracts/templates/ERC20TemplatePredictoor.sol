@@ -15,6 +15,7 @@ import "@openzeppelin/contracts/utils/math/SafeMath.sol";
 import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 import "@openzeppelin/contracts/security/ReentrancyGuard.sol";
 import "../utils/ERC20Roles.sol";
+import "hardhat/console.sol";
 
 /**
  * @title DatatokenTemplate
@@ -850,7 +851,7 @@ contract ERC20TemplatePredictoor is
      * @dev buyFromFreAndOrder
      *      Buys 1 DT from the FRE and then startsOrder, while burning that DT
      */
-    function buyFromFreAndOrder(
+    /*function buyFromFreAndOrder(
         OrderParams calldata _orderParams,
         FreParams calldata _freParams
     ) external nonReentrant {
@@ -866,6 +867,7 @@ contract ERC20TemplatePredictoor is
             _orderParams._consumeMarketFee
         );
     }
+    */
    
 
     /**
@@ -1051,7 +1053,13 @@ contract ERC20TemplatePredictoor is
         uint256 swe = truevals[blocknum]
             ? agg_predvals_numer[blocknum]
             : agg_predvals_denom[blocknum] - agg_predvals_numer[blocknum];
-        uint256 payout_amt = predobj.stake * (agg_predvals_denom[blocknum] + get_subscription_revenue_at_block(blocknum)) / swe;
+        
+        uint256 revenue=get_subscription_revenue_at_block(blocknum);
+        console.log("revenue:%s",revenue);
+        uint256 payout_amt = predobj.stake * (agg_predvals_denom[blocknum] + revenue) / swe;
+        console.log("predobj.stake:%s",predobj.stake);
+        console.log("agg_predvals_denom: %s",agg_predvals_denom[blocknum]);
+        console.log("Payout_amt:  %s",payout_amt);
         predobj.paid = true;
         emit PredictionPayout(
             predictoor_addr,
@@ -1060,6 +1068,13 @@ contract ERC20TemplatePredictoor is
             payout_amt,
             predobj.predval,
             truevals[blocknum]
+        );
+        uint256 contractBalance=IERC20(stake_token).balanceOf(address(this));
+        console.log(
+        "Transferring from to %s %s tokens, while our balance is %s",
+        predobj.predictoor,
+        payout_amt,
+        contractBalance
         );
         IERC20(stake_token).safeTransfer(
             predobj.predictoor,
