@@ -1073,7 +1073,7 @@ contract ERC20TemplatePredictoor is
         require(agg_predvals_denom[blocknum] == 0);
         IERC20(stake_token).safeTransfer(
             msg.sender,
-            subscription_revenue_at_block(blocknum)
+            subscription_revenue_at_block[blocknum]
         );
     }
 
