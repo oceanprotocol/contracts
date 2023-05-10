@@ -1244,7 +1244,7 @@ describe("ERC20TemplatePredictoor", () => {
     });
 
     // can read get_agg_predval with a valid subscription
-    it("#get_agg_predval - should return agg_predval if caller buys a subscription", async () => {
+    it("predictoor gets paid", async () => {
         const consumer = user2.address; // could be different user
         const serviceIndex = 1; // dummy index
         const providerFeeAddress = user5.address; // marketplace fee Collector
@@ -1318,9 +1318,25 @@ describe("ERC20TemplatePredictoor", () => {
 
         revenue_at_block = await erc20Token.connect(user2).get_subscription_revenue_at_block(soonestBlockToPredict)
         expect(revenue_at_block).to.be.gt(0);
-        
 
+        // predictoor makes a prediction
+        const predval = true;
+        const stake = web3.utils.toWei("1");
+        await mockErc20.transfer(user3.address, stake);
+        await mockErc20.connect(user3).approve(erc20Token.address, stake);
+        await erc20Token.connect(user3).submit_predval(predval, stake, soonestBlockToPredict);
 
-        
+        expectRevert(erc20Token.connect(user3).payout(soonestBlockToPredict, user3.address));
+        Array(30).fill(0).map(async _ => await ethers.provider.send("evm_mine"));
+
+        expectRevert(erc20Token.connect(user3).payout(soonestBlockToPredict, user3.address));
+        // opf submits truval
+        await erc20Token.submit_trueval(soonestBlockToPredict, predval);
+        const balBefore = await mockErc20.balanceOf(user3.address);
+        await erc20Token.connect(user3).payout(soonestBlockToPredict, user3.address);
+        const balAfter = await mockErc20.balanceOf(user3.address);
+        expect(balAfter).to.be.gt(balBefore);
+
+        expectRevert(erc20Token.connect(user3).payout(soonestBlockToPredict, user3.address), "already paid out");
     });
 });
