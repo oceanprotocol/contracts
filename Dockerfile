@@ -11,8 +11,8 @@ RUN rm package-lock.json
 RUN rm -rf ./node-modules/
 RUN npm i
 RUN rm -rf /root/.cache/hardhat-nodejs/
-RUN npx hardhat clean
-RUN npx hardhat compile --force
+RUN npx hardhat clean --global
+RUN npx hardhat compile
 ENV SLEEP_FOR_GANACHE=10
 RUN cp hardhat.config.barge.js hardhat.config.js
 ENV NETWORK=barge
