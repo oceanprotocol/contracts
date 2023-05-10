@@ -1326,13 +1326,14 @@ describe("ERC20TemplatePredictoor", () => {
         await mockErc20.connect(user3).approve(erc20Token.address, stake);
         await erc20Token.connect(user3).submit_predval(predval, stake, soonestBlockToPredict);
 
-        expectRevert(erc20Token.connect(user3).payout(soonestBlockToPredict, user3.address));
+        await expectRevert(erc20Token.connect(user3).payout(soonestBlockToPredict, user3.address),"trueval not submitted")
         Array(30).fill(0).map(async _ => await ethers.provider.send("evm_mine"));
 
-        expectRevert(erc20Token.connect(user3).payout(soonestBlockToPredict, user3.address));
+        await expectRevert(erc20Token.connect(user3).payout(soonestBlockToPredict, user3.address),"trueval not submitted");
         // opf submits truval
         await erc20Token.submit_trueval(soonestBlockToPredict, predval);
         const balBefore = await mockErc20.balanceOf(user3.address);
+        console.log("Doing payout")
         await erc20Token.connect(user3).payout(soonestBlockToPredict, user3.address);
         const balAfter = await mockErc20.balanceOf(user3.address);
         expect(balAfter).to.be.gt(balBefore);
