@@ -17,5 +17,5 @@ RUN npx hardhat compile --force
 RUN npx hardhat compile --force
 ENV NETWORK=barge
 ENV NETWORK_RPC_URL=127.0.0.1:8545
-RUN /ocean-contracts/artifacts/* -name "*.dbg.json" -type f -delete
+RUN find /ocean-contracts/artifacts/* -name "*.dbg.json" -type f -delete
 ENTRYPOINT ["/ocean-contracts/scripts/deploy_docker.sh"]
