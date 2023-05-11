@@ -7,12 +7,15 @@ RUN bash /tmp/nodesource_setup.sh
 RUN apt install nodejs
 COPY . /ocean-contracts
 WORKDIR /ocean-contracts
+RUN rm -rf /ocean-contracts/artifacts/*
 RUN rm package-lock.json
 RUN rm -rf ./node-modules/
 RUN npm i
 ENV SLEEP_FOR_GANACHE=10
 RUN npx hardhat clean --global
 RUN npx hardhat compile --force
+RUN npx hardhat compile --force
 ENV NETWORK=barge
 ENV NETWORK_RPC_URL=127.0.0.1:8545
+RUN /ocean-contracts/artifacts/* -name "*.dbg.json" -type f -delete
 ENTRYPOINT ["/ocean-contracts/scripts/deploy_docker.sh"]
