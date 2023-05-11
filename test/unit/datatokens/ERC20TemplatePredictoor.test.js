@@ -36,7 +36,10 @@ const PERMIT_TYPEHASH = keccak256(
         "Permit(address owner,address spender,uint256 value,uint256 nonce,uint256 deadline)"
     )
 );
-
+const sPerBlock = 24;
+const sPerEpoch = 300;
+const sPerSubscription = 24 * 60 * 60;
+const truevalSubmitTimeout = 24 * 60 * 60 * 3;
 const getApprovalDigest = async (
     token,
     owner,
@@ -210,11 +213,10 @@ describe("ERC20TemplatePredictoor", () => {
 
 
         // [user3.address, user6.address, user3.address, addressZero, mockErc20.address],
-
         const trxERC20 = await tokenERC721.connect(user3).createERC20(1,
             ["ERC20DT3", "ERC20DT3Symbol"],
             [user3.address, user6.address, user3.address, addressZero, mockErc20.address],
-            [cap, 0, 24, 288, 24 * 60 * 60, 24 * 60 * 60 * 3],
+            [cap, 0, sPerBlock, sPerEpoch, sPerSubscription, truevalSubmitTimeout],
             []
         );
 
