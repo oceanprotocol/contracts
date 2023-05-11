@@ -993,9 +993,10 @@ contract ERC20TemplatePredictoor is
         uint256 stake,
         uint256 blocknum
     ) external blocknumOnSlot(blocknum) {
+        require(paused == false, "paused");
         require(blocknum >= soonest_block_to_predict(), "too late to submit");
         require(!submitted_predval(blocknum, msg.sender), "already submitted");
-        require(paused == false, "paused");
+        
 
         Prediction memory predobj = Prediction(
             predval,
@@ -1029,7 +1030,8 @@ contract ERC20TemplatePredictoor is
         uint256 blocknum,
         address predictoor_addr
     ) public blocknumOnSlot(blocknum) nonReentrant {
-        Prediction memory predobj = get_prediction(blocknum, predictoor_addr);
+        Prediction memory predobj = predobjs[blocknum][predictoor_addr];
+        
         require(predobj.paid == false, "already paid");
 
         // if OPF hasn't submitted trueval in truval_submit_timeout days
@@ -1038,7 +1040,7 @@ contract ERC20TemplatePredictoor is
             block.number > blocknum + truval_submit_timeout_block &&
             !truval_submitted[blocknum]
         ) {
-            predobj.paid = true;
+            predobjs[blocknum][predictoor_addr].paid = true;
             emit PredictionPayout(
                 predictoor_addr,
                 epoch(blocknum),
@@ -1059,7 +1061,7 @@ contract ERC20TemplatePredictoor is
             : agg_predvals_denom[blocknum] - agg_predvals_numer[blocknum];
         uint256 revenue=get_subscription_revenue_at_block(blocknum);
         uint256 payout_amt = predobj.stake * (agg_predvals_denom[blocknum] + revenue) / swe;
-        predobj.paid = true;
+        predobjs[blocknum][predictoor_addr].paid = true;
         emit PredictionPayout(
             predictoor_addr,
             epoch(blocknum),

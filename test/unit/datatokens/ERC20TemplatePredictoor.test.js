@@ -975,7 +975,8 @@ describe("ERC20TemplatePredictoor", () => {
         const blocksPerEpoch = (await erc20Token.blocks_per_epoch())
         const slot = parseInt(blockNum / blocksPerEpoch) * blocksPerEpoch;
         assert((await erc20Token.rail_blocknum_to_slot(blockNum)) == slot);
-        assert((await erc20Token.blocknum_is_on_a_slot(blockNum)) == true);
+        const isOnSlot = await erc20Token.blocknum_is_on_a_slot(blockNum)
+        assert(isOnSlot == true, isOnSlot +" should be true");
     });
     it("#soonest_block_to_predict - should return soonest block to predict", async () => {
         const soonestBlockToPredict = await erc20Token.soonest_block_to_predict();
@@ -1341,6 +1342,6 @@ describe("ERC20TemplatePredictoor", () => {
         const expectedProfit = 1 + (2 / parseInt(3600 / parseInt(300 / 24)))
         expect(parseFloat(web3.utils.fromWei(profit.toString()))).to.be.eq(expectedProfit);
 
-        await expectRevert(erc20Token.connect(user3).payout(soonestBlockToPredict, user3.address), "already paid out");
+        await expectRevert(erc20Token.connect(user3).payout(soonestBlockToPredict, user3.address), "already paid");
     });
 });
