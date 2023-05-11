@@ -1495,13 +1495,19 @@ describe("ERC20TemplatePredictoor", () => {
         await mockErc20.connect(user2).approve(erc20Token.address, stake);
         const prediction = true;
         const soonestBlockToPredict = await erc20Token.soonest_block_to_predict();
-        await erc20Token.connect(user2).predict(soonestBlockToPredict, prediction, stake);
+        console.log("Im here");
+        await erc20Token.connect(user2).submit_predval(soonestBlockToPredict, prediction, stake);
        
         // set timeout to 1 minute
-        await erc20Token.update_seconds(sPerBlock, sPerEpoch, sPerSubscription, (sPerEpoch * 5));
+        console.log("Im here");
+        await erc20Token.update_seconds(sPerBlock, sPerEpoch, sPerSubscription, sPerEpoch * 3);
+        console.log("Im here");
         expectRevert(erc20Token.connect(user2).payout(soonestBlockToPredict, user2.address), "too early");
+        console.log("Im here");
         Array(30).fill(0).map(async _ => await ethers.provider.send("evm_mine"));
+        console.log("Im here");
         expectRevert(erc20Token.connect(user2).payout(soonestBlockToPredict, user2.address), "truval not submitted");
+        console.log("Im here");
         Array(300).fill(0).map(async _ => await ethers.provider.send("evm_mine"));
         const tx = await erc20Token.connect(user2).payout(soonestBlockToPredict, user2.address);
     })
