@@ -1397,4 +1397,94 @@ describe("ERC20TemplatePredictoor", () => {
         }
 
     });
+    it("#redeem_unused_sub_revenue - admin should be able to redeem unused sub revenue for epoch", async()=>{
+        const consumer = user2.address; // could be different user
+        const serviceIndex = 1; // dummy index
+        const providerFeeAddress = user5.address; // marketplace fee Collector
+        const providerFeeAmount = 0; // fee to be collected on top, requires approval
+        const providerFeeToken = mockErc20.address; // token address for the feeAmount,
+        const consumeMarketFeeAddress = user5.address; // marketplace fee Collector
+        const consumeMarketFeeAmount = 0; // fee to be collected on top, requires approval
+        const consumeMarketFeeToken = mockErc20.address; // token address for the feeAmount,
+        const providerValidUntil = 0;
+        const marketFee = 1e15 // 0.1%
+        const marketFeeCollector = addressZero
+        const rate = web3.utils.toWei("2"); // 2 tokens per dt
+        const amountDT = web3.utils.toWei("1");
+
+        //create fixed rate
+        const tx = await erc20Token.connect(owner).createFixedRate(
+            fixedRateExchange.address,
+            [mockErc20.address, owner.address, marketFeeCollector, addressZero],
+            [18, 18, rate, marketFee, 1])
+        const txReceipt = await tx.wait();
+        let event = getEventFromTx(txReceipt, 'NewFixedRate')
+        assert(event, "Cannot find NewFixedRate event")
+        exchangeId = event.args.exchangeId
+        const exchangeInfo = await fixedRateExchange.calcBaseInGivenOutDT(exchangeId, amountDT, 0)
+
+        //let's buy a DT
+        await mockErc20.transfer(user2.address, exchangeInfo.baseTokenAmount);
+        await mockErc20.connect(user2).approve(fixedRateExchange.address, exchangeInfo.baseTokenAmount);
+        // user buys DT
+        await fixedRateExchange.connect(user2).buyDT(exchangeId, amountDT, exchangeInfo.baseTokenAmount, addressZero, 0)
+        const balance = await erc20Token.balanceOf(user2.address)
+        assert(balance > 0, "Failed to buy DT")
+        //sign provider data
+        const providerData = JSON.stringify({ "timeout": 0 })
+        const message = ethers.utils.solidityKeccak256(
+            ["bytes", "address", "address", "uint256", "uint256"],
+            [
+                ethers.utils.hexlify(ethers.utils.toUtf8Bytes(providerData)),
+                providerFeeAddress,
+                providerFeeToken,
+                providerFeeAmount,
+                providerValidUntil
+            ]
+        );
+        const signedMessage = await signMessage(message, providerFeeAddress);
+        let soonestBlockToPredict = await erc20Token.soonest_block_to_predict();
+        let revenue_at_block = await erc20Token.connect(user2).get_subscription_revenue_at_block(soonestBlockToPredict)
+        expect(revenue_at_block).to.be.eq(0);
+
+        await erc20Token
+            .connect(user2)
+            .startOrder(
+                consumer,
+                serviceIndex,
+                {
+                    providerFeeAddress: providerFeeAddress,
+                    providerFeeToken: providerFeeToken,
+                    providerFeeAmount: providerFeeAmount,
+                    v: signedMessage.v,
+                    r: signedMessage.r,
+                    s: signedMessage.s,
+                    providerData: ethers.utils.hexlify(ethers.utils.toUtf8Bytes(providerData)),
+                    validUntil: providerValidUntil
+                },
+                {
+                    consumeMarketFeeAddress: consumeMarketFeeAddress,
+                    consumeMarketFeeToken: consumeMarketFeeToken,
+                    consumeMarketFeeAmount: consumeMarketFeeAmount,
+                }
+            );
+
+        revenue_at_block = await erc20Token.connect(user2).get_subscription_revenue_at_block(soonestBlockToPredict)
+        Array(100).fill(0).map(async _ => await ethers.provider.send("evm_mine"));
+        const blocksPerEpoch = await erc20Token.blocks_per_epoch();
+        const currentBlock = await ethers.provider.getBlockNumber();
+        const railedBlock = await erc20Token.rail_blocknum_to_slot(currentBlock) - blocksPerEpoch;
+        const tx_2 = await erc20Token.redeem_unused_sub_revenue(railedBlock);
+        const txReceipt_2 = await tx_2.wait();
+        let event_2 = getEventFromTx(txReceipt_2, 'Transfer')
+        expect(event_2.args.from).to.be.eq(erc20Token.address);
+        expect(event_2.args.to).to.be.eq(owner.address);
+        expect(event_2.args.value).to.be.eq(6666666666666666);
+    })
+    it("#redeem_unused_sub_revenue - admin should not be able to redeem for future epoch", async()=>{
+        const blocksPerEpoch = await erc20Token.blocks_per_epoch();
+        const currentBlock = await ethers.provider.getBlockNumber();
+        const railedBlock = await erc20Token.rail_blocknum_to_slot(currentBlock) + blocksPerEpoch;
+        expectRevert(erc20Token.redeem_unused_sub_revenue(railedBlock));
+    })
 });
