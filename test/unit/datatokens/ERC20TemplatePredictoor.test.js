@@ -1344,4 +1344,60 @@ describe("ERC20TemplatePredictoor", () => {
 
         await expectRevert(erc20Token.connect(user3).payout(soonestBlockToPredict, user3.address), "already paid");
     });
+
+    // can read get_agg_predval with a valid subscription
+    it("multiple predictoor compete and some gets paid", async () => {
+        // predictoor makes a predictions
+        let predictoors = [reciever, user2, user3, user4, user5, user6];
+        let predictions = [];
+        let stakes = [];
+        for(const predictoor of predictoors){
+            const amt = web3.utils.toWei("200");
+            await mockErc20.transfer(predictoor.address, amt);
+            await mockErc20.connect(predictoor).approve(erc20Token.address, amt);
+        }
+        
+        const blocksPerEpoch = await erc20Token.blocks_per_epoch();
+        const currentBlock = await ethers.provider.getBlockNumber();
+        const soonestBlockToPredict = await erc20Token.soonest_block_to_predict();
+        Array(soonestBlockToPredict - currentBlock + 1).fill(0).map(async _ => await ethers.provider.send("evm_mine"));
+        const predictionBlock = await erc20Token.soonest_block_to_predict();
+        
+        for(const predictoor of predictoors){
+            const stake = 10 + Math.random() * 100;
+            const stakeWei = web3.utils.toWei(stake.toString());
+            const p = Math.random() > 0.5;
+            predictions.push(p);
+            stakes.push(stake);
+            await erc20Token.connect(predictoor).submit_predval(p, stakeWei, predictionBlock)
+        }
+        
+        Array(blocksPerEpoch * 2).fill(0).map(async _ => await ethers.provider.send("evm_mine"));
+        const truval = Math.random() > 0.5;
+        const winners = predictions.map((x,i)=>x==truval?i:null).filter(x=>x!=null);
+        const totalStake = stakes.reduce((a,b)=>a+b, 0);
+        const winnersStake = winners.map(x=>stakes[x]).reduce((a,b)=>a+b, 0);
+
+        // opf submits truval
+        await erc20Token.submit_trueval(predictionBlock, truval);
+
+        // each predictoor calls payout function
+        for (let i = 0; i < predictoors.length; i++){
+            let predictoor = predictoors[i];
+            if (winners.includes(i)) {
+                const balBefore = await mockErc20.balanceOf(predictoor.address);
+                await erc20Token.connect(predictoor).payout(predictionBlock, predictoor.address);
+                const balAfter = await mockErc20.balanceOf(predictoor.address);
+                expect(balAfter).to.be.gt(balBefore);
+                const profit = balAfter.sub(balBefore);
+                const expectedProfitSub = (2 / parseInt(3600 / parseInt(300 / 24)))
+                const expectedProfitStake = stakes[i] / winnersStake * totalStake
+                const expectedProfit = expectedProfitSub + expectedProfitStake
+                expect(parseFloat(web3.utils.fromWei(profit.toString()))).to.be.closeTo(expectedProfit, 0.2);
+            } else {
+                await expectRevert(erc20Token.connect(predictoor).payout(predictionBlock, predictoor.address), "wrong prediction");
+            }
+        }
+
+    });
 });
