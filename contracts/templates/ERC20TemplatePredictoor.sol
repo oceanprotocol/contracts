@@ -996,18 +996,14 @@ contract ERC20TemplatePredictoor is
         require(paused == false, "paused");
         require(blocknum >= soonest_block_to_predict(), "too late to submit");
         require(!submitted_predval(blocknum, msg.sender), "already submitted");
-        
 
-        Prediction memory predobj = Prediction(
+        predobjs[blocknum][msg.sender] = Prediction(
             predval,
             stake,
             msg.sender,
             false
         );
 
-        predobjs[blocknum][msg.sender] = predobj;
-
-        
         // update agg_predvals
         agg_predvals_numer[blocknum] += stake * (predval ? 1 : 0);
         agg_predvals_denom[blocknum] += stake;
