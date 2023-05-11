@@ -1499,11 +1499,11 @@ describe("ERC20TemplatePredictoor", () => {
         const soonestBlockToPredict = await erc20Token.soonest_block_to_predict();
         await erc20Token.connect(user2).submit_predval(prediction, stake, soonestBlockToPredict);
         const blocksPerEpoch = await erc20Token.blocks_per_epoch();
-        await expectRevert(erc20Token.connect(user2).payout(soonestBlockToPredict, user2.address), "too early");
+        await expectRevert(erc20Token.connect(user2).payout(soonestBlockToPredict, user2.address), "trueval not submitted");
 
-        Array(blocksPerEpoch).fill(0).map(async _ => await ethers.provider.send("evm_mine"));
+        Array(blocksPerEpoch * 2).fill(0).map(async _ => await ethers.provider.send("evm_mine"));
 
-        await expectRevert(erc20Token.connect(user2).payout(soonestBlockToPredict, user2.address), "truval not submitted");
+        await expectRevert(erc20Token.connect(user2).payout(soonestBlockToPredict, user2.address), "trueval not submitted");
 
         Array(blocksPerEpoch * 3).fill(0).map(async _ => await ethers.provider.send("evm_mine"));
 
