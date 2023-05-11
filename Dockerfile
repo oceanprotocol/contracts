@@ -2,7 +2,7 @@ FROM ubuntu:20.04
 LABEL maintainer="Ocean Protocol <devops@oceanprotocol.com>"
 #RUN apt-get update && apt-get -y install build-essential python3 git bash curl gcc g++ make
 RUN apt-get update && apt-get -y install curl git bash
-RUN curl -sL https://deb.nodesource.com/setup_18.x -o /tmp/nodesource_setup.sh
+RUN curl -sL https://deb.nodesource.com/setup_16.x -o /tmp/nodesource_setup.sh
 RUN bash /tmp/nodesource_setup.sh
 RUN apt install nodejs
 COPY . /ocean-contracts
