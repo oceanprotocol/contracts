@@ -1389,9 +1389,7 @@ describe("ERC20TemplatePredictoor", () => {
                 const balAfter = await mockErc20.balanceOf(predictoor.address);
                 expect(balAfter).to.be.gt(balBefore);
                 const profit = balAfter.sub(balBefore);
-                const expectedProfitSub = (2 / parseInt(3600 / parseInt(300 / 24)))
-                const expectedProfitStake = stakes[i] / winnersStake * totalStake
-                const expectedProfit = expectedProfitSub + expectedProfitStake
+                const expectedProfit = stakes[i] / winnersStake * totalStake
                 expect(parseFloat(web3.utils.fromWei(profit.toString()))).to.be.closeTo(expectedProfit, 0.2);
             } else {
                 await expectRevert(erc20Token.connect(predictoor).payout(predictionBlock, predictoor.address), "wrong prediction");
