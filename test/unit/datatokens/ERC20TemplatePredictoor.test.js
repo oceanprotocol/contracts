@@ -978,7 +978,7 @@ describe("ERC20TemplatePredictoor", () => {
         const slot = parseInt(blockNum / blocksPerEpoch) * blocksPerEpoch;
         console.log("slot:"+slot)
         assert((await erc20Token.rail_blocknum_to_slot(blockNum)) == slot);
-        const isOnSlot = await erc20Token.blocknum_is_on_a_slot(blockNum)
+        const isOnSlot = await erc20Token.blocknum_is_on_a_slot(slot)
         assert(isOnSlot == true, isOnSlot +" should be true");
     });
     it("#soonest_block_to_predict - should return soonest block to predict", async () => {
