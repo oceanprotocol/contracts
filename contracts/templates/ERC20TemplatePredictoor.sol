@@ -402,7 +402,7 @@ contract ERC20TemplatePredictoor is
         uint256 serviceIndex,
         providerFee calldata _providerFee,
         consumeMarketFee calldata _consumeMarketFee
-    ) public {
+    ) public nonReentrant{
         uint256 amount = 1e18; // we always pay 1 DT. No more, no less
         require(
             balanceOf(msg.sender) >= amount,
@@ -801,7 +801,7 @@ contract ERC20TemplatePredictoor is
      * @dev buyFromFre
      *      Buys 1 DT from the FRE
      */
-    function buyFromFre(FreParams calldata _freParams) public {
+    function buyFromFre(FreParams calldata _freParams) public nonReentrant {
         // get exchange info
         IFixedRateExchange fre = IFixedRateExchange(
             _freParams.exchangeContract
