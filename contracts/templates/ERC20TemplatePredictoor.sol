@@ -1026,6 +1026,7 @@ contract ERC20TemplatePredictoor is
         uint256 blocknum,
         address predictoor_addr
     ) public blocknumOnSlot(blocknum) nonReentrant {
+        require(submitted_predval(blocknum, predictoor_addr), "not submitted");
         Prediction memory predobj = predobjs[blocknum][predictoor_addr];
         
         require(predobj.paid == false, "already paid");
