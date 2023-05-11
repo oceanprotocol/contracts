@@ -1489,26 +1489,31 @@ describe("ERC20TemplatePredictoor", () => {
         const railedBlock = await erc20Token.rail_blocknum_to_slot(currentBlock) + blocksPerEpoch;
         expectRevert(erc20Token.redeem_unused_sub_revenue(railedBlock));
     })
-    it("predictoor redeems their stake if OPF does not submit", async() => {
+    it("predictoor can redeem stake if OPF does not submit", async() => {
+        await erc20Token.update_seconds(sPerBlock, sPerSubscription, sPerEpoch * 3);
+
         const stake = 100;
         await mockErc20.transfer(user2.address, stake);
         await mockErc20.connect(user2).approve(erc20Token.address, stake);
         const prediction = true;
         const soonestBlockToPredict = await erc20Token.soonest_block_to_predict();
-        console.log("Im here");
-        await erc20Token.connect(user2).submit_predval(soonestBlockToPredict, prediction, stake);
-       
-        // set timeout to 1 minute
-        console.log("Im here");
-        await erc20Token.update_seconds(sPerBlock, sPerEpoch, sPerSubscription, sPerEpoch * 3);
-        console.log("Im here");
+        await erc20Token.connect(user2).submit_predval(prediction, stake, soonestBlockToPredict);
+
         expectRevert(erc20Token.connect(user2).payout(soonestBlockToPredict, user2.address), "too early");
-        console.log("Im here");
+
         Array(30).fill(0).map(async _ => await ethers.provider.send("evm_mine"));
-        console.log("Im here");
+
         expectRevert(erc20Token.connect(user2).payout(soonestBlockToPredict, user2.address), "truval not submitted");
-        console.log("Im here");
+
         Array(300).fill(0).map(async _ => await ethers.provider.send("evm_mine"));
+
         const tx = await erc20Token.connect(user2).payout(soonestBlockToPredict, user2.address);
+        const txReceipt = await tx.wait();
+        const event = getEventFromTx(txReceipt, 'Transfer')
+        expect(event.args.from).to.be.eq(erc20Token.address);
+        expect(event.args.to).to.be.eq(user2.address);
+        expect(event.args.value).to.be.eq(stake);
+
+        await erc20Token.update_seconds(sPerBlock, sPerSubscription, truevalSubmitTimeout);
     })
 });
