@@ -1049,7 +1049,7 @@ describe("ERC20TemplatePredictoor", () => {
         const soonestBlockToPredict = await erc20Token.soonest_block_to_predict();
 
         await erc20Token.submit_predval(predval, stake, soonestBlockToPredict);
-        expectRevert(erc20Token.connect(user2).get_prediction(soonestBlockToPredict, owner.address));
+        await expectRevert(erc20Token.connect(user2).get_prediction(soonestBlockToPredict, owner.address), "you shall not pass");
         // fast forward blocks until next epoch
         Array(30).fill(0).map(async _ => await ethers.provider.send("evm_mine"));
         // user2 should be able to read the predval now
@@ -1487,7 +1487,7 @@ describe("ERC20TemplatePredictoor", () => {
         const blocksPerEpoch = await erc20Token.blocks_per_epoch();
         const currentBlock = await ethers.provider.getBlockNumber();
         const railedBlock = await erc20Token.rail_blocknum_to_slot(currentBlock) + blocksPerEpoch;
-        expectRevert(erc20Token.redeem_unused_sub_revenue(railedBlock));
+        await expectRevert.unspecified(erc20Token.redeem_unused_sub_revenue(railedBlock));
     })
     it("predictoor can redeem stake if OPF does not submit", async() => {
         await erc20Token.update_seconds(sPerBlock, sPerSubscription, sPerEpoch * 3);
@@ -1498,14 +1498,14 @@ describe("ERC20TemplatePredictoor", () => {
         const prediction = true;
         const soonestBlockToPredict = await erc20Token.soonest_block_to_predict();
         await erc20Token.connect(user2).submit_predval(prediction, stake, soonestBlockToPredict);
+        const blocksPerEpoch = await erc20Token.blocks_per_epoch();
+        await expectRevert(erc20Token.connect(user2).payout(soonestBlockToPredict, user2.address), "too early");
 
-        expectRevert(erc20Token.connect(user2).payout(soonestBlockToPredict, user2.address), "too early");
+        Array(blocksPerEpoch).fill(0).map(async _ => await ethers.provider.send("evm_mine"));
 
-        Array(30).fill(0).map(async _ => await ethers.provider.send("evm_mine"));
+        await expectRevert(erc20Token.connect(user2).payout(soonestBlockToPredict, user2.address), "truval not submitted");
 
-        expectRevert(erc20Token.connect(user2).payout(soonestBlockToPredict, user2.address), "truval not submitted");
-
-        Array(300).fill(0).map(async _ => await ethers.provider.send("evm_mine"));
+        Array(blocksPerEpoch * 3).fill(0).map(async _ => await ethers.provider.send("evm_mine"));
 
         const tx = await erc20Token.connect(user2).payout(soonestBlockToPredict, user2.address);
         const txReceipt = await tx.wait();
