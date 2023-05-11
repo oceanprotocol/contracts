@@ -7,7 +7,10 @@ RUN bash /tmp/nodesource_setup.sh
 RUN apt install nodejs
 COPY . /ocean-contracts
 WORKDIR /ocean-contracts
-RUN rm -rf /ocean-contracts/artifacts/*
+RUN ls -lh /ocean-contracts/ 
+RUN ls -lh /ocean-contracts/contracts/
+RUN ls -lh /ocean-contracts/contracts/utils/
+RUN mkdir /ocean-contracts/artifacts/
 RUN rm package-lock.json
 RUN rm -rf ./node-modules/
 RUN npm i
