@@ -1030,7 +1030,7 @@ contract ERC20TemplatePredictoor is
         
         require(predobj.paid == false, "already paid");
 
-        // if OPF hasn't submitted trueval in truval_submit_timeout days
+        // if OPF hasn't submitted trueval in truval_submit_timeout blocks
         // refund stake to predictoor and cancel round
         if (
             block.number > blocknum + truval_submit_timeout_block &&
