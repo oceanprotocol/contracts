@@ -1341,6 +1341,6 @@ describe("ERC20TemplatePredictoor", () => {
         const expectedProfit = 1 + (2 / parseInt(3600 / parseInt(300 / 24)))
         expect(parseFloat(web3.utils.fromWei(profit.toString()))).to.be.eq(expectedProfit);
 
-        expectRevert(erc20Token.connect(user3).payout(soonestBlockToPredict, user3.address), "already paid out");
+        await expectRevert(erc20Token.connect(user3).payout(soonestBlockToPredict, user3.address), "already paid out");
     });
 });
