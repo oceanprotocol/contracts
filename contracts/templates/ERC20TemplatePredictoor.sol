@@ -930,7 +930,8 @@ contract ERC20TemplatePredictoor is
     function rail_blocknum_to_slot(
         uint256 blocknum
     ) public view returns (uint256) {
-        return (blocknum / blocks_per_epoch) * blocks_per_epoch;
+        uint256 rounded = blocknum / blocks_per_epoch;
+        return (rounded * blocks_per_epoch);
     }
 
     function blocknum_is_on_a_slot(
