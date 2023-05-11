@@ -972,11 +972,8 @@ describe("ERC20TemplatePredictoor", () => {
     });
     it("#rail_blocknum_to_slot, blocknum_is_on_a_slot - should rail blocknum to slot", async () => {
         const blockNum = await ethers.provider.getBlockNumber();
-        console.log("BlockNum:"+blockNum)
         const blocksPerEpoch = (await erc20Token.blocks_per_epoch())
-        console.log("blocksPerEpoch:"+blocksPerEpoch)
         const slot = parseInt(blockNum / blocksPerEpoch) * blocksPerEpoch;
-        console.log("slot:"+slot)
         assert((await erc20Token.rail_blocknum_to_slot(blockNum)) == slot);
         const isOnSlot = await erc20Token.blocknum_is_on_a_slot(slot)
         assert(isOnSlot == true, isOnSlot +" should be true");
