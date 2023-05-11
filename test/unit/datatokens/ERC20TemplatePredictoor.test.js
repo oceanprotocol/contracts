@@ -1345,7 +1345,6 @@ describe("ERC20TemplatePredictoor", () => {
         await expectRevert(erc20Token.connect(user3).payout(soonestBlockToPredict, user3.address), "already paid");
     });
 
-    // can read get_agg_predval with a valid subscription
     it("multiple predictoor compete and some gets paid", async () => {
         // predictoor makes a predictions
         let predictoors = [reciever, user2, user3, user4, user5, user6];
