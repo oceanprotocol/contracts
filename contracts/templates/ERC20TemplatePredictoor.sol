@@ -930,8 +930,7 @@ contract ERC20TemplatePredictoor is
         uint256 blocknum
     ) public view returns (uint256) {
         uint256 rounded = blocknum / blocks_per_epoch;
-        uint256 epochStart = rounded * blocks_per_epoch;
-        return epochStart;
+        return (rounded * blocks_per_epoch);
     }
 
     function blocknum_is_on_a_slot(
