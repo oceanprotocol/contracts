@@ -146,7 +146,11 @@ jobs:
             [ -f "$HOME/.ocean/ocean-contracts/artifacts/ready" ] && break
             done
           ls -la "$HOME/.ocean/ocean-contracts/artifacts/"
-      - run: grep -q development ${ADDRESS_FILE}
+      - name: "Read address.json contents"
+          working-directory: ${{ github.workspace }}
+          run: cat $ADDRESS_FILE
+      - run: grep -q development $ADDRESS_FILE
+        name: Searching for development key in addresses.json
       - name: docker logs
         run: docker logs ocean_ocean-contracts_1
         if: ${{ failure() }}
