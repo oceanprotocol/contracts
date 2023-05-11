@@ -13,10 +13,12 @@ RUN npm i
 RUN mkdir -p /root/.cache/hardhat-nodejs/compilers/
 RUN mkdir -p /root/.cache/hardhat-nodejs/compilers-v2/
 RUN cp -r /ocean-contracts/cache_binaries/compilers/* /root/.cache/hardhat-nodejs/compilers/
-RUN cp -r /ocean-contracts/cache_binaries/compilers/* /root/.cache/hardhat-nodejs/compilers-v2/
+RUN cp -r /ocean-contracts/cache_binaries/compilers/* /root/.cache/hardhat-nodejs/compilers-v2/ 
+RUN rm -rf /ocean-contracts/cache_binaries/
+RUN npx hardhat compile --force --verbose
 ENV SLEEP_FOR_GANACHE=10
 RUN cp hardhat.config.barge.js hardhat.config.js
 ENV NETWORK=barge
 ENV NETWORK_RPC_URL=127.0.0.1:8545
-RUN npx hardhat compile
+
 ENTRYPOINT ["/ocean-contracts/scripts/deploy_docker.sh"]
