@@ -982,7 +982,7 @@ contract ERC20TemplatePredictoor is
         returns (Prediction memory prediction)
     {
         //allow predictoors to see their own submissions
-        require(msg.sender == predictoor || blocknum < block.number);
+        require(msg.sender == predictoor || blocknum < block.number, "you shall not pass");
         prediction = predobjs[blocknum][predictoor];
     }
 
@@ -1056,8 +1056,11 @@ contract ERC20TemplatePredictoor is
         uint256 swe = truevals[blocknum]
             ? agg_predvals_numer[blocknum]
             : agg_predvals_denom[blocknum] - agg_predvals_numer[blocknum];
-        uint256 revenue=get_subscription_revenue_at_block(blocknum);
-        uint256 payout_amt = predobj.stake * (agg_predvals_denom[blocknum] + revenue) / swe;
+        uint256 payout_amt = 0;
+        if(swe > 0) {
+            uint256 revenue=get_subscription_revenue_at_block(blocknum);
+            payout_amt = predobj.stake * (agg_predvals_denom[blocknum] + revenue) / swe;
+        }
         predobjs[blocknum][predictoor_addr].paid = true;
         emit PredictionPayout(
             predictoor_addr,
