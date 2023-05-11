@@ -37,7 +37,7 @@ const PERMIT_TYPEHASH = keccak256(
     )
 );
 const sPerBlock = 24;
-const sPerEpoch = 300;
+const sPerEpoch = 288;
 const sPerSubscription = 24 * 60 * 60;
 const truevalSubmitTimeout = 24 * 60 * 60 * 3;
 const getApprovalDigest = async (
@@ -1488,5 +1488,21 @@ describe("ERC20TemplatePredictoor", () => {
         const currentBlock = await ethers.provider.getBlockNumber();
         const railedBlock = await erc20Token.rail_blocknum_to_slot(currentBlock) + blocksPerEpoch;
         expectRevert(erc20Token.redeem_unused_sub_revenue(railedBlock));
+    })
+    it("predictoor redeems their stake if OPF does not submit", async() => {
+        const stake = 100;
+        await mockErc20.transfer(user2.address, stake);
+        await mockErc20.connect(user2).approve(erc20Token.address, stake);
+        const prediction = true;
+        const soonestBlockToPredict = await erc20Token.soonest_block_to_predict();
+        await erc20Token.connect(user2).predict(soonestBlockToPredict, prediction, stake);
+       
+        // set timeout to 1 minute
+        await erc20Token.update_seconds(sPerBlock, sPerEpoch, sPerSubscription, (sPerEpoch * 5));
+        expectRevert(erc20Token.connect(user2).payout(soonestBlockToPredict, user2.address), "too early");
+        Array(30).fill(0).map(async _ => await ethers.provider.send("evm_mine"));
+        expectRevert(erc20Token.connect(user2).payout(soonestBlockToPredict, user2.address), "truval not submitted");
+        Array(300).fill(0).map(async _ => await ethers.provider.send("evm_mine"));
+        const tx = await erc20Token.connect(user2).payout(soonestBlockToPredict, user2.address);
     })
 });
