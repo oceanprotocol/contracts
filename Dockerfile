@@ -15,10 +15,10 @@ RUN rm package-lock.json
 RUN rm -rf ./node-modules/
 RUN npm i
 ENV SLEEP_FOR_GANACHE=10
-RUN npx hardhat clean --global
-RUN npx hardhat compile --force
-RUN npx hardhat compile --force
+RUN npx hardhat clean --verbose
+RUN npx hardhat clean --global --verbose
+RUN npx hardhat compile --force --verbose
 ENV NETWORK=barge
 ENV NETWORK_RPC_URL=127.0.0.1:8545
 RUN find /ocean-contracts/artifacts/* -name "*.dbg.json" -type f -delete
-ENTRYPOINT ["/ocean-contracts/scripts/deploy_docker.sh"]
+ENTRYPOINT ["/ocean-contracts/scripts/deploy_docker.sh"]    
