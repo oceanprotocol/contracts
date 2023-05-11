@@ -11,8 +11,8 @@ then
     #we have to sleep until ganache is ready
     sleep ${SLEEP_FOR_GANACHE}
     export NETWORK="${NETWORK_NAME:-barge}"
-    npx hardhat clean --verbose
-    npx hardhat compile --verbose
+    npx hardhat clean
+    npx hardhat compile
     #remove unneeded debug artifacts
     find /ocean-contracts/artifacts/* -name "*.dbg.json" -type f -delete
     #copy address.json
@@ -21,7 +21,6 @@ then
     fi
     echo "Starting deployment process..."
     node /ocean-contracts/scripts/deploy-contracts.js
-
     # set flag to indicate contracts are ready
     touch /ocean-contracts/artifacts/ready
 fi
