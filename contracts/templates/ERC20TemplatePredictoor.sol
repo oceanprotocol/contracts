@@ -15,7 +15,7 @@ import "@openzeppelin/contracts/utils/math/SafeMath.sol";
 import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 import "@openzeppelin/contracts/security/ReentrancyGuard.sol";
 import "../utils/ERC20Roles.sol";
-
+import "hardhat/console.sol";
 /**
  * @title DatatokenTemplate
  *
@@ -931,7 +931,9 @@ contract ERC20TemplatePredictoor is
         uint256 blocknum
     ) public view returns (uint256) {
         uint256 rounded = blocknum / blocks_per_epoch;
-        return (rounded * blocks_per_epoch);
+        uint256 epochStart = rounded * blocks_per_epoch;
+        console.log("Blocknum: %s, Rounded: %s, epochStart: %s",blocknum,rounded,epochStart);
+        return epochStart;
     }
 
     function blocknum_is_on_a_slot(
