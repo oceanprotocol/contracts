@@ -1092,7 +1092,7 @@ contract ERC20TemplatePredictoor is
         bool trueval
     ) external blocknumOnSlot(blocknum) onlyERC20Deployer {
         // TODO, is onlyERC20Deployer the right modifier?
-        require(blocknum < soonest_block_to_predict(), "too early to submit");
+        require(blocknum < block.number, "too early to submit");
         truevals[blocknum] = trueval;
         truval_submitted[blocknum] = true;
     }
