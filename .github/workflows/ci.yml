@@ -147,8 +147,8 @@ jobs:
             done
           ls -la "$HOME/.ocean/ocean-contracts/artifacts/"
       - name: "Read address.json contents"
-          working-directory: ${{ github.workspace }}
-          run: cat $ADDRESS_FILE
+        working-directory: ${{ github.workspace }}
+        run: cat $ADDRESS_FILE
       - run: grep -q development $ADDRESS_FILE
         name: Searching for development key in addresses.json
       - name: docker logs
