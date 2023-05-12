@@ -251,5 +251,23 @@
     },
     "Dispenser": "0xDEfD0018969cd2d4E648209F876ADe184815f038",
     "ERC721Factory": "0x9C9eE07b8Ce907D2f9244F8317C1Ed29A3193bAe"
+  },
+  "oasis_saphire_testnet": {
+    "chainId": 23295,
+    "Ocean": "0x4dD281EB67DED07E76E413Df16176D66ae69e240",
+    "OPFCommunityFeeCollector": "0xe8c6Dc39602031A152440311e364818ba25C2Bc1",
+    "startBlock": 1178607,
+    "Router": "0xA4E108a4fa07C931cFe4bF2c1c6f9C1579d5a819",
+    "FixedPrice": "0x41cee92fEA5E07F8E3D1Eaf9A19dE3D83e24FA53",
+    "ERC20Template": {
+      "1": "0x9b87E416a76d8bCAf59A5c746D5ceB57119F08Cb",
+      "2": "0x12bB8D85a091A69A07E22E52d4567dBB91568f52",
+      "3": "0x9497d1d64F2aFeBcd4f9916Eef3d9094E5Df962f"
+    },
+    "ERC721Template": {
+      "1": "0x7b0576CF01E868bce46cca91b2a8E674141b0355"
+    },
+    "Dispenser": "0x8389bC1306208488D665F939AFB4079adf6f5a06",
+    "ERC721Factory": "0xc97fa83746aDe91b0eeB16cb51326a0A980Af7c3"
   }
 }
