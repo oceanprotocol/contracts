@@ -1331,7 +1331,7 @@ describe("ERC20TemplatePredictoor", () => {
     });
 
     // can read get_agg_predval with a valid subscription
-    it("predictoor gets paid", async () => {
+    it("#payout - predictoor should get paid", async () => {
         const consumer = user2.address; // could be different user
         const serviceIndex = 1; // dummy index
         const providerFeeAddress = user5.address; // marketplace fee Collector
