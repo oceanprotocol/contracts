@@ -64,6 +64,10 @@ contract ERC20TemplatePredictoor is
         uint256 expires,
         uint256 blocknum
     );
+    event TruevalSubmitted(
+        uint256 indexed block,
+        bool trueval
+    );
     struct Prediction {
         bool predval;
         uint256 stake;
@@ -1099,6 +1103,7 @@ contract ERC20TemplatePredictoor is
         require(blocknum < block.number, "too early to submit");
         truevals[blocknum] = trueval;
         truval_submitted[blocknum] = true;
+        emit TruevalSubmitted(blocknum, trueval);
     }
 
     function update_seconds(
