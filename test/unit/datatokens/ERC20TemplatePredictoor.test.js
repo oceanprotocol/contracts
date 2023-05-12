@@ -1112,6 +1112,25 @@ describe("ERC20TemplatePredictoor", () => {
         );
     });
 
+    it("#submit_trueval - should revert submitting for a future block", async () => {
+        const soonestBlockToPredict = await erc20Token.soonest_block_to_predict();
+        await expectRevert(erc20Token.submit_trueval(soonestBlockToPredict, true), "too early to submit");
+    });
+
+    it("#submit_trueval - should submit for a block in the past", async () => {
+        const blocksPerEpoch = await erc20Token.blocks_per_epoch();
+        const soonestBlockToPredict = await erc20Token.soonest_block_to_predict();
+        const submissionBlock = soonestBlockToPredict - blocksPerEpoch * 2;
+        const tx = await erc20Token.submit_trueval(submissionBlock, true);
+        const tx_receipt = await tx.wait();
+        const event = getEventFromTx(tx_receipt, "TruevalSubmitted");
+        expect(event.args[0]).to.equal(submissionBlock);
+        expect(event.args[1]).to.equal(true);
+
+        const trueval = await erc20Token.truevals(submissionBlock);
+        expect(trueval).to.be.true;
+    });
+
     it("#subscriptions - user2 must be subscribed", async () => {
         //MINT SOME DT20 to USER2 so he can start order
         await erc20Token.connect(user3).mint(user2.address, web3.utils.toWei("10"));
