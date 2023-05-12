@@ -1187,6 +1187,71 @@ describe("ERC20TemplatePredictoor", () => {
         const currentBlock = await ethers.provider.getBlockNumber();
         expect(subscription.expires).to.be.gt(currentBlock);
         expect(subscription.user).to.be.eq(user2.address);
+
+        const valid = await erc20Token.is_valid_subscription(user2.address);
+        expect(valid).to.be.true; 
+    });
+
+    it("#subscriptions - user2 subscription should expire", async () => {
+        //MINT SOME DT20 to USER2 so he can start order
+        await erc20Token.connect(user3).mint(user2.address, web3.utils.toWei("10"));
+        assert(
+            (await erc20Token.balanceOf(user2.address)) == web3.utils.toWei("10")
+        );
+        const consumer = user2.address; // could be different user
+        const serviceIndex = 1; // dummy index
+        const providerFeeAddress = user5.address; // marketplace fee Collector
+        const providerFeeAmount = 0; // fee to be collected on top, requires approval
+        const providerFeeToken = mockErc20.address; // token address for the feeAmount,
+        const consumeMarketFeeAddress = user5.address; // marketplace fee Collector
+        const consumeMarketFeeAmount = 0; // fee to be collected on top, requires approval
+        const consumeMarketFeeToken = mockErc20.address; // token address for the feeAmount,
+        const providerValidUntil = 0;
+        //sign provider data
+        const providerData = JSON.stringify({ "timeout": 0 })
+        const message = ethers.utils.solidityKeccak256(
+            ["bytes", "address", "address", "uint256", "uint256"],
+            [
+                ethers.utils.hexlify(ethers.utils.toUtf8Bytes(providerData)),
+                providerFeeAddress,
+                providerFeeToken,
+                providerFeeAmount,
+                providerValidUntil
+            ]
+        );
+        const signedMessage = await signMessage(message, providerFeeAddress);
+
+        // reduce subscription time
+        await erc20Token.update_seconds(sPerBlock, sPerBlock, truevalSubmitTimeout);
+        // set back to normal
+        const tx = await erc20Token
+            .connect(user2)
+            .startOrder(
+                consumer,
+                serviceIndex,
+                {
+                    providerFeeAddress: providerFeeAddress,
+                    providerFeeToken: providerFeeToken,
+                    providerFeeAmount: providerFeeAmount,
+                    v: signedMessage.v,
+                    r: signedMessage.r,
+                    s: signedMessage.s,
+                    providerData: ethers.utils.hexlify(ethers.utils.toUtf8Bytes(providerData)),
+                    validUntil: providerValidUntil
+                },
+                {
+                    consumeMarketFeeAddress: consumeMarketFeeAddress,
+                    consumeMarketFeeToken: consumeMarketFeeToken,
+                    consumeMarketFeeAmount: consumeMarketFeeAmount,
+                }
+            );
+
+
+        Array(100).fill(0).map(async () => await ethers.provider.send("evm_mine", []));
+        const valid = await erc20Token.is_valid_subscription(user2.address);
+        expect(valid).to.be.false;
+        // set back to normal
+        await erc20Token.update_seconds(sPerBlock, sPerSubscription, truevalSubmitTimeout);
     });
 
 
