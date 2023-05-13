@@ -15,6 +15,7 @@ import "@openzeppelin/contracts/utils/math/SafeMath.sol";
 import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 import "@openzeppelin/contracts/security/ReentrancyGuard.sol";
 import "../utils/ERC20Roles.sol";
+import 'hardhat/console.sol';
 /**
  * @title DatatokenTemplate
  *
@@ -87,7 +88,12 @@ contract ERC20Template3 is
         uint256 expires;
     }
 
-    
+    event SettingChanged(
+        uint256 blocks_per_epoch,
+        uint256 blocks_per_subscription,
+        uint256 truval_submit_timeout_block,
+        address stakeToken
+    );    
 
     // All mappings below are using slot as key.  
     // Whenever we have functions that take block as argumens, we rail it to slot automaticly
@@ -310,8 +316,6 @@ contract ERC20Template3 is
         _erc721Address = erc721Address;
 
         initialized = true;
-        // add a default minter, similar to what happens with manager in the 721 contract
-        _addMinter(addresses_[0]);
         // set payment collector to this contract, so we can get the $$$
         _setPaymentCollector(address(this));
 
@@ -893,10 +897,11 @@ contract ERC20Template3 is
     /**
      * @dev getDispensers
      *      Returns the list of dispensers created for this datatoken
-     */
+     
     function getDispensers() public view returns (address[] memory) {
         return (dispensers);
     }
+    */
 
     function _pullUnderlying(
         address erc20,
@@ -930,7 +935,7 @@ contract ERC20Template3 is
     ) public view returns (uint256) {
         uint256 rounded = blocknum / blocks_per_epoch;
         return (rounded * blocks_per_epoch);
-    }
+    }   
 
     function blocknum_is_on_a_slot(
         uint256 blocknum
@@ -939,16 +944,13 @@ contract ERC20Template3 is
         return blocknum == rail_blocknum_to_slot(blocknum);
     }
 
-    function soonest_block_to_predict() public view returns (uint256) {
-        uint256 slotted_blocknum = rail_blocknum_to_slot(block.number);
-
-        uint256 _blocknum;
-        if (slotted_blocknum == block.number) {
-            _blocknum = slotted_blocknum + blocks_per_epoch;
-        } else {
-            _blocknum = slotted_blocknum + 2 * blocks_per_epoch;
-        }
-        return _blocknum;
+    function soonest_block_to_predict(uint256 prediction_block) public view returns (uint256) {
+        /*
+        Epoch i: predictoors submit predval for the beginning of epoch i+2. 
+        Predval is: "does trueval go UP or DOWN between the start of epoch i+1 and the start of epoch i+2?"
+        Once epoch i ends, predictoors cannot submit predvals for epoch i+2
+        */
+        return(rail_blocknum_to_slot(prediction_block)+ blocks_per_epoch * 2);
     }
 
     function submitted_predval(
@@ -997,7 +999,7 @@ contract ERC20Template3 is
     ) external {
         require(paused == false, "paused");
         uint256 slot = rail_blocknum_to_slot(blocknum);
-        require(slot >= soonest_block_to_predict(), "too late to submit");
+        require(slot >= soonest_block_to_predict(block.number), "too late to submit");
         require(!submitted_predval(slot, msg.sender), "already submitted");
         
         predobjs[slot][msg.sender] = Prediction(
@@ -1161,12 +1163,15 @@ contract ERC20Template3 is
 
         blocks_per_subscription = s_per_subscription / s_per_block;
         truval_submit_timeout_block = _truval_submit_timeout / s_per_block;
+        emit SettingChanged(blocks_per_epoch,blocks_per_subscription,truval_submit_timeout_block,stake_token);
     }
 
     function add_revenue(uint256 blocknum, uint256 amount) internal {
         if (amount > 0) {
             uint256 slot = rail_blocknum_to_slot(blocknum);
             uint256 num_epochs = blocks_per_subscription / blocks_per_epoch;
+            if(num_epochs<1)
+                num_epochs=1;
             uint256 amt_per_epoch = amount / num_epochs;
             // for loop and add revenue for blocks_per_epoch blocks
             for (uint256 i = 0; i < num_epochs; i++) {
