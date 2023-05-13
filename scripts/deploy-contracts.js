@@ -449,18 +449,18 @@ async function main() {
     }
     if (sleepAmount > 0) await sleep(sleepAmount)
 
-    if (logging) console.info("Deploying ERC20TemplatePredictoor");
-    const ERC20PredictoorTemplate = await ethers.getContractFactory(
-      "ERC20TemplatePredictoor",
+    if (logging) console.info("Deploying ERC20Template3");
+    const ERC203Template = await ethers.getContractFactory(
+      "ERC20Template3",
       owner
     );
-    let templateERC20TemplatePredictoor
-    if (options) templateERC20TemplatePredictoor = await ERC20PredictoorTemplate.connect(owner).deploy(options);
-    else templateERC20TemplatePredictoor = await ERC20PredictoorTemplate.connect(owner).deploy();
-    await templateERC20TemplatePredictoor.deployTransaction.wait();
+    let templateERC20Template3
+    if (options) templateERC20Template3 = await ERC203Template.connect(owner).deploy(options);
+    else templateERC20Template3 = await ERC203Template.connect(owner).deploy();
+    await templateERC20Template3.deployTransaction.wait();
     if (show_verify) {
       console.log("\tRun the following to verify on etherscan");
-      console.log("\tnpx hardhat verify --network " + networkName + " " + templateERC20TemplatePredictoor.address)
+      console.log("\tnpx hardhat verify --network " + networkName + " " + templateERC20Template3.address)
     }
     
 
@@ -560,9 +560,9 @@ async function main() {
     addresses.ERC20Template[currentTokenCount.toString()] =
       templateERC20Enterprise.address;
 
-    if (logging) console.info("Adding ERC20TemplatePredictoor to ERC721Factory");
-    if (options) templateadd = await factoryERC721.connect(owner).addTokenTemplate(templateERC20TemplatePredictoor.address, options);
-    else templateadd = await factoryERC721.connect(owner).addTokenTemplate(templateERC20TemplatePredictoor.address);
+    if (logging) console.info("Adding ERC20Template3 to ERC721Factory");
+    if (options) templateadd = await factoryERC721.connect(owner).addTokenTemplate(templateERC20Template3.address, options);
+    else templateadd = await factoryERC721.connect(owner).addTokenTemplate(templateERC20Template3.address);
     await templateadd.wait();
     if (sleepAmount > 0) await sleep(sleepAmount)
     if (options) currentTokenCount = await factoryERC721.getCurrentTemplateCount(options);
@@ -572,7 +572,7 @@ async function main() {
     else tokenTemplate = await factoryERC721.getTokenTemplate(currentTokenCount);
   
     addresses.ERC20Template[currentTokenCount.toString()] =
-      templateERC20TemplatePredictoor.address;
+      templateERC20Template3.address;
 
     // SET REQUIRED ADDRESS
     if (sleepAmount > 0) await sleep(sleepAmount)
