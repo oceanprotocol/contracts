@@ -897,11 +897,10 @@ contract ERC20Template3 is
     /**
      * @dev getDispensers
      *      Returns the list of dispensers created for this datatoken
-     
+    */
     function getDispensers() public view returns (address[] memory) {
         return (dispensers);
     }
-    */
 
     function _pullUnderlying(
         address erc20,
