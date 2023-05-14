@@ -1022,61 +1022,36 @@ contract ERC20Template3 is
             // if Status is Pending, do nothing, just return
             return; 
         }
+        uint256 payout_amt = 0;
+        predobjs[slot][predictoor_addr].paid = true;
         if(truval_submitted[slot]==Status.Canceled){
-            predobjs[slot][predictoor_addr].paid = true;
-            emit PredictionPayout(
-                predictoor_addr,
-                slot,
-                predobj.stake,
-                predobj.stake,
-                predobj.predval,
-                truevals[slot],
-                agg_predvals_numer[slot] / agg_predvals_denom[slot],
-                truval_submitted[slot]
-            );
-            IERC20(stake_token).safeTransfer(predobj.predictoor, predobj.stake);
-            return;
+            payout_amt = predobj.stake;
         }
-        if(truval_submitted[slot]==Status.Paying){
-            if(truevals[slot] != predobj.predval){
-                //user got wrong prediction, there is no payout for him
-                predobjs[slot][predictoor_addr].paid = true;
-                emit PredictionPayout(
+        else{ // Status.Paying
+            if(truevals[slot] == predobj.predval){
+                // he got it.
+                uint256 swe = truevals[slot]
+                    ? agg_predvals_numer[slot]
+                    : agg_predvals_denom[slot] - agg_predvals_numer[slot];
+                if(swe > 0) {
+                    uint256 revenue=get_subscription_revenue_at_block(slot);
+                    payout_amt = predobj.stake * (agg_predvals_denom[slot] + revenue) / swe;
+                }
+            }
+            // else payout_amt is already 0
+        }
+        emit PredictionPayout(
                     predictoor_addr,
                     slot,
                     predobj.stake,
-                    0,
+                    payout_amt,
                     predobj.predval,
                     truevals[slot],
                     agg_predvals_numer[slot] / agg_predvals_denom[slot],
                     truval_submitted[slot]
                 );
-                return;
-            }
-            uint256 swe = truevals[slot]
-                ? agg_predvals_numer[slot]
-                : agg_predvals_denom[slot] - agg_predvals_numer[slot];
-            uint256 payout_amt = 0;
-            if(swe > 0) {
-                uint256 revenue=get_subscription_revenue_at_block(slot);
-                payout_amt = predobj.stake * (agg_predvals_denom[slot] + revenue) / swe;
-            }
-            predobjs[slot][predictoor_addr].paid = true;
-            emit PredictionPayout(
-                predictoor_addr,
-                slot,
-                predobj.stake,
-                payout_amt,
-                predobj.predval,
-                truevals[slot],
-                agg_predvals_numer[slot] / agg_predvals_denom[slot],
-                truval_submitted[slot]
-            );
-            IERC20(stake_token).safeTransfer(
-                predobj.predictoor,
-                payout_amt
-            );
-        }
+        if(payout_amt>0)
+            IERC20(stake_token).safeTransfer(predobj.predictoor, payout_amt);
     }
 
     // ----------------------- ADMIN FUNCTIONS -----------------------

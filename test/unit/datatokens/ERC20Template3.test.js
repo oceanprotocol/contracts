@@ -334,79 +334,6 @@ describe("ERC20Template3", () => {
         assert(address, "Not able to get the parent ERC721 address")
     });
 
-    
-
-    it("#addPaymentManager - should fail to addPaymentManager if not erc20Deployer (permission to deploy the erc20Contract at 721 level)", async () => {
-        assert((await erc20Token.permissions(user2.address)).paymentManager == false);
-
-        await expectRevert(
-            erc20Token.connect(user2).addPaymentManager(user2.address),
-            "ERC20Template: NOT DEPLOYER ROLE"
-        );
-
-        assert((await erc20Token.permissions(user2.address)).paymentManager == false);
-    });
-
-    it("#addPaymentManager - should fail to addPaymentManager if it's already feeManager", async () => {
-        assert((await erc20Token.permissions(user2.address)).paymentManager == false);
-
-        await erc20Token.connect(user3).addPaymentManager(user2.address);
-
-        assert((await erc20Token.permissions(user2.address)).paymentManager == true);
-
-        await expectRevert(
-            erc20Token.connect(user3).addPaymentManager(user2.address),
-            "ERC20Roles:  ALREADY A FEE MANAGER"
-        );
-    });
-
-    it("#addPaymentManager - should succeed to addPaymentManager if erc20Deployer (permission to deploy the erc20Contract at 721 level)", async () => {
-        assert((await erc20Token.permissions(user2.address)).paymentManager == false);
-
-        // owner is already erc20Deployer
-        await erc20Token.connect(user3).addPaymentManager(user2.address);
-
-        assert((await erc20Token.permissions(user2.address)).paymentManager == true);
-    });
-
-    it("#removeFeeManager - should fail to removeFeeManager if NOT erc20Deployer", async () => {
-        await erc20Token.connect(user3).addPaymentManager(owner.address);
-
-        assert((await erc20Token.permissions(owner.address)).paymentManager == true);
-
-        await expectRevert(
-            erc20Token.connect(user2).removePaymentManager(owner.address),
-            "ERC20Template: NOT DEPLOYER ROLE"
-        );
-
-        assert((await erc20Token.permissions(owner.address)).paymentManager == true);
-    });
-
-    it("#removeFeeManager - should fail to removeFeeManager even if it's feeManager", async () => {
-        // ERC20 deployer role add himself as manager and user2
-        await erc20Token.connect(user3).addPaymentManager(owner.address);
-        await erc20Token.connect(user3).addPaymentManager(user2.address);
-
-        assert((await erc20Token.permissions(user2.address)).paymentManager == true);
-
-        await expectRevert(
-            erc20Token.connect(user2).removePaymentManager(owner.address),
-            "ERC20Template: NOT DEPLOYER ROLE"
-        );
-
-        assert((await erc20Token.permissions(owner.address)).paymentManager == true);
-    });
-
-    it("#removeFeeManager - should succeed to removeFeeManager if erc20Deployer", async () => {
-        await erc20Token.connect(user3).addPaymentManager(user2.address);
-
-        assert((await erc20Token.permissions(user2.address)).paymentManager == true);
-
-        await erc20Token.connect(user3).removePaymentManager(user2.address);
-
-        assert((await erc20Token.permissions(user2.address)).paymentManager == false);
-    });
-
     it("#setData - should fail to setData if NOT erc20Deployer", async () => {
         const key = web3.utils.keccak256(erc20Token.address);
         const value = web3.utils.asciiToHex("SomeData");
@@ -436,10 +363,6 @@ describe("ERC20Template3", () => {
     });
 
     it("#cleanPermissions - should succeed to call cleanPermissions if NFTOwner", async () => {
-        // user3 is already minter
-
-        await erc20Token.connect(user3).addPaymentManager(owner.address);
-        
         // NFT Owner cleans
         await erc20Token.cleanPermissions();
 
@@ -1687,10 +1610,6 @@ describe("ERC20Template3", () => {
         const soonestBlockToPredict = await erc20Token.soonest_block_to_predict((await ethers.provider.getBlockNumber())+1);
         const blockNum = await ethers.provider.getBlockNumber();
         const slot = await erc20Token.rail_blocknum_to_slot(soonestBlockToPredict);
-        console.log("Slot:"+slot)
-        console.log("soonestBlockToPredict:"+soonestBlockToPredict)
-        console.log("blockNum:"+blockNum)
-        
 
         await erc20Token.connect(user2).submit_predval(prediction, stake, soonestBlockToPredict);
         const blocksPerEpoch = await erc20Token.blocks_per_epoch();
