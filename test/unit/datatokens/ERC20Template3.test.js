@@ -1198,7 +1198,7 @@ describe("ERC20Template3", () => {
             );
 
 
-        let soonestBlockToPredict = await erc20Token.soonestBlockToPredict((await ethers.provider.getBlockNumber())+1);
+        let soonestBlockToPredict = await erc20Token.soonestBlockToPredict((await ethers.provider.getBlockNumber())+3);
         const [numer, denom] = await erc20Token.connect(user2).getAggPredval(soonestBlockToPredict);
         expect(numer).to.be.eq(0);
         expect(denom).to.be.eq(0);
@@ -1208,10 +1208,8 @@ describe("ERC20Template3", () => {
         const stake = web3.utils.toWei("1");
         await mockErc20.transfer(user3.address, stake);
         await mockErc20.connect(user3).approve(erc20Token.address, stake);
-        soonestBlockToPredict = await erc20Token.soonestBlockToPredict((await ethers.provider.getBlockNumber())+1);
         await erc20Token.connect(user3).submitPredval(predictedValue, stake, soonestBlockToPredict);
 
-        soonestBlockToPredict = await erc20Token.soonestBlockToPredict((await ethers.provider.getBlockNumber())+1);
         const [numer2, denom2] = await erc20Token.connect(user2).getAggPredval(soonestBlockToPredict);
         expect(numer2).to.be.eq(web3.utils.toWei("1"));
         expect(denom2).to.be.eq(web3.utils.toWei("1"));
