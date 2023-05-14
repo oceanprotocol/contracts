@@ -491,6 +491,7 @@ contract ERC20Template3 is
             block.number + blocks_per_subscription
         );
         subscriptions[consumer] = sub;
+        emit NewSubscription(consumer, block.number + blocks_per_subscription,block.number);
         //record income
         add_revenue(block.number, rate);
 
@@ -506,32 +507,6 @@ contract ERC20Template3 is
 
     function removeMinter(address _minter) external onlyERC20Deployer {
         _removeMinter(_minter);
-    }
-
-    /**
-     * @dev addPaymentManager (can set who's going to collect fee when consuming orders)
-     *      Only ERC20Deployer (at 721 level) can update.
-     *      There can be multiple paymentCollectors
-     * @param _paymentManager new minter address
-     */
-
-    function addPaymentManager(
-        address _paymentManager
-    ) external onlyERC20Deployer {
-        _addPaymentManager(_paymentManager);
-    }
-
-    /**
-     * @dev removePaymentManager
-     *      Only ERC20Deployer (at 721 level) can update.
-     *      There can be multiple paymentManagers
-     * @param _paymentManager _paymentManager address to remove
-     */
-
-    function removePaymentManager(
-        address _paymentManager
-    ) external onlyERC20Deployer {
-        _removePaymentManager(_paymentManager);
     }
 
     /**
