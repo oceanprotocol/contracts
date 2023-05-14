@@ -63,9 +63,9 @@ contract ERC20Template3 is
         uint256 indexed slot,
         uint256 stake,
         uint256 payout,
-        bool predval,
-        bool trueval,
-        uint256 aggPredval,
+        bool predictedValue,
+        bool trueValue,
+        uint256 aggregatedPredictedValue,
         Status status
     );
     event NewSubscription(
@@ -75,11 +75,11 @@ contract ERC20Template3 is
     );
     event TruevalSubmitted(
         uint256 indexed slot,
-        bool trueval,
+        bool trueValue,
         Status status
     );
     struct Prediction {
-        bool predval;
+        bool predictedValue;
         uint256 stake;
         address predictoor;
         bool paid;
@@ -92,7 +92,7 @@ contract ERC20Template3 is
     event SettingChanged(
         uint256 blocksPerEpoch,
         uint256 blocksPerSubscription,
-        uint256 truevalSubmitTimeoutBlock,
+        uint256 trueValueSubmitTimeoutBlock,
         address stakeToken
     );
     
@@ -107,10 +107,10 @@ contract ERC20Template3 is
     // All mappings below are using slot as key.  
     // Whenever we have functions that take block as argumens, we rail it to slot automaticly
     mapping(uint256 => mapping(address => Prediction)) private predictions; // id to prediction object
-    mapping(uint256 => uint256) private aggPredvalsNumer;
-    mapping(uint256 => uint256) private aggPredValsDenom;
-    mapping(uint256 => bool) public truevals;
-    mapping(uint256 => Status) public epochStatus;
+    mapping(uint256 => uint256) private aggregatedPredictedValuesNumer;
+    mapping(uint256 => uint256) private aggregatedPredictedValuesDenom;
+    mapping(uint256 => bool) public trueValues; // true values submited by owner
+    mapping(uint256 => Status) public epochStatus; // status of each epoch
     mapping(uint256 => uint256) private subscriptionRevenueAtBlock; //income registred
     mapping(address => Subscription) public subscriptions; // valid subscription per user
     uint256 public blocksPerEpoch;
@@ -931,9 +931,9 @@ contract ERC20Template3 is
 
     function soonestBlockToPredict(uint256 prediction_block) public view returns (uint256) {
         /*
-        Epoch i: predictoors submit predval for the beginning of epoch i+2. 
-        Predval is: "does trueval go UP or DOWN between the start of epoch i+1 and the start of epoch i+2?"
-        Once epoch i ends, predictoors cannot submit predvals for epoch i+2
+        Epoch i: predictoors submit predictedValue for the beginning of epoch i+2. 
+        Predval is: "does trueValue go UP or DOWN between the start of epoch i+1 and the start of epoch i+2?"
+        Once epoch i ends, predictoors cannot submit predictedValues for epoch i+2
         */
         return(railBlocknumToSlot(prediction_block)+ blocksPerEpoch * 2);
     }
@@ -951,7 +951,7 @@ contract ERC20Template3 is
     ) public view returns (uint256, uint256) {
         require(isValidSubscription(msg.sender), "No subscription");
         uint256 slot = railBlocknumToSlot(blocknum);
-        return (aggPredvalsNumer[slot], aggPredValsDenom[slot]);
+        return (aggregatedPredictedValuesNumer[slot], aggregatedPredictedValuesDenom[slot]);
     }
 
     function getSubscriptionRevenueAtBlock(
@@ -978,7 +978,7 @@ contract ERC20Template3 is
     // ----------------------- MUTATING FUNCTIONS -----------------------
 
     function submitPredval(
-        bool predval,
+        bool predictedValue,
         uint256 stake,
         uint256 blocknum
     ) external {
@@ -988,15 +988,15 @@ contract ERC20Template3 is
         require(!submittedPredval(slot, msg.sender), "already submitted");
         
         predictions[slot][msg.sender] = Prediction(
-            predval,
+            predictedValue,
             stake,
             msg.sender,
             false
         );
 
-        // update agg_predvals
-        aggPredvalsNumer[slot] += stake * (predval ? 1 : 0);
-        aggPredValsDenom[slot] += stake;
+        // update agg_predictedValues
+        aggregatedPredictedValuesNumer[slot] += stake * (predictedValue ? 1 : 0);
+        aggregatedPredictedValuesDenom[slot] += stake;
 
         emit PredictionSubmitted(msg.sender, slot, stake);
         // safe transfer stake
@@ -1021,7 +1021,7 @@ contract ERC20Template3 is
         Prediction memory predobj = predictions[slot][predictoor_addr];
         if(predobj.paid) return; // just return if already paid, in order not to break payoutMultiple
         
-        // if OPF hasn't submitted trueval in truval_submit_timeout blocks then cancel round
+        // if OPF hasn't submitted trueValue in truval_submit_timeout blocks then cancel round
         if (block.number > slot + trueValSubmitTimeoutBlock && epochStatus[slot]==Status.Pending){
             epochStatus[slot]=Status.Canceled;
         }
@@ -1036,14 +1036,14 @@ contract ERC20Template3 is
             payout_amt = predobj.stake;
         }
         else{ // Status.Paying
-            if(truevals[slot] == predobj.predval){
+            if(trueValues[slot] == predobj.predictedValue){
                 // he got it.
-                uint256 swe = truevals[slot]
-                    ? aggPredvalsNumer[slot]
-                    : aggPredValsDenom[slot] - aggPredvalsNumer[slot];
+                uint256 swe = trueValues[slot]
+                    ? aggregatedPredictedValuesNumer[slot]
+                    : aggregatedPredictedValuesDenom[slot] - aggregatedPredictedValuesNumer[slot];
                 if(swe > 0) {
                     uint256 revenue=getSubscriptionRevenueAtBlock(slot);
-                    payout_amt = predobj.stake * (aggPredValsDenom[slot] + revenue) / swe;
+                    payout_amt = predobj.stake * (aggregatedPredictedValuesDenom[slot] + revenue) / swe;
                 }
             }
             // else payout_amt is already 0
@@ -1053,9 +1053,9 @@ contract ERC20Template3 is
                     slot,
                     predobj.stake,
                     payout_amt,
-                    predobj.predval,
-                    truevals[slot],
-                    aggPredvalsNumer[slot] / aggPredValsDenom[slot],
+                    predobj.predictedValue,
+                    trueValues[slot],
+                    aggregatedPredictedValuesNumer[slot] / aggregatedPredictedValuesDenom[slot],
                     epochStatus[slot]
                 );
         if(payout_amt>0)
@@ -1066,7 +1066,7 @@ contract ERC20Template3 is
     function redeemUnusedSlotRevenue(uint256 blocknum) external onlyERC20Deployer {
         require(block.number > blocknum);
         uint256 slot = railBlocknumToSlot(blocknum);
-        require(aggPredValsDenom[slot] == 0);
+        require(aggregatedPredictedValuesDenom[slot] == 0);
         IERC20(stakeToken).safeTransfer(
             msg.sender,
             subscriptionRevenueAtBlock[slot]
@@ -1081,7 +1081,7 @@ contract ERC20Template3 is
 
     function submitTrueVal(
         uint256 blocknum,
-        bool trueval
+        bool trueValue
     ) external onlyERC20Deployer {
         // TODO, is onlyERC20Deployer the right modifier?
         require(blocknum < block.number, "too early to submit");
@@ -1091,10 +1091,10 @@ contract ERC20Template3 is
             epochStatus[slot]=Status.Canceled;
         }
         else{
-            truevals[slot] = trueval;
+            trueValues[slot] = trueValue;
             epochStatus[slot] = Status.Paying;
         }
-        emit TruevalSubmitted(slot, trueval,epochStatus[slot]);
+        emit TruevalSubmitted(slot, trueValue,epochStatus[slot]);
     }
 
     function updateSeconds(
