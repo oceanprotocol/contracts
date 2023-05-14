@@ -63,8 +63,9 @@ contract ERC20Template3 is
         uint256 indexed slot,
         uint256 stake,
         uint256 payout,
-        bool prediction,
-        bool truval,
+        bool predval,
+        bool trueval,
+        uint256 aggPredval,
         Status status
     );
     event NewSubscription(
@@ -127,6 +128,8 @@ contract ERC20Template3 is
     fixedRate[] fixedRateExchanges;
     address[] dispensers;
 
+    // this structure is here only for compatibility reasons with other datatoken templates
+    // it's not validated or used anywhere in the code, except as unused argument to startOrder function
     struct providerFee {
         address providerFeeAddress;
         address providerFeeToken; // address of the token
@@ -1053,6 +1056,7 @@ contract ERC20Template3 is
                 predobj.stake,
                 predobj.predval,
                 truevals[slot],
+                agg_predvals_numer[slot] / agg_predvals_denom[slot],
                 truval_submitted[slot]
             );
             IERC20(stake_token).safeTransfer(predobj.predictoor, predobj.stake);
@@ -1069,6 +1073,7 @@ contract ERC20Template3 is
                     0,
                     predobj.predval,
                     truevals[slot],
+                    agg_predvals_numer[slot] / agg_predvals_denom[slot],
                     truval_submitted[slot]
                 );
                 return;
@@ -1089,6 +1094,7 @@ contract ERC20Template3 is
                 payout_amt,
                 predobj.predval,
                 truevals[slot],
+                agg_predvals_numer[slot] / agg_predvals_denom[slot],
                 truval_submitted[slot]
             );
             IERC20(stake_token).safeTransfer(
