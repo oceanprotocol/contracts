@@ -432,8 +432,12 @@ describe("ERC20Template3", () => {
         //make sure that we don't have 'PublishMarketFee') event
         event = getEventFromTx(txReceipt, 'PublishMarketFee')
         assert.typeOf(event, 'undefined', "PublishMarketFee event found")
-        //make sure that we have ProviderFee event
-        event = getEventFromTx(txReceipt, 'ProviderFee')
+        //make sure that we have NewSubscription event
+        event = getEventFromTx(txReceipt, 'NewSubscription')
+        assert(event, "Cannot find NewSubscription event")
+        //make sure that we have NewSubscription event
+        event = getEventFromTx(txReceipt, 'RevenueAdded')
+        assert(event, "Cannot find RevenueAdded event")
 
         assert(
             (await erc20Token.balanceOf(user2.address)) == web3.utils.toWei("9"), 'Invalid user balance, DT was not substracted'

@@ -94,7 +94,15 @@ contract ERC20Template3 is
         uint256 blocks_per_subscription,
         uint256 truval_submit_timeout_block,
         address stakeToken
-    );    
+    );
+    
+    event RevenueAdded(
+        uint256 totalAmount,
+        uint256 slot,
+        uint256 amountPerEpoch,
+        uint256 numEpochs,
+        uint256 blocksPerEpoch
+    );
 
     // All mappings below are using slot as key.  
     // Whenever we have functions that take block as argumens, we rail it to slot automaticly
@@ -1135,6 +1143,7 @@ contract ERC20Template3 is
                     slot + blocks_per_epoch * (i)
                 ] += amt_per_epoch;
             }
+            emit RevenueAdded(amount,slot,amt_per_epoch,num_epochs,blocks_per_epoch);
         }
     }
 }
