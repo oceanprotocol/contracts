@@ -15,16 +15,18 @@ import "@openzeppelin/contracts/utils/math/SafeMath.sol";
 import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 import "@openzeppelin/contracts/security/ReentrancyGuard.sol";
 import "../utils/ERC20Roles.sol";
+
 /**
  * @title DatatokenTemplate
  *
- * @dev ERC20TemplatePredictoor is an ERC20 compliant token template
+ * @dev ERC20Template3 is an ERC20 compliant token template
  *      Used by the factory contract as a bytecode reference to
  *      deploy new Datatokens.
  * IMPORTANT CHANGES:
- *  - creation of pools is not allowed
+ *  - creation of pools/dispensers is not allowed
+ *  - creation of additional fixed rates is not allowed (only one can be created)
  */
-contract ERC20TemplatePredictoor is
+contract ERC20Template3 is
     ERC20("test", "testSymbol"),
     ERC20Roles,
     ERC20Burnable,
@@ -46,18 +48,24 @@ contract ERC20TemplatePredictoor is
     uint256 public constant BASE = 1e18;
 
     // -------------------------- PREDICTOOR --------------------------
+    enum Status {
+        Pending,
+        Paying,
+        Canceled
+    }
     event PredictionSubmitted(
         address indexed predictoor,
-        uint256 indexed epoch,
+        uint256 indexed slot,
         uint256 stake
     );
     event PredictionPayout(
         address indexed predictoor,
-        uint256 indexed epoch,
+        uint256 indexed slot,
         uint256 stake,
         uint256 payout,
         bool prediction,
-        bool truval
+        bool truval,
+        Status status
     );
     event NewSubscription(
         address indexed user,
@@ -65,8 +73,9 @@ contract ERC20TemplatePredictoor is
         uint256 blocknum
     );
     event TruevalSubmitted(
-        uint256 indexed block,
-        bool trueval
+        uint256 indexed slot,
+        bool trueval,
+        Status status
     );
     struct Prediction {
         bool predval;
@@ -78,11 +87,21 @@ contract ERC20TemplatePredictoor is
         address user;
         uint256 expires;
     }
+
+    event SettingChanged(
+        uint256 blocks_per_epoch,
+        uint256 blocks_per_subscription,
+        uint256 truval_submit_timeout_block,
+        address stakeToken
+    );    
+
+    // All mappings below are using slot as key.  
+    // Whenever we have functions that take block as argumens, we rail it to slot automaticly
     mapping(uint256 => mapping(address => Prediction)) private predobjs; // id to prediction object
     mapping(uint256 => uint256) private agg_predvals_numer;
     mapping(uint256 => uint256) private agg_predvals_denom;
     mapping(uint256 => bool) public truevals;
-    mapping(uint256 => bool) public truval_submitted;
+    mapping(uint256 => Status) public truval_submitted;
     mapping(uint256 => uint256) private subscription_revenue_at_block; //income registred
     mapping(address => Subscription) public subscriptions; // valid subscription per user
     uint256 public blocks_per_epoch;
@@ -202,14 +221,7 @@ contract ERC20TemplatePredictoor is
         _;
     }
 
-    modifier blocknumOnSlot(uint256 num) {
-        require(
-            blocknum_is_on_a_slot(num),
-            "Predictoor: blocknum must be on a slot"
-        );
-        _;
-    }
-
+    
     /**
      * @dev initialize
      *      Called prior contract initialization (e.g creating new Datatoken instance)
@@ -304,8 +316,6 @@ contract ERC20TemplatePredictoor is
         _erc721Address = erc721Address;
 
         initialized = true;
-        // add a default minter, similar to what happens with manager in the 721 contract
-        _addMinter(addresses_[0]);
         // set payment collector to this contract, so we can get the $$$
         _setPaymentCollector(address(this));
 
@@ -482,17 +492,6 @@ contract ERC20TemplatePredictoor is
         add_revenue(block.number, rate);
 
         burn(amount);
-    }
-
-    /**
-     * @dev addMinter
-     *      Only ERC20Deployer (at 721 level) can update.
-     *      There can be multiple minters
-     * @param _minter new minter address
-     */
-
-    function addMinter(address _minter) external onlyERC20Deployer {
-        _addMinter(_minter);
     }
 
     /**
@@ -898,7 +897,7 @@ contract ERC20TemplatePredictoor is
     /**
      * @dev getDispensers
      *      Returns the list of dispensers created for this datatoken
-     */
+    */
     function getDispensers() public view returns (address[] memory) {
         return (dispensers);
     }
@@ -935,7 +934,7 @@ contract ERC20TemplatePredictoor is
     ) public view returns (uint256) {
         uint256 rounded = blocknum / blocks_per_epoch;
         return (rounded * blocks_per_epoch);
-    }
+    }   
 
     function blocknum_is_on_a_slot(
         uint256 blocknum
@@ -944,36 +943,36 @@ contract ERC20TemplatePredictoor is
         return blocknum == rail_blocknum_to_slot(blocknum);
     }
 
-    function soonest_block_to_predict() public view returns (uint256) {
-        uint256 slotted_blocknum = rail_blocknum_to_slot(block.number);
-
-        uint256 _blocknum;
-        if (slotted_blocknum == block.number) {
-            _blocknum = slotted_blocknum + blocks_per_epoch;
-        } else {
-            _blocknum = slotted_blocknum + 2 * blocks_per_epoch;
-        }
-        return _blocknum;
+    function soonest_block_to_predict(uint256 prediction_block) public view returns (uint256) {
+        /*
+        Epoch i: predictoors submit predval for the beginning of epoch i+2. 
+        Predval is: "does trueval go UP or DOWN between the start of epoch i+1 and the start of epoch i+2?"
+        Once epoch i ends, predictoors cannot submit predvals for epoch i+2
+        */
+        return(rail_blocknum_to_slot(prediction_block)+ blocks_per_epoch * 2);
     }
 
     function submitted_predval(
         uint256 blocknum,
         address predictoor
-    ) public view blocknumOnSlot(blocknum) returns (bool) {
-        return predobjs[blocknum][predictoor].predictoor != address(0);
+    ) public view returns (bool) {
+        uint256 slot = rail_blocknum_to_slot(blocknum);
+        return predobjs[slot][predictoor].predictoor != address(0);
     }
 
     function get_agg_predval(
         uint256 blocknum
-    ) public view blocknumOnSlot(blocknum) returns (uint256, uint256) {
+    ) public view returns (uint256, uint256) {
         require(is_valid_subscription(msg.sender), "No subscription");
-        return (agg_predvals_numer[blocknum], agg_predvals_denom[blocknum]);
+        uint256 slot = rail_blocknum_to_slot(blocknum);
+        return (agg_predvals_numer[slot], agg_predvals_denom[slot]);
     }
 
     function get_subscription_revenue_at_block(
         uint256 blocknum
-    ) public view blocknumOnSlot(blocknum) returns (uint256) {
-        return (subscription_revenue_at_block[blocknum]);
+    ) public view returns (uint256) {
+        uint256 slot = rail_blocknum_to_slot(blocknum);
+        return (subscription_revenue_at_block[slot]);
     }
 
     function get_prediction(
@@ -982,12 +981,12 @@ contract ERC20TemplatePredictoor is
     )
         public
         view
-        blocknumOnSlot(blocknum)
         returns (Prediction memory prediction)
     {
         //allow predictoors to see their own submissions
         require(msg.sender == predictoor || blocknum < block.number, "you shall not pass");
-        prediction = predobjs[blocknum][predictoor];
+        uint256 slot = rail_blocknum_to_slot(blocknum);
+        prediction = predobjs[slot][predictoor];
     }
 
     // ----------------------- MUTATING FUNCTIONS -----------------------
@@ -996,12 +995,13 @@ contract ERC20TemplatePredictoor is
         bool predval,
         uint256 stake,
         uint256 blocknum
-    ) external blocknumOnSlot(blocknum) {
+    ) external {
         require(paused == false, "paused");
-        require(blocknum >= soonest_block_to_predict(), "too late to submit");
-        require(!submitted_predval(blocknum, msg.sender), "already submitted");
-
-        predobjs[blocknum][msg.sender] = Prediction(
+        uint256 slot = rail_blocknum_to_slot(blocknum);
+        require(slot >= soonest_block_to_predict(block.number), "too late to submit");
+        require(!submitted_predval(slot, msg.sender), "already submitted");
+        
+        predobjs[slot][msg.sender] = Prediction(
             predval,
             stake,
             msg.sender,
@@ -1009,10 +1009,10 @@ contract ERC20TemplatePredictoor is
         );
 
         // update agg_predvals
-        agg_predvals_numer[blocknum] += stake * (predval ? 1 : 0);
-        agg_predvals_denom[blocknum] += stake;
+        agg_predvals_numer[slot] += stake * (predval ? 1 : 0);
+        agg_predvals_denom[slot] += stake;
 
-        emit PredictionSubmitted(msg.sender, epoch(blocknum), stake);
+        emit PredictionSubmitted(msg.sender, slot, stake);
         // safe transfer stake
         IERC20(stake_token).safeTransferFrom(msg.sender, address(this), stake);
     }
@@ -1029,64 +1029,83 @@ contract ERC20TemplatePredictoor is
     function payout(
         uint256 blocknum,
         address predictoor_addr
-    ) public blocknumOnSlot(blocknum) nonReentrant {
+    ) public nonReentrant {
         require(submitted_predval(blocknum, predictoor_addr), "not submitted");
-        Prediction memory predobj = predobjs[blocknum][predictoor_addr];
+        uint256 slot = rail_blocknum_to_slot(blocknum);
+        Prediction memory predobj = predobjs[slot][predictoor_addr];
+        if(predobj.paid) return; // just return if already paid, in order not to break payout_mul
         
-        require(predobj.paid == false, "already paid");
+        // if OPF hasn't submitted trueval in truval_submit_timeout blocks then cancel round
+        if (block.number > slot + truval_submit_timeout_block && truval_submitted[slot]==Status.Pending){
+            truval_submitted[slot]=Status.Canceled;
+        }
 
-        // if OPF hasn't submitted trueval in truval_submit_timeout blocks
-        // refund stake to predictoor and cancel round
-        if (
-            block.number > blocknum + truval_submit_timeout_block &&
-            !truval_submitted[blocknum]
-        ) {
-            predobjs[blocknum][predictoor_addr].paid = true;
+        if(truval_submitted[slot]==Status.Pending){
+            // if Status is Pending, do nothing, just return
+            return; 
+        }
+        if(truval_submitted[slot]==Status.Canceled){
+            predobjs[slot][predictoor_addr].paid = true;
             emit PredictionPayout(
                 predictoor_addr,
-                epoch(blocknum),
+                slot,
                 predobj.stake,
                 predobj.stake,
                 predobj.predval,
-                truevals[blocknum]
+                truevals[slot],
+                truval_submitted[slot]
             );
             IERC20(stake_token).safeTransfer(predobj.predictoor, predobj.stake);
             return;
         }
-
-        require(truval_submitted[blocknum], "trueval not submitted");
-        require(truevals[blocknum] == predobj.predval, "wrong prediction");
-
-        uint256 swe = truevals[blocknum]
-            ? agg_predvals_numer[blocknum]
-            : agg_predvals_denom[blocknum] - agg_predvals_numer[blocknum];
-        uint256 payout_amt = 0;
-        if(swe > 0) {
-            uint256 revenue=get_subscription_revenue_at_block(blocknum);
-            payout_amt = predobj.stake * (agg_predvals_denom[blocknum] + revenue) / swe;
+        if(truval_submitted[slot]==Status.Paying){
+            if(truevals[slot] != predobj.predval){
+                //user got wrong prediction, there is no payout for him
+                predobjs[slot][predictoor_addr].paid = true;
+                emit PredictionPayout(
+                    predictoor_addr,
+                    slot,
+                    predobj.stake,
+                    0,
+                    predobj.predval,
+                    truevals[slot],
+                    truval_submitted[slot]
+                );
+                return;
+            }
+            uint256 swe = truevals[slot]
+                ? agg_predvals_numer[slot]
+                : agg_predvals_denom[slot] - agg_predvals_numer[slot];
+            uint256 payout_amt = 0;
+            if(swe > 0) {
+                uint256 revenue=get_subscription_revenue_at_block(slot);
+                payout_amt = predobj.stake * (agg_predvals_denom[slot] + revenue) / swe;
+            }
+            predobjs[slot][predictoor_addr].paid = true;
+            emit PredictionPayout(
+                predictoor_addr,
+                slot,
+                predobj.stake,
+                payout_amt,
+                predobj.predval,
+                truevals[slot],
+                truval_submitted[slot]
+            );
+            IERC20(stake_token).safeTransfer(
+                predobj.predictoor,
+                payout_amt
+            );
         }
-        predobjs[blocknum][predictoor_addr].paid = true;
-        emit PredictionPayout(
-            predictoor_addr,
-            epoch(blocknum),
-            predobj.stake,
-            payout_amt,
-            predobj.predval,
-            truevals[blocknum]
-        );
-        IERC20(stake_token).safeTransfer(
-            predobj.predictoor,
-            payout_amt
-        );
     }
 
     // ----------------------- ADMIN FUNCTIONS -----------------------
     function redeem_unused_sub_revenue(uint256 blocknum) external onlyERC20Deployer {
         require(block.number > blocknum);
-        require(agg_predvals_denom[blocknum] == 0);
+        uint256 slot = rail_blocknum_to_slot(blocknum);
+        require(agg_predvals_denom[slot] == 0);
         IERC20(stake_token).safeTransfer(
             msg.sender,
-            subscription_revenue_at_block[blocknum]
+            subscription_revenue_at_block[slot]
         );
     }
 
@@ -1098,12 +1117,19 @@ contract ERC20TemplatePredictoor is
     function submit_trueval(
         uint256 blocknum,
         bool trueval
-    ) external blocknumOnSlot(blocknum) onlyERC20Deployer {
+    ) external onlyERC20Deployer {
         // TODO, is onlyERC20Deployer the right modifier?
         require(blocknum < block.number, "too early to submit");
-        truevals[blocknum] = trueval;
-        truval_submitted[blocknum] = true;
-        emit TruevalSubmitted(blocknum, trueval);
+        uint256 slot = rail_blocknum_to_slot(blocknum);
+        require(truval_submitted[slot]==Status.Pending, "already settled");
+        if (block.number > slot + truval_submit_timeout_block && truval_submitted[slot]==Status.Pending){
+            truval_submitted[slot]=Status.Canceled;
+        }
+        else{
+            truevals[slot] = trueval;
+            truval_submitted[slot] = Status.Paying;
+        }
+        emit TruevalSubmitted(slot, trueval,truval_submitted[slot]);
     }
 
     function update_seconds(
@@ -1136,18 +1162,21 @@ contract ERC20TemplatePredictoor is
 
         blocks_per_subscription = s_per_subscription / s_per_block;
         truval_submit_timeout_block = _truval_submit_timeout / s_per_block;
+        emit SettingChanged(blocks_per_epoch,blocks_per_subscription,truval_submit_timeout_block,stake_token);
     }
 
     function add_revenue(uint256 blocknum, uint256 amount) internal {
         if (amount > 0) {
-            blocknum = rail_blocknum_to_slot(blocknum);
+            uint256 slot = rail_blocknum_to_slot(blocknum);
             uint256 num_epochs = blocks_per_subscription / blocks_per_epoch;
+            if(num_epochs<1)
+                num_epochs=1;
             uint256 amt_per_epoch = amount / num_epochs;
             // for loop and add revenue for blocks_per_epoch blocks
             for (uint256 i = 0; i < num_epochs; i++) {
                 // TODO FIND A WAY TO ACHIEVE THIS WITHOUT A LOOP
                 subscription_revenue_at_block[
-                    blocknum + blocks_per_epoch * (i)
+                    slot + blocks_per_epoch * (i)
                 ] += amt_per_epoch;
             }
         }
