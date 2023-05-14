@@ -1055,7 +1055,7 @@ contract ERC20Template3 is
                     payout_amt,
                     predobj.predictedValue,
                     trueValues[slot],
-                    aggregatedPredictedValuesNumer[slot] / aggregatedPredictedValuesDenom[slot],
+                    aggregatedPredictedValuesNumer[slot] * 1e18 / aggregatedPredictedValuesDenom[slot],
                     epochStatus[slot]
                 );
         if(payout_amt>0)
