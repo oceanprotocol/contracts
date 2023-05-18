@@ -426,7 +426,7 @@ contract ERC20Template3 is
         uint256 serviceIndex,
         providerFee calldata _providerFee,
         consumeMarketFee calldata _consumeMarketFee
-    ) public nonReentrant{
+    ) public {
         uint256 amount = 1e18; // we always pay 1 DT. No more, no less
         require(
             balanceOf(msg.sender) >= amount,
@@ -846,7 +846,7 @@ contract ERC20Template3 is
     function buyFromFreAndOrder(
         OrderParams calldata _orderParams,
         FreParams calldata _freParams
-    ) external {
+    ) external nonReentrant{
         //first buy 1.0 DT
         buyFromFre(_freParams);
         //we need the following because startOrder expects msg.sender to have dt
