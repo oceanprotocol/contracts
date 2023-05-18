@@ -846,7 +846,7 @@ contract ERC20Template3 is
     function buyFromFreAndOrder(
         OrderParams calldata _orderParams,
         FreParams calldata _freParams
-    ) external nonReentrant {
+    ) external {
         //first buy 1.0 DT
         buyFromFre(_freParams);
         //we need the following because startOrder expects msg.sender to have dt
