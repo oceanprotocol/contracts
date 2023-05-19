@@ -108,8 +108,8 @@ contract ERC20Template3 is
     // All mappings below are using slot as key.  
     // Whenever we have functions that take block as argumens, we rail it to slot automaticly
     mapping(uint256 => mapping(address => Prediction)) private predictions; // id to prediction object
-    mapping(uint256 => uint256) private aggregatedPredictedValuesNumer;
-    mapping(uint256 => uint256) private aggregatedPredictedValuesDenom;
+    mapping(uint256 => uint256) private roundSumStakesUp;
+    mapping(uint256 => uint256) private roundSumStakes;
     mapping(uint256 => bool) public trueValues; // true values submited by owner
     mapping(uint256 => uint256) public floatValues; // real values submited by owner
     mapping(uint256 => Status) public epochStatus; // status of each epoch
@@ -957,7 +957,7 @@ contract ERC20Template3 is
     ) public view returns (uint256, uint256) {
         require(isValidSubscription(msg.sender), "No subscription");
         uint256 slot = railBlocknumToSlot(blocknum);
-        return (aggregatedPredictedValuesNumer[slot], aggregatedPredictedValuesDenom[slot]);
+        return (roundSumStakesUp[slot], roundSumStakes[slot]);
     }
 
     function getSubscriptionRevenueAtBlock(
@@ -1000,8 +1000,8 @@ contract ERC20Template3 is
             false
         );
         // update agg_predictedValues
-        aggregatedPredictedValuesNumer[slot] += stake * (predictedValue ? 1 : 0);
-        aggregatedPredictedValuesDenom[slot] += stake;
+        roundSumStakesUp[slot] += stake * (predictedValue ? 1 : 0);
+        roundSumStakes[slot] += stake;
 
         emit PredictionSubmitted(msg.sender, slot, stake);
         // safe transfer stake
@@ -1044,11 +1044,11 @@ contract ERC20Template3 is
             if(trueValues[slot] == predobj.predictedValue){
                 // he got it.
                 uint256 swe = trueValues[slot]
-                    ? aggregatedPredictedValuesNumer[slot]
-                    : aggregatedPredictedValuesDenom[slot] - aggregatedPredictedValuesNumer[slot];
+                    ? roundSumStakesUp[slot]
+                    : roundSumStakes[slot] - roundSumStakesUp[slot];
                 if(swe > 0) {
                     uint256 revenue=getSubscriptionRevenueAtBlock(slot);
-                    payout_amt = predobj.stake * (aggregatedPredictedValuesDenom[slot] + revenue) / swe;
+                    payout_amt = predobj.stake * (roundSumStakes[slot] + revenue) / swe;
                 }
             }
             // else payout_amt is already 0
@@ -1060,7 +1060,7 @@ contract ERC20Template3 is
                     payout_amt,
                     predobj.predictedValue,
                     trueValues[slot],
-                    aggregatedPredictedValuesNumer[slot] * 1e18 / aggregatedPredictedValuesDenom[slot],
+                    roundSumStakesUp[slot] * 1e18 / roundSumStakes[slot],
                     epochStatus[slot]
                 );
         if(payout_amt>0)
@@ -1071,7 +1071,7 @@ contract ERC20Template3 is
     function redeemUnusedSlotRevenue(uint256 blocknum) external onlyERC20Deployer {
         require(block.number > blocknum);
         uint256 slot = railBlocknumToSlot(blocknum);
-        require(aggregatedPredictedValuesDenom[slot] == 0);
+        require(roundSumStakes[slot] == 0);
         require(feeCollector != address(0), "Cannot send fees to address 0");
         IERC20(stakeToken).safeTransfer(
             feeCollector,
@@ -1122,17 +1122,17 @@ contract ERC20Template3 is
             epochStatus[slot] = Status.Paying;
         }
         // edge case where all stakers are submiting a value, but they are all wrong
-        if (aggregatedPredictedValuesDenom[slot]>0 && (
-                (trueValue && aggregatedPredictedValuesNumer[slot]==0) 
+        if (roundSumStakes[slot]>0 && (
+                (trueValue && roundSumStakesUp[slot]==0) 
                 ||
-                (!trueValue && aggregatedPredictedValuesNumer[slot]==aggregatedPredictedValuesDenom[slot])
+                (!trueValue && roundSumStakesUp[slot]==roundSumStakes[slot])
             )
         ){
             // everyone gets slashed
             require(feeCollector != address(0), "Cannot send slashed stakes to address 0");
             IERC20(stakeToken).safeTransfer(
                 feeCollector,
-                aggregatedPredictedValuesDenom[slot]
+                roundSumStakes[slot]
             );
         }
         emit TruevalSubmitted(slot, trueValue,floatValue,epochStatus[slot]);
