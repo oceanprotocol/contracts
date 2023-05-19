@@ -111,7 +111,6 @@ contract ERC20Template3 is
     mapping(uint256 => uint256) private roundSumStakesUp;
     mapping(uint256 => uint256) private roundSumStakes;
     mapping(uint256 => bool) public trueValues; // true values submited by owner
-    mapping(uint256 => uint256) public floatValues; // real values submited by owner
     mapping(uint256 => Status) public epochStatus; // status of each epoch
     mapping(uint256 => uint256) private subscriptionRevenueAtBlock; //income registred
     mapping(address => Subscription) public subscriptions; // valid subscription per user
@@ -1112,27 +1111,26 @@ contract ERC20Template3 is
         require(blocknum < block.number, "too early to submit");
         uint256 slot = railBlocknumToSlot(blocknum);
         require(epochStatus[slot]==Status.Pending, "already settled");
-        floatValues[slot] = floatValue;
         if (cancelRound ||  (block.number > slot + trueValSubmitTimeoutBlock && epochStatus[slot]==Status.Pending)){
             epochStatus[slot]=Status.Canceled;
         }
         else{
             trueValues[slot] = trueValue;
             epochStatus[slot] = Status.Paying;
-        }
-        // edge case where all stakers are submiting a value, but they are all wrong
-        if (roundSumStakes[slot]>0 && (
-                (trueValue && roundSumStakesUp[slot]==0) 
-                ||
-                (!trueValue && roundSumStakesUp[slot]==roundSumStakes[slot])
-            )
-        ){
-            // everyone gets slashed
-            require(feeCollector != address(0), "Cannot send slashed stakes to address 0");
-            IERC20(stakeToken).safeTransfer(
-                feeCollector,
-                roundSumStakes[slot]
-            );
+            // edge case where all stakers are submiting a value, but they are all wrong
+            if (roundSumStakes[slot]>0 && (
+                    (trueValue && roundSumStakesUp[slot]==0) 
+                    ||
+                    (!trueValue && roundSumStakesUp[slot]==roundSumStakes[slot])
+                )
+            ){
+                // everyone gets slashed
+                require(feeCollector != address(0), "Cannot send slashed stakes to address 0");
+                IERC20(stakeToken).safeTransfer(
+                    feeCollector,
+                    roundSumStakes[slot]
+                );
+            }
         }
         emit TruevalSubmitted(slot, trueValue,floatValue,epochStatus[slot]);
     }
