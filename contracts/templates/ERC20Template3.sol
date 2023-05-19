@@ -115,8 +115,9 @@ contract ERC20Template3 is
     mapping(uint256 => Status) public epochStatus; // status of each epoch
     mapping(uint256 => uint256) private subscriptionRevenueAtBlock; //income registred
     mapping(address => Subscription) public subscriptions; // valid subscription per user
-    
-    
+    mapping(uint256 => uint256) private noOfTruePredictionsPerEpoch; // how many Ture predictions we have per epoch
+    mapping(uint256 => uint256) private noOfFalsePredictionsPerEpoch; // how many False predictions we have per epoch
+    address public feeCollector; //who will get FRE fees, slashes stakes, revenue per epoch if no predictoors
     uint256 public blocksPerEpoch;
     address public stakeToken;
     uint256 public blocksPerSubscription;
@@ -383,8 +384,10 @@ contract ERC20Template3 is
             stakeToken == addresses[0],
             "Cannot create FRE with baseToken!=stakeToken"
         );
+        require(addresses[2] != address(0),"FeeCollector cannot be zero");
         //force FRE allowedSwapper to this contract address. no one else can swap because we need to record the income
         if (uints[4] > 0) _addMinter(fixedPriceAddress);
+        addresses[1]=address(this); //make this contract FRE owner
         exchangeId = IFactoryRouter(router).deployFixedRate(
             fixedPriceAddress,
             addresses,
@@ -398,6 +401,7 @@ contract ERC20Template3 is
         );
         fixedRateExchanges.push(fixedRate(fixedPriceAddress, exchangeId));
         rate = uints[2]; //set rate to be added in add_revenue
+        feeCollector = addresses[2];
     }
 
     /**
@@ -997,7 +1001,11 @@ contract ERC20Template3 is
             msg.sender,
             false
         );
-
+        if (predictedValue){
+            noOfTruePredictionsPerEpoch[slot]++;
+        }
+        else
+            noOfFalsePredictionsPerEpoch[slot]++;
         // update agg_predictedValues
         aggregatedPredictedValuesNumer[slot] += stake * (predictedValue ? 1 : 0);
         aggregatedPredictedValuesDenom[slot] += stake;
@@ -1071,8 +1079,9 @@ contract ERC20Template3 is
         require(block.number > blocknum);
         uint256 slot = railBlocknumToSlot(blocknum);
         require(aggregatedPredictedValuesDenom[slot] == 0);
+        require(feeCollector != address(0), "Cannot send fees to address 0");
         IERC20(stakeToken).safeTransfer(
-            msg.sender,
+            feeCollector,
             subscriptionRevenueAtBlock[slot]
         );
     }
@@ -1108,6 +1117,19 @@ contract ERC20Template3 is
         else{
             trueValues[slot] = trueValue;
             epochStatus[slot] = Status.Paying;
+        }
+        // edge case where all stakers are submiting a value, but they are all wrong
+        if (
+            (trueValue && noOfTruePredictionsPerEpoch[slot]==0 && noOfFalsePredictionsPerEpoch[slot]>0) 
+            ||
+            (!trueValue && noOfTruePredictionsPerEpoch[slot]>0 && noOfFalsePredictionsPerEpoch[slot]==0) 
+        ){
+            // everyone gets slashed
+            require(feeCollector != address(0), "Cannot send slashed stakes to address 0");
+            IERC20(stakeToken).safeTransfer(
+                feeCollector,
+                aggregatedPredictedValuesDenom[slot]
+            );
         }
         emit TruevalSubmitted(slot, trueValue,floatValue,epochStatus[slot]);
     }
