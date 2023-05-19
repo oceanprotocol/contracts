@@ -115,8 +115,6 @@ contract ERC20Template3 is
     mapping(uint256 => Status) public epochStatus; // status of each epoch
     mapping(uint256 => uint256) private subscriptionRevenueAtBlock; //income registred
     mapping(address => Subscription) public subscriptions; // valid subscription per user
-    mapping(uint256 => uint256) private noOfTruePredictionsPerEpoch; // how many Ture predictions we have per epoch
-    mapping(uint256 => uint256) private noOfFalsePredictionsPerEpoch; // how many False predictions we have per epoch
     address public feeCollector; //who will get FRE fees, slashes stakes, revenue per epoch if no predictoors
     uint256 public blocksPerEpoch;
     address public stakeToken;
@@ -1001,11 +999,6 @@ contract ERC20Template3 is
             msg.sender,
             false
         );
-        if (predictedValue){
-            noOfTruePredictionsPerEpoch[slot]++;
-        }
-        else
-            noOfFalsePredictionsPerEpoch[slot]++;
         // update agg_predictedValues
         aggregatedPredictedValuesNumer[slot] += stake * (predictedValue ? 1 : 0);
         aggregatedPredictedValuesDenom[slot] += stake;
@@ -1129,10 +1122,11 @@ contract ERC20Template3 is
             epochStatus[slot] = Status.Paying;
         }
         // edge case where all stakers are submiting a value, but they are all wrong
-        if (
-            (trueValue && noOfTruePredictionsPerEpoch[slot]==0 && noOfFalsePredictionsPerEpoch[slot]>0) 
-            ||
-            (!trueValue && noOfTruePredictionsPerEpoch[slot]>0 && noOfFalsePredictionsPerEpoch[slot]==0) 
+        if (aggregatedPredictedValuesDenom[slot]>0 && (
+                (trueValue && aggregatedPredictedValuesNumer[slot]==0) 
+                ||
+                (!trueValue && aggregatedPredictedValuesNumer[slot]==aggregatedPredictedValuesDenom[slot])
+            )
         ){
             // everyone gets slashed
             require(feeCollector != address(0), "Cannot send slashed stakes to address 0");
