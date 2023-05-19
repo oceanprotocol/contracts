@@ -72,4 +72,5 @@ interface IFixedRateExchange {
     function getId() pure external returns (uint8);
     function collectBT(bytes32 exchangeId, uint256 amount) external;
     function collectDT(bytes32 exchangeId, uint256 amount) external;
+    function toggleExchangeState(bytes32 exchangeId) external;
 }

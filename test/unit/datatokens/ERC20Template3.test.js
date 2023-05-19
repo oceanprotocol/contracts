@@ -11,6 +11,7 @@ const { keccak256 } = require("@ethersproject/keccak256");
 const ethers = hre.ethers;
 const { ecsign, zeroAddress } = require("ethereumjs-util");
 const { ZERO_ADDRESS } = require("@openzeppelin/test-helpers/src/constants");
+const { BigNumber } = require("ethers");
 
 
 const getDomainSeparator = (name, tokenAddress, chainId) => {
@@ -108,14 +109,14 @@ describe("ERC20Template3", () => {
         publishMarketFeeAddress,
         mockErc20,
         mockErc20Decimals,
-        publishMarketFeeToken
+        publishMarketFeeToken,
+        freMarketFeeCollector
 
     cap = web3.utils.toWei("100000");
     const fakeUSDAmount = cap
     const addressZero = '0x0000000000000000000000000000000000000000';
     const freRate = web3.utils.toWei("2"); // 2 tokens per dt
     const freMarketFee = 1e15 // 0.1%
-    const freMarketFeeCollector = addressZero
         
         
     const communityFeeCollector = "0xeE9300b7961e0a01d9f0adb863C7A227A07AaD75";
@@ -153,7 +154,7 @@ describe("ERC20Template3", () => {
         const MockErc20 = await ethers.getContractFactory('MockERC20');
         const MockErc20Decimals = await ethers.getContractFactory('MockERC20Decimals');
 
-        [owner, reciever, user2, user3, user4, user5, user6, opcCollector, marketFeeCollector, publishMarketAccount] = await ethers.getSigners();
+        [owner, reciever, user2, user3, user4, user5, user6, opcCollector, freMarketFeeCollector, marketFeeCollector,publishMarketAccount] = await ethers.getSigners();
         publishMarketFeeAddress = publishMarketAccount.address
         data = web3.utils.asciiToHex(constants.blob[0]);
         flags = web3.utils.asciiToHex(constants.blob[0]);
@@ -254,13 +255,13 @@ describe("ERC20Template3", () => {
         await expectRevert(
             erc20Token.connect(owner).createFixedRate(
                 fixedRateExchange.address,
-                [mockErc20Decimals.address, owner.address, freMarketFeeCollector, addressZero],
+                [mockErc20Decimals.address, owner.address, freMarketFeeCollector.address, addressZero],
                 [18, 18, freRate , freMarketFee , 1]),
             "Cannot create FRE with baseToken!=stakeToken"
         );
         await erc20Token.connect(owner).createFixedRate(
             fixedRateExchange.address,
-            [mockErc20.address, owner.address, freMarketFeeCollector, addressZero],
+            [mockErc20.address, owner.address, freMarketFeeCollector.address, addressZero],
             [18, 18, freRate , freMarketFee, 1])
 
         // create an ERC20 with publish Fee ( 5 USDC, going to publishMarketAddress)
@@ -281,7 +282,7 @@ describe("ERC20Template3", () => {
 
         await erc20TokenWithPublishFee.connect(owner).createFixedRate(
             fixedRateExchange.address,
-            [mockErc20.address, owner.address, freMarketFeeCollector , addressZero],
+            [mockErc20.address, owner.address, freMarketFeeCollector.address , addressZero],
             [18, 18, freMarketFee, freMarketFee , 1])
 
         Array(100).fill(0).map(async _ => await ethers.provider.send("evm_mine"));
@@ -315,7 +316,7 @@ describe("ERC20Template3", () => {
         await expectRevert(
             erc20Token.connect(owner).createFixedRate(
                 fixedRateExchange.address,
-                [mockErc20Decimals.address, owner.address, freMarketFeeCollector , addressZero],
+                [mockErc20Decimals.address, owner.address, freMarketFeeCollector.address , addressZero],
                 [18, 18, freRate , freMarketFee , 1]
             ),
             "Fixed rate already present"
@@ -1006,18 +1007,20 @@ describe("ERC20Template3", () => {
 
     it("#submitTrueVal - should revert submitting for a future block", async () => {
         const soonestBlockToPredict = await erc20Token.soonestBlockToPredict((await ethers.provider.getBlockNumber())+1);
-        await expectRevert(erc20Token.submitTrueVal(soonestBlockToPredict, true), "too early to submit");
+        await expectRevert(erc20Token.submitTrueVal(soonestBlockToPredict, true,web3.utils.toWei("230.43"),false), "too early to submit");
     });
 
     it("#submitTrueVal - should submit for a block in the past", async () => {
         const blocksPerEpoch = await erc20Token.blocksPerEpoch();
         const soonestBlockToPredict = await erc20Token.soonestBlockToPredict((await ethers.provider.getBlockNumber()));
         const submissionBlock = soonestBlockToPredict - blocksPerEpoch * 2;
-        const tx = await erc20Token.submitTrueVal(submissionBlock, true);
+        const tx = await erc20Token.submitTrueVal(submissionBlock, true,web3.utils.toWei("230.43"),false);
         const tx_receipt = await tx.wait();
         const event = getEventFromTx(tx_receipt, "TruevalSubmitted");
         expect(event.args[0]).to.equal(submissionBlock);
         expect(event.args[1]).to.equal(true);
+        expect(event.args[2]).to.equal(web3.utils.toWei("230.43"));
+        expect(event.args[3]).to.equal(1);
 
         const trueValue = await erc20Token.trueValues(submissionBlock);
         expect(trueValue).to.be.true;
@@ -1313,7 +1316,7 @@ describe("ERC20Template3", () => {
         
 
         // opf submits truval
-        tx = await erc20Token.submitTrueVal(soonestBlockToPredict, predictedValue);
+        tx = await erc20Token.submitTrueVal(soonestBlockToPredict, predictedValue, web3.utils.toWei("230.43"), false);
         txReceipt = await tx.wait();
         event = getEventFromTx(txReceipt, 'TruevalSubmitted')
         assert(event, "TruevalSubmitted event not found")
@@ -1433,7 +1436,7 @@ describe("ERC20Template3", () => {
         expect(await mockErc20.balanceOf(user3.address)).to.be.eq(mockErc20Balance);
 
         // opf submits truval
-        tx = await erc20Token.submitTrueVal(soonestBlockToPredict, predictedValue);
+        tx = await erc20Token.submitTrueVal(soonestBlockToPredict, predictedValue, web3.utils.toWei("230.43"), false);
         txReceipt = await tx.wait();
         event = getEventFromTx(txReceipt, 'TruevalSubmitted')
         assert(event, "TruevalSubmitted event not found")
@@ -1497,8 +1500,13 @@ describe("ERC20Template3", () => {
         const winnersStake = winners.map(x=>stakes[x]).reduce((a,b)=>a+b, 0);
 
         // opf submits truval
-        await erc20Token.submitTrueVal(predictionBlock, truval);
-
+        tx = await erc20Token.submitTrueVal(predictionBlock, truval, web3.utils.toWei("230.43"), false);
+        txReceipt = await tx.wait();
+        event = getEventFromTx(txReceipt, 'Transfer')
+        if(winners.length>0)
+            assert(event==null, "We should not have any transfer event, winners are present")
+        else
+            assert(event, "We should have a transfer event, because everyone was slashed")
         // each predictoor calls payout function
         for (let i = 0; i < predictoors.length; i++){
             let predictoor = predictoors[i];
@@ -1593,7 +1601,7 @@ describe("ERC20Template3", () => {
         const txReceipt_2 = await tx_2.wait();
         let event_2 = getEventFromTx(txReceipt_2, 'Transfer')
         expect(event_2.args.from).to.be.eq(erc20Token.address);
-        expect(event_2.args.to).to.be.eq(owner.address);
+        expect(event_2.args.to).to.be.eq(freMarketFeeCollector.address);
         expect(event_2.args.value).to.be.eq(6666666666666666);
     })
     it("#redeemUnusedSlotRevenue - admin should not be able to redeem for future epoch", async()=>{
@@ -1650,4 +1658,107 @@ describe("ERC20Template3", () => {
         expect(event.args.payout).to.be.eq(stake)
         await erc20Token.updateSeconds(sPerBlock, sPerSubscription, trueValueSubmitTimeout);
     })
+
+    it("predictoor can redeem stake if OPF cancels the round", async() => {
+        await erc20Token.updateSeconds(sPerBlock, sPerSubscription, sPerEpoch * 3);
+
+        const stake = 100;
+        await mockErc20.transfer(user2.address, stake);
+        await mockErc20.connect(user2).approve(erc20Token.address, stake);
+        const prediction = true;
+        const soonestBlockToPredict = await erc20Token.soonestBlockToPredict((await ethers.provider.getBlockNumber())+1);
+        const blockNum = await ethers.provider.getBlockNumber();
+        const slot = await erc20Token.railBlocknumToSlot(soonestBlockToPredict);
+
+        await erc20Token.connect(user2).submitPredval(prediction, stake, soonestBlockToPredict);
+        const blocksPerEpoch = await erc20Token.blocksPerEpoch();
+
+        let mockErc20Balance = await mockErc20.balanceOf(user2.address)
+        let tx = await erc20Token.connect(user2).payout(soonestBlockToPredict, user2.address)
+        let txReceipt = await tx.wait();
+        let event = getEventFromTx(txReceipt, 'PredictionPayout')
+        //we are not getting anything, round is still in progress
+        assert(event==null, "PredictionPayout event found")
+        expect(await mockErc20.balanceOf(user2.address)).to.be.eq(mockErc20Balance);
+
+        Array(blocksPerEpoch * 2).fill(0).map(async _ => await ethers.provider.send("evm_mine"));
+
+        mockErc20Balance = await mockErc20.balanceOf(user2.address)
+        tx = await erc20Token.connect(user2).payout(soonestBlockToPredict, user2.address)
+        txReceipt = await tx.wait();
+        event = getEventFromTx(txReceipt, 'PredictionPayout')
+        //we are not getting anything, round is still in progress
+        assert(event==null, "PredictionPayout event found")
+        expect(await mockErc20.balanceOf(user2.address)).to.be.eq(mockErc20Balance);
+
+        Array(blocksPerEpoch ).fill(0).map(async _ => await ethers.provider.send("evm_mine"));
+        // opf cancels the round
+        tx = await erc20Token.connect(owner).submitTrueVal(soonestBlockToPredict, true,web3.utils.toWei("230.43"),true);
+        txReceipt = await tx.wait();
+        event = getEventFromTx(txReceipt, 'TruevalSubmitted')
+        assert(event, "TruevalSubmitted event not found")
+        assert(event.args.status==2, 'Status missmatch') // round status should be 2 == Status.Cancel
+        
+        tx = await erc20Token.connect(user2).payout(soonestBlockToPredict, user2.address);
+        txReceipt = await tx.wait();
+        event = getEventFromTx(txReceipt, 'Transfer')
+        expect(event.args.from).to.be.eq(erc20Token.address);
+        expect(event.args.to).to.be.eq(user2.address);
+        expect(event.args.value).to.be.eq(stake);
+        event = getEventFromTx(txReceipt, 'PredictionPayout')
+        assert(event, "PredictionPayout event not found")
+        assert(event.args.status==2, "Status should be 2 = Canceled")
+        expect(event.args.payout).to.be.eq(event.args.stake)
+        expect(event.args.payout).to.be.eq(stake)
+        await erc20Token.updateSeconds(sPerBlock, sPerSubscription, trueValueSubmitTimeout);
+    })
+
+    it("all predictoors are slashed, feeCollector gets the stakes", async () => {
+        // predictoor makes a predictions
+        let predictoors = [reciever, user2, user3, user4, user5, user6];
+        let predictions = [];
+        let stakes = [];
+        let tx,txReceipt, event
+        for(const predictoor of predictoors){
+            const amt = web3.utils.toWei("200");
+            await mockErc20.transfer(predictoor.address, amt);
+            await mockErc20.connect(predictoor).approve(erc20Token.address, amt);
+        }
+        
+        const blocksPerEpoch = await erc20Token.blocksPerEpoch();
+        const currentBlock = await ethers.provider.getBlockNumber();
+        const soonestBlockToPredict = await erc20Token.soonestBlockToPredict((await ethers.provider.getBlockNumber())+1);
+        Array(soonestBlockToPredict - currentBlock + 1).fill(0).map(async _ => await ethers.provider.send("evm_mine"));
+        const predictionBlock = await erc20Token.soonestBlockToPredict((await ethers.provider.getBlockNumber())+1);
+        let totalStake = new BigNumber.from(0)
+        for(const predictoor of predictoors){
+            const stake = 10 + Math.random() * 100;
+            const stakeWei = web3.utils.toWei(stake.toString());
+            //all predictoors are predicting False
+            const p = false
+            predictions.push(p);
+            stakes.push(stake);
+            totalStake=totalStake.add(stakeWei)
+            await erc20Token.connect(predictoor).submitPredval(p, stakeWei, predictionBlock)
+        }
+        
+        Array(blocksPerEpoch * 2).fill(0).map(async _ => await ethers.provider.send("evm_mine"));
+        const truval = true //
+        // opf submits truval
+        tx = await erc20Token.submitTrueVal(predictionBlock, truval, web3.utils.toWei("230.43"), false);
+        txReceipt = await tx.wait();
+        event = getEventFromTx(txReceipt, 'Transfer')
+        expect(event.args.from).to.be.eq(erc20Token.address);
+        expect(event.args.to).to.be.eq(freMarketFeeCollector.address);
+        expect(event.args.value).to.be.eq(totalStake);
+        // each predictoor calls payout function, they should get nothing
+        for (let i = 0; i < predictoors.length; i++){
+            let predictoor = predictoors[i];
+            tx = await erc20Token.connect(predictoor).payout(predictionBlock, predictoor.address);
+            txReceipt = await tx.wait();
+            event = getEventFromTx(txReceipt, 'PredictionPayout')
+            assert(event, "PredictionPayout event not found")
+            expect(event.args.payout).to.be.eq(0)
+        }
+    });
 });

@@ -76,6 +76,7 @@ contract ERC20Template3 is
     event TruevalSubmitted(
         uint256 indexed slot,
         bool trueValue,
+        uint256 floatValue,
         Status status
     );
     struct Prediction {
@@ -107,12 +108,13 @@ contract ERC20Template3 is
     // All mappings below are using slot as key.  
     // Whenever we have functions that take block as argumens, we rail it to slot automaticly
     mapping(uint256 => mapping(address => Prediction)) private predictions; // id to prediction object
-    mapping(uint256 => uint256) private aggregatedPredictedValuesNumer;
-    mapping(uint256 => uint256) private aggregatedPredictedValuesDenom;
+    mapping(uint256 => uint256) private roundSumStakesUp;
+    mapping(uint256 => uint256) private roundSumStakes;
     mapping(uint256 => bool) public trueValues; // true values submited by owner
     mapping(uint256 => Status) public epochStatus; // status of each epoch
     mapping(uint256 => uint256) private subscriptionRevenueAtBlock; //income registred
     mapping(address => Subscription) public subscriptions; // valid subscription per user
+    address public feeCollector; //who will get FRE fees, slashes stakes, revenue per epoch if no predictoors
     uint256 public blocksPerEpoch;
     address public stakeToken;
     uint256 public blocksPerSubscription;
@@ -379,8 +381,10 @@ contract ERC20Template3 is
             stakeToken == addresses[0],
             "Cannot create FRE with baseToken!=stakeToken"
         );
+        require(addresses[2] != address(0),"FeeCollector cannot be zero");
         //force FRE allowedSwapper to this contract address. no one else can swap because we need to record the income
         if (uints[4] > 0) _addMinter(fixedPriceAddress);
+        // create the exchange
         exchangeId = IFactoryRouter(router).deployFixedRate(
             fixedPriceAddress,
             addresses,
@@ -394,6 +398,7 @@ contract ERC20Template3 is
         );
         fixedRateExchanges.push(fixedRate(fixedPriceAddress, exchangeId));
         rate = uints[2]; //set rate to be added in add_revenue
+        feeCollector = addresses[2];
     }
 
     /**
@@ -951,7 +956,7 @@ contract ERC20Template3 is
     ) public view returns (uint256, uint256) {
         require(isValidSubscription(msg.sender), "No subscription");
         uint256 slot = railBlocknumToSlot(blocknum);
-        return (aggregatedPredictedValuesNumer[slot], aggregatedPredictedValuesDenom[slot]);
+        return (roundSumStakesUp[slot], roundSumStakes[slot]);
     }
 
     function getSubscriptionRevenueAtBlock(
@@ -993,10 +998,9 @@ contract ERC20Template3 is
             msg.sender,
             false
         );
-
         // update agg_predictedValues
-        aggregatedPredictedValuesNumer[slot] += stake * (predictedValue ? 1 : 0);
-        aggregatedPredictedValuesDenom[slot] += stake;
+        roundSumStakesUp[slot] += stake * (predictedValue ? 1 : 0);
+        roundSumStakes[slot] += stake;
 
         emit PredictionSubmitted(msg.sender, slot, stake);
         // safe transfer stake
@@ -1039,11 +1043,11 @@ contract ERC20Template3 is
             if(trueValues[slot] == predobj.predictedValue){
                 // he got it.
                 uint256 swe = trueValues[slot]
-                    ? aggregatedPredictedValuesNumer[slot]
-                    : aggregatedPredictedValuesDenom[slot] - aggregatedPredictedValuesNumer[slot];
+                    ? roundSumStakesUp[slot]
+                    : roundSumStakes[slot] - roundSumStakesUp[slot];
                 if(swe > 0) {
                     uint256 revenue=getSubscriptionRevenueAtBlock(slot);
-                    payout_amt = predobj.stake * (aggregatedPredictedValuesDenom[slot] + revenue) / swe;
+                    payout_amt = predobj.stake * (roundSumStakes[slot] + revenue) / swe;
                 }
             }
             // else payout_amt is already 0
@@ -1055,7 +1059,7 @@ contract ERC20Template3 is
                     payout_amt,
                     predobj.predictedValue,
                     trueValues[slot],
-                    aggregatedPredictedValuesNumer[slot] * 1e18 / aggregatedPredictedValuesDenom[slot],
+                    roundSumStakesUp[slot] * 1e18 / roundSumStakes[slot],
                     epochStatus[slot]
                 );
         if(payout_amt>0)
@@ -1066,9 +1070,10 @@ contract ERC20Template3 is
     function redeemUnusedSlotRevenue(uint256 blocknum) external onlyERC20Deployer {
         require(block.number > blocknum);
         uint256 slot = railBlocknumToSlot(blocknum);
-        require(aggregatedPredictedValuesDenom[slot] == 0);
+        require(roundSumStakes[slot] == 0);
+        require(feeCollector != address(0), "Cannot send fees to address 0");
         IERC20(stakeToken).safeTransfer(
-            msg.sender,
+            feeCollector,
             subscriptionRevenueAtBlock[slot]
         );
     }
@@ -1076,25 +1081,58 @@ contract ERC20Template3 is
 
     function pausePredictions() external onlyERC20Deployer {
         paused = !paused;
-        // TODO - pause FRE as well
+        // we cannot pause FixedRate as well, so be aware when triggering this function
+        /* keeping code here until we decide
+        if (fixedRateExchanges.length>0){
+            IFixedRateExchange fre = IFixedRateExchange(fixedRateExchanges[0].contractAddress);
+            bool freActive = fre.isActive(fixedRateExchanges[0].id);
+            if ((paused && freActive) || (!paused && !freActive)){
+                fre.toggleExchangeState(fixedRateExchanges[0].id);
+            }
+        }
+        */
+        
     }
 
+    /**
+     * @dev submitTrueVal
+     *      Called by owner to settle one epoch
+     * @param blocknum epoch block number
+     * @param trueValue trueValue for that epoch (0 - down, 1 - up)
+     * @param floatValue float value of pair for that epoch
+     * @param cancelRound If true, cancel that epoch
+     */
     function submitTrueVal(
         uint256 blocknum,
-        bool trueValue
+        bool trueValue,
+        uint256 floatValue,
+        bool cancelRound
     ) external onlyERC20Deployer {
-        // TODO, is onlyERC20Deployer the right modifier?
         require(blocknum < block.number, "too early to submit");
         uint256 slot = railBlocknumToSlot(blocknum);
         require(epochStatus[slot]==Status.Pending, "already settled");
-        if (block.number > slot + trueValSubmitTimeoutBlock && epochStatus[slot]==Status.Pending){
+        if (cancelRound ||  (block.number > slot + trueValSubmitTimeoutBlock && epochStatus[slot]==Status.Pending)){
             epochStatus[slot]=Status.Canceled;
         }
         else{
             trueValues[slot] = trueValue;
             epochStatus[slot] = Status.Paying;
+            // edge case where all stakers are submiting a value, but they are all wrong
+            if (roundSumStakes[slot]>0 && (
+                    (trueValue && roundSumStakesUp[slot]==0) 
+                    ||
+                    (!trueValue && roundSumStakesUp[slot]==roundSumStakes[slot])
+                )
+            ){
+                // everyone gets slashed
+                require(feeCollector != address(0), "Cannot send slashed stakes to address 0");
+                IERC20(stakeToken).safeTransfer(
+                    feeCollector,
+                    roundSumStakes[slot]
+                );
+            }
         }
-        emit TruevalSubmitted(slot, trueValue,epochStatus[slot]);
+        emit TruevalSubmitted(slot, trueValue,floatValue,epochStatus[slot]);
     }
 
     function updateSeconds(
