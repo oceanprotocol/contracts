@@ -1089,6 +1089,13 @@ contract ERC20Template3 is
 
     function pausePredictions() external onlyERC20Deployer {
         paused = !paused;
+        if (fixedRateExchanges.length>0){
+            IFixedRateExchange fre = IFixedRateExchange(fixedRateExchanges[0].contractAddress);
+            bool freActive = fre.isActive(fixedRateExchanges[0].id);
+            if ((paused && freActive) || (!paused && !freActive)){
+                fre.toggleExchangeState(fixedRateExchanges[0].id);
+            }
+        }
         // TODO - pause FRE as well
     }
 
