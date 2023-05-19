@@ -76,6 +76,7 @@ contract ERC20Template3 is
     event TruevalSubmitted(
         uint256 indexed slot,
         bool trueValue,
+        uint256 floatValue,
         Status status
     );
     struct Prediction {
@@ -110,9 +111,12 @@ contract ERC20Template3 is
     mapping(uint256 => uint256) private aggregatedPredictedValuesNumer;
     mapping(uint256 => uint256) private aggregatedPredictedValuesDenom;
     mapping(uint256 => bool) public trueValues; // true values submited by owner
+    mapping(uint256 => uint256) public floatValues; // real values submited by owner
     mapping(uint256 => Status) public epochStatus; // status of each epoch
     mapping(uint256 => uint256) private subscriptionRevenueAtBlock; //income registred
     mapping(address => Subscription) public subscriptions; // valid subscription per user
+    
+    
     uint256 public blocksPerEpoch;
     address public stakeToken;
     uint256 public blocksPerSubscription;
@@ -1079,22 +1083,33 @@ contract ERC20Template3 is
         // TODO - pause FRE as well
     }
 
+    /**
+     * @dev submitTrueVal
+     *      Called by owner to settle one epoch
+     * @param blocknum epoch block number
+     * @param trueValue trueValue for that epoch (0 - down, 1 - up)
+     * @param floatValue float value of pair for that epoch
+     * @param cancelRound If true, cancel that epoch
+     */
     function submitTrueVal(
         uint256 blocknum,
-        bool trueValue
+        bool trueValue,
+        uint256 floatValue,
+        bool cancelRound
     ) external onlyERC20Deployer {
         // TODO, is onlyERC20Deployer the right modifier?
         require(blocknum < block.number, "too early to submit");
         uint256 slot = railBlocknumToSlot(blocknum);
         require(epochStatus[slot]==Status.Pending, "already settled");
-        if (block.number > slot + trueValSubmitTimeoutBlock && epochStatus[slot]==Status.Pending){
+        floatValues[slot] = floatValue;
+        if (cancelRound ||  (block.number > slot + trueValSubmitTimeoutBlock && epochStatus[slot]==Status.Pending)){
             epochStatus[slot]=Status.Canceled;
         }
         else{
             trueValues[slot] = trueValue;
             epochStatus[slot] = Status.Paying;
         }
-        emit TruevalSubmitted(slot, trueValue,epochStatus[slot]);
+        emit TruevalSubmitted(slot, trueValue,floatValue,epochStatus[slot]);
     }
 
     function updateSeconds(
