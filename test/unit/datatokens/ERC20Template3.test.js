@@ -1652,4 +1652,58 @@ describe("ERC20Template3", () => {
         expect(event.args.payout).to.be.eq(stake)
         await erc20Token.updateSeconds(sPerBlock, sPerSubscription, trueValueSubmitTimeout);
     })
+
+    it("predictoor can redeem stake if OPF cancels the round", async() => {
+        await erc20Token.updateSeconds(sPerBlock, sPerSubscription, sPerEpoch * 3);
+
+        const stake = 100;
+        await mockErc20.transfer(user2.address, stake);
+        await mockErc20.connect(user2).approve(erc20Token.address, stake);
+        const prediction = true;
+        const soonestBlockToPredict = await erc20Token.soonestBlockToPredict((await ethers.provider.getBlockNumber())+1);
+        const blockNum = await ethers.provider.getBlockNumber();
+        const slot = await erc20Token.railBlocknumToSlot(soonestBlockToPredict);
+
+        await erc20Token.connect(user2).submitPredval(prediction, stake, soonestBlockToPredict);
+        const blocksPerEpoch = await erc20Token.blocksPerEpoch();
+
+        let mockErc20Balance = await mockErc20.balanceOf(user2.address)
+        let tx = await erc20Token.connect(user2).payout(soonestBlockToPredict, user2.address)
+        let txReceipt = await tx.wait();
+        let event = getEventFromTx(txReceipt, 'PredictionPayout')
+        //we are not getting anything, round is still in progress
+        assert(event==null, "PredictionPayout event found")
+        expect(await mockErc20.balanceOf(user2.address)).to.be.eq(mockErc20Balance);
+
+        Array(blocksPerEpoch * 2).fill(0).map(async _ => await ethers.provider.send("evm_mine"));
+
+        mockErc20Balance = await mockErc20.balanceOf(user2.address)
+        tx = await erc20Token.connect(user2).payout(soonestBlockToPredict, user2.address)
+        txReceipt = await tx.wait();
+        event = getEventFromTx(txReceipt, 'PredictionPayout')
+        //we are not getting anything, round is still in progress
+        assert(event==null, "PredictionPayout event found")
+        expect(await mockErc20.balanceOf(user2.address)).to.be.eq(mockErc20Balance);
+
+        Array(blocksPerEpoch ).fill(0).map(async _ => await ethers.provider.send("evm_mine"));
+        // opf cancels the round
+        tx = await erc20Token.connect(owner).submitTrueVal(soonestBlockToPredict, true,web3.utils.toWei("230.43"),true);
+        txReceipt = await tx.wait();
+        event = getEventFromTx(txReceipt, 'TruevalSubmitted')
+        assert(event, "TruevalSubmitted event not found")
+        assert(event.args.status==2, 'Status missmatch') // round status should be 2 == Status.Cancel
+        
+        tx = await erc20Token.connect(user2).payout(soonestBlockToPredict, user2.address);
+        txReceipt = await tx.wait();
+        event = getEventFromTx(txReceipt, 'Transfer')
+        expect(event.args.from).to.be.eq(erc20Token.address);
+        expect(event.args.to).to.be.eq(user2.address);
+        expect(event.args.value).to.be.eq(stake);
+        event = getEventFromTx(txReceipt, 'PredictionPayout')
+        assert(event, "PredictionPayout event not found")
+        assert(event.args.status==2, "Status should be 2 = Canceled")
+        expect(event.args.payout).to.be.eq(event.args.stake)
+        expect(event.args.payout).to.be.eq(stake)
+        await erc20Token.updateSeconds(sPerBlock, sPerSubscription, trueValueSubmitTimeout);
+    })
 });
