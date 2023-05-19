@@ -387,7 +387,7 @@ contract ERC20Template3 is
         require(addresses[2] != address(0),"FeeCollector cannot be zero");
         //force FRE allowedSwapper to this contract address. no one else can swap because we need to record the income
         if (uints[4] > 0) _addMinter(fixedPriceAddress);
-        addresses[1]=address(this); //make this contract FRE owner
+        // create the exchange
         exchangeId = IFactoryRouter(router).deployFixedRate(
             fixedPriceAddress,
             addresses,
@@ -1089,6 +1089,8 @@ contract ERC20Template3 is
 
     function pausePredictions() external onlyERC20Deployer {
         paused = !paused;
+        // we cannot pause FixedRate as well, so be aware when triggering this function
+        /* keeping code here until we decide
         if (fixedRateExchanges.length>0){
             IFixedRateExchange fre = IFixedRateExchange(fixedRateExchanges[0].contractAddress);
             bool freActive = fre.isActive(fixedRateExchanges[0].id);
@@ -1096,7 +1098,8 @@ contract ERC20Template3 is
                 fre.toggleExchangeState(fixedRateExchanges[0].id);
             }
         }
-        // TODO - pause FRE as well
+        */
+        
     }
 
     /**

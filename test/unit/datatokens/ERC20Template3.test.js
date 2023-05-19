@@ -108,14 +108,14 @@ describe("ERC20Template3", () => {
         publishMarketFeeAddress,
         mockErc20,
         mockErc20Decimals,
-        publishMarketFeeToken
+        publishMarketFeeToken,
+        freMarketFeeCollector
 
     cap = web3.utils.toWei("100000");
     const fakeUSDAmount = cap
     const addressZero = '0x0000000000000000000000000000000000000000';
     const freRate = web3.utils.toWei("2"); // 2 tokens per dt
     const freMarketFee = 1e15 // 0.1%
-    const freMarketFeeCollector = addressZero
         
         
     const communityFeeCollector = "0xeE9300b7961e0a01d9f0adb863C7A227A07AaD75";
@@ -153,7 +153,7 @@ describe("ERC20Template3", () => {
         const MockErc20 = await ethers.getContractFactory('MockERC20');
         const MockErc20Decimals = await ethers.getContractFactory('MockERC20Decimals');
 
-        [owner, reciever, user2, user3, user4, user5, user6, opcCollector, marketFeeCollector, publishMarketAccount] = await ethers.getSigners();
+        [owner, reciever, user2, user3, user4, user5, user6, opcCollector, freMarketFeeCollector, marketFeeCollector,publishMarketAccount] = await ethers.getSigners();
         publishMarketFeeAddress = publishMarketAccount.address
         data = web3.utils.asciiToHex(constants.blob[0]);
         flags = web3.utils.asciiToHex(constants.blob[0]);
@@ -254,13 +254,13 @@ describe("ERC20Template3", () => {
         await expectRevert(
             erc20Token.connect(owner).createFixedRate(
                 fixedRateExchange.address,
-                [mockErc20Decimals.address, owner.address, freMarketFeeCollector, addressZero],
+                [mockErc20Decimals.address, owner.address, freMarketFeeCollector.address, addressZero],
                 [18, 18, freRate , freMarketFee , 1]),
             "Cannot create FRE with baseToken!=stakeToken"
         );
         await erc20Token.connect(owner).createFixedRate(
             fixedRateExchange.address,
-            [mockErc20.address, owner.address, freMarketFeeCollector, addressZero],
+            [mockErc20.address, owner.address, freMarketFeeCollector.address, addressZero],
             [18, 18, freRate , freMarketFee, 1])
 
         // create an ERC20 with publish Fee ( 5 USDC, going to publishMarketAddress)
@@ -281,7 +281,7 @@ describe("ERC20Template3", () => {
 
         await erc20TokenWithPublishFee.connect(owner).createFixedRate(
             fixedRateExchange.address,
-            [mockErc20.address, owner.address, freMarketFeeCollector , addressZero],
+            [mockErc20.address, owner.address, freMarketFeeCollector.address , addressZero],
             [18, 18, freMarketFee, freMarketFee , 1])
 
         Array(100).fill(0).map(async _ => await ethers.provider.send("evm_mine"));
@@ -315,7 +315,7 @@ describe("ERC20Template3", () => {
         await expectRevert(
             erc20Token.connect(owner).createFixedRate(
                 fixedRateExchange.address,
-                [mockErc20Decimals.address, owner.address, freMarketFeeCollector , addressZero],
+                [mockErc20Decimals.address, owner.address, freMarketFeeCollector.address , addressZero],
                 [18, 18, freRate , freMarketFee , 1]
             ),
             "Fixed rate already present"
@@ -1006,18 +1006,20 @@ describe("ERC20Template3", () => {
 
     it("#submitTrueVal - should revert submitting for a future block", async () => {
         const soonestBlockToPredict = await erc20Token.soonestBlockToPredict((await ethers.provider.getBlockNumber())+1);
-        await expectRevert(erc20Token.submitTrueVal(soonestBlockToPredict, true), "too early to submit");
+        await expectRevert(erc20Token.submitTrueVal(soonestBlockToPredict, true,web3.utils.toWei("230.43"),false), "too early to submit");
     });
 
     it("#submitTrueVal - should submit for a block in the past", async () => {
         const blocksPerEpoch = await erc20Token.blocksPerEpoch();
         const soonestBlockToPredict = await erc20Token.soonestBlockToPredict((await ethers.provider.getBlockNumber()));
         const submissionBlock = soonestBlockToPredict - blocksPerEpoch * 2;
-        const tx = await erc20Token.submitTrueVal(submissionBlock, true);
+        const tx = await erc20Token.submitTrueVal(submissionBlock, true,web3.utils.toWei("230.43"),false);
         const tx_receipt = await tx.wait();
         const event = getEventFromTx(tx_receipt, "TruevalSubmitted");
         expect(event.args[0]).to.equal(submissionBlock);
         expect(event.args[1]).to.equal(true);
+        expect(event.args[2]).to.equal(web3.utils.toWei("230.43"));
+        expect(event.args[3]).to.equal(1);
 
         const trueValue = await erc20Token.trueValues(submissionBlock);
         expect(trueValue).to.be.true;
@@ -1313,7 +1315,7 @@ describe("ERC20Template3", () => {
         
 
         // opf submits truval
-        tx = await erc20Token.submitTrueVal(soonestBlockToPredict, predictedValue);
+        tx = await erc20Token.submitTrueVal(soonestBlockToPredict, predictedValue, web3.utils.toWei("230.43"), false);
         txReceipt = await tx.wait();
         event = getEventFromTx(txReceipt, 'TruevalSubmitted')
         assert(event, "TruevalSubmitted event not found")
@@ -1433,7 +1435,7 @@ describe("ERC20Template3", () => {
         expect(await mockErc20.balanceOf(user3.address)).to.be.eq(mockErc20Balance);
 
         // opf submits truval
-        tx = await erc20Token.submitTrueVal(soonestBlockToPredict, predictedValue);
+        tx = await erc20Token.submitTrueVal(soonestBlockToPredict, predictedValue, web3.utils.toWei("230.43"), false);
         txReceipt = await tx.wait();
         event = getEventFromTx(txReceipt, 'TruevalSubmitted')
         assert(event, "TruevalSubmitted event not found")
@@ -1497,7 +1499,7 @@ describe("ERC20Template3", () => {
         const winnersStake = winners.map(x=>stakes[x]).reduce((a,b)=>a+b, 0);
 
         // opf submits truval
-        await erc20Token.submitTrueVal(predictionBlock, truval);
+        await erc20Token.submitTrueVal(predictionBlock, truval, web3.utils.toWei("230.43"), false);
 
         // each predictoor calls payout function
         for (let i = 0; i < predictoors.length; i++){
@@ -1593,7 +1595,7 @@ describe("ERC20Template3", () => {
         const txReceipt_2 = await tx_2.wait();
         let event_2 = getEventFromTx(txReceipt_2, 'Transfer')
         expect(event_2.args.from).to.be.eq(erc20Token.address);
-        expect(event_2.args.to).to.be.eq(owner.address);
+        expect(event_2.args.to).to.be.eq(freMarketFeeCollector.address);
         expect(event_2.args.value).to.be.eq(6666666666666666);
     })
     it("#redeemUnusedSlotRevenue - admin should not be able to redeem for future epoch", async()=>{
