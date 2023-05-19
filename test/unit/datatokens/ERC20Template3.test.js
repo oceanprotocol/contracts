@@ -11,6 +11,7 @@ const { keccak256 } = require("@ethersproject/keccak256");
 const ethers = hre.ethers;
 const { ecsign, zeroAddress } = require("ethereumjs-util");
 const { ZERO_ADDRESS } = require("@openzeppelin/test-helpers/src/constants");
+const { BigNumber } = require("ethers");
 
 
 const getDomainSeparator = (name, tokenAddress, chainId) => {
@@ -1499,8 +1500,13 @@ describe("ERC20Template3", () => {
         const winnersStake = winners.map(x=>stakes[x]).reduce((a,b)=>a+b, 0);
 
         // opf submits truval
-        await erc20Token.submitTrueVal(predictionBlock, truval, web3.utils.toWei("230.43"), false);
-
+        tx = await erc20Token.submitTrueVal(predictionBlock, truval, web3.utils.toWei("230.43"), false);
+        txReceipt = await tx.wait();
+        event = getEventFromTx(txReceipt, 'Transfer')
+        if(winners.length>0)
+            assert(event==null, "We should not have any transfer event, winners are present")
+        else
+            assert(event, "We should have a transfer event, because everyone was slashed")
         // each predictoor calls payout function
         for (let i = 0; i < predictoors.length; i++){
             let predictoor = predictoors[i];
@@ -1706,4 +1712,53 @@ describe("ERC20Template3", () => {
         expect(event.args.payout).to.be.eq(stake)
         await erc20Token.updateSeconds(sPerBlock, sPerSubscription, trueValueSubmitTimeout);
     })
+
+    it("all predictoors are slashed, feeCollector gets the stakes", async () => {
+        // predictoor makes a predictions
+        let predictoors = [reciever, user2, user3, user4, user5, user6];
+        let predictions = [];
+        let stakes = [];
+        let tx,txReceipt, event
+        for(const predictoor of predictoors){
+            const amt = web3.utils.toWei("200");
+            await mockErc20.transfer(predictoor.address, amt);
+            await mockErc20.connect(predictoor).approve(erc20Token.address, amt);
+        }
+        
+        const blocksPerEpoch = await erc20Token.blocksPerEpoch();
+        const currentBlock = await ethers.provider.getBlockNumber();
+        const soonestBlockToPredict = await erc20Token.soonestBlockToPredict((await ethers.provider.getBlockNumber())+1);
+        Array(soonestBlockToPredict - currentBlock + 1).fill(0).map(async _ => await ethers.provider.send("evm_mine"));
+        const predictionBlock = await erc20Token.soonestBlockToPredict((await ethers.provider.getBlockNumber())+1);
+        let totalStake = new BigNumber.from(0)
+        for(const predictoor of predictoors){
+            const stake = 10 + Math.random() * 100;
+            const stakeWei = web3.utils.toWei(stake.toString());
+            //all predictoors are predicting False
+            const p = false
+            predictions.push(p);
+            stakes.push(stake);
+            totalStake=totalStake.add(stakeWei)
+            await erc20Token.connect(predictoor).submitPredval(p, stakeWei, predictionBlock)
+        }
+        
+        Array(blocksPerEpoch * 2).fill(0).map(async _ => await ethers.provider.send("evm_mine"));
+        const truval = true //
+        // opf submits truval
+        tx = await erc20Token.submitTrueVal(predictionBlock, truval, web3.utils.toWei("230.43"), false);
+        txReceipt = await tx.wait();
+        event = getEventFromTx(txReceipt, 'Transfer')
+        expect(event.args.from).to.be.eq(erc20Token.address);
+        expect(event.args.to).to.be.eq(freMarketFeeCollector.address);
+        expect(event.args.value).to.be.eq(totalStake);
+        // each predictoor calls payout function, they should get nothing
+        for (let i = 0; i < predictoors.length; i++){
+            let predictoor = predictoors[i];
+            tx = await erc20Token.connect(predictoor).payout(predictionBlock, predictoor.address);
+            txReceipt = await tx.wait();
+            event = getEventFromTx(txReceipt, 'PredictionPayout')
+            assert(event, "PredictionPayout event not found")
+            expect(event.args.payout).to.be.eq(0)
+        }
+    });
 });
