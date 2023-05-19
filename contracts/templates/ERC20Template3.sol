@@ -1109,7 +1109,6 @@ contract ERC20Template3 is
         uint256 floatValue,
         bool cancelRound
     ) external onlyERC20Deployer {
-        // TODO, is onlyERC20Deployer the right modifier?
         require(blocknum < block.number, "too early to submit");
         uint256 slot = railBlocknumToSlot(blocknum);
         require(epochStatus[slot]==Status.Pending, "already settled");
