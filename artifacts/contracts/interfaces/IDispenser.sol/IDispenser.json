@@ -92,7 +92,7 @@
       ],
       "name": "dispense",
       "outputs": [],
-      "stateMutability": "nonpayable",
+      "stateMutability": "payable",
       "type": "function"
     },
     {
@@ -178,6 +178,11 @@
           "internalType": "uint256",
           "name": "balance",
           "type": "uint256"
+        },
+        {
+          "internalType": "address",
+          "name": "allowedSwapper",
+          "type": "address"
         }
       ],
       "stateMutability": "view",

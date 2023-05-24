@@ -4,6 +4,7 @@ require("hardhat-gas-reporter");
 require('solidity-coverage');
 require("@nomiclabs/hardhat-etherscan");
 require("@nomiclabs/hardhat-vyper");
+require('solidity-docgen')
 // This is a sample Hardhat task. To learn how to create your own go to
 // https://hardhat.org/guides/create-task.html
 task("accounts", "Prints the list of accounts", async () => {
@@ -41,11 +42,11 @@ module.exports = {
   },
   networks: {
     hardhat: {
-      allowUnlimitedContractSize: true,
-      forking: {
-        url: process.env.ALCHEMY_URL,
-        blockNumber: 12545000,
-      },
+      //allowUnlimitedContractSize: true,
+      //forking: {
+      //  url: process.env.ALCHEMY_URL,
+      //  blockNumber: 12545000,
+      //},
       gasPrice:1000000000
     },
     mainnet: {
@@ -170,5 +171,8 @@ module.exports = {
     currency: 'USD',
     gasPrice: 60,
     coinmarketcap: process.env.COINMARKETCAP_API_KEY,
-  }
+  },
+  docgen: {
+    pages: 'files'
+  },
 };

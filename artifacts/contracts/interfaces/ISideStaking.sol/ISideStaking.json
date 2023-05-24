@@ -119,6 +119,25 @@
           "type": "address"
         }
       ],
+      "name": "getBaseTokenBalance",
+      "outputs": [
+        {
+          "internalType": "uint256",
+          "name": "",
+          "type": "uint256"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "address",
+          "name": "datatokenAddress",
+          "type": "address"
+        }
+      ],
       "name": "getDatatokenBalance",
       "outputs": [
         {
@@ -195,25 +214,6 @@
           "internalType": "address",
           "name": "",
           "type": "address"
-        }
-      ],
-      "stateMutability": "view",
-      "type": "function"
-    },
-    {
-      "inputs": [
-        {
-          "internalType": "address",
-          "name": "datatokenAddress",
-          "type": "address"
-        }
-      ],
-      "name": "getbBaseTokenBalance",
-      "outputs": [
-        {
-          "internalType": "uint256",
-          "name": "",
-          "type": "uint256"
         }
       ],
       "stateMutability": "view",
@@ -331,19 +331,6 @@
           "type": "bool"
         }
       ],
-      "stateMutability": "nonpayable",
-      "type": "function"
-    },
-    {
-      "inputs": [
-        {
-          "internalType": "address",
-          "name": "datatokenAddress",
-          "type": "address"
-        }
-      ],
-      "name": "notifyFinalize",
-      "outputs": [],
       "stateMutability": "nonpayable",
       "type": "function"
     }

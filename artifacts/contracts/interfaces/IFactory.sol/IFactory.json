@@ -6,19 +6,6 @@
     {
       "inputs": [
         {
-          "internalType": "address",
-          "name": "ERC721address",
-          "type": "address"
-        }
-      ],
-      "name": "addToERC721Registry",
-      "outputs": [],
-      "stateMutability": "nonpayable",
-      "type": "function"
-    },
-    {
-      "inputs": [
-        {
           "components": [
             {
               "internalType": "string",
@@ -529,63 +516,6 @@
         }
       ],
       "stateMutability": "nonpayable",
-      "type": "function"
-    },
-    {
-      "inputs": [
-        {
-          "internalType": "string",
-          "name": "_name",
-          "type": "string"
-        },
-        {
-          "internalType": "string",
-          "name": "_symbol",
-          "type": "string"
-        },
-        {
-          "internalType": "address",
-          "name": "_minter",
-          "type": "address"
-        },
-        {
-          "internalType": "uint256",
-          "name": "_cap",
-          "type": "uint256"
-        },
-        {
-          "internalType": "string",
-          "name": "blob",
-          "type": "string"
-        },
-        {
-          "internalType": "address",
-          "name": "collector",
-          "type": "address"
-        }
-      ],
-      "name": "initialize",
-      "outputs": [
-        {
-          "internalType": "bool",
-          "name": "",
-          "type": "bool"
-        }
-      ],
-      "stateMutability": "nonpayable",
-      "type": "function"
-    },
-    {
-      "inputs": [],
-      "name": "isInitialized",
-      "outputs": [
-        {
-          "internalType": "bool",
-          "name": "",
-          "type": "bool"
-        }
-      ],
-      "stateMutability": "view",
       "type": "function"
     }
   ],
