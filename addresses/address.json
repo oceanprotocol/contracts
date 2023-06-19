@@ -221,6 +221,7 @@
   "gen-x-testnet": {
     "chainId": 100,
     "OceanToken": "0x0995527d3473b3a98c471f1ed8787acd77fbf009",
+    "Ocean": "0x0995527d3473b3a98c471f1ed8787acd77fbf009",
     "startBlock": 3665369,
     "CommunityFeeCollector": "0x2e0C9e15A45c9884F7768BB852E7399B9153525d",
     "Router": "0x7A3C9F0729AB93e4F9945221168A56eCf450187D",
