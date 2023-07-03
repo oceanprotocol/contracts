@@ -1833,4 +1833,35 @@ describe("ERC20Template3", () => {
             expect(event.args.payout).to.be.eq(0)
         }
     });
+
+    it("owner can withdraw ETH sent to contract by mistake", async () => {
+        const balance = await provider.getBalance(owner.address);
+        const contractBalance = await provider.getBalance(erc20Token.address)
+        tx = {
+            to: erc20Token.address,
+            value: ethers.utils.parseEther('2', 'ether')
+        };
+        const transaction = await owner.sendTransaction(tx);
+        // reclaim eth
+        await erc20Token.connect(user2).withdrawETH()
+        const balanceAfter = await provider.getBalance(owner.address);
+        const contractBalanceAfter = await provider.getBalance(erc20Token.address)
+        assert(balance.eq(balanceAfter), "Owner eth balance missmatch")
+        assert(contractBalance.eq(contractBalanceAfter), "Owner eth balance missmatch")
+    });
+    it("isERC20Deployer works as expected", async () => {
+        const isDeployer = await erc20Token.connect(user2).isERC20Deployer(owner.address)
+        assert(isDeployer, "isERC20Deployer failed")
+    });
+    it("getDispensers should be empty", async () => {
+        const dispensers = await erc20Token.connect(user2).getDispensers()
+        assert(dispensers.length === 0, "getDispenser should be empty")
+    });
+    it("getters should work as expected", async () => {
+        assert((await erc20Token.connect(user2).name())==="ERC20DT3", 'name() failed')
+        assert((await erc20Token.connect(user2).symbol())==="ERC20DT3Symbol", 'symbol() failed')
+        assert((await erc20Token.connect(user2).decimals())===18, 'decimals() failed')
+        assert((await erc20Token.connect(user2).getERC721Address()===tokenERC721.address, 'getERC721Address() failed'))
+    });
+
 });
