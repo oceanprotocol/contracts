@@ -1026,7 +1026,7 @@ describe("ERC20Template3", () => {
         expect(trueValue).to.be.true;
     });
 
-    it("#subscriptions - user2 must be subscribed", async () => {
+    it("#subscriptions - user2 must be subscribe by buying dt from fre", async () => {
         //MINT SOME DT20 to USER2 so he can start order
         await buyDTFromFixedRate(erc20Token.address,user2.address,10)
         assert(
@@ -1148,7 +1148,79 @@ describe("ERC20Template3", () => {
         await erc20Token.updateSeconds(sPerBlock, sPerSubscription, trueValueSubmitTimeout);
     });
 
+    it("#subscriptions - user3 must be able to subscribe by calling buyFromFreAndOrder", async () => {
+        const fixedRates = await erc20Token.connect(owner).getFixedRates()
+        fixedRateExchange = await ethers.getContractAt("FixedRateExchange", fixedRates[0].contractAddress);
+        fixedRateId=fixedRates[0].id
+         //get details
+        const details=await fixedRateExchange.connect(owner).getExchange(fixedRateId)
+        const needed=await fixedRateExchange.connect(owner).calcBaseInGivenOutDT(fixedRateId,web3.utils.toWei("1"),0);
+        erc20Contract = await ethers.getContractAt("MockERC20",details.baseToken)
+        await erc20Contract
+            .connect(owner)
+            .transfer(user2.address, needed.baseTokenAmount);
+        await erc20Contract.connect(user2).approve(erc20Token.address,needed.baseTokenAmount)
+        const consumer = user2.address; // could be different user
+        const serviceIndex = 1; // dummy index
+        const providerFeeAddress = user5.address; // marketplace fee Collector
+        const providerFeeAmount = 0; // fee to be collected on top, requires approval
+        const providerFeeToken = mockErc20.address; // token address for the feeAmount,
+        const consumeMarketFeeAddress = user5.address; // marketplace fee Collector
+        const consumeMarketFeeAmount = 0; // fee to be collected on top, requires approval
+        const consumeMarketFeeToken = mockErc20.address; // token address for the feeAmount,
+        const providerValidUntil = 0;
+        //sign provider data
+        const providerData = JSON.stringify({ "timeout": 0 })
+        const message = ethers.utils.solidityKeccak256(
+            ["bytes", "address", "address", "uint256", "uint256"],
+            [
+                ethers.utils.hexlify(ethers.utils.toUtf8Bytes(providerData)),
+                providerFeeAddress,
+                providerFeeToken,
+                providerFeeAmount,
+                providerValidUntil
+            ]
+        );
+        const signedMessage = await signMessage(message, providerFeeAddress);
+        tx = await erc20Token
+            .connect(user2).buyFromFreAndOrder(
+            {
+              "consumer": user2.address,
+              "amount": web3.utils.toWei("1"),
+              "serviceIndex": 1,
+              "_providerFee": {
+                providerFeeAddress: providerFeeAddress,
+                providerFeeToken:providerFeeToken,
+                providerFeeAmount:providerFeeAmount,
+                v:signedMessage.v,
+                r:signedMessage.r,
+                s:signedMessage.s,
+                providerData:ethers.utils.hexlify(ethers.utils.toUtf8Bytes(providerData)),
+                validUntil:providerValidUntil
+              },
+              "_consumeMarketFee":  {
+                consumeMarketFeeAddress: consumeMarketFeeAddress,
+                consumeMarketFeeToken: consumeMarketFeeToken,
+                consumeMarketFeeAmount: consumeMarketFeeAmount,
+              }
+            },
+            {
+              "exchangeContract": fixedRateExchange.address,
+              "exchangeId": fixedRateId,
+              "maxBaseTokenAmount": needed.baseTokenAmount,
+              "swapMarketFee":0,
+              "marketFeeAddress":user5.address
+            }
+          )
+        const subscription = await erc20Token.subscriptions(user2.address);
+        // check if subscription is valid
+        const currentBlock = await ethers.provider.getBlockNumber();
+        expect(subscription.expires).to.be.gt(currentBlock);
+        expect(subscription.user).to.be.eq(user2.address);
 
+        const valid = await erc20Token.isValidSubscription(user2.address);
+        expect(valid).to.be.true; 
+    });
     // can read getAggPredval with a valid subscription
     it("#getAggPredval - should return agg_predictedValue if caller has a valid subscription", async () => {
         //MINT SOME DT20 to USER2 so he can start order
@@ -1383,7 +1455,7 @@ describe("ERC20Template3", () => {
             ]
         );
         const signedMessage = await signMessage(message, providerFeeAddress);
-        let soonestBlockToPredict = await erc20Token.soonestBlockToPredict((await ethers.provider.getBlockNumber())+2);//because we also have startOrder
+        let soonestBlockToPredict = await erc20Token.soonestBlockToPredict((await ethers.provider.getBlockNumber())+4);//because we also have startOrder
         let revenue_at_block = await erc20Token.connect(user2).getSubscriptionRevenueAtBlock(soonestBlockToPredict)
         expect(revenue_at_block).to.be.eq(0);
 
