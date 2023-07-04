@@ -72,12 +72,6 @@ module.exports = {
       accounts:
         process.env.PRIVATE_KEY !== undefined ? [process.env.PRIVATE_KEY] : [],
     },
-    sepolia: {
-      url:
-        process.env.NETWORK_RPC_URL !== undefined ? process.env.NETWORK_RPC_URL : "",
-      accounts:
-        process.env.PRIVATE_KEY !== undefined ? [process.env.PRIVATE_KEY] : [],
-    },
     mumbai: {
       url:
         process.env.NETWORK_RPC_URL !== undefined ? process.env.NETWORK_RPC_URL : "",
@@ -153,7 +147,9 @@ module.exports = {
 
   },
   etherscan: {
-    apiKey: process.env.ETHERSCAN_API_KEY,
+    apiKey: {
+      oasis_saphire_testnet: process.env.ETHERSCAN_API_KEY
+    },
     customChains: [
     {
       network: "alfajores",
@@ -169,6 +165,14 @@ module.exports = {
       urls: { 
           apiURL: "https://api.celoscan.io/api",
           browserURL: "https://celoscan.io/",
+      },
+    },
+    {
+      network: "oasis_saphire_testnet",
+      chainId: 23295,
+      urls: { 
+          apiURL: "https://testnet.explorer.sapphire.oasis.dev/api",
+          browserURL: "https://testnet.explorer.sapphire.oasis.dev/",
       },
     }
     ] 

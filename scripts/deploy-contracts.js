@@ -63,8 +63,6 @@ async function main() {
   let sleepAmount = 10;
   let additionalApprovedTokens = []
   console.log("Using chain " + networkDetails.chainId);
-  const nonce=await provider.getTransactionCount(owner.address)
-  console.log("Nonce of "+owner.address+": "+nonce)
   switch (networkDetails.chainId) {
     case 1:
       networkName = "mainnet";
@@ -112,18 +110,6 @@ async function main() {
       shouldDeployV4 = false;
       shouldDeployDF = true;
       shouldDeployVE = true;
-      break;
-    case 0xaa36a7:
-      networkName = "sepolia";
-      OPFOwner = '0xC7EC1970B09224B317c52d92f37F5e1E4fF6B687'
-      routerOwner = OPFOwner;
-      sleepAmount = 10
-      shouldDeployOceanToken = true;
-      shouldDeployV4 = true;
-      shouldDeployDF = false;
-      shouldDeployVE = false;
-      gasPrice = ethers.utils.parseUnits('1', 'gwei')
-      gasLimit = 20000000
       break;
     case 0x89:
       networkName = "polygon";
@@ -228,8 +214,8 @@ async function main() {
       shouldDeployV4 = true;
       shouldDeployDF = false;
       shouldDeployVE = false;
-      gasPrice = null 
-      gasLimit = null
+      gasPrice = ethers.utils.parseUnits('100', 'gwei')
+      gasLimit = 28000000
       break;
     case 44787:
       networkName = "alfajores";
