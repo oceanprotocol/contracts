@@ -1009,7 +1009,7 @@ describe("ERC20Template3", () => {
         const predictedValue = true;
         const stake = 100;
         await mockErc20.approve(erc20Token.address, stake * 2);
-        const soonestBlockToPredict = await erc20Token.soonestBlockToPredict((await ethers.provider.getBlockNumber())+1);
+        const soonestBlockToPredict = await erc20Token.soonestBlockToPredict((await ethers.provider.getBlockNumber())+3);
 
         await erc20Token.submitPredval(predictedValue, stake, soonestBlockToPredict);
 
