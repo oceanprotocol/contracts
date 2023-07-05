@@ -87,6 +87,24 @@ async function signMessage(message, address) {
     */
 }
 
+async function authorize(address,validity=86400){
+    const validUntil=Math.round(Date.now() / 1000) + validity
+    const message = ethers.utils.solidityKeccak256(
+        ["address", "uint256"],
+        [
+          address,
+          validUntil
+        ]
+      );
+      const signedMessage = await signMessage(message, address);
+      return {
+        userAddress: address,
+        v: signedMessage.v,
+        r: signedMessage.r,
+        s: signedMessage.s,
+        validUntil:validUntil
+      }
+}
 
 describe("ERC20Template3", () => {
     let name,
@@ -887,17 +905,40 @@ describe("ERC20Template3", () => {
         const blockNumber = await ethers.provider.getBlockNumber()
         const blocksPerEpoch = (await erc20Token.blocksPerEpoch())
         const railed = parseInt(blockNumber / blocksPerEpoch) * blocksPerEpoch
+        const userAuth = await authorize(owner.address)
         await expectRevert(
-            erc20Token.getAggPredval(railed),
+            erc20Token.getAggPredval(railed,userAuth),
             "No subscription"
+        );
+    });
+    it("#getAggPredval - invalid signature, should revert", async () => {
+        const blockNumber = await ethers.provider.getBlockNumber()
+        const blocksPerEpoch = (await erc20Token.blocksPerEpoch())
+        const railed = parseInt(blockNumber / blocksPerEpoch) * blocksPerEpoch
+        const userAuth = await authorize(owner.address)
+        userAuth.userAddress=user2.address
+        await expectRevert(
+            erc20Token.getAggPredval(railed,userAuth),
+            "Invalid auth"
+        );
+    });
+    it("#getAggPredval - expired signature, should revert", async () => {
+        const blockNumber = await ethers.provider.getBlockNumber()
+        const blocksPerEpoch = (await erc20Token.blocksPerEpoch())
+        const railed = parseInt(blockNumber / blocksPerEpoch) * blocksPerEpoch
+        const userAuth = await authorize(owner.address,100)
+        await expectRevert(
+            erc20Token.getAggPredval(railed,userAuth),
+            "Expired"
         );
     });
     it("#getAggPredval - without subscription, should revert", async () => {
         const blockNumber = await ethers.provider.getBlockNumber()
         const blocksPerEpoch = (await erc20Token.blocksPerEpoch())
         const railed = parseInt(blockNumber / blocksPerEpoch) * blocksPerEpoch
+        const userAuth = await authorize(owner.address)
         await expectRevert(
-            erc20Token.getAggPredval(railed),
+            erc20Token.getAggPredval(railed,userAuth),
             "No subscription"
         );
     });
@@ -922,14 +963,16 @@ describe("ERC20Template3", () => {
         expect(event.args[2]).to.equal(stake);
     });
     it("#submitPredval - predictoor can read their submitted predictedValue", async () => {
+        const userAuth = await authorize(owner.address)
+        
         const predictedValue = true;
         const stake = 100;
         tx = await mockErc20.approve(erc20Token.address, stake);
         await tx.wait()
         const soonestBlockToPredict = await erc20Token.soonestBlockToPredict((await ethers.provider.getBlockNumber())+1);
-        await erc20Token.submitPredval(predictedValue, stake, soonestBlockToPredict);
-        const prediction = await erc20Token.getPrediction(soonestBlockToPredict, owner.address);
-
+        tx = await erc20Token.submitPredval(predictedValue, stake, soonestBlockToPredict);
+        await tx.wait()
+        const prediction = await erc20Token.getPrediction(soonestBlockToPredict,owner.address,userAuth);
         expect(prediction.predictedValue).to.be.eq(predictedValue);
         expect(prediction.stake).to.be.eq(stake);
         expect(prediction.predictoor).to.be.eq(owner.address);
@@ -942,11 +985,12 @@ describe("ERC20Template3", () => {
         await tx.wait()
         const soonestBlockToPredict = await erc20Token.soonestBlockToPredict((await ethers.provider.getBlockNumber())+1);
         await erc20Token.submitPredval(predictedValue, stake, soonestBlockToPredict);
-        await expectRevert(erc20Token.connect(user2).getPrediction(soonestBlockToPredict, owner.address), "you shall not pass");
+        let userAuth = await authorize(user2.address)
+        await expectRevert(erc20Token.connect(user2).getPrediction(soonestBlockToPredict,owner.address,userAuth), "Not auth");
         // fast forward blocks until next epoch
         Array(30).fill(0).map(async _ => await ethers.provider.send("evm_mine"));
         // user2 should be able to read the predictedValue now
-        const prediction = await erc20Token.connect(user2).getPrediction(soonestBlockToPredict, owner.address);
+        const prediction = await erc20Token.connect(user2).getPrediction(soonestBlockToPredict, owner.address,userAuth);
         expect(prediction.predictedValue).to.be.eq(predictedValue);
     });
     it("#submitPredval - should revert when predictoor submits too early", async () => {
@@ -1274,7 +1318,8 @@ describe("ERC20Template3", () => {
 
 
         let soonestBlockToPredict = await erc20Token.soonestBlockToPredict((await ethers.provider.getBlockNumber())+3);
-        const [numer, denom] = await erc20Token.connect(user2).getAggPredval(soonestBlockToPredict);
+        const userAuth = await authorize(user2.address)
+        const [numer, denom] = await erc20Token.connect(user2).getAggPredval(soonestBlockToPredict,userAuth);
         expect(numer).to.be.eq(0);
         expect(denom).to.be.eq(0);
 
@@ -1285,7 +1330,7 @@ describe("ERC20Template3", () => {
         await mockErc20.connect(user3).approve(erc20Token.address, stake);
         await erc20Token.connect(user3).submitPredval(predictedValue, stake, soonestBlockToPredict);
 
-        const [numer2, denom2] = await erc20Token.connect(user2).getAggPredval(soonestBlockToPredict);
+        const [numer2, denom2] = await erc20Token.connect(user2).getAggPredval(soonestBlockToPredict,userAuth);
         expect(numer2).to.be.eq(web3.utils.toWei("1"));
         expect(denom2).to.be.eq(web3.utils.toWei("1"));
 

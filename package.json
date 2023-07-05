@@ -31,7 +31,7 @@
     "test:erc721": "npx hardhat test test/unit/datatokens/ERC721Template.test.js",
     "test:erc20": "npx hardhat test test/unit/datatokens/ERC20Template.test.js",
     "test:enterprise": "npx hardhat test test/unit/datatokens/ERC20TemplateEnterprise.test.js",
-    "test:predictoor": "npx hardhat test test/unit/datatokens/ERC20TemplatePredictoor.test.js",
+    "test:template3": "npx hardhat test test/unit/datatokens/ERC20Template3.test.js",
     "test:factory": "npx hardhat test test/unit/factories/ERC721Factory.test.js",
     "test:router": "npx hardhat test test/unit/pools/FactoryRouter.test.js",
     "test:flow": "npx hardhat test test/flow/*.test.js ",

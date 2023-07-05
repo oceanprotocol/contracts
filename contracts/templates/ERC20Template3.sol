@@ -951,10 +951,19 @@ contract ERC20Template3 is
         return predictions[slot][predictoor].predictoor != address(0);
     }
 
+    struct userAuth{
+        address userAddress;
+        uint8 v; // v of provider signed message
+        bytes32 r; // r of provider signed message
+        bytes32 s; // s of provider signed message
+        uint256 validUntil; 
+    }
     function getAggPredval(
-        uint256 blocknum
+        uint256 blocknum,
+        userAuth calldata _userAuth
     ) public view returns (uint256, uint256) {
-        require(isValidSubscription(msg.sender), "No subscription");
+        _checkUserAuthorization(_userAuth);
+        require(isValidSubscription(_userAuth.userAddress), "No subscription");
         uint256 slot = railBlocknumToSlot(blocknum);
         return (roundSumStakesUp[slot], roundSumStakes[slot]);
     }
@@ -968,14 +977,16 @@ contract ERC20Template3 is
 
     function getPrediction(
         uint256 blocknum,
-        address predictoor
+        address predictoor,
+        userAuth calldata _userAuth
     )
         public
         view
         returns (Prediction memory prediction)
     {
         //allow predictoors to see their own submissions
-        require(msg.sender == predictoor || blocknum < block.number, "you shall not pass");
+        _checkUserAuthorization(_userAuth);
+        require(predictoor == _userAuth.userAddress || blocknum < block.number, "Not auth");
         uint256 slot = railBlocknumToSlot(blocknum);
         prediction = predictions[slot][predictoor];
     }
@@ -1184,5 +1195,22 @@ contract ERC20Template3 is
             }
             emit RevenueAdded(amount,slot,amt_per_epoch,num_epochs,blocksPerEpoch);
         }
+    }
+
+    function _checkUserAuthorization(userAuth calldata _userAuth) internal view{
+        bytes memory prefix = "\x19Ethereum Signed Message:\n32";
+        bytes32 message = keccak256(
+            abi.encodePacked(prefix,
+                keccak256(
+                    abi.encodePacked(
+                        _userAuth.userAddress,
+                        _userAuth.validUntil
+                    )
+                )
+            )
+        );
+        address signer = ecrecover(message, _userAuth.v, _userAuth.r, _userAuth.s);
+        require(signer == _userAuth.userAddress, "Invalid auth");
+        require(_userAuth.validUntil > block.timestamp,'Expired');
     }
 }
