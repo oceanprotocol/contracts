@@ -987,8 +987,10 @@ contract ERC20Template3 is
         returns (Prediction memory prediction)
     {
         //allow predictoors to see their own submissions
-        _checkUserAuthorization(_userAuth);
-        require(predictoor == _userAuth.userAddress || blocknum < block.number, "Not auth");
+        if ( blocknum >=block.number){
+            _checkUserAuthorization(_userAuth);
+            require(predictoor == _userAuth.userAddress, "Not auth");
+        }
         uint256 slot = railBlocknumToSlot(blocknum);
         prediction = predictions[slot][predictoor];
     }
