@@ -87,6 +87,24 @@ async function signMessage(message, address) {
     */
 }
 
+async function authorize(address,validity=86400){
+    const validUntil=Math.round(Date.now() / 1000) + validity
+    const message = ethers.utils.solidityKeccak256(
+        ["address", "uint256"],
+        [
+          address,
+          validUntil
+        ]
+      );
+      const signedMessage = await signMessage(message, address);
+      return {
+        userAddress: address,
+        v: signedMessage.v,
+        r: signedMessage.r,
+        s: signedMessage.s,
+        validUntil:validUntil
+      }
+}
 
 describe("ERC20Template3", () => {
     let name,
@@ -377,12 +395,18 @@ describe("ERC20Template3", () => {
     });
 
     it("#startOrder - user should succeed to call startOrder on a ERC20 without publishFee", async () => {
+        const fixedRates = await erc20Token.connect(owner).getFixedRates()
+        fixedRateExchange = await ethers.getContractAt("FixedRateExchange", fixedRates[0].contractAddress);
+        fixedRateId=fixedRates[0].id
+         //get details
+        const details=await fixedRateExchange.connect(owner).getExchange(fixedRateId)
+        const needed=await fixedRateExchange.connect(owner).calcBaseInGivenOutDT(fixedRateId,web3.utils.toWei("1"),0);
+        erc20Contract = await ethers.getContractAt("MockERC20",details.baseToken)
+        await erc20Contract
+            .connect(owner)
+            .transfer(user2.address, needed.baseTokenAmount);
+        await erc20Contract.connect(user2).approve(erc20Token.address,needed.baseTokenAmount)
 
-        //MINT SOME DT20 to USER2 so he can start order
-        await buyDTFromFixedRate(erc20Token.address,user2.address,10)
-        assert(
-            (await erc20Token.balanceOf(user2.address)) == web3.utils.toWei("10")
-        );
         const consumer = user2.address; // could be different user
         const dtAmount = web3.utils.toWei("1");
         const serviceIndex = 1; // dummy index
@@ -393,6 +417,7 @@ describe("ERC20Template3", () => {
         const consumeMarketFeeAmount = 0; // fee to be collected on top, requires approval
         const consumeMarketFeeToken = mockErc20.address; // token address for the feeAmount,
         const providerValidUntil = 0;
+
         //sign provider data
         const providerData = JSON.stringify({ "timeout": 0 })
         const message = ethers.utils.solidityKeccak256(
@@ -407,26 +432,35 @@ describe("ERC20Template3", () => {
         );
         const signedMessage = await signMessage(message, providerFeeAddress);
         const tx = await erc20Token
-            .connect(user2)
-            .startOrder(
-                consumer,
-                serviceIndex,
-                {
-                    providerFeeAddress: providerFeeAddress,
-                    providerFeeToken: providerFeeToken,
-                    providerFeeAmount: providerFeeAmount,
-                    v: signedMessage.v,
-                    r: signedMessage.r,
-                    s: signedMessage.s,
-                    providerData: ethers.utils.hexlify(ethers.utils.toUtf8Bytes(providerData)),
-                    validUntil: providerValidUntil
-                },
-                {
-                    consumeMarketFeeAddress: consumeMarketFeeAddress,
-                    consumeMarketFeeToken: consumeMarketFeeToken,
-                    consumeMarketFeeAmount: consumeMarketFeeAmount,
-                }
-            );
+        .connect(user2).buyFromFreAndOrder(
+        {
+          "consumer": user2.address,
+          "amount": web3.utils.toWei("1"),
+          "serviceIndex": 1,
+          "_providerFee": {
+            providerFeeAddress: providerFeeAddress,
+            providerFeeToken:providerFeeToken,
+            providerFeeAmount:providerFeeAmount,
+            v:signedMessage.v,
+            r:signedMessage.r,
+            s:signedMessage.s,
+            providerData:ethers.utils.hexlify(ethers.utils.toUtf8Bytes(providerData)),
+            validUntil:providerValidUntil
+          },
+          "_consumeMarketFee":  {
+            consumeMarketFeeAddress: consumeMarketFeeAddress,
+            consumeMarketFeeToken: consumeMarketFeeToken,
+            consumeMarketFeeAmount: consumeMarketFeeAmount,
+          }
+        },
+        {
+          "exchangeContract": fixedRateExchange.address,
+          "exchangeId": fixedRateId,
+          "maxBaseTokenAmount": needed.baseTokenAmount,
+          "swapMarketFee":0,
+          "marketFeeAddress":user5.address
+        }
+      )
         const txReceipt = await tx.wait();
         let event = getEventFromTx(txReceipt, 'OrderStarted')
         assert(event, "Cannot find OrderStarted event")
@@ -441,7 +475,7 @@ describe("ERC20Template3", () => {
         assert(event, "Cannot find RevenueAdded event")
 
         assert(
-            (await erc20Token.balanceOf(user2.address)) == web3.utils.toWei("9"), 'Invalid user balance, DT was not substracted'
+            (await erc20Token.balanceOf(user2.address)) == web3.utils.toWei("0"), 'Invalid user balance, DT was not substracted'
         );
 
         assert(
@@ -460,11 +494,18 @@ describe("ERC20Template3", () => {
 
     it("#startOrder - user should succeed to call startOrder on a ERC20 without publishFee and provider Fee", async () => {
 
-        //MINT SOME DT20 to USER2 so he can start order
-        await buyDTFromFixedRate(erc20Token.address,user2.address,10)
-        assert(
-            (await erc20Token.balanceOf(user2.address)) == web3.utils.toWei("10")
-        );
+        const fixedRates = await erc20Token.connect(owner).getFixedRates()
+        fixedRateExchange = await ethers.getContractAt("FixedRateExchange", fixedRates[0].contractAddress);
+        fixedRateId=fixedRates[0].id
+         //get details
+        const details=await fixedRateExchange.connect(owner).getExchange(fixedRateId)
+        const needed=await fixedRateExchange.connect(owner).calcBaseInGivenOutDT(fixedRateId,web3.utils.toWei("1"),0);
+        erc20Contract = await ethers.getContractAt("MockERC20",details.baseToken)
+        await erc20Contract
+            .connect(owner)
+            .transfer(user2.address, needed.baseTokenAmount);
+        await erc20Contract.connect(user2).increaseAllowance(erc20Token.address,needed.baseTokenAmount)
+       
         const consumer = user2.address; // could be different user
         const dtAmount = web3.utils.toWei("1");
         const serviceIndex = 1; // dummy index
@@ -478,7 +519,7 @@ describe("ERC20Template3", () => {
 
         // GET SOME consumeFeeToken
         const Mock20Contract = await ethers.getContractAt(
-            "contracts/interfaces/IERC20.sol:IERC20",
+            "MockERC20",
             mockErc20.address
         );
         await Mock20Contract
@@ -489,7 +530,7 @@ describe("ERC20Template3", () => {
 
         await Mock20Contract
             .connect(user2)
-            .approve(erc20Token.address, web3.utils.toWei(providerFeeAmount));
+            .increaseAllowance(erc20Token.address, web3.utils.toWei(providerFeeAmount));
 
         //sign provider data
         const providerData = JSON.stringify({ "timeout": 0 });
@@ -505,26 +546,36 @@ describe("ERC20Template3", () => {
         );
         const signedMessage = await signMessage(message, providerFeeAddress);
         const tx = await erc20Token
-            .connect(user2)
-            .startOrder(
-                consumer,
-                serviceIndex,
-                {
+            .connect(user2).
+            buyFromFreAndOrder(
+            {
+                "consumer": user2.address,
+                "amount": web3.utils.toWei("1"),
+                "serviceIndex": 1,
+                "_providerFee": {
                     providerFeeAddress: providerFeeAddress,
-                    providerFeeToken: providerFeeToken,
-                    providerFeeAmount: providerFeeAmount,
-                    v: signedMessage.v,
-                    r: signedMessage.r,
-                    s: signedMessage.s,
-                    providerData: ethers.utils.hexlify(ethers.utils.toUtf8Bytes(providerData)),
-                    validUntil: providerValidUntil
+                    providerFeeToken:providerFeeToken,
+                    providerFeeAmount:providerFeeAmount,
+                    v:signedMessage.v,
+                    r:signedMessage.r,
+                    s:signedMessage.s,
+                    providerData:ethers.utils.hexlify(ethers.utils.toUtf8Bytes(providerData)),
+                    validUntil:providerValidUntil
                 },
-                {
+                "_consumeMarketFee":  {
                     consumeMarketFeeAddress: consumeMarketFeeAddress,
                     consumeMarketFeeToken: consumeMarketFeeToken,
                     consumeMarketFeeAmount: consumeMarketFeeAmount,
                 }
-            );
+            },
+            {
+                "exchangeContract": fixedRateExchange.address,
+                "exchangeId": fixedRateId,
+                "maxBaseTokenAmount": needed.baseTokenAmount,
+                "swapMarketFee":0,
+                "marketFeeAddress":user5.address
+            }
+        )
         const txReceipt = await tx.wait();
         let event = getEventFromTx(txReceipt, 'OrderStarted')
         assert(event, "Cannot find OrderStarted event")
@@ -534,7 +585,7 @@ describe("ERC20Template3", () => {
         //make sure that we have ProviderFee event
         event = getEventFromTx(txReceipt, 'ProviderFee')
         assert(
-            (await erc20Token.balanceOf(user2.address)) == web3.utils.toWei("9"), 'Invalid user balance, DT was not substracted'
+            (await erc20Token.balanceOf(user2.address)) == web3.utils.toWei("0"), 'Invalid user balance, DT was not substracted'
         );
 
         assert(
@@ -565,11 +616,6 @@ describe("ERC20Template3", () => {
     //////////
     it("#startOrder - user should succeed to call startOrder on a ERC20 with 5 USDC publishFee, providerFee is ZERO and 5 USDC consumeFee", async () => {
 
-        //MINT SOME DT20 to USER2 so he can start order
-        await buyDTFromFixedRate(erc20TokenWithPublishFee.address,user2.address,10)
-        assert(
-            (await erc20TokenWithPublishFee.balanceOf(user2.address)) == web3.utils.toWei("10")
-        );
         const publishFee = await erc20TokenWithPublishFee
             .connect(user2)
             .getPublishingMarketFee();
@@ -577,6 +623,18 @@ describe("ERC20Template3", () => {
             "contracts/interfaces/IERC20.sol:IERC20",
             publishFee[1]
         );
+        
+        const fixedRates = await erc20TokenWithPublishFee.connect(owner).getFixedRates()
+        fixedRateExchange = await ethers.getContractAt("FixedRateExchange", fixedRates[0].contractAddress);
+        fixedRateId=fixedRates[0].id
+         //get details
+        const details=await fixedRateExchange.connect(owner).getExchange(fixedRateId)
+        const needed=await fixedRateExchange.connect(owner).calcBaseInGivenOutDT(fixedRateId,web3.utils.toWei("1"),0);
+        erc20Contract = await ethers.getContractAt("MockERC20",details.baseToken)
+        await erc20Contract
+            .connect(owner)
+            .transfer(user2.address, needed.baseTokenAmount);
+        await erc20Contract.connect(user2).approve(erc20TokenWithPublishFee.address,needed.baseTokenAmount)
 
         const consumer = user2.address; // could be different user
         const dtAmount = web3.utils.toWei("1");
@@ -587,20 +645,9 @@ describe("ERC20Template3", () => {
         const consumeMarketFeeAddress = user5.address; // marketplace fee Collector
         const consumeMarketFeeAmount = publishFee[2]; // fee to be collected on top, requires approval
         const consumeMarketFeeToken = Mock20DecimalContract.address; // token address for the feeAmount,
-
-        // GET SOME consumeFeeToken
-        await Mock20DecimalContract
-            .connect(owner)
-            .transfer(user2.address, publishFee[2].add(consumeMarketFeeAmount));
-
-        // we approve the erc20Token contract to pull feeAmount
-        await Mock20DecimalContract
-            .connect(user2)
-            .approve(erc20TokenWithPublishFee.address, publishFee[2].add(consumeMarketFeeAmount));
-
+        const providerValidUntil = 0;
         //sign provider data
         const providerData = JSON.stringify({ "timeout": 0 })
-        const providerValidUntil = 0;
         const message = ethers.utils.solidityKeccak256(
             ["bytes", "address", "address", "uint256", "uint256"],
             [
@@ -611,30 +658,49 @@ describe("ERC20Template3", () => {
                 providerValidUntil
             ]
         );
-
         const signedMessage = await signMessage(message, providerFeeAddress);
+                // GET SOME consumeFeeToken
+                await Mock20DecimalContract
+                .connect(owner)
+                .transfer(user2.address, publishFee[2].add(consumeMarketFeeAmount));
+    
+            // we approve the erc20Token contract to pull feeAmount
+            await Mock20DecimalContract
+                .connect(user2)
+                .approve(erc20TokenWithPublishFee.address, publishFee[2].add(consumeMarketFeeAmount));
+    
+        tx = await erc20TokenWithPublishFee
+            .connect(user2).buyFromFreAndOrder(
+            {
+              "consumer": user2.address,
+              "amount": web3.utils.toWei("1"),
+              "serviceIndex": 1,
+              "_providerFee": {
+                providerFeeAddress: providerFeeAddress,
+                providerFeeToken:providerFeeToken,
+                providerFeeAmount:providerFeeAmount,
+                v:signedMessage.v,
+                r:signedMessage.r,
+                s:signedMessage.s,
+                providerData:ethers.utils.hexlify(ethers.utils.toUtf8Bytes(providerData)),
+                validUntil:providerValidUntil
+              },
+              "_consumeMarketFee":  {
+                consumeMarketFeeAddress: consumeMarketFeeAddress,
+                consumeMarketFeeToken: consumeMarketFeeToken,
+                consumeMarketFeeAmount: consumeMarketFeeAmount,
+              }
+            },
+            {
+              "exchangeContract": fixedRateExchange.address,
+              "exchangeId": fixedRateId,
+              "maxBaseTokenAmount": needed.baseTokenAmount,
+              "swapMarketFee":0,
+              "marketFeeAddress":user5.address
+            }
+          )
 
-        const tx = await erc20TokenWithPublishFee
-            .connect(user2)
-            .startOrder(
-                consumer,
-                serviceIndex,
-                {
-                    providerFeeAddress: providerFeeAddress,
-                    providerFeeToken: providerFeeToken,
-                    providerFeeAmount: providerFeeAmount,
-                    v: signedMessage.v,
-                    r: signedMessage.r,
-                    s: signedMessage.s,
-                    providerData: ethers.utils.hexlify(ethers.utils.toUtf8Bytes(providerData)),
-                    validUntil: providerValidUntil
-                },
-                {
-                    consumeMarketFeeAddress: consumeMarketFeeAddress,
-                    consumeMarketFeeToken: consumeMarketFeeToken,
-                    consumeMarketFeeAmount: consumeMarketFeeAmount,
-                }
-            );
+        
         const txReceipt = await tx.wait();
         let event = getEventFromTx(txReceipt, 'OrderStarted')
         assert(event, "Cannot find OrderStarted event")
@@ -645,7 +711,7 @@ describe("ERC20Template3", () => {
         //make sure that we have ProviderFee event
         event = getEventFromTx(txReceipt, 'ProviderFee')
         assert(
-            (await erc20TokenWithPublishFee.balanceOf(user2.address)) == web3.utils.toWei("9"), 'Invalid user balance, DT was not substracted'
+            (await erc20TokenWithPublishFee.balanceOf(user2.address)) == web3.utils.toWei("0"), 'Invalid user balance, DT was not substracted'
         );
 
         assert(
@@ -660,110 +726,6 @@ describe("ERC20Template3", () => {
             web3.utils.toWei("0.0"), 'Invalid publisher reward, we should have 0.97 DT'
         );
     });
-
-    it("#startOrder - user should succeed to call startOrder on a ERC20 with 5 USDC publishFee, providerFee is not ZEO", async () => {
-
-        //MINT SOME DT20 to USER2 so he can start order
-        await buyDTFromFixedRate(erc20TokenWithPublishFee.address,user2.address,10)
-        assert(
-            (await erc20TokenWithPublishFee.balanceOf(user2.address)) == web3.utils.toWei("10")
-        );
-        const consumer = user2.address; // could be different user
-        const dtAmount = web3.utils.toWei("1");
-        const serviceIndex = 1; // dummy index
-        const providerFeeAddress = user5.address; // marketplace fee Collector
-        const providerFeeAmount = '1'; // fee to be collected on top, requires approval
-        const providerFeeToken = mockErc20.address; // token address for the feeAmount, in this case DAI
-        const providerValidUntil = 0;
-        const consumeMarketFeeAddress = user5.address; // marketplace fee Collector
-        const consumeMarketFeeAmount = 0; // fee to be collected on top, requires approval
-        const consumeMarketFeeToken = mockErc20.address; // token address for the feeAmount,
-        // GET SOME providerFeeToken
-        const Mock20Contract = await ethers.getContractAt(
-            "contracts/interfaces/IERC20.sol:IERC20",
-            providerFeeToken
-        );
-        await Mock20Contract
-            .connect(owner)
-            .transfer(user2.address, ethers.utils.parseEther(providerFeeAmount));
-        await Mock20Contract
-            .connect(user2)
-            .approve(erc20TokenWithPublishFee.address, web3.utils.toWei(providerFeeAmount));
-
-        const publishFee = await erc20TokenWithPublishFee
-            .connect(user2)
-            .getPublishingMarketFee();
-        // GET SOME consumeFeeToken
-        const Mock20DecimalContract = await ethers.getContractAt(
-            "contracts/interfaces/IERC20.sol:IERC20",
-            publishFee[1]
-        );
-        await Mock20DecimalContract
-            .connect(owner)
-            .transfer(user2.address, publishFee[2]);
-
-        // we approve the erc20Token contract to pull feeAmount
-        await Mock20DecimalContract
-            .connect(user2)
-            .approve(erc20TokenWithPublishFee.address, publishFee[2]);
-        //sign provider data
-        const providerData = JSON.stringify({ "timeout": 0 })
-        const message = ethers.utils.solidityKeccak256(
-            ["bytes", "address", "address", "uint256", "uint256"],
-            [
-                ethers.utils.hexlify(ethers.utils.toUtf8Bytes(providerData)),
-                providerFeeAddress,
-                providerFeeToken,
-                providerFeeAmount,
-                providerValidUntil
-            ]
-        );
-        const signedMessage = await signMessage(message, providerFeeAddress);
-        const tx = await erc20TokenWithPublishFee
-            .connect(user2)
-            .startOrder(
-                consumer,
-                serviceIndex,
-                {
-                    providerFeeAddress: providerFeeAddress,
-                    providerFeeToken: providerFeeToken,
-                    providerFeeAmount: providerFeeAmount,
-                    v: signedMessage.v,
-                    r: signedMessage.r,
-                    s: signedMessage.s,
-                    providerData: ethers.utils.hexlify(ethers.utils.toUtf8Bytes(providerData)),
-                    validUntil: providerValidUntil
-                },
-                {
-                    consumeMarketFeeAddress: consumeMarketFeeAddress,
-                    consumeMarketFeeToken: consumeMarketFeeToken,
-                    consumeMarketFeeAmount: consumeMarketFeeAmount,
-                }
-            );
-        const txReceipt = await tx.wait();
-        let event = getEventFromTx(txReceipt, 'OrderStarted')
-        assert(event, "Cannot find OrderStarted event")
-        event = getEventFromTx(txReceipt, 'PublishMarketFee')
-        assert(event, "Cannot find PublishMarketFee event")
-        //make sure that we have ProviderFee event
-        event = getEventFromTx(txReceipt, 'ProviderFee')
-        assert(
-            (await erc20TokenWithPublishFee.balanceOf(user2.address)) == web3.utils.toWei("9"), 'Invalid user balance, DT was not substracted'
-        );
-
-        assert(
-            (await erc20TokenWithPublishFee.balanceOf(opcCollector.address)) ==
-            web3.utils.toWei("0.0"), 'Invalid OPF balance, we should get 0.03 DTs'
-        );
-        assert(
-            (await erc20TokenWithPublishFee.balanceOf(user3.address)) == web3.utils.toWei("0"), 'Invalid consumeFee, we should have DT as fee'
-        );
-        assert(
-            (await erc20TokenWithPublishFee.balanceOf(await erc20TokenWithPublishFee.getPaymentCollector())) ==
-            web3.utils.toWei("0.0"), 'Invalid publisher reward, we should have 0.97 DT'
-        );
-    });
-
 
     it("#setPublishingMarketFee - user should not be able to set new publish fee", async () => {
         await expectRevert(
@@ -791,60 +753,7 @@ describe("ERC20Template3", () => {
         const templateId = 3;
         assert((await erc20Token.getId()) == templateId);
     });
-    it("#burn - user should succeed to burn tokens", async () => {
-
-        //MINT SOME DT20 to USER2 so he can try to burn
-        await buyDTFromFixedRate(erc20Token.address,user2.address,10)
-        const burnAmount = web3.utils.toWei("2")
-        assert(
-            (await erc20Token.balanceOf(user2.address)) == web3.utils.toWei("10")
-            , 'Invalid user balance, DT was not minted'
-        );
-        const totalSupply = await erc20Token.totalSupply()
-
-        await erc20Token
-            .connect(user2)
-            .burn(burnAmount);
-
-
-        assert(
-            (await erc20Token.balanceOf(user2.address)) == web3.utils.toWei("8"), 'Invalid user balance, DT was not substracted'
-        );
-        const newTotalSupply = await erc20Token.totalSupply()
-        const expectedSupply = totalSupply.sub(burnAmount)
-        assert(
-            (totalSupply.sub(burnAmount).eq(newTotalSupply))
-            , 'Invalid total supply'
-        );
-    });
-    it("#burnFrom - user3 should succeed to burn some user2's tokens using burnFrom", async () => {
-
-        //MINT SOME DT20 to USER2 so he can try to burn
-        await buyDTFromFixedRate(erc20Token.address,user2.address,10)
-        const burnAmount = web3.utils.toWei("2")
-        assert(
-            (await erc20Token.balanceOf(user2.address)) == web3.utils.toWei("10")
-            , 'Invalid user balance, DT was not minted'
-        );
-        const totalSupply = await erc20Token.totalSupply()
-        //allow user3 to burn
-        await erc20Token.connect(user2).approve(user3.address, web3.utils.toWei(burnAmount));
-        await erc20Token
-            .connect(user3)
-            .burnFrom(user2.address, burnAmount);
-
-
-        assert(
-            (await erc20Token.balanceOf(user2.address)) == web3.utils.toWei("8"), 'Invalid user balance, DT were not burned'
-        );
-        const newTotalSupply = await erc20Token.totalSupply()
-        const expectedSupply = totalSupply.sub(burnAmount)
-        assert(
-            (totalSupply.sub(burnAmount).eq(newTotalSupply))
-            , 'Invalid total supply'
-        );
-    });
-
+    
     // PREDICTOOR
     it("#blocksPerEpoch - blocksPerEpoch should be set", async () => {
         const blocksPerEpoch = await erc20Token.blocksPerEpoch();
@@ -887,17 +796,40 @@ describe("ERC20Template3", () => {
         const blockNumber = await ethers.provider.getBlockNumber()
         const blocksPerEpoch = (await erc20Token.blocksPerEpoch())
         const railed = parseInt(blockNumber / blocksPerEpoch) * blocksPerEpoch
+        const userAuth = await authorize(owner.address)
         await expectRevert(
-            erc20Token.getAggPredval(railed),
+            erc20Token.getAggPredval(railed,userAuth),
             "No subscription"
+        );
+    });
+    it("#getAggPredval - invalid signature, should revert", async () => {
+        const blockNumber = await ethers.provider.getBlockNumber()
+        const blocksPerEpoch = (await erc20Token.blocksPerEpoch())
+        const railed = parseInt(blockNumber / blocksPerEpoch) * blocksPerEpoch
+        const userAuth = await authorize(owner.address)
+        userAuth.userAddress=user2.address
+        await expectRevert(
+            erc20Token.getAggPredval(railed,userAuth),
+            "Invalid auth"
+        );
+    });
+    it("#getAggPredval - expired signature, should revert", async () => {
+        const blockNumber = await ethers.provider.getBlockNumber()
+        const blocksPerEpoch = (await erc20Token.blocksPerEpoch())
+        const railed = parseInt(blockNumber / blocksPerEpoch) * blocksPerEpoch
+        const userAuth = await authorize(owner.address,100)
+        await expectRevert(
+            erc20Token.getAggPredval(railed,userAuth),
+            "Expired"
         );
     });
     it("#getAggPredval - without subscription, should revert", async () => {
         const blockNumber = await ethers.provider.getBlockNumber()
         const blocksPerEpoch = (await erc20Token.blocksPerEpoch())
         const railed = parseInt(blockNumber / blocksPerEpoch) * blocksPerEpoch
+        const userAuth = await authorize(owner.address)
         await expectRevert(
-            erc20Token.getAggPredval(railed),
+            erc20Token.getAggPredval(railed,userAuth),
             "No subscription"
         );
     });
@@ -922,14 +854,16 @@ describe("ERC20Template3", () => {
         expect(event.args[2]).to.equal(stake);
     });
     it("#submitPredval - predictoor can read their submitted predictedValue", async () => {
+        const userAuth = await authorize(owner.address)
+        
         const predictedValue = true;
         const stake = 100;
         tx = await mockErc20.approve(erc20Token.address, stake);
         await tx.wait()
         const soonestBlockToPredict = await erc20Token.soonestBlockToPredict((await ethers.provider.getBlockNumber())+1);
-        await erc20Token.submitPredval(predictedValue, stake, soonestBlockToPredict);
-        const prediction = await erc20Token.getPrediction(soonestBlockToPredict, owner.address);
-
+        tx = await erc20Token.submitPredval(predictedValue, stake, soonestBlockToPredict);
+        await tx.wait()
+        const prediction = await erc20Token.getPrediction(soonestBlockToPredict,owner.address,userAuth);
         expect(prediction.predictedValue).to.be.eq(predictedValue);
         expect(prediction.stake).to.be.eq(stake);
         expect(prediction.predictoor).to.be.eq(owner.address);
@@ -942,11 +876,12 @@ describe("ERC20Template3", () => {
         await tx.wait()
         const soonestBlockToPredict = await erc20Token.soonestBlockToPredict((await ethers.provider.getBlockNumber())+1);
         await erc20Token.submitPredval(predictedValue, stake, soonestBlockToPredict);
-        await expectRevert(erc20Token.connect(user2).getPrediction(soonestBlockToPredict, owner.address), "you shall not pass");
+        let userAuth = await authorize(user2.address)
+        await expectRevert(erc20Token.connect(user2).getPrediction(soonestBlockToPredict,owner.address,userAuth), "Not auth");
         // fast forward blocks until next epoch
         Array(30).fill(0).map(async _ => await ethers.provider.send("evm_mine"));
         // user2 should be able to read the predictedValue now
-        const prediction = await erc20Token.connect(user2).getPrediction(soonestBlockToPredict, owner.address);
+        const prediction = await erc20Token.connect(user2).getPrediction(soonestBlockToPredict, owner.address,userAuth);
         expect(prediction.predictedValue).to.be.eq(predictedValue);
     });
     it("#submitPredval - should revert when predictoor submits too early", async () => {
@@ -965,7 +900,7 @@ describe("ERC20Template3", () => {
         const predictedValue = true;
         const stake = 100;
         await mockErc20.approve(erc20Token.address, stake * 2);
-        const soonestBlockToPredict = await erc20Token.soonestBlockToPredict((await ethers.provider.getBlockNumber())+1);
+        const soonestBlockToPredict = await erc20Token.soonestBlockToPredict((await ethers.provider.getBlockNumber())+3);
 
         await erc20Token.submitPredval(predictedValue, stake, soonestBlockToPredict);
 
@@ -1026,12 +961,18 @@ describe("ERC20Template3", () => {
         expect(trueValue).to.be.true;
     });
 
-    it("#subscriptions - user2 must be subscribe by buying dt from fre", async () => {
-        //MINT SOME DT20 to USER2 so he can start order
-        await buyDTFromFixedRate(erc20Token.address,user2.address,10)
-        assert(
-            (await erc20Token.balanceOf(user2.address)) == web3.utils.toWei("10")
-        );
+    it("#subscriptions - user2 must be subscribed after buying access", async () => {
+        const fixedRates = await erc20Token.connect(owner).getFixedRates()
+        fixedRateExchange = await ethers.getContractAt("FixedRateExchange", fixedRates[0].contractAddress);
+        fixedRateId=fixedRates[0].id
+         //get details
+        const details=await fixedRateExchange.connect(owner).getExchange(fixedRateId)
+        const needed=await fixedRateExchange.connect(owner).calcBaseInGivenOutDT(fixedRateId,web3.utils.toWei("1"),0);
+        erc20Contract = await ethers.getContractAt("MockERC20",details.baseToken)
+        await erc20Contract
+            .connect(owner)
+            .transfer(user2.address, needed.baseTokenAmount);
+        await erc20Contract.connect(user2).approve(erc20Token.address,needed.baseTokenAmount)
         const consumer = user2.address; // could be different user
         const serviceIndex = 1; // dummy index
         const providerFeeAddress = user5.address; // marketplace fee Collector
@@ -1055,26 +996,35 @@ describe("ERC20Template3", () => {
         );
         const signedMessage = await signMessage(message, providerFeeAddress);
         const tx = await erc20Token
-            .connect(user2)
-            .startOrder(
-                consumer,
-                serviceIndex,
-                {
-                    providerFeeAddress: providerFeeAddress,
-                    providerFeeToken: providerFeeToken,
-                    providerFeeAmount: providerFeeAmount,
-                    v: signedMessage.v,
-                    r: signedMessage.r,
-                    s: signedMessage.s,
-                    providerData: ethers.utils.hexlify(ethers.utils.toUtf8Bytes(providerData)),
-                    validUntil: providerValidUntil
-                },
-                {
-                    consumeMarketFeeAddress: consumeMarketFeeAddress,
-                    consumeMarketFeeToken: consumeMarketFeeToken,
-                    consumeMarketFeeAmount: consumeMarketFeeAmount,
-                }
-            );
+        .connect(user2).buyFromFreAndOrder(
+        {
+          "consumer": user2.address,
+          "amount": web3.utils.toWei("1"),
+          "serviceIndex": 1,
+          "_providerFee": {
+            providerFeeAddress: providerFeeAddress,
+            providerFeeToken:providerFeeToken,
+            providerFeeAmount:providerFeeAmount,
+            v:signedMessage.v,
+            r:signedMessage.r,
+            s:signedMessage.s,
+            providerData:ethers.utils.hexlify(ethers.utils.toUtf8Bytes(providerData)),
+            validUntil:providerValidUntil
+          },
+          "_consumeMarketFee":  {
+            consumeMarketFeeAddress: consumeMarketFeeAddress,
+            consumeMarketFeeToken: consumeMarketFeeToken,
+            consumeMarketFeeAmount: consumeMarketFeeAmount,
+          }
+        },
+        {
+          "exchangeContract": fixedRateExchange.address,
+          "exchangeId": fixedRateId,
+          "maxBaseTokenAmount": needed.baseTokenAmount,
+          "swapMarketFee":0,
+          "marketFeeAddress":user5.address
+        }
+      )
 
 
         const subscription = await erc20Token.subscriptions(user2.address);
@@ -1088,11 +1038,18 @@ describe("ERC20Template3", () => {
     });
 
     it("#subscriptions - user2 subscription should expire", async () => {
-        //MINT SOME DT20 to USER2 so he can start order
-        await buyDTFromFixedRate(erc20Token.address,user2.address,10)
-        assert(
-            (await erc20Token.balanceOf(user2.address)) == web3.utils.toWei("10")
-        );
+        const fixedRates = await erc20Token.connect(owner).getFixedRates()
+        fixedRateExchange = await ethers.getContractAt("FixedRateExchange", fixedRates[0].contractAddress);
+        fixedRateId=fixedRates[0].id
+         //get details
+        const details=await fixedRateExchange.connect(owner).getExchange(fixedRateId)
+        const needed=await fixedRateExchange.connect(owner).calcBaseInGivenOutDT(fixedRateId,web3.utils.toWei("1"),0);
+        erc20Contract = await ethers.getContractAt("MockERC20",details.baseToken)
+        await erc20Contract
+            .connect(owner)
+            .transfer(user2.address, needed.baseTokenAmount);
+        await erc20Contract.connect(user2).approve(erc20Token.address,needed.baseTokenAmount)
+
         const consumer = user2.address; // could be different user
         const serviceIndex = 1; // dummy index
         const providerFeeAddress = user5.address; // marketplace fee Collector
@@ -1120,26 +1077,35 @@ describe("ERC20Template3", () => {
         await erc20Token.updateSeconds(sPerBlock, sPerBlock, trueValueSubmitTimeout);
         // set back to normal
         const tx = await erc20Token
-            .connect(user2)
-            .startOrder(
-                consumer,
-                serviceIndex,
-                {
-                    providerFeeAddress: providerFeeAddress,
-                    providerFeeToken: providerFeeToken,
-                    providerFeeAmount: providerFeeAmount,
-                    v: signedMessage.v,
-                    r: signedMessage.r,
-                    s: signedMessage.s,
-                    providerData: ethers.utils.hexlify(ethers.utils.toUtf8Bytes(providerData)),
-                    validUntil: providerValidUntil
-                },
-                {
-                    consumeMarketFeeAddress: consumeMarketFeeAddress,
-                    consumeMarketFeeToken: consumeMarketFeeToken,
-                    consumeMarketFeeAmount: consumeMarketFeeAmount,
-                }
-            );
+        .connect(user2).buyFromFreAndOrder(
+        {
+          "consumer": user2.address,
+          "amount": web3.utils.toWei("1"),
+          "serviceIndex": 1,
+          "_providerFee": {
+            providerFeeAddress: providerFeeAddress,
+            providerFeeToken:providerFeeToken,
+            providerFeeAmount:providerFeeAmount,
+            v:signedMessage.v,
+            r:signedMessage.r,
+            s:signedMessage.s,
+            providerData:ethers.utils.hexlify(ethers.utils.toUtf8Bytes(providerData)),
+            validUntil:providerValidUntil
+          },
+          "_consumeMarketFee":  {
+            consumeMarketFeeAddress: consumeMarketFeeAddress,
+            consumeMarketFeeToken: consumeMarketFeeToken,
+            consumeMarketFeeAmount: consumeMarketFeeAmount,
+          }
+        },
+        {
+          "exchangeContract": fixedRateExchange.address,
+          "exchangeId": fixedRateId,
+          "maxBaseTokenAmount": needed.baseTokenAmount,
+          "swapMarketFee":0,
+          "marketFeeAddress":user5.address
+        }
+      )
 
         Array(100).fill(0).map(async () => await ethers.provider.send("evm_mine", []));
         const valid = await erc20Token.isValidSubscription(user2.address);
@@ -1223,11 +1189,18 @@ describe("ERC20Template3", () => {
     });
     // can read getAggPredval with a valid subscription
     it("#getAggPredval - should return agg_predictedValue if caller has a valid subscription", async () => {
-        //MINT SOME DT20 to USER2 so he can start order
-        await buyDTFromFixedRate(erc20Token.address,user2.address,10)
-        assert(
-            (await erc20Token.balanceOf(user2.address)) == web3.utils.toWei("10")
-        );
+        const fixedRates = await erc20Token.connect(owner).getFixedRates()
+        fixedRateExchange = await ethers.getContractAt("FixedRateExchange", fixedRates[0].contractAddress);
+        fixedRateId=fixedRates[0].id
+         //get details
+        const details=await fixedRateExchange.connect(owner).getExchange(fixedRateId)
+        const needed=await fixedRateExchange.connect(owner).calcBaseInGivenOutDT(fixedRateId,web3.utils.toWei("1"),0);
+        erc20Contract = await ethers.getContractAt("MockERC20",details.baseToken)
+        await erc20Contract
+            .connect(owner)
+            .transfer(user2.address, needed.baseTokenAmount);
+        await erc20Contract.connect(user2).approve(erc20Token.address,needed.baseTokenAmount)
+
         const consumer = user2.address; // could be different user
         const serviceIndex = 1; // dummy index
         const providerFeeAddress = user5.address; // marketplace fee Collector
@@ -1250,31 +1223,41 @@ describe("ERC20Template3", () => {
             ]
         );
         const signedMessage = await signMessage(message, providerFeeAddress);
-        await erc20Token
-            .connect(user2)
-            .startOrder(
-                consumer,
-                serviceIndex,
-                {
-                    providerFeeAddress: providerFeeAddress,
-                    providerFeeToken: providerFeeToken,
-                    providerFeeAmount: providerFeeAmount,
-                    v: signedMessage.v,
-                    r: signedMessage.r,
-                    s: signedMessage.s,
-                    providerData: ethers.utils.hexlify(ethers.utils.toUtf8Bytes(providerData)),
-                    validUntil: providerValidUntil
-                },
-                {
-                    consumeMarketFeeAddress: consumeMarketFeeAddress,
-                    consumeMarketFeeToken: consumeMarketFeeToken,
-                    consumeMarketFeeAmount: consumeMarketFeeAmount,
-                }
-            );
+        const tx = await erc20Token
+        .connect(user2).buyFromFreAndOrder(
+        {
+          "consumer": user2.address,
+          "amount": web3.utils.toWei("1"),
+          "serviceIndex": 1,
+          "_providerFee": {
+            providerFeeAddress: providerFeeAddress,
+            providerFeeToken:providerFeeToken,
+            providerFeeAmount:providerFeeAmount,
+            v:signedMessage.v,
+            r:signedMessage.r,
+            s:signedMessage.s,
+            providerData:ethers.utils.hexlify(ethers.utils.toUtf8Bytes(providerData)),
+            validUntil:providerValidUntil
+          },
+          "_consumeMarketFee":  {
+            consumeMarketFeeAddress: consumeMarketFeeAddress,
+            consumeMarketFeeToken: consumeMarketFeeToken,
+            consumeMarketFeeAmount: consumeMarketFeeAmount,
+          }
+        },
+        {
+          "exchangeContract": fixedRateExchange.address,
+          "exchangeId": fixedRateId,
+          "maxBaseTokenAmount": needed.baseTokenAmount,
+          "swapMarketFee":0,
+          "marketFeeAddress":user5.address
+        }
+      )
 
 
         let soonestBlockToPredict = await erc20Token.soonestBlockToPredict((await ethers.provider.getBlockNumber())+3);
-        const [numer, denom] = await erc20Token.connect(user2).getAggPredval(soonestBlockToPredict);
+        const userAuth = await authorize(user2.address)
+        const [numer, denom] = await erc20Token.connect(user2).getAggPredval(soonestBlockToPredict,userAuth);
         expect(numer).to.be.eq(0);
         expect(denom).to.be.eq(0);
 
@@ -1285,7 +1268,7 @@ describe("ERC20Template3", () => {
         await mockErc20.connect(user3).approve(erc20Token.address, stake);
         await erc20Token.connect(user3).submitPredval(predictedValue, stake, soonestBlockToPredict);
 
-        const [numer2, denom2] = await erc20Token.connect(user2).getAggPredval(soonestBlockToPredict);
+        const [numer2, denom2] = await erc20Token.connect(user2).getAggPredval(soonestBlockToPredict,userAuth);
         expect(numer2).to.be.eq(web3.utils.toWei("1"));
         expect(denom2).to.be.eq(web3.utils.toWei("1"));
 
@@ -1296,6 +1279,18 @@ describe("ERC20Template3", () => {
 
     // can read getAggPredval with a valid subscription
     it("#payout - predictoor should get paid", async () => {
+        const fixedRates = await erc20Token.connect(owner).getFixedRates()
+        fixedRateExchange = await ethers.getContractAt("FixedRateExchange", fixedRates[0].contractAddress);
+        fixedRateId=fixedRates[0].id
+         //get details
+        const details=await fixedRateExchange.connect(owner).getExchange(fixedRateId)
+        const needed=await fixedRateExchange.connect(owner).calcBaseInGivenOutDT(fixedRateId,web3.utils.toWei("1"),0);
+        erc20Contract = await ethers.getContractAt("MockERC20",details.baseToken)
+        await erc20Contract
+            .connect(owner)
+            .transfer(user2.address, needed.baseTokenAmount);
+        await erc20Contract.connect(user2).approve(erc20Token.address,needed.baseTokenAmount)
+       
         const consumer = user2.address; // could be different user
         const serviceIndex = 1; // dummy index
         const providerFeeAddress = user5.address; // marketplace fee Collector
@@ -1307,19 +1302,6 @@ describe("ERC20Template3", () => {
         const providerValidUntil = 0;
         const amountDT = web3.utils.toWei("1");
 
-        
-        const exchanges = await erc20Token.getFixedRates()
-        const fixedRateExchange = await ethers.getContractAt("FixedRateExchange",exchanges[0].contractAddress)
-        const exchangeId = exchanges[0].id
-        const exchangeInfo = await fixedRateExchange.calcBaseInGivenOutDT(exchangeId, amountDT, 0)
-
-        //let's buy a DT
-        await mockErc20.transfer(user2.address, exchangeInfo.baseTokenAmount);
-        await mockErc20.connect(user2).approve(fixedRateExchange.address, exchangeInfo.baseTokenAmount);
-        // user buys DT
-        await fixedRateExchange.connect(user2).buyDT(exchangeId, amountDT, exchangeInfo.baseTokenAmount, addressZero, 0)
-        const balance = await erc20Token.balanceOf(user2.address)
-        assert(balance > 0, "Failed to buy DT")
         //sign provider data
         const providerData = JSON.stringify({ "timeout": 0 })
         const message = ethers.utils.solidityKeccak256(
@@ -1337,27 +1319,36 @@ describe("ERC20Template3", () => {
         let revenue_at_block = await erc20Token.connect(user2).getSubscriptionRevenueAtBlock(soonestBlockToPredict)
         expect(revenue_at_block).to.be.eq(0);
 
-        await erc20Token
-            .connect(user2)
-            .startOrder(
-                consumer,
-                serviceIndex,
-                {
-                    providerFeeAddress: providerFeeAddress,
-                    providerFeeToken: providerFeeToken,
-                    providerFeeAmount: providerFeeAmount,
-                    v: signedMessage.v,
-                    r: signedMessage.r,
-                    s: signedMessage.s,
-                    providerData: ethers.utils.hexlify(ethers.utils.toUtf8Bytes(providerData)),
-                    validUntil: providerValidUntil
-                },
-                {
-                    consumeMarketFeeAddress: consumeMarketFeeAddress,
-                    consumeMarketFeeToken: consumeMarketFeeToken,
-                    consumeMarketFeeAmount: consumeMarketFeeAmount,
-                }
-            );
+        let tx = await erc20Token
+        .connect(user2).buyFromFreAndOrder(
+        {
+          "consumer": user2.address,
+          "amount": web3.utils.toWei("1"),
+          "serviceIndex": 1,
+          "_providerFee": {
+            providerFeeAddress: providerFeeAddress,
+            providerFeeToken:providerFeeToken,
+            providerFeeAmount:providerFeeAmount,
+            v:signedMessage.v,
+            r:signedMessage.r,
+            s:signedMessage.s,
+            providerData:ethers.utils.hexlify(ethers.utils.toUtf8Bytes(providerData)),
+            validUntil:providerValidUntil
+          },
+          "_consumeMarketFee":  {
+            consumeMarketFeeAddress: consumeMarketFeeAddress,
+            consumeMarketFeeToken: consumeMarketFeeToken,
+            consumeMarketFeeAmount: consumeMarketFeeAmount,
+          }
+        },
+        {
+          "exchangeContract": fixedRateExchange.address,
+          "exchangeId": fixedRateId,
+          "maxBaseTokenAmount": needed.baseTokenAmount,
+          "swapMarketFee":0,
+          "marketFeeAddress":user5.address
+        }
+      )
 
         revenue_at_block = await erc20Token.connect(user2).getSubscriptionRevenueAtBlock(soonestBlockToPredict)
         expect(revenue_at_block).to.be.gt(0);
@@ -1419,6 +1410,18 @@ describe("ERC20Template3", () => {
     });
 
     it("#payoutMultiple - predictoor should get paid", async () => {
+        const fixedRates = await erc20Token.connect(owner).getFixedRates()
+        fixedRateExchange = await ethers.getContractAt("FixedRateExchange", fixedRates[0].contractAddress);
+        fixedRateId=fixedRates[0].id
+         //get details
+        const details=await fixedRateExchange.connect(owner).getExchange(fixedRateId)
+        const needed=await fixedRateExchange.connect(owner).calcBaseInGivenOutDT(fixedRateId,web3.utils.toWei("1"),0);
+        erc20Contract = await ethers.getContractAt("MockERC20",details.baseToken)
+        await erc20Contract
+            .connect(owner)
+            .transfer(user2.address, needed.baseTokenAmount);
+        await erc20Contract.connect(user2).approve(erc20Token.address,needed.baseTokenAmount)
+       
         const consumer = user2.address; // could be different user
         const serviceIndex = 1; // dummy index
         const providerFeeAddress = user5.address; // marketplace fee Collector
@@ -1428,20 +1431,7 @@ describe("ERC20Template3", () => {
         const consumeMarketFeeAmount = 0; // fee to be collected on top, requires approval
         const consumeMarketFeeToken = mockErc20.address; // token address for the feeAmount,
         const providerValidUntil = 0;
-        const amountDT = web3.utils.toWei("1");
 
-        const exchanges = await erc20Token.getFixedRates()
-        const fixedRateExchange = await ethers.getContractAt("FixedRateExchange",exchanges[0].contractAddress)
-        const exchangeId = exchanges[0].id
-        const exchangeInfo = await fixedRateExchange.calcBaseInGivenOutDT(exchangeId, amountDT, 0)
-
-        //let's buy a DT
-        await mockErc20.transfer(user2.address, exchangeInfo.baseTokenAmount);
-        await mockErc20.connect(user2).approve(fixedRateExchange.address, exchangeInfo.baseTokenAmount);
-        // user buys DT
-        await fixedRateExchange.connect(user2).buyDT(exchangeId, amountDT, exchangeInfo.baseTokenAmount, addressZero, 0)
-        const balance = await erc20Token.balanceOf(user2.address)
-        assert(balance > 0, "Failed to buy DT")
         //sign provider data
         const providerData = JSON.stringify({ "timeout": 0 })
         const message = ethers.utils.solidityKeccak256(
@@ -1459,27 +1449,36 @@ describe("ERC20Template3", () => {
         let revenue_at_block = await erc20Token.connect(user2).getSubscriptionRevenueAtBlock(soonestBlockToPredict)
         expect(revenue_at_block).to.be.eq(0);
 
-        await erc20Token
-            .connect(user2)
-            .startOrder(
-                consumer,
-                serviceIndex,
-                {
-                    providerFeeAddress: providerFeeAddress,
-                    providerFeeToken: providerFeeToken,
-                    providerFeeAmount: providerFeeAmount,
-                    v: signedMessage.v,
-                    r: signedMessage.r,
-                    s: signedMessage.s,
-                    providerData: ethers.utils.hexlify(ethers.utils.toUtf8Bytes(providerData)),
-                    validUntil: providerValidUntil
-                },
-                {
-                    consumeMarketFeeAddress: consumeMarketFeeAddress,
-                    consumeMarketFeeToken: consumeMarketFeeToken,
-                    consumeMarketFeeAmount: consumeMarketFeeAmount,
-                }
-            );
+        let tx = await erc20Token
+        .connect(user2).buyFromFreAndOrder(
+        {
+          "consumer": user2.address,
+          "amount": web3.utils.toWei("1"),
+          "serviceIndex": 1,
+          "_providerFee": {
+            providerFeeAddress: providerFeeAddress,
+            providerFeeToken:providerFeeToken,
+            providerFeeAmount:providerFeeAmount,
+            v:signedMessage.v,
+            r:signedMessage.r,
+            s:signedMessage.s,
+            providerData:ethers.utils.hexlify(ethers.utils.toUtf8Bytes(providerData)),
+            validUntil:providerValidUntil
+          },
+          "_consumeMarketFee":  {
+            consumeMarketFeeAddress: consumeMarketFeeAddress,
+            consumeMarketFeeToken: consumeMarketFeeToken,
+            consumeMarketFeeAmount: consumeMarketFeeAmount,
+          }
+        },
+        {
+          "exchangeContract": fixedRateExchange.address,
+          "exchangeId": fixedRateId,
+          "maxBaseTokenAmount": needed.baseTokenAmount,
+          "swapMarketFee":0,
+          "marketFeeAddress":user5.address
+        }
+      )
 
         revenue_at_block = await erc20Token.connect(user2).getSubscriptionRevenueAtBlock(soonestBlockToPredict)
         expect(revenue_at_block).to.be.gt(0);
@@ -1602,6 +1601,18 @@ describe("ERC20Template3", () => {
     });
 
     it("#redeemUnusedSlotRevenue - admin should be able to redeem unused sub revenue for epoch", async()=>{
+        const fixedRates = await erc20Token.connect(owner).getFixedRates()
+        fixedRateExchange = await ethers.getContractAt("FixedRateExchange", fixedRates[0].contractAddress);
+        fixedRateId=fixedRates[0].id
+         //get details
+        const details=await fixedRateExchange.connect(owner).getExchange(fixedRateId)
+        const needed=await fixedRateExchange.connect(owner).calcBaseInGivenOutDT(fixedRateId,web3.utils.toWei("1"),0);
+        erc20Contract = await ethers.getContractAt("MockERC20",details.baseToken)
+        await erc20Contract
+            .connect(owner)
+            .transfer(user2.address, needed.baseTokenAmount);
+        await erc20Contract.connect(user2).approve(erc20Token.address,needed.baseTokenAmount)
+
         const consumer = user2.address; // could be different user
         const serviceIndex = 1; // dummy index
         const providerFeeAddress = user5.address; // marketplace fee Collector
@@ -1611,20 +1622,7 @@ describe("ERC20Template3", () => {
         const consumeMarketFeeAmount = 0; // fee to be collected on top, requires approval
         const consumeMarketFeeToken = mockErc20.address; // token address for the feeAmount,
         const providerValidUntil = 0;
-        const amountDT = web3.utils.toWei("1");
-
-        const exchanges = await erc20Token.getFixedRates()
-        const fixedRateExchange = await ethers.getContractAt("FixedRateExchange",exchanges[0].contractAddress)
-        const exchangeId = exchanges[0].id
-        const exchangeInfo = await fixedRateExchange.calcBaseInGivenOutDT(exchangeId, amountDT, 0)
-
-        //let's buy a DT
-        await mockErc20.transfer(user2.address, exchangeInfo.baseTokenAmount);
-        await mockErc20.connect(user2).approve(fixedRateExchange.address, exchangeInfo.baseTokenAmount);
-        // user buys DT
-        await fixedRateExchange.connect(user2).buyDT(exchangeId, amountDT, exchangeInfo.baseTokenAmount, addressZero, 0)
-        const balance = await erc20Token.balanceOf(user2.address)
-        assert(balance > 0, "Failed to buy DT")
+        
         //sign provider data
         const providerData = JSON.stringify({ "timeout": 0 })
         const message = ethers.utils.solidityKeccak256(
@@ -1642,27 +1640,36 @@ describe("ERC20Template3", () => {
         let revenue_at_block = await erc20Token.connect(user2).getSubscriptionRevenueAtBlock(soonestBlockToPredict)
         expect(revenue_at_block).to.be.eq(0);
 
-        await erc20Token
-            .connect(user2)
-            .startOrder(
-                consumer,
-                serviceIndex,
-                {
-                    providerFeeAddress: providerFeeAddress,
-                    providerFeeToken: providerFeeToken,
-                    providerFeeAmount: providerFeeAmount,
-                    v: signedMessage.v,
-                    r: signedMessage.r,
-                    s: signedMessage.s,
-                    providerData: ethers.utils.hexlify(ethers.utils.toUtf8Bytes(providerData)),
-                    validUntil: providerValidUntil
-                },
-                {
-                    consumeMarketFeeAddress: consumeMarketFeeAddress,
-                    consumeMarketFeeToken: consumeMarketFeeToken,
-                    consumeMarketFeeAmount: consumeMarketFeeAmount,
-                }
-            );
+        const tx = await erc20Token
+            .connect(user2).buyFromFreAndOrder(
+            {
+              "consumer": user2.address,
+              "amount": web3.utils.toWei("1"),
+              "serviceIndex": 1,
+              "_providerFee": {
+                providerFeeAddress: providerFeeAddress,
+                providerFeeToken:providerFeeToken,
+                providerFeeAmount:providerFeeAmount,
+                v:signedMessage.v,
+                r:signedMessage.r,
+                s:signedMessage.s,
+                providerData:ethers.utils.hexlify(ethers.utils.toUtf8Bytes(providerData)),
+                validUntil:providerValidUntil
+              },
+              "_consumeMarketFee":  {
+                consumeMarketFeeAddress: consumeMarketFeeAddress,
+                consumeMarketFeeToken: consumeMarketFeeToken,
+                consumeMarketFeeAmount: consumeMarketFeeAmount,
+              }
+            },
+            {
+              "exchangeContract": fixedRateExchange.address,
+              "exchangeId": fixedRateId,
+              "maxBaseTokenAmount": needed.baseTokenAmount,
+              "swapMarketFee":0,
+              "marketFeeAddress":user5.address
+            }
+          )
 
         revenue_at_block = await erc20Token.connect(user2).getSubscriptionRevenueAtBlock(soonestBlockToPredict)
         Array(100).fill(0).map(async _ => await ethers.provider.send("evm_mine"));

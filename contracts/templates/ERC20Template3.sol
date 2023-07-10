@@ -44,7 +44,6 @@ contract ERC20Template3 is
     address private publishMarketFeeAddress;
     address private publishMarketFeeToken;
     uint256 private publishMarketFeeAmount;
-    uint256 private rate = 0;
     uint256 public constant BASE = 1e18;
 
     // -------------------------- PREDICTOOR --------------------------
@@ -200,6 +199,14 @@ contract ERC20Template3 is
     );
     event NewDispenser(address dispenserContract);
 
+    event NewPaymentCollector(
+        address indexed caller,
+        address indexed _newPaymentCollector,
+        uint256 timestamp,
+        uint256 blockNumber
+    );
+
+
     modifier onlyNotInitialized() {
         require(
             !initialized,
@@ -331,7 +338,12 @@ contract ERC20Template3 is
         initialized = true;
         // set payment collector to this contract, so we can get the $$$
         _setPaymentCollector(address(this));
-
+        emit NewPaymentCollector(
+                msg.sender,
+                address(this),
+                block.timestamp,
+                block.number
+            );
         publishMarketFeeAddress = addresses_[2];
         publishMarketFeeToken = addresses_[3];
         publishMarketFeeAmount = uints_[1];
@@ -383,6 +395,7 @@ contract ERC20Template3 is
         );
         require(addresses[2] != address(0),"FeeCollector cannot be zero");
         //force FRE allowedSwapper to this contract address. no one else can swap because we need to record the income
+        addresses[3] = address(this);
         if (uints[4] > 0) _addMinter(fixedPriceAddress);
         // create the exchange
         exchangeId = IFactoryRouter(router).deployFixedRate(
@@ -397,7 +410,6 @@ contract ERC20Template3 is
             addresses[0]
         );
         fixedRateExchanges.push(fixedRate(fixedPriceAddress, exchangeId));
-        rate = uints[2]; //set rate to be added in add_revenue
         feeCollector = addresses[2];
     }
 
@@ -487,26 +499,13 @@ contract ERC20Template3 is
                 _consumeMarketFee.consumeMarketFeeAmount
             );
         }
-        //fetch bastetokens from fre
-        if(fixedRateExchanges.length>0){
-            IFixedRateExchange fre = IFixedRateExchange(
-                fixedRateExchanges[0].contractAddress
-            );
-            (, , , , , , , , , , uint256 btBalance, ) = fre.getExchange(
-            fixedRateExchanges[0].id
-            );
-            if (btBalance > 0) {
-                fre.collectBT(fixedRateExchanges[0].id, btBalance);
-            }
-        }
         Subscription memory sub = Subscription(
             consumer,
             block.number + blocksPerSubscription
         );
         subscriptions[consumer] = sub;
         emit NewSubscription(consumer, block.number + blocksPerSubscription,block.number);
-        //record income
-        add_revenue(block.number, rate);
+        
 
         burn(amount);
     }
@@ -799,7 +798,7 @@ contract ERC20Template3 is
         IFixedRateExchange fre = IFixedRateExchange(
             _freParams.exchangeContract
         );
-        (, address datatoken, , address baseToken, , , , , , , , ) = fre
+        (, address datatoken, , address baseToken, , uint256 freRate, , , , , , ) = fre
             .getExchange(_freParams.exchangeId);
         require(
             datatoken == address(this),
@@ -841,7 +840,10 @@ contract ERC20Template3 is
         );
         if (btBalance > 0) {
             fre.collectBT(_freParams.exchangeId, btBalance);
+            //record income
+            add_revenue(block.number, btBalance);
         }
+        
     }
 
     /**
@@ -951,10 +953,19 @@ contract ERC20Template3 is
         return predictions[slot][predictoor].predictoor != address(0);
     }
 
+    struct userAuth{
+        address userAddress;
+        uint8 v; // v of provider signed message
+        bytes32 r; // r of provider signed message
+        bytes32 s; // s of provider signed message
+        uint256 validUntil; 
+    }
     function getAggPredval(
-        uint256 blocknum
+        uint256 blocknum,
+        userAuth calldata _userAuth
     ) public view returns (uint256, uint256) {
-        require(isValidSubscription(msg.sender), "No subscription");
+        _checkUserAuthorization(_userAuth);
+        require(isValidSubscription(_userAuth.userAddress), "No subscription");
         uint256 slot = railBlocknumToSlot(blocknum);
         return (roundSumStakesUp[slot], roundSumStakes[slot]);
     }
@@ -968,14 +979,18 @@ contract ERC20Template3 is
 
     function getPrediction(
         uint256 blocknum,
-        address predictoor
+        address predictoor,
+        userAuth calldata _userAuth
     )
         public
         view
         returns (Prediction memory prediction)
     {
         //allow predictoors to see their own submissions
-        require(msg.sender == predictoor || blocknum < block.number, "you shall not pass");
+        if ( blocknum >=block.number){
+            _checkUserAuthorization(_userAuth);
+            require(predictoor == _userAuth.userAddress, "Not auth");
+        }
         uint256 slot = railBlocknumToSlot(blocknum);
         prediction = predictions[slot][predictoor];
     }
@@ -1184,5 +1199,22 @@ contract ERC20Template3 is
             }
             emit RevenueAdded(amount,slot,amt_per_epoch,num_epochs,blocksPerEpoch);
         }
+    }
+
+    function _checkUserAuthorization(userAuth calldata _userAuth) internal view{
+        bytes memory prefix = "\x19Ethereum Signed Message:\n32";
+        bytes32 message = keccak256(
+            abi.encodePacked(prefix,
+                keccak256(
+                    abi.encodePacked(
+                        _userAuth.userAddress,
+                        _userAuth.validUntil
+                    )
+                )
+            )
+        );
+        address signer = ecrecover(message, _userAuth.v, _userAuth.r, _userAuth.s);
+        require(signer == _userAuth.userAddress, "Invalid auth");
+        require(_userAuth.validUntil > block.timestamp,'Expired');
     }
 }
