@@ -197,15 +197,13 @@ contract ERC20Template3 is
         address exchangeContract,
         address indexed baseToken
     );
-    event NewDispenser(address dispenserContract);
-
+    
     event NewPaymentCollector(
         address indexed caller,
         address indexed _newPaymentCollector,
         uint256 timestamp,
         uint256 blockNumber
     );
-
 
     modifier onlyNotInitialized() {
         require(
@@ -338,12 +336,6 @@ contract ERC20Template3 is
         initialized = true;
         // set payment collector to this contract, so we can get the $$$
         _setPaymentCollector(address(this));
-        emit NewPaymentCollector(
-                msg.sender,
-                address(this),
-                block.timestamp,
-                block.number
-            );
         publishMarketFeeAddress = addresses_[2];
         publishMarketFeeToken = addresses_[3];
         publishMarketFeeAmount = uints_[1];
@@ -522,18 +514,6 @@ contract ERC20Template3 is
     }
 
     /**
-     * @dev setData
-     *      Only ERC20Deployer (at 721 level) can call it.
-     *      This function allows to store data with a preset key (keccak256(ERC20Address)) into NFT 725 Store
-     * @param _value data to be set with this key
-     */
-
-    function setData(bytes calldata _value) external onlyERC20Deployer {
-        bytes32 key = keccak256(abi.encodePacked(address(this)));
-        IERC721Template(_erc721Address).setDataERC20(key, _value);
-    }
-
-    /**
      * @dev cleanPermissions()
      *      Only NFT Owner (at 721 level) can call it.
      *      This function allows to remove all minters, feeManagers and reset the paymentCollector
@@ -627,7 +607,26 @@ contract ERC20Template3 is
 
     function _setPaymentCollector(address _newPaymentCollector) internal {
         paymentCollector = _newPaymentCollector;
+        emit NewPaymentCollector(
+                msg.sender,
+                paymentCollector,
+                block.timestamp,
+                block.number
+            );
     }
+
+    /**
+     * @dev setFeeCollector
+     *      Only feeManager can call it
+     *      This function allows to set a newFeeCollector (who will get FRE fees, slashes stakes, revenue per epoch if no predictoors)
+     * @param _newFeeCollector new fee collector 
+     */
+
+    function setFeeCollector(address _newFeeCollector) external onlyERC20Deployer{
+        feeCollector = _newFeeCollector;
+    }
+    
+    
 
     /**
      * @dev getPublishingMarketFee

@@ -353,27 +353,6 @@ describe("ERC20Template3", () => {
         assert(address, "Not able to get the parent ERC721 address")
     });
 
-    it("#setData - should fail to setData if NOT erc20Deployer", async () => {
-        const key = web3.utils.keccak256(erc20Token.address);
-        const value = web3.utils.asciiToHex("SomeData");
-
-        await expectRevert(
-            erc20Token.connect(user2).setData(value),
-            "ERC20Template: NOT DEPLOYER ROLE"
-        );
-
-        assert((await tokenERC721.getData(key)) == "0x");
-    });
-
-    it("#setData - should succeed to setData if erc20Deployer", async () => {
-        const key = web3.utils.keccak256(erc20Token.address);
-        const value = web3.utils.asciiToHex("SomeData");
-
-        await erc20Token.connect(user3).setData(value);
-
-        assert((await tokenERC721.getData(key)) == value);
-    });
-
     it("#cleanPermissions - should fail to call cleanPermissions if NOT NFTOwner", async () => {
         await expectRevert(
             erc20Token.connect(user2).cleanPermissions(),
@@ -748,6 +727,12 @@ describe("ERC20Template3", () => {
         assert(publishFee[0] = user2.address)
         assert(publishFee[1] = erc20Token.address)
         assert(publishFee[2] = web3.utils.toWei('10'))
+    });
+    it("#setFeeCollector - user should not be able to set new fee collector", async () => {
+        await expectRevert(
+            erc20TokenWithPublishFee.connect(user2).setFeeCollector(user2.address),
+            "ERC20Template: NOT DEPLOYER ROLE"
+        );
     });
     it("#getId - should return templateId", async () => {
         const templateId = 3;
