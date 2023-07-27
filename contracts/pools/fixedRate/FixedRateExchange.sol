@@ -457,16 +457,11 @@ contract FixedRateExchange is ReentrancyGuard, IFixedRateExchange {
         );
 
         if (datatokenAmount > exchanges[exchangeId].dtBalance) {
-            //first, let's try to mint
+            //let's try to mint
             if(exchanges[exchangeId].withMint 
             && IERC20Template(exchanges[exchangeId].datatoken).isMinter(address(this)))
             {
                 IERC20Template(exchanges[exchangeId].datatoken).mint(msg.sender,datatokenAmount);
-            }
-            else{
-                    _pullUnderlying(exchanges[exchangeId].datatoken,exchanges[exchangeId].exchangeOwner,
-                    msg.sender,
-                    datatokenAmount);
             }
         } else {
             exchanges[exchangeId].dtBalance = (exchanges[exchangeId].dtBalance)
@@ -544,27 +539,24 @@ contract FixedRateExchange is ReentrancyGuard, IFixedRateExchange {
             .add(fee.publishMarketFeeAmount);
         uint256 baseTokenAmountWithFees = fee.baseTokenAmount.add(fee.oceanFeeAmount)
             .add(fee.publishMarketFeeAmount).add(fee.consumeMarketFeeAmount);
+        if (baseTokenAmountWithFees > exchanges[exchangeId].btBalance) {
+                // not enough baseTokens in fre, bail out
+                revert("FixedRateExchange: Not enough base tokens");
+        }
         _pullUnderlying(exchanges[exchangeId].datatoken,msg.sender,
                 address(this),
                 datatokenAmount);
         exchanges[exchangeId].dtBalance = (exchanges[exchangeId].dtBalance).add(
             datatokenAmount
         );
-        if (baseTokenAmountWithFees > exchanges[exchangeId].btBalance) {
-                _pullUnderlying(exchanges[exchangeId].baseToken,exchanges[exchangeId].exchangeOwner,
-                    address(this),
-                    baseTokenAmountWithFees);
-                IERC20(exchanges[exchangeId].baseToken).safeTransfer(
-                    msg.sender,
-                    fee.baseTokenAmount);
-        } else {
-            exchanges[exchangeId].btBalance = (exchanges[exchangeId].btBalance)
+        
+        exchanges[exchangeId].btBalance = (exchanges[exchangeId].btBalance)
                 .sub(baseTokenAmountWithFees);
-            IERC20(exchanges[exchangeId].baseToken).safeTransfer(
+        IERC20(exchanges[exchangeId].baseToken).safeTransfer(
                 msg.sender,
                 fee.baseTokenAmount
-            );
-        }
+        );
+        
         if(consumeMarketAddress!= address(0) && fee.consumeMarketFeeAmount>0){
             IERC20(exchanges[exchangeId].baseToken).safeTransfer(consumeMarketAddress, fee.consumeMarketFeeAmount);    
              emit ConsumeMarketFee(
