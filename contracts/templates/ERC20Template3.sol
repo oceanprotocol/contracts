@@ -624,7 +624,9 @@ contract ERC20Template3 is
      */
 
     function setFeeCollector(address _newFeeCollector) external onlyERC20Deployer{
+        require(_newFeeCollector!=address(0));
         feeCollector = _newFeeCollector;
+
     }
     
     
