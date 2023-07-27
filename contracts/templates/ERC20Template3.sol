@@ -618,7 +618,8 @@ contract ERC20Template3 is
     /**
      * @dev setFeeCollector
      *      Only feeManager can call it
-     *      This function allows to set a newFeeCollector (who will get FRE fees, slashes stakes, revenue per epoch if no predictoors)
+     *      This function allows to set a newFeeCollector
+     *      (will get FRE fees, slashes stakes, revenue per epoch if no predictoors)
      * @param _newFeeCollector new fee collector 
      */
 
