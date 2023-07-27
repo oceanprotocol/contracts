@@ -238,7 +238,7 @@ describe("FixedRateExchange", () => {
     });
 
     it("#getId - should return templateId", async () => {
-      const templateId = 1;
+      const templateId = 2;
       assert((await fixedRateExchange.getId()) == templateId);
     });
     it("#3 - exchange is active", async () => {
