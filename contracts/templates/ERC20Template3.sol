@@ -262,9 +262,8 @@ contract ERC20Template3 is
      * @param uints_  refers to an array of uints
      *                     [0] = cap_ the total ERC20 cap
      *                     [1] = publishing Market Fee Amount
-     *                     [2] = s_per_block,
-     *                     [3] = s_per_epoch,
-     *                     [4] = s_per_subscription,
+     *                     [2] = s_per_epoch,
+     *                     [3] = s_per_subscription,
      * @param bytes_  refers to an array of bytes
      *                     Currently not used, usefull for future templates
      */
@@ -304,9 +303,8 @@ contract ERC20Template3 is
      * @param uints_  refers to an array of uints
      *                     [0] = cap_ the total ERC20 cap
      *                     [1] = publishing Market Fee
-     *                     [2] = s_per_block,
-     *                     [3] = s_per_epoch,
-     *                     [4] = s_per_subscription,
+     *                     [2] = s_per_epoch,
+     *                     [3] = s_per_subscription,
      * param bytes_  refers to an array of bytes
      *                     Currently not used, usefull for future templates
      */
@@ -371,7 +369,7 @@ contract ERC20Template3 is
         */
 
         stakeToken = addresses_[4];
-        _updateSeconds(uints_[2], uints_[3], uints_[4], uints_[5]);
+        _updateSeconds(uints_[2], uints_[3], uints_[4]);
         return initialized;
     }
 
@@ -1148,12 +1146,10 @@ contract ERC20Template3 is
     }
 
     function updateSeconds(
-        uint256 s_per_block,
         uint256 s_per_subscription,
         uint256 _truval_submit_timeout
     ) external onlyERC20Deployer {
         _updateSeconds(
-            s_per_block,
             0, // can only be set once
             s_per_subscription,
             _truval_submit_timeout
@@ -1163,20 +1159,16 @@ contract ERC20Template3 is
     // ----------------------- INTERNAL FUNCTIONS -----------------------
 
     function _updateSeconds(
-        uint256 s_per_block,
         uint256 s_per_epoch,
         uint256 s_per_subscription,
         uint256 _truval_submit_timeout
     ) internal {
-        require(s_per_subscription % s_per_block == 0, "%");
-        require(s_per_epoch % s_per_block == 0, "%");
-
         if (secondsPerEpoch == 0) {
-            secondsPerEpoch = s_per_epoch / s_per_block; // immutaable
+            secondsPerEpoch = s_per_epoch
         }
 
-        secondsPerSubscription = s_per_subscription / s_per_block;
-        trueValSubmitTimeoutEpoch = _truval_submit_timeout / s_per_block;
+        secondsPerSubscription = s_per_subscription;
+        trueValSubmitTimeoutEpoch = _truval_submit_timeout;
         emit SettingChanged(secondsPerEpoch,secondsPerSubscription,trueValSubmitTimeoutEpoch,stakeToken);
     }
 
