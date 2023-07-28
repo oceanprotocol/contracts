@@ -927,7 +927,7 @@ describe("ERC20Template3", () => {
         const _truval_submit_timeout = 30;
 
         await expectRevert(
-            erc20Token.updateSeconds(s_per_block, s_per_subscription, _truval_submit_timeout),
+            erc20Token.updateSeconds(s_per_subscription, _truval_submit_timeout),
             "%"
         );
     });
@@ -1066,7 +1066,7 @@ describe("ERC20Template3", () => {
         const signedMessage = await signMessage(message, providerFeeAddress);
 
         // reduce subscription time
-        await erc20Token.updateSeconds(sPerBlock, sPerBlock, trueValueSubmitTimeout);
+        await erc20Token.updateSeconds(sPerBlock, trueValueSubmitTimeout);
         // set back to normal
         const tx = await erc20Token
         .connect(user2).buyFromFreAndOrder(
@@ -1103,7 +1103,7 @@ describe("ERC20Template3", () => {
         const valid = await erc20Token.isValidSubscription(user2.address);
         expect(valid).to.be.false;
         // set back to normal
-        await erc20Token.updateSeconds(sPerBlock, sPerSubscription, trueValueSubmitTimeout);
+        await erc20Token.updateSeconds(sPerSubscription, trueValueSubmitTimeout);
     });
 
     it("#subscriptions - user3 must be able to subscribe by calling buyFromFreAndOrder", async () => {
@@ -1682,7 +1682,7 @@ describe("ERC20Template3", () => {
         await expectRevert.unspecified(erc20Token.redeemUnusedSlotRevenue(railedBlock));
     })
     it("predictoor can redeem stake if OPF does not submit", async() => {
-        await erc20Token.updateSeconds(sPerBlock, sPerSubscription, sPerEpoch * 3);
+        await erc20Token.updateSeconds(sPerSubscription, sPerEpoch * 3);
 
         const stake = 100;
         await mockErc20.transfer(user2.address, stake);
@@ -1727,11 +1727,11 @@ describe("ERC20Template3", () => {
         assert(event.args.status==2, "Status should be 2 = Canceled")
         expect(event.args.payout).to.be.eq(event.args.stake)
         expect(event.args.payout).to.be.eq(stake)
-        await erc20Token.updateSeconds(sPerBlock, sPerSubscription, trueValueSubmitTimeout);
+        await erc20Token.updateSeconds(sPerSubscription, trueValueSubmitTimeout);
     })
 
     it("predictoor can redeem stake if OPF cancels the round", async() => {
-        await erc20Token.updateSeconds(sPerBlock, sPerSubscription, sPerEpoch * 3);
+        await erc20Token.updateSeconds(sPerSubscription, sPerEpoch * 3);
 
         const stake = 100;
         await mockErc20.transfer(user2.address, stake);
@@ -1781,7 +1781,7 @@ describe("ERC20Template3", () => {
         assert(event.args.status==2, "Status should be 2 = Canceled")
         expect(event.args.payout).to.be.eq(event.args.stake)
         expect(event.args.payout).to.be.eq(stake)
-        await erc20Token.updateSeconds(sPerBlock, sPerSubscription, trueValueSubmitTimeout);
+        await erc20Token.updateSeconds(sPerSubscription, trueValueSubmitTimeout);
     })
 
     it("all predictoors are slashed, feeCollector gets the stakes", async () => {
