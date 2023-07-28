@@ -1164,7 +1164,7 @@ contract ERC20Template3 is
         uint256 _truval_submit_timeout
     ) internal {
         if (secondsPerEpoch == 0) {
-            secondsPerEpoch = s_per_epoch
+            secondsPerEpoch = s_per_epoch;
         }
 
         secondsPerSubscription = s_per_subscription;
