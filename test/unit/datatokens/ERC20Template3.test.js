@@ -755,22 +755,22 @@ describe("ERC20Template3", () => {
     });
     
     // PREDICTOOR
-    it("#blocksPerEpoch - blocksPerEpoch should be set", async () => {
-        const blocksPerEpoch = await erc20Token.blocksPerEpoch();
-        assert(blocksPerEpoch > 0, 'Invalid blocksPerEpoch');
+    it("#secondsPerEpoch - secondsPerEpoch should be set", async () => {
+        const secondsPerEpoch = await erc20Token.secondsPerEpoch();
+        assert(secondsPerEpoch > 0, 'Invalid secondsPerEpoch');
     });
     it("#stakeTokens - stake token should be set", async () => {
         const stakeToken = await erc20Token.stakeToken();
         assert(stakeToken == mockErc20.address, 'Invalid stakeToken');
     });
-    it("#blocksPerSubscription - blocksPerSubscription should be set", async () => {
-        const blocksPerSubscription = await erc20Token.blocksPerSubscription();
-        assert(blocksPerSubscription > 0, 'Invalid blocksPerSubscription');
+    it("#secondsPerSubscription - secondsPerSubscription should be set", async () => {
+        const secondsPerSubscription = await erc20Token.secondsPerSubscription();
+        assert(secondsPerSubscription > 0, 'Invalid secondsPerSubscription');
     });
     it("#epoch, curEpoch - should return currenct epoch", async () => {
         const blockNum = await ethers.provider.getBlockNumber();
-        const blocksPerEpoch = (await erc20Token.blocksPerEpoch())
-        const epoch = parseInt(blockNum / blocksPerEpoch);
+        const secondsPerEpoch = (await erc20Token.secondsPerEpoch())
+        const epoch = parseInt(blockNum / secondsPerEpoch);
         assert((await erc20Token.epoch(blockNum))) == epoch;
         assert((await erc20Token.curEpoch())) == epoch;
     });
@@ -778,16 +778,16 @@ describe("ERC20Template3", () => {
         const soonestTimestampToPredict = await erc20Token.soonestTimestampToPredict((await ethers.provider.getBlockNumber()));
         // this should be equal to
         // 1 + (currentBlock - 1) / 100
-        const blocksPerEpoch = (await erc20Token.blocksPerEpoch())
+        const secondsPerEpoch = (await erc20Token.secondsPerEpoch())
         const blockNumber = await ethers.provider.getBlockNumber();
-        const railed = parseInt(blockNumber / blocksPerEpoch) * blocksPerEpoch
-        const expected = railed + blocksPerEpoch * 2;
+        const railed = parseInt(blockNumber / secondsPerEpoch) * secondsPerEpoch
+        const expected = railed + secondsPerEpoch * 2;
         assert(soonestTimestampToPredict == expected, 'Invalid soonest block to predict');
     });
     it("#getAggPredval - without subscription, should revert", async () => {
         const blockNumber = await ethers.provider.getBlockNumber()
-        const blocksPerEpoch = (await erc20Token.blocksPerEpoch())
-        const railed = parseInt(blockNumber / blocksPerEpoch) * blocksPerEpoch
+        const secondsPerEpoch = (await erc20Token.secondsPerEpoch())
+        const railed = parseInt(blockNumber / secondsPerEpoch) * secondsPerEpoch
         const userAuth = await authorize(owner.address)
         await expectRevert(
             erc20Token.getAggPredval(railed,userAuth),
@@ -796,8 +796,8 @@ describe("ERC20Template3", () => {
     });
     it("#getAggPredval - invalid signature, should revert", async () => {
         const blockNumber = await ethers.provider.getBlockNumber()
-        const blocksPerEpoch = (await erc20Token.blocksPerEpoch())
-        const railed = parseInt(blockNumber / blocksPerEpoch) * blocksPerEpoch
+        const secondsPerEpoch = (await erc20Token.secondsPerEpoch())
+        const railed = parseInt(blockNumber / secondsPerEpoch) * secondsPerEpoch
         const userAuth = await authorize(owner.address)
         userAuth.userAddress=user2.address
         await expectRevert(
@@ -807,8 +807,8 @@ describe("ERC20Template3", () => {
     });
     it("#getAggPredval - expired signature, should revert", async () => {
         const blockNumber = await ethers.provider.getBlockNumber()
-        const blocksPerEpoch = (await erc20Token.blocksPerEpoch())
-        const railed = parseInt(blockNumber / blocksPerEpoch) * blocksPerEpoch
+        const secondsPerEpoch = (await erc20Token.secondsPerEpoch())
+        const railed = parseInt(blockNumber / secondsPerEpoch) * secondsPerEpoch
         const userAuth = await authorize(owner.address,100)
         await expectRevert(
             erc20Token.getAggPredval(railed,userAuth),
@@ -817,8 +817,8 @@ describe("ERC20Template3", () => {
     });
     it("#getAggPredval - without subscription, should revert", async () => {
         const blockNumber = await ethers.provider.getBlockNumber()
-        const blocksPerEpoch = (await erc20Token.blocksPerEpoch())
-        const railed = parseInt(blockNumber / blocksPerEpoch) * blocksPerEpoch
+        const secondsPerEpoch = (await erc20Token.secondsPerEpoch())
+        const railed = parseInt(blockNumber / secondsPerEpoch) * secondsPerEpoch
         const userAuth = await authorize(owner.address)
         await expectRevert(
             erc20Token.getAggPredval(railed,userAuth),
@@ -938,9 +938,9 @@ describe("ERC20Template3", () => {
     });
 
     it("#submitTrueVal - should submit for a block in the past", async () => {
-        const blocksPerEpoch = await erc20Token.blocksPerEpoch();
+        const secondsPerEpoch = await erc20Token.secondsPerEpoch();
         const soonestTimestampToPredict = await erc20Token.soonestTimestampToPredict((await ethers.provider.getBlockNumber()));
-        const submissionBlock = soonestTimestampToPredict - blocksPerEpoch * 2;
+        const submissionBlock = soonestTimestampToPredict - secondsPerEpoch * 2;
         const tx = await erc20Token.submitTrueVal(submissionBlock, true,web3.utils.toWei("230.43"),false);
         const tx_receipt = await tx.wait();
         const event = getEventFromTx(tx_receipt, "TruevalSubmitted");
@@ -1541,7 +1541,7 @@ describe("ERC20Template3", () => {
             await mockErc20.connect(predictoor).approve(erc20Token.address, amt);
         }
         
-        const blocksPerEpoch = await erc20Token.blocksPerEpoch();
+        const secondsPerEpoch = await erc20Token.secondsPerEpoch();
         const currentBlock = await ethers.provider.getBlockNumber();
         const soonestTimestampToPredict = await erc20Token.soonestTimestampToPredict((await ethers.provider.getBlockNumber())+1);
         Array(soonestTimestampToPredict - currentBlock + 1).fill(0).map(async _ => await ethers.provider.send("evm_mine"));
@@ -1556,7 +1556,7 @@ describe("ERC20Template3", () => {
             await erc20Token.connect(predictoor).submitPredval(p, stakeWei, predictionBlock)
         }
         
-        Array(blocksPerEpoch * 2).fill(0).map(async _ => await ethers.provider.send("evm_mine"));
+        Array(secondsPerEpoch * 2).fill(0).map(async _ => await ethers.provider.send("evm_mine"));
         const truval = Math.random() > 0.5;
         const winners = predictions.map((x,i)=>x==truval?i:null).filter(x=>x!=null);
         const totalStake = stakes.reduce((a,b)=>a+b, 0);
@@ -1665,9 +1665,9 @@ describe("ERC20Template3", () => {
 
         revenue_at_block = await erc20Token.connect(user2).getSubscriptionRevenueAtBlock(soonestTimestampToPredict)
         Array(100).fill(0).map(async _ => await ethers.provider.send("evm_mine"));
-        const blocksPerEpoch = await erc20Token.blocksPerEpoch();
+        const secondsPerEpoch = await erc20Token.secondsPerEpoch();
         const currentBlock = await ethers.provider.getBlockNumber();
-        const railedBlock = await erc20Token.epoch(currentBlock) - blocksPerEpoch;
+        const railedBlock = await erc20Token.epoch(currentBlock) - secondsPerEpoch;
         const tx_2 = await erc20Token.redeemUnusedSlotRevenue(railedBlock);
         const txReceipt_2 = await tx_2.wait();
         let event_2 = getEventFromTx(txReceipt_2, 'Transfer')
@@ -1676,9 +1676,9 @@ describe("ERC20Template3", () => {
         expect(event_2.args.value).to.be.eq(6666666666666666);
     })
     it("#redeemUnusedSlotRevenue - admin should not be able to redeem for future epoch", async()=>{
-        const blocksPerEpoch = await erc20Token.blocksPerEpoch();
+        const secondsPerEpoch = await erc20Token.secondsPerEpoch();
         const currentBlock = await ethers.provider.getBlockNumber();
-        const railedBlock = await erc20Token.epoch(currentBlock) + blocksPerEpoch;
+        const railedBlock = await erc20Token.epoch(currentBlock) + secondsPerEpoch;
         await expectRevert.unspecified(erc20Token.redeemUnusedSlotRevenue(railedBlock));
     })
     it("predictoor can redeem stake if OPF does not submit", async() => {
@@ -1693,7 +1693,7 @@ describe("ERC20Template3", () => {
         const slot = await erc20Token.epoch(soonestTimestampToPredict);
 
         await erc20Token.connect(user2).submitPredval(prediction, stake, soonestTimestampToPredict);
-        const blocksPerEpoch = await erc20Token.blocksPerEpoch();
+        const secondsPerEpoch = await erc20Token.secondsPerEpoch();
 
         let mockErc20Balance = await mockErc20.balanceOf(user2.address)
         let tx = await erc20Token.connect(user2).payout(soonestTimestampToPredict, user2.address)
@@ -1703,7 +1703,7 @@ describe("ERC20Template3", () => {
         assert(event==null, "PredictionPayout event found")
         expect(await mockErc20.balanceOf(user2.address)).to.be.eq(mockErc20Balance);
 
-        Array(blocksPerEpoch * 2).fill(0).map(async _ => await ethers.provider.send("evm_mine"));
+        Array(secondsPerEpoch * 2).fill(0).map(async _ => await ethers.provider.send("evm_mine"));
 
         mockErc20Balance = await mockErc20.balanceOf(user2.address)
         tx = await erc20Token.connect(user2).payout(soonestTimestampToPredict, user2.address)
@@ -1713,7 +1713,7 @@ describe("ERC20Template3", () => {
         assert(event==null, "PredictionPayout event found")
         expect(await mockErc20.balanceOf(user2.address)).to.be.eq(mockErc20Balance);
 
-        Array(blocksPerEpoch * 3).fill(0).map(async _ => await ethers.provider.send("evm_mine"));
+        Array(secondsPerEpoch * 3).fill(0).map(async _ => await ethers.provider.send("evm_mine"));
         
         // opf is late
         tx = await erc20Token.connect(user2).payout(soonestTimestampToPredict, user2.address);
@@ -1742,7 +1742,7 @@ describe("ERC20Template3", () => {
         const slot = await erc20Token.epoch(soonestTimestampToPredict);
 
         await erc20Token.connect(user2).submitPredval(prediction, stake, soonestTimestampToPredict);
-        const blocksPerEpoch = await erc20Token.blocksPerEpoch();
+        const secondsPerEpoch = await erc20Token.secondsPerEpoch();
 
         let mockErc20Balance = await mockErc20.balanceOf(user2.address)
         let tx = await erc20Token.connect(user2).payout(soonestTimestampToPredict, user2.address)
@@ -1752,7 +1752,7 @@ describe("ERC20Template3", () => {
         assert(event==null, "PredictionPayout event found")
         expect(await mockErc20.balanceOf(user2.address)).to.be.eq(mockErc20Balance);
 
-        Array(blocksPerEpoch * 2).fill(0).map(async _ => await ethers.provider.send("evm_mine"));
+        Array(secondsPerEpoch * 2).fill(0).map(async _ => await ethers.provider.send("evm_mine"));
 
         mockErc20Balance = await mockErc20.balanceOf(user2.address)
         tx = await erc20Token.connect(user2).payout(soonestTimestampToPredict, user2.address)
@@ -1762,7 +1762,7 @@ describe("ERC20Template3", () => {
         assert(event==null, "PredictionPayout event found")
         expect(await mockErc20.balanceOf(user2.address)).to.be.eq(mockErc20Balance);
 
-        Array(blocksPerEpoch ).fill(0).map(async _ => await ethers.provider.send("evm_mine"));
+        Array(secondsPerEpoch ).fill(0).map(async _ => await ethers.provider.send("evm_mine"));
         // opf cancels the round
         tx = await erc20Token.connect(owner).submitTrueVal(soonestTimestampToPredict, true,web3.utils.toWei("230.43"),true);
         txReceipt = await tx.wait();
@@ -1796,7 +1796,7 @@ describe("ERC20Template3", () => {
             await mockErc20.connect(predictoor).approve(erc20Token.address, amt);
         }
         
-        const blocksPerEpoch = await erc20Token.blocksPerEpoch();
+        const secondsPerEpoch = await erc20Token.secondsPerEpoch();
         const currentBlock = await ethers.provider.getBlockNumber();
         const soonestTimestampToPredict = await erc20Token.soonestTimestampToPredict((await ethers.provider.getBlockNumber())+1);
         Array(soonestTimestampToPredict - currentBlock + 1).fill(0).map(async _ => await ethers.provider.send("evm_mine"));
@@ -1813,7 +1813,7 @@ describe("ERC20Template3", () => {
             await erc20Token.connect(predictoor).submitPredval(p, stakeWei, predictionBlock)
         }
         
-        Array(blocksPerEpoch * 2).fill(0).map(async _ => await ethers.provider.send("evm_mine"));
+        Array(secondsPerEpoch * 2).fill(0).map(async _ => await ethers.provider.send("evm_mine"));
         const truval = true //
         // opf submits truval
         tx = await erc20Token.submitTrueVal(predictionBlock, truval, web3.utils.toWei("230.43"), false);
