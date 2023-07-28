@@ -15,7 +15,6 @@ import "@openzeppelin/contracts/utils/math/SafeMath.sol";
 import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 import "@openzeppelin/contracts/security/ReentrancyGuard.sol";
 import "../utils/ERC20Roles.sol";
-import "hardhat/console.sol";
 
 /**
  * @title DatatokenTemplate
@@ -942,10 +941,10 @@ contract ERC20Template3 is
     }
 
     function submittedPredval(
-        uint256 epoch,
+        uint256 _epoch,
         address predictoor
     ) public view returns (bool) {
-        return predictions[epoch][predictoor].predictoor != address(0);
+        return predictions[_epoch][predictoor].predictoor != address(0);
     }
 
     struct userAuth{
@@ -1031,7 +1030,7 @@ contract ERC20Template3 is
         if(predobj.paid) return; // just return if already paid, in order not to break payoutMultiple
         
         // if OPF hasn't submitted trueValue in truval_submit_timeout blocks then cancel round
-        if (block.timestamp > _epoch + trueValSubmitTimeoutEpoch && epochStatus[_epoch]==Status.Pending){
+        if (curEpoch() > _epoch + trueValSubmitTimeoutEpoch && epochStatus[_epoch]==Status.Pending){
             epochStatus[_epoch]=Status.Canceled;
         }
 
@@ -1072,14 +1071,13 @@ contract ERC20Template3 is
     }
 
     // ----------------------- ADMIN FUNCTIONS -----------------------
-    function redeemUnusedSlotRevenue(uint256 timestamp) external onlyERC20Deployer {
-        uint256 slot = epoch(timestamp);
-        require(block.timestamp > slot);
-        require(roundSumStakes[slot] == 0);
+    function redeemUnusedSlotRevenue(uint256 _epoch) external onlyERC20Deployer {
+        require(curEpoch() >= _epoch);
+        require(roundSumStakes[_epoch] == 0);
         require(feeCollector != address(0), "Cannot send fees to address 0");
         IERC20(stakeToken).safeTransfer(
             feeCollector,
-            _subscriptionRevenueAtSlot[slot]
+            _subscriptionRevenueAtSlot[_epoch]
         );
     }
 
@@ -1115,7 +1113,7 @@ contract ERC20Template3 is
     ) external onlyERC20Deployer {
         require(_epoch <= curEpoch(), "too early to submit");
         require(epochStatus[_epoch] == Status.Pending, "already settled");
-        if (cancelRound || (curEpoch() > _epoch + trueValSubmitTimeoutEpoch / secondsPerEpoch && epochStatus[_epoch] == Status.Pending)){
+        if (cancelRound || (curEpoch() > _epoch + trueValSubmitTimeoutEpoch && epochStatus[_epoch] == Status.Pending)){
             epochStatus[_epoch]=Status.Canceled;
         }
         else{
@@ -1162,8 +1160,8 @@ contract ERC20Template3 is
         }
 
         secondsPerSubscription = s_per_subscription;
-        trueValSubmitTimeoutEpoch = _truval_submit_timeout;
-        emit SettingChanged(secondsPerEpoch,secondsPerSubscription,trueValSubmitTimeoutEpoch,stakeToken);
+        trueValSubmitTimeoutEpoch = _truval_submit_timeout / secondsPerEpoch;
+        emit SettingChanged(secondsPerEpoch, secondsPerSubscription, trueValSubmitTimeoutEpoch, stakeToken);
     }
 
     function add_revenue(uint256 _epoch, uint256 amount) internal {
