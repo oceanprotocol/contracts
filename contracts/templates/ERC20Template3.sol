@@ -1004,10 +1004,10 @@ contract ERC20Template3 is
     function submitPredval(
         bool predictedValue,
         uint256 stake,
-        uint256 epoch
+        uint256 _timestamp
     ) external {
         require(paused == false, "paused");
-        uint256 slot = railTimestampToSlot(blocknum);
+        uint256 slot = railTimestampToSlot(_timestamp);
         require(slot >= soonestTimestampToPredict(block.timestamp), "too late to submit");
         require(!submittedPredval(slot, msg.sender), "already submitted");
         
