@@ -15,6 +15,7 @@ import "@openzeppelin/contracts/utils/math/SafeMath.sol";
 import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 import "@openzeppelin/contracts/security/ReentrancyGuard.sol";
 import "../utils/ERC20Roles.sol";
+import "hardhat/console.sol";
 
 /**
  * @title DatatokenTemplate
@@ -909,7 +910,7 @@ contract ERC20Template3 is
 
     // ------------ PREDICTOOR ------------
     function isValidSubscription(address user) public view returns (bool) {
-        return subscriptions[user].expires <= block.timestamp ? false : true;
+        return curEpoch() < subscriptions[user].expires ? true : false;
     }
 
     function epoch(uint256 _timestamp) public view returns (uint256) {
@@ -979,7 +980,7 @@ contract ERC20Template3 is
         returns (Prediction memory prediction)
     {
         //allow predictoors to see their own submissions
-        if (_epoch >= curEpoch()){
+        if (_epoch > curEpoch()){
             _checkUserAuthorization(_userAuth);
             require(predictoor == _userAuth.userAddress, "Not auth");
         }
