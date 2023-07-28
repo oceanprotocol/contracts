@@ -922,18 +922,11 @@ contract ERC20Template3 is
         return epoch(block.timestamp);
     }
 
-    function railTimestampToSlot(
-        uint256 _timestamp
-    ) public view returns (uint256) {
-        uint256 rounded = _timestamp / secondsPerEpoch;
-        return (rounded * secondsPerEpoch);
-    }   
-
     function timestampIsOnSlot(
         uint256 _timestamp
     ) public view returns (bool) {
         // a slot == beginning/end of an epoch
-        return _timestamp == railTimestampToSlot(_timestamp);
+        return _timestamp == epoch(_timestamp) * secondsPerEpoch;
     }
 
     function soonestTimestampToPredict(uint256 prediction_ts) public view returns (uint256) {
@@ -942,18 +935,18 @@ contract ERC20Template3 is
         Predval is: "does trueValue go UP or DOWN between the start of epoch i+1 and the start of epoch i+2?"
         Once epoch i ends, predictoors cannot submit predictedValues for epoch i+2
         */
-        return(railTimestampToSlot(prediction_ts) + secondsPerEpoch * 2);
+        return(epoch(prediction_ts) + secondsPerEpoch * 2);
 
         // assume current time is candle 1 + x seconds
-        // railTimestampToSlot(prediction_ts) returns candle 1 time
+        // epoch(prediction_ts) returns candle 1 time
         // so the function returns candle 3
     }
 
     function submittedPredval(
-        uint256 blocknum,
+        uint256 _timestamp,
         address predictoor
     ) public view returns (bool) {
-        uint256 slot = railTimestampToSlot(blocknum);
+        uint256 slot = epoch(_timestamp);
         return predictions[slot][predictoor].predictoor != address(0);
     }
 
@@ -970,14 +963,14 @@ contract ERC20Template3 is
     ) public view returns (uint256, uint256) {
         _checkUserAuthorization(_userAuth);
         require(isValidSubscription(_userAuth.userAddress), "No subscription");
-        uint256 slot = railTimestampToSlot(_timestamp);
+        uint256 slot = epoch(_timestamp);
         return (roundSumStakesUp[slot], roundSumStakes[slot]);
     }
 
     function getsubscriptionRevenueAtSlot(
         uint256 _timestamp
     ) public view returns (uint256) {
-        uint256 slot = railTimestampToSlot(_timestamp);
+        uint256 slot = epoch(_timestamp);
         return (subscriptionRevenueAtSlot[slot]);
     }
 
@@ -995,7 +988,7 @@ contract ERC20Template3 is
             _checkUserAuthorization(_userAuth);
             require(predictoor == _userAuth.userAddress, "Not auth");
         }
-        uint256 slot = railTimestampToSlot(_timestamp);
+        uint256 slot = epoch(_timestamp);
         prediction = predictions[slot][predictoor];
     }
 
@@ -1007,7 +1000,7 @@ contract ERC20Template3 is
         uint256 _timestamp
     ) external {
         require(paused == false, "paused");
-        uint256 slot = railTimestampToSlot(_timestamp);
+        uint256 slot = epoch(_timestamp);
         require(slot >= soonestTimestampToPredict(block.timestamp), "too late to submit");
         require(!submittedPredval(slot, msg.sender), "already submitted");
         
@@ -1040,7 +1033,7 @@ contract ERC20Template3 is
         address predictoor_addr
     ) public nonReentrant {
         require(submittedPredval(_timestamp, predictoor_addr), "not submitted");
-        uint256 slot = railTimestampToSlot(_timestamp);
+        uint256 slot = epoch(_timestamp);
         Prediction memory predobj = predictions[slot][predictoor_addr];
         if(predobj.paid) return; // just return if already paid, in order not to break payoutMultiple
         
@@ -1087,7 +1080,7 @@ contract ERC20Template3 is
 
     // ----------------------- ADMIN FUNCTIONS -----------------------
     function redeemUnusedSlotRevenue(uint256 timestamp) external onlyERC20Deployer {
-        uint256 slot = railTimestampToSlot(timestamp);
+        uint256 slot = epoch(timestamp);
         require(block.timestamp > slot);
         require(roundSumStakes[slot] == 0);
         require(feeCollector != address(0), "Cannot send fees to address 0");
@@ -1128,7 +1121,7 @@ contract ERC20Template3 is
         bool cancelRound
     ) external onlyERC20Deployer {
         require(_timestamp < block.timestamp, "too early to submit");
-        uint256 slot = railTimestampToSlot(_timestamp);
+        uint256 slot = epoch(_timestamp);
         require(epochStatus[slot]==Status.Pending, "already settled");
         if (cancelRound || (block.timestamp > slot + trueValSubmitTimeoutEpoch && epochStatus[slot] == Status.Pending)){
             epochStatus[slot]=Status.Canceled;
@@ -1189,7 +1182,7 @@ contract ERC20Template3 is
 
     function add_revenue(uint256 _timestamp, uint256 amount) internal {
         if (amount > 0) {
-            uint256 slot = railTimestampToSlot(_timestamp);
+            uint256 slot = epoch(_timestamp);
             uint256 num_epochs = secondsPerSubscription / secondsPerEpoch;
             if(num_epochs<1)
                 num_epochs=1;
@@ -1197,7 +1190,7 @@ contract ERC20Template3 is
             // for loop and add revenue for secondsPerEpoch blocks
             for (uint256 i = 0; i < num_epochs; i++) {
                 subscriptionRevenueAtSlot[
-                    slot * secondsPerEpoch * (i)
+                    slot * (i)
                 ] += amt_per_epoch;
             }
             emit RevenueAdded(amount,slot,amt_per_epoch,num_epochs,secondsPerEpoch);
