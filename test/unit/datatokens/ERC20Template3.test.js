@@ -736,9 +736,10 @@ describe("ERC20Template3", () => {
     });
     it("#soonestEpochToPredict - should return soonest epoch to predict", async () => {
         const blockTimestamp = await blocktimestamp();
+        const startTime = await erc20Token.startTime();
         const soonestEpochToPredict = await erc20Token.soonestEpochToPredict(blockTimestamp);
         const secondsPerEpoch = (await erc20Token.secondsPerEpoch())
-        const railed = parseInt(blockTimestamp / secondsPerEpoch)
+        const railed = parseInt((blockTimestamp - startTime) / secondsPerEpoch)
         const expected = railed + 2;
         assert(soonestEpochToPredict == expected, 'Invalid soonest block to predict');
     });
@@ -966,8 +967,9 @@ describe("ERC20Template3", () => {
 
         const subscription = await erc20Token.subscriptions(user2.address);
         // check if subscription is valid
-        const currentBlock = await ethers.provider.getBlockNumber();
-        expect(subscription.expires).to.be.gt(currentBlock);
+        const currentTime = await blocktimestamp();
+        const startTime = await erc20Token.startTime();
+        expect(subscription.expires).to.be.gt(currentTime - startTime);
         expect(subscription.user).to.be.eq(user2.address);
 
         const valid = await erc20Token.isValidSubscription(user2.address);
@@ -1113,8 +1115,9 @@ describe("ERC20Template3", () => {
           )
         const subscription = await erc20Token.subscriptions(user2.address);
         // check if subscription is valid
-        const currentBlock = await ethers.provider.getBlockNumber();
-        expect(subscription.expires).to.be.gt(currentBlock);
+        const currentTime = await blocktimestamp();
+        const startTime = await erc20Token.startTime();
+        expect(subscription.expires).to.be.gt(currentTime - startTime);
         expect(subscription.user).to.be.eq(user2.address);
 
         const valid = await erc20Token.isValidSubscription(user2.address);
