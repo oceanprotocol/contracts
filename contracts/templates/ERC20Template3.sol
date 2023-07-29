@@ -915,6 +915,7 @@ contract ERC20Template3 is
     }
 
     function epoch(uint256 _timestamp) public view returns (uint256) {
+        if (_timestamp < startTime) return 0;
         return (_timestamp - startTime) / secondsPerEpoch;
     }
 
