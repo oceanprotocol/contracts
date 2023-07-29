@@ -371,7 +371,7 @@ contract ERC20Template3 is
 
         stakeToken = addresses_[4];
         _updateSeconds(uints_[2], uints_[3], uints_[4]);
-        startTime = block.timestamp - 1;
+        startTime = block.timestamp;
         return initialized;
     }
 
