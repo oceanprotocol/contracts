@@ -969,6 +969,7 @@ describe("ERC20Template3", () => {
         // check if subscription is valid
         const currentTime = await blocktimestamp();
         const startTime = await erc20Token.startTime();
+        const secondsPerEpoch = await erc20Token.secondsPerEpoch();
         const expirationEpoch = (currentTime - startTime) / secondsPerEpoch;
         expect(subscription.expires).to.be.gt(expirationEpoch);
         expect(subscription.user).to.be.eq(user2.address);
@@ -1118,6 +1119,7 @@ describe("ERC20Template3", () => {
         // check if subscription is valid
         const currentTime = await blocktimestamp();
         const startTime = await erc20Token.startTime();
+        const secondsPerEpoch = await erc20Token.secondsPerEpoch();
         const expirationEpoch = (currentTime - startTime) / secondsPerEpoch;
         expect(subscription.expires).to.be.gt(expirationEpoch);
         expect(subscription.user).to.be.eq(user2.address);
