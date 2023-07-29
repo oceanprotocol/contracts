@@ -922,13 +922,6 @@ contract ERC20Template3 is
         return epoch(block.timestamp);
     }
 
-    function timestampIsOnSlot(
-        uint256 _timestamp
-    ) public view returns (bool) {
-        // a slot == beginning/end of an epoch
-        return _timestamp == epoch(_timestamp) * secondsPerEpoch;
-    }
-
     function soonestEpochToPredict(uint256 prediction_ts) public view returns (uint256) {
         /*
         Epoch i: predictoors submit predictedValue for the beginning of epoch i+2. 
