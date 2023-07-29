@@ -70,7 +70,7 @@ contract ERC20Template3 is
     event NewSubscription(
         address indexed user,
         uint256 expires,
-        uint256 blocknum
+        uint256 epoch
     );
     event TruevalSubmitted(
         uint256 indexed slot,
@@ -499,12 +499,13 @@ contract ERC20Template3 is
                 _consumeMarketFee.consumeMarketFeeAmount
             );
         }
+        uint256 _expires = curEpoch() + secondsPerSubscription / secondsPerEpoch;
         Subscription memory sub = Subscription(
             consumer,
-            curEpoch() + secondsPerSubscription / secondsPerEpoch
+            _expires
         );
         subscriptions[consumer] = sub;
-        emit NewSubscription(consumer, block.number + secondsPerSubscription,block.number);
+        emit NewSubscription(consumer,  _expires, curEpoch());
         
 
         burn(amount);
