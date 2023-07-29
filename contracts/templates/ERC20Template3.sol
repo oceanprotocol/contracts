@@ -933,6 +933,7 @@ contract ERC20Template3 is
         // assume current time is candle 1 + x seconds
         // epoch(prediction_ts) returns candle 1 time
         // so the function returns candle 3
+        // predictoors predict for candle 3 open & candle 2 close.
     }
 
     function submittedPredval(
