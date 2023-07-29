@@ -118,7 +118,7 @@ contract ERC20Template3 is
     address public stakeToken;
     uint256 public secondsPerSubscription;
     uint256 public trueValSubmitTimeoutEpoch;
-    uint256 private startTime;
+    uint256 public startTime;
     bool public paused = false;
     // -------------------------- PREDICTOOR --------------------------
 
