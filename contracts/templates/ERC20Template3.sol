@@ -118,7 +118,7 @@ contract ERC20Template3 is
     address public stakeToken;
     uint256 public secondsPerSubscription;
     uint256 public trueValSubmitTimeoutEpoch;
-    uint256 private startEpoch;
+    uint256 private startTime;
     bool public paused = false;
     // -------------------------- PREDICTOOR --------------------------
 
@@ -371,7 +371,7 @@ contract ERC20Template3 is
 
         stakeToken = addresses_[4];
         _updateSeconds(uints_[2], uints_[3], uints_[4]);
-        startEpoch = curEpoch();
+        startTime = block.timestamp - 1;
         return initialized;
     }
 
@@ -915,7 +915,7 @@ contract ERC20Template3 is
     }
 
     function epoch(uint256 _timestamp) public view returns (uint256) {
-        return _timestamp / secondsPerEpoch - startEpoch;
+        return (_timestamp - startTime) / secondsPerEpoch;
     }
 
     function curEpoch() public view returns (uint256) {
