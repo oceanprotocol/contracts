@@ -1170,7 +1170,7 @@ contract ERC20Template3 is
             uint256 amt_per_epoch = amount / num_epochs;
             // for loop and add revenue for secondsPerEpoch blocks
             for (uint256 i = 0; i < num_epochs; i++) {
-                _subscriptionRevenueAtSlot[
+                subscriptionRevenueAtEpoch[
                     _epoch + (i)
                 ] += amt_per_epoch;
             }
