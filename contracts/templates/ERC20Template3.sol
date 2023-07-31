@@ -111,7 +111,7 @@ contract ERC20Template3 is
     mapping(uint256 => uint256) private roundSumStakes;
     mapping(uint256 => bool) public trueValues; // true values submited by owner
     mapping(uint256 => Status) public epochStatus; // status of each epoch
-    mapping(uint256 => uint256) private _subscriptionRevenueAtSlot; //income registred
+    mapping(uint256 => uint256) private subscriptionRevenueAtEpoch; //income registred
     mapping(address => Subscription) public subscriptions; // valid subscription per user
     address public feeCollector; //who will get FRE fees, slashes stakes, revenue per epoch if no predictoors
     uint256 public secondsPerEpoch;
@@ -961,7 +961,7 @@ contract ERC20Template3 is
     function getsubscriptionRevenueAtEpoch(
         uint256 _epoch
     ) public view returns (uint256) {
-        return (_subscriptionRevenueAtSlot[_epoch]);
+        return (subscriptionRevenueAtEpoch[_epoch]);
     }
 
     function getPrediction(
@@ -1075,7 +1075,7 @@ contract ERC20Template3 is
         require(feeCollector != address(0), "Cannot send fees to address 0");
         IERC20(stakeToken).safeTransfer(
             feeCollector,
-            _subscriptionRevenueAtSlot[_epoch]
+            subscriptionRevenueAtEpoch[_epoch]
         );
     }
 
