@@ -112,6 +112,7 @@ contract ERC20Template3 is
     mapping(uint256 => bool) public trueValues; // true values submited by owner
     mapping(uint256 => Status) public epochStatus; // status of each epoch
     mapping(uint256 => uint256) private subscriptionRevenueAtEpoch; //income registred
+    mapping(uint256 => uint256) private subscriptionRevenueAtEpoch; //income registred
     mapping(address => Subscription) public subscriptions; // valid subscription per user
     address public feeCollector; //who will get FRE fees, slashes stakes, revenue per epoch if no predictoors
     uint256 public secondsPerEpoch;
