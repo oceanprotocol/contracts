@@ -964,7 +964,7 @@ contract ERC20Template3 is
     function getsubscriptionRevenueAtEpoch(
         uint256 _epoch
     ) public view returns (uint256) {
-        return (_subscriptionRevenueAtSlot[_epoch]);
+        return (subscriptionRevenueAtEpoch[_epoch]);
     }
 
     function getPrediction(
