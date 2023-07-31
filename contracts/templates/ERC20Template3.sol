@@ -1075,7 +1075,7 @@ contract ERC20Template3 is
         require(feeCollector != address(0), "Cannot send fees to address 0");
         IERC20(stakeToken).safeTransfer(
             feeCollector,
-            _subscriptionRevenueAtSlot[_epoch]
+            subscriptionRevenueAtEpoch[_epoch]
         );
     }
 
