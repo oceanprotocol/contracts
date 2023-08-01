@@ -1112,7 +1112,9 @@ contract ERC20Template3 is
         require(toEpochStart(epoch_start) == epoch_start, "invalid epoch");
         require(epoch_start <= curEpoch(), "too early to submit");
         require(epochStatus[epoch_start] == Status.Pending, "already settled");
-        if (cancelRound || (curEpoch() > epoch_start + trueValSubmitTimeout && epochStatus[epoch_start] == Status.Pending)){
+        bool opfTimedout = curEpoch() > epoch_start + trueValSubmitTimeout;
+        bool epochPending = epochStatus[epoch_start] == Status.Pending;
+        if (cancelRound || (opfTimedout && epochPending)){
             epochStatus[epoch_start]=Status.Canceled;
         }
         else{
