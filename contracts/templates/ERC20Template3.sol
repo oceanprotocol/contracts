@@ -1159,7 +1159,7 @@ contract ERC20Template3 is
         }
 
         secondsPerSubscription = s_per_subscription;
-        trueValSubmitTimeout = _truval_submit_timeout / secondsPerEpoch;
+        trueValSubmitTimeout = _truval_submit_timeout;
         emit SettingChanged(secondsPerEpoch, secondsPerSubscription, trueValSubmitTimeout, stakeToken);
     }
 
