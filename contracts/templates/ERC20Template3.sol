@@ -117,7 +117,7 @@ contract ERC20Template3 is
     uint256 public secondsPerEpoch;
     address public stakeToken;
     uint256 public secondsPerSubscription;
-    uint256 public trueValSubmitTimeoutEpoch;
+    uint256 public trueValSubmitTimeout;
     bool public paused = false;
     // -------------------------- PREDICTOOR --------------------------
 
@@ -1027,7 +1027,7 @@ contract ERC20Template3 is
         if(predobj.paid) return; // just return if already paid, in order not to break payoutMultiple
         
         // if OPF hasn't submitted trueValue in truval_submit_timeout blocks then cancel round
-        if (curEpoch() > epoch_start + trueValSubmitTimeoutEpoch && epochStatus[epoch_start]==Status.Pending){
+        if (curEpoch() > epoch_start + trueValSubmitTimeout && epochStatus[epoch_start]==Status.Pending){
             epochStatus[epoch_start]=Status.Canceled;
         }
 
@@ -1112,7 +1112,7 @@ contract ERC20Template3 is
         require(toEpochStart(epoch_start) == epoch_start, "invalid epoch");
         require(epoch_start <= curEpoch(), "too early to submit");
         require(epochStatus[epoch_start] == Status.Pending, "already settled");
-        if (cancelRound || (curEpoch() > epoch_start + trueValSubmitTimeoutEpoch && epochStatus[epoch_start] == Status.Pending)){
+        if (cancelRound || (curEpoch() > epoch_start + trueValSubmitTimeout && epochStatus[epoch_start] == Status.Pending)){
             epochStatus[epoch_start]=Status.Canceled;
         }
         else{
@@ -1159,8 +1159,8 @@ contract ERC20Template3 is
         }
 
         secondsPerSubscription = s_per_subscription;
-        trueValSubmitTimeoutEpoch = _truval_submit_timeout / secondsPerEpoch;
-        emit SettingChanged(secondsPerEpoch, secondsPerSubscription, trueValSubmitTimeoutEpoch, stakeToken);
+        trueValSubmitTimeout = _truval_submit_timeout / secondsPerEpoch;
+        emit SettingChanged(secondsPerEpoch, secondsPerSubscription, trueValSubmitTimeout, stakeToken);
     }
 
     function add_revenue(uint256 epoch_start, uint256 amount) internal {
