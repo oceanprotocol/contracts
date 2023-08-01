@@ -936,10 +936,10 @@ contract ERC20Template3 is
     }
 
     function submittedPredval(
-        uint256 _epoch,
+        uint256 epoch_start,
         address predictoor
     ) public view returns (bool) {
-        return predictions[_epoch][predictoor].predictoor != address(0);
+        return predictions[epoch_start][predictoor].predictoor != address(0);
     }
 
     struct userAuth{
@@ -950,22 +950,22 @@ contract ERC20Template3 is
         uint256 validUntil; 
     }
     function getAggPredval(
-        uint256 _epoch,
+        uint256 epoch_start,
         userAuth calldata _userAuth
     ) public view returns (uint256, uint256) {
         _checkUserAuthorization(_userAuth);
         require(isValidSubscription(_userAuth.userAddress), "No subscription");
-        return (roundSumStakesUp[_epoch], roundSumStakes[_epoch]);
+        return (roundSumStakesUp[epoch_start], roundSumStakes[epoch_start]);
     }
 
     function getsubscriptionRevenueAtEpoch(
-        uint256 _epoch
+        uint256 epoch_start
     ) public view returns (uint256) {
-        return (subscriptionRevenueAtEpoch[_epoch]);
+        return (subscriptionRevenueAtEpoch[epoch_start]);
     }
 
     function getPrediction(
-        uint256 _epoch,
+        uint256 epoch_start,
         address predictoor,
         userAuth calldata _userAuth
     )
@@ -974,11 +974,11 @@ contract ERC20Template3 is
         returns (Prediction memory prediction)
     {
         //allow predictoors to see their own submissions
-        if (_epoch > curEpoch()){
+        if (epoch_start > curEpoch()){
             _checkUserAuthorization(_userAuth);
             require(predictoor == _userAuth.userAddress, "Not auth");
         }
-        prediction = predictions[_epoch][predictoor];
+        prediction = predictions[epoch_start][predictoor];
     }
 
     // ----------------------- MUTATING FUNCTIONS -----------------------
@@ -986,24 +986,24 @@ contract ERC20Template3 is
     function submitPredval(
         bool predictedValue,
         uint256 stake,
-        uint256 _epoch
+        uint256 epoch_start
     ) external {
-        require(toEpochStart(_epoch) == _epoch, "invalid epoch");
+        require(toEpochStart(epoch_start) == epoch_start, "invalid epoch");
         require(paused == false, "paused");
-        require(_epoch >= soonestEpochToPredict(block.timestamp), "too late to submit");
-        require(!submittedPredval(_epoch, msg.sender), "already submitted");
+        require(epoch_start >= soonestEpochToPredict(block.timestamp), "too late to submit");
+        require(!submittedPredval(epoch_start, msg.sender), "already submitted");
         
-        predictions[_epoch][msg.sender] = Prediction(
+        predictions[epoch_start][msg.sender] = Prediction(
             predictedValue,
             stake,
             msg.sender,
             false
         );
         // update agg_predictedValues
-        roundSumStakesUp[_epoch] += stake * (predictedValue ? 1 : 0);
-        roundSumStakes[_epoch] += stake;
+        roundSumStakesUp[epoch_start] += stake * (predictedValue ? 1 : 0);
+        roundSumStakes[epoch_start] += stake;
 
-        emit PredictionSubmitted(msg.sender, _epoch, stake);
+        emit PredictionSubmitted(msg.sender, epoch_start, stake);
         // safe transfer stake
         IERC20(stakeToken).safeTransferFrom(msg.sender, address(this), stake);
     }
@@ -1018,64 +1018,64 @@ contract ERC20Template3 is
     }
 
     function payout(
-        uint256 _epoch,
+        uint256 epoch_start,
         address predictoor_addr
     ) public nonReentrant {
-        require(toEpochStart(_epoch) == _epoch, "invalid epoch");
-        require(submittedPredval(_epoch, predictoor_addr), "not submitted");
-        Prediction memory predobj = predictions[_epoch][predictoor_addr];
+        require(toEpochStart(epoch_start) == epoch_start, "invalid epoch");
+        require(submittedPredval(epoch_start, predictoor_addr), "not submitted");
+        Prediction memory predobj = predictions[epoch_start][predictoor_addr];
         if(predobj.paid) return; // just return if already paid, in order not to break payoutMultiple
         
         // if OPF hasn't submitted trueValue in truval_submit_timeout blocks then cancel round
-        if (curEpoch() > _epoch + trueValSubmitTimeoutEpoch && epochStatus[_epoch]==Status.Pending){
-            epochStatus[_epoch]=Status.Canceled;
+        if (curEpoch() > epoch_start + trueValSubmitTimeoutEpoch && epochStatus[epoch_start]==Status.Pending){
+            epochStatus[epoch_start]=Status.Canceled;
         }
 
-        if(epochStatus[_epoch]==Status.Pending){
+        if(epochStatus[epoch_start]==Status.Pending){
             // if Status is Pending, do nothing, just return
             return; 
         }
         uint256 payout_amt = 0;
-        predictions[_epoch][predictoor_addr].paid = true;
-        if(epochStatus[_epoch]==Status.Canceled){
+        predictions[epoch_start][predictoor_addr].paid = true;
+        if(epochStatus[epoch_start]==Status.Canceled){
             payout_amt = predobj.stake;
         }
         else{ // Status.Paying
-            if(trueValues[_epoch] == predobj.predictedValue){
+            if(trueValues[epoch_start] == predobj.predictedValue){
                 // he got it.
-                uint256 swe = trueValues[_epoch]
-                    ? roundSumStakesUp[_epoch]
-                    : roundSumStakes[_epoch] - roundSumStakesUp[_epoch];
+                uint256 swe = trueValues[epoch_start]
+                    ? roundSumStakesUp[epoch_start]
+                    : roundSumStakes[epoch_start] - roundSumStakesUp[epoch_start];
                 if(swe > 0) {
-                    uint256 revenue = getsubscriptionRevenueAtEpoch(_epoch);
-                    payout_amt = predobj.stake * (roundSumStakes[_epoch] + revenue) / swe;
+                    uint256 revenue = getsubscriptionRevenueAtEpoch(epoch_start);
+                    payout_amt = predobj.stake * (roundSumStakes[epoch_start] + revenue) / swe;
                 }
             }
             // else payout_amt is already 0
         }
         emit PredictionPayout(
                     predictoor_addr,
-                    _epoch,
+                    epoch_start,
                     predobj.stake,
                     payout_amt,
                     predobj.predictedValue,
-                    trueValues[_epoch],
-                    roundSumStakesUp[_epoch] * 1e18 / roundSumStakes[_epoch],
-                    epochStatus[_epoch]
+                    trueValues[epoch_start],
+                    roundSumStakesUp[epoch_start] * 1e18 / roundSumStakes[epoch_start],
+                    epochStatus[epoch_start]
                 );
         if(payout_amt>0)
             IERC20(stakeToken).safeTransfer(predobj.predictoor, payout_amt);
     }
 
     // ----------------------- ADMIN FUNCTIONS -----------------------
-    function redeemUnusedSlotRevenue(uint256 _epoch) external onlyERC20Deployer {
-        require(toEpochStart(_epoch) == _epoch, "invalid epoch");
-        require(curEpoch() >= _epoch);
-        require(roundSumStakes[_epoch] == 0);
+    function redeemUnusedSlotRevenue(uint256 epoch_start) external onlyERC20Deployer {
+        require(toEpochStart(epoch_start) == epoch_start, "invalid epoch");
+        require(curEpoch() >= epoch_start);
+        require(roundSumStakes[epoch_start] == 0);
         require(feeCollector != address(0), "Cannot send fees to address 0");
         IERC20(stakeToken).safeTransfer(
             feeCollector,
-            subscriptionRevenueAtEpoch[_epoch]
+            subscriptionRevenueAtEpoch[epoch_start]
         );
     }
 
@@ -1098,42 +1098,42 @@ contract ERC20Template3 is
     /**
      * @dev submitTrueVal
      *      Called by owner to settle one epoch
-     * @param _epoch epoch number
+     * @param epoch_start epoch number
      * @param trueValue trueValue for that epoch (0 - down, 1 - up)
      * @param floatValue float value of pair for that epoch
      * @param cancelRound If true, cancel that epoch
      */
     function submitTrueVal(
-        uint256 _epoch,
+        uint256 epoch_start,
         bool trueValue,
         uint256 floatValue,
         bool cancelRound
     ) external onlyERC20Deployer {
-        require(toEpochStart(_epoch) == _epoch, "invalid epoch");
-        require(_epoch <= curEpoch(), "too early to submit");
-        require(epochStatus[_epoch] == Status.Pending, "already settled");
-        if (cancelRound || (curEpoch() > _epoch + trueValSubmitTimeoutEpoch && epochStatus[_epoch] == Status.Pending)){
-            epochStatus[_epoch]=Status.Canceled;
+        require(toEpochStart(epoch_start) == epoch_start, "invalid epoch");
+        require(epoch_start <= curEpoch(), "too early to submit");
+        require(epochStatus[epoch_start] == Status.Pending, "already settled");
+        if (cancelRound || (curEpoch() > epoch_start + trueValSubmitTimeoutEpoch && epochStatus[epoch_start] == Status.Pending)){
+            epochStatus[epoch_start]=Status.Canceled;
         }
         else{
-            trueValues[_epoch] = trueValue;
-            epochStatus[_epoch] = Status.Paying;
+            trueValues[epoch_start] = trueValue;
+            epochStatus[epoch_start] = Status.Paying;
             // edge case where all stakers are submiting a value, but they are all wrong
-            if (roundSumStakes[_epoch]>0 && (
-                    (trueValue && roundSumStakesUp[_epoch]==0) 
+            if (roundSumStakes[epoch_start]>0 && (
+                    (trueValue && roundSumStakesUp[epoch_start]==0) 
                     ||
-                    (!trueValue && roundSumStakesUp[_epoch]==roundSumStakes[_epoch])
+                    (!trueValue && roundSumStakesUp[epoch_start]==roundSumStakes[epoch_start])
                 )
             ){
                 // everyone gets slashed
                 require(feeCollector != address(0), "Cannot send slashed stakes to address 0");
                 IERC20(stakeToken).safeTransfer(
                     feeCollector,
-                    roundSumStakes[_epoch]
+                    roundSumStakes[epoch_start]
                 );
             }
         }
-        emit TruevalSubmitted(_epoch, trueValue,floatValue,epochStatus[_epoch]);
+        emit TruevalSubmitted(epoch_start, trueValue,floatValue,epochStatus[epoch_start]);
     }
 
     function updateSeconds(
@@ -1163,19 +1163,19 @@ contract ERC20Template3 is
         emit SettingChanged(secondsPerEpoch, secondsPerSubscription, trueValSubmitTimeoutEpoch, stakeToken);
     }
 
-    function add_revenue(uint256 _epoch, uint256 amount) internal {
+    function add_revenue(uint256 epoch_start, uint256 amount) internal {
         if (amount > 0) {
-            uint256 num_epochs = secondsPerSubscription / secondsPerEpoch;
-            if(num_epochs<1)
-                num_epochs=1;
-            uint256 amt_per_epoch = amount / num_epochs;
+            uint256 numepoch_starts = secondsPerSubscription / secondsPerEpoch;
+            if(numepoch_starts<1)
+                numepoch_starts=1;
+            uint256 amt_perepoch_start = amount / numepoch_starts;
             // for loop and add revenue for secondsPerEpoch blocks
-            for (uint256 i = 0; i < num_epochs; i++) {
+            for (uint256 i = 0; i < numepoch_starts; i++) {
                 subscriptionRevenueAtEpoch[
-                    _epoch + (i) * secondsPerEpoch
-                ] += amt_per_epoch;
+                    epoch_start + (i) * secondsPerEpoch
+                ] += amt_perepoch_start;
             }
-            emit RevenueAdded(amount, _epoch ,amt_per_epoch,num_epochs,secondsPerEpoch);
+            emit RevenueAdded(amount, epoch_start ,amt_perepoch_start,numepoch_starts,secondsPerEpoch);
         }
     }
 
