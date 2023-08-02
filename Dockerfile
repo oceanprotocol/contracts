@@ -21,11 +21,13 @@ RUN wget https://gobinaries.com/tj/node-prune --output-document - | /bin/sh && n
 FROM base as runner
 ENV NODE_ENV=production
 RUN mkdir -p /ocean-contracts
+RUN mkdir -p /ocean-contracts/test/
 COPY ./addresses /ocean-contracts/addresses/
 COPY ./contracts /ocean-contracts/contracts/
 COPY ./hardhat.config* /ocean-contracts/
 COPY ./package* /ocean-contracts/
 COPY ./scripts /ocean-contracts/scripts/
+COPY ./test /ocean-contracts/test/
 WORKDIR /ocean-contracts
 COPY --from=builder /ocean-contracts/node_modules/ /ocean-contracts/node_modules/
 ENV SLEEP_FOR_GANACHE=10
