@@ -92,7 +92,7 @@ contract ERC20Template3 is
     event SettingChanged(
         uint256 secondsPerEpoch,
         uint256 secondsPerSubscription,
-        uint256 trueValueSubmitTimeoutBlock,
+        uint256 trueValueSubmitTimeout,
         address stakeToken
     );
     
