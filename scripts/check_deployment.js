@@ -12,7 +12,6 @@ async function testDeployment() {
     console.error("Could not load addreses files")
     process.exit(1)
   }
-  console.log(addresses)
   if (!('development' in addresses)) {
     console.error("Missing development network")
     process.exit(1)
