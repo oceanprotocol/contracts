@@ -56,5 +56,5 @@ jobs:
       - run: cat ${HOME}/.ocean/ocean-contracts/artifacts/address.json
       - run: node scripts/check_deployment.js
       - name: docker logs
-        run: docker logs ocean_contracts_1
+        run: docker logs ocean_ocean-contracts_1
         if: ${{ failure() }}
