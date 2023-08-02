@@ -4,6 +4,7 @@ const fs = require('fs')
 async function testDeployment() {
   // load addresses file first
   addresses = null
+  console.log("Loading "+process.env.ADDRESS_FILE)
   try {
     addresses = JSON.parse(fs.readFileSync(process.env.ADDRESS_FILE, 'utf8'))
   }
@@ -11,6 +12,7 @@ async function testDeployment() {
     console.error("Could not load addreses files")
     process.exit(1)
   }
+  console.log(addresses)
   if (!('development' in addresses)) {
     console.error("Missing development network")
     process.exit(1)

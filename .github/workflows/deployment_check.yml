@@ -53,4 +53,5 @@ jobs:
             [ -f "$HOME/.ocean/ocean-contracts/artifacts/ready" ] && break
             done
           ls -la "$HOME/.ocean/ocean-contracts/artifacts/"
+      - run: cat ${HOME}/.ocean/ocean-contracts/artifacts/address.json
       - run: node scripts/check_deployment.js
