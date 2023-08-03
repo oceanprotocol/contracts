@@ -994,7 +994,7 @@ contract ERC20Template3 is
         require(paused == false, "paused");
         require(epoch_start >= soonestEpochToPredict(block.timestamp), "too late to submit");
         
-        if(submittedPredval(epoch_start, msg.sender){
+        if(submittedPredval(epoch_start, msg.sender)) {
             require(predictions[epoch_start][msg.sender].stake == stake, "cannot modify stake amt");
             predictions[epoch_start][msg.sender].predictedValue = predictedValue;
             // Do we need to emit an event on update?
