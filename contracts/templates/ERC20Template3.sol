@@ -993,8 +993,14 @@ contract ERC20Template3 is
         require(toEpochStart(epoch_start) == epoch_start, "invalid epoch");
         require(paused == false, "paused");
         require(epoch_start >= soonestEpochToPredict(block.timestamp), "too late to submit");
-        require(!submittedPredval(epoch_start, msg.sender), "already submitted");
         
+        // refund previous stake if any
+        if(submittedPredval(epoch_start, msg.sender){
+            uint256 refundAmount = predictions[epoch_start][msg.sender].stake
+            predictions[epoch_start][msg.sender].stake = 0
+            IERC20(stakeToken).safeTransferFrom(address(this), msg.sender, stake);
+        }
+
         predictions[epoch_start][msg.sender] = Prediction(
             predictedValue,
             stake,
