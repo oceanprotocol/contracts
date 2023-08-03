@@ -57,6 +57,11 @@ contract ERC20Template3 is
         uint256 indexed slot,
         uint256 stake
     );
+    event PredictionUpdated(
+        address indexed predictoor,
+        uint256 indexed slot,
+        uint256 stake
+    );
     event PredictionPayout(
         address indexed predictoor,
         uint256 indexed slot,
@@ -997,7 +1002,7 @@ contract ERC20Template3 is
         if (submittedPredval(epoch_start, msg.sender)) {
             require(predictions[epoch_start][msg.sender].stake == stake, "cannot modify stake amt");
             predictions[epoch_start][msg.sender].predictedValue = predictedValue;
-            // Do we need to emit an event on update?
+            emit PredictionUpdated(msg.sender, epoch_start, stake);
             return;
         }
         predictions[epoch_start][msg.sender] = Prediction(
