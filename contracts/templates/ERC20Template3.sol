@@ -996,9 +996,7 @@ contract ERC20Template3 is
         
         // refund previous stake if any
         if(submittedPredval(epoch_start, msg.sender){
-            uint256 refundAmount = predictions[epoch_start][msg.sender].stake
-            predictions[epoch_start][msg.sender].stake = 0
-            IERC20(stakeToken).safeTransferFrom(address(this), msg.sender, stake);
+            require(predictions[epoch_start][msg.sender].stake == stake, "cannot modify stake amt");
         }
 
         predictions[epoch_start][msg.sender] = Prediction(
