@@ -994,11 +994,12 @@ contract ERC20Template3 is
         require(paused == false, "paused");
         require(epoch_start >= soonestEpochToPredict(block.timestamp), "too late to submit");
         
-        // refund previous stake if any
         if(submittedPredval(epoch_start, msg.sender){
             require(predictions[epoch_start][msg.sender].stake == stake, "cannot modify stake amt");
+            predictions[epoch_start][msg.sender].predictedValue = predictedValue;
+            // Do we need to emit an event on update?
+            return;
         }
-
         predictions[epoch_start][msg.sender] = Prediction(
             predictedValue,
             stake,
