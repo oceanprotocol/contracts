@@ -993,8 +993,13 @@ contract ERC20Template3 is
         require(toEpochStart(epoch_start) == epoch_start, "invalid epoch");
         require(paused == false, "paused");
         require(epoch_start >= soonestEpochToPredict(block.timestamp), "too late to submit");
-        require(!submittedPredval(epoch_start, msg.sender), "already submitted");
         
+        emit PredictionSubmitted(msg.sender, epoch_start, stake);
+        if (submittedPredval(epoch_start, msg.sender)) {
+            require(predictions[epoch_start][msg.sender].stake == stake, "cannot modify stake amt");
+            predictions[epoch_start][msg.sender].predictedValue = predictedValue;
+            return;
+        }
         predictions[epoch_start][msg.sender] = Prediction(
             predictedValue,
             stake,
@@ -1005,7 +1010,6 @@ contract ERC20Template3 is
         roundSumStakesUp[epoch_start] += stake * (predictedValue ? 1 : 0);
         roundSumStakes[epoch_start] += stake;
 
-        emit PredictionSubmitted(msg.sender, epoch_start, stake);
         // safe transfer stake
         IERC20(stakeToken).safeTransferFrom(msg.sender, address(this), stake);
     }
