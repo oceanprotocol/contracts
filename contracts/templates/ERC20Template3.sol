@@ -57,11 +57,6 @@ contract ERC20Template3 is
         uint256 indexed slot,
         uint256 stake
     );
-    event PredictionUpdated(
-        address indexed predictoor,
-        uint256 indexed slot,
-        uint256 stake
-    );
     event PredictionPayout(
         address indexed predictoor,
         uint256 indexed slot,
@@ -999,10 +994,10 @@ contract ERC20Template3 is
         require(paused == false, "paused");
         require(epoch_start >= soonestEpochToPredict(block.timestamp), "too late to submit");
         
+        emit PredictionSubmitted(msg.sender, epoch_start, stake);
         if (submittedPredval(epoch_start, msg.sender)) {
             require(predictions[epoch_start][msg.sender].stake == stake, "cannot modify stake amt");
             predictions[epoch_start][msg.sender].predictedValue = predictedValue;
-            emit PredictionUpdated(msg.sender, epoch_start, stake);
             return;
         }
         predictions[epoch_start][msg.sender] = Prediction(
@@ -1015,7 +1010,6 @@ contract ERC20Template3 is
         roundSumStakesUp[epoch_start] += stake * (predictedValue ? 1 : 0);
         roundSumStakes[epoch_start] += stake;
 
-        emit PredictionSubmitted(msg.sender, epoch_start, stake);
         // safe transfer stake
         IERC20(stakeToken).safeTransferFrom(msg.sender, address(this), stake);
     }
