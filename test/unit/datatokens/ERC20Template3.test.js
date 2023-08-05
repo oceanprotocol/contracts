@@ -845,6 +845,7 @@ describe("ERC20Template3", () => {
         prediction = await erc20Token.getPrediction(soonestEpochToPredict, owner.address, userAuth);
         expect(prediction.predictedValue).to.be.eq(!predictedValue);
 
+        await mockErc20.approve(erc20Token.address, 1);
         let mockErc20BalanceBefore = await mockErc20.balanceOf(owner.address);
         await erc20Token.submitPredval(predictedValue, stake + 1, soonestEpochToPredict);
         let mockErc20BalanceAfter = await mockErc20.balanceOf(owner.address);
