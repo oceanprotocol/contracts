@@ -1007,6 +1007,7 @@ contract ERC20Template3 is
         emit PredictionSubmitted(msg.sender, epoch_start, stake);
         if (submittedPredval(epoch_start, msg.sender)) {
             uint256 oldStake = predictions[epoch_start][msg.sender].stake;
+            predictions[epoch_start][msg.sender].stake = 0; // Reentrancy precaution
             if (stake > oldStake) {
                 uint256 payment = stake - oldStake;
                 IERC20(stakeToken).safeTransferFrom(msg.sender, address(this), payment);
