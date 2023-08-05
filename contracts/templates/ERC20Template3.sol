@@ -1013,7 +1013,7 @@ contract ERC20Template3 is
                 IERC20(stakeToken).safeTransferFrom(msg.sender, address(this), payment);
             } else if (stake < oldStake) {
                 uint256 refund = oldStake - stake;
-                IERC20(stakeToken).safeTransferFrom(address(this), msg.sender, refund);
+                IERC20(stakeToken).transfer(msg.sender, refund);
             }
             predictions[epoch_start][msg.sender].predictedValue = predictedValue;
             predictions[epoch_start][msg.sender].stake = stake;
