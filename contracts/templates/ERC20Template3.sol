@@ -958,7 +958,7 @@ contract ERC20Template3 is
         _checkUserAuthorization(_userAuth);
         require(isValidSubscription(_userAuth.userAddress), "No subscription");
         require(toEpochStart(epoch_start) == epoch_start, "invalid epoch");
-        require(soonestEpochToPredict(epoch_start) != epoch_start, "predictions not closed")
+        require(soonestEpochToPredict(block.timestamp) < epoch_start, "predictions not closed")
         return (roundSumStakesUp[epoch_start], roundSumStakes[epoch_start]);
     }
 
