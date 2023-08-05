@@ -1207,7 +1207,7 @@ describe("ERC20Template3", () => {
         await erc20Token.connect(user3).submitPredval(predictedValue, stake, soonestEpochToPredict);
         
         const secondsPerEpoch = await erc20Token.secondsPerEpoch();
-        fastForward(secondsPerEpoch)
+        await fastForward(secondsPerEpoch)
         curEpoch = await erc20Token.curEpoch();
         const [numer2, denom2] = await erc20Token.connect(user2).getAggPredval(curEpoch + secondsPerEpoch, userAuth);
         expect(numer2).to.be.eq(web3.utils.toWei("1"));
