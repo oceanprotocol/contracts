@@ -1193,11 +1193,14 @@ describe("ERC20Template3", () => {
         let soonestEpochToPredict = await erc20Token.soonestEpochToPredict(await blocktimestamp());
         const userAuth = await authorize(user2.address)
         await expectRevert(erc20Token.connect(user2).getAggPredval(soonestEpochToPredict, userAuth), "predictions not closed");
+        await expectRevert(erc20Token.getTotalStake(soonestEpochToPredict), "predictions not closed");
         
         let curEpoch = await erc20Token.curEpoch();
         const [numer, denom] = await erc20Token.connect(user2).getAggPredval(curEpoch, userAuth);
+        const totalStake = await erc20Token.getTotalStake(curEpoch);
         expect(numer).to.be.eq(0);
         expect(denom).to.be.eq(0);
+        expect(totalStake).to.be.eq(0);
 
         // user2 makes a prediction
         const predictedValue = true;
@@ -1210,8 +1213,10 @@ describe("ERC20Template3", () => {
         await fastForward(secondsPerEpoch)
         curEpoch = await erc20Token.curEpoch();
         const [numer2, denom2] = await erc20Token.connect(user2).getAggPredval(curEpoch + secondsPerEpoch, userAuth);
+        const totalStake2 = await erc20Token.getTotalStake(curEpoch);
         expect(numer2).to.be.eq(web3.utils.toWei("1"));
         expect(denom2).to.be.eq(web3.utils.toWei("1"));
+        expect(totalStake2).to.be.eq(web3.utils.toWei("1"));
 
         // check subscription revenue
         const revenue = await erc20Token.getsubscriptionRevenueAtEpoch(soonestEpochToPredict);
