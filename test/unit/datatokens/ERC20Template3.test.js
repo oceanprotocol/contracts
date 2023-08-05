@@ -1203,8 +1203,10 @@ describe("ERC20Template3", () => {
         await expectRevert(erc20Token.getTotalStake(soonestEpochToPredict), "predictions not closed");
         
         let curEpoch = await erc20Token.curEpoch();
-        const [numer, denom] = await erc20Token.connect(user2).getAggPredval(curEpoch, userAuth);
-        const totalStake = await erc20Token.getTotalStake(curEpoch);
+        const secondsPerEpoch = await erc20Token.secondsPerEpoch();
+        let predictedEpoch = curEpoch.add(secondsPerEpoch);
+        const [numer, denom] = await erc20Token.connect(user2).getAggPredval(predictedEpoch, userAuth);
+        const totalStake = await erc20Token.getTotalStake(predictedEpoch);
         expect(numer).to.be.eq(0);
         expect(denom).to.be.eq(0);
         expect(totalStake).to.be.eq(0);
@@ -1216,11 +1218,11 @@ describe("ERC20Template3", () => {
         await mockErc20.connect(user3).approve(erc20Token.address, stake);
         await erc20Token.connect(user3).submitPredval(predictedValue, stake, soonestEpochToPredict);
         
-        const secondsPerEpoch = await erc20Token.secondsPerEpoch();
         await fastForward(secondsPerEpoch.toNumber())
         curEpoch = await erc20Token.curEpoch();
-        const [numer2, denom2] = await erc20Token.connect(user2).getAggPredval(curEpoch + secondsPerEpoch, userAuth);
-        const totalStake2 = await erc20Token.getTotalStake(curEpoch);
+        predictedEpoch = curEpoch.add(secondsPerEpoch);
+        const [numer2, denom2] = await erc20Token.connect(user2).getAggPredval(predictedEpoch, userAuth);
+        const totalStake2 = await erc20Token.getTotalStake(predictedEpoch);
         expect(numer2).to.be.eq(web3.utils.toWei("1"));
         expect(denom2).to.be.eq(web3.utils.toWei("1"));
         expect(totalStake2).to.be.eq(web3.utils.toWei("1"));
