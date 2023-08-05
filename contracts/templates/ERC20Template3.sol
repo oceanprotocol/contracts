@@ -15,7 +15,6 @@ import "@openzeppelin/contracts/utils/math/SafeMath.sol";
 import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 import "@openzeppelin/contracts/security/ReentrancyGuard.sol";
 import "../utils/ERC20Roles.sol";
-
 /**
  * @title DatatokenTemplate
  *
@@ -1181,6 +1180,7 @@ contract ERC20Template3 is
         uint256 s_per_subscription,
         uint256 _truval_submit_timeout
     ) internal {
+        require(s_per_subscription % s_per_epoch == 0, "%");
         if (secondsPerEpoch == 0) {
             secondsPerEpoch = s_per_epoch;
         }
