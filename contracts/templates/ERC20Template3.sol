@@ -951,6 +951,7 @@ contract ERC20Template3 is
         bytes32 s; // s of provider signed message
         uint256 validUntil; 
     }
+
     function getAggPredval(
         uint256 epoch_start,
         userAuth calldata _userAuth
@@ -960,6 +961,13 @@ contract ERC20Template3 is
         require(toEpochStart(epoch_start) == epoch_start, "invalid epoch");
         require(soonestEpochToPredict(curEpoch()) > epoch_start, "predictions not closed");
         return (roundSumStakesUp[epoch_start], roundSumStakes[epoch_start]);
+    }
+
+    function getTotalStake(
+        uint256 epoch_start
+    ) public view returns (uint256, uint256) {
+        require(toEpochStart(epoch_start) == epoch_start, "invalid epoch");
+        return roundSumStakesUp[epoch_start] + roundSumStakes[epoch_start];
     }
 
     function getsubscriptionRevenueAtEpoch(
