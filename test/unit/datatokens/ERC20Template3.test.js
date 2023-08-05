@@ -1349,7 +1349,9 @@ describe("ERC20Template3", () => {
         const balAfter = await mockErc20.balanceOf(user3.address);
         expect(balAfter).to.be.gt(balBefore);
         const profit = balAfter.sub(balBefore);
-        const expectedProfit = 1 + (2 / parseInt(3600 / parseInt(300 / 24)))
+        const secondsPerEpoch = await erc20Token.secondsPerEpoch();
+        const secondsPerSubscription = await erc20Token.secondsPerSubscription();
+        const expectedProfit = 1 + (2 / secondsPerSubscription * secondsPerEpoch)
         expect(parseFloat(web3.utils.fromWei(profit.toString()))).to.be.eq(expectedProfit);
 
         // user tries to call payout for the same slot
@@ -1478,7 +1480,9 @@ describe("ERC20Template3", () => {
         expect(balAfter).to.be.gt(balBefore);
 
         const profit = balAfter.sub(balBefore);
-        const expectedProfit = 1 + (2 / parseInt(3600 / parseInt(300 / 24)))
+        const secondsPerEpoch = await erc20Token.secondsPerEpoch();
+        const secondsPerSubscription = await erc20Token.secondsPerSubscription();
+        const expectedProfit = 1 + (2 / secondsPerSubscription * secondsPerEpoch);
         expect(parseFloat(web3.utils.fromWei(profit.toString()))).to.be.eq(expectedProfit);
 
         mockErc20Balance = await mockErc20.balanceOf(user3.address)
@@ -1634,7 +1638,7 @@ describe("ERC20Template3", () => {
         let event_2 = getEventFromTx(txReceipt_2, 'Transfer')
         expect(event_2.args.from).to.be.eq(erc20Token.address);
         expect(event_2.args.to).to.be.eq(freMarketFeeCollector.address);
-        expect(event_2.args.value).to.be.eq(6666666666666666);
+        expect(event_2.args.value).to.be.eq(revenue_at_block);
     })
     it("#redeemUnusedSlotRevenue - admin should not be able to redeem for future epoch", async () => {
         const secondsPerEpoch = await erc20Token.secondsPerEpoch();
