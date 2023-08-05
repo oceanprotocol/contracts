@@ -957,6 +957,8 @@ contract ERC20Template3 is
     ) public view returns (uint256, uint256) {
         _checkUserAuthorization(_userAuth);
         require(isValidSubscription(_userAuth.userAddress), "No subscription");
+        require(toEpochStart(epoch_start) == epoch_start, "invalid epoch");
+        require(soonestEpochToPredict(epoch_start) != epoch_start, "predictions not closed")
         return (roundSumStakesUp[epoch_start], roundSumStakes[epoch_start]);
     }
 
@@ -996,8 +998,17 @@ contract ERC20Template3 is
         
         emit PredictionSubmitted(msg.sender, epoch_start, stake);
         if (submittedPredval(epoch_start, msg.sender)) {
+            uint256 oldStake = predictions[epoch_start][msg.sender].stake;
+            if (stake > oldStake) {
+                uint256 payment = stake - oldStake;
+                IERC20(stakeToken).safeTransferFrom(msg.sender, address(this), payment);
+            } else if (stake < oldStake) {
+                uint256 refund = oldStake - stake;
+                IERC20(stakeToken).safeTransferFrom(address(this), msg.sender, payment);
+            }
             require(predictions[epoch_start][msg.sender].stake == stake, "cannot modify stake amt");
             predictions[epoch_start][msg.sender].predictedValue = predictedValue;
+            predictions[epoch_start][msg.sender].stake = stake;
             return;
         }
         predictions[epoch_start][msg.sender] = Prediction(
