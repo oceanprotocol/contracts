@@ -1209,7 +1209,7 @@ describe("ERC20Template3", () => {
         const secondsPerEpoch = await erc20Token.secondsPerEpoch();
         fastForward(secondsPerEpoch)
         curEpoch = await erc20Token.curEpoch();
-        const [numer2, denom2] = await erc20Token.connect(user2).getAggPredval(curEpoch, userAuth);
+        const [numer2, denom2] = await erc20Token.connect(user2).getAggPredval(curEpoch + secondsPerEpoch, userAuth);
         expect(numer2).to.be.eq(web3.utils.toWei("1"));
         expect(denom2).to.be.eq(web3.utils.toWei("1"));
 
