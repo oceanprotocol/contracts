@@ -1015,7 +1015,6 @@ contract ERC20Template3 is
                 uint256 refund = oldStake - stake;
                 IERC20(stakeToken).safeTransferFrom(address(this), msg.sender, refund);
             }
-            require(predictions[epoch_start][msg.sender].stake == stake, "cannot modify stake amt");
             predictions[epoch_start][msg.sender].predictedValue = predictedValue;
             predictions[epoch_start][msg.sender].stake = stake;
             return;
