@@ -23,7 +23,7 @@ const fastForward = async (seconds) => {
     await ethers.provider.send("evm_mine");
 }
 
-const sPerEpoch = 288;
+const sPerEpoch = 300;
 const sPerSubscription = 24 * 60 * 60;
 const trueValueSubmitTimeout = 24 * 60 * 60 * 3;
 
