@@ -968,7 +968,7 @@ contract ERC20Template3 is
     ) public view returns uint256 {
         require(toEpochStart(epoch_start) == epoch_start, "invalid epoch");
         require(soonestEpochToPredict(curEpoch()) > epoch_start, "predictions not closed");
-        return roundSumStakesUp[epoch_start] + roundSumStakes[epoch_start];
+        return roundSumStakes[epoch_start];
     }
 
     function getsubscriptionRevenueAtEpoch(
