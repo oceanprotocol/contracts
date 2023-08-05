@@ -700,6 +700,13 @@ describe("ERC20Template3", () => {
     });
 
     // PREDICTOOR
+    it("#toEpochStart - Should return the start of the epoch for a given timestamp", async function() {
+        const testTimestamp = 1691374249
+        const secondsPerEpoch = await erc20Token.secondsPerEpoch()
+        const expectedEpochStart = Math.floor(testTimestamp / secondsPerEpoch) * secondsPerEpoch;
+        const result = await erc20Token.toEpochStart(testTimestamp);
+        expect(result.toNumber()).to.equal(expectedEpochStart);
+    });
     it("#secondsPerEpoch - secondsPerEpoch should be set", async () => {
         const secondsPerEpoch = await erc20Token.secondsPerEpoch();
         assert(secondsPerEpoch > 0, 'Invalid secondsPerEpoch');
