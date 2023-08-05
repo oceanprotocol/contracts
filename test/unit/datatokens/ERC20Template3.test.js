@@ -849,12 +849,12 @@ describe("ERC20Template3", () => {
         let mockErc20BalanceBefore = await mockErc20.balanceOf(owner.address);
         await erc20Token.submitPredval(predictedValue, stake + 1, soonestEpochToPredict);
         let mockErc20BalanceAfter = await mockErc20.balanceOf(owner.address);
-        expect(mockErc20BalanceAfter).to.equal(mockErc20BalanceBefore.add(-1))
+        expect(mockErc20BalanceBefore).to.equal(mockErc20BalanceAfter.add(1))
 
         mockErc20BalanceBefore = await mockErc20.balanceOf(owner.address);
         await erc20Token.submitPredval(predictedValue, stake - 1, soonestEpochToPredict),
         mockErc20BalanceAfter = await mockErc20.balanceOf(owner.address);
-        expect(mockErc20BalanceAfter).to.equal(mockErc20BalanceBefore.add(1))
+        expect(mockErc20BalanceAfter).to.equal(mockErc20BalanceBefore.add(2))
     });
     it("#pausePredictions - should pause and resume predictions", async () => {
         await erc20Token.pausePredictions();
