@@ -173,7 +173,7 @@ contract FixedRateExchange is ReentrancyGuard, IFixedRateExchange {
      *      If you construct your own template, please make sure to change the hardcoded value
      */
     function getId() pure public returns (uint8) {
-        return 1;
+        return 2;
     }
     
     function getOPCFee(address baseTokenAddress) public view returns (uint) {
@@ -647,6 +647,18 @@ contract FixedRateExchange is ReentrancyGuard, IFixedRateExchange {
         _collectMarketFee(exchangeId);
     }
 
+    /**
+     * @dev collectMarketFeeBatch
+     *      Collects and send publishingMarketFee from multiple exchanges
+     *      This function can be called by anyone, because fees are being sent to exchanges.marketFeeCollector
+     */
+    function collectMarketFeeBatch(bytes32[] calldata exchangeId) public nonReentrant {
+        // anyone call call this function, because funds are sent to the correct address
+        for (uint i = 0; i < exchangeId.length; i++) {
+            _collectMarketFee(exchangeId[i]);
+        }    
+    }
+
     function _collectMarketFee(bytes32 exchangeId) internal {
         uint256 amount = exchanges[exchangeId].marketFeeAvailable;
         exchanges[exchangeId].marketFeeAvailable = 0;
@@ -672,6 +684,19 @@ contract FixedRateExchange is ReentrancyGuard, IFixedRateExchange {
         _collectOceanFee(exchangeId);
         
     }
+
+    /**
+     * @dev collectOceanFeeBatch
+     *      Collects and send OP Community fees from multiple exchanges
+     *      This function can be called by anyone, because fees are being sent to opcCollector
+     */
+    function collectOceanFeeBatch(bytes32[] calldata exchangeId) public nonReentrant {
+        // anyone call call this function, because funds are sent to the correct address
+        for (uint i = 0; i < exchangeId.length; i++) {
+            _collectOceanFee(exchangeId[i]);
+        }    
+    }
+
     function _collectOceanFee(bytes32 exchangeId) internal {
         uint256 amount = exchanges[exchangeId].oceanFeeAvailable;
         exchanges[exchangeId].oceanFeeAvailable = 0;
