@@ -15,7 +15,6 @@ import "@openzeppelin/contracts/utils/math/SafeMath.sol";
 import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 import "@openzeppelin/contracts/security/ReentrancyGuard.sol";
 import "../utils/ERC20Roles.sol";
-
 /**
  * @title DatatokenTemplate
  *
@@ -951,13 +950,24 @@ contract ERC20Template3 is
         bytes32 s; // s of provider signed message
         uint256 validUntil; 
     }
+
     function getAggPredval(
         uint256 epoch_start,
         userAuth calldata _userAuth
     ) public view returns (uint256, uint256) {
         _checkUserAuthorization(_userAuth);
         require(isValidSubscription(_userAuth.userAddress), "No subscription");
+        require(toEpochStart(epoch_start) == epoch_start, "invalid epoch");
+        require(soonestEpochToPredict(curEpoch()) > epoch_start, "predictions not closed");
         return (roundSumStakesUp[epoch_start], roundSumStakes[epoch_start]);
+    }
+
+    function getTotalStake(
+        uint256 epoch_start
+    ) public view returns (uint256) {
+        require(toEpochStart(epoch_start) == epoch_start, "invalid epoch");
+        require(soonestEpochToPredict(curEpoch()) > epoch_start, "predictions not closed");
+        return roundSumStakes[epoch_start];
     }
 
     function getsubscriptionRevenueAtEpoch(
@@ -996,8 +1006,17 @@ contract ERC20Template3 is
         
         emit PredictionSubmitted(msg.sender, epoch_start, stake);
         if (submittedPredval(epoch_start, msg.sender)) {
-            require(predictions[epoch_start][msg.sender].stake == stake, "cannot modify stake amt");
+            uint256 oldStake = predictions[epoch_start][msg.sender].stake;
+            predictions[epoch_start][msg.sender].stake = 0; // Reentrancy precaution
+            if (stake > oldStake) {
+                uint256 payment = stake - oldStake;
+                IERC20(stakeToken).safeTransferFrom(msg.sender, address(this), payment);
+            } else if (stake < oldStake) {
+                uint256 refund = oldStake - stake;
+                IERC20(stakeToken).transfer(msg.sender, refund);
+            }
             predictions[epoch_start][msg.sender].predictedValue = predictedValue;
+            predictions[epoch_start][msg.sender].stake = stake;
             return;
         }
         predictions[epoch_start][msg.sender] = Prediction(
@@ -1162,6 +1181,7 @@ contract ERC20Template3 is
         uint256 s_per_subscription,
         uint256 _truval_submit_timeout
     ) internal {
+        require(s_per_subscription % s_per_epoch == 0, "%");
         if (secondsPerEpoch == 0) {
             secondsPerEpoch = s_per_epoch;
         }

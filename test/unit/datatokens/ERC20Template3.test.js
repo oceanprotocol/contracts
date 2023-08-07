@@ -23,7 +23,7 @@ const fastForward = async (seconds) => {
     await ethers.provider.send("evm_mine");
 }
 
-const sPerEpoch = 288;
+const sPerEpoch = 300;
 const sPerSubscription = 24 * 60 * 60;
 const trueValueSubmitTimeout = 24 * 60 * 60 * 3;
 
@@ -700,6 +700,13 @@ describe("ERC20Template3", () => {
     });
 
     // PREDICTOOR
+    it("#toEpochStart - Should return the start of the epoch for a given timestamp", async function() {
+        const testTimestamp = 1691374249
+        const secondsPerEpoch = await erc20Token.secondsPerEpoch()
+        const expectedEpochStart = Math.floor(testTimestamp / secondsPerEpoch) * secondsPerEpoch;
+        const result = await erc20Token.toEpochStart(testTimestamp);
+        expect(result.toNumber()).to.equal(expectedEpochStart);
+    });
     it("#secondsPerEpoch - secondsPerEpoch should be set", async () => {
         const secondsPerEpoch = await erc20Token.secondsPerEpoch();
         assert(secondsPerEpoch > 0, 'Invalid secondsPerEpoch');
@@ -845,15 +852,16 @@ describe("ERC20Template3", () => {
         prediction = await erc20Token.getPrediction(soonestEpochToPredict, owner.address, userAuth);
         expect(prediction.predictedValue).to.be.eq(!predictedValue);
 
-        await expectRevert(
-            erc20Token.submitPredval(predictedValue, stake + 1, soonestEpochToPredict),
-            "cannot modify stake"
-        );
+        await mockErc20.approve(erc20Token.address, 1);
+        let mockErc20BalanceBefore = await mockErc20.balanceOf(owner.address);
+        await erc20Token.submitPredval(predictedValue, stake + 1, soonestEpochToPredict);
+        let mockErc20BalanceAfter = await mockErc20.balanceOf(owner.address);
+        expect(mockErc20BalanceBefore).to.equal(mockErc20BalanceAfter.add(1))
 
-        await expectRevert(
-            erc20Token.submitPredval(predictedValue, stake - 1, soonestEpochToPredict),
-            "cannot modify stake"
-        );
+        mockErc20BalanceBefore = await mockErc20.balanceOf(owner.address);
+        await erc20Token.submitPredval(predictedValue, stake - 1, soonestEpochToPredict),
+        mockErc20BalanceAfter = await mockErc20.balanceOf(owner.address);
+        expect(mockErc20BalanceAfter).to.equal(mockErc20BalanceBefore.add(2))
     });
     it("#pausePredictions - should pause and resume predictions", async () => {
         await erc20Token.pausePredictions();
@@ -1191,9 +1199,17 @@ describe("ERC20Template3", () => {
 
         let soonestEpochToPredict = await erc20Token.soonestEpochToPredict(await blocktimestamp());
         const userAuth = await authorize(user2.address)
-        const [numer, denom] = await erc20Token.connect(user2).getAggPredval(soonestEpochToPredict, userAuth);
+        await expectRevert(erc20Token.connect(user2).getAggPredval(soonestEpochToPredict, userAuth), "predictions not closed");
+        await expectRevert(erc20Token.getTotalStake(soonestEpochToPredict), "predictions not closed");
+        
+        let curEpoch = await erc20Token.curEpoch();
+        const secondsPerEpoch = await erc20Token.secondsPerEpoch();
+        let predictedEpoch = curEpoch.add(secondsPerEpoch);
+        const [numer, denom] = await erc20Token.connect(user2).getAggPredval(predictedEpoch, userAuth);
+        const totalStake = await erc20Token.getTotalStake(predictedEpoch);
         expect(numer).to.be.eq(0);
         expect(denom).to.be.eq(0);
+        expect(totalStake).to.be.eq(0);
 
         // user2 makes a prediction
         const predictedValue = true;
@@ -1201,10 +1217,15 @@ describe("ERC20Template3", () => {
         await mockErc20.transfer(user3.address, stake);
         await mockErc20.connect(user3).approve(erc20Token.address, stake);
         await erc20Token.connect(user3).submitPredval(predictedValue, stake, soonestEpochToPredict);
-
-        const [numer2, denom2] = await erc20Token.connect(user2).getAggPredval(soonestEpochToPredict, userAuth);
+        
+        await fastForward(secondsPerEpoch.toNumber())
+        curEpoch = await erc20Token.curEpoch();
+        predictedEpoch = curEpoch.add(secondsPerEpoch);
+        const [numer2, denom2] = await erc20Token.connect(user2).getAggPredval(predictedEpoch, userAuth);
+        const totalStake2 = await erc20Token.getTotalStake(predictedEpoch);
         expect(numer2).to.be.eq(web3.utils.toWei("1"));
         expect(denom2).to.be.eq(web3.utils.toWei("1"));
+        expect(totalStake2).to.be.eq(web3.utils.toWei("1"));
 
         // check subscription revenue
         const revenue = await erc20Token.getsubscriptionRevenueAtEpoch(soonestEpochToPredict);
@@ -1330,7 +1351,9 @@ describe("ERC20Template3", () => {
         const balAfter = await mockErc20.balanceOf(user3.address);
         expect(balAfter).to.be.gt(balBefore);
         const profit = balAfter.sub(balBefore);
-        const expectedProfit = 1 + (2 / parseInt(3600 / parseInt(300 / 24)))
+        const secondsPerEpoch = await erc20Token.secondsPerEpoch();
+        const secondsPerSubscription = await erc20Token.secondsPerSubscription();
+        const expectedProfit = 1 + (2 / secondsPerSubscription * secondsPerEpoch)
         expect(parseFloat(web3.utils.fromWei(profit.toString()))).to.be.eq(expectedProfit);
 
         // user tries to call payout for the same slot
@@ -1459,7 +1482,9 @@ describe("ERC20Template3", () => {
         expect(balAfter).to.be.gt(balBefore);
 
         const profit = balAfter.sub(balBefore);
-        const expectedProfit = 1 + (2 / parseInt(3600 / parseInt(300 / 24)))
+        const secondsPerEpoch = await erc20Token.secondsPerEpoch();
+        const secondsPerSubscription = await erc20Token.secondsPerSubscription();
+        const expectedProfit = 1 + (2 / secondsPerSubscription * secondsPerEpoch);
         expect(parseFloat(web3.utils.fromWei(profit.toString()))).to.be.eq(expectedProfit);
 
         mockErc20Balance = await mockErc20.balanceOf(user3.address)
@@ -1615,7 +1640,7 @@ describe("ERC20Template3", () => {
         let event_2 = getEventFromTx(txReceipt_2, 'Transfer')
         expect(event_2.args.from).to.be.eq(erc20Token.address);
         expect(event_2.args.to).to.be.eq(freMarketFeeCollector.address);
-        expect(event_2.args.value).to.be.eq(6666666666666666);
+        expect(event_2.args.value).to.be.eq(revenue_at_block);
     })
     it("#redeemUnusedSlotRevenue - admin should not be able to redeem for future epoch", async () => {
         const secondsPerEpoch = await erc20Token.secondsPerEpoch();
