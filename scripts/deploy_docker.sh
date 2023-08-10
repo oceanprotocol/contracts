@@ -7,10 +7,6 @@ echo "deploy contracts is ${DEPLOY_CONTRACTS}"
 
 if [ "${DEPLOY_CONTRACTS}" = "true" ]
 then
-    sleep 2
-    # remove ready flag if we deploy contracts
-    rm -f /ocean-contracts/artifacts/ready
-    
     #we have to sleep until ganache is ready
     sleep ${SLEEP_FOR_GANACHE}
     cp hardhat.config.barge.js hardhat.config.js
