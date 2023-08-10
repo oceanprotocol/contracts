@@ -22,9 +22,6 @@ then
     fi
     node scripts/deploy-contracts.js
     
-    #remove unneeded debug artifacts
-    find /ocean-contracts/artifacts/* -name "*.dbg.json" -type f -delete
-    
     # set flag to indicate contracts are ready
     touch /ocean-contracts/artifacts/ready
 fi
