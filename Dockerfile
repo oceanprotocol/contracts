@@ -34,7 +34,8 @@ ENV SLEEP_FOR_GANACHE=10
 RUN cp hardhat.config.barge.js hardhat.config.js
 ENV NETWORK=barge
 ENV NETWORK_RPC_URL=127.0.0.1:8545
+RUN npx hardhat clean
 RUN npx hardhat compile --force
-#remove unneeded debug artifacts
-RUN find /ocean-contracts/artifacts/* -name "*.dbg.json" -type f -delete
+#remove artifacts, will compile at startup
+RUN rm -rf /ocean-contracts/artifacts/*
 ENTRYPOINT ["/ocean-contracts/scripts/deploy_docker.sh"]
