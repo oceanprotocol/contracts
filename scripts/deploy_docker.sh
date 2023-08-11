@@ -7,11 +7,11 @@ echo "deploy contracts is ${DEPLOY_CONTRACTS}"
 
 if [ "${DEPLOY_CONTRACTS}" = "true" ]
 then
+    echo "Sleeping for ${SLEEP_FOR_GANACHE}"
     #we have to sleep until ganache is ready
     sleep ${SLEEP_FOR_GANACHE}
     cp hardhat.config.barge.js hardhat.config.js
     export NETWORK="${NETWORK_NAME:-barge}"
-    npx hardhat clean
     npx hardhat compile --force
     #copy address.json
     if [ -e /ocean-contracts/addresses/address.json ]
