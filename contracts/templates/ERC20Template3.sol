@@ -75,7 +75,9 @@ contract ERC20Template3 is
         uint256 indexed slot,
         bool trueValue,
         uint256 floatValue,
-        Status status
+        Status status,
+        uint256 roundSumStakesUp,
+        uint256 roundSumStakes
     );
     struct Prediction {
         bool predictedValue;
@@ -1160,7 +1162,8 @@ contract ERC20Template3 is
                 );
             }
         }
-        emit TruevalSubmitted(epoch_start, trueValue,floatValue,epochStatus[epoch_start]);
+        emit TruevalSubmitted(epoch_start, trueValue,floatValue,epochStatus[epoch_start],
+        roundSumStakesUp[epoch_start],roundSumStakes[epoch_start]);
     }
 
     function updateSeconds(
