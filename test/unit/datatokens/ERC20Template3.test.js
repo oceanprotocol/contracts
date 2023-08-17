@@ -885,19 +885,18 @@ describe("ERC20Template3", () => {
 
     it("#submitTrueVal - should revert submitting for a future block", async () => {
         const soonestEpochToPredict = await erc20Token.soonestEpochToPredict(await blocktimestamp());
-        await expectRevert(erc20Token.submitTrueVal(soonestEpochToPredict, true, web3.utils.toWei("230.43"), false), "too early to submit");
+        await expectRevert(erc20Token.submitTrueVal(soonestEpochToPredict, true, false), "too early to submit");
     });
 
     it("#submitTrueVal - should submit for a block in the past", async () => {
         const soonestEpochToPredict = await erc20Token.soonestEpochToPredict(await blocktimestamp());
         const submissionBlock = soonestEpochToPredict - 2 * sPerEpoch;
-        const tx = await erc20Token.submitTrueVal(submissionBlock, true, web3.utils.toWei("230.43"), false);
+        const tx = await erc20Token.submitTrueVal(submissionBlock, true, false);
         const tx_receipt = await tx.wait();
         const event = getEventFromTx(tx_receipt, "TruevalSubmitted");
         expect(event.args[0]).to.equal(submissionBlock);
         expect(event.args[1]).to.equal(true);
-        expect(event.args[2]).to.equal(web3.utils.toWei("230.43"));
-        expect(event.args[3]).to.equal(1);
+        expect(event.args[2]).to.equal(1);
 
         const trueValue = await erc20Token.trueValues(submissionBlock);
         expect(trueValue).to.be.true;
@@ -1335,7 +1334,7 @@ describe("ERC20Template3", () => {
 
 
         // opf submits truval
-        tx = await erc20Token.submitTrueVal(soonestEpochToPredict, predictedValue, web3.utils.toWei("230.43"), false);
+        tx = await erc20Token.submitTrueVal(soonestEpochToPredict, predictedValue, false);
         txReceipt = await tx.wait();
         event = getEventFromTx(txReceipt, 'TruevalSubmitted')
         assert(event, "TruevalSubmitted event not found")
@@ -1465,7 +1464,7 @@ describe("ERC20Template3", () => {
         expect(await mockErc20.balanceOf(user3.address)).to.be.eq(mockErc20Balance);
 
         // opf submits truval
-        tx = await erc20Token.submitTrueVal(soonestEpochToPredict, predictedValue, web3.utils.toWei("230.43"), false);
+        tx = await erc20Token.submitTrueVal(soonestEpochToPredict, predictedValue, false);
         txReceipt = await tx.wait();
         event = getEventFromTx(txReceipt, 'TruevalSubmitted')
         assert(event, "TruevalSubmitted event not found")
@@ -1531,7 +1530,7 @@ describe("ERC20Template3", () => {
         const winnersStake = winners.map(x => stakes[x]).reduce((a, b) => a + b, 0);
 
         // opf submits truval
-        tx = await erc20Token.submitTrueVal(predictionBlock, truval, web3.utils.toWei("230.43"), false);
+        tx = await erc20Token.submitTrueVal(predictionBlock, truval, false);
         txReceipt = await tx.wait();
         event = getEventFromTx(txReceipt, 'Transfer')
         if (winners.length > 0)
@@ -1724,7 +1723,7 @@ describe("ERC20Template3", () => {
 
         await fastForward(sPerEpoch * 2)
         // opf cancels the round
-        tx = await erc20Token.connect(owner).submitTrueVal(soonestEpochToPredict, true, web3.utils.toWei("230.43"), true);
+        tx = await erc20Token.connect(owner).submitTrueVal(soonestEpochToPredict, true, true);
         txReceipt = await tx.wait();
         event = getEventFromTx(txReceipt, 'TruevalSubmitted')
         assert(event, "TruevalSubmitted event not found")
@@ -1775,7 +1774,7 @@ describe("ERC20Template3", () => {
         await fastForward(sPerEpoch * 2)
         const truval = true //
         // opf submits truval
-        tx = await erc20Token.submitTrueVal(predictionBlock, truval, web3.utils.toWei("230.43"), false);
+        tx = await erc20Token.submitTrueVal(predictionBlock, truval, false);
         txReceipt = await tx.wait();
         event = getEventFromTx(txReceipt, 'Transfer')
         expect(event.args.from).to.be.eq(erc20Token.address);
