@@ -700,7 +700,7 @@ describe("ERC20Template3", () => {
     });
 
     // PREDICTOOR
-    it("#toEpochStart - Should return the start of the epoch for a given timestamp", async function() {
+    it("#toEpochStart - Should return the start of the epoch for a given timestamp", async function () {
         const testTimestamp = 1691374249
         const secondsPerEpoch = await erc20Token.secondsPerEpoch()
         const expectedEpochStart = Math.floor(testTimestamp / secondsPerEpoch) * secondsPerEpoch;
@@ -860,7 +860,7 @@ describe("ERC20Template3", () => {
 
         mockErc20BalanceBefore = await mockErc20.balanceOf(owner.address);
         await erc20Token.submitPredval(predictedValue, stake - 1, soonestEpochToPredict),
-        mockErc20BalanceAfter = await mockErc20.balanceOf(owner.address);
+            mockErc20BalanceAfter = await mockErc20.balanceOf(owner.address);
         expect(mockErc20BalanceAfter).to.equal(mockErc20BalanceBefore.add(2))
     });
     it("#pausePredictions - should pause and resume predictions", async () => {
@@ -1199,9 +1199,9 @@ describe("ERC20Template3", () => {
         let soonestEpochToPredict = await erc20Token.soonestEpochToPredict(await blocktimestamp());
         const userAuth = await authorize(user2.address)
         await expectRevert(erc20Token.connect(user2).getAggPredval(soonestEpochToPredict, userAuth), "predictions not closed");
-        const totalStake = await erc20Token.getTotalStake(soonestEpochToPredict);
-        expect(totalStake).to.be(0);
-        
+        const totalStakeBefore = await erc20Token.getTotalStake(soonestEpochToPredict);
+        expect(totalStakeBefore).to.be(0);
+
         let curEpoch = await erc20Token.curEpoch();
         const secondsPerEpoch = await erc20Token.secondsPerEpoch();
         let predictedEpoch = curEpoch.add(secondsPerEpoch);
@@ -1217,7 +1217,7 @@ describe("ERC20Template3", () => {
         await mockErc20.transfer(user3.address, stake);
         await mockErc20.connect(user3).approve(erc20Token.address, stake);
         await erc20Token.connect(user3).submitPredval(predictedValue, stake, soonestEpochToPredict);
-        
+
         await fastForward(secondsPerEpoch.toNumber())
         curEpoch = await erc20Token.curEpoch();
         predictedEpoch = curEpoch.add(secondsPerEpoch);
