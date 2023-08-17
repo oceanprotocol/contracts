@@ -737,7 +737,7 @@ describe("ERC20Template3", () => {
     it("#getAggPredval - without subscription, should revert", async () => {
         const blockTimestamp = await blocktimestamp()
         const secondsPerEpoch = (await erc20Token.secondsPerEpoch())
-        const railed = parseInt(blockTimestamp / secondsPerEpoch) * secondsPerEpoch
+        const railed = parseInt(blockTimestamp / secondsPerEpoch) * secondsPerEpoch + secondsPerEpoch
         const userAuth = await authorize(owner.address)
         await expectRevert(
             erc20Token.getAggPredval(railed, userAuth),
@@ -747,7 +747,7 @@ describe("ERC20Template3", () => {
     it("#getAggPredval - invalid signature, should revert", async () => {
         const blockTimestamp = await blocktimestamp()
         const secondsPerEpoch = (await erc20Token.secondsPerEpoch())
-        const railed = parseInt(blockTimestamp / secondsPerEpoch) * secondsPerEpoch
+        const railed = parseInt(blockTimestamp / secondsPerEpoch) * secondsPerEpoch + secondsPerEpoch
         const userAuth = await authorize(owner.address)
         userAuth.userAddress = user2.address
         await expectRevert(
@@ -768,7 +768,7 @@ describe("ERC20Template3", () => {
     it("#getAggPredval - without subscription, should revert", async () => {
         const blockTimestamp = await blocktimestamp()
         const secondsPerEpoch = (await erc20Token.secondsPerEpoch())
-        const railed = parseInt(blockTimestamp / secondsPerEpoch) * secondsPerEpoch
+        const railed = parseInt(blockTimestamp / secondsPerEpoch) * secondsPerEpoch + secondsPerEpoch
         const userAuth = await authorize(owner.address)
         await expectRevert(
             erc20Token.getAggPredval(railed, userAuth),
@@ -1200,7 +1200,7 @@ describe("ERC20Template3", () => {
         const userAuth = await authorize(user2.address)
         await expectRevert(erc20Token.connect(user2).getAggPredval(soonestEpochToPredict, userAuth), "predictions not closed");
         const totalStakeBefore = await erc20Token.getTotalStake(soonestEpochToPredict);
-        expect(totalStakeBefore).to.be(0);
+        expect(totalStakeBefore).to.be.eq(0);
 
         let curEpoch = await erc20Token.curEpoch();
         const secondsPerEpoch = await erc20Token.secondsPerEpoch();
