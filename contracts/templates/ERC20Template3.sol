@@ -956,10 +956,12 @@ contract ERC20Template3 is
         uint256 epoch_start,
         userAuth calldata _userAuth
     ) public view returns (uint256, uint256) {
-        _checkUserAuthorization(_userAuth);
-        require(isValidSubscription(_userAuth.userAddress), "No subscription");
         require(toEpochStart(epoch_start) == epoch_start, "invalid epoch");
-        require(soonestEpochToPredict(curEpoch()) > epoch_start, "predictions not closed");
+        if (epoch_start > curEpoch()){
+            _checkUserAuthorization(_userAuth);
+            require(isValidSubscription(_userAuth.userAddress), "No subscription");
+            require(soonestEpochToPredict(curEpoch()) > epoch_start, "predictions not closed");
+        }
         return (roundSumStakesUp[epoch_start], roundSumStakes[epoch_start]);
     }
 
