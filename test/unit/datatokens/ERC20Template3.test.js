@@ -1199,7 +1199,8 @@ describe("ERC20Template3", () => {
         let soonestEpochToPredict = await erc20Token.soonestEpochToPredict(await blocktimestamp());
         const userAuth = await authorize(user2.address)
         await expectRevert(erc20Token.connect(user2).getAggPredval(soonestEpochToPredict, userAuth), "predictions not closed");
-        await expectRevert(erc20Token.getTotalStake(soonestEpochToPredict), "predictions not closed");
+        const totalStake = await erc20Token.getTotalStake(soonestEpochToPredict);
+        expect(totalStake).to.be(0);
         
         let curEpoch = await erc20Token.curEpoch();
         const secondsPerEpoch = await erc20Token.secondsPerEpoch();
