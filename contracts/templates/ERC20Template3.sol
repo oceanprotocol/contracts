@@ -1125,9 +1125,9 @@ contract ERC20Template3 is
     /**
      * @dev submitTrueValMultiple
      *      Called by owner to settle one epoch
-     * @param epoch_start array of epoch numbers
-     * @param trueValue array of trueValues for that epoch (0 - down, 1 - up)
-     * @param cancelRound array of booleans, If true, cancel that epoch
+     * @param epoch_starts array of epoch numbers
+     * @param trueValues array of trueValues for that epoch (0 - down, 1 - up)
+     * @param cancelRounds array of booleans, If true, cancel that epoch
      */
     function submitTrueValMultiple(
         uint256[] memory epoch_starts,
@@ -1137,9 +1137,7 @@ contract ERC20Template3 is
         require(epoch_starts.length == trueValues.length && trueValues.length == cancelRounds.length, "Mismatched input lengths");
 
         for (uint i = 0; i < epoch_starts.length; i++) {
-            try submitTrueVal(epoch_starts[i], trueValues[i], cancelRounds[i]) {
-            } catch {
-            }
+            submitTrueVal(epoch_starts[i], trueValues[i], cancelRounds[i]);
         }
     }
 
