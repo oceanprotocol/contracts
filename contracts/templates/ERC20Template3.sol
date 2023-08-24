@@ -1154,7 +1154,7 @@ contract ERC20Template3 is
         uint256 epoch_start,
         bool trueValue,
         bool cancelRound
-    ) external onlyERC20Deployer {
+    ) public onlyERC20Deployer {
         require(toEpochStart(epoch_start) == epoch_start, "invalid epoch");
         require(epoch_start <= curEpoch(), "too early to submit");
         require(epochStatus[epoch_start] == Status.Pending, "already settled");
