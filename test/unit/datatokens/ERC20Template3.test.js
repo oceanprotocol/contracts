@@ -1821,14 +1821,14 @@ describe("ERC20Template3", () => {
         assert((await erc20Token.connect(user2).decimals()) === 18, 'decimals() failed')
         assert((await erc20Token.connect(user2).getERC721Address() === tokenERC721.address, 'getERC721Address() failed'))
     });
-    it("PredictoorProxy contract, submitTruevals", async () => {
+    it("PredictoorHelper contract, submitTruevals", async () => {
         // deploy the proxy contract
-        const predictoorProxyFactory = await ethers.getContractFactory('PredictoorProxy');
-        const predictoorProxy = await predictoorProxyFactory.deploy(owner.address);
-        await predictoorProxy.deployed();
+        const predictoorHelperFactory = await ethers.getContractFactory('PredictoorHelper');
+        const predictoorHelper = await predictoorHelperFactory.deploy(owner.address);
+        await predictoorHelper.deployed();
 
         // give permissions
-        await tokenERC721.addToCreateERC20List(predictoorProxy.address);
+        await tokenERC721.addToCreateERC20List(predictoorHelper.address);
 
         // current time
         const currentEpoch = await erc20Token.curEpoch();
@@ -1839,7 +1839,7 @@ describe("ERC20Template3", () => {
         const truevals = epochs.map(x => Math.random() > 0.5);
         const cancelRounds = epochs.map(x => false);
         // submit truevals
-        await predictoorProxy.submitTruevals(erc20Token.address, epochs, truevals, cancelRounds);
+        await predictoorHelper.submitTruevals(erc20Token.address, epochs, truevals, cancelRounds);
 
         // check if truevals are submitted
         for (let i = 0; i < epochs.length; i++) {
@@ -1848,14 +1848,14 @@ describe("ERC20Template3", () => {
         }
     })
 
-    it("PredictoorProxy contract, submitTruevalContracts", async () => {
+    it("PredictoorHelper contract, submitTruevalContracts", async () => {
         // deploy the proxy contract
-        const predictoorProxyFactory = await ethers.getContractFactory('PredictoorProxy');
-        const predictoorProxy = await predictoorProxyFactory.deploy(owner.address);
-        await predictoorProxy.deployed();
+        const predictoorHelperFactory = await ethers.getContractFactory('PredictoorHelper');
+        const predictoorHelper = await predictoorHelperFactory.deploy(owner.address);
+        await predictoorHelper.deployed();
 
         // give permissions
-        await tokenERC721.addToCreateERC20List(predictoorProxy.address);
+        await tokenERC721.addToCreateERC20List(predictoorHelper.address);
 
         // current time
         const currentEpoch = await erc20Token.curEpoch();
@@ -1868,7 +1868,7 @@ describe("ERC20Template3", () => {
         const truevals = epochs.map(x => Math.random() > 0.5)
         const cancelRounds = epochs.map(x => false)
         // submit truevals
-        await predictoorProxy.submitTruevalContracts([erc20Token.address], [epochs], [truevals], [cancelRounds]);
+        await predictoorHelper.submitTruevalContracts([erc20Token.address], [epochs], [truevals], [cancelRounds]);
 
         // check if truevals are submitted
         for (let i = 0; i < epochs.length; i++) {

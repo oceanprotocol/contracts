@@ -12,7 +12,7 @@ interface IERC20Template3 is IERC20Template {
     ) external;
 }
 
-contract PredictoorProxy {
+contract PredictoorHelper {
     address admin;
 
     constructor(address _admin) {
