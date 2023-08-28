@@ -1839,6 +1839,10 @@ describe("ERC20Template3", () => {
         const truevals = epochs.map(x => Math.random() > 0.5);
         const cancelRounds = epochs.map(x => false);
         // submit truevals
+        await expectRevert(
+            predictoorHelper.connect(user3).submitTruevals(erc20Token.address, epochs, truevals, cancelRounds),
+            "Not authorized"
+        )
         await predictoorHelper.submitTruevals(erc20Token.address, epochs, truevals, cancelRounds);
 
         // check if truevals are submitted
@@ -1868,6 +1872,10 @@ describe("ERC20Template3", () => {
         const truevals = epochs.map(x => Math.random() > 0.5)
         const cancelRounds = epochs.map(x => false)
         // submit truevals
+        await expectRevert(
+            predictoorHelper.connect(user3).submitTruevalContracts([erc20Token.address], [epochs], [truevals], [cancelRounds]),
+            "Not authorized"
+        )
         await predictoorHelper.submitTruevalContracts([erc20Token.address], [epochs], [truevals], [cancelRounds]);
 
         // check if truevals are submitted
