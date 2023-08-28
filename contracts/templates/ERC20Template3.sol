@@ -1123,25 +1123,6 @@ contract ERC20Template3 is
     }
 
     /**
-     * @dev submitTrueValMultiple
-     *      Called by owner to settle one epoch
-     * @param epoch_starts array of epoch numbers
-     * @param trueValues array of trueValues for that epoch (0 - down, 1 - up)
-     * @param cancelRounds array of booleans, If true, cancel that epoch
-     */
-    function submitTrueValMultiple(
-        uint256[] memory epoch_starts,
-        bool[] memory trueValues,
-        bool[] memory cancelRounds
-    ) external onlyERC20Deployer {
-        require(epoch_starts.length == trueValues.length && trueValues.length == cancelRounds.length, "Mismatched input lengths");
-
-        for (uint i = 0; i < epoch_starts.length; i++) {
-            submitTrueVal(epoch_starts[i], trueValues[i], cancelRounds[i]);
-        }
-    }
-
-    /**
      * @dev submitTrueVal
      *      Called by owner to settle one epoch
      * @param epoch_start epoch number
@@ -1152,7 +1133,7 @@ contract ERC20Template3 is
         uint256 epoch_start,
         bool trueValue,
         bool cancelRound
-    ) public onlyERC20Deployer {
+    ) external onlyERC20Deployer {
         require(toEpochStart(epoch_start) == epoch_start, "invalid epoch");
         require(epoch_start <= curEpoch(), "too early to submit");
         require(epochStatus[epoch_start] == Status.Pending, "already settled");
