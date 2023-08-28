@@ -18,6 +18,7 @@ let shouldDeployOceanToken = false;
 let shouldDeployMocks = false;
 let shouldDeployOPFCommunityFeeCollector = false;
 let shouldDeployOPFCommunity = true;
+let shouldDeployPredictoorHelper = false;
 const logging = true;
 const show_verify = true;
 
@@ -216,6 +217,7 @@ async function main() {
       shouldDeployVE = false;
       gasPrice = ethers.utils.parseUnits('100', 'gwei')
       gasLimit = 28000000
+      shouldDeployPredictoorHelper = true;
       break;
     case 44787:
       networkName = "alfajores";
@@ -793,6 +795,19 @@ async function main() {
       const DFRewardsOwnerTx = await deployedDFRewards.connect(owner).transferOwnership(routerOwner, options)
       await DFRewardsOwnerTx.wait()
     }
+  }
+
+  // Predictoor Helper
+  if (shouldDeployPredictoorHelper == true) {
+    const PredictoorHelper = await ethers.getContractFactory("PredictoorHelper", owner);
+    const deployedPredictoorHelper = await PredictoorHelper.connect(owner).deploy(owner.address);
+    await deployedPredictoorHelper.deployTransaction.wait();
+    addresses.PredictoorHelper = deployedPredictoorHelper.address;
+    if (show_verify) {
+      console.log("\tRun the following to verify on etherscan");
+      console.log("\tnpx hardhat verify --network " + networkName + " " + addresses.DFRewards)
+    }
+    if (sleepAmount > 0) await sleep(sleepAmount)
   }
 
   if (addressFile) {
