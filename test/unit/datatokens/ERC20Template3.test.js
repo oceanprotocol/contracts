@@ -1821,5 +1821,60 @@ describe("ERC20Template3", () => {
         assert((await erc20Token.connect(user2).decimals()) === 18, 'decimals() failed')
         assert((await erc20Token.connect(user2).getERC721Address() === tokenERC721.address, 'getERC721Address() failed'))
     });
+    it("PredictoorProxy contract, submitTruevals", async () => {
+        // deploy the proxy contract
+        const predictoorProxyFactory = await ethers.getContractFactory('PredictoorProxy');
+        const predictoorProxy = await predictoorProxyFactory.deploy(owner.address);
+        await predictoorProxy.deployed();
+
+        // give permissions
+        await tokenERC721.addToCreateERC20List(predictoorProxy.address);
+
+        // current time
+        const currentEpoch = await erc20Token.curEpoch();
+        await fastForward(sPerEpoch * 10);
+
+        // should submit trueval for epochs
+        const epochs = Array.from(Array(10).keys()).map(x => x * sPerEpoch + currentEpoch.toNumber());
+        const truevals = epochs.map(x => Math.random() > 0.5);
+        const cancelRounds = epochs.map(x => false);
+        // submit truevals
+        await predictoorProxy.submitTruevals(erc20Token.address, epochs, truevals, cancelRounds);
+
+        // check if truevals are submitted
+        for (let i = 0; i < epochs.length; i++) {
+            const trueval = await erc20Token.trueValues(epochs[i]);
+            assert(trueval == truevals[i], "trueval missmatch")
+        }
+    })
+
+    it("PredictoorProxy contract, submitTruevalContracts", async () => {
+        // deploy the proxy contract
+        const predictoorProxyFactory = await ethers.getContractFactory('PredictoorProxy');
+        const predictoorProxy = await predictoorProxyFactory.deploy(owner.address);
+        await predictoorProxy.deployed();
+
+        // give permissions
+        await tokenERC721.addToCreateERC20List(predictoorProxy.address);
+
+        // current time
+        const currentEpoch = await erc20Token.curEpoch();
+
+        // pass time
+        await fastForward(sPerEpoch * 10);
+
+        // should submit trueval for epochs
+        const epochs = Array.from(Array(10).keys()).map(x => x * sPerEpoch + currentEpoch.toNumber())
+        const truevals = epochs.map(x => Math.random() > 0.5)
+        const cancelRounds = epochs.map(x => false)
+        // submit truevals
+        await predictoorProxy.submitTruevalContracts([erc20Token.address], [epochs], [truevals], [cancelRounds]);
+
+        // check if truevals are submitted
+        for (let i = 0; i < epochs.length; i++) {
+            const trueval = await erc20Token.trueValues(epochs[i]);
+            assert(trueval == truevals[i], "trueval missmatch")
+        }
+    })
 
 });

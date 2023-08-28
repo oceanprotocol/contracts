@@ -24,24 +24,55 @@ contract PredictoorProxy {
         _;
     }
 
-    function submitTruevalMultiple(
-        address[] calldata contracts,
-        uint256[] calldata epoch_starts,
-        bool[] calldata trueVals,
-        bool[] calldata cancelRounds
+    function submitTruevalContracts(
+        address[] calldata contract_addrs,
+        uint256[][] calldata epoch_starts,
+        bool[][] calldata trueVals,
+        bool[][] calldata cancelRounds
     ) external onlyAdmin {
         require(
-            contracts.length == epoch_starts.length &&
+                contract_addrs.length == epoch_starts.length &&
                 epoch_starts.length == trueVals.length &&
                 trueVals.length == cancelRounds.length,
             "All input arrays must have the same length"
         );
-        for (uint256 i = 0; i < epoch_starts.length; i++) {
-            IERC20Template3(contracts[i]).submitTrueVal(
+        for (uint256 i = 0; i < contract_addrs.length; i++) {
+            _submitTruevals(
+                contract_addrs[i],
                 epoch_starts[i],
                 trueVals[i],
                 cancelRounds[i]
             );
         }
     }
+
+    function submitTruevals(
+        address contract_addr,
+        uint256[] calldata epoch_starts,
+        bool[] calldata trueVals,
+        bool[] calldata cancelRounds
+    ) external onlyAdmin {
+        _submitTruevals(contract_addr, epoch_starts, trueVals, cancelRounds);
+    }
+
+
+    function _submitTruevals(
+        address contract_addr,
+        uint256[] calldata epoch_starts,
+        bool[] calldata trueVals,
+        bool[] calldata cancelRounds) internal {
+    for (uint256 i = 0; i < epoch_starts.length; i++) {
+        require(
+                epoch_starts.length == trueVals.length &&
+                trueVals.length == cancelRounds.length,
+            "All input arrays must have the same length"
+        );
+        IERC20Template3(contract_addr).submitTrueVal(
+                epoch_starts[i],
+                trueVals[i],
+                cancelRounds[i]
+            );
+        }
+    }
+
 }
