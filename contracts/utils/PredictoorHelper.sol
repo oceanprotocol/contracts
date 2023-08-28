@@ -16,6 +16,7 @@ contract PredictoorHelper {
     address admin;
 
     constructor(address _admin) {
+        require(_admin!=address(0));
         admin = _admin;
     }
 
