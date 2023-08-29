@@ -67,11 +67,14 @@ contract PredictoorHelper is Ownable {
                 0
             );
 
-            require(token.transferFrom(
-                msg.sender,
-                address(this),
-                baseTokenAmount * times[i]
-            ), "transfer failed");
+            require(
+                token.transferFrom(
+                    msg.sender,
+                    address(this),
+                    baseTokenAmount * times[i]
+                ),
+                "transfer failed"
+            );
 
             token.approve(addresses[i], baseTokenAmount * times[i]);
             IERC20Template3.OrderParams memory orderParams = IERC20Template3
@@ -101,12 +104,10 @@ contract PredictoorHelper is Ownable {
             }
         }
         uint256 balanceAfter = token.balanceOf(address(this));
+        require(balanceAfter >= balanceStart, "lost balance");
         if (balanceAfter > balanceStart) {
             // refund extra
-            token.transfer(
-                msg.sender,
-                balanceAfter - balanceStart
-            );
+            token.transfer(msg.sender, balanceAfter - balanceStart);
         }
     }
 
