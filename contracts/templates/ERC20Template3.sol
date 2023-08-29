@@ -74,7 +74,6 @@ contract ERC20Template3 is
     event TruevalSubmitted(
         uint256 indexed slot,
         bool trueValue,
-        uint256 floatValue,
         Status status,
         uint256 roundSumStakesUp,
         uint256 roundSumStakes
@@ -957,10 +956,12 @@ contract ERC20Template3 is
         uint256 epoch_start,
         userAuth calldata _userAuth
     ) public view returns (uint256, uint256) {
-        _checkUserAuthorization(_userAuth);
-        require(isValidSubscription(_userAuth.userAddress), "No subscription");
         require(toEpochStart(epoch_start) == epoch_start, "invalid epoch");
-        require(soonestEpochToPredict(curEpoch()) > epoch_start, "predictions not closed");
+        if (epoch_start > curEpoch()){
+            _checkUserAuthorization(_userAuth);
+            require(isValidSubscription(_userAuth.userAddress), "No subscription");
+            require(soonestEpochToPredict(curEpoch()) > epoch_start, "predictions not closed");
+        }
         return (roundSumStakesUp[epoch_start], roundSumStakes[epoch_start]);
     }
 
@@ -968,7 +969,6 @@ contract ERC20Template3 is
         uint256 epoch_start
     ) public view returns (uint256) {
         require(toEpochStart(epoch_start) == epoch_start, "invalid epoch");
-        require(soonestEpochToPredict(curEpoch()) > epoch_start, "predictions not closed");
         return roundSumStakes[epoch_start];
     }
 
@@ -1127,13 +1127,11 @@ contract ERC20Template3 is
      *      Called by owner to settle one epoch
      * @param epoch_start epoch number
      * @param trueValue trueValue for that epoch (0 - down, 1 - up)
-     * @param floatValue float value of pair for that epoch
      * @param cancelRound If true, cancel that epoch
      */
     function submitTrueVal(
         uint256 epoch_start,
         bool trueValue,
-        uint256 floatValue,
         bool cancelRound
     ) external onlyERC20Deployer {
         require(toEpochStart(epoch_start) == epoch_start, "invalid epoch");
@@ -1162,7 +1160,7 @@ contract ERC20Template3 is
                 );
             }
         }
-        emit TruevalSubmitted(epoch_start, trueValue,floatValue,epochStatus[epoch_start],
+        emit TruevalSubmitted(epoch_start, trueValue, epochStatus[epoch_start],
         roundSumStakesUp[epoch_start],roundSumStakes[epoch_start]);
     }
 
