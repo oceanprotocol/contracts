@@ -1821,5 +1821,68 @@ describe("ERC20Template3", () => {
         assert((await erc20Token.connect(user2).decimals()) === 18, 'decimals() failed')
         assert((await erc20Token.connect(user2).getERC721Address() === tokenERC721.address, 'getERC721Address() failed'))
     });
+    it("PredictoorHelper contract, submitTruevals", async () => {
+        // deploy the proxy contract
+        const predictoorHelperFactory = await ethers.getContractFactory('PredictoorHelper');
+        const predictoorHelper = await predictoorHelperFactory.deploy(owner.address);
+        await predictoorHelper.deployed();
+
+        // give permissions
+        await tokenERC721.addToCreateERC20List(predictoorHelper.address);
+
+        // current time
+        const currentEpoch = await erc20Token.curEpoch();
+        await fastForward(sPerEpoch * 10);
+
+        // should submit trueval for epochs
+        const epochs = Array.from(Array(10).keys()).map(x => x * sPerEpoch + currentEpoch.toNumber());
+        const truevals = epochs.map(x => Math.random() > 0.5);
+        const cancelRounds = epochs.map(x => false);
+        // submit truevals
+        await expectRevert(
+            predictoorHelper.connect(user3).submitTruevals(erc20Token.address, epochs, truevals, cancelRounds),
+            "Not authorized"
+        )
+        await predictoorHelper.submitTruevals(erc20Token.address, epochs, truevals, cancelRounds);
+
+        // check if truevals are submitted
+        for (let i = 0; i < epochs.length; i++) {
+            const trueval = await erc20Token.trueValues(epochs[i]);
+            assert(trueval == truevals[i], "trueval missmatch")
+        }
+    })
+
+    it("PredictoorHelper contract, submitTruevalContracts", async () => {
+        // deploy the proxy contract
+        const predictoorHelperFactory = await ethers.getContractFactory('PredictoorHelper');
+        const predictoorHelper = await predictoorHelperFactory.deploy(owner.address);
+        await predictoorHelper.deployed();
+
+        // give permissions
+        await tokenERC721.addToCreateERC20List(predictoorHelper.address);
+
+        // current time
+        const currentEpoch = await erc20Token.curEpoch();
+
+        // pass time
+        await fastForward(sPerEpoch * 10);
+
+        // should submit trueval for epochs
+        const epochs = Array.from(Array(10).keys()).map(x => x * sPerEpoch + currentEpoch.toNumber())
+        const truevals = epochs.map(x => Math.random() > 0.5)
+        const cancelRounds = epochs.map(x => false)
+        // submit truevals
+        await expectRevert(
+            predictoorHelper.connect(user3).submitTruevalContracts([erc20Token.address], [epochs], [truevals], [cancelRounds]),
+            "Not authorized"
+        )
+        await predictoorHelper.submitTruevalContracts([erc20Token.address], [epochs], [truevals], [cancelRounds]);
+
+        // check if truevals are submitted
+        for (let i = 0; i < epochs.length; i++) {
+            const trueval = await erc20Token.trueValues(epochs[i]);
+            assert(trueval == truevals[i], "trueval missmatch")
+        }
+    })
 
 });
