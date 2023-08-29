@@ -63,6 +63,7 @@ async function main() {
   let gasPrice = null;
   let sleepAmount = 10;
   let additionalApprovedTokens = []
+  let pdrTrueValSubmiter = null
   console.log("Using chain " + networkDetails.chainId);
   switch (networkDetails.chainId) {
     case 1:
@@ -211,13 +212,14 @@ async function main() {
       OPFOwner = '0xC7EC1970B09224B317c52d92f37F5e1E4fF6B687'
       routerOwner = OPFOwner;
       sleepAmount = 30
-      shouldDeployOceanToken = true;
+      shouldDeployOceanToken = false;
       shouldDeployV4 = true;
       shouldDeployDF = false;
       shouldDeployVE = false;
       gasPrice = ethers.utils.parseUnits('100', 'gwei')
       gasLimit = 28000000
       shouldDeployPredictoorHelper = true;
+      pdrTrueValSubmiter = "0x005FD44e007866508f62b04ce9f43dd1d36D0c0c"
       break;
     case 44787:
       networkName = "alfajores";
@@ -304,7 +306,10 @@ async function main() {
     }
   }
   else {
-    addresses.Ocean = OceanTokenAddress;
+    if (OceanTokenAddress)
+      addresses.Ocean = OceanTokenAddress;
+    else
+      console.log("Using already deployed "+addresses.Ocean+" for Ocean token")
   }
   if (shouldDeployMocks) {
     if (logging) console.info("Deploying Mocks");
@@ -799,6 +804,7 @@ async function main() {
 
   // Predictoor Helper
   if (shouldDeployPredictoorHelper == true) {
+    if (logging) console.info("Deploying PredictoorHelper");
     const PredictoorHelper = await ethers.getContractFactory("PredictoorHelper", owner);
     const deployedPredictoorHelper = await PredictoorHelper.connect(owner).deploy();
     await deployedPredictoorHelper.deployTransaction.wait();
@@ -808,6 +814,13 @@ async function main() {
       console.log("\tnpx hardhat verify --network " + networkName + " " + addresses.PredictoorHelper)
     }
     if (sleepAmount > 0) await sleep(sleepAmount)
+    if (pdrTrueValSubmiter && pdrTrueValSubmiter != owner.address) {
+      console.log("\tTransfer ownership of PredictoorHelper");
+      if (options) ownershiptx = await deployedPredictoorHelper.connect(owner).transferOwnership(pdrTrueValSubmiter, options);
+      else ownershiptx = await deployedPredictoorHelper.connect(owner).transferOwnership(pdrTrueValSubmiter);
+      await ownershiptx.wait()
+      if (sleepAmount > 0) await sleep(sleepAmount)
+    }
   }
 
   if (addressFile) {
