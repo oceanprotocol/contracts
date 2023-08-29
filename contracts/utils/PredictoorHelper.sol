@@ -50,6 +50,8 @@ contract PredictoorHelper is Ownable {
         uint256[] calldata times,
         address tokenAddress
     ) external {
+        IERC20Template token = IERC20Template(tokenAddress);
+        uint256 balanceStart = token.balanceOf(address(this));
         for (uint256 i = 0; i < addresses.length; i++) {
             IERC20Template3.fixedRate[] memory frates = IERC20Template3(
                 addresses[i]
@@ -65,16 +67,13 @@ contract PredictoorHelper is Ownable {
                 0
             );
 
-            IERC20Template(tokenAddress).transferFrom(
+            token.transferFrom(
                 msg.sender,
                 address(this),
                 baseTokenAmount * times[i]
             );
 
-            IERC20Template(tokenAddress).approve(
-                addresses[i],
-                baseTokenAmount * times[i]
-            );
+            token.approve(addresses[i], baseTokenAmount * times[i]);
             IERC20Template3.OrderParams memory orderParams = IERC20Template3
                 .OrderParams(
                     msg.sender,
@@ -101,11 +100,15 @@ contract PredictoorHelper is Ownable {
                 );
             }
         }
-        IERC20Template(tokenAddress).transferFrom(
-            msg.sender,
-            address(this),
-            IERC20Template(tokenAddress).balanceOf(address(this))
-        );
+        uint256 balanceAfter = token.balanceOf(address(this));
+        if (balanceAfter > balanceStart) {
+            // refund extra
+            token.transferFrom(
+                msg.sender,
+                address(this),
+                balanceAfter - balanceStart
+            );
+        }
     }
 
     function submitTruevalContracts(
