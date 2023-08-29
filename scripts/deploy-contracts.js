@@ -800,7 +800,7 @@ async function main() {
   // Predictoor Helper
   if (shouldDeployPredictoorHelper == true) {
     const PredictoorHelper = await ethers.getContractFactory("PredictoorHelper", owner);
-    const deployedPredictoorHelper = await PredictoorHelper.connect(owner).deploy(owner.address);
+    const deployedPredictoorHelper = await PredictoorHelper.connect(owner).deploy();
     await deployedPredictoorHelper.deployTransaction.wait();
     addresses.PredictoorHelper = deployedPredictoorHelper.address;
     if (show_verify) {
