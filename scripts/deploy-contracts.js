@@ -805,7 +805,7 @@ async function main() {
     addresses.PredictoorHelper = deployedPredictoorHelper.address;
     if (show_verify) {
       console.log("\tRun the following to verify on etherscan");
-      console.log("\tnpx hardhat verify --network " + networkName + " " + addresses.DFRewards)
+      console.log("\tnpx hardhat verify --network " + networkName + " " + addresses.PredictoorHelper)
     }
     if (sleepAmount > 0) await sleep(sleepAmount)
   }
