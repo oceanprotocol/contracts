@@ -12,6 +12,7 @@ const ethers = hre.ethers;
 const { ecsign, zeroAddress } = require("ethereumjs-util");
 const { ZERO_ADDRESS } = require("@openzeppelin/test-helpers/src/constants");
 const { BigNumber } = require("ethers");
+const { parseEther } = require("ethers/lib/utils");
 
 
 const blocktimestamp = async () => {
@@ -1824,7 +1825,7 @@ describe("ERC20Template3", () => {
     it("PredictoorHelper contract, submitTruevals", async () => {
         // deploy the proxy contract
         const predictoorHelperFactory = await ethers.getContractFactory('PredictoorHelper');
-        const predictoorHelper = await predictoorHelperFactory.deploy(owner.address);
+        const predictoorHelper = await predictoorHelperFactory.deploy();
         await predictoorHelper.deployed();
 
         // give permissions
@@ -1841,7 +1842,7 @@ describe("ERC20Template3", () => {
         // submit truevals
         await expectRevert(
             predictoorHelper.connect(user3).submitTruevals(erc20Token.address, epochs, truevals, cancelRounds),
-            "Not authorized"
+            "Ownable: caller is not the owner"
         )
         await predictoorHelper.submitTruevals(erc20Token.address, epochs, truevals, cancelRounds);
 
@@ -1855,7 +1856,7 @@ describe("ERC20Template3", () => {
     it("PredictoorHelper contract, submitTruevalContracts", async () => {
         // deploy the proxy contract
         const predictoorHelperFactory = await ethers.getContractFactory('PredictoorHelper');
-        const predictoorHelper = await predictoorHelperFactory.deploy(owner.address);
+        const predictoorHelper = await predictoorHelperFactory.deploy();
         await predictoorHelper.deployed();
 
         // give permissions
@@ -1874,7 +1875,7 @@ describe("ERC20Template3", () => {
         // submit truevals
         await expectRevert(
             predictoorHelper.connect(user3).submitTruevalContracts([erc20Token.address], [epochs], [truevals], [cancelRounds]),
-            "Not authorized"
+            "Ownable: caller is not the owner"
         )
         await predictoorHelper.submitTruevalContracts([erc20Token.address], [epochs], [truevals], [cancelRounds]);
 
@@ -1883,6 +1884,46 @@ describe("ERC20Template3", () => {
             const trueval = await erc20Token.trueValues(epochs[i]);
             assert(trueval == truevals[i], "trueval missmatch")
         }
+    })
+
+    it("PredictoorHelper contract, consumeMultiple", async () => {
+        // get price
+        const fixedRates = await erc20Token.connect(owner).getFixedRates()
+        fixedRateExchange = await ethers.getContractAt("FixedRateExchange", fixedRates[0].contractAddress);
+        fixedRateId = fixedRates[0].id
+        //get details
+        const details = await fixedRateExchange.connect(owner).getExchange(fixedRateId)
+        const needed = await fixedRateExchange.connect(owner).calcBaseInGivenOutDT(fixedRateId, web3.utils.toWei("1"), 0);
+        const baseTokenAmount = needed.baseTokenAmount;
+
+        // deploy the proxy contract
+        const predictoorHelperFactory = await ethers.getContractFactory('PredictoorHelper');
+        const predictoorHelper = await predictoorHelperFactory.deploy();
+        await predictoorHelper.deployed();
+
+        // fast forward time to make sure subscription is expired
+        fastForward(sPerSubscription + 1)
+        // check if the subscription is valid
+        const isValidSubscription = await erc20Token.isValidSubscription(erc20Token.address);
+        assert(isValidSubscription == false, "should be invalid")
+
+        const times = 10
+        await mockErc20.approve(predictoorHelper.address, baseTokenAmount.mul(times))
+
+        const balanceBefore = await mockErc20.balanceOf(owner.address);
+        const tx = await predictoorHelper.consumeMultiple(
+            [erc20Token.address],
+            [times],
+            mockErc20.address
+        )
+        const txReceipt = await tx.wait();
+        const consumeEvents = txReceipt.events.filter(x=> x.event == "OrderStarted")
+        assert (consumeEvents.length == times, "event count mismatch")
+
+        const balanceAfter = await mockErc20.balanceOf(owner.address);
+
+        console.log(balanceBefore.sub(balanceAfter) , baseTokenAmount.mul(times))
+        assert(balanceBefore.sub(balanceAfter).toString() == baseTokenAmount.mul(times).toString(), "balance mismatch")
     })
 
 });
