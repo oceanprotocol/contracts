@@ -173,7 +173,7 @@ contract FixedRateExchange is ReentrancyGuard, IFixedRateExchange {
      *      If you construct your own template, please make sure to change the hardcoded value
      */
     function getId() pure public returns (uint8) {
-        return 1;
+        return 2;
     }
     
     function getOPCFee(address baseTokenAddress) public view returns (uint) {
@@ -462,6 +462,9 @@ contract FixedRateExchange is ReentrancyGuard, IFixedRateExchange {
             && IERC20Template(exchanges[exchangeId].datatoken).isMinter(address(this)))
             {
                 IERC20Template(exchanges[exchangeId].datatoken).mint(msg.sender,datatokenAmount);
+            }
+            else{
+                revert("FixedRateExchange: No available datatokens");
             }
         } else {
             exchanges[exchangeId].dtBalance = (exchanges[exchangeId].dtBalance)
@@ -834,13 +837,7 @@ contract FixedRateExchange is ReentrancyGuard, IFixedRateExchange {
             - IERC20Template(exchanges[exchangeId].datatoken).totalSupply();
         }
         else {
-            uint256 balance = IERC20Template(exchanges[exchangeId].datatoken)
-                .balanceOf(exchanges[exchangeId].exchangeOwner);
-            uint256 allowance = IERC20Template(exchanges[exchangeId].datatoken)
-                .allowance(exchanges[exchangeId].exchangeOwner, address(this));
-            if (balance < allowance)
-                supply = balance.add(exchanges[exchangeId].dtBalance);
-            else supply = allowance.add(exchanges[exchangeId].dtBalance);
+            supply = exchanges[exchangeId].dtBalance;
         }
     }
 
@@ -858,13 +855,7 @@ contract FixedRateExchange is ReentrancyGuard, IFixedRateExchange {
     {
         if (exchanges[exchangeId].active == false) supply = 0;
         else {
-            uint256 balance = IERC20Template(exchanges[exchangeId].baseToken)
-                .balanceOf(exchanges[exchangeId].exchangeOwner);
-            uint256 allowance = IERC20Template(exchanges[exchangeId].baseToken)
-                .allowance(exchanges[exchangeId].exchangeOwner, address(this));
-            if (balance < allowance)
-                supply = balance.add(exchanges[exchangeId].btBalance);
-            else supply = allowance.add(exchanges[exchangeId].btBalance);
+            supply = exchanges[exchangeId].btBalance;
         }
     }
 
