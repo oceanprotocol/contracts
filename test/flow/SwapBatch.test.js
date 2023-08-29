@@ -231,7 +231,7 @@ describe("Batch Swap", () => {
         await erc20Token4.connect(user3).createFixedRate(
           fixedRateExchange.address,
           [oceanContract.address, user3.address, marketFeeCollector.address, ZERO_ADDRESS],
-          [18, 18, rate, marketFee, 0, 0]
+          [18, 18, rate, marketFee, 1]
           // 18,
           // rate,
           // user3.address,
@@ -257,11 +257,10 @@ describe("Batch Swap", () => {
       assert(isActive === true, "Exchange was not activated correctly!");
     });
 
-    it("#4 - should check that the exchange has no supply yet", async () => {
+    it("#4 - should check that the exchange has no bt supply yet", async () => {
       const exchangeDetails = await fixedRateExchange.getExchange(
         eventsExchange[0].args.exchangeId
       );
-      expect(exchangeDetails.dtSupply).to.equal(0);
       expect(exchangeDetails.btSupply).to.equal(0);
     });
 
