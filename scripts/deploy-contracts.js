@@ -241,6 +241,7 @@ async function main() {
       routerOwner = owner.address;
       shouldDeployMocks = true;
       shouldDeployOceanToken = true;
+      shouldDeployPredictoorHelper = true;
       sleepAmount = 0
       break;
   }
@@ -294,7 +295,7 @@ async function main() {
     //send 1 mil tokens to deployer 
     let ownershiptx
     console.log("\tMinting 1 mil tokens to owner");
-    ownershiptx = await ocean.connect(owner).mint(owner.address,ethers.utils.parseUnits('1000000', 'ether'), options);
+    ownershiptx = await ocean.connect(owner).mint(owner.address, ethers.utils.parseUnits('1000000', 'ether'), options);
     await ownershiptx.wait()
     if (sleepAmount > 0) await sleep(sleepAmount)
     if (OPFOwner != owner.address) {
@@ -309,7 +310,7 @@ async function main() {
     if (OceanTokenAddress)
       addresses.Ocean = OceanTokenAddress;
     else
-      console.log("Using already deployed "+addresses.Ocean+" for Ocean token")
+      console.log("Using already deployed " + addresses.Ocean + " for Ocean token")
   }
   if (shouldDeployMocks) {
     if (logging) console.info("Deploying Mocks");
@@ -469,7 +470,7 @@ async function main() {
       console.log("\tRun the following to verify on etherscan");
       console.log("\tnpx hardhat verify --network " + networkName + " " + templateERC20Template3.address)
     }
-    
+
 
     addresses.ERC721Template = {};
     if (sleepAmount > 0) await sleep(sleepAmount)
@@ -574,10 +575,10 @@ async function main() {
     if (sleepAmount > 0) await sleep(sleepAmount)
     if (options) currentTokenCount = await factoryERC721.getCurrentTemplateCount(options);
     else currentTokenCount = await factoryERC721.getCurrentTemplateCount(options);
-  
+
     if (options) tokenTemplate = await factoryERC721.getTokenTemplate(currentTokenCount, options);
     else tokenTemplate = await factoryERC721.getTokenTemplate(currentTokenCount);
-  
+
     addresses.ERC20Template[currentTokenCount.toString()] =
       templateERC20Template3.address;
 
