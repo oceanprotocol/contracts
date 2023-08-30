@@ -241,6 +241,7 @@ async function main() {
       routerOwner = owner.address;
       shouldDeployMocks = true;
       shouldDeployOceanToken = true;
+      shouldDeployPredictoorHelper = true;
       sleepAmount = 0
       break;
   }
