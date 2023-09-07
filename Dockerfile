@@ -19,7 +19,8 @@ FROM base as builder
 RUN apt-get update && apt-get -y install wget
 COPY . /ocean-contracts
 WORKDIR /ocean-contracts
-RUN npm ci
+ENV NODE_ENV=production
+RUN npm i
 RUN wget https://gobinaries.com/tj/node-prune --output-document - | /bin/sh && node-prune
 
 
