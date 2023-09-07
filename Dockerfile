@@ -1,7 +1,7 @@
 
 FROM ubuntu:20.04 as base
 ENV DEBIAN_FRONTEND=noninteractive
-RUN apt-get update && apt-get -y install curl git bash ca-certificates gnupg
+RUN apt-get update && apt-get -y install curl bash
 # nvm env vars
 RUN mkdir -p /usr/local/nvm
 ENV NVM_DIR /usr/local/nvm
