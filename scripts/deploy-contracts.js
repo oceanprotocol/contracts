@@ -700,23 +700,6 @@ async function main() {
     }
     if (sleepAmount > 0) await sleep(sleepAmount)
 
-    //DelegationProxy
-    if (logging) console.info("Deploying DelegationProxy");
-    const DelegationProxy = await ethers.getContractFactory(
-      "veDelegationProxy",
-      owner
-    );
-    const deployedDelegationProxy = await DelegationProxy.connect(owner).deploy(addresses.veDelegation,
-      routerOwner,
-      owner.address, options);
-    await deployedDelegationProxy.deployTransaction.wait();
-    addresses.veDelegationProxy = deployedDelegationProxy.address;
-    if (show_verify) {
-      console.log("\tRun the following to verify on etherscan");
-      console.log("\tnpx hardhat verify --network " + networkName + " " + addresses.veDelegationProxy + " " + addresses.veDelegation + " " + routerOwner + " " + owner.address)
-    }
-    if (sleepAmount > 0) await sleep(sleepAmount)
-
     //veFeeEstimate
     if (logging) console.info("Deploying veFeeEstimate");
     const veFeeEstimate = await ethers.getContractFactory("veFeeEstimate", owner);

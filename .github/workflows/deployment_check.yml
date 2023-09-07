@@ -1,0 +1,60 @@
+name: 'CI'
+
+on:
+  push:
+    branches:
+      - main
+    tags:
+      - '**'
+  pull_request:
+    branches:
+      - '**'
+
+jobs:
+  check_deployment:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - uses: actions/setup-node@v2
+        with:
+          node-version: '16'
+      - name: Cache node_modules
+        uses: actions/cache@v2
+        env:
+          cache-name: cache-node-modules
+        with:
+          path: ~/.npm
+          key: ${{ runner.os }}-test-unit-${{ env.cache-name }}-${{ hashFiles('**/package-lock.json') }}
+          restore-keys: ${{ runner.os }}-test-unit-${{ env.cache-name }}-
+      # Env var expansion workaround
+      # https://docs.github.com/en/actions/reference/workflow-commands-for-github-actions#setting-an-environment-variable
+      - name: Set ADDRESS_FILE
+        run: echo "ADDRESS_FILE=${HOME}/.ocean/ocean-contracts/artifacts/address.json" >> $GITHUB_ENV
+      - name: Build local docker file
+        run: docker build -t 'oceanprotocol/ocean-contracts:test' .
+      - name: Checkout Barge
+        uses: actions/checkout@v3
+        with:
+          repository: 'oceanprotocol/barge'
+          path: 'barge'
+
+      - name: Run Ganache with Barge
+        working-directory: ${{ github.workspace }}/barge
+        run: |
+          bash -x start_ocean.sh  --no-aquarius --no-elasticsearch --no-provider --no-dashboard 2>&1 > start_ocean.log &
+        env:
+          CONTRACTS_VERSION: test
+      - run: npm ci
+      - name: Wait for contracts deployment
+        working-directory: ${{ github.workspace }}/barge
+        run: |
+          for i in $(seq 1 250); do
+            sleep 5
+            [ -f "$HOME/.ocean/ocean-contracts/artifacts/ready" ] && break
+            done
+          ls -la "$HOME/.ocean/ocean-contracts/artifacts/"
+      - run: cat ${HOME}/.ocean/ocean-contracts/artifacts/address.json
+      - run: node scripts/check_deployment.js
+      - name: docker logs
+        run: docker logs ocean_ocean-contracts_1
+        if: ${{ failure() }}
