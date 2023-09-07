@@ -20,7 +20,7 @@ RUN apt-get update && apt-get -y install wget
 COPY . /ocean-contracts
 WORKDIR /ocean-contracts
 ENV NODE_ENV=production
-RUN npm install
+RUN npm ci
 RUN wget https://gobinaries.com/tj/node-prune --output-document - | /bin/sh && node-prune
 
 
