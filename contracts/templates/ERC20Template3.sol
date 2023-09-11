@@ -56,6 +56,7 @@ contract ERC20Template3 is
         uint256 indexed slot,
         uint256 stake
     );
+    event Paused(bool paused);
     event PredictionPayout(
         address indexed predictoor,
         uint256 indexed slot,
@@ -1109,6 +1110,7 @@ contract ERC20Template3 is
 
     function pausePredictions() external onlyERC20Deployer {
         paused = !paused;
+        emit Paused(paused);
         // we cannot pause FixedRate as well, so be aware when triggering this function
         /* keeping code here until we decide
         if (fixedRateExchanges.length>0){
