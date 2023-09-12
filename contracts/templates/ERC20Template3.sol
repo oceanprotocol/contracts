@@ -1010,7 +1010,10 @@ contract ERC20Template3 is
         emit PredictionSubmitted(msg.sender, epoch_start, stake);
         if (submittedPredval(epoch_start, msg.sender)) {
             uint256 oldStake = predictions[epoch_start][msg.sender].stake;
+            bool oldPredictedValue = predictions[epoch_start][msg.sender].predictedValue;
             predictions[epoch_start][msg.sender].stake = 0; // Reentrancy precaution
+            roundSumStakesUp[epoch_start] -= oldStake * (oldPredictedValue ? 1 : 0);
+            roundSumStakes[epoch_start] -= oldStake;
             if (stake > oldStake) {
                 uint256 payment = stake - oldStake;
                 IERC20(stakeToken).safeTransferFrom(msg.sender, address(this), payment);
@@ -1020,6 +1023,8 @@ contract ERC20Template3 is
             }
             predictions[epoch_start][msg.sender].predictedValue = predictedValue;
             predictions[epoch_start][msg.sender].stake = stake;
+            roundSumStakesUp[epoch_start] += stake * (predictedValue ? 1 : 0);
+            roundSumStakes[epoch_start] += stake;
             return;
         }
         predictions[epoch_start][msg.sender] = Prediction(

@@ -860,9 +860,15 @@ describe("ERC20Template3", () => {
         expect(mockErc20BalanceBefore).to.equal(mockErc20BalanceAfter.add(1))
 
         mockErc20BalanceBefore = await mockErc20.balanceOf(owner.address);
-        await erc20Token.submitPredval(predictedValue, stake - 1, soonestEpochToPredict),
+        await erc20Token.submitPredval(!predictedValue, stake - 1, soonestEpochToPredict),
             mockErc20BalanceAfter = await mockErc20.balanceOf(owner.address);
         expect(mockErc20BalanceAfter).to.equal(mockErc20BalanceBefore.add(2))
+
+        await fastForward(sPerEpoch * 2)
+        
+        const aggpredval = await erc20Token.getAggPredval(soonestEpochToPredict, userAuth)
+        expect(aggpredval[0]).to.equal(0)
+        expect(aggpredval[1]).to.equal(stake - 1)
     });
     it("#pausePredictions - should pause and resume predictions", async () => {
         await erc20Token.pausePredictions();
