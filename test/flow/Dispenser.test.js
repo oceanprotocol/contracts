@@ -64,7 +64,7 @@ describe("Dispenser", () => {
     const ERC721Factory = await ethers.getContractFactory("ERC721Factory");
 
     const Router = await ethers.getContractFactory("FactoryRouter");
-    const SSContract = await ethers.getContractFactory("SideStaking");
+    
 
     [
       owner, // nft owner, 721 deployer
@@ -95,13 +95,11 @@ describe("Dispenser", () => {
     // DEPLOY ROUTER, SETTING OWNER
     router = await Router.deploy(
       owner.address,
-      oceanAddress,
-      oceanAddress, // pooltemplate field, unused in this test
+      '0x000000000000000000000000000000000000dead', // approved tokens list, unused in this test
+      '0x000000000000000000000000000000000000dead', // pooltemplate field, unused in this test
       opcCollector.address,
       []
     );
-
-    sideStaking = await SSContract.deploy(router.address);
 
     dispenser = await Dispenser.deploy(
       router.address
@@ -124,7 +122,6 @@ describe("Dispenser", () => {
 
     await router.addDispenserContract(dispenser.address);
 
-    await router.addSSContract(sideStaking.address)
 
   });
 

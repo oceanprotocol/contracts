@@ -54,31 +54,16 @@ describe("ERC721Factory", () => {
     cap = web3.utils.toWei("100000");
 
   const communityFeeCollector = "0xeE9300b7961e0a01d9f0adb863C7A227A07AaD75";
-  const oceanAddress = "0x967da4048cD07aB37855c090aAF366e4ce1b9F48";
   const publishMarketFeeAmount = "5";
   const addressZero = '0x0000000000000000000000000000000000000000';
 
   beforeEach("init contracts for each test", async () => {
-    await network.provider.request({
-      method: "hardhat_reset",
-      params: [
-        {
-          forking: {
-            jsonRpcUrl: process.env.ALCHEMY_URL,
-            blockNumber: 12515000,
-          },
-        },
-      ],
-    });
-
     const ERC721Template = await ethers.getContractFactory("ERC721Template");
     const ERC20Template = await ethers.getContractFactory("ERC20Template");
     const ERC721Factory = await ethers.getContractFactory("ERC721Factory");
     const MockErc20 = await ethers.getContractFactory('MockERC20');
     const MockErc20Decimals = await ethers.getContractFactory('MockERC20Decimals');
     const Router = await ethers.getContractFactory("FactoryRouter");
-    const SSContract = await ethers.getContractFactory("SideStaking");
-    const BPool = await ethers.getContractFactory("BPool");
     const FixedRateExchange = await ethers.getContractFactory(
       "FixedRateExchange"
     );
@@ -96,20 +81,14 @@ describe("ERC721Factory", () => {
     mockErc20Decimals = await MockErc20Decimals.deploy("Mock6Digits",'Mock6Digits',6);
  // DEPLOY ROUTER, SETTING OWNER
 
-    poolTemplate = await BPool.deploy();
-
-
-
     router = await Router.deploy(
      owner.address,
-     oceanAddress,
-     poolTemplate.address, // pooltemplate field,
+     '0x000000000000000000000000000000000000dead', // approved tokens list, unused in this test
+     '0x000000000000000000000000000000000000dead', // pooltemplate field, unused in this test
      opcCollector.address,
      []
    );
       
-
-   sideStaking = await SSContract.deploy(router.address);
 
    fixedRateExchange = await FixedRateExchange.deploy(
      router.address
@@ -138,9 +117,7 @@ describe("ERC721Factory", () => {
  
    await router.addFixedRateContract(fixedRateExchange.address); 
    await router.addDispenserContract(dispenser.address); 
-
-   await router.addSSContract(sideStaking.address)
-    
+ 
 
     // by default connect() in ethers goes with the first address (owner in this case)
     const tx = await factoryERC721.deployERC721Contract(
@@ -653,14 +630,11 @@ describe("ERC721Factory", () => {
   });
 
   it("#startMultipleTokenOrder - user should succeed to call startOrder on a ERC20 without publishFee", async () => {
-    console.log("1")
     //MINT SOME DT20 to USER2 so he can start order
     await erc20Token.connect(user3).mint(user2.address, web3.utils.toWei("10"));
-    console.log("2")
     assert(
       (await erc20Token.balanceOf(user2.address)) == web3.utils.toWei("10")
     );
-    console.log("3")
     const consumer = user2.address; // could be different user
     const dtAmount = web3.utils.toWei("1");
     const serviceIndex = 1; // dummy index
@@ -687,7 +661,6 @@ describe("ERC721Factory", () => {
     await erc20Token
     .connect(user2)
     .approve(factoryERC721.address, dtAmount);
-    console.log("4")
     const tx = await factoryERC721
       .connect(user2)
       .startMultipleTokenOrder(
@@ -713,7 +686,6 @@ describe("ERC721Factory", () => {
           }
         }]
       );
-      console.log("5")
     const txReceipt = await tx.wait();
     assert(
       (await erc20Token.balanceOf(user2.address)) == web3.utils.toWei("9"), 'Invalid user balance, DT was not substracted'
@@ -1187,81 +1159,6 @@ describe("ERC721Factory", () => {
       erc20Address
     );
     assert(await Erc20ontract.name() === "ERC20B1");
-  });
-
-
-  it("#createNftWithErc20WithPool - should create a new erc721 and new erc20 and a new Pool in one single call and get their addresses", async () => {    
-    const swapFee = 1e15;
-    const swapMarketFee = 1e15;
-    const initialPoolLiquidy = web3.utils.toWei("12"); // baseToken initial pool liquidity
-    await erc20Token.connect(user3).mint(user3.address,initialPoolLiquidy);
-    await erc20Token.connect(user3).approve(factoryERC721.address,initialPoolLiquidy);
-
-    const tx = await factoryERC721.connect(user3).createNftWithErc20WithPool(
-      {
-      "name": "72120PBundle",
-      "symbol": "72PBundle",
-      "templateIndex": 1,
-      "tokenURI":"https://oceanprotocol.com/nft/",
-      "transferable": true,
-      "owner": owner.address
-      },
-      {
-      "strings":["ERC20WithPool","ERC20P"],
-      "templateIndex":1,
-      "addresses":[user3.address,user6.address,user3.address,"0x0000000000000000000000000000000000000000"],
-      "uints":[cap,0],
-      "bytess":[]
-      },
-      {
-        "addresses":[sideStaking.address,erc20Token.address,factoryERC721.address,user3.address,user6.address,poolTemplate.address],
-        "ssParams":[
-          web3.utils.toWei("1"), // rate
-          18, // baseTokenDecimals
-          web3.utils.toWei('10000'),
-          2500000, // vested blocks
-          initialPoolLiquidy, // baseToken initial pool liquidity
-        ],
-        "swapFees":[
-          swapFee, //
-          swapMarketFee,
-        ],
-      }
-      
-      
-      );
-
-    const txReceipt = await tx.wait();
-    let event = getEventFromTx(txReceipt,'NFTCreated')
-    assert(event, "Cannot find NFTCreated event")
-    const nftAddress = event.args[0];
-    event = getEventFromTx(txReceipt,'TokenCreated')
-    assert(event, "Cannot find TokenCreated event")
-    const erc20Address = event.args[0];
-
-    
-    event = getEventFromTx(txReceipt,'NewPool')
-    assert(event, "Cannot find NewPool event")
-    const poolAddress = event.args[0];
-    
-    const NftContract = await ethers.getContractAt(
-      "contracts/interfaces/IERC721Template.sol:IERC721Template",
-      nftAddress
-    );
-    assert(await NftContract.name() === "72120PBundle");
-    const Erc20ontract = await ethers.getContractAt(
-      "contracts/interfaces/IERC20Template.sol:IERC20Template",
-      erc20Address
-    );
-    assert(await Erc20ontract.name() === "ERC20WithPool");
-
-    const poolContract = await ethers.getContractAt(
-      "contracts/interfaces/IERC20Template.sol:IERC20Template",
-      poolAddress
-    );
-    const lpShares = await poolContract.balanceOf(user3.address)
-    assert(await poolContract.balanceOf(user3.address) > 0, "Invalid pool share #");
-    
   });
 
 

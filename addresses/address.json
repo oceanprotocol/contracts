@@ -21,7 +21,6 @@
     "veOCEAN": "0x061955B6980A34fce74b235f90DBe20d76f087b1",
     "veDelegation": "0x96E3aE4247a01C3d40a261df1F8ead70E32E7C0c",
     "veFeeDistributor": "0x35F1e6765750E874EB9d0675393A1A394A4749b4",
-    "veDelegationProxy": "0x51B1b14b8bfb43a2fB0b49843787Ca440200F6b7",
     "DFRewards": "0x4259c164eedA7483dda2b4b622D761A88674D31f",
     "DFStrategyV1": "0x1be9C72500B41c286C797D4FE727747Ae9C4E195",
     "veFeeEstimate": "0xCFeF55c6ae4d250586e293f29832967a04A9087d",
@@ -136,7 +135,6 @@
     "veAllocate": "0x55567E038b0a50283084ae773FA433a5029822d3",
     "veDelegation": "0xc768eDF2d21fe00ef5804A7Caa775E877e65A70E",
     "veFeeDistributor": "0x256c54219816603BB8327F9019533B020a76e936",
-    "veDelegationProxy": "0x45E3BEc7D139Cd8Ed7FeB161F3B094688ddB0c20",
     "veFeeEstimate": "0x4aA261bC595abC6fDEf0255C83e2a9305261753f",
     "SmartWalletChecker": "0xd7ddf62257A41cc6cdAd7A3d36e4f1d925fD142a",
     "Splitter": "0xadF0D06e58E618de36Af0F1b52891b14FAA61187",
@@ -163,7 +161,6 @@
     "veOCEAN": "0x8B8E187CF9c551e63f54AA04E21F48CDAF2296aE",
     "veDelegation": "0xE282492d50879b911844fA6dD87aAD6169963fC6",
     "veFeeDistributor": "0xd09789Ce05aa0f6feFc18315de4964Db07Cc0618",
-    "veDelegationProxy": "0x257fe2e49530A4B7FC3Ed597465e2931db3f20b7",
     "DFRewards": "0x6fd867E5AEE6D62a24f97939db90C4e67A73A651",
     "DFStrategyV1": "0x1Af3CC30fD18af837f7630Aff12aE2b826bD3c5D",
     "veFeeEstimate": "0xB3AB945aa7553EbC8Ce234a53b03a1bbA23E8fAB"
@@ -225,6 +222,8 @@
   "gen-x-testnet": {
     "chainId": 100,
     "OceanToken": "0x0995527d3473b3a98c471f1ed8787acd77fbf009",
+    "Ocean": "0x0995527d3473b3a98c471f1ed8787acd77fbf009",
+    "startBlock": 3665369,
     "CommunityFeeCollector": "0x2e0C9e15A45c9884F7768BB852E7399B9153525d",
     "Router": "0x7A3C9F0729AB93e4F9945221168A56eCf450187D",
     "FixedPrice": "0xAD8E7d2aFf5F5ae7c2645a52110851914eE6664b",
@@ -235,7 +234,7 @@
     "ERC721Template": {
       "1:": "0x2CBCD3b10783378e34209B760e5A70531198f65E"
     },
-    "Dispenser": "0x94cb8FC8719Ed09bE3D9c696d2037EA95ef68d3e[5a7",
+    "Dispenser": "0x94cb8FC8719Ed09bE3D9c696d2037EA95ef68d3e",
     "ERC721Factory": "0x6cb85858183B82154921f68b434299EC4281da53"
   },
   "filecointestnet": {
@@ -255,5 +254,42 @@
     },
     "Dispenser": "0xDEfD0018969cd2d4E648209F876ADe184815f038",
     "ERC721Factory": "0x9C9eE07b8Ce907D2f9244F8317C1Ed29A3193bAe"
+  },
+  "oasis_saphire_testnet": {
+    "chainId": 23295,
+    "Ocean": "0x973e69303259B0c2543a38665122b773D28405fB",
+    "OPFCommunityFeeCollector": "0xe8c6Dc39602031A152440311e364818ba25C2Bc1",
+    "startBlock": 2565487,
+    "Router": "0x5FBC2A29f7C8e4533dECD14Dc1c561A8eF0d4e31",
+    "FixedPrice": "0x0846aec7aADD547131484Bf7fE548589b7F057fe",
+    "ERC20Template": {
+      "1": "0x519d462294958A935D34351b3ad9F98cCAB0b7f8",
+      "2": "0x2bCa501a6f9FB8a96f1b7B09D4f74A32ACAa7584",
+      "3": "0xf00c16665b79F23c04e5c8652Fe9853046b987c8"
+    },
+    "ERC721Template": {
+      "1": "0x9Ab15cc945b2B58A51384539211dE8a88a1355E8"
+    },
+    "Dispenser": "0xbde8224d15885c2E46Be665b9392E619cD142de8",
+    "ERC721Factory": "0x315ef329D214cde5cE7C206104aC35B1fe66bb8c",
+    "PredictoorHelper": "0x2e4cb19faD077768fDcB04Bc0549AB76BE8eA63F"
+  },
+  "sepolia": {
+    "chainId": 11155111,
+    "Ocean": "0x1B083D8584dd3e6Ff37d04a6e7e82b5F622f3985",
+    "OPFCommunityFeeCollector": "0x69B6E54Ad2b3c2801d11d8Ad56ea1d892555b776",
+    "startBlock": 3722802,
+    "Router": "0x2112Eb973af1DBf83a4f11eda82f7a7527D7Fde5",
+    "FixedPrice": "0x80E63f73cAc60c1662f27D2DFd2EA834acddBaa8",
+    "Staking": "0x3C5605202eD47C162450AE975415473e73F93072",
+    "ERC20Template": {
+      "1": "0x30E4CC2C7A9c6aA2b2Ce93586E3Df24a3A00bcDD",
+      "2": "0xDEfD0018969cd2d4E648209F876ADe184815f038"
+    },
+    "ERC721Template": {
+      "1": "0x9C9eE07b8Ce907D2f9244F8317C1Ed29A3193bAe"
+    },
+    "Dispenser": "0x2720d405ef7cDC8a2E2e5AeBC8883C99611d893C",
+    "ERC721Factory": "0xEF62FB495266C72a5212A11Dce8baa79Ec0ABeB1"
   }
 }

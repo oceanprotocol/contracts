@@ -19,6 +19,7 @@ let shouldDeployOceanToken = false;
 let shouldDeployMocks = false;
 let shouldDeployOPFCommunityFeeCollector = false;
 let shouldDeployOPFCommunity = true;
+let shouldDeployPredictoorHelper = false;
 const logging = true;
 const show_verify = true;
 
@@ -63,6 +64,7 @@ async function main() {
   let gasPrice = null;
   let sleepAmount = 10;
   let additionalApprovedTokens = []
+  let pdrTrueValSubmiter = null
   console.log("Using chain " + networkDetails.chainId);
   switch (networkDetails.chainId) {
     case 1:
@@ -210,6 +212,20 @@ async function main() {
       gasPrice = null
       gasLimit = null
       break;
+    case 23295:
+      networkName = "oasis_saphire_testnet";
+      OPFOwner = '0xC7EC1970B09224B317c52d92f37F5e1E4fF6B687'
+      routerOwner = OPFOwner;
+      sleepAmount = 30
+      shouldDeployOceanToken = false;
+      shouldDeployV4 = true;
+      shouldDeployDF = false;
+      shouldDeployVE = false;
+      gasPrice = ethers.utils.parseUnits('100', 'gwei')
+      gasLimit = 28000000
+      shouldDeployPredictoorHelper = true;
+      pdrTrueValSubmiter = "0x005FD44e007866508f62b04ce9f43dd1d36D0c0c"
+      break;
     case 44787:
       networkName = "alfajores";
       OPFOwner = '0x06100AB868206861a4D7936166A91668c2Ce1312'
@@ -231,6 +247,7 @@ async function main() {
       shouldDeployMocks = true;
       shouldDeployOceanToken = true;
       shouldDeployVesting = true;
+      shouldDeployPredictoorHelper = true;
       sleepAmount = 0
       break;
   }
@@ -279,15 +296,26 @@ async function main() {
       console.log("\tRun the following to verify on etherscan");
       console.log("\tnpx hardhat verify --network " + networkName + " " + ocean.address + " " + owner.address)
     }
+    if (sleepAmount > 0) await sleep(sleepAmount)
+    //send 1 mil tokens to deployer 
+    let ownershiptx
+    console.log("\tMinting 1 mil tokens to owner");
+    ownershiptx = await ocean.connect(owner).mint(owner.address,ethers.utils.parseUnits('1000000', 'ether'), options);
+    await ownershiptx.wait()
+    if (sleepAmount > 0) await sleep(sleepAmount)
     if (OPFOwner != owner.address) {
-      let ownershiptx
+      console.log("\tTransfer ownership of Ocean Token");
       if (options) ownershiptx = await ocean.connect(owner).transferOwnership(OPFOwner, options);
       else ownershiptx = await ocean.connect(owner).transferOwnership(OPFOwner);
       await ownershiptx.wait()
+      if (sleepAmount > 0) await sleep(sleepAmount)
     }
   }
   else {
-    addresses.Ocean = OceanTokenAddress;
+    if (OceanTokenAddress)
+      addresses.Ocean = OceanTokenAddress;
+    else
+      console.log("Using already deployed "+addresses.Ocean+" for Ocean token")
   }
 
 
@@ -408,17 +436,6 @@ async function main() {
       console.log("\tnpx hardhat verify --network " + networkName + " " + addresses.FixedPrice + " " + router.address)
     }
     if (sleepAmount > 0) await sleep(sleepAmount)
-    if (logging) console.info("Deploying StakingContract");
-    const SSContract = await ethers.getContractFactory("SideStaking", owner);
-    let ssPool
-    if (options) ssPool = await SSContract.connect(owner).deploy(router.address, options);
-    else ssPool = await SSContract.connect(owner).deploy(router.address);
-    await ssPool.deployTransaction.wait();
-    addresses.Staking = ssPool.address;
-    if (show_verify) {
-      console.log("\tRun the following to verify on etherscan");
-      console.log("\tnpx hardhat verify --network " + networkName + " " + addresses.Staking + " " + router.address)
-    }
     addresses.ERC20Template = {};
     if (sleepAmount > 0) await sleep(sleepAmount)
     if (logging) console.info("Deploying ERC20 Template");
@@ -445,6 +462,23 @@ async function main() {
       console.log("\tRun the following to verify on etherscan");
       console.log("\tnpx hardhat verify --network " + networkName + " " + templateERC20Enterprise.address)
     }
+    if (sleepAmount > 0) await sleep(sleepAmount)
+
+    if (logging) console.info("Deploying ERC20Template3");
+    const ERC203Template = await ethers.getContractFactory(
+      "ERC20Template3",
+      owner
+    );
+    let templateERC20Template3
+    if (options) templateERC20Template3 = await ERC203Template.connect(owner).deploy(options);
+    else templateERC20Template3 = await ERC203Template.connect(owner).deploy();
+    await templateERC20Template3.deployTransaction.wait();
+    if (show_verify) {
+      console.log("\tRun the following to verify on etherscan");
+      console.log("\tnpx hardhat verify --network " + networkName + " " + templateERC20Template3.address)
+    }
+    
+
     addresses.ERC721Template = {};
     if (sleepAmount > 0) await sleep(sleepAmount)
     if (logging) console.info("Deploying ERC721 Template");
@@ -509,16 +543,17 @@ async function main() {
     let nftCount
     if (options) nftCount = await factoryERC721.getCurrentNFTTemplateCount(options);
     else nftCount = await factoryERC721.getCurrentNFTTemplateCount();
-
+    if (sleepAmount > 0) await sleep(sleepAmount)
     let nftTemplate
     if (options) nftTemplate = await factoryERC721.getNFTTemplate(nftCount, options);
     else nftTemplate = await factoryERC721.getNFTTemplate(nftCount);
     addresses.ERC721Template[nftCount.toString()] = templateERC721.address;
+    if (sleepAmount > 0) await sleep(sleepAmount)
     let currentTokenCount
     if (options) currentTokenCount = await factoryERC721.getCurrentTemplateCount(options);
     else currentTokenCount = await factoryERC721.getCurrentTemplateCount();
 
-
+    if (sleepAmount > 0) await sleep(sleepAmount)
     let tokenTemplate
     if (options) tokenTemplate = await factoryERC721.getTokenTemplate(currentTokenCount, options);
     else tokenTemplate = await factoryERC721.getTokenTemplate(currentTokenCount);
@@ -539,6 +574,20 @@ async function main() {
 
     addresses.ERC20Template[currentTokenCount.toString()] =
       templateERC20Enterprise.address;
+
+    if (logging) console.info("Adding ERC20Template3 to ERC721Factory");
+    if (options) templateadd = await factoryERC721.connect(owner).addTokenTemplate(templateERC20Template3.address, options);
+    else templateadd = await factoryERC721.connect(owner).addTokenTemplate(templateERC20Template3.address);
+    await templateadd.wait();
+    if (sleepAmount > 0) await sleep(sleepAmount)
+    if (options) currentTokenCount = await factoryERC721.getCurrentTemplateCount(options);
+    else currentTokenCount = await factoryERC721.getCurrentTemplateCount(options);
+  
+    if (options) tokenTemplate = await factoryERC721.getTokenTemplate(currentTokenCount, options);
+    else tokenTemplate = await factoryERC721.getTokenTemplate(currentTokenCount);
+  
+    addresses.ERC20Template[currentTokenCount.toString()] =
+      templateERC20Template3.address;
 
     // SET REQUIRED ADDRESS
     if (sleepAmount > 0) await sleep(sleepAmount)
@@ -565,13 +614,6 @@ async function main() {
     await dispenserAddTx.wait();
     if (sleepAmount > 0) await sleep(sleepAmount)
 
-
-    if (logging) console.info("Adding ssPool.address(" + ssPool.address + ") to router");
-    let ssAddTx
-    if (options) ssAddTx = await router.connect(owner).addSSContract(ssPool.address, options);
-    else ssAddTx = await router.connect(owner).addSSContract(ssPool.address);
-    await ssAddTx.wait();
-    if (sleepAmount > 0) await sleep(sleepAmount)
 
     // add additional tokens
     for (const token of additionalApprovedTokens) {
@@ -662,23 +704,6 @@ async function main() {
     if (show_verify) {
       console.log("\tRun the following to verify on etherscan");
       console.log("\tnpx hardhat verify --network " + networkName + " " + addresses.veFeeDistributor + " " + addresses.veOCEAN + " " + timestamp + " " + addresses.Ocean + " " + routerOwner + " " + owner.address)
-    }
-    if (sleepAmount > 0) await sleep(sleepAmount)
-
-    //DelegationProxy
-    if (logging) console.info("Deploying DelegationProxy");
-    const DelegationProxy = await ethers.getContractFactory(
-      "veDelegationProxy",
-      owner
-    );
-    const deployedDelegationProxy = await DelegationProxy.connect(owner).deploy(addresses.veDelegation,
-      routerOwner,
-      owner.address, options);
-    await deployedDelegationProxy.deployTransaction.wait();
-    addresses.veDelegationProxy = deployedDelegationProxy.address;
-    if (show_verify) {
-      console.log("\tRun the following to verify on etherscan");
-      console.log("\tnpx hardhat verify --network " + networkName + " " + addresses.veDelegationProxy + " " + addresses.veDelegation + " " + routerOwner + " " + owner.address)
     }
     if (sleepAmount > 0) await sleep(sleepAmount)
 
@@ -829,6 +854,27 @@ async function main() {
       if (logging) console.info("Moving ownerships to " + routerOwner)
       const DFRewardsOwnerTx = await deployedDFRewards.connect(owner).transferOwnership(routerOwner, options)
       await DFRewardsOwnerTx.wait()
+    }
+  }
+
+  // Predictoor Helper
+  if (shouldDeployPredictoorHelper == true) {
+    if (logging) console.info("Deploying PredictoorHelper");
+    const PredictoorHelper = await ethers.getContractFactory("PredictoorHelper", owner);
+    const deployedPredictoorHelper = await PredictoorHelper.connect(owner).deploy();
+    await deployedPredictoorHelper.deployTransaction.wait();
+    addresses.PredictoorHelper = deployedPredictoorHelper.address;
+    if (show_verify) {
+      console.log("\tRun the following to verify on etherscan");
+      console.log("\tnpx hardhat verify --network " + networkName + " " + addresses.PredictoorHelper)
+    }
+    if (sleepAmount > 0) await sleep(sleepAmount)
+    if (pdrTrueValSubmiter && pdrTrueValSubmiter != owner.address) {
+      console.log("\tTransfer ownership of PredictoorHelper");
+      if (options) ownershiptx = await deployedPredictoorHelper.connect(owner).transferOwnership(pdrTrueValSubmiter, options);
+      else ownershiptx = await deployedPredictoorHelper.connect(owner).transferOwnership(pdrTrueValSubmiter);
+      await ownershiptx.wait()
+      if (sleepAmount > 0) await sleep(sleepAmount)
     }
   }
 

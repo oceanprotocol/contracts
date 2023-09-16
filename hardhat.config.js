@@ -41,11 +41,11 @@ module.exports = {
   },
   networks: {
     hardhat: {
-      allowUnlimitedContractSize: true,
-      forking: {
-        url: process.env.ALCHEMY_URL,
-        blockNumber: 12545000,
-      },
+      //allowUnlimitedContractSize: true,
+      //forking: {
+      //  url: process.env.ALCHEMY_URL,
+      //  blockNumber: 12545000,
+      //},
       gasPrice:1000000000
     },
     mainnet: {
@@ -138,10 +138,18 @@ module.exports = {
       accounts:
         process.env.PRIVATE_KEY !== undefined ? [process.env.PRIVATE_KEY] : [],
     },
+    oasis_saphire_testnet: {
+      url:
+        process.env.NETWORK_RPC_URL !== undefined ? process.env.NETWORK_RPC_URL : "",
+      accounts:
+        process.env.PRIVATE_KEY !== undefined ? [process.env.PRIVATE_KEY] : [],
+    },
 
   },
   etherscan: {
-    apiKey: process.env.ETHERSCAN_API_KEY,
+    apiKey: {
+      oasis_saphire_testnet: process.env.ETHERSCAN_API_KEY
+    },
     customChains: [
     {
       network: "alfajores",
@@ -157,6 +165,14 @@ module.exports = {
       urls: { 
           apiURL: "https://api.celoscan.io/api",
           browserURL: "https://celoscan.io/",
+      },
+    },
+    {
+      network: "oasis_saphire_testnet",
+      chainId: 23295,
+      urls: { 
+          apiURL: "https://testnet.explorer.sapphire.oasis.dev/api",
+          browserURL: "https://testnet.explorer.sapphire.oasis.dev/",
       },
     }
     ] 
