@@ -1002,7 +1002,7 @@ contract ERC20Template3 is
         bool predictedValue,
         uint256 stake,
         uint256 epoch_start
-    ) external {
+    ) external nonReentrant {
         require(toEpochStart(epoch_start) == epoch_start, "invalid epoch");
         require(paused == false, "paused");
         require(epoch_start >= soonestEpochToPredict(block.timestamp), "too late to submit");
@@ -1145,8 +1145,7 @@ contract ERC20Template3 is
         require(epoch_start <= curEpoch(), "too early to submit");
         require(epochStatus[epoch_start] == Status.Pending, "already settled");
         bool opfTimedout = curEpoch() > epoch_start + trueValSubmitTimeout;
-        bool epochPending = epochStatus[epoch_start] == Status.Pending;
-        if (cancelRound || (opfTimedout && epochPending)){
+        if (cancelRound || opfTimedout){
             epochStatus[epoch_start]=Status.Canceled;
         }
         else{
