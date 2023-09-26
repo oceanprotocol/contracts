@@ -26,7 +26,7 @@ import "../utils/ERC20Roles.sol";
  *  - creation of additional fixed rates is not allowed (only one can be created)
  */
 contract ERC20Template3 is
-    ERC20("test", "testSymbol"),
+    ERC20("t", "t"),
     ERC20Roles,
     ERC20Burnable,
     ReentrancyGuard
@@ -123,10 +123,9 @@ contract ERC20Template3 is
     // -------------------------- PREDICTOOR --------------------------
 
     // EIP 2612 SUPPORT
-    bytes32 public DOMAIN_SEPARATOR;
+    //bytes32 public DOMAIN_SEPARATOR;
     // keccak256("Permit(address owner,address spender,uint256 value,uint256 nonce,uint256 deadline)");
-    bytes32 public constant PERMIT_TYPEHASH =
-        0x6e71edae12b1b97f4d1f60370fef10105fa2faae0126114a169c64845d6126c9;
+    //bytes32 public constant PERMIT_TYPEHASH =0x6e71edae12b1b97f4d1f60370fef10105fa2faae0126114a169c64845d6126c9;
 
     mapping(address => uint256) public nonces;
     address public router;
@@ -344,23 +343,6 @@ contract ERC20Template3 is
             publishMarketFeeToken,
             publishMarketFeeAmount
         );
-        uint256 chainId;
-        assembly {
-            chainId := chainid()
-        }
-        /*DOMAIN_SEPARATOR = keccak256(
-            abi.encode(
-                keccak256(
-                    "EIP712Domain(string name,string version,uint256 chainId,address verifyingContract)"
-                ),
-                keccak256(bytes(_name)),
-                keccak256(bytes("1")), // version, could be any other value
-                chainId,
-                address(this)
-            )
-        );
-        */
-
         stakeToken = addresses_[4];
         _updateSeconds(uints_[2], uints_[3], uints_[4]);
         return initialized;
@@ -535,7 +517,7 @@ contract ERC20Template3 is
     function cleanFrom721() external {
         require(
             msg.sender == _erc721Address,
-            "ERC20Template: NOT 721 Contract"
+            "NOT 721 Contract"
         );
         _internalCleanPermissions();
     }
@@ -856,6 +838,7 @@ contract ERC20Template3 is
         OrderParams calldata _orderParams,
         FreParams calldata _freParams
     ) external nonReentrant{
+        require(paused == false, "paused");
         //first buy 1.0 DT
         buyFromFre(_freParams);
         //we need the following because startOrder expects msg.sender to have dt
@@ -1116,16 +1099,8 @@ contract ERC20Template3 is
     function pausePredictions() external onlyERC20Deployer {
         paused = !paused;
         emit Paused(paused);
-        // we cannot pause FixedRate as well, so be aware when triggering this function
-        /* keeping code here until we decide
-        if (fixedRateExchanges.length>0){
-            IFixedRateExchange fre = IFixedRateExchange(fixedRateExchanges[0].contractAddress);
-            bool freActive = fre.isActive(fixedRateExchanges[0].id);
-            if ((paused && freActive) || (!paused && !freActive)){
-                fre.toggleExchangeState(fixedRateExchanges[0].id);
-            }
-        }
-        */
+        // we don't need to pause FixedRateExchanges, cause nobody else can swap (allowedSwapper is this contract)
+        // and we check if contract is paused during buyFromFre
         
     }
 
