@@ -207,6 +207,21 @@ async function main() {
       gasPrice = null
       gasLimit = null
       break;
+    case 23294:
+        networkName = "oasis_saphire";
+        OceanTokenAddress = "0x39d22B78A7651A76Ffbde2aaAB5FD92666Aca520";
+        OPFOwner = '0x086E7F0588755af5AF5f8194542Fd8328238F3C1'
+        routerOwner = OPFOwner;
+        sleepAmount = 30
+        shouldDeployOceanToken = false;
+        shouldDeployV4 = true;
+        shouldDeployDF = true;
+        shouldDeployVE = false;
+        gasPrice = ethers.utils.parseUnits('100', 'gwei')
+        gasLimit = 15000000
+        shouldDeployPredictoorHelper = true;
+        pdrTrueValSubmiter = "0x886A892670A7afc719Dcf36eF92c798203F74B67"
+        break;
     case 23295:
       networkName = "oasis_saphire_testnet";
       OPFOwner = '0xC7EC1970B09224B317c52d92f37F5e1E4fF6B687'
