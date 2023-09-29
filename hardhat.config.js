@@ -138,6 +138,12 @@ module.exports = {
       accounts:
         process.env.PRIVATE_KEY !== undefined ? [process.env.PRIVATE_KEY] : [],
     },
+    oasis_saphire: {
+      url:
+        process.env.NETWORK_RPC_URL !== undefined ? process.env.NETWORK_RPC_URL : "",
+      accounts:
+        process.env.PRIVATE_KEY !== undefined ? [process.env.PRIVATE_KEY] : [],
+    },
     oasis_saphire_testnet: {
       url:
         process.env.NETWORK_RPC_URL !== undefined ? process.env.NETWORK_RPC_URL : "",
@@ -148,7 +154,8 @@ module.exports = {
   },
   etherscan: {
     apiKey: {
-      oasis_saphire_testnet: process.env.ETHERSCAN_API_KEY
+      oasis_saphire_testnet: process.env.ETHERSCAN_API_KEY,
+      oasis_saphire: process.env.ETHERSCAN_API_KEY
     },
     customChains: [
     {
@@ -165,6 +172,14 @@ module.exports = {
       urls: { 
           apiURL: "https://api.celoscan.io/api",
           browserURL: "https://celoscan.io/",
+      },
+    },
+    {
+      network: "oasis_saphire",
+      chainId: 23294,
+      urls: { 
+          apiURL: "https://explorer.sapphire.oasis.io/api",
+          browserURL: "https://explorer.sapphire.oasis.io/",
       },
     },
     {
