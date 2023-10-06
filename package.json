@@ -52,11 +52,11 @@
     "hardhat": "^2.18.0",
     "hardhat-contract-sizer": "^2.10.0",
     "hardhat-gas-reporter": "^1.0.8",
-    "solidity-bytes-utils": "^0.8.0",
-    "solidity-coverage": "^0.7.17"
+    "solidity-bytes-utils": "^0.8.0"
   },
   "devDependencies": {
     "@openzeppelin/test-helpers": "^0.5.15",
-    "chai": "^4.3.10"
+    "chai": "^4.3.10",
+    "solidity-coverage": "^0.8.5"
   }
 }
