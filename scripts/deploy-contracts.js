@@ -322,8 +322,8 @@ async function main() {
       console.log("\tSending tokens to first 10 barge addresses")
       for(let walletNo=1;walletNo<10;walletNo++){
         const oceanHolder = new Wallet.fromMnemonic(process.env.MNEMONIC,`m/44'/60'/${walletNo}'/0/0`);
-        console.log("\tSending 1000000 Ocean to "+oceanHolder.address)
-        await ocean.connect(owner).mint(oceanHolder.address,ethers.utils.parseUnits('1000000', 'ether'), options);
+        console.log("\t\tSending 100000 Ocean to "+oceanHolder.address)
+        await ocean.connect(owner).mint(oceanHolder.address,ethers.utils.parseUnits('100000', 'ether'), options);
       }
     }
     wallet = new Wallet.fromMnemonic(process.env.MNEMONIC);
