@@ -317,6 +317,17 @@ async function main() {
     console.log("\tMinting 1 mil tokens to owner");
     ownershiptx = await ocean.connect(owner).mint(owner.address,ethers.utils.parseUnits('1000000', 'ether'), options);
     await ownershiptx.wait()
+    //mint tokens in barge
+    if (process.env.MNEMONIC && networkDetails.chainId==8996){
+      console.log("\tSending tokens to first 10 barge addresses")
+      for(let walletNo=1;walletNo<10;walletNo++){
+        const oceanHolder = new Wallet.fromMnemonic(process.env.MNEMONIC,`m/44'/60'/0'/0/${walletNo}`);
+        console.log("\t\tSending 100000 Ocean to "+oceanHolder.address)
+        await ocean.connect(owner).mint(oceanHolder.address,ethers.utils.parseUnits('100000', 'ether'), options);
+      }
+    }
+    wallet = new Wallet.fromMnemonic(process.env.MNEMONIC);
+  
     if (sleepAmount > 0) await sleep(sleepAmount)
     if (OPFOwner != owner.address) {
       console.log("\tTransfer ownership of Ocean Token");
