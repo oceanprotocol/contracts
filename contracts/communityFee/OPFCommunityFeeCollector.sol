@@ -15,6 +15,9 @@ import '../utils/SafeERC20.sol';
  *      ocean protocol and provide a sustainble development.
  */
 contract OPFCommunityFeeCollector is Ownable {
+
+    error TransferFailed();
+
     using SafeERC20 for IERC20;
     address payable private collector;
     /**
@@ -60,7 +63,10 @@ contract OPFCommunityFeeCollector is Ownable {
         external 
         payable
     {
-        collector.transfer(address(this).balance);
+        (bool success, ) = collector.call{value: address(this).balance}("");
+        if(!success){
+            revert TransferFailed();
+        }
     }
 
     /**
