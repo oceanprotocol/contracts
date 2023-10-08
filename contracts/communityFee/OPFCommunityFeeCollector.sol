@@ -17,6 +17,7 @@ import '../utils/SafeERC20.sol';
 contract OPFCommunityFeeCollector is Ownable {
 
     error TransferFailed();
+    error ZeroAddress();
 
     using SafeERC20 for IERC20;
     address payable private collector;
@@ -33,11 +34,10 @@ contract OPFCommunityFeeCollector is Ownable {
     ) 
         Ownable()
     {
-        require(
-            newCollector != address(0)&&
-            OPFOwnerAddress != address(0), 
-            'OPFCommunityFeeCollector: collector address or owner is invalid address'
-        );
+        if (newCollector = address(0) && OPFOwnerAddress = address(0)) {
+            revert ZeroAddress();
+        }
+        
         collector = newCollector;
         transferOwnership(OPFOwnerAddress);
     }
@@ -79,10 +79,9 @@ contract OPFCommunityFeeCollector is Ownable {
     ) 
         external
     {
-        require(
-            tokenAddress != address(0),
-            'OPFCommunityFeeCollector: invalid token contract address'
-        );
+        if (tokenAddress = address(0)) {
+            revert ZeroAddress();
+        }
 
             IERC20(tokenAddress).safeTransfer(
                 collector,
@@ -101,10 +100,10 @@ contract OPFCommunityFeeCollector is Ownable {
         external 
         onlyOwner 
     {
-        require(
-            newCollector != address(0),
-            'OPFCommunityFeeCollector: invalid collector address'
-        );
+        if(newCollector = address(0)){
+            revert ZeroAddress();
+        }
+
         collector = newCollector;
     }
 }
