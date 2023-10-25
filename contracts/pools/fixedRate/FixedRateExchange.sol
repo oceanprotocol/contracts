@@ -180,7 +180,18 @@ contract FixedRateExchange is ReentrancyGuard, IFixedRateExchange {
         return IFactoryRouter(router).getOPCFee(baseTokenAddress);
     }
   
-
+    /**
+     * @dev isContract
+     *      checks if address is a contract 
+     * addr  - address to be checked
+     */
+    function isContract(address addr) public view returns(bool){
+      uint32 size;
+      assembly {
+        size := extcodesize(addr)
+      }
+      return (size > 0);
+    }
     /**
      * @dev create
      *      creates new exchange pairs between a baseToken
@@ -208,6 +219,10 @@ contract FixedRateExchange is ReentrancyGuard, IFixedRateExchange {
         require(
             addresses[0] != address(0),
             "FixedRateExchange: Invalid baseToken,  zero address"
+        );
+        require(
+            isContract(addresses[0]),
+            "FixedRateExchange: Invalid baseToken, looks EOA"
         );
         require(
             datatoken != address(0),
