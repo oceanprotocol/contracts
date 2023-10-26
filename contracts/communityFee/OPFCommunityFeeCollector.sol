@@ -60,7 +60,8 @@ contract OPFCommunityFeeCollector is Ownable {
         external 
         payable
     {
-        collector.transfer(address(this).balance);
+        (bool sent, ) = collector.call{value: address(this).balance}("");
+        require(sent, "Failed to send Ether");
     }
 
     /**
