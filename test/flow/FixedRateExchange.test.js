@@ -204,6 +204,15 @@ describe("FixedRateExchange", () => {
       mockDT18 = erc20Token;
     });
 
+    it("should fail if basetoken is EOA", async () => {
+      await expectRevert(mockDT18.connect(alice)
+      .createFixedRate(
+        fixedRateExchange.address,
+        [bob.address, alice.address, marketFeeCollector.address, ZERO_ADDRESS],
+        [18, 18, rate, marketFee, 0])
+      ,"FixedRateExchange: Invalid baseToken, looks EOA" )
+      
+    });
     it("#2 - create exchange", async () => {
       marketFee = 1e15;
 
