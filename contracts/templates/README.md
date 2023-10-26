@@ -1,4 +1,4 @@
-Ocean v1.x is build on top of templates, in order to accomodate severals scenarios which are mutually exclusive
+Ocean v1.x is built on top of templates, in order to accomodate severals scenarios which are mutually exclusive
 
 
 # ERC721 Templates
