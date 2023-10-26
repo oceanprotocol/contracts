@@ -57,12 +57,11 @@ from artifacts import address
 
 - Base IP is now represented by an [NFT](https://blog.oceanprotocol.com/what-is-a-data-nft-5804a2d88671), from which a datapublisher can create multiple ERC20s representing different type of access for the same dataset.
 
-- An automated Datatoken [Staking](https://blog.oceanprotocol.com/ocean-v4-one-sided-staking-93988f65e378) helps with the initial DTs distribution and price stability. Goodbye rug pulls!
-
 - Help [Ocean Community Monetize](https://blog.oceanprotocol.com/how-to-make-money-from-ocean-v4-477b3decad51): there's a swap fee for the Ocean Community, if Ocean or allied tokens are the basetoken in a pool, Ocean Community will receive 0.1% swap fee, otherwhise it will be 0.2%.
 
 #### Flexibility
 
+- Based on ERC721 and ERC20 [templates](contracts/templates/README.md) to provide different features
 - Introduce an advanced [Fee Structure](https://docs.oceanprotocol.com/core-concepts/fees) both for Market and Provider runners.
 
 - Roles Administration: there are now multiple roles for a more flexible administation both at NFT and ERC20 levels
