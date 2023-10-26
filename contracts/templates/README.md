@@ -1,4 +1,4 @@
-Ocean v1.x is built on top of templates, in order to accomodate severals scenarios which are mutually exclusive
+Ocean-contracts v1.x (Ocean V4 “Onda”) is built on top of templates, in order to accomodate severals scenarios which are mutually exclusive
 
 
 # ERC721 Templates
