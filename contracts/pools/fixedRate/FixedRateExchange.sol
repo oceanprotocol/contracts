@@ -25,9 +25,9 @@ contract FixedRateExchange is ReentrancyGuard, IFixedRateExchange {
     using SafeMath for uint256;
     using SafeERC20 for IERC20;
     uint256 private constant BASE = 1e18;
-    uint public constant MIN_FEE           = BASE / 1e4;
-    uint public constant MAX_FEE           = 5e17;
-    uint public constant MIN_RATE          = 1e10;
+    uint public constant MIN_FEE  = BASE / 1e4;
+    uint public constant MAX_FEE  = 5e17;
+    uint public constant MIN_RATE = 1e10;
 
     address public router;
     
@@ -308,7 +308,7 @@ contract FixedRateExchange is ReentrancyGuard, IFixedRateExchange {
     }
     /**
      * @dev calcBaseInGivenOutDT
-     *      Calculates how many baseTokens are needed to get exact amount of datatokens
+     *      Given an exact target # datatokens, calculates # basetokens needed to get it (and amt fees too)
      * @param exchangeId a unique exchange idnetifier
      * @param datatokenAmount the amount of datatokens to be exchanged
      * @param consumeMarketSwapFeeAmount fee amount for consume market
@@ -365,7 +365,7 @@ contract FixedRateExchange is ReentrancyGuard, IFixedRateExchange {
     
     /**
      * @dev calcBaseOutGivenInDT
-     *      Calculates how many basteTokens you will get for selling exact amount of baseTokens
+     *      Given an exact given # datatokens, calculates # basetokens that one would get (and amt fees too)
      * @param exchangeId a unique exchange idnetifier
      * @param datatokenAmount the amount of datatokens to be exchanged
      * @param consumeMarketSwapFeeAmount fee amount for consume market
