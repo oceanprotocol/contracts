@@ -150,12 +150,26 @@ module.exports = {
       accounts:
         process.env.PRIVATE_KEY !== undefined ? [process.env.PRIVATE_KEY] : [],
     },
+    optimism_sepolia: {
+      url:
+        process.env.NETWORK_RPC_URL !== undefined ? process.env.NETWORK_RPC_URL : "",
+      accounts:
+        process.env.PRIVATE_KEY !== undefined ? [process.env.PRIVATE_KEY] : [],
+    },
+    optimism: {
+      url:
+        process.env.NETWORK_RPC_URL !== undefined ? process.env.NETWORK_RPC_URL : "",
+      accounts:
+        process.env.PRIVATE_KEY !== undefined ? [process.env.PRIVATE_KEY] : [],
+    },
 
   },
   etherscan: {
     apiKey: {
       oasis_saphire_testnet: process.env.ETHERSCAN_API_KEY,
-      oasis_saphire: process.env.ETHERSCAN_API_KEY
+      oasis_saphire: process.env.ETHERSCAN_API_KEY,
+      optimism_sepolia: process.env.ETHERSCAN_API_KEY,
+      optimism: process.env.ETHERSCAN_API_KEY
     },
     customChains: [
     {
@@ -188,6 +202,22 @@ module.exports = {
       urls: { 
           apiURL: "https://testnet.explorer.sapphire.oasis.dev/api",
           browserURL: "https://testnet.explorer.sapphire.oasis.dev/",
+      },
+    },
+    {
+      network: "optimism_sepolia",
+      chainId: 11155420,
+      urls: { 
+          apiURL: "https://api-sepolia-optimistic.etherscan.io/api",
+          browserURL: "https://sepolia-optimism.etherscan.io/",
+      },
+    },
+    {
+      network: "optimism",
+      chainId: 10,
+      urls: { 
+          apiURL: "https://api-optimistic.etherscan.io/api",
+          browserURL: "https://optimism.etherscan.io/",
       },
     }
     ] 
