@@ -119,17 +119,18 @@ async function main() {
       shouldDeployVesting = true;
       break;
     case 10:
-        networkName = "optimism";
-        OPFOwner = '0xC7EC1970B09224B317c52d92f37F5e1E4fF6B687'
-        routerOwner = OPFOwner;
-        sleepAmount = 30
-        shouldDeployOceanToken = true;
-        shouldDeployV4 = true;
-        shouldDeployDF = false;
-        shouldDeployVE = false;
-        gasPrice = ethers.utils.parseUnits('1', 'gwei')
-        gasLimit = 28000000
-        break;
+      networkName = "optimism";
+      OPFOwner = '0xC7EC1970B09224B317c52d92f37F5e1E4fF6B687'
+      OceanTokenAddress = "0x2561aa2bB1d2Eb6629EDd7b0938d7679B8b49f9E";
+      routerOwner = OPFOwner;
+      sleepAmount = 30
+      shouldDeployOceanToken = false;
+      shouldDeployV4 = true;
+      shouldDeployDF = false;
+      shouldDeployVE = false;
+      gasPrice = ethers.utils.parseUnits('0.013', 'gwei')
+      gasLimit = 28000000
+      break;
     case 0x89:
       networkName = "polygon";
       productionNetwork = true;
