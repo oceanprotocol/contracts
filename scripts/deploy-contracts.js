@@ -20,6 +20,7 @@ let shouldDeployMocks = false;
 let shouldDeployOPFCommunityFeeCollector = false;
 let shouldDeployOPFCommunity = true;
 let shouldDeployPredictoorHelper = false;
+let shouldDeployPredictoor = false
 const logging = true;
 const show_verify = true;
 
@@ -116,6 +117,19 @@ async function main() {
       shouldDeployVE = false;
       shouldDeployOPFCommunityFeeCollector = false;
       shouldDeployVesting = true;
+      break;
+    case 10:
+      networkName = "optimism";
+      OPFOwner = '0xC7EC1970B09224B317c52d92f37F5e1E4fF6B687'
+      OceanTokenAddress = "0x2561aa2bB1d2Eb6629EDd7b0938d7679B8b49f9E";
+      routerOwner = OPFOwner;
+      sleepAmount = 30
+      shouldDeployOceanToken = false;
+      shouldDeployV4 = true;
+      shouldDeployDF = false;
+      shouldDeployVE = false;
+      gasPrice = ethers.utils.parseUnits('0.013', 'gwei')
+      gasLimit = 28000000
       break;
     case 0x89:
       networkName = "polygon";
@@ -225,6 +239,7 @@ async function main() {
         gasPrice = ethers.utils.parseUnits('100', 'gwei')
         gasLimit = 15000000
         shouldDeployPredictoorHelper = true;
+        shouldDeployPredictoor = true;
         pdrTrueValSubmiter = "0x886A892670A7afc719Dcf36eF92c798203F74B67"
         break;
     case 23295:
@@ -239,6 +254,7 @@ async function main() {
       gasPrice = ethers.utils.parseUnits('100', 'gwei')
       gasLimit = 28000000
       shouldDeployPredictoorHelper = true;
+      shouldDeployPredictoor = true;
       pdrTrueValSubmiter = "0x005FD44e007866508f62b04ce9f43dd1d36D0c0c"
       break;
     case 44787:
@@ -254,7 +270,18 @@ async function main() {
       shouldDeployDF = false;
       shouldDeployVE = false;
       break;
-
+    case 11155420:
+      networkName = "optimism_sepolia";
+      OPFOwner = '0xC7EC1970B09224B317c52d92f37F5e1E4fF6B687'
+      routerOwner = OPFOwner;
+      sleepAmount = 30
+      shouldDeployOceanToken = true;
+      shouldDeployV4 = true;
+      shouldDeployDF = false;
+      shouldDeployVE = false;
+      gasPrice = ethers.utils.parseUnits('1', 'gwei')
+      gasLimit = 28000000
+      break;
     default:
       OPFOwner = owner.address;
       networkName = "development";
@@ -263,6 +290,7 @@ async function main() {
       shouldDeployOceanToken = true;
       shouldDeployVesting = true;
       shouldDeployPredictoorHelper = true;
+      shouldDeployPredictoor = true;
       sleepAmount = 0
       break;
   }
@@ -326,8 +354,7 @@ async function main() {
         await ocean.connect(owner).mint(oceanHolder.address,ethers.utils.parseUnits('100000', 'ether'), options);
       }
     }
-    wallet = new Wallet.fromMnemonic(process.env.MNEMONIC);
-  
+    
     if (sleepAmount > 0) await sleep(sleepAmount)
     if (OPFOwner != owner.address) {
       console.log("\tTransfer ownership of Ocean Token");
@@ -490,18 +517,21 @@ async function main() {
     }
     if (sleepAmount > 0) await sleep(sleepAmount)
 
-    if (logging) console.info("Deploying ERC20Template3");
-    const ERC203Template = await ethers.getContractFactory(
-      "ERC20Template3",
-      owner
-    );
-    let templateERC20Template3
-    if (options) templateERC20Template3 = await ERC203Template.connect(owner).deploy(options);
-    else templateERC20Template3 = await ERC203Template.connect(owner).deploy();
-    await templateERC20Template3.deployTransaction.wait();
-    if (show_verify) {
-      console.log("\tRun the following to verify on etherscan");
-      console.log("\tnpx hardhat verify --network " + networkName + " " + templateERC20Template3.address)
+    
+    let templateERC20Template3=null
+    if(shouldDeployPredictoor){
+      if (logging) console.info("Deploying ERC20Template3");
+      const ERC203Template = await ethers.getContractFactory(
+        "ERC20Template3",
+        owner
+      );
+      if (options) templateERC20Template3 = await ERC203Template.connect(owner).deploy(options);
+      else templateERC20Template3 = await ERC203Template.connect(owner).deploy();
+      await templateERC20Template3.deployTransaction.wait();
+      if (show_verify) {
+        console.log("\tRun the following to verify on etherscan");
+        console.log("\tnpx hardhat verify --network " + networkName + " " + templateERC20Template3.address)
+      }
     }
     
 
@@ -601,19 +631,19 @@ async function main() {
     addresses.ERC20Template[currentTokenCount.toString()] =
       templateERC20Enterprise.address;
 
-    if (logging) console.info("Adding ERC20Template3 to ERC721Factory");
-    if (options) templateadd = await factoryERC721.connect(owner).addTokenTemplate(templateERC20Template3.address, options);
-    else templateadd = await factoryERC721.connect(owner).addTokenTemplate(templateERC20Template3.address);
-    await templateadd.wait();
-    if (sleepAmount > 0) await sleep(sleepAmount)
-    if (options) currentTokenCount = await factoryERC721.getCurrentTemplateCount(options);
-    else currentTokenCount = await factoryERC721.getCurrentTemplateCount(options);
-  
-    if (options) tokenTemplate = await factoryERC721.getTokenTemplate(currentTokenCount, options);
-    else tokenTemplate = await factoryERC721.getTokenTemplate(currentTokenCount);
-  
-    addresses.ERC20Template[currentTokenCount.toString()] =
-      templateERC20Template3.address;
+    if(shouldDeployPredictoor){
+      if (logging) console.info("Adding ERC20Template3 to ERC721Factory");
+      if (options) templateadd = await factoryERC721.connect(owner).addTokenTemplate(templateERC20Template3.address, options);
+      else templateadd = await factoryERC721.connect(owner).addTokenTemplate(templateERC20Template3.address);
+      await templateadd.wait();
+      if (sleepAmount > 0) await sleep(sleepAmount)
+      if (options) currentTokenCount = await factoryERC721.getCurrentTemplateCount(options);
+      else currentTokenCount = await factoryERC721.getCurrentTemplateCount(options);
+      if (options) tokenTemplate = await factoryERC721.getTokenTemplate(currentTokenCount, options);
+      else tokenTemplate = await factoryERC721.getTokenTemplate(currentTokenCount);
+      addresses.ERC20Template[currentTokenCount.toString()] =
+        templateERC20Template3.address;
+    }
 
     // SET REQUIRED ADDRESS
     if (sleepAmount > 0) await sleep(sleepAmount)
