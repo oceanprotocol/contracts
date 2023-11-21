@@ -1,4 +1,3 @@
-require("@nomiclabs/hardhat-waffle");
 require("hardhat-contract-sizer");
 require("hardhat-gas-reporter");
 require('solidity-coverage');
