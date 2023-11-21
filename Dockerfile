@@ -19,7 +19,6 @@ FROM base as builder
 RUN apt-get update && apt-get -y install wget
 COPY . /ocean-contracts
 WORKDIR /ocean-contracts
-ENV NODE_ENV=production
 RUN npm i
 RUN wget https://gobinaries.com/tj/node-prune --output-document - | /bin/sh && node-prune
 
@@ -27,7 +26,6 @@ RUN wget https://gobinaries.com/tj/node-prune --output-document - | /bin/sh && n
 
 
 FROM base as runner
-ENV NODE_ENV=production
 RUN mkdir -p /ocean-contracts
 RUN mkdir -p /ocean-contracts/test/
 COPY ./addresses /ocean-contracts/addresses/
