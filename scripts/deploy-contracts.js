@@ -351,7 +351,8 @@ async function main() {
       for(let walletNo=1;walletNo<10;walletNo++){
         const oceanHolder = new Wallet.fromMnemonic(process.env.MNEMONIC,`m/44'/60'/0'/0/${walletNo}`);
         console.log("\t\tSending 100000 Ocean to "+oceanHolder.address)
-        await ocean.connect(owner).mint(oceanHolder.address,ethers.utils.parseUnits('100000', 'ether'), options);
+        const mintTx=await ocean.connect(owner).mint(oceanHolder.address,ethers.utils.parseUnits('100000', 'ether'), options);
+        await mintTx.wait()
       }
     }
     
