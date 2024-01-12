@@ -138,7 +138,9 @@
     "veFeeEstimate": "0x4aA261bC595abC6fDEf0255C83e2a9305261753f",
     "SmartWalletChecker": "0xd7ddf62257A41cc6cdAd7A3d36e4f1d925fD142a",
     "Splitter": "0xadF0D06e58E618de36Af0F1b52891b14FAA61187",
-    "VestingWallet0": "0x8D011915C437AD5f5e3B0E4c6dd6380c92599f99"
+    "Distribute": "0x01BE353d9Fd3A64C591A30A8c4a6a37B5dfAe165",
+    "VestingWallet0": "0x8D011915C437AD5f5e3B0E4c6dd6380c92599f99",
+    "VestingWalletA": "0x4Fd5ECf4Af8490418462A7d80e90A0530eFb9ac5"
   },
   "goerli": {
     "chainId": 5,
