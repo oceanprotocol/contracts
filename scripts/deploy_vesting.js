@@ -100,8 +100,10 @@ async function main() {
     const blockTimestamp = block.timestamp
     const endDate = "2024-03-14"
     const endDateUnix = parseInt(new Date(endDate).getTime() / 1000)
-    const vestingPeriod = endDateUnix - blockTimestamp
-    const deployVestingWallet0 = await VestingWallet0.connect(owner).deploy(addresses.Splitter, blockTimestamp, vestingPeriod, options)
+    const startTimestamp = 1705017600  // Fri Jan 12 2024 00:00:00 GMT+0000
+    const endTimestamp = 1709856000 // Fri Mar 08 2024 00:00:00 GMT+0000   - this is when we top up last week of DF Main1
+    const vestingPeriod = endTimestamp - startTimestamp
+    const deployVestingWallet0 = await VestingWallet0.connect(owner).deploy(addresses.Splitter, startTimestamp, vestingPeriod, options)
     await deployVestingWallet0.deployTransaction.wait();
     addresses.VestingWalletA = deployVestingWallet0.address;
     if (show_verify) {
