@@ -49,6 +49,7 @@ async function main() {
       OPFOwner = "0x0d27cd67c4A3fd3Eb9C7C757582f59089F058167";
       routerOwner = OPFOwner;
       OceanTokenAddress = "0x967da4048cD07aB37855c090aAF366e4ce1b9F48";
+      gasPrice = ethers.utils.parseUnits('16', 'gwei')
       break;
 
     default:
@@ -100,12 +101,21 @@ async function main() {
     const blockTimestamp = block.timestamp
     const endDate = "2024-03-14"
     const endDateUnix = parseInt(new Date(endDate).getTime() / 1000)
-    const startTimestamp = 1705017600  // Fri Jan 12 2024 00:00:00 GMT+0000
-    const endTimestamp = 1709856000 // Fri Mar 08 2024 00:00:00 GMT+0000   - this is when we top up last week of DF Main1
+    //vesting A
+    //const startTimestamp = 1705017600  // Fri Jan 12 2024 00:00:00 GMT+0000
+    //const endTimestamp = 1709856000 // Fri Mar 08 2024 00:00:00 GMT+0000   - this is when we top up last week of DF Main1
+    //vesting B
+    //const startTimestamp = 1710028800  // Sun Mar 10 2024 00:00:00 GMT+0000
+    //const endTimestamp = 1725750000 // Sat Sep 07 2024 23:00:00 GMT+0000   - this is when we top up last week of DF Main2
+    //vesting C
+    const startTimestamp = 1725750000  // Sat Sep 07 2024 23:00:00 GMT+0000
+    const endTimestamp = 1741392000 // Sat Mar 08 2025 00:00:00 GMT+0000   - this is when we top up last week of DF Main3
+    
+
     const vestingPeriod = endTimestamp - startTimestamp
     const deployVestingWallet0 = await VestingWallet0.connect(owner).deploy(addresses.Splitter, startTimestamp, vestingPeriod, options)
     await deployVestingWallet0.deployTransaction.wait();
-    addresses.VestingWalletA = deployVestingWallet0.address;
+    addresses.VestingWalletC = deployVestingWallet0.address;
     if (show_verify) {
       console.log("\tRun the following to verify on etherscan");
       console.log("\tnpx hardhat verify --network " + networkName + " " + addresses.VestingWalletA+" "+addresses.Splitter+" "+blockTimestamp+" "+vestingPeriod)
