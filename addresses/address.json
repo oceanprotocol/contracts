@@ -141,8 +141,8 @@
     "Distribute": "0x01BE353d9Fd3A64C591A30A8c4a6a37B5dfAe165",
     "VestingWallet0": "0x8D011915C437AD5f5e3B0E4c6dd6380c92599f99",
     "VestingWalletA": "0xf9FB1f54eA825734E3a77e73A3864f4B46C815d9",
-    "VestingWalletB": "0x8a8Ec65F257072e30Dd8FeF539dC6aD67d578074",
-    "VestingWalletC": "0xe2F2Abdf25D2ECc75E21691Ee8fF9c85737Faa37"
+    "VestingWalletB": "0xf02e3163Dc3409D69D88D7AcDA613432E9A18741",
+    "VestingWalletC": "0x29F74B853C4B8D36273666FB63a3b71c754424Ed"
   },
   "goerli": {
     "chainId": 5,
