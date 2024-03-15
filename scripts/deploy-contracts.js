@@ -837,8 +837,7 @@ async function main() {
     );
     const block = await provider.getBlock("latest")
     const blockTimestamp = block.timestamp
-    const endDate = "2024-03-14"
-    const endDateUnix = parseInt(new Date(endDate).getTime() / 1000)
+    const endDateUnix = Math.floor(Date.now() / 1000) + 365*24*60*60
     const vestingPeriod = endDateUnix - blockTimestamp
     const deployVestingWallet0 = await VestingWallet0.connect(owner).deploy(addresses.Splitter, blockTimestamp, vestingPeriod, options)
     await deployVestingWallet0.deployTransaction.wait();
