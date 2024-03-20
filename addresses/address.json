@@ -225,7 +225,6 @@
   },
   "gen-x-testnet": {
     "chainId": 100,
-    "OceanToken": "0x0995527d3473b3a98c471f1ed8787acd77fbf009",
     "Ocean": "0x0995527d3473b3a98c471f1ed8787acd77fbf009",
     "startBlock": 3665369,
     "CommunityFeeCollector": "0x2e0C9e15A45c9884F7768BB852E7399B9153525d",
@@ -354,7 +353,6 @@
   "pontus-x-devnet": {
     "chainId": 32456,
     "Ocean": "0xdF171F74a8d3f4e2A789A566Dce9Fa4945196112",
-    "OceanToken": "0xdF171F74a8d3f4e2A789A566Dce9Fa4945196112",
     "CommunityFeeCollector": "0x1f84fB438292269219f9396D57431eA9257C23d4",
     "Router": "0x4Ede1776D6B75de6c907172Abc0453a3C8AB372a",
     "FixedPrice": "0x8372715D834d286c9aECE1AcD51Da5755B32D505",
