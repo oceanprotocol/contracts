@@ -225,13 +225,12 @@
   },
   "gen-x-testnet": {
     "chainId": 100,
-    "OceanToken": "0x0995527d3473b3a98c471f1ed8787acd77fbf009",
     "Ocean": "0x0995527d3473b3a98c471f1ed8787acd77fbf009",
     "startBlock": 3665369,
-    "CommunityFeeCollector": "0x2e0C9e15A45c9884F7768BB852E7399B9153525d",
+    "OPFCommunityFeeCollector": "0x2e0C9e15A45c9884F7768BB852E7399B9153525d",
     "Router": "0x7A3C9F0729AB93e4F9945221168A56eCf450187D",
     "FixedPrice": "0xAD8E7d2aFf5F5ae7c2645a52110851914eE6664b",
-    "ERC20Templates": {
+    "ERC20Template": {
       "1": "0xA7D7Cb8dDd46c1B13e9Ccab2fA7D4fC5926f0348",
       "2": "0x7fEcdEDaE245d3AD5ad93c6Df9603d06887786e8"
     },
@@ -350,5 +349,22 @@
     },
     "Dispenser": "0x2112Eb973af1DBf83a4f11eda82f7a7527D7Fde5",
     "ERC721Factory": "0x80E63f73cAc60c1662f27D2DFd2EA834acddBaa8"
+  },
+  "pontus-x-devnet": {
+    "chainId": 32456,
+    "Ocean": "0xdF171F74a8d3f4e2A789A566Dce9Fa4945196112",
+    "OPFCommunityFeeCollector": "0x1f84fB438292269219f9396D57431eA9257C23d4",
+    "Router": "0x4Ede1776D6B75de6c907172Abc0453a3C8AB372a",
+    "FixedPrice": "0x8372715D834d286c9aECE1AcD51Da5755B32D505",
+    "ERC20Template": {
+      "1": "0x02eCd3850B53b1BA8dbCdD146C963cC27f27Dd3C", 
+      "2": "0x23Efb300c8778d6842bB0cCBD07D356eCeB97070"
+    },
+    "ERC721Template": {
+      "1": "0x5B0cc649134791c2357c93868d6e8D325A31aE29"
+    },
+    "Dispenser": "0x5461b629E01f72E0A468931A36e039Eea394f9eA",
+    "ERC721Factory": "0xFdC4a5DEaCDfc6D82F66e894539461a269900E13",
+    "startBlock": 57428
   }
 }
