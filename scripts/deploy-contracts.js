@@ -105,19 +105,6 @@ async function main() {
       shouldDeployDF = true;
       shouldDeployVE = true;
       break;
-    case 0x5:
-      networkName = "goerli";
-      OceanTokenAddress = "0xCfDdA22C9837aE76E0faA845354f33C62E03653a";
-      OPFOwner = "0xEE1673089A4831D92324932e38e2EBDe6aB17274";
-      routerOwner = OPFOwner;
-      sleepAmount = 2
-      gasPrice = ethers.utils.parseUnits('5', 'gwei')
-      shouldDeployV4 = false;
-      shouldDeployDF = false;
-      shouldDeployVE = false;
-      shouldDeployOPFCommunityFeeCollector = false;
-      shouldDeployVesting = true;
-      break;
     case 10:
       networkName = "optimism";
       OPFOwner = '0xC7EC1970B09224B317c52d92f37F5e1E4fF6B687'
