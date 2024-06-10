@@ -21,6 +21,13 @@ task("accounts", "Prints the list of accounts", async () => {
  * @type import('hardhat/config').HardhatUserConfig
  */
 module.exports = {
+  networks: {
+    hardhat: {
+    },
+    sepolia: {
+      url: "https://sepolia.infura.io/v3/f976f1b30d114f229292eb1fb30b19b5"
+    }
+  },
   solidity: {
     compilers: [
      {
