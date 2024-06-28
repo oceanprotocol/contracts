@@ -21,7 +21,7 @@ import "@openzeppelin/contracts/access/Ownable.sol";
 contract Booster is Ownable, ERC721Enumerable,ERC721URIStorage {
     using Counters for Counters.Counter;
     Counters.Counter private _tokenIds;
-    uint256 public boost;
+    uint256 public immutable boost;
     constructor(string memory _name, string memory _symbol,uint256 _boost)
     ERC721(_name, _symbol) {
          boost=_boost;
@@ -78,7 +78,7 @@ contract Booster is Ownable, ERC721Enumerable,ERC721URIStorage {
 
     // The following functions are overrides required by Solidity.
     function _burn(uint256 tokenId) internal override(ERC721URIStorage,ERC721) {
-        revert("Burning not allowed");
+       revert("Burning not allowed");
     }
     
     
