@@ -162,7 +162,6 @@ jobs:
       - run: node scripts/check_deployment.js
       - name: docker logs
         run: docker logs ocean-ocean-contracts-1
-        if: ${{ failure() }}
   
   publish-npm:
     needs: [lint, tests_full,check_deployment]
