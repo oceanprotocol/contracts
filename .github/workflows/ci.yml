@@ -142,6 +142,7 @@ jobs:
         with:
           repository: 'oceanprotocol/barge'
           path: 'barge'
+          ref: 'feat/ganache_unlimited_contract'
 
       - name: Run Ganache with Barge
         working-directory: ${{ github.workspace }}/barge
