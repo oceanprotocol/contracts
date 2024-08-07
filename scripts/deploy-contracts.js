@@ -529,7 +529,7 @@ async function main() {
         owner
       );
     let templateERC20TemplateSapphire
-    if (options) templateERC20Sapphire = await ERC20TemplateSapphire.connect(owner).deploy(options);
+    if (options) templateERC20TemplateSapphire = await ERC20TemplateSapphire.connect(owner).deploy(options);
     else templateERC20TemplateSapphire = await ERC20TemplateSapphire.connect(owner).deploy();
     await templateERC20TemplateSapphire.deployTransaction.wait();
     if (show_verify) {
@@ -648,7 +648,7 @@ async function main() {
     }
 
     if (logging) console.info("Adding ERC20TemplateSapphire to ERC721Factory");
-      if (options) templateadd = await factoryERC721.connect(owner).addTokenTemplate(templateERC20Sapphire.address, options);
+      if (options) templateadd = await factoryERC721.connect(owner).addTokenTemplate(templateERC20TemplateSapphire.address, options);
       else templateadd = await factoryERC721.connect(owner).addTokenTemplate(templateERC20TemplateSapphire.address);
       await templateadd.wait();
       if (sleepAmount > 0) await sleep(sleepAmount)
