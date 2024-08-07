@@ -23,7 +23,7 @@ interface AccessListContract {
 /**
  * @title DatatokenTemplate to be used on Sapphire network
  *
- * @dev ERC20TemplateSapphire is an ERC20 compliant token template, which relies on privacy features offered by Sapphire
+ * @dev ERC20Template4 is an ERC20 compliant token template, which relies on privacy features offered by Sapphire
  *      Used by the factory contract as a bytecode reference to
  *      deploy new Datatokens.
  * IMPORTANT CHANGES:
@@ -31,7 +31,7 @@ interface AccessListContract {
  *  - buyFromDispenserAndOrder function:  one call to fetch a DT from the Dispenser, startOrder and burn the DT
  
  */
-contract ERC20TemplateSapphire is
+contract ERC20Template4 is
     ERC20("test", "testSymbol"),
     ERC20Roles,
     ERC20Burnable,

@@ -524,17 +524,17 @@ async function main() {
     
     if (sleepAmount > 0) await sleep(sleepAmount)
     if (logging) console.info("Deploying ERC20 Sapphire Template");
-    const ERC20TemplateSapphire = await ethers.getContractFactory(
-        "ERC20TemplateSapphire",
+    const ERC20Template4 = await ethers.getContractFactory(
+        "ERC20Template4",
         owner
       );
-    let templateERC20TemplateSapphire
-    if (options) templateERC20TemplateSapphire = await ERC20TemplateSapphire.connect(owner).deploy(options);
-    else templateERC20TemplateSapphire = await ERC20TemplateSapphire.connect(owner).deploy();
-    await templateERC20TemplateSapphire.deployTransaction.wait();
+    let templateERC20Template4
+    if (options) templateERC20Template4 = await ERC20Template4.connect(owner).deploy(options);
+    else templateERC20Template4 = await ERC20Template4.connect(owner).deploy();
+    await templateERC20Template4.deployTransaction.wait();
     if (show_verify) {
         console.log("\tRun the following to verify on etherscan");
-        console.log("\tnpx hardhat verify --network " + networkName + " " + templateERC20TemplateSapphire.address)
+        console.log("\tnpx hardhat verify --network " + networkName + " " + templateERC20Template4.address)
     }
 
     addresses.ERC721Template = {};
@@ -647,9 +647,9 @@ async function main() {
         templateERC20Template3.address;
     }
 
-    if (logging) console.info("Adding ERC20TemplateSapphire to ERC721Factory");
-      if (options) templateadd = await factoryERC721.connect(owner).addTokenTemplate(templateERC20TemplateSapphire.address, options);
-      else templateadd = await factoryERC721.connect(owner).addTokenTemplate(templateERC20TemplateSapphire.address);
+    if (logging) console.info("Adding ERC20Template4 to ERC721Factory");
+      if (options) templateadd = await factoryERC721.connect(owner).addTokenTemplate(templateERC20Template4.address, options);
+      else templateadd = await factoryERC721.connect(owner).addTokenTemplate(templateERC20Template4.address);
       await templateadd.wait();
       if (sleepAmount > 0) await sleep(sleepAmount)
       if (options) currentTokenCount = await factoryERC721.getCurrentTemplateCount(options);
@@ -657,7 +657,7 @@ async function main() {
       if (options) tokenTemplate = await factoryERC721.getTokenTemplate(currentTokenCount, options);
       else tokenTemplate = await factoryERC721.getTokenTemplate(currentTokenCount);
       addresses.ERC20Template[currentTokenCount.toString()] =
-        templateERC20TemplateSapphire.address;
+        templateERC20Template4.address;
     
     // SET REQUIRED ADDRESS
     if (sleepAmount > 0) await sleep(sleepAmount)

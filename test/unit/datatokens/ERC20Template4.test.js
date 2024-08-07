@@ -91,7 +91,7 @@ async function signMessageShort(message, address) {
 
 
 const provider = new ethers.providers.JsonRpcProvider();
-describe("ERC20TemplateSapphire", () => {
+describe("ERC20Template4", () => {
   let name,
     symbol,
     owner,
@@ -137,7 +137,7 @@ describe("ERC20TemplateSapphire", () => {
 
   beforeEach("init contracts for each test", async () => {
     const ERC721Template = await ethers.getContractFactory("ERC721Template");
-    const ERC20Template = await ethers.getContractFactory("ERC20TemplateSapphire");
+    const ERC20Template = await ethers.getContractFactory("ERC20Template4");
     const ERC721Factory = await ethers.getContractFactory("ERC721Factory");
 
     const Router = await ethers.getContractFactory("FactoryRouter");
@@ -248,7 +248,7 @@ describe("ERC20TemplateSapphire", () => {
     assert(event, "Cannot find TokenCreated event")
     erc20Address = event.args[0];
 
-    erc20Token = await ethers.getContractAt("ERC20TemplateSapphire", erc20Address);
+    erc20Token = await ethers.getContractAt("ERC20Template4", erc20Address);
     assert((await erc20Token.permissions(user3.address)).minter == true);
     assert(await erc20Token.getAllowListContract()==addressZero)
     assert(await erc20Token.getDenyListContract()==addressZero)
@@ -266,7 +266,7 @@ describe("ERC20TemplateSapphire", () => {
     assert(event, "Cannot find TokenCreated event")
     erc20AddressWithPublishFee = event.args[0];
 
-    erc20TokenWithPublishFee = await ethers.getContractAt("ERC20TemplateSapphire", erc20AddressWithPublishFee);
+    erc20TokenWithPublishFee = await ethers.getContractAt("ERC20Template4", erc20AddressWithPublishFee);
     assert((await erc20TokenWithPublishFee.permissions(user3.address)).minter == true);
 
 
@@ -283,7 +283,7 @@ describe("ERC20TemplateSapphire", () => {
     assert(event, "Cannot find TokenCreated event")
     erc20AddressWithAccessList = event.args[0];
 
-    erc20TokenWithAccessList = await ethers.getContractAt("ERC20TemplateSapphire", erc20AddressWithAccessList);
+    erc20TokenWithAccessList = await ethers.getContractAt("ERC20Template4", erc20AddressWithAccessList);
     assert((await erc20TokenWithAccessList.permissions(user3.address)).minter == true);
     assert((await erc20TokenWithAccessList.getAllowListContract())==allowAccessList.address)
     assert((await erc20TokenWithAccessList.getDenyListContract())==denyAccessList.address)
@@ -1155,7 +1155,7 @@ describe("ERC20TemplateSapphire", () => {
     const event = getEventFromTx(trxReceiptEnterpriseERC20, 'TokenCreated')
     assert(event, "Cannot find TokenCreated event")
     const erc20Address = event.args[0];
-    EnterpriseToken = await ethers.getContractAt("ERC20TemplateSapphire", erc20Address);
+    EnterpriseToken = await ethers.getContractAt("ERC20Template4", erc20Address);
     assert(await EnterpriseToken.totalSupply() == 0, "Invalid Total Supply")
     let tx = await EnterpriseToken.connect(user3).createDispenser(
       dispenser.address, web3.utils.toWei('1'), web3.utils.toWei('1'), true,addressZero)
@@ -1285,7 +1285,7 @@ describe("ERC20TemplateSapphire", () => {
     let event = getEventFromTx(trxReceiptEnterpriseERC20, 'TokenCreated')
     assert(event, "Cannot find TokenCreated event")
     const erc20Address = event.args[0];
-    EnterpriseToken = await ethers.getContractAt("ERC20TemplateSapphire", erc20Address);
+    EnterpriseToken = await ethers.getContractAt("ERC20Template4", erc20Address);
     assert(await EnterpriseToken.totalSupply() == 0, "Invalid Total Supply")
 
     let tx = await EnterpriseToken.connect(user3).createFixedRate(
@@ -1435,7 +1435,7 @@ describe("ERC20TemplateSapphire", () => {
     let event = getEventFromTx(trxReceiptEnterpriseERC20, 'TokenCreated')
     assert(event, "Cannot find TokenCreated event")
     const erc20Address = event.args[0];
-    EnterpriseToken = await ethers.getContractAt("ERC20TemplateSapphire", erc20Address);
+    EnterpriseToken = await ethers.getContractAt("ERC20Template4", erc20Address);
     assert(await EnterpriseToken.totalSupply() == 0, "Invalid Total Supply")
 
     let tx = await EnterpriseToken.connect(user3).createFixedRate(

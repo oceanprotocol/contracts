@@ -40,7 +40,7 @@ Ocean-contracts v1.x (Ocean V4 “Onda”) is built on top of templates, in orde
     - has the following price schemas:
         - fixed rate exchanges
          
-### ERC20TemplateSapphire (asset files object stored in contract)
+### ERC20Template4 (asset files object stored in contract)
     - follows same functions and principles as ERC20TemplateEnterprise, with the following additions
     - should be deployed only on Oasis Sapphire, and all transactions should be encrypted, otherwise security is compromised
     - on initialize, files object(asset URLs) is stored in the contract
