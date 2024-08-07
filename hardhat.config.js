@@ -50,7 +50,7 @@ module.exports = {
   },
   networks: {
     hardhat: {
-      //allowUnlimitedContractSize: true,
+      allowUnlimitedContractSize: true,
       //forking: {
       //  url: process.env.ALCHEMY_URL,
       //  blockNumber: 12545000,

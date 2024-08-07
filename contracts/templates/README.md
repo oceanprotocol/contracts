@@ -40,6 +40,16 @@ Ocean-contracts v1.x (Ocean V4 “Onda”) is built on top of templates, in orde
     - has the following price schemas:
         - fixed rate exchanges
          
+### ERC20TemplateSapphire (asset files object stored in contract)
+    - follows same functions and principles as ERC20TemplateEnterprise, with the following additions
+    - should be deployed only on Oasis Sapphire, and all transactions should be encrypted, otherwise security is compromised
+    - on initialize, files object(asset URLs) is stored in the contract
+    - owner can change files object anytime, calling setFilesObject
+    - for every order, consumer and serviceId are added to a mapping
+    - has a list of allowed/denied providers (using standard ERC721.balanceOf). Contracts addresses can be changed by owner
+    - when a provider tries to fetch the files object (by calling getFilesObject), the following conditions are checked:
+        - provider address has to be in allow list and not on deny list (given those lists are not address_zero)
+        - consumer has to have a valid order
 
 The following table sums it up
 Template # | Label | Allows fre/dispense by default? | Allows custody of datatokens? | Combines txs? | Purpose
@@ -47,4 +57,5 @@ Template # | Label | Allows fre/dispense by default? | Allows custody of datatok
 1 | ERC20Template | Y | Y | N | General
 2 | ERC20TemplateEnterprise | N | N | Y | General
 3 | ERC20Template3 | N | N | Y | Predictoor
+4 | ERC20TemplateSapphire | N | N | Y | General
 

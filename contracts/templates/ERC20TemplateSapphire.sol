@@ -54,7 +54,7 @@ contract ERC20TemplateSapphire is
     address private _denyListContract;
     uint256 public constant BASE = 1e18;
     
-
+    mapping (address => uint256[]) private ordersConsumersServices;
     
     address public router;
     
@@ -277,7 +277,8 @@ contract ERC20TemplateSapphire is
         _cap = uints_[0];
         _name = strings_[0];
         _symbol = strings_[1];
-        _filesObject = bytes_[0];
+        if(bytes_.length>0)
+            _filesObject = bytes_[0];
         if(addresses_.length>4){
             _allowListContract = addresses_[4];
         }
@@ -451,6 +452,8 @@ contract ERC20TemplateSapphire is
             }
         }
     }
+
+    
     /**
      * @dev startOrder
      *      called by payer or consumer prior ordering a service consume on a marketplace.
@@ -471,6 +474,8 @@ contract ERC20TemplateSapphire is
             balanceOf(msg.sender) >= amount,
             "Not enough datatokens to start Order"
         );
+        addConsumer(serviceIndex,msg.sender);
+        addConsumer(serviceIndex,consumer);
         emit OrderStarted(
             consumer,
             msg.sender,
@@ -1091,22 +1096,67 @@ contract ERC20TemplateSapphire is
         return ecrecover(hash, v, r, s);
     }
 
+    /**
+     * @dev getAllowListContract
+     *      Returns contract address used to check allow list
+     */
     function getAllowListContract() public view returns(address){
         return(_allowListContract);
     }
+    /**
+     * @dev getDenyListContract
+     *      Returns contract address used to check deny list
+     */
+
     function getDenyListContract() public view returns(address){
         return(_denyListContract);
     }
+    /**
+     * @dev setAllowListContract
+     *      Sets a new contract address to be used as allow list
+     * @param contractAddress new contract to be used as list
+     */
     function setAllowListContract(address contractAddress) external onlyERC20Deployer{
         _allowListContract = contractAddress;
     }
+    /**
+     * @dev setDenyListContract
+     *      Sets a new contract address to be used as deny list
+     * @param contractAddress new contract to be used as list
+     */
     function setDenyListContract(address contractAddress) external onlyERC20Deployer{
         _denyListContract = contractAddress;
     }
     /**
+     * @dev setFilesObject
+     *      Sets a new files object
+     * @param filesObject new files object
+     */
+    function setFilesObject(bytes calldata filesObject) external onlyERC20Deployer{
+        _filesObject=filesObject;
+    }
+
+    
+    function addConsumer(uint256 serviceId,address consumer) internal{
+        for (uint256 i = 0; i < ordersConsumersServices[consumer].length; i++) {
+            if(ordersConsumersServices[consumer][i]==serviceId){
+                return;
+            }
+        }
+        ordersConsumersServices[consumer].push(serviceId);
+        return;
+    }
+    function checkConsumer(uint256 serviceId,address consumer) internal view returns(bool){
+        for (uint256 i = 0; i < ordersConsumersServices[consumer].length; i++) {
+            if(ordersConsumersServices[consumer][i]==serviceId)
+                return true;
+        }
+        return false;
+    }
+    /**
      * @dev getFilesObject
      *      Providers should call this to get files object
-     * @param orderTxId order tx
+     * @param serviceId serviceId
      * @param providerAddress provider address
      * @param providerSignature provider signature
      * @param consumerData consumer data
@@ -1114,7 +1164,7 @@ contract ERC20TemplateSapphire is
      * @param consumerAddress consumer address
      */
     function getFilesObject(
-        bytes32 orderTxId,
+        uint256 serviceId,
         address providerAddress,
         bytes calldata providerSignature,
         bytes calldata consumerData,
@@ -1132,22 +1182,24 @@ contract ERC20TemplateSapphire is
                 )
             )
         );
-        require(_ecrecovery(consumerHash, consumerSignature) == consumerAddress, "Consumer signature check failed");
+        address checkSigner=_ecrecovery(consumerHash, consumerSignature);
+        require( checkSigner == consumerAddress, "Consumer signature check failed");
 
-        /* Provider should sign(orderTxId+consumerSignature) */
+        /* Provider should sign(serviceId+consumerSignature) */
         bytes32 providerHash = keccak256(
             abi.encodePacked(prefix,
                 keccak256(
                     abi.encodePacked(
-                        orderTxId,
+                        serviceId,
                         consumerSignature
                     )
                 )
             )
         );
-        require(_ecrecovery(providerHash, providerSignature) == providerAddress, "Provider signature check failed");
+        checkSigner = _ecrecovery(providerHash, providerSignature);
+        require(checkSigner == providerAddress, "Provider signature check failed");
         
-        // now that we know providerAddress , let's check it in allow/deny lists
+        // now that we know provider address , let's check it in allow/deny lists
         if(_allowListContract!=address(0)){
             uint256 onTheList=AccessListContract(_allowListContract).balanceOf(providerAddress);
             require(onTheList>0, "Provider not in allow list");
@@ -1156,6 +1208,7 @@ contract ERC20TemplateSapphire is
             uint256 onTheList=AccessListContract(_denyListContract).balanceOf(providerAddress);
             require(onTheList<1, "Provider in deny list");
         }
+        require(checkConsumer(serviceId,consumerAddress)==true,'Consumer does not have a valid order');
         return(_filesObject);
     }
 }
