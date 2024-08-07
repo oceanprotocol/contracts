@@ -657,7 +657,7 @@ async function main() {
       if (options) tokenTemplate = await factoryERC721.getTokenTemplate(currentTokenCount, options);
       else tokenTemplate = await factoryERC721.getTokenTemplate(currentTokenCount);
       addresses.ERC20Template[currentTokenCount.toString()] =
-        templateERC20Template3.address;
+        templateERC20TemplateSapphire.address;
     
     // SET REQUIRED ADDRESS
     if (sleepAmount > 0) await sleep(sleepAmount)
