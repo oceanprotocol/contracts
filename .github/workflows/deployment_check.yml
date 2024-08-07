@@ -54,6 +54,7 @@ jobs:
             done
           ls -la "$HOME/.ocean/ocean-contracts/artifacts/"
       - run: cat ${HOME}/.ocean/ocean-contracts/artifacts/address.json
-      - run: node scripts/check_deployment.js
       - name: docker logs
         run: docker logs ocean-ocean-contracts-1
+      - run: node scripts/check_deployment.js
+      
