@@ -522,6 +522,20 @@ async function main() {
       }
     }
     
+    if (sleepAmount > 0) await sleep(sleepAmount)
+    if (logging) console.info("Deploying ERC20 Sapphire Template");
+      const ERC20TemplateSapphire = await ethers.getContractFactory(
+        "ERC20TemplateSapphire",
+        owner
+      );
+      let templateERC20Sapphire
+      if (options) templateERC20Sapphire = await ERC20TemplateSapphire.connect(owner).deploy(options);
+      else templateERC20Sapphire = await ERC20TemplateSapphire.connect(owner).deploy();
+      await templateERC20Sapphire.deployTransaction.wait();
+      if (show_verify) {
+        console.log("\tRun the following to verify on etherscan");
+        console.log("\tnpx hardhat verify --network " + networkName + " " + templateERC20Sapphire.address)
+      }
 
     addresses.ERC721Template = {};
     if (sleepAmount > 0) await sleep(sleepAmount)
@@ -633,6 +647,18 @@ async function main() {
         templateERC20Template3.address;
     }
 
+    if (logging) console.info("Adding ERC20TemplateSapphire to ERC721Factory");
+      if (options) templateadd = await factoryERC721.connect(owner).addTokenTemplate(templateERC20Sapphire.address, options);
+      else templateadd = await factoryERC721.connect(owner).addTokenTemplate(templateERC20TemplateSapphire.address);
+      await templateadd.wait();
+      if (sleepAmount > 0) await sleep(sleepAmount)
+      if (options) currentTokenCount = await factoryERC721.getCurrentTemplateCount(options);
+      else currentTokenCount = await factoryERC721.getCurrentTemplateCount(options);
+      if (options) tokenTemplate = await factoryERC721.getTokenTemplate(currentTokenCount, options);
+      else tokenTemplate = await factoryERC721.getTokenTemplate(currentTokenCount);
+      addresses.ERC20Template[currentTokenCount.toString()] =
+        templateERC20Template3.address;
+    
     // SET REQUIRED ADDRESS
     if (sleepAmount > 0) await sleep(sleepAmount)
     if (logging) console.info("Adding factoryERC721.address(" + factoryERC721.address + ") to router");
