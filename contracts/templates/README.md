@@ -52,10 +52,10 @@ Ocean-contracts v1.x (Ocean V4 “Onda”) is built on top of templates, in orde
         - consumer has to have a valid order
 
 The following table sums it up
-Template # | Label | Allows fre/dispense by default? | Allows custody of datatokens? | Combines txs? | Purpose
-:----: | :----: | :----: | :----: | :----:| :----:
-1 | ERC20Template | Y | Y | N | General
-2 | ERC20TemplateEnterprise | N | N | Y | General
-3 | ERC20Template3 | N | N | Y | Predictoor
-4 | ERC20TemplateSapphire | N | N | Y | General
+Template # | Label | Allows fre/dispense by default? | Allows custody of datatokens? | Combines txs? | File object stored in contract | Purpose
+:----: | :----: | :----: | :----: | :----:| :----:| :----:
+1 | ERC20Template | Y | Y | N | N | General
+2 | ERC20TemplateEnterprise | N | N | Y | N |General
+3 | ERC20Template3 | N | N | Y | N | Predictoor
+4 | ERC20TemplateSapphire | N | N | Y | Y | General
 
