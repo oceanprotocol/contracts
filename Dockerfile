@@ -6,7 +6,7 @@ RUN apt-get update && apt-get -y install curl bash
 RUN mkdir -p /usr/local/nvm
 ENV NVM_DIR /usr/local/nvm
 # IMPORTANT: set the exact version
-ENV NODE_VERSION v16.20.2
+ENV NODE_VERSION v20.16.0
 RUN curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.39.1/install.sh | bash
 RUN /bin/bash -c "source $NVM_DIR/nvm.sh && nvm install $NODE_VERSION && nvm use --delete-prefix $NODE_VERSION"
 # add node and npm to the PATH
@@ -16,7 +16,7 @@ ENV PATH $NODE_PATH:$PATH
 
 
 FROM base as builder
-RUN apt-get update && apt-get -y install wget
+RUN apt-get update && apt-get -y install wget build-essential
 COPY . /ocean-contracts
 WORKDIR /ocean-contracts
 RUN npm i

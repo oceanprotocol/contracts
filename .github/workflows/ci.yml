@@ -17,7 +17,7 @@ jobs:
       - uses: actions/checkout@v2
       - uses: actions/setup-node@v2
         with:
-          node-version: '16'
+          node-version: '20'
       - name: Cache node_modules
         uses: actions/cache@v2
         env:
@@ -42,7 +42,7 @@ jobs:
       - uses: actions/checkout@v2
       - uses: actions/setup-node@v2
         with:
-          node-version: '16'
+          node-version: '20'
       - name: Cache node_modules
         uses: actions/cache@v2
         env:
@@ -122,7 +122,7 @@ jobs:
       - uses: actions/checkout@v3
       - uses: actions/setup-node@v2
         with:
-          node-version: '16'
+          node-version: '20'
       - name: Cache node_modules
         uses: actions/cache@v2
         env:
@@ -172,7 +172,7 @@ jobs:
       - uses: actions/checkout@v2
       - uses: actions/setup-node@v2
         with:
-          node-version: 16
+          node-version: 20
           registry-url: https://registry.npmjs.org/
       - run: npm ci
       - name: Compile contracts
@@ -202,7 +202,7 @@ jobs:
       - uses: actions/checkout@v2
       - uses: actions/setup-node@v2
         with:
-          node-version: '16'
+          node-version: '20'
       - name: Cache node_modules
         uses: actions/cache@v2
         env:
