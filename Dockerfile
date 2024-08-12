@@ -1,5 +1,5 @@
 
-FROM ubuntu:20.04 as base
+FROM ubuntu:22.04 as base
 ENV DEBIAN_FRONTEND=noninteractive
 RUN apt-get update && apt-get -y install curl bash
 # nvm env vars
@@ -20,7 +20,7 @@ RUN apt-get update && apt-get -y install wget build-essential
 COPY . /ocean-contracts
 WORKDIR /ocean-contracts
 RUN npm i
-RUN wget https://gobinaries.com/tj/node-prune --output-document - | /bin/sh && node-prune
+#RUN wget https://gobinaries.com/tj/node-prune --output-document - | /bin/sh && node-prune
 
 
 
@@ -31,7 +31,7 @@ RUN mkdir -p /ocean-contracts/test/
 COPY ./addresses /ocean-contracts/addresses/
 COPY ./contracts /ocean-contracts/contracts/
 COPY ./hardhat.config* /ocean-contracts/
-COPY ./package* /ocean-contracts/
+COPY ./package.json /ocean-contracts/
 COPY ./scripts /ocean-contracts/scripts/
 COPY ./test /ocean-contracts/test/
 WORKDIR /ocean-contracts

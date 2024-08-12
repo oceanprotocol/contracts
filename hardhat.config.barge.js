@@ -1,19 +1,10 @@
 require("@nomiclabs/hardhat-waffle");
-require("hardhat-contract-sizer");
-require("hardhat-gas-reporter");
 require('solidity-coverage');
 //require("@nomiclabs/hardhat-etherscan");
-require("@nomicfoundation/hardhat-verify");
+//require("@nomicfoundation/hardhat-verify");
 require("@nomiclabs/hardhat-vyper");
 // This is a sample Hardhat task. To learn how to create your own go to
 // https://hardhat.org/guides/create-task.html
-task("accounts", "Prints the list of accounts", async () => {
-  const accounts = await ethers.getSigners();
-
-  for (const account of accounts) {
-    console.log(account.address);
-  }
-});
 
 // You need to export an object to set up your config
 // Go to https://hardhat.org/config/ to learn more
@@ -62,23 +53,5 @@ module.exports = {
       gasPrice: 8000000,
       gas: 2100000
     }
-  },
-  etherscan: {
-    apiKey: process.env.ETHERSCAN_API_KEY
-  },
-  sourcify: {
-    // Disabled by default
-    // Doesn't need an API key
-    enabled: true
-  },
-  contractSizer: {
-    alphaSort: true,
-    runOnCompile: true,
-    disambiguatePaths: false,
-  },
-  gasReporter: {
-    currency: 'USD',
-    gasPrice: 80,
-    coinmarketcap: process.env.COINMARKETCAP_API_KEY,
   }
 };
