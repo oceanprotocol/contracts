@@ -38,7 +38,7 @@ contract AccessList is Ownable, ERC721Enumerable,ERC721URIStorage {
     function supportsInterface(bytes4 interfaceId)
         public
         view
-        override(ERC721, ERC721Enumerable)
+        override( ERC721Enumerable,ERC721URIStorage)
         returns (bool)
     {
         return super.supportsInterface(interfaceId);

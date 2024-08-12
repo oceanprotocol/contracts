@@ -52,18 +52,18 @@ contract ERC20Template4 is
     bytes private _filesObject;
     address private _allowListContract;
     address private _denyListContract;
-    uint256 public constant BASE = 1e18;
+    uint256 private constant BASE = 1e18;
     
     mapping (address => uint256[]) private ordersConsumersServices;
     
-    address public router;
+    address private router;
     
     struct fixedRate{
         address contractAddress;
         bytes32 id;
     }
-    fixedRate[] fixedRateExchanges;
-    address[] dispensers;
+    fixedRate[] private fixedRateExchanges;
+    address[] private dispensers;
 
     struct providerFee{
         address providerFeeAddress;
@@ -399,9 +399,8 @@ contract ERC20Template4 is
      */
     function _checkProviderFee(providerFee calldata _providerFee) internal{
         // check if they are signed
-        bytes memory prefix = "\x19Ethereum Signed Message:\n32";
-        bytes32 message = keccak256(
-            abi.encodePacked(prefix,
+        address signer = ecrecover(keccak256(
+            abi.encodePacked("\x19Ethereum Signed Message:\n32",
                 keccak256(
                     abi.encodePacked(
                         _providerFee.providerData,
@@ -412,8 +411,7 @@ contract ERC20Template4 is
                     )
                 )
             )
-        );
-        address signer = ecrecover(message, _providerFee.v, _providerFee.r, _providerFee.s);
+        ), _providerFee.v, _providerFee.r, _providerFee.s);
         require(signer == _providerFee.providerFeeAddress, "Invalid provider fee");
         emit ProviderFee(
             _providerFee.providerFeeAddress,
@@ -977,15 +975,13 @@ contract ERC20Template4 is
         OrderParams calldata _orderParams,
         address dispenserContract
     ) external nonReentrant {
-        uint256 amount = 1e18;
-        //get DT
         IDispenser(dispenserContract).dispense(
             address(this),
-            amount,
+            1e18,
             msg.sender
         );
         require(
-            balanceOf(address(msg.sender)) >= amount,
+            balanceOf(address(msg.sender)) >= 1e18,
             "Unable to get DT from Dispenser"
         );
         //startOrder and burn it
@@ -1028,7 +1024,7 @@ contract ERC20Template4 is
                     "Transfer amount is too low");
     }
 
-    /**
+    /*
      * @dev orderExecuted
      *      Providers should call this to prove order execution
      * @param orderTxId order tx
@@ -1037,7 +1033,7 @@ contract ERC20Template4 is
      * @param consumerData consumer data
      * @param consumerSignature consumer signature
      * @param consumerAddress consumer address
-     */
+     *
     function orderExecuted(
         bytes32 orderTxId,
         bytes calldata providerData,
@@ -1047,9 +1043,8 @@ contract ERC20Template4 is
         address consumerAddress
     ) external {
         require(msg.sender != consumerAddress, "Provider cannot be the consumer");
-        bytes memory prefix = "\x19Ethereum Signed Message:\n32";
-        bytes32 providerHash = keccak256(
-            abi.encodePacked(prefix,
+        require(_ecrecovery(keccak256(
+            abi.encodePacked("\x19Ethereum Signed Message:\n32",
                 keccak256(
                     abi.encodePacked(
                         orderTxId,
@@ -1057,22 +1052,21 @@ contract ERC20Template4 is
                     )
                 )
             )
-        );
-        require(_ecrecovery(providerHash, providerSignature) == msg.sender, "Provider signature check failed");
-        bytes32 consumerHash = keccak256(
-            abi.encodePacked(prefix,
+        ), providerSignature) == msg.sender, "Provider signature check failed");
+        
+        require(_ecrecovery(keccak256(
+            abi.encodePacked("\x19Ethereum Signed Message:\n32",
                 keccak256(
                     abi.encodePacked(
                         consumerData
                     )
                 )
             )
-        );
-        require(_ecrecovery(consumerHash, consumerSignature) == consumerAddress, "Consumer signature check failed");
+        ), consumerSignature) == consumerAddress, "Consumer signature check failed");
         emit OrderExecuted(msg.sender, consumerAddress ,orderTxId, providerData, providerSignature,
                 consumerData, consumerSignature, block.timestamp, block.number);
     }
-
+    */
 
 
     function _ecrecovery(bytes32 hash, bytes memory sig) pure internal returns (address) {
@@ -1171,23 +1165,20 @@ contract ERC20Template4 is
         bytes calldata consumerSignature,
         address consumerAddress
     ) public view returns(bytes memory){
-        bytes memory prefix = "\x19Ethereum Signed Message:\n32";
         /* Consumer should sign(consumerData) */
-        bytes32 consumerHash = keccak256(
-            abi.encodePacked(prefix,
+        require( _ecrecovery(keccak256(
+            abi.encodePacked("\x19Ethereum Signed Message:\n32",
                 keccak256(
                     abi.encodePacked(
                         consumerData
                     )
                 )
             )
-        );
-        address checkSigner=_ecrecovery(consumerHash, consumerSignature);
-        require( checkSigner == consumerAddress, "Consumer signature check failed");
+        ), consumerSignature) == consumerAddress, "Consumer signature check failed");
 
         /* Provider should sign(serviceId+consumerSignature) */
-        bytes32 providerHash = keccak256(
-            abi.encodePacked(prefix,
+        require(_ecrecovery(keccak256(
+            abi.encodePacked("\x19Ethereum Signed Message:\n32",
                 keccak256(
                     abi.encodePacked(
                         serviceId,
@@ -1195,9 +1186,7 @@ contract ERC20Template4 is
                     )
                 )
             )
-        );
-        checkSigner = _ecrecovery(providerHash, providerSignature);
-        require(checkSigner == providerAddress, "Provider signature check failed");
+        ), providerSignature) == providerAddress, "Provider signature check failed");
         
         // now that we know provider address , let's check it in allow/deny lists
         if(_allowListContract!=address(0)){
