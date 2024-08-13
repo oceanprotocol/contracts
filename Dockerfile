@@ -1,12 +1,12 @@
 
-FROM ubuntu:20.04 as base
+FROM ubuntu:22.04 as base
 ENV DEBIAN_FRONTEND=noninteractive
 RUN apt-get update && apt-get -y install curl bash
 # nvm env vars
 RUN mkdir -p /usr/local/nvm
 ENV NVM_DIR /usr/local/nvm
 # IMPORTANT: set the exact version
-ENV NODE_VERSION v16.20.2
+ENV NODE_VERSION v20.16.0
 RUN curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.39.1/install.sh | bash
 RUN /bin/bash -c "source $NVM_DIR/nvm.sh && nvm install $NODE_VERSION && nvm use --delete-prefix $NODE_VERSION"
 # add node and npm to the PATH
@@ -16,11 +16,11 @@ ENV PATH $NODE_PATH:$PATH
 
 
 FROM base as builder
-RUN apt-get update && apt-get -y install wget
+RUN apt-get update && apt-get -y install wget build-essential
 COPY . /ocean-contracts
 WORKDIR /ocean-contracts
 RUN npm i
-RUN wget https://gobinaries.com/tj/node-prune --output-document - | /bin/sh && node-prune
+#RUN wget https://gobinaries.com/tj/node-prune --output-document - | /bin/sh && node-prune
 
 
 
@@ -31,7 +31,7 @@ RUN mkdir -p /ocean-contracts/test/
 COPY ./addresses /ocean-contracts/addresses/
 COPY ./contracts /ocean-contracts/contracts/
 COPY ./hardhat.config* /ocean-contracts/
-COPY ./package* /ocean-contracts/
+COPY ./package.json /ocean-contracts/
 COPY ./scripts /ocean-contracts/scripts/
 COPY ./test /ocean-contracts/test/
 WORKDIR /ocean-contracts
