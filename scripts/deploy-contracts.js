@@ -522,6 +522,20 @@ async function main() {
       }
     }
     
+    if (sleepAmount > 0) await sleep(sleepAmount)
+    if (logging) console.info("Deploying ERC20 Sapphire Template");
+    const ERC20Template4 = await ethers.getContractFactory(
+        "ERC20Template4",
+        owner
+      );
+    let templateERC20Template4
+    if (options) templateERC20Template4 = await ERC20Template4.connect(owner).deploy(options);
+    else templateERC20Template4 = await ERC20Template4.connect(owner).deploy();
+    await templateERC20Template4.deployTransaction.wait();
+    if (show_verify) {
+        console.log("\tRun the following to verify on etherscan");
+        console.log("\tnpx hardhat verify --network " + networkName + " " + templateERC20Template4.address)
+    }
 
     addresses.ERC721Template = {};
     if (sleepAmount > 0) await sleep(sleepAmount)
@@ -633,6 +647,18 @@ async function main() {
         templateERC20Template3.address;
     }
 
+    if (logging) console.info("Adding ERC20Template4 to ERC721Factory");
+      if (options) templateadd = await factoryERC721.connect(owner).addTokenTemplate(templateERC20Template4.address, options);
+      else templateadd = await factoryERC721.connect(owner).addTokenTemplate(templateERC20Template4.address);
+      await templateadd.wait();
+      if (sleepAmount > 0) await sleep(sleepAmount)
+      if (options) currentTokenCount = await factoryERC721.getCurrentTemplateCount(options);
+      else currentTokenCount = await factoryERC721.getCurrentTemplateCount(options);
+      if (options) tokenTemplate = await factoryERC721.getTokenTemplate(currentTokenCount, options);
+      else tokenTemplate = await factoryERC721.getTokenTemplate(currentTokenCount);
+      addresses.ERC20Template[currentTokenCount.toString()] =
+        templateERC20Template4.address;
+    
     // SET REQUIRED ADDRESS
     if (sleepAmount > 0) await sleep(sleepAmount)
     if (logging) console.info("Adding factoryERC721.address(" + factoryERC721.address + ") to router");
