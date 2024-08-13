@@ -51,16 +51,16 @@ contract AccessList is Ownable, ERC721Enumerable,ERC721URIStorage {
         super._beforeTokenTransfer(from, to, tokenId, batchSize);
     }
  
-    function _add(address user, string memory tokenURI) private returns (uint256) {
+    function _add(address user, string memory _tokenURI) private returns (uint256) {
         _tokenIds.increment();
         uint256 newItemId = _tokenIds.current();
         _mint(user, newItemId);
-        _setTokenURI(newItemId, tokenURI);
+        _setTokenURI(newItemId, _tokenURI);
         return newItemId;
     }
 
-    function mint(address user, string memory tokenURI) external onlyOwner returns (uint256) {
-        return(_add(user,tokenURI));    
+    function mint(address user, string memory _tokenURI) external onlyOwner returns (uint256) {
+        return(_add(user,_tokenURI));    
     }
 
     

@@ -38,7 +38,7 @@ contract Booster is Ownable, ERC721Enumerable,ERC721URIStorage {
     function supportsInterface(bytes4 interfaceId)
         public
         view
-        override(ERC721, ERC721Enumerable)
+        override(ERC721Enumerable,ERC721URIStorage)
         returns (bool)
     {
         return super.supportsInterface(interfaceId);
@@ -51,28 +51,28 @@ contract Booster is Ownable, ERC721Enumerable,ERC721URIStorage {
         super._beforeTokenTransfer(from, to, tokenId, batchSize);
     }
  
-    function _createBoost(address user, string memory tokenURI) private returns (uint256) {
+    function _createBoost(address user, string memory _tokenURI) private returns (uint256) {
         _tokenIds.increment();
         uint256 newItemId = _tokenIds.current();
         _mint(user, newItemId);
-        _setTokenURI(newItemId, tokenURI);
+        _setTokenURI(newItemId, _tokenURI);
         return newItemId;
     }
 
-    function createBoost(address user, string memory tokenURI) external onlyOwner returns (uint256) {
-        return(_createBoost(user,tokenURI));    
+    function createBoost(address user, string memory _tokenURI) external onlyOwner returns (uint256) {
+        return(_createBoost(user,_tokenURI));    
     }
 
     
     /**
      * @notice Batch Mint only for owner
      */
-    function batchCreateBoosts(address[] memory user,string[] memory tokenURI) external onlyOwner
+    function batchCreateBoosts(address[] memory user,string[] memory _tokenURI) external onlyOwner
     {
         uint256 i;
-        require(user.length==tokenURI.length);
+        require(user.length==_tokenURI.length);
         for(i=0;i<user.length;i++){
-            _createBoost(user[i],tokenURI[i]);
+            _createBoost(user[i],_tokenURI[i]);
         }
     }
 
