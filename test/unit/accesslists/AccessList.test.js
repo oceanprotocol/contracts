@@ -13,8 +13,8 @@ describe('AccessLists tests', function () {
     this.tokenID=0
     this.accessListContract = await ethers.getContractFactory('AccessList');
     this.accessListContract = await this.accessListContract.deploy("AccessList","A");
-    const tx=await this.accessListContract.deployed();
-    const txReceipt = await tx.wait();
+    await this.accessListContract.deployed();
+    const txReceipt = await this.accessListContract.deployTransaction.wait();
     let event = getEventFromTx(txReceipt, 'NewAccessList')
     assert(event, "Cannot find NewAccessList event")
     const contractAddress = event.args[0];
