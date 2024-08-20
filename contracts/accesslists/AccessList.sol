@@ -22,9 +22,23 @@ import "@openzeppelin/contracts/access/Ownable.sol";
 contract AccessList is Ownable, ERC721Enumerable,ERC721URIStorage {
     using Counters for Counters.Counter;
     Counters.Counter private _tokenIds;
+
+
+    event NewAccessList(
+        address indexed contractAddress,
+        address indexed owner
+    );
+    event AddressAdded(
+        address indexed wallet,
+        uint256 tokenId
+    );
+    event AddressRemoved(
+        uint256 tokenId
+    );
+
     constructor(string memory _name, string memory _symbol)
     ERC721(_name, _symbol) {
-         
+         emit NewAccessList(address(this),_msgSender());
     }
 
     function tokenURI(uint256 tokenId)
@@ -54,6 +68,7 @@ contract AccessList is Ownable, ERC721Enumerable,ERC721URIStorage {
     function _add(address user, string memory _tokenURI) private returns (uint256) {
         _tokenIds.increment();
         uint256 newItemId = _tokenIds.current();
+        emit AddressAdded(user,newItemId);
         _mint(user, newItemId);
         _setTokenURI(newItemId, _tokenURI);
         return newItemId;
@@ -67,17 +82,18 @@ contract AccessList is Ownable, ERC721Enumerable,ERC721URIStorage {
     /**
      * @notice Batch Mint only for owner
      */
-    function batchMint(address[] memory user,string[] memory tokenURI) external onlyOwner
+    function batchMint(address[] memory user,string[] memory _tokenURI) external onlyOwner
     {
         uint256 i;
-        require(user.length==tokenURI.length);
+        require(user.length==_tokenURI.length);
         for(i=0;i<user.length;i++){
-            _add(user[i],tokenURI[i]);
+            _add(user[i],_tokenURI[i]);
         }
     }
 
     function burn(uint256 tokenId) public {
         require(_msgSender() == super.owner() || _msgSender()==super._ownerOf(tokenId),"ERC721: Not owner");
+        emit AddressRemoved(tokenId);
         _burn(tokenId);
     }
     // The following functions are overrides required by Solidity.

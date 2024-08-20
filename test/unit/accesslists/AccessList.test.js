@@ -1,6 +1,9 @@
-const { expect } = require('chai');
+const { expect, assert } = require('chai');
 const { ethers } = require("hardhat");
 const { json } = require('hardhat/internal/core/params/argumentTypes');
+const { getEventFromTx } = require("../../helpers/utils")
+
+
 
 let metadata = {"uptime":100,"image":"ipfs://123"}
 let signers
@@ -10,8 +13,12 @@ describe('AccessLists tests', function () {
     this.tokenID=0
     this.accessListContract = await ethers.getContractFactory('AccessList');
     this.accessListContract = await this.accessListContract.deploy("AccessList","A");
-    await this.accessListContract.deployed();
-
+    const tx=await this.accessListContract.deployed();
+    const txReceipt = await tx.wait();
+    let event = getEventFromTx(txReceipt, 'NewAccessList')
+    assert(event, "Cannot find NewAccessList event")
+    const contractAddress = event.args[0];
+    assert(contractAddress==this.accessListContract.address,"Access list contract address missmatch")
     // Get the contractOwner and collector address
     signers = await ethers.getSigners();
 
@@ -30,7 +37,12 @@ describe('AccessLists tests', function () {
 
 
   it('Mints one token, using mint', async function () {
-    await this.accessListContract.mint(signers[0].address,JSON.stringify(metadata));
+    const tx=await this.accessListContract.mint(signers[0].address,JSON.stringify(metadata));
+    const txReceipt = await tx.wait();
+    let event = getEventFromTx(txReceipt, 'AddressAdded')
+    assert(event, "Cannot find AddressAdded event")
+    const walletAddress = event.args[0];
+    assert(walletAddress==signers[0].address,"AddressAdded event:  wallet address missmatch")
     this.tokenID++;
     expect(await this.accessListContract.balanceOf(signers[0].address)).to.equal(1);
     expect(await this.accessListContract.ownerOf(this.tokenID)).to.equal(signers[0].address);
@@ -93,9 +105,15 @@ describe('AccessLists tests', function () {
   });
 
   it('Owner should be able to burn', async function () {
+    const thisTokenId=6
     const howMany=await this.accessListContract.balanceOf(signers[1].address)
-    expect(await this.accessListContract.ownerOf(6)).to.equal(signers[1].address);
-    await this.accessListContract.burn(6);
+    expect(await this.accessListContract.ownerOf(thisTokenId)).to.equal(signers[1].address);
+    const tx=await this.accessListContract.burn(thisTokenId);
+    const txReceipt = await tx.wait();
+    let event = getEventFromTx(txReceipt, 'AddressRemoved')
+    assert(event, "Cannot find AddressRemoved event")
+    const walletAddress = event.args[0];
+    assert(event.args[0]==thisTokenId,"AddressRemoved event:  tokenId missmatch")
     expect(await this.accessListContract.balanceOf(signers[1].address)).to.equal(howMany-1);
     
 
