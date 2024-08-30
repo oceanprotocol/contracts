@@ -172,6 +172,12 @@ module.exports = {
       accounts:
         process.env.PRIVATE_KEY !== undefined ? [process.env.PRIVATE_KEY] : [],
     },
+    sepolia: {
+      url:
+        process.env.NETWORK_RPC_URL !== undefined ? process.env.NETWORK_RPC_URL : "",
+      accounts:
+        process.env.PRIVATE_KEY !== undefined ? [process.env.PRIVATE_KEY] : [],
+    }
 
   },
   sourcify: {
@@ -184,7 +190,8 @@ module.exports = {
       oasis_saphire_testnet: process.env.ETHERSCAN_API_KEY,
       oasis_saphire: process.env.ETHERSCAN_API_KEY,
       optimism_sepolia: process.env.ETHERSCAN_API_KEY,
-      optimism: process.env.ETHERSCAN_API_KEY
+      optimism: process.env.ETHERSCAN_API_KEY,
+      sepolia: process.env.ETHERSCAN_API_KEY,
     },
     customChains: [
     {
