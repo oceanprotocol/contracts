@@ -2,7 +2,8 @@ require("@nomiclabs/hardhat-waffle");
 require("hardhat-contract-sizer");
 require("hardhat-gas-reporter");
 require('solidity-coverage');
-require("@nomiclabs/hardhat-etherscan");
+//require("@nomiclabs/hardhat-etherscan");
+require("@nomicfoundation/hardhat-verify");
 require("@nomiclabs/hardhat-vyper");
 // This is a sample Hardhat task. To learn how to create your own go to
 // https://hardhat.org/guides/create-task.html
@@ -32,6 +33,15 @@ module.exports = {
           },
         },
       },
+      {
+        version: "0.8.26",
+        settings: {
+          optimizer: {
+            enabled: true,
+            runs: 200,
+          },
+        },
+      },
 
     ],
     overrides: {},
@@ -41,7 +51,7 @@ module.exports = {
   },
   networks: {
     hardhat: {
-      //allowUnlimitedContractSize: true,
+      allowUnlimitedContractSize: true,
       //forking: {
       //  url: process.env.ALCHEMY_URL,
       //  blockNumber: 12545000,
@@ -162,14 +172,26 @@ module.exports = {
       accounts:
         process.env.PRIVATE_KEY !== undefined ? [process.env.PRIVATE_KEY] : [],
     },
+    sepolia: {
+      url:
+        process.env.NETWORK_RPC_URL !== undefined ? process.env.NETWORK_RPC_URL : "",
+      accounts:
+        process.env.PRIVATE_KEY !== undefined ? [process.env.PRIVATE_KEY] : [],
+    }
 
+  },
+  sourcify: {
+    // Disabled by default
+    // Doesn't need an API key
+    enabled: true
   },
   etherscan: {
     apiKey: {
       oasis_saphire_testnet: process.env.ETHERSCAN_API_KEY,
       oasis_saphire: process.env.ETHERSCAN_API_KEY,
       optimism_sepolia: process.env.ETHERSCAN_API_KEY,
-      optimism: process.env.ETHERSCAN_API_KEY
+      optimism: process.env.ETHERSCAN_API_KEY,
+      sepolia: process.env.ETHERSCAN_API_KEY,
     },
     customChains: [
     {

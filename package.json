@@ -1,6 +1,6 @@
 {
   "name": "@oceanprotocol/contracts",
-  "version": "2.0.4",
+  "version": "2.1.0",
   "description": "Ocean Protocol Smartcontracts",
   "bugs": {
     "url": "https://github.com/oceanprotocol/contracts/issues"
@@ -32,6 +32,7 @@
     "test:erc20": "npx hardhat test test/unit/datatokens/ERC20Template.test.js",
     "test:enterprise": "npx hardhat test test/unit/datatokens/ERC20TemplateEnterprise.test.js",
     "test:template3": "npx hardhat test test/unit/datatokens/ERC20Template3.test.js",
+    "test:template4": "npx hardhat test test/unit/datatokens/ERC20Template4.test.js",
     "test:factory": "npx hardhat test test/unit/factories/ERC721Factory.test.js",
     "test:router": "npx hardhat test test/unit/pools/FactoryRouter.test.js",
     "test:flow": "npx hardhat test test/flow/*.test.js ",
@@ -40,7 +41,7 @@
   },
   "devDependencies": {
     "@nomiclabs/hardhat-ethers": "^2.2.3",
-    "@nomiclabs/hardhat-etherscan": "^3.1.7",
+    "@nomicfoundation/hardhat-verify": "^2.0.9",
     "@nomiclabs/hardhat-vyper": "^3.0.5",
     "@nomiclabs/hardhat-waffle": "^2.0.6",
     "@openzeppelin/contracts": "^4.8.3",
@@ -51,9 +52,9 @@
     "ethereum-waffle": "^4.0.10",
     "ethereumjs-util": "^7.1.5",
     "ethers": "^5.7.2",
-    "hardhat": "^2.18.3",
+    "hardhat": "^2.22.8",
     "hardhat-contract-sizer": "^2.10.0",
-    "hardhat-gas-reporter": "^1.0.8",
+    "hardhat-gas-reporter": "^2.2.1",
     "solidity-bytes-utils": "^0.8.0",
     "solidity-coverage": "^0.8.5"
   }
