@@ -8,7 +8,8 @@ import "@openzeppelin/contracts/access/Ownable.sol";
 import "@openzeppelin/contracts/security/ReentrancyGuard.sol";
 
 interface IAccessList{
-    function initialize(address, string calldata, string calldata, bool,address[] memory,string[] memory) external returns (bool);
+    function initialize(address, string calldata, string calldata, 
+        bool,address[] memory,string[] memory) external returns (bool);
     function transferable() external view returns (bool);
     
 }
