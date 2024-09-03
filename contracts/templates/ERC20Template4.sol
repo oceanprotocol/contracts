@@ -199,8 +199,7 @@ contract ERC20Template4 is
         if(contractAddress==address(0)) {
             return true;
         }
-        bool ret=IAccessListFactory(_accessListFactory).isDeployed(contractAddress);
-        if(ret == false) return false;
+        if(!IAccessListFactory(_accessListFactory).isDeployed(contractAddress)) return false;
         return(IAccessListFactory(_accessListFactory).isSoulBound(contractAddress));
     }
     /**
