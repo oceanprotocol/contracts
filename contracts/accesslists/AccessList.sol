@@ -13,8 +13,9 @@ import "@openzeppelin/contracts/utils/Counters.sol";
 /**
  * @title AccessList
  *
- * @dev AccessList is an optional soul bound/non-sould bound ERC721 used to build access lists (allow or deny)
- * Only owner can mint and also burn (ie: remove address from a list)
+ * @dev AccessList is an optional soul bound/non-sould bound 
+ * ERC721 used to build access lists (allow or deny)
+ * Only owner can mint
  * Each token id has it's own metadata
  */
 
