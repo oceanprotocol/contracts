@@ -16,10 +16,14 @@ import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 import "@openzeppelin/contracts/security/ReentrancyGuard.sol";
 import "../utils/ERC20Roles.sol";
 
-interface AccessListContract {
+interface IAccessListContract {
      function balanceOf(address owner) external view returns (uint256 balance);
+     
 }
-
+interface IAccessListFactory {
+     function isDeployed(address) external view returns (bool);
+     function isSoulBound(address) external view returns (bool);
+}
 /**
  * @title DatatokenTemplate to be used on Sapphire network
  *
@@ -50,6 +54,7 @@ contract ERC20Template4 is
     address private publishMarketFeeToken;
     uint256 private publishMarketFeeAmount;
     bytes private _filesObject;
+    address private _accessListFactory;
     address private _allowListContract;
     address private _denyListContract;
     uint256 private constant BASE = 1e18;
@@ -160,14 +165,14 @@ contract ERC20Template4 is
     modifier onlyNotInitialized() {
         require(
             !initialized,
-            "ERC20Template: token instance already initialized"
+            "already initialized"
         );
         _;
     }
     modifier onlyNFTOwner() {
         require(
             msg.sender == IERC721Template(_erc721Address).ownerOf(1),
-            "ERC20Template: not NFTOwner"
+            "not NFTOwner"
         );
         _;
     }
@@ -175,7 +180,7 @@ contract ERC20Template4 is
     modifier onlyPublishingMarketFeeAddress() {
         require(
             msg.sender == publishMarketFeeAddress,
-            "ERC20Template: not publishMarketFeeAddress"
+            "not publishMarketFeeAddress"
         );
         _;
     }
@@ -185,11 +190,18 @@ contract ERC20Template4 is
             IERC721Template(_erc721Address)
                 .getPermissions(msg.sender)
                 .deployERC20 || IERC721Template(_erc721Address).ownerOf(1) == msg.sender,
-            "ERC20Template: NOT DEPLOYER ROLE"
+            "NOT DEPLOYER"
         );
         _;
     }
 
+    function checkAccessList(address contractAddress) view private returns(bool){
+        if(contractAddress==address(0)) {
+            return true;
+        }
+        if(!IAccessListFactory(_accessListFactory).isDeployed(contractAddress)) return false;
+        return(IAccessListFactory(_accessListFactory).isSoulBound(contractAddress));
+    }
     /**
      * @dev initialize
      *      Called prior contract initialization (e.g creating new Datatoken instance)
@@ -202,8 +214,9 @@ contract ERC20Template4 is
      *                     [1]  = paymentCollector initial paymentCollector for this DT
      *                     [2]  = publishing Market Address
      *                     [3]  = publishing Market Fee Token
-     *                     [4]  = Allow List Contract (if any)
-     *                     [5]  = Deny List Contract (if any)
+     *                     [4]  = access list factory address
+     *                     [5]  = Allow List Contract (if any)
+     *                     [6]  = Deny List Contract (if any)
      * @param factoryAddresses_ refers to an array of addresses passed by the factory
      *                     [0]  = erc721Address
      *                     [1]  = router address
@@ -242,12 +255,13 @@ contract ERC20Template4 is
      *                     [1]  = paymentCollector initial paymentCollector for this DT
      *                     [2]  = publishing Market Address
      *                     [3]  = publishing Market Fee Token
-     *                     [4]  = Allow List Contract (if any)
-     *                     [5]  = Deny List Contract (if any)
+     *                     [4]  = access list factory address
+     *                     [5]  = Allow List Contract (if any)
+     *                     [6]  = Deny List Contract (if any)
      * @param factoryAddresses_ refers to an array of addresses passed by the factory
      *                     [0]  = erc721Address
      *                     [1]  = router address
-     *
+     *                     [2]  = access list factory address
      * @param uints_  refers to an array of uints
      *                     [0] = cap_ the total ERC20 cap
      *                     [1] = publishing Market Fee Amount
@@ -265,28 +279,37 @@ contract ERC20Template4 is
         router = factoryAddresses_[1];
         require(
             erc721Address != address(0),
-            "ERC20Template: Invalid minter,  zero address"
+            "minter"
         );
 
         require(
             router != address(0),
-            "ERC20Template: Invalid router, zero address"
+            "router"
         );
 
-        require(uints_[0] != 0, "DatatokenTemplate: Invalid cap value");
+        require(uints_[0] != 0, "cap");
         _cap = uints_[0];
         _name = strings_[0];
         _symbol = strings_[1];
         if(bytes_.length>0)
             _filesObject = bytes_[0];
-        if(addresses_.length>4){
-            _allowListContract = addresses_[4];
+        if(addresses_.length>4)
+            _accessListFactory=addresses_[4];
+        require(
+            _accessListFactory != address(0),
+            "accessListFactory"
+        );
+
+        if(addresses_.length>5){
+            require(checkAccessList(addresses_[5])==true,"IAL");
+            _allowListContract = addresses_[5];
         }
         else{
             _allowListContract = address(0);
         }
-        if(addresses_.length>5){
-            _denyListContract = addresses_[5];
+        if(addresses_.length>6){
+            require(checkAccessList(addresses_[6])==true,"IAL");
+            _denyListContract = addresses_[6];
         }
         else{
             _denyListContract = address(0);
@@ -383,10 +406,10 @@ contract ERC20Template4 is
      * @param value refers to amount of tokens that is going to be minted.
      */
     function mint(address account, uint256 value) external {
-        require(permissions[msg.sender].minter, "ERC20Template: NOT MINTER");
+        require(permissions[msg.sender].minter, "NOT MINTER");
         require(
             totalSupply().add(value) <= _cap,
-            "DatatokenTemplate: cap exceeded"
+            "cap exceeded"
         );
         _mint(account, value);
     }
@@ -470,7 +493,7 @@ contract ERC20Template4 is
         uint256 amount = 1e18; // we always pay 1 DT. No more, no less
         require(
             balanceOf(msg.sender) >= amount,
-            "Not enough datatokens to start Order"
+            "Not enough DT"
         );
         addConsumer(serviceIndex,msg.sender);
         addConsumer(serviceIndex,consumer);
@@ -618,7 +641,7 @@ contract ERC20Template4 is
     function cleanFrom721() external {
         require(
             msg.sender == _erc721Address,
-            "ERC20Template: NOT 721 Contract"
+            "NOT 721 Contract"
         );
         _internalCleanPermissions();
         
@@ -688,7 +711,7 @@ contract ERC20Template4 is
             permissions[msg.sender].paymentManager ||
                 IERC721Template(_erc721Address).getPermissions(msg.sender).deployERC20 || 
                 IERC721Template(_erc721Address).ownerOf(1)==msg.sender,
-            "ERC20Template: NOT PAYMENT MANAGER or OWNER"
+            "NOT PAYMENT MANAGER or OWNER"
         );
         _setPaymentCollector(_newPaymentCollector);
         emit NewPaymentCollector(
@@ -744,11 +767,11 @@ contract ERC20Template4 is
     ) external onlyPublishingMarketFeeAddress {
         require(
             _publishMarketFeeAddress != address(0),
-            "Invalid _publishMarketFeeAddress address"
+            "_publishMarketFeeAddress "
         );
         require(
             _publishMarketFeeToken != address(0),
-            "Invalid _publishMarketFeeToken address"
+            "_publishMarketFeeToken"
         );
         publishMarketFeeAddress = _publishMarketFeeAddress;
         publishMarketFeeToken = _publishMarketFeeToken;
@@ -1111,6 +1134,8 @@ contract ERC20Template4 is
      * @param contractAddress new contract to be used as list
      */
     function setAllowListContract(address contractAddress) external onlyERC20Deployer{
+        if(contractAddress!=address(0))
+            require(checkAccessList(contractAddress)==true,"IAL");
         _allowListContract = contractAddress;
     }
     /**
@@ -1119,6 +1144,8 @@ contract ERC20Template4 is
      * @param contractAddress new contract to be used as list
      */
     function setDenyListContract(address contractAddress) external onlyERC20Deployer{
+        if(contractAddress!=address(0))
+            require(checkAccessList(contractAddress)==true,"IAL");
         _denyListContract = contractAddress;
     }
     /**
@@ -1174,7 +1201,7 @@ contract ERC20Template4 is
                     )
                 )
             )
-        ), consumerSignature) == consumerAddress, "Consumer signature check failed");
+        ), consumerSignature) == consumerAddress, "Consumer signature");
 
         /* Provider should sign(serviceId+consumerSignature) */
         require(_ecrecovery(keccak256(
@@ -1186,18 +1213,18 @@ contract ERC20Template4 is
                     )
                 )
             )
-        ), providerSignature) == providerAddress, "Provider signature check failed");
+        ), providerSignature) == providerAddress, "Provider signature");
         
         // now that we know provider address , let's check it in allow/deny lists
         if(_allowListContract!=address(0)){
-            uint256 onTheList=AccessListContract(_allowListContract).balanceOf(providerAddress);
-            require(onTheList>0, "Provider not in allow list");
+            uint256 onTheList=IAccessListContract(_allowListContract).balanceOf(providerAddress);
+            require(onTheList>0, "Provider not allowed");
         }
         if(_denyListContract!=address(0)){
-            uint256 onTheList=AccessListContract(_denyListContract).balanceOf(providerAddress);
-            require(onTheList<1, "Provider in deny list");
+            uint256 onTheList=IAccessListContract(_denyListContract).balanceOf(providerAddress);
+            require(onTheList<1, "Provider denied");
         }
-        require(checkConsumer(serviceId,consumerAddress)==true,'Consumer does not have a valid order');
+        require(checkConsumer(serviceId,consumerAddress)==true,'no consumer order');
         return(_filesObject);
     }
 }

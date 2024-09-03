@@ -9,23 +9,45 @@ let metadata = {"uptime":100,"image":"ipfs://123"}
 let signers
 // Start test block
 describe('AccessLists tests', function () {
+  async function createNewAccessList(name,symbol,transferable,owner){
+    const tx=await this.accessListFactoryContract.deployAccessListContract(name,symbol,transferable,owner,[],[])
+    const txReceipt = await tx.wait();
+    const event = getEventFromTx(txReceipt, 'NewAccessList')
+    assert(event, "Cannot find NewAccessList event")
+    return(event.args[0])
+  }
   before(async function  () {
     this.tokenID=0
-    this.accessListContract = await ethers.getContractFactory('AccessList');
-    this.accessListContract = await this.accessListContract.deploy("AccessList","A");
-    await this.accessListContract.deployed();
-    const txReceipt = await this.accessListContract.deployTransaction.wait();
-    let event = getEventFromTx(txReceipt, 'NewAccessList')
-    assert(event, "Cannot find NewAccessList event")
-    const contractAddress = event.args[0];
-    assert(contractAddress==this.accessListContract.address,"Access list contract address missmatch")
-    // Get the contractOwner and collector address
     signers = await ethers.getSigners();
+    const AccessListFactory = await ethers.getContractFactory("AccessListFactory");
+    const AccessList = await ethers.getContractFactory(
+      "AccessList"
+    );
+    this.accessListContract = await AccessList.connect(signers[0]).deploy()
+    this.accessListContract2 = await AccessList.connect(signers[0]).deploy()
+    accessListFactoryContract = await AccessListFactory.connect(signers[0]).deploy(this.accessListContract.address)
+    let accessAddress = await createNewAccessList("AccessList","A",false,signers[0].address)
+    this.accessListContract = await ethers.getContractAt("AccessList", accessAddress);
+    accessAddress = await createNewAccessList("AccessList","A",true,signers[0].address)
+    this.accessListContractTransferable = await ethers.getContractAt("AccessList", accessAddress);
+    
 
   });
 
 
   // Test cases
+  it('Factory - Should fail if not owner tries to change the template', async function () {
+    await expect(
+      accessListFactoryContract.connect(signers[2]).changeTemplateAddress(this.accessListContract2.address))
+      .to.be.revertedWith("Ownable: caller is not the owner")
+  });
+
+  it('Factory - Owner should be able to change the template address', async function () {
+    const tx=await accessListFactoryContract.connect(signers[0]).changeTemplateAddress(this.accessListContract2.address)
+    expect(await accessListFactoryContract.templateAddress === this.accessListContract2.address, "Failed to change template address")
+  });
+
+
   it('Check token name', async function () {
     expect(await this.accessListContract.name()).to.exist;
     
@@ -131,4 +153,45 @@ describe('AccessLists tests', function () {
     
   });
 
+  // Non soul bound
+  it('Non sould bound: It should be able to transfer NFTs to another wallet when called by user', async function () {
+    const tx=await this.accessListContractTransferable.mint(signers[0].address,JSON.stringify(metadata));
+    await this.accessListContractTransferable["safeTransferFrom(address,address,uint256)"](signers[0].address,signers[2].address,1)
+    expect(await this.accessListContract.balanceOf(signers[2].address)).to.equal(1);
+
+  });
+
+  it('Non sould bound: It should not be able to transfer NFTs to another wallet when called by contract owner', async function () {
+    const tx=await this.accessListContractTransferable.mint(signers[1].address,JSON.stringify(metadata));
+    await expect(this.accessListContractTransferable["safeTransferFrom(address,address,uint256)"](signers[0].address,signers[2].address,2)).to.be.revertedWith("ERC721: caller is not token owner or approved");
+  });
+
+  it('It should be able to create and fill access list with users in one tx', async function () {
+    const users=[signers[1].address,signers[2].address,signers[3].address]
+    const tokenURIs=[JSON.stringify(metadata),JSON.stringify(metadata),JSON.stringify(metadata)]
+    const tx=await accessListFactoryContract.deployAccessListContract("Multi","m1",false,signers[0].address,users,tokenURIs)
+    const txReceipt = await tx.wait();
+    const event = getEventFromTx(txReceipt, 'NewAccessList')
+    assert(event, "Cannot find NewAccessList event")
+    const accessListContract = await ethers.getContractAt("AccessList", event.args[0]);
+    expect(await accessListContract.balanceOf(signers[1].address)).to.equal(1);
+    expect(await accessListContract.tokenURI(1)).to.equal(JSON.stringify(metadata));
+    expect(await accessListContract.balanceOf(signers[2].address)).to.equal(1);
+    expect(await accessListContract.balanceOf(signers[3].address)).to.equal(1);
+    expect(await accessListContract.balanceOf(signers[4].address)).to.equal(0);
+  });
+
+  it('It should revert if creation arguments are wrong', async function () {
+    const users=[signers[1].address,signers[2].address,signers[3].address]
+    const tokenURIs=[JSON.stringify(metadata)]
+    const tx=await accessListFactoryContract.deployAccessListContract("Multi","m1",false,signers[0].address,users,tokenURIs)
+    const txReceipt = await tx.wait();
+    const event = getEventFromTx(txReceipt, 'NewAccessList')
+    assert(event, "Cannot find NewAccessList event")
+    const accessListContract = await ethers.getContractAt("AccessList", event.args[0]);
+    expect(await accessListContract.balanceOf(signers[1].address)).to.equal(0);
+    expect(await accessListContract.balanceOf(signers[2].address)).to.equal(0);
+    expect(await accessListContract.balanceOf(signers[3].address)).to.equal(0);
+    expect(await accessListContract.balanceOf(signers[4].address)).to.equal(0);
+  });
 });

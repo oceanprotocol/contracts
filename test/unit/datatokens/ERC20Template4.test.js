@@ -118,8 +118,11 @@ describe("ERC20Template4", () => {
     filesObject,
     allowAccessList,
     denyAccessList,
+    allowAccessListNonSoulBound,
+    denyAccessListNonSoulBound,
     providerAccount,
-    listsOwnerAccount
+    listsOwnerAccount,
+    accessListFactoryContract
 
   filesObject= [
     {
@@ -135,8 +138,18 @@ describe("ERC20Template4", () => {
   const publishMarketFeeAmount = "5"
   const addressZero = '0x0000000000000000000000000000000000000000';
 
+
+  async function createNewAccessList(name,symbol,transferable,owner){
+    const tx=await accessListFactoryContract.deployAccessListContract(name,symbol,transferable,owner,[],[])
+    const txReceipt = await tx.wait();
+    const event = getEventFromTx(txReceipt, 'NewAccessList')
+    assert(event, "Cannot find NewAccessList event")
+    return(event.args[0])
+  }
+
   beforeEach("init contracts for each test", async () => {
     const ERC721Template = await ethers.getContractFactory("ERC721Template");
+    const AccessListFactory = await ethers.getContractFactory("AccessListFactory");
     const ERC20Template = await ethers.getContractFactory("ERC20Template4");
     const ERC721Factory = await ethers.getContractFactory("ERC721Factory");
 
@@ -162,8 +175,9 @@ describe("ERC20Template4", () => {
     flags = web3.utils.asciiToHex(constants.blob[0]);
 
     // DEPLOY ROUTER, SETTING OWNER
+    const accessListContract = await AccessList.connect(owner).deploy()
 
-  
+    accessListFactoryContract = await AccessListFactory.connect(owner).deploy(accessListContract.address)
     mockErc20 = await MockErc20.deploy(owner.address, "MockERC20", 'MockERC20');
     mockErc20Decimals = await MockErc20Decimals.deploy("Mock6Digits", 'Mock6Digits', 6);
     publishMarketFeeToken = mockErc20Decimals.address
@@ -185,8 +199,13 @@ describe("ERC20Template4", () => {
     dispenser = await Dispenser.deploy(router.address);
 
     templateERC20 = await ERC20Template.deploy();
-    allowAccessList = await AccessList.deploy("Allow1","ALLOW");
-    denyAccessList = await AccessList.deploy("Deny1","DENY");
+    allowAccessList = await createNewAccessList("Allow1","ALLOW",false,owner.address)
+    denyAccessList = await createNewAccessList("Deny1","DENY",false,owner.address)
+    allowAccessListNonSoulBound =await createNewAccessList("Allow1","ALLOW",true,owner.address)
+    denyAccessListNonSoulBound = await createNewAccessList("Deny1","DENY",true,owner.address)
+
+
+    
 
     // SETUP ERC721 Factory with template
     templateERC721 = await ERC721Template.deploy();
@@ -222,7 +241,6 @@ describe("ERC20Template4", () => {
     assert(event, "Cannot find NFTCreated event")
     tokenAddress = event.args[0];
     tokenERC721 = await ethers.getContractAt("ERC721Template", tokenAddress);
-
     assert((await tokenERC721.balanceOf(owner.address)) == 1);
 
     await tokenERC721.addManager(user2.address);
@@ -239,7 +257,7 @@ describe("ERC20Template4", () => {
     );
     const trxERC20 = await tokenERC721.connect(user3).createERC20(1,
       ["ERC20DT1", "ERC20DT1Symbol"],
-      [user3.address, user6.address, user3.address, addressZero],
+      [user3.address, user6.address, user3.address, addressZero,accessListFactoryContract.address],
       [cap, 0],
       [ethers.utils.toUtf8Bytes(JSON.stringify(filesObject))]
     );
@@ -256,7 +274,7 @@ describe("ERC20Template4", () => {
     // create an ERC20 with publish Fee ( 5 USDC, going to publishMarketAddress)
     const trxERC20WithPublishFee = await tokenERC721.connect(user3).createERC20(1,
       ["ERC20DT1P", "ERC20DT1SymbolP"],
-      [user3.address, user6.address, publishMarketFeeAddress, publishMarketFeeToken],
+      [user3.address, user6.address, publishMarketFeeAddress, publishMarketFeeToken,accessListFactoryContract.address],
       [cap, web3.utils.toWei(publishMarketFeeAmount)],
       [ethers.utils.toUtf8Bytes(JSON.stringify(filesObject))]
 
@@ -268,25 +286,26 @@ describe("ERC20Template4", () => {
 
     erc20TokenWithPublishFee = await ethers.getContractAt("ERC20Template4", erc20AddressWithPublishFee);
     assert((await erc20TokenWithPublishFee.permissions(user3.address)).minter == true);
-
-
+    
     // create an ERC20 with allow/deny list
     const trxERC20WithLists = await tokenERC721.connect(user3).createERC20(1,
       ["ERC20D4L", "ERC20DT4L"],
-      [user3.address, user6.address, publishMarketFeeAddress, publishMarketFeeToken,allowAccessList.address,denyAccessList.address],
+      [user3.address, user6.address, publishMarketFeeAddress, publishMarketFeeToken,accessListFactoryContract.address,allowAccessList,denyAccessList],
       [cap, 0],
       [ethers.utils.toUtf8Bytes(JSON.stringify(filesObject))]
 
     );
     const trxReceiptERC20WithList = await trxERC20WithLists.wait();
+    
     event = getEventFromTx(trxReceiptERC20WithList, 'TokenCreated')
     assert(event, "Cannot find TokenCreated event")
     erc20AddressWithAccessList = event.args[0];
 
     erc20TokenWithAccessList = await ethers.getContractAt("ERC20Template4", erc20AddressWithAccessList);
     assert((await erc20TokenWithAccessList.permissions(user3.address)).minter == true);
-    assert((await erc20TokenWithAccessList.getAllowListContract())==allowAccessList.address)
-    assert((await erc20TokenWithAccessList.getDenyListContract())==denyAccessList.address)
+    assert((await erc20TokenWithAccessList.getAllowListContract())==allowAccessList)
+    assert((await erc20TokenWithAccessList.getDenyListContract())==denyAccessList)
+    
   });
 
 
@@ -303,7 +322,7 @@ describe("ERC20Template4", () => {
         [web3.utils.toWei("10"), 0],
         []
       ),
-      "ERC20Template: token instance already initialized"
+      "already initialized"
     );
   });
 
@@ -317,14 +336,14 @@ describe("ERC20Template4", () => {
   it("#mint - should fail to mint 1 ERC20Token to user2 if NOT MINTER", async () => {
     await expectRevert(
       erc20Token.connect(user2).mint(user2.address, web3.utils.toWei("1")),
-      "ERC20Template: NOT MINTER"
+      "NOT MINTER"
     );
   });
 
   it("#setPaymentCollector - should fail to set new FeeCollector if not NFTOwner", async () => {
     await expectRevert(
       erc20Token.connect(user2).setPaymentCollector(user2.address),
-      "ERC20Template: NOT PAYMENT MANAGER or OWNER"
+      "NOT PAYMENT MANAGER or OWNER"
     );
   });
 
@@ -346,7 +365,7 @@ describe("ERC20Template4", () => {
 
     await expectRevert(
       erc20Token.connect(user2).addMinter(user2.address),
-      "ERC20Template: NOT DEPLOYER ROLE"
+      "NOT DEPLOYER"
     );
 
     assert((await erc20Token.permissions(user2.address)).minter == false);
@@ -380,7 +399,7 @@ describe("ERC20Template4", () => {
 
     await expectRevert(
       erc20Token.connect(user2).removeMinter(user2.address),
-      "ERC20Template: NOT DEPLOYER ROLE"
+      "NOT DEPLOYER"
     );
 
     assert((await erc20Token.permissions(user2.address)).minter == true);
@@ -393,7 +412,7 @@ describe("ERC20Template4", () => {
 
     await expectRevert(
       erc20Token.connect(user4).removeMinter(user2.address),
-      "ERC20Template: NOT DEPLOYER ROLE"
+      "NOT DEPLOYER"
     );
 
     assert((await erc20Token.permissions(user2.address)).minter == true);
@@ -416,7 +435,7 @@ describe("ERC20Template4", () => {
 
     await expectRevert(
       erc20Token.connect(user2).addPaymentManager(user2.address),
-      "ERC20Template: NOT DEPLOYER ROLE"
+      "NOT DEPLOYER"
     );
 
     assert((await erc20Token.permissions(user2.address)).paymentManager == false);
@@ -451,7 +470,7 @@ describe("ERC20Template4", () => {
 
     await expectRevert(
       erc20Token.connect(user2).removePaymentManager(owner.address),
-      "ERC20Template: NOT DEPLOYER ROLE"
+      "NOT DEPLOYER"
     );
 
     assert((await erc20Token.permissions(owner.address)).paymentManager == true);
@@ -466,7 +485,7 @@ describe("ERC20Template4", () => {
 
     await expectRevert(
       erc20Token.connect(user2).removePaymentManager(owner.address),
-      "ERC20Template: NOT DEPLOYER ROLE"
+      "NOT DEPLOYER"
     );
 
     assert((await erc20Token.permissions(owner.address)).paymentManager == true);
@@ -487,7 +506,7 @@ describe("ERC20Template4", () => {
     assert((await erc20Token.permissions(user3.address)).minter == true);
     await expectRevert(
       erc20Token.connect(user2).cleanPermissions(),
-      "ERC20Template: not NFTOwner"
+      "not NFTOwner"
     );
 
     assert((await erc20Token.permissions(user3.address)).minter == true);
@@ -1063,7 +1082,7 @@ describe("ERC20Template4", () => {
   it("#setPublishingMarketFee - user should not be able to set new publish fee", async () => {
     await expectRevert(
       erc20TokenWithPublishFee.connect(user2).setPublishingMarketFee(user2.address, erc20Token.address, web3.utils.toWei('10')),
-      "ERC20Template: not publishMarketFeeAddress"
+      "not publishMarketFeeAddress"
     );
     const publishFee = await erc20TokenWithPublishFee
       .connect(user2)
@@ -1146,7 +1165,7 @@ describe("ERC20Template4", () => {
     // create an ERC20 with publish Fee ( 5 USDC, going to publishMarketAddress)
     const trxEnterpriseERC20 = await tokenERC721.connect(user3).createERC20(1,
       ["ERC20DT1P", "ERC20DT1SymbolP"],
-      [user3.address, user6.address, publishMarketFeeAddress, publishMarketFeeToken],
+      [user3.address, user6.address, publishMarketFeeAddress, publishMarketFeeToken,accessListFactoryContract.address],
       [cap, web3.utils.toWei(publishMarketFeeAmount)],
       []
 
@@ -1276,7 +1295,7 @@ describe("ERC20Template4", () => {
     // create an ERC20 with publish Fee ( 5 USDC, going to publishMarketAddress)
     const trxEnterpriseERC20 = await tokenERC721.connect(user3).createERC20(1,
       ["ERC20DT1P", "ERC20DT1SymbolP"],
-      [user3.address, user6.address, publishMarketFeeAddress, publishMarketFeeToken],
+      [user3.address, user6.address, publishMarketFeeAddress, publishMarketFeeToken,accessListFactoryContract.address],
       [cap, web3.utils.toWei(publishMarketFeeAmount)],
       []
 
@@ -1426,7 +1445,7 @@ describe("ERC20Template4", () => {
     // create an ERC20 with publish Fee ( 5 USDC, going to publishMarketAddress)
     const trxEnterpriseERC20 = await tokenERC721.connect(user3).createERC20(1,
       ["ERC20DT1P", "ERC20DT1SymbolP"],
-      [user3.address, user6.address, publishMarketFeeAddress, publishMarketFeeToken],
+      [user3.address, user6.address, publishMarketFeeAddress, publishMarketFeeToken,accessListFactoryContract.address],
       [cap, web3.utils.toWei(publishMarketFeeAmount)],
       []
 
@@ -1649,7 +1668,7 @@ describe("ERC20Template4", () => {
   })
   it("#getFilesObject - should not be able to get the files object if provider is not on allow list", async () => {
     //add providerAccount to the list
-    const allowContract= await ethers.getContractAt("AccessList", allowAccessList.address);
+    const allowContract= await ethers.getContractAt("AccessList", allowAccessList);
     const tx=await allowContract.connect(listsOwnerAccount).mint(providerAccount.address,"")
     await tx.wait()
     assert((await allowContract.balanceOf(providerAccount.address))>0)
@@ -1675,16 +1694,16 @@ describe("ERC20Template4", () => {
           consumerMessage,
           consumerSignature,
           user2.address),
-      'Provider not in allow list')
+      'Provider not allowed')
   })
   it("#getFilesObject - should not be able to get the files object if provider is on deny list", async () => {
     //add providerAccount to the deny list
-    let allowContract= await ethers.getContractAt("AccessList", denyAccessList.address);
+    let allowContract= await ethers.getContractAt("AccessList", denyAccessList);
     let tx=await allowContract.connect(listsOwnerAccount).mint(providerAccount.address,"")
     await tx.wait()
     assert((await allowContract.balanceOf(providerAccount.address))>0)
     // add provider to allow list
-    allowContract= await ethers.getContractAt("AccessList", allowAccessList.address);
+    allowContract= await ethers.getContractAt("AccessList", allowAccessList);
     tx=await allowContract.connect(listsOwnerAccount).mint(providerAccount.address,"")
     await tx.wait()
     assert((await allowContract.balanceOf(providerAccount.address))>0)
@@ -1710,11 +1729,11 @@ describe("ERC20Template4", () => {
           consumerMessage,
           consumerSignature,
           user2.address),
-      'Provider in deny list')
+      'Provider denied')
   })
   it("#getFilesObject - should not be able to get the files object if consumer has no order", async () => {
     //add providerAccount to the list
-    const allowContract= await ethers.getContractAt("AccessList", allowAccessList.address);
+    const allowContract= await ethers.getContractAt("AccessList", allowAccessList);
     const tx=await allowContract.connect(listsOwnerAccount).mint(providerAccount.address,"")
     await tx.wait()
     assert((await allowContract.balanceOf(providerAccount.address))>0)
@@ -1739,7 +1758,7 @@ describe("ERC20Template4", () => {
           consumerMessage,
           consumerSignature,
           user2.address),
-      'Consumer does not have a valid order')
+      'no consumer order')
   })
   it("#setFilesObject - should not be able to set new files object if not deployer", async () => {
     const newfilesObject= [
@@ -1751,7 +1770,7 @@ describe("ERC20Template4", () => {
     ]
     await expectRevert(
       erc20Token.connect(providerAccount).setFilesObject(ethers.utils.toUtf8Bytes(JSON.stringify(newfilesObject))),
-      "ERC20Template: NOT DEPLOYER ROLE")
+      "NOT DEPLOYER")
 
   })
   
@@ -1860,29 +1879,53 @@ describe("ERC20Template4", () => {
     const AccessList = await ethers.getContractFactory(
       "AccessList"
     );
-    const allowAccessList = await AccessList.deploy("Allow1","ALLOW");
-    const denyAccessList = await AccessList.deploy("Deny1","DENY");
+    const allowAccessList2 = await createNewAccessList("Allow1","ALLOW",false,owner.address)
+    const denyAccessList2 = await createNewAccessList("Deny1","DENY",false,owner.address)
     await expectRevert(
-      erc20TokenWithAccessList.connect(providerAccount).setAllowListContract(allowAccessList.address),
-      "ERC20Template: NOT DEPLOYER ROLE")
+      erc20TokenWithAccessList.connect(providerAccount).setAllowListContract(allowAccessList2),
+      "NOT DEPLOYER")
       await expectRevert(
-        erc20TokenWithAccessList.connect(providerAccount).setDenyListContract(denyAccessList.address),
-        "ERC20Template: NOT DEPLOYER ROLE")
+        erc20TokenWithAccessList.connect(providerAccount).setDenyListContract(denyAccessList2),
+        "NOT DEPLOYER")
   })
-  it("#setAllowListContract - should be able to set lists if owner", async () => {
-    assert((await erc20TokenWithAccessList.getAllowListContract())==allowAccessList.address)
-    assert((await erc20TokenWithAccessList.getDenyListContract())==denyAccessList.address)
+  it("#setAllowListContract - should not be able to set lists if access list is not from our factory", async () => {
     const AccessList = await ethers.getContractFactory(
       "AccessList"
     );
-    const newAllowAccessList = await AccessList.deploy("Allow1","ALLOW");
-    const newDenyAccessList = await AccessList.deploy("Deny1","DENY");
-    let tx=await erc20TokenWithAccessList.connect(user3).setAllowListContract(newAllowAccessList.address)
+    await expectRevert(
+      erc20TokenWithAccessList.connect(user3).setAllowListContract(user6.address),
+      "IAL")
+      await expectRevert(
+        erc20TokenWithAccessList.connect(user3).setDenyListContract(user5.address),
+        "IAL")
+  })
+  it("#setAllowListContract - should not be able to set lists if access list not soulbound", async () => {
+    const AccessList = await ethers.getContractFactory(
+      "AccessList"
+    );
+    const allowAccessList2 = await createNewAccessList("Allow1","ALLOW",true,owner.address)
+    const denyAccessList2 = await createNewAccessList("Deny1","DENY",true,owner.address)
+    await expectRevert(
+      erc20TokenWithAccessList.connect(user3).setAllowListContract(allowAccessList2),
+      "IAL")
+      await expectRevert(
+        erc20TokenWithAccessList.connect(user3).setDenyListContract(denyAccessList2),
+        "IAL")
+  })
+  it("#setAllowListContract - should be able to set lists if owner", async () => {
+    assert((await erc20TokenWithAccessList.getAllowListContract())==allowAccessList)
+    assert((await erc20TokenWithAccessList.getDenyListContract())==denyAccessList)
+    const AccessList = await ethers.getContractFactory(
+      "AccessList"
+    );
+    const newAllowAccessList = await createNewAccessList("Allow1","ALLOW",false,owner.address)
+    const newDenyAccessList = await createNewAccessList("Deny1","DENY",false,owner.address)
+    let tx=await erc20TokenWithAccessList.connect(user3).setAllowListContract(newAllowAccessList)
     await tx.wait()
-    tx=await erc20TokenWithAccessList.connect(user3).setDenyListContract(newDenyAccessList.address)
+    tx=await erc20TokenWithAccessList.connect(user3).setDenyListContract(newDenyAccessList)
     await tx.wait()
-    assert((await erc20TokenWithAccessList.getAllowListContract())==newAllowAccessList.address)
-    assert((await erc20TokenWithAccessList.getDenyListContract())==newDenyAccessList.address)
+    assert((await erc20TokenWithAccessList.getAllowListContract())==newAllowAccessList)
+    assert((await erc20TokenWithAccessList.getDenyListContract())==newDenyAccessList)
       
   })
 
