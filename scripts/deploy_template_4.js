@@ -6,7 +6,7 @@ const { UV_FS_O_FILEMAP } = require("constants");
 const ethers = hre.ethers;
 
 async function main() {
-    const networkName = "oasis_saphire_testnet";
+    const networkName = "oasis_saphire";
     const url = process.env.NETWORK_RPC_URL;
     console.log("Using RPC: " + url);
     if (!url) {
@@ -65,20 +65,27 @@ async function main() {
     const nftCount = await factoryERC721.connect(owner).getCurrentNFTTemplateCount(options);
     console.log("nftCount")
     console.log(nftCount)
-    console.log(await factoryERC721.connect(owner).owner(options));
+    const routerOwner=await factoryERC721.connect(owner).owner(options)
+    console.log("Router owner: "+routerOwner);
     
     const currentTokenCount = await factoryERC721.connect(owner).getCurrentTemplateCount(options);
     console.log("currentTokenCount")
     console.log(currentTokenCount)
     for(i=1;i<=currentTokenCount;i++){
         const tokenTemplate = await factoryERC721.connect(owner).getTokenTemplate(i,options);
-        console.log("tokenTemplate:"+i)
+        console.log("\n\n------------\ntokenTemplate:"+i)
         console.log(tokenTemplate)
         const erc20Template = await ethers.getContractAt("ERC20Template", tokenTemplate["templateAddress"]);
         const id=await erc20Template.connect(owner).getId()
-        console.log(id)
+        console.log("Id: "+id)
+        if(id===4 && tokenTemplate.isActive){
+          // we need to deactivate it
+          console.log("Deactivating template "+i+", with templateId: "+id)
+          const tx=await factoryERC721.connect(owner).disableTokenTemplate(i,options);
+          await tx.wait()
+        }
     }
-    process.exit(0)
+    //process.exit(0)
     console.info("Deploying ERC20 Sapphire Template");
     const ERC20Template4 = await ethers.getContractFactory(
         "ERC20Template4",
@@ -98,12 +105,13 @@ async function main() {
     await templateadd.wait();
     addresses.ERC20Template[parseInt(currentTokenCount)+1] =
         templateERC20Template4.address;
-
+    
     // Access lists
     console.info("Deploying Accesslists");
     const AccessListFactory = await ethers.getContractFactory("AccessListFactory");
     const AccessList = await ethers.getContractFactory("AccessList");
     const accessListContract = await AccessList.connect(owner).deploy()
+    await accessListContract.deployTransaction.wait();
     console.log("\tRun the following to verify on etherscan");
     console.log("\tnpx hardhat verify --network " + networkName + " " + accessListContract.address)
   
@@ -117,7 +125,7 @@ async function main() {
       const accessListFactoryContractOwnerTx = await accessListFactoryContract.connect(owner).transferOwnership(routerOwner, options)
       await accessListFactoryContractOwnerTx.wait()
     }
-    
+
     if (addressFile) {
           // write address.json if needed
           oldAddresses[networkName] = addresses;
