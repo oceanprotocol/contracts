@@ -99,6 +99,25 @@ async function main() {
     addresses.ERC20Template[parseInt(currentTokenCount)+1] =
         templateERC20Template4.address;
 
+    // Access lists
+    console.info("Deploying Accesslists");
+    const AccessListFactory = await ethers.getContractFactory("AccessListFactory");
+    const AccessList = await ethers.getContractFactory("AccessList");
+    const accessListContract = await AccessList.connect(owner).deploy()
+    console.log("\tRun the following to verify on etherscan");
+    console.log("\tnpx hardhat verify --network " + networkName + " " + accessListContract.address)
+  
+    const accessListFactoryContract = await AccessListFactory.connect(owner).deploy(accessListContract.address)
+    await accessListFactoryContract.deployTransaction.wait();
+    addresses.AccessListFactory = accessListFactoryContract.address;
+    console.log("\tRun the following to verify on etherscan");
+    console.log("\tnpx hardhat verify --network " + networkName + " " + addresses.AccessListFactory + " " + accessListContract.address)
+    if (owner.address != routerOwner) {
+      console.info("Moving ownerships to " + routerOwner)
+      const accessListFactoryContractOwnerTx = await accessListFactoryContract.connect(owner).transferOwnership(routerOwner, options)
+      await accessListFactoryContractOwnerTx.wait()
+    }
+    
     if (addressFile) {
           // write address.json if needed
           oldAddresses[networkName] = addresses;
