@@ -9,9 +9,8 @@ let metadata = {"uptime":100,"image":"ipfs://123"}
 let signers
 // Start test block
 describe('AccessLists tests', function () {
-  let accessListFactoryContract
   async function createNewAccessList(name,symbol,transferable,owner){
-    const tx=await accessListFactoryContract.deployAccessListContract(name,symbol,transferable,owner,[],[])
+    const tx=await this.accessListFactoryContract.deployAccessListContract(name,symbol,transferable,owner,[],[])
     const txReceipt = await tx.wait();
     const event = getEventFromTx(txReceipt, 'NewAccessList')
     assert(event, "Cannot find NewAccessList event")
@@ -24,8 +23,9 @@ describe('AccessLists tests', function () {
     const AccessList = await ethers.getContractFactory(
       "AccessList"
     );
-    const accessListContract = await AccessList.connect(signers[0]).deploy()
-    accessListFactoryContract = await AccessListFactory.connect(signers[0]).deploy(accessListContract.address)
+    this.accessListContract = await AccessList.connect(signers[0]).deploy()
+    this.accessListContract2 = await AccessList.connect(signers[0]).deploy()
+    accessListFactoryContract = await AccessListFactory.connect(signers[0]).deploy(this.accessListContract.address)
     let accessAddress = await createNewAccessList("AccessList","A",false,signers[0].address)
     this.accessListContract = await ethers.getContractAt("AccessList", accessAddress);
     accessAddress = await createNewAccessList("AccessList","A",true,signers[0].address)
@@ -36,6 +36,18 @@ describe('AccessLists tests', function () {
 
 
   // Test cases
+  it('Factory - Should fail if not owner tries to change the template', async function () {
+    await expect(
+      accessListFactoryContract.connect(signers[2]).changeTemplateAddress(this.accessListContract2.address))
+      .to.be.revertedWith("Ownable: caller is not the owner")
+  });
+
+  it('Factory - Owner should be able to change the template address', async function () {
+    const tx=await accessListFactoryContract.connect(signers[0]).changeTemplateAddress(this.accessListContract2.address)
+    expect(await accessListFactoryContract.templateAddress === this.accessListContract2.address, "Failed to change template address")
+  });
+
+
   it('Check token name', async function () {
     expect(await this.accessListContract.name()).to.exist;
     
