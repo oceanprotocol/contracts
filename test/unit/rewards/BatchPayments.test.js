@@ -4,7 +4,7 @@ const { json } = require('hardhat/internal/core/params/argumentTypes');
 const { web3 } = require("@openzeppelin/test-helpers/src/setup");
 
 // Start test block
-describe('Booster tests', function () {
+describe('Batch Payments tests', function () {
   let Mock20Contract;
   let Mock20DecimalsContract;
   let BatchPaymentsContract;
