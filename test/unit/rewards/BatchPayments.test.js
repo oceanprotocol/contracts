@@ -18,7 +18,8 @@ describe('Batch Payments tests', function () {
     Mock20Contract = await MockErc20.deploy(signers[0].address,"MockERC20", 'MockERC20');
     Mock20DecimalsContract = await MockErc20Decimals.deploy("Mock6Digits", 'Mock6Digits', 6);
     BatchPaymentsContract = await BatchPayments.deploy();
-    
+    console.log("Batch:" + BatchPaymentsContract.address)
+    console.log("Mock20Contract:" + Mock20Contract.address)
 
   });
 
@@ -29,7 +30,7 @@ describe('Batch Payments tests', function () {
   
 });
 
-it('Should transfer tokens in batch', async function () {
+it('ERC20 - Should transfer tokens in batch', async function () {
   const addresses = [signers[1].address, signers[2].address, signers[3].address];
   const amounts = [web3.utils.toWei("100"), web3.utils.toWei("200"), web3.utils.toWei("300")];
 
@@ -45,7 +46,7 @@ it('Should transfer tokens in batch', async function () {
   expect(await Mock20Contract.balanceOf(signers[3].address)).to.equal(web3.utils.toWei("300"));
 });
 
-it('Should revert if arrays length mismatch', async function () {
+it('ERC20 - Should revert if arrays length mismatch', async function () {
   const addresses = [signers[1].address, signers[2].address];
   const amounts = [web3.utils.toWei("100"), web3.utils.toWei("200"), web3.utils.toWei("300")];
 
@@ -57,7 +58,7 @@ it('Should revert if arrays length mismatch', async function () {
   
 });
 
-it('Should revert if transfer fails', async function () {
+it('ERC20 - Should revert if transfer fails(no prior allowence)', async function () {
   const addresses = [signers[1].address, signers[2].address, signers[3].address];
   const amounts = [web3.utils.toWei("100"), web3.utils.toWei("200"), web3.utils.toWei("1300")];
 
@@ -69,7 +70,7 @@ it('Should revert if transfer fails', async function () {
   
 });
 
-it('Should handle tokens with decimals correctly', async function () {
+it('ERC20 - Should handle tokens with decimals correctly', async function () {
   const addresses = [signers[1].address, signers[2].address, signers[3].address];
   const amounts = [
     ethers.utils.parseUnits("100", 6), 
@@ -89,7 +90,7 @@ it('Should handle tokens with decimals correctly', async function () {
   expect(await Mock20DecimalsContract.balanceOf(signers[3].address)).to.equal(ethers.utils.parseUnits("300", 6));
 });
 
-it('Should transfer native ETH in batch', async function () {
+it('NATIVE - Should transfer ETH in batch', async function () {
   const addresses = [signers[1].address, signers[2].address, signers[3].address];
   const amounts = [ethers.utils.parseEther("0.1"), ethers.utils.parseEther("0.2"), ethers.utils.parseEther("0.3")];
 
@@ -104,7 +105,32 @@ it('Should transfer native ETH in batch', async function () {
   expect(finalBalances[1]).to.equal(initialBalances[1].add(amounts[1]));
   expect(finalBalances[2]).to.equal(initialBalances[2].add(amounts[2]));
 });
+
+it('NATIVE - Should transfer ETH in batch and return remaining', async function () {
+  const owner = signers[0]
+  const addresses = [signers[1].address, signers[2].address, signers[3].address];
+  const amounts = [ethers.utils.parseEther("0.1"), ethers.utils.parseEther("0.2"), ethers.utils.parseEther("0.3")];
+
+  const initialOwnerBalance = await ethers.provider.getBalance(owner.address);
+  const initialContractBalance = await ethers.provider.getBalance(BatchPaymentsContract.address);
+  const initialBalances = await Promise.all(addresses.map(addr => ethers.provider.getBalance(addr)));
+
+  expect(initialContractBalance).to.equal(0);
+  // Perform the batch transfer
+  await BatchPaymentsContract.sendEther(addresses, amounts, { value: ethers.utils.parseEther("1.6") });
+
+  // Check balances
+  const finalBalances = await Promise.all(addresses.map(addr => ethers.provider.getBalance(addr)));
+  const finalOwnerBalance = await ethers.provider.getBalance(owner.address);
+  const finalContractBalance = await ethers.provider.getBalance(BatchPaymentsContract.address);
+  expect(finalBalances[0]).to.equal(initialBalances[0].add(amounts[0]));
+  expect(finalBalances[1]).to.equal(initialBalances[1].add(amounts[1]));
+  expect(finalBalances[2]).to.equal(initialBalances[2].add(amounts[2]));
   
+  expect(finalContractBalance).to.equal(0);
+  const diff=finalOwnerBalance.sub(initialOwnerBalance)
+  expect(Number(diff)).to.be.lessThan(Number(ethers.utils.parseEther("0.61")))
+});
 
 
 });

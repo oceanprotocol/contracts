@@ -20,8 +20,9 @@ contract BatchPayments {
         uint256 balance = address(this).balance;
         // make sure that we return any excess to the caller
         // Later TODO:  Check for gas
-        if (balance > 0)
-            payable(msg.sender).transfer(balance);
+        if (balance > 23000)
+            payable(msg.sender).call{value: balance}("");
+            //payable(msg.sender).transfer(balance);
     }
 
     function sendToken(IERC20 token, address[] memory list, uint256[] memory amounts) external {
