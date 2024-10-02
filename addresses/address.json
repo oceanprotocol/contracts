@@ -320,7 +320,8 @@
     "DFRewards": "0xc37F8341Ac6e4a94538302bCd4d49Cf0852D30C0",
     "DFStrategyV1": "0x3c21a90599b5B7f37014cA5Bf30d3f1b73d7e391",
     "PredictoorHelper": "0xE9397625Df9B63f0C152f975234b7988b54710B8",
-    "AccessListFactory": "0x12bB8D85a091A69A07E22E52d4567dBB91568f52"
+    "AccessListFactory": "0x12bB8D85a091A69A07E22E52d4567dBB91568f52",
+    "BatchPayments": "0x9497d1d64F2aFeBcd4f9916Eef3d9094E5Df962f"
   },
   "optimism_sepolia": {
     "chainId": 11155420,

@@ -40,6 +40,15 @@ async function main() {
   let sleepAmount = 10;
   console.log("Using chain "+networkDetails.chainId);
   switch (networkDetails.chainId) {
+    case 23294:
+        networkName = "oasis_saphire";
+        OceanTokenAddress = "0x39d22B78A7651A76Ffbde2aaAB5FD92666Aca520";
+        OPFOwner = '0x086E7F0588755af5AF5f8194542Fd8328238F3C1'
+        routerOwner = OPFOwner;
+        sleepAmount = 30
+        gasPrice = ethers.utils.parseUnits('100', 'gwei')
+        gasLimit = 15000000
+        break;
     default:
       OPFOwner = "0x0d27cd67c4A3fd3Eb9C7C757582f59089F058167";
       networkName = "development";
