@@ -258,7 +258,7 @@
     "Dispenser": "0xDEfD0018969cd2d4E648209F876ADe184815f038",
     "ERC721Factory": "0x9C9eE07b8Ce907D2f9244F8317C1Ed29A3193bAe"
   },
-  "oasis_saphire_testnet": {
+  "oasis_sapphire_testnet": {
     "chainId": 23295,
     "Ocean": "0x973e69303259B0c2543a38665122b773D28405fB",
     "OPFCommunityFeeCollector": "0xe8c6Dc39602031A152440311e364818ba25C2Bc1",
@@ -298,7 +298,7 @@
     "Dispenser": "0x2720d405ef7cDC8a2E2e5AeBC8883C99611d893C",
     "ERC721Factory": "0xEF62FB495266C72a5212A11Dce8baa79Ec0ABeB1"
   },
-  "oasis_saphire": {
+  "oasis_sapphire": {
     "chainId": 23294,
     "Ocean": "0x39d22B78A7651A76Ffbde2aaAB5FD92666Aca520",
     "OPFCommunityFeeCollector": "0x06100AB868206861a4D7936166A91668c2Ce1312",
