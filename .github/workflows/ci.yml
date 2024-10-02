@@ -68,9 +68,9 @@ jobs:
           ALCHEMY_URL: ${{secrets.ALCHEMY_URL}}
       - name: Delete dbg files
         run: find ./artifacts/* -name "*.dbg.json" -type f -delete
-      - uses: actions/upload-artifact@v2
+      - uses: actions/upload-artifact@v4
         with:
-          name: coverage
+          name: coverage-contracts
           path: coverage/
 
   slither:
@@ -104,9 +104,9 @@ jobs:
     if: ${{ success() && github.actor != 'dependabot[bot]' }}
     steps:
       - uses: actions/checkout@v2
-      - uses: actions/download-artifact@v2
+      - uses: actions/download-artifact@v4
         with:
-          name: coverage
+          name: coverage-contracts
           path: coverage/
       - uses: paambaati/codeclimate-action@v2.7.5
         env:
