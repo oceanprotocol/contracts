@@ -885,6 +885,23 @@ async function main() {
     }
   }
 
+  // Batcher
+  if (logging) console.info("Deploying BatchPayment");
+    const BatchPayments = await ethers.getContractFactory(
+      "BatchPayments",
+      owner
+    );
+    
+    const deployBatchPayments = await BatchPayments.connect(owner).deploy(options)
+    await deployBatchPayments.deployTransaction.wait();
+    if (show_verify) {
+      console.log("\tRun the following to verify on etherscan");
+      console.log("\tnpx hardhat verify --network " + networkName + " " + deployBatchPayments.address)
+    }
+    addresses.BatchPayments = deployBatchPayments.address;
+    if (sleepAmount > 0) await sleep(sleepAmount)
+
+
   //DF contracts
   if (shouldDeployDF) {
     //DFRewards
