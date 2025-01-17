@@ -124,7 +124,8 @@ contract Escrow is
         require(token!=address(0),'Invalid token');
         require(payee!=address(0),'Invalid payee');
         uint256 i;
-        for(i=0;i<userAuths[msg.sender][token].length;i++){
+        uint256 length=userAuths[msg.sender][token].length;
+        for(i=0;i<length;i++){
             if(userAuths[msg.sender][token][i].payee==payee){
                 userAuths[msg.sender][token][i].maxLockedAmount=maxLockedAmount;
                 userAuths[msg.sender][token][i].maxLockSeconds=maxLockSeconds;
@@ -132,7 +133,7 @@ contract Escrow is
                 break;
             }
         }
-        if(i==userAuths[msg.sender][token].length){ //not found
+        if(i==length){ //not found
             userAuths[msg.sender][token].push(auth(payee,maxLockedAmount,0,maxLockSeconds,maxLockCounts,0));
         }
         emit Auth(msg.sender,payee,maxLockedAmount,maxLockSeconds,maxLockCounts);
@@ -161,7 +162,8 @@ contract Escrow is
     function getLocks(address token,address payer,address payee) public view returns (lock[] memory){
         // since solidty does not supports dynamic memory arrays, we need to calculate the return size first
         uint256 size=0;
-        for(uint256 i=0;i<locks.length;i++){
+        uint256 length=locks.length;
+        for(uint256 i=0;i<length;i++){
             if( 
                 (address(token)==address(0) || address(token)==locks[i].token) || 
                 (address(payee)==address(0) || address(payee)==locks[i].payee) || 
@@ -173,7 +175,7 @@ contract Escrow is
         
         lock[] memory tempPendings=new lock[](size);
         size=0;
-        for(uint256 i=0;i<locks.length;i++){
+        for(uint256 i=0;i<length;i++){
             if(
                 (address(token)==address(0) || address(token)==locks[i].token) ||
                 (address(payee)==address(0) || address(payee)==locks[i].payee) ||
@@ -200,12 +202,13 @@ contract Escrow is
         require(token!=address(0),'Invalid token');
         // since solidty does not supports dynamic memory arrays, we need to calculate the return size first
         uint256 size=0;
-        for(uint256 i=0;i<userAuths[payer][token].length;i++){
+        uint256 length=userAuths[payer][token].length;
+        for(uint256 i=0;i<length;i++){
             if(address(payee)==address(0) || address(payee)==userAuths[payer][token][i].payee) size++;
         }
         auth[] memory tempAuths=new auth[](size);
         size=0;
-        for(uint256 i=0;i<userAuths[payer][token].length;i++){
+        for(uint256 i=0;i<length;i++){
             if(address(payee)==address(0) || address(payee)==userAuths[payer][token][i].payee){
                 tempAuths[size]=userAuths[payer][token][i];
                 size++;
@@ -231,11 +234,12 @@ contract Escrow is
         require(token!=address(0),'Invalid token');
         require(amount>0,"Invalid amount");
         require(jobId>0,"Invalid jobId");
-        auth memory tempAuth;
+        auth memory tempAuth=auth(address(0),0,0,0,0,0);
         uint256 index;
         uint256 ts=block.timestamp;
         require(funds[payer][token].available>=amount,"Payer does not have enough funds");
-        for(index=0;index<userAuths[payer][token].length;index++){
+        uint256 length=userAuths[payer][token].length;
+        for(index=0;index<length;index++){
             if(msg.sender==userAuths[payer][token][index].payee) {
                 tempAuth=userAuths[payer][token][index];
                 break;
@@ -247,7 +251,8 @@ contract Escrow is
         require(tempAuth.currentLockedAmount+amount<=tempAuth.maxLockedAmount,"Exceeds maxLockedAmount");
         require(tempAuth.currentLocks<tempAuth.maxLockCounts,"Exceeds maxLockCounts");
         // check jobId
-        for(uint256 i=0;i<locks.length;i++){
+        length=locks.length;
+        for(uint256 i=0;i<length;i++){
             if(locks[i].payer==payer && locks[i].payee==msg.sender && locks[i].jobId==jobId){
                 revert("JobId already exists");
             }
@@ -282,7 +287,8 @@ contract Escrow is
         require(jobId>0,'Invalid jobId');
         lock memory tempLock;
         uint256 index;
-        for(index=0;index<locks.length;index++){
+        uint256 length=locks.length;
+        for(index=0;index<length;index++){
             if(
                 msg.sender==locks[index].payee && 
                 payer==locks[index].payer && 
@@ -302,7 +308,8 @@ contract Escrow is
         require(tempLock.amount>=amount,"Amount too high");
         
         //update auths
-        for(uint256 i=0;i<userAuths[payer][token].length;i++){
+        length=userAuths[payer][token].length;
+        for(uint256 i=0;i<length;i++){
             if(userAuths[payer][token][i].payee==msg.sender){
                 userAuths[payer][token][i].currentLockedAmount-=tempLock.amount;
                 userAuths[payer][token][i].currentLocks-=1;
@@ -335,7 +342,8 @@ contract Escrow is
         uint256 index;
         //since solidy does not supports dynamic arrays, we need to count first
         uint256 found=0;
-        for(index=0;index<locks.length;index++){
+        uint256 length=locks.length;
+        for(index=0;index<length;index++){
             if(locks[index].expiry<block.timestamp &&
                 (
                     (jobId==0 || jobId==locks[index].jobId) &&
@@ -352,7 +360,7 @@ contract Escrow is
         uint256[] memory indexToDelete=new uint256[](found);
         uint256 currentIndex=0;
         // now actually do the work
-        for(index=0;index<locks.length;index++){
+        for(index=0;index<length;index++){
             if(locks[index].expiry<block.timestamp &&
                 (
                     (jobId==0 || jobId==locks[index].jobId) &&
@@ -363,7 +371,8 @@ contract Escrow is
             ){
                 //cancel each lock, one by one
                 //update auths
-                for(uint256 i=0;i<userAuths[locks[index].payer][locks[index].token].length;i++){
+                uint256 authsLength=userAuths[locks[index].payer][locks[index].token].length;
+                for(uint256 i=0;i<authsLength;i++){
                         if(userAuths[payer][token][i].payee==locks[index].payee){
                             userAuths[payer][token][i].currentLockedAmount-=locks[index].amount;
                             userAuths[payer][token][i].currentLocks-=1;
@@ -379,7 +388,8 @@ contract Escrow is
             }
         }
         //delete the locks
-        for(index=0;index<indexToDelete.length;index++){
+        uint256 delLength=indexToDelete.length;
+        for(index=0;index<delLength;index++){
             locks[indexToDelete[index]]=locks[locks.length-1];
             locks.pop();
         }
