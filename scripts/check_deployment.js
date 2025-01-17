@@ -16,7 +16,7 @@ async function testDeployment() {
     console.error("Missing development network")
     process.exit(1)
   }
-  keys = ["startBlock", "Router", "FixedPrice", "ERC20Template", "ERC721Template", "Dispenser", "ERC721Factory","AccessListFactory"]
+  keys = ["startBlock", "Router", "FixedPrice", "ERC20Template", "ERC721Template", "Dispenser", "ERC721Factory","AccessListFactory","Escrow"]
   for (const key of keys) {
     if (!(key in addresses['development'])) {
       console.error("Missing " + key + " deployment")

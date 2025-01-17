@@ -25,6 +25,7 @@
   "scripts": {
     "test:full": "npx hardhat test test/unit/*/*.test.js test/flow/*.test.js ",
     "test:batch": "npx hardhat test test/flow/SwapBatch.test.js ",
+    "test:escrow": "npx hardhat test test/unit/escrow/Escrow.test.js ",
     "test:fre": "npx hardhat test test/flow/FixedRateExchange.test.js ",
     "test:dispenser": "npx hardhat test test/flow/Dispenser.test.js ",
     "test:debug": "npx hardhat test test/flow/Vesting.test.js ",
