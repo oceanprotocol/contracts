@@ -285,7 +285,7 @@ contract Escrow is
         require(payer!=address(0),'Invalid payer');
         require(token!=address(0),'Invalid token');
         require(jobId>0,'Invalid jobId');
-        lock memory tempLock;
+        lock memory tempLock=lock(0,address(0),address(0),0,0,address(0));
         uint256 index;
         uint256 length=locks.length;
         for(index=0;index<length;index++){
