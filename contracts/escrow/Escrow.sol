@@ -150,7 +150,14 @@ contract Escrow is
     function getFunds(address token) public view returns (userFunds memory){
         return(funds[msg.sender][token]);
     }
-    function getFunds(address payer,address token) public view returns (userFunds memory){
+    /**
+     * @dev getUserFunds
+     *      Returns funds information for a specific payer
+     *      
+     * @param payer payer
+     * @param token token
+     */
+    function getUserFunds(address payer,address token) public view returns (userFunds memory){
         return(funds[payer][token]);
     }
     
