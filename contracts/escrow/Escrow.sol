@@ -246,7 +246,6 @@ contract Escrow is
         require(jobId>0,"Invalid jobId");
         auth memory tempAuth=auth(address(0),0,0,0,0,0);
         uint256 index;
-        uint256 ts=block.timestamp;
         require(funds[payer][token].available>=amount,"Payer does not have enough funds");
         uint256 length=userAuths[payer][token].length;
         for(index=0;index<length;index++){
@@ -256,7 +255,7 @@ contract Escrow is
             }
         }
         require(tempAuth.payee==msg.sender,"No auth found");
-        require(expiry>ts && expiry <= (ts+tempAuth.maxLockSeconds),"Invalid expiry");
+        require(expiry<=tempAuth.maxLockSeconds,"Expiry too high");
         require(amount<= tempAuth.maxLockedAmount,"Amount too high");
         require(tempAuth.currentLockedAmount+amount<=tempAuth.maxLockedAmount,"Exceeds maxLockedAmount");
         require(tempAuth.currentLocks<tempAuth.maxLockCounts,"Exceeds maxLockCounts");
@@ -274,7 +273,7 @@ contract Escrow is
         funds[payer][token].available-=amount;
         funds[payer][token].locked+=amount;
         // create the lock
-        locks.push(lock(jobId,payer,msg.sender,amount,expiry,token));
+        locks.push(lock(jobId,payer,msg.sender,amount,block.timestamp+expiry,token));
         emit Lock(payer,msg.sender,jobId,amount,expiry,token);
     }
 

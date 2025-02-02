@@ -99,7 +99,7 @@ it('Escrow - lock', async function () {
     
     let jobId=1 // full claim
     const now=Math.floor(Date.now() / 1000)
-    const expire = Math.round(await blocktimestamp()) + 60
+    const expire = 60
     await expect(EscrowContract.connect(payee1).createLock(jobId,Mock20Contract.address,payer2.address,web3.utils.toWei("50"),expire)).to.be.revertedWith("Payer does not have enough funds")
     //payer2 has funds, but no auth
     await Mock20Contract.connect(payer2).approve(EscrowContract.address, web3.utils.toWei("10000"));
