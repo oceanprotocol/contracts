@@ -142,7 +142,8 @@
     "VestingWallet0": "0x8D011915C437AD5f5e3B0E4c6dd6380c92599f99",
     "VestingWalletA": "0xf9FB1f54eA825734E3a77e73A3864f4B46C815d9",
     "VestingWalletB": "0xf02e3163Dc3409D69D88D7AcDA613432E9A18741",
-    "VestingWalletC": "0x29F74B853C4B8D36273666FB63a3b71c754424Ed"
+    "VestingWalletC": "0x29F74B853C4B8D36273666FB63a3b71c754424Ed",
+    "OceanNodesBooster": "0x73558Ef3bb6543A8107ac032C5a98Da03ceb0eEf"
   },
   "goerli": {
     "chainId": 5,
@@ -296,7 +297,8 @@
       "1": "0x9C9eE07b8Ce907D2f9244F8317C1Ed29A3193bAe"
     },
     "Dispenser": "0x2720d405ef7cDC8a2E2e5AeBC8883C99611d893C",
-    "ERC721Factory": "0xEF62FB495266C72a5212A11Dce8baa79Ec0ABeB1"
+    "ERC721Factory": "0xEF62FB495266C72a5212A11Dce8baa79Ec0ABeB1",
+    "Escrow": "0x7b0576CF01E868bce46cca91b2a8E674141b0355"
   },
   "oasis_saphire": {
     "chainId": 23294,
@@ -321,7 +323,8 @@
     "DFStrategyV1": "0x3c21a90599b5B7f37014cA5Bf30d3f1b73d7e391",
     "PredictoorHelper": "0xE9397625Df9B63f0C152f975234b7988b54710B8",
     "AccessListFactory": "0x12bB8D85a091A69A07E22E52d4567dBB91568f52",
-    "BatchPayments": "0x9497d1d64F2aFeBcd4f9916Eef3d9094E5Df962f"
+    "BatchPayments": "0x9497d1d64F2aFeBcd4f9916Eef3d9094E5Df962f",
+    "Escrow": "0x7b0576CF01E868bce46cca91b2a8E674141b0355"
   },
   "optimism_sepolia": {
     "chainId": 11155420,
@@ -338,7 +341,8 @@
       "1": "0x3C5605202eD47C162450AE975415473e73F93072"
     },
     "Dispenser": "0x30E4CC2C7A9c6aA2b2Ce93586E3Df24a3A00bcDD",
-    "ERC721Factory": "0xDEfD0018969cd2d4E648209F876ADe184815f038"
+    "ERC721Factory": "0xDEfD0018969cd2d4E648209F876ADe184815f038",
+    "Escrow": "0xA0329eFFa1370eAb1DC5998Db4292ae0F535a282"
   },
   "optimism": {
     "chainId": 10,
