@@ -300,7 +300,8 @@ contract Escrow is
      * @param amount amount in wei to claim
      * @param proof job proof
      */
-    function claimLock(uint256 jobId,address token,address payer,uint256 amount,bytes memory proof) external nonReentrant{
+    function claimLock(uint256 jobId,address token,address payer,uint256 amount,bytes memory proof) 
+        external nonReentrant{
             _claimLock(jobId,token,payer,amount,proof);
     }
     
@@ -315,11 +316,17 @@ contract Escrow is
      * @param amount array amounts in wei to claim
      * @param proof array of job proofs
      */
-    function claimLocks(uint256[] memory jobId,address[] memory token,address[] memory  payer,uint256[] memory amount,bytes[] memory proof) external nonReentrant{
-        require(jobId.length==token.length && jobId.length==payer.length && jobId.length==amount.length && jobId.length==proof.length,"Invalid input");
-        for(uint256 i=0;i<jobId.length;i++){
-            _claimLock(jobId[i],token[i],payer[i],amount[i],proof[i]);
-        }
+    function claimLocks(uint256[] memory jobId,address[] memory token,
+        address[] memory  payer,uint256[] memory amount,
+        bytes[] memory proof) external nonReentrant{
+        
+            require(jobId.length==token.length && 
+                    jobId.length==payer.length && 
+                    jobId.length==amount.length && 
+                    jobId.length==proof.length,"Invalid input");
+            for(uint256 i=0;i<jobId.length;i++){
+                _claimLock(jobId[i],token[i],payer[i],amount[i],proof[i]);
+            }
     }
     /**
      * @dev claimLockAndWithdraw
@@ -332,7 +339,8 @@ contract Escrow is
      * @param amount amount in wei to claim
      * @param proof job proof
      */
-    function claimLockAndWithdraw(uint256 jobId,address token,address payer,uint256 amount,bytes memory proof) external nonReentrant{
+    function claimLockAndWithdraw(uint256 jobId,address token,address payer,
+        uint256 amount,bytes memory proof) external nonReentrant{
             _claimLock(jobId,token,payer,amount,proof);
             _withdraw(token,funds[msg.sender][token].available);
         
@@ -348,8 +356,13 @@ contract Escrow is
      * @param amount array amounts in wei to claim
      * @param proof array of job proofs
      */
-    function claimLocksAndWithdraw(uint256[] memory jobId,address[] memory token,address[] memory  payer,uint256[] memory amount,bytes[] memory proof) external nonReentrant{
-        require(jobId.length==token.length && jobId.length==payer.length && jobId.length==amount.length && jobId.length==proof.length,"Invalid input");
+    function claimLocksAndWithdraw(uint256[] memory jobId,address[] memory token,
+        address[] memory  payer,uint256[] memory amount,bytes[] memory proof) external nonReentrant{
+        
+        require(jobId.length==token.length && 
+            jobId.length==payer.length && 
+            jobId.length==amount.length && 
+            jobId.length==proof.length,"Invalid input");
         uint256 i;
         for(i=0;i<jobId.length;i++){
             _claimLock(jobId[i],token[i],payer[i],amount[i],proof[i]);
@@ -431,11 +444,14 @@ contract Escrow is
      * @param payer payer address (zero address means any)
      * @param payee payee address (zero address means any)
      */
-    function cancelExpiredLocks(uint256[] memory jobId,address[] memory token,address[] memory payer,address[] memory payee) external nonReentrant{
-        require(jobId.length==token.length && jobId.length==payer.length && jobId.length==payee.length,"Invalid input");
-        for(uint256 i=0;i<jobId.length;i++){
-            _cancelExpiredLock(jobId[i],token[i],payer[i],payee[i]);
-        }
+    function cancelExpiredLocks(uint256[] memory jobId,address[] memory token,address[] memory payer,
+        address[] memory payee) external nonReentrant{
+            require(jobId.length==token.length && 
+            jobId.length==payer.length && 
+            jobId.length==payee.length,"Invalid input");
+            for(uint256 i=0;i<jobId.length;i++){
+                _cancelExpiredLock(jobId[i],token[i],payer[i],payee[i]);
+            }
     }
     
     function _cancelExpiredLock(uint256 jobId,address token,address payer,address payee) internal{
