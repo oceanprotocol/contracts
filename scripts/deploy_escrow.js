@@ -51,6 +51,11 @@ async function main() {
         gasPrice = ethers.utils.parseUnits('100', 'gwei')
         gasLimit = 28000000
         break;
+    case 11155111:
+          networkName = "sepolia";
+          gasPrice = ethers.utils.parseUnits('1', 'gwei')
+          gasLimit = 28000000
+          break;
     case 11155420:
         networkName = "optimism_sepolia";
         gasPrice = ethers.utils.parseUnits('1', 'gwei')

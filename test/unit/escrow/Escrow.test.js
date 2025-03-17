@@ -77,8 +77,9 @@ it('Escrow - deposit', async function () {
 it('Escrow - withdraw', async function () {
     const balanceMock20=await Mock20Contract.balanceOf(EscrowContract.address);
     const balanceMock20Decimal=await Mock20DecimalsContract.balanceOf(EscrowContract.address);
-    await expect(EscrowContract.connect(payer1).withdraw(Mock20Contract.address,web3.utils.toWei("10000"))).to.be.revertedWith("Not enough available funds")
-    await EscrowContract.connect(payer1).withdraw(Mock20Contract.address,web3.utils.toWei("10"));
+    await EscrowContract.connect(payer1).withdraw([Mock20Contract.address],[web3.utils.toWei("10000")]);
+    expect(await Mock20Contract.balanceOf(EscrowContract.address)).to.equal(balanceMock20);
+    await EscrowContract.connect(payer1).withdraw([Mock20Contract.address],[web3.utils.toWei("10")]);
     expect(await Mock20Contract.balanceOf(EscrowContract.address)).to.equal(web3.utils.toWei("90"));
 });
 
@@ -147,7 +148,7 @@ it('Escrow - lock', async function () {
       }
     }
     expect(lock.jobId).to.equal(jobId)
-    const tx=await EscrowContract.connect(payee1).claimLock(lock.jobId,lock.token,lock.payer,lock.amount,0);
+    const tx=await EscrowContract.connect(payee1).claimLocksAndWithdraw([lock.jobId],[lock.token],[lock.payer],[lock.amount],[0]);
     const txReceipt = await tx.wait();
     const event = getEventFromTx(txReceipt, 'Claimed')
     assert(event, "Cannot find Claimed event")
@@ -182,7 +183,7 @@ it('Escrow - lock', async function () {
     expect(lock.jobId).to.equal(jobId)
     const claimedAmount=web3.utils.toWei("1")
     const returnAmount=lock.amount.sub(claimedAmount)
-    const tx=await EscrowContract.connect(payee1).claimLock(lock.jobId,lock.token,lock.payer,claimedAmount,0);
+    const tx=await EscrowContract.connect(payee1).claimLocksAndWithdraw([lock.jobId],[lock.token],[lock.payer],[claimedAmount],[0]);
     const txReceipt = await tx.wait();
     const event = getEventFromTx(txReceipt, 'Claimed')
     assert(event, "Cannot find Claimed event")
@@ -218,7 +219,7 @@ it('Escrow - lock', async function () {
     expect(lock.jobId).to.equal(jobId)
     const claimedAmount=web3.utils.toWei("1")
     const returnAmount=lock.amount.sub(claimedAmount)
-    const tx=await EscrowContract.connect(payee1).claimLock(lock.jobId,lock.token,lock.payer,claimedAmount,0);
+    const tx=await EscrowContract.connect(payee1).claimLocksAndWithdraw([lock.jobId],[lock.token],[lock.payer],[claimedAmount],[0]);
     const txReceipt = await tx.wait();
     const event = getEventFromTx(txReceipt, 'Canceled')
     assert(event, "Cannot find Canceled event")
@@ -253,7 +254,7 @@ it('Escrow - lock', async function () {
     expect(lock.jobId).to.equal(jobId)
     const claimedAmount=web3.utils.toWei("1")
     const returnAmount=lock.amount.sub(claimedAmount)
-    const tx=await EscrowContract.connect(payer1).cancelExpiredLocks(lock.jobId,lock.token,lock.payer,lock.payee);
+    const tx=await EscrowContract.connect(payer1).cancelExpiredLocks([lock.jobId],[lock.token],[lock.payer],[lock.payee]);
     const txReceipt = await tx.wait();
     const event = getEventFromTx(txReceipt, 'Canceled')
     assert(event, "Cannot find Canceled event")

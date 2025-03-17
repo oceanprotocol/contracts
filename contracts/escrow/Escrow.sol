@@ -87,7 +87,12 @@ contract Escrow is
         require(token!=address(0),"Invalid token address");
         funds[msg.sender][token].available+=amount;
         emit Deposit(msg.sender,token,amount);
-        _pullUnderlying(token,msg.sender,address(this),amount);
+        uint256 balanceBefore = IERC20(token).balanceOf(address(this));
+        IERC20(token).safeTransferFrom(msg.sender, address(this), amount);
+        require(
+            IERC20(token).balanceOf(address(this)) >= balanceBefore.add(amount),
+            "Transfer amount is too low"
+        );
         
     }
 
@@ -95,17 +100,24 @@ contract Escrow is
      * @dev withdraw
      *      Called by payer to withdraw available (not locked) funds from the contract
      *      
-     * @param token token to withdraw
-     * @param amount amount in wei to withdraw
+     * @param token array of tokens to withdraw
+     * @param amount array of amounts in wei to withdraw
      */
-    function withdraw(address token,uint256 amount) external nonReentrant{
-        require(funds[msg.sender][token].available>=amount,"Not enough available funds");
-        funds[msg.sender][token].available-=amount;
-        emit Withdraw(msg.sender,token,amount);
-        IERC20(token).safeTransfer(
-            msg.sender,
-            amount
-        );
+    function withdraw(address[] memory token,uint256[] memory amount) external nonReentrant{
+        require(token.length==amount.length,"Invalid input");
+        for(uint256 i=0;i<token.length;i++){
+            _withdraw(token[i],amount[i]);
+        }
+    }
+    function _withdraw(address token,uint256 amount) internal{
+        if(funds[msg.sender][token].available>=amount){
+            funds[msg.sender][token].available-=amount;
+            emit Withdraw(msg.sender,token,amount);
+            IERC20(token).safeTransfer(
+                msg.sender,
+                amount
+            );
+        }
     }
 
     /**
@@ -119,7 +131,7 @@ contract Escrow is
      * @param maxLockCounts maximum locks held by this payee
      */
     function authorize(address token,address payee,uint256 maxLockedAmount,
-        uint256 maxLockSeconds,uint256 maxLockCounts) external{
+        uint256 maxLockSeconds,uint256 maxLockCounts) external nonReentrant{
         
         require(token!=address(0),'Invalid token');
         require(payee!=address(0),'Invalid payee');
@@ -239,7 +251,7 @@ contract Escrow is
      * @param amount amount in wei to lock
      * @param expiry expiry timestamp
      */
-    function createLock(uint256 jobId,address token,address payer,uint256 amount,uint256 expiry) external{
+    function createLock(uint256 jobId,address token,address payer,uint256 amount,uint256 expiry) external nonReentrant{
         require(payer!=address(0),'Invalid payer');
         require(token!=address(0),'Invalid token');
         require(amount>0,"Invalid amount");
@@ -277,7 +289,7 @@ contract Escrow is
         emit Lock(payer,msg.sender,jobId,amount,expiry,token);
     }
 
-    /**
+     /**
      * @dev claimLock
      *      Called by payee to claim a lock (fully or partial)
      *      Must match a previous lock
@@ -288,9 +300,69 @@ contract Escrow is
      * @param amount amount in wei to claim
      * @param proof job proof
      */
-    function claimLock(uint256 jobId,address token,address payer,uint256 amount,
-        bytes memory proof) external nonReentrant{
+    function claimLock(uint256 jobId,address token,address payer,uint256 amount,bytes memory proof) external nonReentrant{
+            _claimLock(jobId,token,payer,amount,proof);
+    }
+    
+    /**
+     * @dev claimLocks
+     *      Called by payee to claim locks (fully or partial) and keeps funds in the contract
+     *      Must match previous locks
+     *      
+     * @param jobId array of jobIds
+     * @param token array of tokens
+     * @param payer array of payer addresses
+     * @param amount array amounts in wei to claim
+     * @param proof array of job proofs
+     */
+    function claimLocks(uint256[] memory jobId,address[] memory token,address[] memory  payer,uint256[] memory amount,bytes[] memory proof) external nonReentrant{
+        require(jobId.length==token.length && jobId.length==payer.length && jobId.length==amount.length && jobId.length==proof.length,"Invalid input");
+        for(uint256 i=0;i<jobId.length;i++){
+            _claimLock(jobId[i],token[i],payer[i],amount[i],proof[i]);
+        }
+    }
+    /**
+     * @dev claimLockAndWithdraw
+     *      Called by payee to claim lock (fully or partial) and withdraw funds
+     *      Must match previous lock
+     *      
+     * @param jobId jobId, required
+     * @param token token, required
+     * @param payer payer address
+     * @param amount amount in wei to claim
+     * @param proof job proof
+     */
+    function claimLockAndWithdraw(uint256 jobId,address token,address payer,uint256 amount,bytes memory proof) external nonReentrant{
+            _claimLock(jobId,token,payer,amount,proof);
+            _withdraw(token,funds[msg.sender][token].available);
         
+    }
+    /**
+     * @dev claimLocksAndWithdraw
+     *      Called by payee to claim locks (fully or partial) and withdraw funds
+     *      Must match previous locks
+     *      
+     * @param jobId array of jobIds
+     * @param token array of tokens
+     * @param payer array of payer addresses
+     * @param amount array amounts in wei to claim
+     * @param proof array of job proofs
+     */
+    function claimLocksAndWithdraw(uint256[] memory jobId,address[] memory token,address[] memory  payer,uint256[] memory amount,bytes[] memory proof) external nonReentrant{
+        require(jobId.length==token.length && jobId.length==payer.length && jobId.length==amount.length && jobId.length==proof.length,"Invalid input");
+        uint256 i;
+        for(i=0;i<jobId.length;i++){
+            _claimLock(jobId[i],token[i],payer[i],amount[i],proof[i]);
+        }
+        for(i=0;i<token.length;i++){
+            if(funds[msg.sender][token[i]].available>0){
+                _withdraw(token[i],funds[msg.sender][token[i]].available);
+            }
+        }
+    }
+    
+    function _claimLock(uint256 jobId,address token,address payer,uint256 amount,
+        bytes memory proof) internal {
         require(payer!=address(0),'Invalid payer');
         require(token!=address(0),'Invalid token');
         require(jobId>0,'Invalid jobId');
@@ -311,7 +383,7 @@ contract Escrow is
         require(tempLock.payee==msg.sender,"Lock not found");
         if(tempLock.expiry<block.timestamp){
             //we are too late, cancel the lock
-            cancelExpiredLocks(jobId,token,payer,msg.sender);
+            _cancelExpiredLock(jobId,token,payer,msg.sender);
             return;
         }
         require(tempLock.amount>=amount,"Amount too high");
@@ -327,17 +399,29 @@ contract Escrow is
         //update user funds
         funds[payer][token].available+=tempLock.amount-amount;
         funds[payer][token].locked-=tempLock.amount;
+        //update payee balance
+        funds[msg.sender][token].available+=amount;
         //delete the lock
         if(index<locks.length-1){
             locks[index]=locks[locks.length-1];
         }
         locks.pop();
-        
         emit Claimed(msg.sender,jobId,token,payer,amount,proof);
-        //send the tokens
-        IERC20(token).safeTransfer(msg.sender,amount);
     }
 
+    /**
+     * @dev cancelExpiredLock
+     *      Can be called by anyone to release an expired lock
+     *      
+     * @param jobId jobId, if 0 matches any jobId
+     * @param token token (zero address means any)
+     * @param payer payer address (zero address means any)
+     * @param payee payee address (zero address means any)
+     */
+    function cancelExpiredLock(uint256 jobId,address token,address payer,address payee) external nonReentrant{
+        _cancelExpiredLock(jobId,token,payer,payee);
+        
+    }
     /**
      * @dev cancelExpiredLocks
      *      Can be called by anyone to release an expired locks
@@ -347,7 +431,14 @@ contract Escrow is
      * @param payer payer address (zero address means any)
      * @param payee payee address (zero address means any)
      */
-    function cancelExpiredLocks(uint256 jobId,address token,address payer,address payee) public{
+    function cancelExpiredLocks(uint256[] memory jobId,address[] memory token,address[] memory payer,address[] memory payee) external nonReentrant{
+        require(jobId.length==token.length && jobId.length==payer.length && jobId.length==payee.length,"Invalid input");
+        for(uint256 i=0;i<jobId.length;i++){
+            _cancelExpiredLock(jobId[i],token[i],payer[i],payee[i]);
+        }
+    }
+    
+    function _cancelExpiredLock(uint256 jobId,address token,address payer,address payee) internal{
         uint256 index;
         //since solidy does not supports dynamic arrays, we need to count first
         uint256 found=0;
@@ -402,20 +493,5 @@ contract Escrow is
             locks[indexToDelete[index]]=locks[locks.length-1];
             locks.pop();
         }
-    }
-
-    /* Utils */
-    function _pullUnderlying(
-        address erc20,
-        address from,
-        address to,
-        uint256 amount
-    ) internal {
-        uint256 balanceBefore = IERC20(erc20).balanceOf(to);
-        IERC20(erc20).safeTransferFrom(from, to, amount);
-        require(
-            IERC20(erc20).balanceOf(to) >= balanceBefore.add(amount),
-            "Transfer amount is too low"
-        );
     }
 }
