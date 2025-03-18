@@ -84,7 +84,7 @@ it('Escrow - withdraw', async function () {
 });
 
 it('Escrow - auth', async function () {
-    await EscrowContract.connect(payer1).authorize(Mock20Contract.address,payee1.address,web3.utils.toWei("50"),100,2);
+    await EscrowContract.connect(payer1).authorizeMultiple([Mock20Contract.address],[payee1.address],[web3.utils.toWei("50")],[100],[2]);
     const auths=await EscrowContract.connect(payer1).getAuthorizations(Mock20Contract.address,payer1.address,payee1.address)
     expect(auths.length).to.equal(1)
     expect(auths[0].payee).to.equal(payee1.address)
@@ -104,7 +104,7 @@ it('Escrow - lock', async function () {
     await expect(EscrowContract.connect(payee1).createLock(jobId,Mock20Contract.address,payer2.address,web3.utils.toWei("50"),expire)).to.be.revertedWith("Payer does not have enough funds")
     //payer2 has funds, but no auth
     await Mock20Contract.connect(payer2).approve(EscrowContract.address, web3.utils.toWei("10000"));
-    await EscrowContract.connect(payer2).deposit(Mock20Contract.address,web3.utils.toWei("100"));
+    await EscrowContract.connect(payer2).depositMultiple([Mock20Contract.address],[web3.utils.toWei("100")]);
     
     await expect(EscrowContract.connect(payee1).createLock(jobId,Mock20Contract.address,payer2.address,web3.utils.toWei("50"),expire)).to.be.revertedWith("No auth found")
     
@@ -128,7 +128,7 @@ it('Escrow - lock', async function () {
     locks=await EscrowContract.connect(payer1).getLocks(addressZero,addressZero,addressZero)
     expect(locks.length).to.equal(3)
     jobId=4 // unclaimed
-    await EscrowContract.connect(payee1).createLock(jobId,Mock20Contract.address,payer1.address,web3.utils.toWei("10"),expire)
+    await EscrowContract.connect(payee1).createLocks([jobId],[Mock20Contract.address],[payer1.address],[web3.utils.toWei("10")],[expire])
     locks=await EscrowContract.connect(payer1).getLocks(addressZero,addressZero,addressZero)
     expect(locks.length).to.equal(4)
     });

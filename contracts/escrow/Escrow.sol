@@ -84,6 +84,22 @@ contract Escrow is
      * @param amount amount in wei to deposit
      */
     function deposit(address token,uint256 amount) external nonReentrant{
+        _deposit(token,amount);
+    }
+    /**
+     * @dev depositMultiple
+     *      Called by payer to deposit multiple amount of tokens in the contract
+     *      
+     * @param token array of tokens to deposit
+     * @param amount array of amounts in wei to deposit
+     */
+    function depositMultiple(address[] memory token,uint256[] memory amount) external nonReentrant{
+        require(token.length==amount.length,"Invalid input");
+        for(uint256 i=0;i<token.length;i++){
+            _deposit(token[i],amount[i]);
+        }
+    }
+    function _deposit(address token,uint256 amount) internal{
         require(token!=address(0),"Invalid token address");
         funds[msg.sender][token].available+=amount;
         emit Deposit(msg.sender,token,amount);
@@ -132,6 +148,32 @@ contract Escrow is
      */
     function authorize(address token,address payee,uint256 maxLockedAmount,
         uint256 maxLockSeconds,uint256 maxLockCounts) external nonReentrant{
+        _authorize(token,payee,maxLockedAmount,maxLockSeconds,maxLockCounts);
+    }
+
+    /**
+     * @dev authorizeMultiple
+     *      Called by payer to authorize multiple payees to lock and claim funds
+     *      
+     * @param token array of tokens to lock
+     * @param payee array of payees addresses
+     * @param maxLockedAmount array of maximum amount locked by payee in one lock
+     * @param maxLockSeconds array of maximum lock duration in seconds
+     * @param maxLockCounts array of maximum locks held by this payee
+     */
+    function authorizeMultiple(address[] memory token,address[] memory payee,uint256[] memory maxLockedAmount,
+        uint256[] memory maxLockSeconds,uint256[] memory maxLockCounts) external nonReentrant{
+            require(token.length==payee.length && 
+                    token.length==maxLockedAmount.length && 
+                    token.length==maxLockSeconds.length && 
+                    token.length==maxLockCounts.length,"Invalid input");
+            for(uint256 i=0;i<token.length;i++){
+                _authorize(token[i],payee[i],maxLockedAmount[i],maxLockSeconds[i],maxLockCounts[i]);
+            }
+    }
+    
+    function _authorize(address token,address payee,uint256 maxLockedAmount,
+        uint256 maxLockSeconds,uint256 maxLockCounts) internal{
         
         require(token!=address(0),'Invalid token');
         require(payee!=address(0),'Invalid payee');
@@ -252,6 +294,30 @@ contract Escrow is
      * @param expiry expiry timestamp
      */
     function createLock(uint256 jobId,address token,address payer,uint256 amount,uint256 expiry) external nonReentrant{
+        _createLock(jobId,token,payer,amount,expiry);
+    }
+    /**
+     * @dev createLocks
+     *      Called by payee to create multiple locks
+     *      
+     * @param jobId array of jobIds
+     * @param token array of tokens
+     * @param payer array of payer addresses
+     * @param amount array of amounts in wei to lock
+     * @param expiry array of expiry timestamps
+     */
+    function createLocks(uint256[] memory jobId,address[] memory token,
+        address[] memory payer,uint256[] memory amount,uint256[] memory expiry) external nonReentrant{
+        
+        require(jobId.length==token.length && 
+            jobId.length==payer.length && 
+            jobId.length==amount.length && 
+            jobId.length==expiry.length,"Invalid input");
+        for(uint256 i=0;i<jobId.length;i++){
+            _createLock(jobId[i],token[i],payer[i],amount[i],expiry[i]);
+        }
+    }
+    function _createLock(uint256 jobId,address token,address payer,uint256 amount,uint256 expiry) internal {
         require(payer!=address(0),'Invalid payer');
         require(token!=address(0),'Invalid token');
         require(amount>0,"Invalid amount");
