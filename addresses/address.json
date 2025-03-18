@@ -298,7 +298,7 @@
     },
     "Dispenser": "0x2720d405ef7cDC8a2E2e5AeBC8883C99611d893C",
     "ERC721Factory": "0xEF62FB495266C72a5212A11Dce8baa79Ec0ABeB1",
-    "Escrow": "0xc97fa83746aDe91b0eeB16cb51326a0A980Af7c3"
+    "Escrow": "0xE5aa2C9B551aFcA4C0A98BB3B37D7A43084d0a66"
   },
   "oasis_saphire": {
     "chainId": 23294,
@@ -324,7 +324,7 @@
     "PredictoorHelper": "0xE9397625Df9B63f0C152f975234b7988b54710B8",
     "AccessListFactory": "0x12bB8D85a091A69A07E22E52d4567dBB91568f52",
     "BatchPayments": "0x9497d1d64F2aFeBcd4f9916Eef3d9094E5Df962f",
-    "Escrow": "0x8389bC1306208488D665F939AFB4079adf6f5a06"
+    "Escrow": "0xc97fa83746aDe91b0eeB16cb51326a0A980Af7c3"
   },
   "optimism_sepolia": {
     "chainId": 11155420,
@@ -342,7 +342,7 @@
     },
     "Dispenser": "0x30E4CC2C7A9c6aA2b2Ce93586E3Df24a3A00bcDD",
     "ERC721Factory": "0xDEfD0018969cd2d4E648209F876ADe184815f038",
-    "Escrow": "0x0Ee8b03Dafc868a0899ebE1c12d734D53A957250"
+    "Escrow": "0x86F2BB9F8f18B5a836b342199a3eC89F282E4018"
   },
   "optimism": {
     "chainId": 10,
