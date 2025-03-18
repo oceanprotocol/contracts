@@ -901,6 +901,21 @@ async function main() {
     addresses.BatchPayments = deployBatchPayments.address;
     if (sleepAmount > 0) await sleep(sleepAmount)
 
+  // Escrow
+  if (logging) console.info("Deploying Escrow");
+    const Escrow = await ethers.getContractFactory(
+      "Escrow",
+      owner
+    );
+    
+    const deployEscrow = await Escrow.connect(owner).deploy(options)
+    await deployEscrow.deployTransaction.wait();
+    if (show_verify) {
+      console.log("\tRun the following to verify on etherscan");
+      console.log("\tnpx hardhat verify --network " + networkName + " " + deployEscrow.address)
+    }
+    addresses.Escrow = deployEscrow.address;
+    if (sleepAmount > 0) await sleep(sleepAmount)
 
   //DF contracts
   if (shouldDeployDF) {
