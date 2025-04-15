@@ -184,7 +184,7 @@ jobs:
         run: find ./artifacts/* -name "*.dbg.json" -type f -delete
       - name: Delete useless files
         run: rm -rf ./artifacts/build-info/*
-      - run: npm publish --tag next
+      - run: npm publish
         env:
           NODE_AUTH_TOKEN: ${{secrets.NPM_TOKEN}}
 
