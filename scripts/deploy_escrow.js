@@ -40,7 +40,21 @@ async function main() {
   let sleepAmount = 10;
   console.log("Using chain "+networkDetails.chainId);
   switch (networkDetails.chainId) {
-    
+    case 1:
+        networkName = "mainnet";
+        gasLimit = 15000000
+        gasPrice = ethers.utils.parseUnits('1', 'gwei')
+        break;
+    case 10:
+        networkName = "optimism";
+        gasPrice = ethers.utils.parseUnits('0.013', 'gwei')
+        gasLimit = 28000000
+        break;
+    case 0x89:
+        networkName = "polygon";
+        gasLimit = 19000000;
+        gasPrice = ethers.utils.parseUnits('30', 'gwei');
+        break;
     case 23294:
         networkName = "oasis_saphire";
         gasPrice = ethers.utils.parseUnits('100', 'gwei')
@@ -52,10 +66,10 @@ async function main() {
         gasLimit = 28000000
         break;
     case 11155111:
-          networkName = "sepolia";
-          gasPrice = ethers.utils.parseUnits('1', 'gwei')
-          gasLimit = 28000000
-          break;
+        networkName = "sepolia";
+        gasPrice = ethers.utils.parseUnits('1', 'gwei')
+        gasLimit = 28000000
+        break;
     case 11155420:
         networkName = "optimism_sepolia";
         gasPrice = ethers.utils.parseUnits('1', 'gwei')

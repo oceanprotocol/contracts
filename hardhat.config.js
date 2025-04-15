@@ -193,6 +193,7 @@ module.exports = {
       optimism: process.env.ETHERSCAN_API_KEY,
       sepolia: process.env.ETHERSCAN_API_KEY,
       mainnet: process.env.ETHERSCAN_API_KEY,
+      polygon: process.env.ETHERSCAN_API_KEY,
     },
     customChains: [
     {

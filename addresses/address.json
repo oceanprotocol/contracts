@@ -46,7 +46,8 @@
     "Dispenser": "0x257fe2e49530A4B7FC3Ed597465e2931db3f20b7",
     "ERC721Factory": "0x6fd867E5AEE6D62a24f97939db90C4e67A73A651",
     "DFRewards": "0x0cea7DA063EA910D6904299b5A29A8b68DBC1947",
-    "DFStrategyV1": "0x0000000000cEAe464ae8a73EDDc0B482383490e7"
+    "DFStrategyV1": "0x0000000000cEAe464ae8a73EDDc0B482383490e7",
+    "Escrow": "0xE5aa2C9B551aFcA4C0A98BB3B37D7A43084d0a66"
   },
   "bsc": {
     "chainId": 56,
@@ -143,7 +144,8 @@
     "VestingWalletA": "0xf9FB1f54eA825734E3a77e73A3864f4B46C815d9",
     "VestingWalletB": "0xf02e3163Dc3409D69D88D7AcDA613432E9A18741",
     "VestingWalletC": "0x29F74B853C4B8D36273666FB63a3b71c754424Ed",
-    "OceanNodesBooster": "0x73558Ef3bb6543A8107ac032C5a98Da03ceb0eEf"
+    "OceanNodesBooster": "0x73558Ef3bb6543A8107ac032C5a98Da03ceb0eEf",
+    "Escrow": "0x9D12F439b4215A0189330036a9cfF968bb36F7D1"
   },
   "goerli": {
     "chainId": 5,
@@ -359,7 +361,8 @@
       "1": "0x69B6E54Ad2b3c2801d11d8Ad56ea1d892555b776"
     },
     "Dispenser": "0x2112Eb973af1DBf83a4f11eda82f7a7527D7Fde5",
-    "ERC721Factory": "0x80E63f73cAc60c1662f27D2DFd2EA834acddBaa8"
+    "ERC721Factory": "0x80E63f73cAc60c1662f27D2DFd2EA834acddBaa8",
+    "Escrow": "0xEF62FB495266C72a5212A11Dce8baa79Ec0ABeB1"
   },
   "pontus-x-devnet": {
     "chainId": 32456,
