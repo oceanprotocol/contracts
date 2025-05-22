@@ -21,6 +21,7 @@ let shouldDeployOPFCommunityFeeCollector = false;
 let shouldDeployOPFCommunity = true;
 let shouldDeployPredictoorHelper = false;
 let shouldDeployPredictoor = false
+let shouldDeploySaphireTemplate = false
 const logging = true;
 const show_verify = true;
 
@@ -139,6 +140,20 @@ async function main() {
       shouldDeployVE = false;
       gasLimit = 8388608;
       break;
+    case 8453:
+      networkName = "base";
+      OPFOwner = '0x4169e846f1524Cf0ac02Bd4B04fa33242709Cf64'
+      OceanTokenAddress = "0x967da4048cD07aB37855c090aAF366e4ce1b9F48";
+      routerOwner = OPFOwner;
+      sleepAmount = 30
+      shouldDeployOceanToken = false;
+      shouldDeployV4 = true;
+      shouldDeployDF = false;
+      shouldDeployVE = false;
+      shouldDeployMocks = false;
+      gasPrice = ethers.utils.parseUnits('0.0017', 'gwei')
+      gasLimit = 28000000
+      break;
     case 0x507:
       networkName = "moonbase";
       OPFOwner = '0xd8992Ed72C445c35Cb4A2be468568Ed1079357c8';
@@ -223,6 +238,7 @@ async function main() {
         shouldDeployV4 = true;
         shouldDeployDF = true;
         shouldDeployVE = false;
+        shouldDeploySaphireTemplate = true;
         gasPrice = ethers.utils.parseUnits('100', 'gwei')
         gasLimit = 15000000
         shouldDeployPredictoorHelper = true;
@@ -238,6 +254,7 @@ async function main() {
       shouldDeployV4 = true;
       shouldDeployDF = false;
       shouldDeployVE = false;
+      shouldDeploySaphireTemplate = true;
       gasPrice = ethers.utils.parseUnits('100', 'gwei')
       gasLimit = 28000000
       shouldDeployPredictoorHelper = true;
@@ -278,6 +295,7 @@ async function main() {
       shouldDeployVesting = true;
       shouldDeployPredictoorHelper = true;
       shouldDeployPredictoor = true;
+      shouldDeploySaphireTemplate = true;
       sleepAmount = 0
       break;
   }
@@ -356,7 +374,8 @@ async function main() {
     if (OceanTokenAddress)
       addresses.Ocean = OceanTokenAddress;
     else
-      console.log("Using already deployed "+addresses.Ocean+" for Ocean token")
+      //console.log("Using already deployed "+addresses.Ocean+" for Ocean token")
+      console.log("Using already deployed  for Ocean token")
   }
 
 
@@ -523,22 +542,26 @@ async function main() {
     }
     
     if (sleepAmount > 0) await sleep(sleepAmount)
-    if (logging) console.info("Deploying ERC20 Sapphire Template");
-    const ERC20Template4 = await ethers.getContractFactory(
+    let templateERC20Template4
+      
+    if(shouldDeploySaphireTemplate){
+      if (logging) console.info("Deploying ERC20 Sapphire Template");
+      const ERC20Template4 = await ethers.getContractFactory(
         "ERC20Template4",
         owner
       );
-    let templateERC20Template4
-    if (options) templateERC20Template4 = await ERC20Template4.connect(owner).deploy(options);
-    else templateERC20Template4 = await ERC20Template4.connect(owner).deploy();
-    await templateERC20Template4.deployTransaction.wait();
-    if (show_verify) {
+      if (options) templateERC20Template4 = await ERC20Template4.connect(owner).deploy(options);
+      else templateERC20Template4 = await ERC20Template4.connect(owner).deploy();
+      await templateERC20Template4.deployTransaction.wait();
+      if (show_verify) {
         console.log("\tRun the following to verify on etherscan");
         console.log("\tnpx hardhat verify --network " + networkName + " " + templateERC20Template4.address)
+      }
+
+      if (sleepAmount > 0) await sleep(sleepAmount)
     }
 
     addresses.ERC721Template = {};
-    if (sleepAmount > 0) await sleep(sleepAmount)
     if (logging) console.info("Deploying ERC721 Template");
     const ERC721Template = await ethers.getContractFactory(
       "ERC721Template",
@@ -647,7 +670,8 @@ async function main() {
         templateERC20Template3.address;
     }
 
-    if (logging) console.info("Adding ERC20Template4 to ERC721Factory");
+    if(shouldDeploySaphireTemplate){
+      if (logging) console.info("Adding ERC20Template4 to ERC721Factory");
       if (options) templateadd = await factoryERC721.connect(owner).addTokenTemplate(templateERC20Template4.address, options);
       else templateadd = await factoryERC721.connect(owner).addTokenTemplate(templateERC20Template4.address);
       await templateadd.wait();
@@ -658,7 +682,7 @@ async function main() {
       else tokenTemplate = await factoryERC721.getTokenTemplate(currentTokenCount);
       addresses.ERC20Template[currentTokenCount.toString()] =
         templateERC20Template4.address;
-    
+  }
     // SET REQUIRED ADDRESS
     if (sleepAmount > 0) await sleep(sleepAmount)
     if (logging) console.info("Adding factoryERC721.address(" + factoryERC721.address + ") to router");
@@ -902,6 +926,7 @@ async function main() {
     if (sleepAmount > 0) await sleep(sleepAmount)
 
   // Escrow
+  
   if (logging) console.info("Deploying Escrow");
     const Escrow = await ethers.getContractFactory(
       "Escrow",
