@@ -926,7 +926,7 @@ async function main() {
     if (sleepAmount > 0) await sleep(sleepAmount)
 
   // Escrow
-  /*
+  
   if (logging) console.info("Deploying Escrow");
     const Escrow = await ethers.getContractFactory(
       "Escrow",
@@ -941,7 +941,7 @@ async function main() {
     }
     addresses.Escrow = deployEscrow.address;
     if (sleepAmount > 0) await sleep(sleepAmount)
-*/
+
   //DF contracts
   if (shouldDeployDF) {
     //DFRewards
