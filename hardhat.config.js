@@ -177,6 +177,12 @@ module.exports = {
         process.env.NETWORK_RPC_URL !== undefined ? process.env.NETWORK_RPC_URL : "",
       accounts:
         process.env.PRIVATE_KEY !== undefined ? [process.env.PRIVATE_KEY] : [],
+    },
+    base: {
+      url:
+        process.env.NETWORK_RPC_URL !== undefined ? process.env.NETWORK_RPC_URL : "",
+      accounts:
+        process.env.PRIVATE_KEY !== undefined ? [process.env.PRIVATE_KEY] : [],
     }
 
   },
@@ -194,6 +200,7 @@ module.exports = {
       sepolia: process.env.ETHERSCAN_API_KEY,
       mainnet: process.env.ETHERSCAN_API_KEY,
       polygon: process.env.ETHERSCAN_API_KEY,
+      base: process.env.ETHERSCAN_API_KEY,
     },
     customChains: [
     {
