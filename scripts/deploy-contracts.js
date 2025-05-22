@@ -542,13 +542,14 @@ async function main() {
     }
     
     if (sleepAmount > 0) await sleep(sleepAmount)
+    let templateERC20Template4
+      
     if(shouldDeploySaphireTemplate){
       if (logging) console.info("Deploying ERC20 Sapphire Template");
       const ERC20Template4 = await ethers.getContractFactory(
         "ERC20Template4",
         owner
       );
-      let templateERC20Template4
       if (options) templateERC20Template4 = await ERC20Template4.connect(owner).deploy(options);
       else templateERC20Template4 = await ERC20Template4.connect(owner).deploy();
       await templateERC20Template4.deployTransaction.wait();
