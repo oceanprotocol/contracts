@@ -933,7 +933,7 @@ async function main() {
       owner
     );
     
-    const deployEscrow = await Escrow.connect(owner).deploy(options)
+    const deployEscrow = await Escrow.connect(owner).deploy(router.address,options)
     await deployEscrow.deployTransaction.wait();
     if (show_verify) {
       console.log("\tRun the following to verify on etherscan");
