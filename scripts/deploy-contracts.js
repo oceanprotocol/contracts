@@ -67,6 +67,7 @@ async function main() {
   let sleepAmount = 10;
   let additionalApprovedTokens = []
   let pdrTrueValSubmiter = null
+  let router
   console.log("Using chain " + networkDetails.chainId);
   switch (networkDetails.chainId) {
     case 1:
@@ -442,7 +443,6 @@ async function main() {
 
     if (logging) console.log("Deploying Router");
     const Router = await ethers.getContractFactory("FactoryRouter", owner);
-    let router
     if (options) router = await Router.connect(owner).deploy(
       owner.address,
       addresses.Ocean,
