@@ -8,6 +8,7 @@ import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 import "@openzeppelin/contracts/utils/math/SafeMath.sol";
 import "@openzeppelin/contracts/security/ReentrancyGuard.sol";
+import "../interfaces/IFactoryRouter.sol";
 
 /**
  * @title Escrow contract
@@ -32,6 +33,8 @@ contract Escrow is
     using SafeMath for uint256;
     using SafeERC20 for IERC20;
     
+    // OPC fee router
+    address public factoryRouter; 
 
     /*  User funds are stored per user and per token */
     struct userFunds{
@@ -74,6 +77,11 @@ contract Escrow is
     event Claimed(address indexed payee,uint256 jobId,address token,address indexed payer,uint256 amount,bytes proof);
     event Canceled(address indexed payee,uint256 jobId,address token,address indexed payer,uint256 amount);
 
+    // Add constructor to set router
+    constructor(address _factoryRouter) {
+        require(_factoryRouter != address(0), "Invalid router");
+        factoryRouter = _factoryRouter;
+    }
     /* Payer actions  */
     
     /**
@@ -475,11 +483,20 @@ contract Escrow is
                 userAuths[payer][token][i].currentLocks-=1;
             }
         }
+        // OPC fee logic
+        uint256 opcFee = IFactoryRouter(factoryRouter).getOPCFee(token);
+        uint256 feeAmount = amount.mul(opcFee).div(1e18);
+        uint256 payout = amount.sub(feeAmount);
+        // Transfer OPC fee to collector if any
+        if(feeAmount > 0){
+            address opcCollector = IFactoryRouter(factoryRouter).getOPCCollector();
+            IERC20(token).safeTransfer(opcCollector, feeAmount);
+        }
         //update user funds
         funds[payer][token].available+=tempLock.amount-amount;
         funds[payer][token].locked-=tempLock.amount;
         //update payee balance
-        funds[msg.sender][token].available+=amount;
+        funds[msg.sender][token].available+=payout;
         //delete the lock
         if(index<locks.length-1){
             locks[index]=locks[locks.length-1];
