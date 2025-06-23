@@ -11,6 +11,7 @@ const { UV_FS_O_FILEMAP } = require("constants");
 const ethers = hre.ethers;
 require("dotenv").config();
 const DEAD_ADDRESS = "0x000000000000000000000000000000000000dEaD"
+const ZERO_ADDRESS = '0x0000000000000000000000000000000000000000';
 let shouldDeployV4 = true;
 let shouldDeployDF = true;
 let shouldDeployVE = true;
@@ -933,7 +934,7 @@ async function main() {
       owner
     );
     
-    const deployEscrow = await Escrow.connect(owner).deploy(router.address,options)
+    const deployEscrow = await Escrow.connect(owner).deploy(router.address,ZERO_ADDRESS,options)
     await deployEscrow.deployTransaction.wait();
     if (show_verify) {
       console.log("\tRun the following to verify on etherscan");
