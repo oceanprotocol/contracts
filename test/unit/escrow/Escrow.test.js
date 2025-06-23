@@ -69,11 +69,14 @@ describe('Escrow tests', function () {
 });
 
 it('Escrow - deposit', async function () {
+  let fundTokens=await EscrowContract.connect(payer1).getUserTokens(payer1.address)
+  expect(fundTokens).to.be.empty;
   expect(await Mock20Contract.balanceOf(EscrowContract.address)).to.equal(0);
   expect(await Mock20DecimalsContract.balanceOf(EscrowContract.address)).to.equal(0);
   await Mock20Contract.connect(payer1).approve(EscrowContract.address, web3.utils.toWei("10000"));
   await EscrowContract.connect(payer1).deposit(Mock20Contract.address,web3.utils.toWei("100"));
-  
+  fundTokens=await EscrowContract.connect(payer1).getUserTokens(payer1.address)
+  expect(fundTokens).to.include(Mock20Contract.address);
   expect(await Mock20Contract.balanceOf(EscrowContract.address)).to.equal(web3.utils.toWei("100"));
   expect(await Mock20DecimalsContract.balanceOf(EscrowContract.address)).to.equal(0);
   const funds=await EscrowContract.connect(payer1).getFunds(Mock20Contract.address)
@@ -93,7 +96,9 @@ it('Escrow - withdraw', async function () {
     expect(await Mock20Contract.balanceOf(EscrowContract.address)).to.equal(balanceMock20);
     await EscrowContract.connect(payer1).withdraw([Mock20Contract.address],[web3.utils.toWei("10")]);
     expect(await Mock20Contract.balanceOf(EscrowContract.address)).to.equal(web3.utils.toWei("90"));
+    expect(await EscrowContract.connect(payer1).getUserTokens(payer1.address)).to.include(Mock20Contract.address);
 });
+
 
 it('Escrow - auth', async function () {
     await EscrowContract.connect(payer1).authorizeMultiple([Mock20Contract.address],[payee1.address],[web3.utils.toWei("50")],[100],[2]);
@@ -321,5 +326,11 @@ it('Escrow - lock', async function () {
       expect(await Mock20DecimalsContract.balanceOf(EscrowContract.address)).to.equal(balanceMock20);
       await EscrowContract.connect(payer1).withdraw([Mock20DecimalsContract.address],[ethers.utils.parseUnits("10", 6)]);
       expect(await Mock20DecimalsContract.balanceOf(EscrowContract.address)).to.equal(ethers.utils.parseUnits("90", 6));
+  });
+  it('Escrow - withdraw all funds', async function () {
+    expect(await EscrowContract.connect(payer1).getUserTokens(payer1.address)).to.include(Mock20Contract.address);
+    const payer1Funds=await EscrowContract.connect(payer1).getFunds(Mock20Contract.address)
+    await EscrowContract.connect(payer1).withdraw([Mock20Contract.address],[payer1Funds.available]);
+    expect(await EscrowContract.connect(payer1).getUserTokens(payer1.address)).does.not.include(Mock20Contract.address);
   });
 });

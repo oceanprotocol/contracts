@@ -43,7 +43,12 @@ contract Escrow is
     }
 
     mapping(address => mapping(address => userFunds)) private funds; // user -> token -> userFunds
-    
+    // Mapping from user to an array of token addresses they have funds in
+    mapping(address => address[]) private userTokens;
+
+    // A helper mapping to avoid duplicates: user => token => hasTokenFunds
+    mapping(address => mapping(address => bool)) private hasFundsInToken;
+
     /*  Payee authorizations are stored per user and per token */
     struct auth{
         address payee;
@@ -110,6 +115,10 @@ contract Escrow is
     function _deposit(address token,uint256 amount) internal{
         require(token!=address(0),"Invalid token address");
         funds[msg.sender][token].available+=amount;
+        if (!hasFundsInToken[msg.sender][token]) {
+            userTokens[msg.sender].push(token);
+            hasFundsInToken[msg.sender][token] = true;
+        }
         emit Deposit(msg.sender,token,amount);
         uint256 balanceBefore = IERC20(token).balanceOf(address(this));
         IERC20(token).safeTransferFrom(msg.sender, address(this), amount);
@@ -119,6 +128,7 @@ contract Escrow is
         );
         
     }
+
 
     /**
      * @dev withdraw
@@ -136,13 +146,30 @@ contract Escrow is
     function _withdraw(address token,uint256 amount) internal{
         if(funds[msg.sender][token].available>=amount){
             funds[msg.sender][token].available-=amount;
+            if(funds[msg.sender][token].available==0){
+                address[] storage tokens = userTokens[msg.sender];
+                for (uint256 i = 0; i < tokens.length; i++) {
+                    if (tokens[i] == token) {
+                        tokens[i] = tokens[tokens.length - 1]; // overwrite with last element
+                        tokens.pop(); // remove last element
+                        break;
+                    }
+                }
+                // Update interaction status
+                hasFundsInToken[msg.sender][token] = false;
+            }
             emit Withdraw(msg.sender,token,amount);
             IERC20(token).safeTransfer(
                 msg.sender,
                 amount
             );
+
         }
     }
+    function getUserTokens(address user) external view returns (address[] memory) {
+        return userTokens[user];
+    }
+
 
     /**
      * @dev authorize
