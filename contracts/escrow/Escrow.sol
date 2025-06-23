@@ -35,6 +35,7 @@ contract Escrow is
     
     // OPC fee router
     address public factoryRouter; 
+    address public opcCollector;
 
     /*  User funds are stored per user and per token */
     struct userFunds{
@@ -83,9 +84,10 @@ contract Escrow is
     event Canceled(address indexed payee,uint256 jobId,address token,address indexed payer,uint256 amount);
 
     // Add constructor to set router
-    constructor(address _factoryRouter) {
+    constructor(address _factoryRouter,address _opcCollector) {
         require(_factoryRouter != address(0), "Invalid router");
         factoryRouter = _factoryRouter;
+        opcCollector = _opcCollector;
     }
     /* Payer actions  */
     
@@ -516,8 +518,12 @@ contract Escrow is
         uint256 payout = amount.sub(feeAmount);
         // Transfer OPC fee to collector if any
         if(feeAmount > 0){
-            address opcCollector = IFactoryRouter(factoryRouter).getOPCCollector();
-            IERC20(token).safeTransfer(opcCollector, feeAmount);
+            if(opcCollector==address(0)){
+                IERC20(token).safeTransfer(IFactoryRouter(factoryRouter).getOPCCollector(), feeAmount);
+            }
+            else{
+                IERC20(token).safeTransfer(opcCollector, feeAmount);
+            }
         }
         //update user funds
         funds[payer][token].available+=tempLock.amount-amount;

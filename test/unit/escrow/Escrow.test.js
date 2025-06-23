@@ -2,7 +2,8 @@ const { assert,expect } = require('chai');
 const { ethers } = require("hardhat");
 const { json } = require('hardhat/internal/core/params/argumentTypes');
 const { web3 } = require("@openzeppelin/test-helpers/src/setup");
-const { getEventFromTx } = require("../../helpers/utils")
+const { getEventFromTx } = require("../../helpers/utils");
+
 
 const addressZero = '0x0000000000000000000000000000000000000000';
 
@@ -49,7 +50,7 @@ describe('Escrow tests', function () {
       []
     );
     await FactoryRouter.deployed();
-    EscrowContract = await Escrow.deploy(FactoryRouter.address);
+    EscrowContract = await Escrow.deploy(FactoryRouter.address,addressZero);
     await EscrowContract.deployed();
     // top up accounts
     await Mock20Contract.transfer(payer1.address,web3.utils.toWei("10000"))
