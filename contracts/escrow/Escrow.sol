@@ -34,8 +34,8 @@ contract Escrow is
     using SafeERC20 for IERC20;
     
     // OPC fee router
-    address public factoryRouter; 
-    address public opcCollector;
+    address immutable public factoryRouter; 
+    address immutable public opcCollector;
 
     /*  User funds are stored per user and per token */
     struct userFunds{
