@@ -108,13 +108,6 @@ jobs:
         with:
           name: coverage-contracts
           path: coverage/
-      - uses: paambaati/codeclimate-action@v2.7.5
-        env:
-          CC_TEST_REPORTER_ID: ${{ secrets.CC_TEST_REPORTER_ID }}
-        if: "${{ env.CC_TEST_REPORTER_ID != '' }}"
-        with:
-          coverageLocations: |
-            ${{ github.workspace }}/coverage/lcov.info:lcov
 
   check_deployment:
     runs-on: ubuntu-latest
