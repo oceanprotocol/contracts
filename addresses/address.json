@@ -46,8 +46,7 @@
     "Dispenser": "0x257fe2e49530A4B7FC3Ed597465e2931db3f20b7",
     "ERC721Factory": "0x6fd867E5AEE6D62a24f97939db90C4e67A73A651",
     "DFRewards": "0x0cea7DA063EA910D6904299b5A29A8b68DBC1947",
-    "DFStrategyV1": "0x0000000000cEAe464ae8a73EDDc0B482383490e7",
-    "Escrow": "0xE5aa2C9B551aFcA4C0A98BB3B37D7A43084d0a66"
+    "DFStrategyV1": "0x0000000000cEAe464ae8a73EDDc0B482383490e7"
   },
   "bsc": {
     "chainId": 56,
@@ -145,7 +144,8 @@
     "VestingWalletB": "0xf02e3163Dc3409D69D88D7AcDA613432E9A18741",
     "VestingWalletC": "0x29F74B853C4B8D36273666FB63a3b71c754424Ed",
     "OceanNodesBooster": "0x73558Ef3bb6543A8107ac032C5a98Da03ceb0eEf",
-    "Escrow": "0x9D12F439b4215A0189330036a9cfF968bb36F7D1"
+    "OPFCommunityFeeCollectorCompute":"0x1705CaF86B86e85804e20FE342f39B17322Ff592",
+    "Escrow":"0x5D7a9F0c8E9E9af5674DEE832Cc97FC425b655Bc"
   },
   "goerli": {
     "chainId": 5,
@@ -300,7 +300,8 @@
     },
     "Dispenser": "0x2720d405ef7cDC8a2E2e5AeBC8883C99611d893C",
     "ERC721Factory": "0xEF62FB495266C72a5212A11Dce8baa79Ec0ABeB1",
-    "Escrow": "0xE5aa2C9B551aFcA4C0A98BB3B37D7A43084d0a66"
+    "OPFCommunityFeeCollectorCompute":"0x0Ee8b03Dafc868a0899ebE1c12d734D53A957250",
+    "Escrow":"0x86F2BB9F8f18B5a836b342199a3eC89F282E4018"
   },
   "oasis_sapphire": {
     "chainId": 23294,
@@ -326,7 +327,8 @@
     "PredictoorHelper": "0xE9397625Df9B63f0C152f975234b7988b54710B8",
     "AccessListFactory": "0x12bB8D85a091A69A07E22E52d4567dBB91568f52",
     "BatchPayments": "0x9497d1d64F2aFeBcd4f9916Eef3d9094E5Df962f",
-    "Escrow": "0xc97fa83746aDe91b0eeB16cb51326a0A980Af7c3"
+    "OPFCommunityFeeCollectorCompute":"0xE5aa2C9B551aFcA4C0A98BB3B37D7A43084d0a66",
+    "Escrow":"0xf0c7A31D7Ee26bEBfb4BAD8e37490bEadE3F846f"
   },
   "optimism_sepolia": {
     "chainId": 11155420,
@@ -344,7 +346,8 @@
     },
     "Dispenser": "0x30E4CC2C7A9c6aA2b2Ce93586E3Df24a3A00bcDD",
     "ERC721Factory": "0xDEfD0018969cd2d4E648209F876ADe184815f038",
-    "Escrow": "0x86F2BB9F8f18B5a836b342199a3eC89F282E4018"
+    "OPFCommunityFeeCollectorCompute":"0xe47991939632757DEe324E8ec9A3268c62C0DB76",
+    "Escrow":"0x4D49eEedFac8Ea03328c0E4871b680C06d892092"
   },
   "optimism": {
     "chainId": 10,
@@ -362,7 +365,8 @@
     },
     "Dispenser": "0x2112Eb973af1DBf83a4f11eda82f7a7527D7Fde5",
     "ERC721Factory": "0x80E63f73cAc60c1662f27D2DFd2EA834acddBaa8",
-    "Escrow": "0xEF62FB495266C72a5212A11Dce8baa79Ec0ABeB1"
+    "OPFCommunityFeeCollectorCompute":"0xc37F8341Ac6e4a94538302bCd4d49Cf0852D30C0",
+    "Escrow":"0x3c21a90599b5B7f37014cA5Bf30d3f1b73d7e391"
   },
   "pontus-x-devnet": {
     "chainId": 32456,
@@ -396,6 +400,8 @@
     },
     "Dispenser": "0xE9397625Df9B63f0C152f975234b7988b54710B8",
     "ERC721Factory": "0x159924ca0F47D6F704B97E29099b89e518A17B5E",
-    "BatchPayments": "0xFe7967A5176fDAFa8DE109b3507016B885a82D6e"
+    "BatchPayments": "0xFe7967A5176fDAFa8DE109b3507016B885a82D6e",
+    "OPFCommunityFeeCollectorCompute":"0x7b0576CF01E868bce46cca91b2a8E674141b0355",
+    "Escrow":"0x8389bC1306208488D665F939AFB4079adf6f5a06"
   }
 }
