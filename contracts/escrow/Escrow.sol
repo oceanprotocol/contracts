@@ -8,6 +8,7 @@ import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 import "@openzeppelin/contracts/utils/math/SafeMath.sol";
 import "@openzeppelin/contracts/security/ReentrancyGuard.sol";
+import "../interfaces/IFactoryRouter.sol";
 
 /**
  * @title Escrow contract
@@ -32,6 +33,9 @@ contract Escrow is
     using SafeMath for uint256;
     using SafeERC20 for IERC20;
     
+    // OPC fee router
+    address immutable public factoryRouter; 
+    address immutable public opcCollector;
 
     /*  User funds are stored per user and per token */
     struct userFunds{
@@ -40,7 +44,12 @@ contract Escrow is
     }
 
     mapping(address => mapping(address => userFunds)) private funds; // user -> token -> userFunds
-    
+    // Mapping from user to an array of token addresses they have funds in
+    mapping(address => address[]) private userTokens;
+
+    // A helper mapping to avoid duplicates: user => token => hasTokenFunds
+    mapping(address => mapping(address => bool)) private hasFundsInToken;
+
     /*  Payee authorizations are stored per user and per token */
     struct auth{
         address payee;
@@ -74,6 +83,12 @@ contract Escrow is
     event Claimed(address indexed payee,uint256 jobId,address token,address indexed payer,uint256 amount,bytes proof);
     event Canceled(address indexed payee,uint256 jobId,address token,address indexed payer,uint256 amount);
 
+    // Add constructor to set router
+    constructor(address _factoryRouter,address _opcCollector) {
+        require(_factoryRouter != address(0), "Invalid router");
+        factoryRouter = _factoryRouter;
+        opcCollector = _opcCollector;
+    }
     /* Payer actions  */
     
     /**
@@ -102,6 +117,10 @@ contract Escrow is
     function _deposit(address token,uint256 amount) internal{
         require(token!=address(0),"Invalid token address");
         funds[msg.sender][token].available+=amount;
+        if (!hasFundsInToken[msg.sender][token]) {
+            userTokens[msg.sender].push(token);
+            hasFundsInToken[msg.sender][token] = true;
+        }
         emit Deposit(msg.sender,token,amount);
         uint256 balanceBefore = IERC20(token).balanceOf(address(this));
         IERC20(token).safeTransferFrom(msg.sender, address(this), amount);
@@ -111,6 +130,7 @@ contract Escrow is
         );
         
     }
+
 
     /**
      * @dev withdraw
@@ -128,13 +148,30 @@ contract Escrow is
     function _withdraw(address token,uint256 amount) internal{
         if(funds[msg.sender][token].available>=amount){
             funds[msg.sender][token].available-=amount;
+            if(funds[msg.sender][token].available==0){
+                address[] storage tokens = userTokens[msg.sender];
+                for (uint256 i = 0; i < tokens.length; i++) {
+                    if (tokens[i] == token) {
+                        tokens[i] = tokens[tokens.length - 1]; // overwrite with last element
+                        tokens.pop(); // remove last element
+                        break;
+                    }
+                }
+                // Update interaction status
+                hasFundsInToken[msg.sender][token] = false;
+            }
             emit Withdraw(msg.sender,token,amount);
             IERC20(token).safeTransfer(
                 msg.sender,
                 amount
             );
+
         }
     }
+    function getUserTokens(address user) external view returns (address[] memory) {
+        return userTokens[user];
+    }
+
 
     /**
      * @dev authorize
@@ -475,11 +512,24 @@ contract Escrow is
                 userAuths[payer][token][i].currentLocks-=1;
             }
         }
+        // OPC fee logic
+        uint256 opcFee = IFactoryRouter(factoryRouter).getOPCFee(token);
+        uint256 feeAmount = amount.mul(opcFee).div(1e18);
+        uint256 payout = amount.sub(feeAmount);
+        // Transfer OPC fee to collector if any
+        if(feeAmount > 0){
+            if(opcCollector==address(0)){
+                IERC20(token).safeTransfer(IFactoryRouter(factoryRouter).getOPCCollector(), feeAmount);
+            }
+            else{
+                IERC20(token).safeTransfer(opcCollector, feeAmount);
+            }
+        }
         //update user funds
         funds[payer][token].available+=tempLock.amount-amount;
         funds[payer][token].locked-=tempLock.amount;
         //update payee balance
-        funds[msg.sender][token].available+=amount;
+        funds[msg.sender][token].available+=payout;
         //delete the lock
         if(index<locks.length-1){
             locks[index]=locks[locks.length-1];

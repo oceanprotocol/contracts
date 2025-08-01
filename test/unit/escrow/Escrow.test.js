@@ -2,7 +2,8 @@ const { assert,expect } = require('chai');
 const { ethers } = require("hardhat");
 const { json } = require('hardhat/internal/core/params/argumentTypes');
 const { web3 } = require("@openzeppelin/test-helpers/src/setup");
-const { getEventFromTx } = require("../../helpers/utils")
+const { getEventFromTx } = require("../../helpers/utils");
+
 
 const addressZero = '0x0000000000000000000000000000000000000000';
 
@@ -19,8 +20,9 @@ describe('Escrow tests', function () {
   let Mock20Contract;
   let Mock20DecimalsContract;
   let EscrowContract;
+  let FactoryRouter
   let signers;
-  let payee1,payee2,payee3,payer1,payer2,payer3;
+  let payee1,payee2,payee3,payer1,payer2,payer3,opcCollector
   before(async function () {
     // Get the contractOwner and collector address
     signers = await ethers.getSigners();
@@ -30,14 +32,25 @@ describe('Escrow tests', function () {
     payer1=signers[4]
     payer2=signers[5]
     payer3=signers[6]
+    opcCollector=signers[7]
+    const Router = await ethers.getContractFactory("FactoryRouter");
     const MockErc20 = await ethers.getContractFactory('MockERC20');
     const MockErc20Decimals = await ethers.getContractFactory('MockERC20Decimals');
     const Escrow = await ethers.getContractFactory('Escrow');
     Mock20Contract = await MockErc20.deploy(signers[0].address,"MockERC20", 'MockERC20');
     Mock20DecimalsContract = await MockErc20Decimals.deploy("Mock6Digits", 'Mock6Digits', 6);
-    EscrowContract = await Escrow.deploy();
     await Mock20Contract.deployed();
     await Mock20DecimalsContract.deployed();
+    // DEPLOY ROUTER, SETTING OWNER
+    FactoryRouter = await Router.deploy(
+      signers[0].address,
+      Mock20Contract.address,
+      '0x000000000000000000000000000000000000dead',
+      opcCollector.address,
+      []
+    );
+    await FactoryRouter.deployed();
+    EscrowContract = await Escrow.deploy(FactoryRouter.address,addressZero);
     await EscrowContract.deployed();
     // top up accounts
     await Mock20Contract.transfer(payer1.address,web3.utils.toWei("10000"))
@@ -57,11 +70,14 @@ describe('Escrow tests', function () {
 });
 
 it('Escrow - deposit', async function () {
+  let fundTokens=await EscrowContract.connect(payer1).getUserTokens(payer1.address)
+  expect(fundTokens).to.be.empty;
   expect(await Mock20Contract.balanceOf(EscrowContract.address)).to.equal(0);
   expect(await Mock20DecimalsContract.balanceOf(EscrowContract.address)).to.equal(0);
   await Mock20Contract.connect(payer1).approve(EscrowContract.address, web3.utils.toWei("10000"));
   await EscrowContract.connect(payer1).deposit(Mock20Contract.address,web3.utils.toWei("100"));
-  
+  fundTokens=await EscrowContract.connect(payer1).getUserTokens(payer1.address)
+  expect(fundTokens).to.include(Mock20Contract.address);
   expect(await Mock20Contract.balanceOf(EscrowContract.address)).to.equal(web3.utils.toWei("100"));
   expect(await Mock20DecimalsContract.balanceOf(EscrowContract.address)).to.equal(0);
   const funds=await EscrowContract.connect(payer1).getFunds(Mock20Contract.address)
@@ -81,7 +97,9 @@ it('Escrow - withdraw', async function () {
     expect(await Mock20Contract.balanceOf(EscrowContract.address)).to.equal(balanceMock20);
     await EscrowContract.connect(payer1).withdraw([Mock20Contract.address],[web3.utils.toWei("10")]);
     expect(await Mock20Contract.balanceOf(EscrowContract.address)).to.equal(web3.utils.toWei("90"));
+    expect(await EscrowContract.connect(payer1).getUserTokens(payer1.address)).to.include(Mock20Contract.address);
 });
+
 
 it('Escrow - auth', async function () {
     await EscrowContract.connect(payer1).authorizeMultiple([Mock20Contract.address],[payee1.address],[web3.utils.toWei("50")],[100],[2]);
@@ -138,6 +156,8 @@ it('Escrow - lock', async function () {
     const payer1Available=payer1Funds.available
     const payer1Locked=payer1Funds.locked
     const payee1Balance=await Mock20Contract.balanceOf(payee1.address)
+    const opcBalance=await Mock20Contract.balanceOf(opcCollector.address)
+    
     // claim jobId
     let jobId=1 // full claim
     let lock
@@ -152,13 +172,19 @@ it('Escrow - lock', async function () {
     const txReceipt = await tx.wait();
     const event = getEventFromTx(txReceipt, 'Claimed')
     assert(event, "Cannot find Claimed event")
+    const opcBalanceAfter=await Mock20Contract.balanceOf(opcCollector.address)
+    
+    const opcCollectorFee=await FactoryRouter.getOPCFee(Mock20Contract.address)
+    const expectedPayee=lock.amount.sub(lock.amount.mul(opcCollectorFee).div(web3.utils.toWei("1")));
+    expect(event.args.amount).to.equal(lock.amount)
+    expect(opcBalanceAfter).to.equal(opcBalance.add(lock.amount.sub(expectedPayee)))
     const afterpayer1Funds=await EscrowContract.connect(payer1).getFunds(Mock20Contract.address)
     const afterpayer1Available=afterpayer1Funds.available
     const afterpayer1Locked=afterpayer1Funds.locked
     const afterpayee1Balance=await Mock20Contract.balanceOf(payee1.address)
     expect(afterpayer1Available).to.equal(payer1Available)
     expect(afterpayer1Locked).to.equal(payer1Locked.sub(lock.amount))
-    expect(afterpayee1Balance).to.equal(payee1Balance.add(lock.amount))
+    expect(afterpayee1Balance).to.equal(payee1Balance.add(expectedPayee))
     // make sure lock is gone
     for( oneLock of await EscrowContract.connect(payee1).getLocks(Mock20Contract.address,payer1.address,payee1.address)){
       expect(oneLock.jobId).to.not.equal(jobId)
@@ -171,6 +197,8 @@ it('Escrow - lock', async function () {
     const payer1Available=payer1Funds.available
     const payer1Locked=payer1Funds.locked
     const payee1Balance=await Mock20Contract.balanceOf(payee1.address)
+    const opcBalance=await Mock20Contract.balanceOf(opcCollector.address)
+    
     // claim jobId
     let jobId=2 // partial claim
     let lock
@@ -181,20 +209,26 @@ it('Escrow - lock', async function () {
       }
     }
     expect(lock.jobId).to.equal(jobId)
+    
     const claimedAmount=web3.utils.toWei("1")
+    const bnClaimedAmount=ethers.BigNumber.from(claimedAmount)
     const returnAmount=lock.amount.sub(claimedAmount)
     const tx=await EscrowContract.connect(payee1).claimLocksAndWithdraw([lock.jobId],[lock.token],[lock.payer],[claimedAmount],[0]);
     const txReceipt = await tx.wait();
     const event = getEventFromTx(txReceipt, 'Claimed')
     assert(event, "Cannot find Claimed event")
-        
+    const opcBalanceAfter=await Mock20Contract.balanceOf(opcCollector.address)
+    
+    const opcCollectorFee=await FactoryRouter.getOPCFee(Mock20Contract.address)
+    const expectedPayee=bnClaimedAmount.sub(bnClaimedAmount.mul(opcCollectorFee).div(web3.utils.toWei("1")));
+    expect(opcBalanceAfter).to.equal(opcBalance.add(bnClaimedAmount.sub(expectedPayee)))
     const afterpayer1Funds=await EscrowContract.connect(payer1).getFunds(Mock20Contract.address)
     const afterpayer1Available=afterpayer1Funds.available
     const afterpayer1Locked=afterpayer1Funds.locked
     const afterpayee1Balance=await Mock20Contract.balanceOf(payee1.address)
     expect(afterpayer1Available).to.equal(payer1Available.add(returnAmount))
     expect(afterpayer1Locked).to.equal(payer1Locked.sub(lock.amount))
-    expect(afterpayee1Balance).to.equal(payee1Balance.add(claimedAmount))
+    expect(afterpayee1Balance).to.equal(payee1Balance.add(expectedPayee))
     // make sure lock is gone
     for( oneLock of await EscrowContract.connect(payee1).getLocks(Mock20Contract.address,payer1.address,payee1.address)){
       expect(oneLock.jobId).to.not.equal(jobId)
@@ -270,5 +304,34 @@ it('Escrow - lock', async function () {
     for( oneLock of await EscrowContract.connect(payee1).getLocks(Mock20Contract.address,payer1.address,payee1.address)){
       expect(oneLock.jobId).to.not.equal(jobId)
     }
+  });
+  it('Escrow - deposit with decimals', async function () {
+    expect(await Mock20DecimalsContract.balanceOf(EscrowContract.address)).to.equal(0);
+    await Mock20DecimalsContract.connect(payer1).approve(EscrowContract.address, ethers.utils.parseUnits("10000", 6));
+    await EscrowContract.connect(payer1).deposit(Mock20DecimalsContract.address,ethers.utils.parseUnits("100", 6));
+    
+    expect(await Mock20DecimalsContract.balanceOf(EscrowContract.address)).to.equal(ethers.utils.parseUnits("100", 6));
+    const funds=await EscrowContract.connect(payer1).getFunds(Mock20DecimalsContract.address)
+    expect(funds.available).to.equal(ethers.utils.parseUnits("100", 6))
+    expect(funds.locked).to.equal(0)
+    const locks=await EscrowContract.connect(payer1).getLocks(addressZero,addressZero,addressZero)
+    expect(locks.length).to.equal(0)
+    const auths=await EscrowContract.connect(payer1).getAuthorizations(Mock20DecimalsContract.address,payer1.address,addressZero)
+    expect(auths.length).to.equal(0)
+    
+  });
+
+  it('Escrow - withdraw with decimals', async function () {
+      const balanceMock20=await Mock20DecimalsContract.balanceOf(EscrowContract.address);
+      await EscrowContract.connect(payer1).withdraw([Mock20DecimalsContract.address],[ethers.utils.parseUnits("10000", 6)]);
+      expect(await Mock20DecimalsContract.balanceOf(EscrowContract.address)).to.equal(balanceMock20);
+      await EscrowContract.connect(payer1).withdraw([Mock20DecimalsContract.address],[ethers.utils.parseUnits("10", 6)]);
+      expect(await Mock20DecimalsContract.balanceOf(EscrowContract.address)).to.equal(ethers.utils.parseUnits("90", 6));
+  });
+  it('Escrow - withdraw all funds', async function () {
+    expect(await EscrowContract.connect(payer1).getUserTokens(payer1.address)).to.include(Mock20Contract.address);
+    const payer1Funds=await EscrowContract.connect(payer1).getFunds(Mock20Contract.address)
+    await EscrowContract.connect(payer1).withdraw([Mock20Contract.address],[payer1Funds.available]);
+    expect(await EscrowContract.connect(payer1).getUserTokens(payer1.address)).does.not.include(Mock20Contract.address);
   });
 });
