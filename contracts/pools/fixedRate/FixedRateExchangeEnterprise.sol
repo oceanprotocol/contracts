@@ -33,8 +33,8 @@ contract FixedRateExchangeEnterprise is ReentrancyGuard {
     uint public constant MAX_FEE  = 5e17;
     uint public constant MIN_RATE = 1e10;
 
-    address public router;
-    address public enterpriseFeeCollector;
+    address public immutable router;
+    address public immutable enterpriseFeeCollector;
     
     struct Exchange {
         bool active;
