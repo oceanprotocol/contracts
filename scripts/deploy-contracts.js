@@ -526,7 +526,7 @@ async function main() {
     if(addresses.EnterpriseFeeCollector){
       if (logging) console.info("Deploying FixedrateExchangeEnterprise");
     const FixedrateExchangeEnterprise = await ethers.getContractFactory(
-      "FixedrateExchangeEnterprise",
+      "FixedRateExchangeEnterprise",
       owner
     );
     let fixedPriceExchangeEnterprise
@@ -757,12 +757,12 @@ async function main() {
     if (sleepAmount > 0) await sleep(sleepAmount)
 
     if(addresses.FixedPriceEnterprise){
-    if (logging) console.info("Adding FixedPriceEnterprise.address(" + FixedPriceEnterprise.address + ") to router");
-    let enterpriseFreAddTx
-    if (options) enterpriseFreAddTx = await router.connect(owner).addFixedRateContract(addresses.FixedPriceEnterprise, options);
-    else enterpriseFreAddTx = await router.connect(owner).addFixedRateContract(addresses.FixedPriceEnterprise);
-    await enterpriseFreAddTx.wait();
-    if (sleepAmount > 0) await sleep(sleepAmount)
+      if (logging) console.info("Adding FixedPriceEnterprise.address(" + addresses.FixedPriceEnterprise + ") to router");
+      let enterpriseFreAddTx
+      if (options) enterpriseFreAddTx = await router.connect(owner).addFixedRateContract(addresses.FixedPriceEnterprise, options);
+      else enterpriseFreAddTx = await router.connect(owner).addFixedRateContract(addresses.FixedPriceEnterprise);
+      await enterpriseFreAddTx.wait();
+      if (sleepAmount > 0) await sleep(sleepAmount)
     }
 
 
