@@ -1024,6 +1024,22 @@ contract FixedRateExchangeEnterprise is ReentrancyGuard {
     }
 
     /**
+    * @dev getExchangesInRange
+    *      gets a subset of the exchanges list between startIndex and endIndex (inclusive, exclusive)
+    * @param startIndex the starting index (inclusive)
+    * @param endIndex the ending index (exclusive)
+    * @return a list of registered exchange Ids in the given range
+    */
+    function getExchangesInRange(uint256 startIndex, uint256 endIndex) external view returns (bytes32[] memory) {
+        require(endIndex > startIndex, "endIndex must be greater than startIndex");
+        require(endIndex <= exchangeIds.length, "endIndex out of bounds");
+        bytes32[] memory result = new bytes32[](endIndex - startIndex);
+        for (uint256 i = startIndex; i < endIndex; i++) {
+            result[i - startIndex] = exchangeIds[i];
+        }
+        return result;
+    }
+    /**
      * @dev isActive
      *      checks whether exchange is active
      * @param exchangeId a unique exchange idnetifier
