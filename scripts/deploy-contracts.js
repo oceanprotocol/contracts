@@ -19,7 +19,7 @@ let shouldDeployVesting = false;
 let shouldDeployOceanToken = false;
 let shouldDeployMocks = false;
 let shouldDeployOPFCommunityFeeCollector = false;
-let shouldDeployOPFCommunity = true;
+let shouldDeployOPEFeeCollector = false;
 let shouldDeployPredictoorHelper = false;
 let shouldDeployPredictoor = false
 let shouldDeploySaphireTemplate = false
@@ -424,6 +424,31 @@ async function main() {
     if (sleepAmount > 0) await sleep(sleepAmount)
   }
 
+  if (shouldDeployOPEFeeCollector || !addresses.EnterpriseFeeCollector) {
+    if (logging) console.info("Deploying OPE Fee Collector");
+    const EnterpriseFeeCollector = await ethers.getContractFactory(
+      "EnterpriseFeeCollector",
+      owner
+    );
+    let opefeecollector
+    if (options) opefeecollector = await EnterpriseFeeCollector.connect(owner).deploy(
+      OPFOwner,
+      OPFOwner,
+      options
+    );
+    else opefeecollector = await EnterpriseFeeCollector.connect(owner).deploy(
+      OPFOwner,
+      OPFOwner)
+    await opefeecollector.deployTransaction.wait();
+    addresses.EnterpriseFeeCollector = opefeecollector.address;
+    if (show_verify) {
+      console.log("\tRun the following to verify on etherscan");
+      console.log("\tnpx hardhat verify --network " + networkName + " " + opefeecollector.address + " " + OPFOwner + " " + OPFOwner)
+    }
+    if (sleepAmount > 0) await sleep(sleepAmount)
+  }
+  
+
   // v4 contracts
   if (shouldDeployV4) {
     if (logging) console.info("Deploying V4 contracts");
@@ -497,6 +522,36 @@ async function main() {
       console.log("\tnpx hardhat verify --network " + networkName + " " + addresses.FixedPrice + " " + router.address)
     }
     if (sleepAmount > 0) await sleep(sleepAmount)
+
+    if(addresses.EnterpriseFeeCollector){
+      if (logging) console.info("Deploying FixedrateExchangeEnterprise");
+    const FixedrateExchangeEnterprise = await ethers.getContractFactory(
+      "FixedRateExchangeEnterprise",
+      owner
+    );
+    let fixedPriceExchangeEnterprise
+    if (options) fixedPriceExchangeEnterprise = await FixedrateExchangeEnterprise.connect(owner).deploy(
+      router.address,
+      addresses.EnterpriseFeeCollector,
+      options
+    );
+    else
+      fixedPriceExchangeEnterprise = await FixedrateExchangeEnterprise.connect(owner).deploy(
+        router.address,
+        addresses.EnterpriseFeeCollector
+      );
+    await fixedPriceExchangeEnterprise.deployTransaction.wait();
+    addresses.FixedPriceEnterprise = fixedPriceExchangeEnterprise.address;
+    if (show_verify) {
+      console.log("\tRun the following to verify on etherscan");
+      console.log("\tnpx hardhat verify --network " + networkName + " " + addresses.FixedPriceEnterprise + " " + router.address+" "+addresses.EnterpriseFeeCollector)
+    }
+    if (sleepAmount > 0) await sleep(sleepAmount)
+    }
+
+
+
+
     addresses.ERC20Template = {};
     if (sleepAmount > 0) await sleep(sleepAmount)
     if (logging) console.info("Deploying ERC20 Template");
@@ -700,6 +755,15 @@ async function main() {
     else freAddTx = await router.connect(owner).addFixedRateContract(fixedPriceExchange.address);
     await freAddTx.wait();
     if (sleepAmount > 0) await sleep(sleepAmount)
+
+    if(addresses.FixedPriceEnterprise){
+      if (logging) console.info("Adding FixedPriceEnterprise.address(" + addresses.FixedPriceEnterprise + ") to router");
+      let enterpriseFreAddTx
+      if (options) enterpriseFreAddTx = await router.connect(owner).addFixedRateContract(addresses.FixedPriceEnterprise, options);
+      else enterpriseFreAddTx = await router.connect(owner).addFixedRateContract(addresses.FixedPriceEnterprise);
+      await enterpriseFreAddTx.wait();
+      if (sleepAmount > 0) await sleep(sleepAmount)
+    }
 
 
     if (logging) console.info("Adding dispenser.address(" + dispenser.address + ") to router");
