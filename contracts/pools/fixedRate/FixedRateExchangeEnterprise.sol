@@ -128,8 +128,7 @@ contract FixedRateExchangeEnterprise is ReentrancyGuard {
         address tokenOutAddress,
         uint256 marketFeeAmount,
         uint256 oceanFeeAmount,
-        uint256 consumeMarketFeeAmount,
-        uint256 enterpriseFeeAmount
+        uint256 consumeMarketFeeAmount
     );
 
     event TokenCollected(
@@ -160,8 +159,7 @@ contract FixedRateExchangeEnterprise is ReentrancyGuard {
         uint oceanFeeAmount,
         uint marketFeeAmount,
         uint consumeMarketFeeAmount,
-        address tokenFeeAddress,
-        uint256 enterpriseFeeAmount
+        address tokenFeeAddress
     );
     event PublishMarketFeeChanged(
         bytes32 indexed exchangeId,
@@ -315,7 +313,6 @@ contract FixedRateExchangeEnterprise is ReentrancyGuard {
             uint256 oceanFeeAmount;
             uint256 publishMarketFeeAmount;
             uint256 consumeMarketFeeAmount;
-            uint256 enterpriseFeeCollectorFeeAmount;
     }
         
     function _getBaseTokenOutPrice(bytes32 exchangeId, uint256 datatokenAmount) 
@@ -341,15 +338,19 @@ contract FixedRateExchangeEnterprise is ReentrancyGuard {
 
     {
         uint256 baseTokenAmountBeforeFee = _getBaseTokenOutPrice(exchangeId, datatokenAmount);
-        Fees memory fee = Fees(0,0,0,0,0);
-        uint256 opcFee = getOPCFee(exchanges[exchangeId].baseToken);
-        if (opcFee != 0) {
-            fee.oceanFeeAmount = baseTokenAmountBeforeFee
-                .mul(opcFee)
-                .div(BASE);
+        Fees memory fee = Fees(0,0,0,0);
+
+        if(enterpriseFeeCollector != address(0)){
+            require(
+                IEnterpriseFeeCollector(enterpriseFeeCollector).isTokenAllowed(exchanges[exchangeId].baseToken),
+                "This baseToken is not allowed by enterprise fee collector"
+            );
+            fee.oceanFeeAmount = IEnterpriseFeeCollector(enterpriseFeeCollector)
+                .calculateFee(exchanges[exchangeId].baseToken, baseTokenAmountBeforeFee);
         }
-        else
+        else{
             fee.oceanFeeAmount = 0;
+        }
 
         if( exchanges[exchangeId].marketFee !=0){
             fee.publishMarketFeeAmount = baseTokenAmountBeforeFee
@@ -368,21 +369,11 @@ contract FixedRateExchangeEnterprise is ReentrancyGuard {
         else{
             fee.consumeMarketFeeAmount = 0;
         }
-        if(enterpriseFeeCollector != address(0)){
-            require(
-                IEnterpriseFeeCollector(enterpriseFeeCollector).isTokenAllowed(exchanges[exchangeId].baseToken),
-                "This baseToken is not allowed by enterprise fee collector"
-            );
-            fee.enterpriseFeeCollectorFeeAmount = IEnterpriseFeeCollector(enterpriseFeeCollector)
-                .calculateFee(exchanges[exchangeId].baseToken, baseTokenAmountBeforeFee);
-        }
-        else{
-            fee.enterpriseFeeCollectorFeeAmount = 0;
-        }
+        
         
         
         fee.baseTokenAmount = baseTokenAmountBeforeFee.add(fee.publishMarketFeeAmount)
-            .add(fee.oceanFeeAmount).add(fee.consumeMarketFeeAmount).add(fee.enterpriseFeeCollectorFeeAmount);
+            .add(fee.oceanFeeAmount).add(fee.consumeMarketFeeAmount);
       
         return(fee);
     }
@@ -403,15 +394,18 @@ contract FixedRateExchangeEnterprise is ReentrancyGuard {
     {
         uint256 baseTokenAmountBeforeFee = _getBaseTokenOutPrice(exchangeId, datatokenAmount);
 
-        Fees memory fee = Fees(0,0,0,0,0);
-        uint256 opcFee = getOPCFee(exchanges[exchangeId].baseToken);
-        if (opcFee != 0) {
-            fee.oceanFeeAmount = baseTokenAmountBeforeFee
-                .mul(opcFee)
-                .div(BASE);
+        Fees memory fee = Fees(0,0,0,0);
+        if(enterpriseFeeCollector != address(0)){
+            require(
+                IEnterpriseFeeCollector(enterpriseFeeCollector).isTokenAllowed(exchanges[exchangeId].baseToken),
+                "This baseToken is not allowed by enterprise fee collector"
+            );
+            fee.oceanFeeAmount = IEnterpriseFeeCollector(enterpriseFeeCollector)
+                .calculateFee(exchanges[exchangeId].baseToken, baseTokenAmountBeforeFee);
         }
-        else fee.oceanFeeAmount=0;
-      
+        else{
+            fee.oceanFeeAmount = 0;
+        }
         if(exchanges[exchangeId].marketFee !=0 ){
             fee.publishMarketFeeAmount = baseTokenAmountBeforeFee
                 .mul(exchanges[exchangeId].marketFee)
@@ -430,20 +424,10 @@ contract FixedRateExchangeEnterprise is ReentrancyGuard {
             fee.consumeMarketFeeAmount = 0;
         }
         
-        if(enterpriseFeeCollector != address(0)){
-            require(
-                IEnterpriseFeeCollector(enterpriseFeeCollector).isTokenAllowed(exchanges[exchangeId].baseToken),
-                "This baseToken is not allowed by enterprise fee collector"
-            );
-            fee.enterpriseFeeCollectorFeeAmount = IEnterpriseFeeCollector(enterpriseFeeCollector)
-                .calculateFee(exchanges[exchangeId].baseToken, baseTokenAmountBeforeFee);
-        }
-        else{
-            fee.enterpriseFeeCollectorFeeAmount = 0;
-        }
+        
         
         fee.baseTokenAmount = baseTokenAmountBeforeFee.sub(fee.publishMarketFeeAmount)
-            .sub(fee.oceanFeeAmount).sub(fee.consumeMarketFeeAmount).sub(fee.enterpriseFeeCollectorFeeAmount);
+            .sub(fee.oceanFeeAmount).sub(fee.consumeMarketFeeAmount);
         return(fee);
     }
 
@@ -482,9 +466,6 @@ contract FixedRateExchangeEnterprise is ReentrancyGuard {
             "FixedRateExchange: Too many base tokens"
         );
         // we account fees , fees are always collected in baseToken
-        exchanges[exchangeId].oceanFeeAvailable = exchanges[exchangeId]
-            .oceanFeeAvailable
-            .add(fee.oceanFeeAmount);
         exchanges[exchangeId].marketFeeAvailable = exchanges[exchangeId]
             .marketFeeAvailable
             .add(fee.publishMarketFeeAmount);
@@ -492,7 +473,7 @@ contract FixedRateExchangeEnterprise is ReentrancyGuard {
                 address(this),
                 fee.baseTokenAmount);
         uint256 baseTokenAmountBeforeFee = fee.baseTokenAmount.sub(fee.oceanFeeAmount).
-            sub(fee.publishMarketFeeAmount).sub(fee.consumeMarketFeeAmount).sub(fee.enterpriseFeeCollectorFeeAmount);
+            sub(fee.publishMarketFeeAmount).sub(fee.consumeMarketFeeAmount);
         exchanges[exchangeId].btBalance = (exchanges[exchangeId].btBalance).add(
             baseTokenAmountBeforeFee
         );
@@ -523,10 +504,10 @@ contract FixedRateExchangeEnterprise is ReentrancyGuard {
                 exchanges[exchangeId].baseToken,
                 fee.consumeMarketFeeAmount);
         }
-        if(fee.enterpriseFeeCollectorFeeAmount > 0 && enterpriseFeeCollector != address(0)){
+        if(fee.oceanFeeAmount > 0 && enterpriseFeeCollector != address(0)){
             IERC20(exchanges[exchangeId].baseToken).safeTransfer(
                 enterpriseFeeCollector,
-                fee.enterpriseFeeCollectorFeeAmount
+                fee.oceanFeeAmount
             );
         }
         emit Swapped(
@@ -537,8 +518,7 @@ contract FixedRateExchangeEnterprise is ReentrancyGuard {
             exchanges[exchangeId].datatoken,
             fee.publishMarketFeeAmount,
             fee.oceanFeeAmount,
-            fee.consumeMarketFeeAmount,
-            fee.enterpriseFeeCollectorFeeAmount
+            fee.consumeMarketFeeAmount
         );
         
     }
@@ -578,14 +558,11 @@ contract FixedRateExchangeEnterprise is ReentrancyGuard {
             "FixedRateExchange: Too few base tokens"
         );
         // we account fees , fees are always collected in baseToken
-        exchanges[exchangeId].oceanFeeAvailable = exchanges[exchangeId]
-            .oceanFeeAvailable
-            .add(fee.oceanFeeAmount);
         exchanges[exchangeId].marketFeeAvailable = exchanges[exchangeId]
             .marketFeeAvailable
             .add(fee.publishMarketFeeAmount);
         uint256 baseTokenAmountWithFees = fee.baseTokenAmount.add(fee.oceanFeeAmount)
-            .add(fee.publishMarketFeeAmount).add(fee.consumeMarketFeeAmount).add(fee.enterpriseFeeCollectorFeeAmount);
+            .add(fee.publishMarketFeeAmount).add(fee.consumeMarketFeeAmount);
         if (baseTokenAmountWithFees > exchanges[exchangeId].btBalance) {
                 // not enough baseTokens in fre, bail out
                 revert("FixedRateExchange: Not enough base tokens");
@@ -612,10 +589,10 @@ contract FixedRateExchangeEnterprise is ReentrancyGuard {
                 exchanges[exchangeId].baseToken,
                 fee.consumeMarketFeeAmount);
         }
-        if(fee.enterpriseFeeCollectorFeeAmount > 0 && enterpriseFeeCollector != address(0)){
+        if(fee.oceanFeeAmount > 0 && enterpriseFeeCollector != address(0)){
             IERC20(exchanges[exchangeId].baseToken).safeTransfer(
                 enterpriseFeeCollector,
-                fee.enterpriseFeeCollectorFeeAmount
+                fee.oceanFeeAmount
             );
         }
         emit Swapped(
@@ -626,8 +603,7 @@ contract FixedRateExchangeEnterprise is ReentrancyGuard {
             exchanges[exchangeId].baseToken,
             fee.publishMarketFeeAmount,
             fee.oceanFeeAmount,
-            fee.consumeMarketFeeAmount,
-            fee.enterpriseFeeCollectorFeeAmount
+            fee.consumeMarketFeeAmount
         );
     }
 
