@@ -41,7 +41,7 @@ jobs:
       - name: Run Ganache with Barge
         working-directory: ${{ github.workspace }}/barge
         run: |
-          bash -x start_ocean.sh  --no-aquarius --no-elasticsearch --no-provider --no-dashboard 2>&1 > start_ocean.log &
+          bash -x start_ocean.sh  --no-node --no-ipfs --no-elasticsearch 2>&1 > start_ocean.log &
         env:
           CONTRACTS_VERSION: test
       - run: npm ci
