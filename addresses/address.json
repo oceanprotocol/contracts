@@ -303,7 +303,7 @@
     "OPFCommunityFeeCollectorCompute": "0x0Ee8b03Dafc868a0899ebE1c12d734D53A957250",
     "Escrow": "0x86F2BB9F8f18B5a836b342199a3eC89F282E4018",
     "EnterpriseFeeCollector": "0x4D49eEedFac8Ea03328c0E4871b680C06d892092",
-    "FixedPriceEnterprise": "0xAEf06d8507F884674EC70330f4FBd21E23792D88"
+    "FixedPriceEnterprise": "0xEcD0C3519a081e3924D6F3197f86980eA7dfCf71"
   },
   "oasis_sapphire": {
     "chainId": 23294,
