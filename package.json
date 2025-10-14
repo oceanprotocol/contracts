@@ -1,6 +1,6 @@
 {
   "name": "@oceanprotocol/contracts",
-  "version": "2.4.0",
+  "version": "2.4.1",
   "description": "Ocean Protocol Smartcontracts",
   "bugs": {
     "url": "https://github.com/oceanprotocol/contracts/issues"
@@ -43,8 +43,8 @@
     "test:full:cover": "npx hardhat coverage"
   },
   "devDependencies": {
+    "@nomicfoundation/hardhat-verify": "^2.1.1",
     "@nomiclabs/hardhat-ethers": "^2.2.3",
-    "@nomicfoundation/hardhat-verify": "^2.0.9",
     "@nomiclabs/hardhat-vyper": "^3.0.5",
     "@nomiclabs/hardhat-waffle": "^2.0.6",
     "@openzeppelin/contracts": "^4.8.3",
