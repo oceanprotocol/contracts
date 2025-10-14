@@ -192,7 +192,7 @@ module.exports = {
     enabled: true
   },
   etherscan: {
-    apiKey: {
+    /*apiKey: {
       oasis_saphire_testnet: process.env.ETHERSCAN_API_KEY,
       oasis_saphire: process.env.ETHERSCAN_API_KEY,
       optimism_sepolia: process.env.ETHERSCAN_API_KEY,
@@ -201,7 +201,9 @@ module.exports = {
       mainnet: process.env.ETHERSCAN_API_KEY,
       polygon: process.env.ETHERSCAN_API_KEY,
       base: process.env.ETHERSCAN_API_KEY,
-    },
+    },*/
+    apiKey: process.env.ETHERSCAN_API_KEY,
+    //customChains: [],
     customChains: [
     {
       network: "alfajores",
@@ -239,7 +241,7 @@ module.exports = {
       network: "optimism_sepolia",
       chainId: 11155420,
       urls: { 
-          apiURL: "https://api-sepolia-optimistic.etherscan.io/api",
+          apiURL: "https://api.etherscan.io/v2/api",
           browserURL: "https://sepolia-optimism.etherscan.io/",
       },
     },
