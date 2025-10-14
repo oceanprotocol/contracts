@@ -145,7 +145,8 @@
     "VestingWalletC": "0x29F74B853C4B8D36273666FB63a3b71c754424Ed",
     "OceanNodesBooster": "0x73558Ef3bb6543A8107ac032C5a98Da03ceb0eEf",
     "OPFCommunityFeeCollectorCompute": "0x1705CaF86B86e85804e20FE342f39B17322Ff592",
-    "Escrow": "0x5D7a9F0c8E9E9af5674DEE832Cc97FC425b655Bc"
+    "Escrow": "0x5D7a9F0c8E9E9af5674DEE832Cc97FC425b655Bc",
+    "AccessListFactory": "0x7ed6ac4243472adA55408fEE45c5Dff379f7aBE0"
   },
   "goerli": {
     "chainId": 5,
@@ -303,7 +304,8 @@
     "OPFCommunityFeeCollectorCompute": "0x0Ee8b03Dafc868a0899ebE1c12d734D53A957250",
     "Escrow": "0x86F2BB9F8f18B5a836b342199a3eC89F282E4018",
     "EnterpriseFeeCollector": "0x4D49eEedFac8Ea03328c0E4871b680C06d892092",
-    "FixedPriceEnterprise": "0xEcD0C3519a081e3924D6F3197f86980eA7dfCf71"
+    "FixedPriceEnterprise": "0xEcD0C3519a081e3924D6F3197f86980eA7dfCf71",
+    "AccessListFactory": "0x43eC0a34E1b70C7f8E579ab866F37642777727E7"
   },
   "oasis_sapphire": {
     "chainId": 23294,
@@ -349,7 +351,9 @@
     "Dispenser": "0x30E4CC2C7A9c6aA2b2Ce93586E3Df24a3A00bcDD",
     "ERC721Factory": "0xDEfD0018969cd2d4E648209F876ADe184815f038",
     "OPFCommunityFeeCollectorCompute": "0xe47991939632757DEe324E8ec9A3268c62C0DB76",
-    "Escrow": "0x4D49eEedFac8Ea03328c0E4871b680C06d892092"
+    "Escrow": "0x4D49eEedFac8Ea03328c0E4871b680C06d892092",
+    "AccessListFactory": "0xEcD0C3519a081e3924D6F3197f86980eA7dfCf71"
+    
   },
   "optimism": {
     "chainId": 10,
@@ -368,7 +372,8 @@
     "Dispenser": "0x2112Eb973af1DBf83a4f11eda82f7a7527D7Fde5",
     "ERC721Factory": "0x80E63f73cAc60c1662f27D2DFd2EA834acddBaa8",
     "OPFCommunityFeeCollectorCompute": "0xc37F8341Ac6e4a94538302bCd4d49Cf0852D30C0",
-    "Escrow": "0x3c21a90599b5B7f37014cA5Bf30d3f1b73d7e391"
+    "Escrow": "0x3c21a90599b5B7f37014cA5Bf30d3f1b73d7e391",
+    "AccessListFactory": "0x4E6058dC00e90C0DCA47A5d0D3346F409939A5ab"
   },
   "pontus-x-devnet": {
     "chainId": 32456,
@@ -404,6 +409,7 @@
     "ERC721Factory": "0x159924ca0F47D6F704B97E29099b89e518A17B5E",
     "BatchPayments": "0xFe7967A5176fDAFa8DE109b3507016B885a82D6e",
     "OPFCommunityFeeCollectorCompute": "0x7b0576CF01E868bce46cca91b2a8E674141b0355",
-    "Escrow": "0x8389bC1306208488D665F939AFB4079adf6f5a06"
+    "Escrow": "0x8389bC1306208488D665F939AFB4079adf6f5a06",
+    "AccessListFactory": "0xE5aa2C9B551aFcA4C0A98BB3B37D7A43084d0a66"
   }
 }
