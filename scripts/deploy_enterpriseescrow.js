@@ -93,7 +93,7 @@ async function main() {
       OPFOwner = "0xC7EC1970B09224B317c52d92f37F5e1E4fF6B687";
       RouterAddress = "0x2112Eb973af1DBf83a4f11eda82f7a7527D7Fde5";
       gasPrice = ethers.utils.parseUnits("1", "gwei");
-      gasLimit = 28000000;
+      gasLimit = 5000000;
       break;
     case 11155420:
       networkName = "optimism_sepolia";
