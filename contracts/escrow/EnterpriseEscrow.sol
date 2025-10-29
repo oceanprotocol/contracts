@@ -380,6 +380,10 @@ contract EnterpriseEscrow is
         }
         // check enterprise fee
         if(opcCollector != address(0)){
+            require(
+                IEnterpriseFeeCollector(opcCollector).isTokenAllowed(token),
+                "This token is not allowed by enterprise fee collector"
+            );
             uint256 enterpriseFee = IEnterpriseFeeCollector(opcCollector).calculateFee(token,amount);
             require(
                 enterpriseFee<amount,"Amount must be higher than enterprise fee"
