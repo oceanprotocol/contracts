@@ -1002,10 +1002,27 @@ async function main() {
     await deployEscrow.deployTransaction.wait();
     if (show_verify) {
       console.log("\tRun the following to verify on etherscan");
-      console.log("\tnpx hardhat verify --network " + networkName + " " + deployEscrow.address)
+      console.log("\tnpx hardhat verify --network " + networkName + " " + deployEscrow.address+" "+router.address+" "+ZERO_ADDRESS)
     }
     addresses.Escrow = deployEscrow.address;
     if (sleepAmount > 0) await sleep(sleepAmount)
+
+  // EnterpriseEscrow
+  if(addresses.EnterpriseFeeCollector){
+      if (logging) console.info("Deploying Enterprise Escrow");
+      const EnterpriseEscrow = await ethers.getContractFactory(
+          "EnterpriseEscrow",
+          owner
+      );
+      const deployEnterpriseEscrow = await EnterpriseEscrow.connect(owner).deploy(addresses.EnterpriseFeeCollector,options)
+      await deployEnterpriseEscrow.deployTransaction.wait();
+      if (show_verify) {
+        console.log("\tRun the following to verify on etherscan");
+        console.log("\tnpx hardhat verify --network " + networkName + " " + deployEnterpriseEscrow.address+ " "+addresses.EnterpriseFeeCollector)
+      }
+      addresses.EnterpriseEscrow = deployEnterpriseEscrow.address;
+      if (sleepAmount > 0) await sleep(sleepAmount)
+  }
 
   //DF contracts
   if (shouldDeployDF) {
