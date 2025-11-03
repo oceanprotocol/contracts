@@ -621,8 +621,22 @@ contract Escrow is
         }
         //delete the locks
         uint256 delLength=indexToDelete.length;
-        for(index=0;index<delLength;index++){
-            locks[indexToDelete[index]]=locks[locks.length-1];
+        // Sort indexToDelete in descending order
+        for (uint256 i = 0; i < delLength - 1; i++) {
+            for (uint256 j = i + 1; j < delLength; j++) {
+                if (indexToDelete[i] < indexToDelete[j]) {
+                    uint256 temp = indexToDelete[i];
+                    indexToDelete[i] = indexToDelete[j];
+                    indexToDelete[j] = temp;
+                }
+            }
+        }
+        // Delete the locks safely
+        for (index = 0; index < delLength; index++) {
+            uint256 delIndex = indexToDelete[index];
+            if (delIndex < locks.length - 1) {
+                locks[delIndex] = locks[locks.length - 1];
+            }
             locks.pop();
         }
     }
