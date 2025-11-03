@@ -498,7 +498,8 @@ contract EnterpriseEscrow is
             if(
                 msg.sender==locks[index].payee && 
                 payer==locks[index].payer && 
-                jobId==locks[index].jobId
+                jobId==locks[index].jobId &&
+                token==locks[index].token
 
             ) {
                 tempLock=locks[index];
