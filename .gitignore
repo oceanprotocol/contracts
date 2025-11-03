@@ -5,7 +5,7 @@ coverage/
 node_modules/
 # Hardhat files
 cache/
-uncompiled/
+artifacts/
 # Python package files
 build/
 venv/

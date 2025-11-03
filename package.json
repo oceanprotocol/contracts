@@ -26,6 +26,7 @@
     "test:full": "npx hardhat test test/unit/*/*.test.js test/flow/*.test.js ",
     "test:batch": "npx hardhat test test/flow/SwapBatch.test.js ",
     "test:escrow": "npx hardhat test test/unit/escrow/Escrow.test.js ",
+    "test:enterpriseEscrow": "npx hardhat test test/unit/escrow/EnterpriseEscrow.test.js ",
     "test:fre": "npx hardhat test test/flow/FixedRateExchange.test.js ",
     "test:fre:enterprise": "npx hardhat test test/flow/FixedRateExchangeEnterprise.test.js ",
     "test:enterpriseFeeCollector": "npx hardhat test test/unit/communityFee/EnterpriseFeeCollector.test.js ",

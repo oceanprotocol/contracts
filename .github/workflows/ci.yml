@@ -84,17 +84,17 @@ jobs:
         uses: actions/checkout@v2
 
       - name: Run Slither
-        uses: crytic/slither-action@v0.1.0
+        uses: crytic/slither-action@v0.4.1
         continue-on-error: true
         id: slither
         with:
-          node-version: 16
           sarif: results.sarif
+          fail-on: none
         env:
           ALCHEMY_URL: ${{secrets.ALCHEMY_URL}}`
 
       - name: Upload SARIF file
-        uses: github/codeql-action/upload-sarif@v1
+        uses: github/codeql-action/upload-sarif@v3
         with:
           sarif_file: ${{ steps.slither.outputs.sarif }}
 
