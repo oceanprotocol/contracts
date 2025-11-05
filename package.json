@@ -44,7 +44,7 @@
     "test:full:cover": "npx hardhat coverage"
   },
   "devDependencies": {
-    "@nomicfoundation/hardhat-verify": "^2.1.1",
+    "@nomicfoundation/hardhat-verify": "^3.0.5",
     "@nomiclabs/hardhat-ethers": "^2.2.3",
     "@nomiclabs/hardhat-vyper": "^3.0.5",
     "@nomiclabs/hardhat-waffle": "^2.0.6",
