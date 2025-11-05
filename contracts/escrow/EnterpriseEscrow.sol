@@ -536,6 +536,10 @@ contract EnterpriseEscrow is
         funds[payer][token].locked-=tempLock.amount;
         //update payee balance
         funds[msg.sender][token].available+=payout;
+        if (!hasFundsInToken[msg.sender][token]) {
+            userTokens[msg.sender].push(token);
+            hasFundsInToken[msg.sender][token] = true;
+        }
         //delete the lock
         if(index<locks.length-1){
             locks[index]=locks[locks.length-1];
