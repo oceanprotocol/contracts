@@ -477,25 +477,28 @@ contract FixedRateExchangeEnterprise is ReentrancyGuard {
         exchanges[exchangeId].btBalance = (exchanges[exchangeId].btBalance).add(
             baseTokenAmountBeforeFee
         );
-
+        // mint more tokens if required
         if (datatokenAmount > exchanges[exchangeId].dtBalance) {
             //let's try to mint
             if(exchanges[exchangeId].withMint 
             && IERC20Template(exchanges[exchangeId].datatoken).isMinter(address(this)))
             {
-                IERC20Template(exchanges[exchangeId].datatoken).mint(msg.sender,datatokenAmount);
+                uint256 amountToMint = datatokenAmount.sub(exchanges[exchangeId].dtBalance);
+                IERC20Template(exchanges[exchangeId].datatoken).mint(address(this),amountToMint);
+                exchanges[exchangeId].dtBalance = exchanges[exchangeId].dtBalance.add(amountToMint);
             }
             else{
                 revert("FixedRateExchange: No available datatokens");
             }
-        } else {
-            exchanges[exchangeId].dtBalance = (exchanges[exchangeId].dtBalance)
-                .sub(datatokenAmount);
-            IERC20(exchanges[exchangeId].datatoken).safeTransfer(
-                msg.sender,
-                datatokenAmount
-            );
-        }
+        } 
+        // now transfer datatokens
+        exchanges[exchangeId].dtBalance = (exchanges[exchangeId].dtBalance)
+            .sub(datatokenAmount);
+        IERC20(exchanges[exchangeId].datatoken).safeTransfer(
+            msg.sender,
+            datatokenAmount
+        );
+        
         if(consumeMarketAddress!= address(0) && fee.consumeMarketFeeAmount>0){
             IERC20(exchanges[exchangeId].baseToken).safeTransfer(consumeMarketAddress, fee.consumeMarketFeeAmount);
             emit ConsumeMarketFee(
@@ -880,17 +883,18 @@ contract FixedRateExchangeEnterprise is ReentrancyGuard {
     function getDTSupply(bytes32 exchangeId)
         public
         view
-        returns (uint256 supply)
+        returns (uint256)
     {
-        if (exchanges[exchangeId].active == false) supply = 0;
-        else if (exchanges[exchangeId].withMint
+        uint256 supply=0;
+        if (exchanges[exchangeId].active == false) return 0;
+        if (exchanges[exchangeId].withMint
         && IERC20Template(exchanges[exchangeId].datatoken).isMinter(address(this))){
             supply = IERC20Template(exchanges[exchangeId].datatoken).cap() 
             - IERC20Template(exchanges[exchangeId].datatoken).totalSupply();
         }
-        else {
-            supply = exchanges[exchangeId].dtBalance;
-        }
+        supply += exchanges[exchangeId].dtBalance;
+        return supply;
+        
     }
 
     /**
