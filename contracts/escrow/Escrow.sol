@@ -67,12 +67,13 @@ contract Escrow is
     struct lock{
         uint256 jobId;
         address payer;
-        address payee;
         uint256 amount;
         uint256 expiry;
         address token;
     }
-    lock[] locks;
+
+    mapping(address => lock[]) private locks; // locks by payee
+    
 
     // events
     event Deposit(address indexed payer,address token,uint256 amount);
@@ -258,17 +259,17 @@ contract Escrow is
      *      
      * @param token token to filter (zero address means any)
      * @param payer payer to filter (zero address means any)
-     * @param payee payee to filter (zero address means any)
+     * @param payee payee to filter (required)
      */
     function getLocks(address token,address payer,address payee) public view returns (lock[] memory){
+        require(payee!=address(0),'Invalid payee');
         // since solidty does not supports dynamic memory arrays, we need to calculate the return size first
         uint256 size=0;
-        uint256 length=locks.length;
+        uint256 length=locks[payee].length;
         for(uint256 i=0;i<length;i++){
             if( 
-                (address(token)==address(0) || address(token)==locks[i].token) || 
-                (address(payee)==address(0) || address(payee)==locks[i].payee) || 
-                (address(payer)==address(0) || address(payer)==locks[i].payer)
+                (address(token)==address(0) || address(token)==locks[payee][i].token) || 
+                (address(payer)==address(0) || address(payer)==locks[payee][i].payer)
             ){
                 size++;
             }
@@ -278,11 +279,10 @@ contract Escrow is
         size=0;
         for(uint256 i=0;i<length;i++){
             if(
-                (address(token)==address(0) || address(token)==locks[i].token) ||
-                (address(payee)==address(0) || address(payee)==locks[i].payee) ||
-                (address(payer)==address(0) || address(payer)==locks[i].payer)
+                (address(token)==address(0) || address(token)==locks[payee][i].token) ||
+                (address(payer)==address(0) || address(payer)==locks[payee][i].payer)
             ){
-                tempPendings[size]=locks[i];
+                tempPendings[size]=locks[payee][i];
                 size++;
             }
         }    
@@ -356,6 +356,7 @@ contract Escrow is
     }
     function _createLock(uint256 jobId,address token,address payer,uint256 amount,uint256 expiry) internal {
         require(payer!=address(0),'Invalid payer');
+        require(payer!=msg.sender,'Payeer cannot be payee');
         require(token!=address(0),'Invalid token');
         require(amount>0,"Invalid amount");
         require(jobId>0,"Invalid jobId");
@@ -374,9 +375,9 @@ contract Escrow is
         require(tempAuth.currentLockedAmount+amount<=tempAuth.maxLockedAmount,"Exceeds maxLockedAmount");
         require(tempAuth.currentLocks<tempAuth.maxLockCounts,"Exceeds maxLockCounts");
         // check jobId
-        length=locks.length;
+        length=locks[msg.sender].length;
         for(uint256 i=0;i<length;i++){
-            if(locks[i].payer==payer && locks[i].payee==msg.sender && locks[i].jobId==jobId){
+            if(locks[msg.sender][i].payer==payer && locks[msg.sender][i].jobId==jobId){
                 revert("JobId already exists");
             }
         }
@@ -387,7 +388,7 @@ contract Escrow is
         funds[payer][token].available-=amount;
         funds[payer][token].locked+=amount;
         // create the lock
-        locks.push(lock(jobId,payer,msg.sender,amount,block.timestamp+expiry,token));
+        locks[msg.sender].push(lock(jobId,payer,amount,block.timestamp+expiry,token));
         emit Lock(payer,msg.sender,jobId,amount,expiry,token);
     }
 
@@ -481,22 +482,21 @@ contract Escrow is
         require(payer!=address(0),'Invalid payer');
         require(token!=address(0),'Invalid token');
         require(jobId>0,'Invalid jobId');
-        lock memory tempLock=lock(0,address(0),address(0),0,0,address(0));
+        lock memory tempLock=lock(0,address(0),0,0,address(0));
         uint256 index;
-        uint256 length=locks.length;
+        uint256 length=locks[msg.sender].length;
         for(index=0;index<length;index++){
-            if(
-                msg.sender==locks[index].payee && 
-                payer==locks[index].payer && 
-                jobId==locks[index].jobId &&
-                token==locks[index].token
+            if( 
+                payer==locks[msg.sender][index].payer && 
+                jobId==locks[msg.sender][index].jobId &&
+                token==locks[msg.sender][index].token
 
             ) {
-                tempLock=locks[index];
+                tempLock=locks[msg.sender][index];
                 break;
             }
         }
-        require(tempLock.payee==msg.sender,"Lock not found");
+        require(tempLock.payer==payer,"Lock not found");
         if(tempLock.expiry<block.timestamp){
             //we are too late, cancel the lock
             _cancelExpiredLock(jobId,token,payer,msg.sender);
@@ -535,10 +535,10 @@ contract Escrow is
             hasFundsInToken[msg.sender][token] = true;
         }
         //delete the lock
-        if(index<locks.length-1){
-            locks[index]=locks[locks.length-1];
+        if(index<locks[msg.sender].length-1){
+            locks[msg.sender][index]=locks[msg.sender][locks[msg.sender].length-1];
         }
-        locks.pop();
+        locks[msg.sender].pop();
         emit Claimed(msg.sender,jobId,token,payer,amount,proof);
     }
 
@@ -549,7 +549,7 @@ contract Escrow is
      * @param jobId jobId, if 0 matches any jobId
      * @param token token (zero address means any)
      * @param payer payer address (zero address means any)
-     * @param payee payee address (zero address means any)
+     * @param payee payee address (required)
      */
     function cancelExpiredLock(uint256 jobId,address token,address payer,address payee) external nonReentrant{
         _cancelExpiredLock(jobId,token,payer,payee);
@@ -562,7 +562,7 @@ contract Escrow is
      * @param jobId jobId, if 0 matches any jobId
      * @param token token (zero address means any)
      * @param payer payer address (zero address means any)
-     * @param payee payee address (zero address means any)
+     * @param payee payee address (required)
      */
     function cancelExpiredLocks(uint256[] memory jobId,address[] memory token,address[] memory payer,
         address[] memory payee) external nonReentrant{
@@ -575,17 +575,17 @@ contract Escrow is
     }
     
     function _cancelExpiredLock(uint256 jobId,address token,address payer,address payee) internal{
+        require(payee!=address(0),'Invalid payee');
         uint256 index;
         //since solidy does not supports dynamic arrays, we need to count first
         uint256 found=0;
-        uint256 length=locks.length;
+        uint256 length=locks[payee].length;
         for(index=0;index<length;index++){
-            if(locks[index].expiry<block.timestamp &&
+            if(locks[payee][index].expiry<block.timestamp &&
                 (
-                    (jobId==0 || jobId==locks[index].jobId) &&
-                    (token==address(0) || token==locks[index].token) &&
-                    (payer==address(0) || payer==locks[index].payer) &&
-                    (payee==address(0) || payee==locks[index].payee)
+                    (jobId==0 || jobId==locks[payee][index].jobId) &&
+                    (token==address(0) || token==locks[payee][index].token) &&
+                    (payer==address(0) || payer==locks[payee][index].payer)
                 )
             ){
                 found++;
@@ -597,28 +597,27 @@ contract Escrow is
         uint256 currentIndex=0;
         // now actually do the work
         for(index=0;index<length;index++){
-            if(locks[index].expiry<block.timestamp &&
+            if(locks[payee][index].expiry<block.timestamp &&
                 (
-                    (jobId==0 || jobId==locks[index].jobId) &&
-                    (token==address(0) || token==locks[index].token) &&
-                    (payer==address(0) || payer==locks[index].payer) &&
-                    (payee==address(0) || payee==locks[index].payee)
+                    (jobId==0 || jobId==locks[payee][index].jobId) &&
+                    (token==address(0) || token==locks[payee][index].token) &&
+                    (payer==address(0) || payer==locks[payee][index].payer)
                 )
             ){
                 //cancel each lock, one by one
                 //update auths
-                uint256 authsLength=userAuths[locks[index].payer][locks[index].token].length;
+                uint256 authsLength=userAuths[locks[payee][index].payer][locks[payee][index].token].length;
                 for(uint256 i=0;i<authsLength;i++){
-                        if(userAuths[locks[index].payer][locks[index].token][i].payee==locks[index].payee){
-                            userAuths[locks[index].payer][locks[index].token][i].currentLockedAmount-=locks[index].amount;
-                            userAuths[locks[index].payer][locks[index].token][i].currentLocks-=1;
+                        if(userAuths[locks[payee][index].payer][locks[payee][index].token][i].payee==payee){
+                            userAuths[locks[payee][index].payer][locks[payee][index].token][i].currentLockedAmount-=locks[payee][index].amount;
+                            userAuths[locks[payee][index].payer][locks[payee][index].token][i].currentLocks-=1;
                         }
                 }
                 //update user funds
-                funds[locks[index].payer][locks[index].token].available+=locks[index].amount;
-                funds[locks[index].payer][locks[index].token].locked-=locks[index].amount;
-                emit Canceled(locks[index].payee,locks[index].jobId,locks[index].token,
-                    locks[index].payer,locks[index].amount);
+                funds[locks[payee][index].payer][locks[payee][index].token].available+=locks[payee][index].amount;
+                funds[locks[payee][index].payer][locks[payee][index].token].locked-=locks[payee][index].amount;
+                emit Canceled(payee,locks[payee][index].jobId,locks[payee][index].token,
+                    locks[payee][index].payer,locks[payee][index].amount);
                 indexToDelete[currentIndex]=index;
                 currentIndex++;
             }
@@ -638,10 +637,10 @@ contract Escrow is
         // Delete the locks safely
         for (index = 0; index < delLength; index++) {
             uint256 delIndex = indexToDelete[index];
-            if (delIndex < locks.length - 1) {
-                locks[delIndex] = locks[locks.length - 1];
+            if (delIndex < locks[payee].length - 1) {
+                locks[payee][delIndex] = locks[payee][locks[payee].length - 1];
             }
-            locks.pop();
+            locks[payee].pop();
         }
     }
 }
