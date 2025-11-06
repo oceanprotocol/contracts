@@ -611,9 +611,9 @@ contract EnterpriseEscrow is
                 //update auths
                 uint256 authsLength=userAuths[locks[index].payer][locks[index].token].length;
                 for(uint256 i=0;i<authsLength;i++){
-                        if(userAuths[payer][token][i].payee==locks[index].payee){
-                            userAuths[payer][token][i].currentLockedAmount-=locks[index].amount;
-                            userAuths[payer][token][i].currentLocks-=1;
+                        if(userAuths[locks[index].payer][locks[index].token][i].payee==locks[index].payee){
+                            userAuths[locks[index].payer][locks[index].token][i].currentLockedAmount-=locks[index].amount;
+                            userAuths[locks[index].payer][locks[index].token][i].currentLocks-=1;
                         }
                 }
                 //update user funds
