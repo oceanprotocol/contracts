@@ -483,7 +483,9 @@ contract FixedRateExchangeEnterprise is ReentrancyGuard {
             if(exchanges[exchangeId].withMint 
             && IERC20Template(exchanges[exchangeId].datatoken).isMinter(address(this)))
             {
-                IERC20Template(exchanges[exchangeId].datatoken).mint(address(this),datatokenAmount.sub(exchanges[exchangeId].dtBalance));
+                uint256 amountToMint = datatokenAmount.sub(exchanges[exchangeId].dtBalance);
+                IERC20Template(exchanges[exchangeId].datatoken).mint(address(this),amountToMint);
+                exchanges[exchangeId].dtBalance = exchanges[exchangeId].dtBalance.add(amountToMint);
             }
             else{
                 revert("FixedRateExchange: No available datatokens");
