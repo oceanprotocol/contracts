@@ -368,7 +368,6 @@ contract EnterpriseEscrow is
         }
         require(tempAuth.payee==msg.sender,"No auth found");
         require(expiry<=tempAuth.maxLockSeconds,"Expiry too high");
-        require(amount<= tempAuth.maxLockedAmount,"Amount too high");
         require(tempAuth.currentLockedAmount+amount<=tempAuth.maxLockedAmount,"Exceeds maxLockedAmount");
         require(tempAuth.currentLocks<tempAuth.maxLockCounts,"Exceeds maxLockCounts");
         // check jobId
