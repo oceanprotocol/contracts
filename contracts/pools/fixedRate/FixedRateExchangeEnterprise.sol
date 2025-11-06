@@ -71,6 +71,7 @@ contract FixedRateExchangeEnterprise is ReentrancyGuard {
         // allow only ERC20 Deployers or NFT Owner
         IERC20Template dt = IERC20Template(exchanges[exchangeId].datatoken);
         require(
+            exchanges[exchangeId].exchangeOwner == msg.sender ||
             dt.isERC20Deployer(msg.sender) || 
             IERC721Template(dt.getERC721Address()).ownerOf(1) == msg.sender
             ,
@@ -810,15 +811,15 @@ contract FixedRateExchangeEnterprise is ReentrancyGuard {
     {
         // check if owner still has role, maybe he was an ERC20Deployer when fixedrate was created, but not anymore
         exchanges[exchangeId].withMint = 
-            _checkAllowedWithMint(exchanges[exchangeId].exchangeOwner, exchanges[exchangeId].datatoken,withMint);
+            _checkAllowedWithMint(msg.sender, exchanges[exchangeId].datatoken,withMint);
         emit ExchangeMintStateChanged(exchangeId, msg.sender, withMint);
     }
 
     /**
      * @dev checkAllowedWithMint
      *      internal function which establishes if a withMint flag can be set.  
-     *      It does this by checking if the owner has rights for that datatoken
-     * @param owner exchange owner
+     *      It does this by checking if the caller has rights for that datatoken
+     * @param owner caller
      * @param datatoken datatoken address
      * @param withMint desired flag, might get overwritten if owner has no roles
      */
