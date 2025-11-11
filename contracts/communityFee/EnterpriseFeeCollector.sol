@@ -23,8 +23,36 @@ contract EnterpriseFeeCollector is Ownable {
         uint256 maxFee;
         uint256 feePercentage;  // ie:  1e15 = 0.1%
     }
-    // maps an exchangeId to an exchange
+    // maps an token to a token struct
     mapping(address => Token) public tokenList;
+
+    event WithdrawETH(
+        address indexed collector,
+        uint256 amount,
+        address caller
+    );
+
+    event WithdrawToken(
+        address indexed collector,
+        address indexed tokenAddress,
+        uint256 amount,
+        address caller
+    );
+
+    event TokenUpdated(
+        address indexed tokenAddress,
+        uint256 minFee,
+        uint256 maxFee,
+        uint256 feePercentage,
+        bool allowed,
+        address caller
+    );
+
+    event CollectorChanged(
+        address indexed oldCollector,
+        address indexed newCollector,
+        address caller
+    );
     /**
      * @dev constructor
      *      Called prior contract deployment. set the controller address and
@@ -68,6 +96,7 @@ contract EnterpriseFeeCollector is Ownable {
         external 
         payable
     {
+        emit WithdrawETH(collector, address(this).balance, msg.sender);
         (bool sent, ) = collector.call{value: address(this).balance}("");
         require(sent, "Failed to send Ether");
     }
@@ -86,11 +115,17 @@ contract EnterpriseFeeCollector is Ownable {
             tokenAddress != address(0),
             'OPFCommunityFeeCollector: invalid token contract address'
         );
-
-            IERC20(tokenAddress).safeTransfer(
+        uint256 tokenBalance = IERC20(tokenAddress).balanceOf(address(this));
+        emit WithdrawToken(
+            collector,
+            tokenAddress,
+            tokenBalance,
+            msg.sender
+        );
+        IERC20(tokenAddress).safeTransfer(
                 collector,
-                IERC20(tokenAddress).balanceOf(address(this))
-            );
+                tokenBalance
+        );
     }
 
     /**
@@ -109,6 +144,11 @@ contract EnterpriseFeeCollector is Ownable {
             'OPFCommunityFeeCollector: invalid collector address'
         );
         collector = newCollector;
+        emit CollectorChanged(
+            collector,
+            newCollector,
+            msg.sender
+        );
     }
 
     /**
@@ -175,6 +215,14 @@ contract EnterpriseFeeCollector is Ownable {
             maxFee: maxFee,
             feePercentage: feePercentage
         });
+        emit TokenUpdated(
+            tokenAddress,
+            minFee,
+            maxFee,
+            feePercentage,
+            allowed,
+            msg.sender
+        );
     }
        
     function calculateFee(address tokenAddress, uint256 amount) 
