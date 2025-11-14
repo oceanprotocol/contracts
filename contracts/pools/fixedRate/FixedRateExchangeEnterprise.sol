@@ -543,72 +543,8 @@ contract FixedRateExchangeEnterprise is ReentrancyGuard {
         onlyActiveExchange(exchangeId)
         nonReentrant
     {
-        require(
-            datatokenAmount != 0,
-            "FixedRateExchange: zero datatoken amount"
-        );
-        require(consumeMarketSwapFeeAmount ==0 || consumeMarketSwapFeeAmount >= MIN_FEE,'ConsumeSwapFee too low');
-        require(consumeMarketSwapFeeAmount <= MAX_FEE,'ConsumeSwapFee too high');
-        if(exchanges[exchangeId].allowedSwapper != address(0)){
-            require(
-                exchanges[exchangeId].allowedSwapper == msg.sender,
-                "FixedRateExchange: This address is not allowed to swap"
-            );
-        }
-        if(consumeMarketAddress == address(0)) consumeMarketSwapFeeAmount=0; 
-        Fees memory fee = calcBaseOutGivenInDT(exchangeId, datatokenAmount, consumeMarketSwapFeeAmount);
-        require(
-            fee.baseTokenAmount >= minBaseTokenAmount,
-            "FixedRateExchange: Too few base tokens"
-        );
-        // we account fees , fees are always collected in baseToken
-        exchanges[exchangeId].marketFeeAvailable = exchanges[exchangeId]
-            .marketFeeAvailable
-            .add(fee.publishMarketFeeAmount);
-        uint256 baseTokenAmountWithFees = fee.baseTokenAmount.add(fee.oceanFeeAmount)
-            .add(fee.publishMarketFeeAmount).add(fee.consumeMarketFeeAmount);
-        if (baseTokenAmountWithFees > exchanges[exchangeId].btBalance) {
-                // not enough baseTokens in fre, bail out
-                revert("FixedRateExchange: Not enough base tokens");
-        }
-        _pullUnderlying(exchanges[exchangeId].datatoken,msg.sender,
-                address(this),
-                datatokenAmount);
-        exchanges[exchangeId].dtBalance = (exchanges[exchangeId].dtBalance).add(
-            datatokenAmount
-        );
+        revert("sellDT is not allowed for enterprise");
         
-        exchanges[exchangeId].btBalance = (exchanges[exchangeId].btBalance)
-                .sub(baseTokenAmountWithFees);
-        IERC20(exchanges[exchangeId].baseToken).safeTransfer(
-                msg.sender,
-                fee.baseTokenAmount
-        );
-        
-        if(consumeMarketAddress!= address(0) && fee.consumeMarketFeeAmount>0){
-            IERC20(exchanges[exchangeId].baseToken).safeTransfer(consumeMarketAddress, fee.consumeMarketFeeAmount);    
-             emit ConsumeMarketFee(
-                exchangeId,
-                consumeMarketAddress,
-                exchanges[exchangeId].baseToken,
-                fee.consumeMarketFeeAmount);
-        }
-        if(fee.oceanFeeAmount > 0 && enterpriseFeeCollector != address(0)){
-            IERC20(exchanges[exchangeId].baseToken).safeTransfer(
-                enterpriseFeeCollector,
-                fee.oceanFeeAmount
-            );
-        }
-        emit Swapped(
-            exchangeId,
-            msg.sender,
-            fee.baseTokenAmount,
-            datatokenAmount,
-            exchanges[exchangeId].baseToken,
-            fee.publishMarketFeeAmount,
-            fee.oceanFeeAmount,
-            fee.consumeMarketFeeAmount
-        );
     }
 
     /**
