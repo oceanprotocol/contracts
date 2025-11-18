@@ -282,7 +282,8 @@
     "Dispenser": "0xbde8224d15885c2E46Be665b9392E619cD142de8",
     "ERC721Factory": "0x315ef329D214cde5cE7C206104aC35B1fe66bb8c",
     "PredictoorHelper": "0x2e4cb19faD077768fDcB04Bc0549AB76BE8eA63F",
-    "AccessListFactory": "0xdA412123a3Cc0D921bcf7246f8742e3b7c3E7b94"
+    "AccessListFactory": "0xdA412123a3Cc0D921bcf7246f8742e3b7c3E7b94",
+    "USDC": "0x9159984c4B7E1B5c1e120ED63132846599696327"
   },
   "sepolia": {
     "chainId": 11155111,
@@ -333,7 +334,8 @@
     "AccessListFactory": "0x12bB8D85a091A69A07E22E52d4567dBB91568f52",
     "BatchPayments": "0x9497d1d64F2aFeBcd4f9916Eef3d9094E5Df962f",
     "OPFCommunityFeeCollectorCompute": "0xE5aa2C9B551aFcA4C0A98BB3B37D7A43084d0a66",
-    "Escrow": "0xf0c7A31D7Ee26bEBfb4BAD8e37490bEadE3F846f"
+    "Escrow": "0xf0c7A31D7Ee26bEBfb4BAD8e37490bEadE3F846f",
+    "USDC": "0x2c2E3812742Ab2DA53a728A09F5DE670Aba584b6"
   },
   "optimism_sepolia": {
     "chainId": 11155420,
