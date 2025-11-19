@@ -71,6 +71,7 @@ contract FixedRateExchangeEnterprise is ReentrancyGuard {
         // allow only ERC20 Deployers or NFT Owner
         IERC20Template dt = IERC20Template(exchanges[exchangeId].datatoken);
         require(
+            exchanges[exchangeId].exchangeOwner == msg.sender ||
             dt.isERC20Deployer(msg.sender) || 
             IERC721Template(dt.getERC721Address()).ownerOf(1) == msg.sender
             ,
@@ -477,25 +478,28 @@ contract FixedRateExchangeEnterprise is ReentrancyGuard {
         exchanges[exchangeId].btBalance = (exchanges[exchangeId].btBalance).add(
             baseTokenAmountBeforeFee
         );
-
+        // mint more tokens if required
         if (datatokenAmount > exchanges[exchangeId].dtBalance) {
             //let's try to mint
             if(exchanges[exchangeId].withMint 
             && IERC20Template(exchanges[exchangeId].datatoken).isMinter(address(this)))
             {
-                IERC20Template(exchanges[exchangeId].datatoken).mint(msg.sender,datatokenAmount);
+                uint256 amountToMint = datatokenAmount.sub(exchanges[exchangeId].dtBalance);
+                IERC20Template(exchanges[exchangeId].datatoken).mint(address(this),amountToMint);
+                exchanges[exchangeId].dtBalance = exchanges[exchangeId].dtBalance.add(amountToMint);
             }
             else{
                 revert("FixedRateExchange: No available datatokens");
             }
-        } else {
-            exchanges[exchangeId].dtBalance = (exchanges[exchangeId].dtBalance)
-                .sub(datatokenAmount);
-            IERC20(exchanges[exchangeId].datatoken).safeTransfer(
-                msg.sender,
-                datatokenAmount
-            );
-        }
+        } 
+        // now transfer datatokens
+        exchanges[exchangeId].dtBalance = (exchanges[exchangeId].dtBalance)
+            .sub(datatokenAmount);
+        IERC20(exchanges[exchangeId].datatoken).safeTransfer(
+            msg.sender,
+            datatokenAmount
+        );
+        
         if(consumeMarketAddress!= address(0) && fee.consumeMarketFeeAmount>0){
             IERC20(exchanges[exchangeId].baseToken).safeTransfer(consumeMarketAddress, fee.consumeMarketFeeAmount);
             emit ConsumeMarketFee(
@@ -539,72 +543,8 @@ contract FixedRateExchangeEnterprise is ReentrancyGuard {
         onlyActiveExchange(exchangeId)
         nonReentrant
     {
-        require(
-            datatokenAmount != 0,
-            "FixedRateExchange: zero datatoken amount"
-        );
-        require(consumeMarketSwapFeeAmount ==0 || consumeMarketSwapFeeAmount >= MIN_FEE,'ConsumeSwapFee too low');
-        require(consumeMarketSwapFeeAmount <= MAX_FEE,'ConsumeSwapFee too high');
-        if(exchanges[exchangeId].allowedSwapper != address(0)){
-            require(
-                exchanges[exchangeId].allowedSwapper == msg.sender,
-                "FixedRateExchange: This address is not allowed to swap"
-            );
-        }
-        if(consumeMarketAddress == address(0)) consumeMarketSwapFeeAmount=0; 
-        Fees memory fee = calcBaseOutGivenInDT(exchangeId, datatokenAmount, consumeMarketSwapFeeAmount);
-        require(
-            fee.baseTokenAmount >= minBaseTokenAmount,
-            "FixedRateExchange: Too few base tokens"
-        );
-        // we account fees , fees are always collected in baseToken
-        exchanges[exchangeId].marketFeeAvailable = exchanges[exchangeId]
-            .marketFeeAvailable
-            .add(fee.publishMarketFeeAmount);
-        uint256 baseTokenAmountWithFees = fee.baseTokenAmount.add(fee.oceanFeeAmount)
-            .add(fee.publishMarketFeeAmount).add(fee.consumeMarketFeeAmount);
-        if (baseTokenAmountWithFees > exchanges[exchangeId].btBalance) {
-                // not enough baseTokens in fre, bail out
-                revert("FixedRateExchange: Not enough base tokens");
-        }
-        _pullUnderlying(exchanges[exchangeId].datatoken,msg.sender,
-                address(this),
-                datatokenAmount);
-        exchanges[exchangeId].dtBalance = (exchanges[exchangeId].dtBalance).add(
-            datatokenAmount
-        );
+        revert("sellDT is not allowed for enterprise");
         
-        exchanges[exchangeId].btBalance = (exchanges[exchangeId].btBalance)
-                .sub(baseTokenAmountWithFees);
-        IERC20(exchanges[exchangeId].baseToken).safeTransfer(
-                msg.sender,
-                fee.baseTokenAmount
-        );
-        
-        if(consumeMarketAddress!= address(0) && fee.consumeMarketFeeAmount>0){
-            IERC20(exchanges[exchangeId].baseToken).safeTransfer(consumeMarketAddress, fee.consumeMarketFeeAmount);    
-             emit ConsumeMarketFee(
-                exchangeId,
-                consumeMarketAddress,
-                exchanges[exchangeId].baseToken,
-                fee.consumeMarketFeeAmount);
-        }
-        if(fee.oceanFeeAmount > 0 && enterpriseFeeCollector != address(0)){
-            IERC20(exchanges[exchangeId].baseToken).safeTransfer(
-                enterpriseFeeCollector,
-                fee.oceanFeeAmount
-            );
-        }
-        emit Swapped(
-            exchangeId,
-            msg.sender,
-            fee.baseTokenAmount,
-            datatokenAmount,
-            exchanges[exchangeId].baseToken,
-            fee.publishMarketFeeAmount,
-            fee.oceanFeeAmount,
-            fee.consumeMarketFeeAmount
-        );
     }
 
     /**
@@ -807,15 +747,15 @@ contract FixedRateExchangeEnterprise is ReentrancyGuard {
     {
         // check if owner still has role, maybe he was an ERC20Deployer when fixedrate was created, but not anymore
         exchanges[exchangeId].withMint = 
-            _checkAllowedWithMint(exchanges[exchangeId].exchangeOwner, exchanges[exchangeId].datatoken,withMint);
+            _checkAllowedWithMint(msg.sender, exchanges[exchangeId].datatoken,withMint);
         emit ExchangeMintStateChanged(exchangeId, msg.sender, withMint);
     }
 
     /**
      * @dev checkAllowedWithMint
      *      internal function which establishes if a withMint flag can be set.  
-     *      It does this by checking if the owner has rights for that datatoken
-     * @param owner exchange owner
+     *      It does this by checking if the caller has rights for that datatoken
+     * @param owner caller
      * @param datatoken datatoken address
      * @param withMint desired flag, might get overwritten if owner has no roles
      */
@@ -880,17 +820,18 @@ contract FixedRateExchangeEnterprise is ReentrancyGuard {
     function getDTSupply(bytes32 exchangeId)
         public
         view
-        returns (uint256 supply)
+        returns (uint256)
     {
-        if (exchanges[exchangeId].active == false) supply = 0;
-        else if (exchanges[exchangeId].withMint
+        uint256 supply=0;
+        if (exchanges[exchangeId].active == false) return 0;
+        if (exchanges[exchangeId].withMint
         && IERC20Template(exchanges[exchangeId].datatoken).isMinter(address(this))){
             supply = IERC20Template(exchanges[exchangeId].datatoken).cap() 
             - IERC20Template(exchanges[exchangeId].datatoken).totalSupply();
         }
-        else {
-            supply = exchanges[exchangeId].dtBalance;
-        }
+        supply += exchanges[exchangeId].dtBalance;
+        return supply;
+        
     }
 
     /**

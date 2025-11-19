@@ -83,7 +83,7 @@ it('Escrow - deposit', async function () {
   const funds=await EscrowContract.connect(payer1).getFunds(Mock20Contract.address)
   expect(funds.available).to.equal(web3.utils.toWei("100"))
   expect(funds.locked).to.equal(0)
-  const locks=await EscrowContract.connect(payer1).getLocks(addressZero,addressZero,addressZero)
+  const locks=await EscrowContract.connect(payer1).getLocks(addressZero,addressZero,payee1.address)
   expect(locks.length).to.equal(0)
   const auths=await EscrowContract.connect(payer1).getAuthorizations(Mock20Contract.address,payer1.address,addressZero)
   expect(auths.length).to.equal(0)
@@ -127,27 +127,27 @@ it('Escrow - lock', async function () {
     await expect(EscrowContract.connect(payee1).createLock(jobId,Mock20Contract.address,payer2.address,web3.utils.toWei("50"),expire)).to.be.revertedWith("No auth found")
     
     //payee1 tries to lock too much
-    await expect(EscrowContract.connect(payee1).createLock(jobId,Mock20Contract.address,payer1.address,web3.utils.toWei("60"),expire)).to.be.revertedWith("Amount too high")
+    await expect(EscrowContract.connect(payee1).createLock(jobId,Mock20Contract.address,payer1.address,web3.utils.toWei("60"),expire)).to.be.revertedWith("Exceeds maxLockedAmount")
     await expect(EscrowContract.connect(payee1).createLock(jobId,Mock20Contract.address,payer1.address,0,expire)).to.be.revertedWith("Invalid amount")
     await expect(EscrowContract.connect(payee1).createLock(0,Mock20Contract.address,payer1.address,web3.utils.toWei("10"),expire)).to.be.revertedWith("Invalid jobId")
     await EscrowContract.connect(payee1).createLock(jobId,Mock20Contract.address,payer1.address,web3.utils.toWei("10"),expire)
-    let locks=await EscrowContract.connect(payer1).getLocks(addressZero,addressZero,addressZero)
+    let locks=await EscrowContract.connect(payer1).getLocks(addressZero,addressZero,payee1.address)
     expect(locks.length).to.equal(1)
     await expect(EscrowContract.connect(payee1).createLock(jobId,Mock20Contract.address,payer1.address,web3.utils.toWei("10"),expire)).to.be.revertedWith("JobId already exists")
     jobId=2 // partial claim
     await EscrowContract.connect(payee1).createLock(jobId,Mock20Contract.address,payer1.address,web3.utils.toWei("10"),expire)
-    locks=await EscrowContract.connect(payer1).getLocks(addressZero,addressZero,addressZero)
+    locks=await EscrowContract.connect(payer1).getLocks(addressZero,addressZero,payee1.address)
     expect(locks.length).to.equal(2)
     // previous auth had only 2 concurent locks
     await expect(EscrowContract.connect(payee1).createLock(jobId,Mock20Contract.address,payer1.address,web3.utils.toWei("10"),expire)).to.be.revertedWith("Exceeds maxLockCounts")
     await EscrowContract.connect(payer1).authorize(Mock20Contract.address,payee1.address,web3.utils.toWei("50"),100,10);
     jobId=3 // expired
     await EscrowContract.connect(payee1).createLock(jobId,Mock20Contract.address,payer1.address,web3.utils.toWei("10"),expire)
-    locks=await EscrowContract.connect(payer1).getLocks(addressZero,addressZero,addressZero)
+    locks=await EscrowContract.connect(payer1).getLocks(addressZero,addressZero,payee1.address)
     expect(locks.length).to.equal(3)
     jobId=4 // unclaimed
     await EscrowContract.connect(payee1).createLocks([jobId],[Mock20Contract.address],[payer1.address],[web3.utils.toWei("10")],[expire])
-    locks=await EscrowContract.connect(payer1).getLocks(addressZero,addressZero,addressZero)
+    locks=await EscrowContract.connect(payer1).getLocks(addressZero,addressZero,payee1.address)
     expect(locks.length).to.equal(4)
     });
 
@@ -288,7 +288,7 @@ it('Escrow - lock', async function () {
     expect(lock.jobId).to.equal(jobId)
     const claimedAmount=web3.utils.toWei("1")
     const returnAmount=lock.amount.sub(claimedAmount)
-    const tx=await EscrowContract.connect(payer1).cancelExpiredLocks([lock.jobId],[lock.token],[lock.payer],[lock.payee]);
+    const tx=await EscrowContract.connect(payer1).cancelExpiredLocks([lock.jobId],[lock.token],[lock.payer],[payee1.address]);
     const txReceipt = await tx.wait();
     const event = getEventFromTx(txReceipt, 'Canceled')
     assert(event, "Cannot find Canceled event")
@@ -314,7 +314,7 @@ it('Escrow - lock', async function () {
     const funds=await EscrowContract.connect(payer1).getFunds(Mock20DecimalsContract.address)
     expect(funds.available).to.equal(ethers.utils.parseUnits("100", 6))
     expect(funds.locked).to.equal(0)
-    const locks=await EscrowContract.connect(payer1).getLocks(addressZero,addressZero,addressZero)
+    const locks=await EscrowContract.connect(payer1).getLocks(addressZero,addressZero,payee1.address)
     expect(locks.length).to.equal(0)
     const auths=await EscrowContract.connect(payer1).getAuthorizations(Mock20DecimalsContract.address,payer1.address,addressZero)
     expect(auths.length).to.equal(0)

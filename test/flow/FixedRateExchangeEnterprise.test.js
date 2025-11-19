@@ -323,11 +323,11 @@ describe("FixedRateExchangeEnterprise", () => {
         .buyDT(eventsExchange[0].args.exchangeId, amountDTtoSell, '1', ZERO_ADDRESS, 0)
         , "FixedRateExchange: Too many base tokens")
     });
-    it("#9 - Bob should fail to sell if price is too low", async () => {
+    it("#9 - Bob should fail to sell ", async () => {
       // this will fails because we want to receive a high no of base tokens
       await expectRevert(fixedRateExchange.connect(bob)
         .sellDT(eventsExchange[0].args.exchangeId, amountDTtoSell, noLimit, ZERO_ADDRESS, 0)
-        , "FixedRateExchange: Too few base tokens")
+        , "sellDT is not allowed for enterprise")
     });
 
     it("#10 - Bob should buy Dataokens using the fixed rate exchange contract", async () => {
