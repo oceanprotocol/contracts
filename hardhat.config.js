@@ -148,7 +148,7 @@ module.exports = {
       accounts:
         process.env.PRIVATE_KEY !== undefined ? [process.env.PRIVATE_KEY] : [],
     },
-    oasis_saphire: {
+    oasis_sapphire: {
       url:
         process.env.NETWORK_RPC_URL !== undefined ? process.env.NETWORK_RPC_URL : "",
       accounts:
@@ -222,7 +222,7 @@ module.exports = {
       },
     },
     {
-      network: "oasis_saphire",
+      network: "oasis_sapphire",
       chainId: 23294,
       urls: { 
           apiURL: "https://explorer.sapphire.oasis.io/api",

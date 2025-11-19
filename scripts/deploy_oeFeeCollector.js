@@ -44,18 +44,18 @@ async function main() {
   switch (networkDetails.chainId) {
     case 1:
       networkName = "mainnet";
-      gasLimit = 15000000;
-      gasPrice = ethers.utils.parseUnits("0.4", "gwei");
+      gasLimit = 1500000;
+      gasPrice = ethers.utils.parseUnits("0.15", "gwei");
       break;
     case 10:
       networkName = "optimism";
-      gasPrice = ethers.utils.parseUnits("0.0010", "gwei");
-      gasLimit = 28000000;
+      gasPrice = ethers.utils.parseUnits("0.001200495", "gwei");
+      gasLimit = 1500000;
       break;
     case 11155111:
       networkName = "sepolia";
-      gasPrice = ethers.utils.parseUnits("2.07", "gwei");
-      gasLimit = 28000000;
+      gasPrice = ethers.utils.parseUnits("0.001000011", "gwei");
+      gasLimit = 1500000;
       break;
   }
 
