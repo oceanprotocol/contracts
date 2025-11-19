@@ -34,6 +34,10 @@ async function main() {
     console.error("Missing MNEMONIC or PRIVATE_KEY. Aborting..");
     return null;
   }
+  if (!process.env.ADDRESS_FILE) {
+    console.error("Missing ADDRESS_FILE. Aborting..");
+    return null;
+  }
   owner = wallet.connect(provider);
   let gasLimit = 3000000;
   let gasPrice = null;
@@ -46,8 +50,8 @@ async function main() {
         networkName = "mainnet";
         OPFOwner = "0x0d27cd67c4A3fd3Eb9C7C757582f59089F058167";
         RouterAddress = "0x8149276f275EEFAc110D74AFE8AFECEaeC7d1593";
-        gasLimit = 15000000
-        gasPrice = ethers.utils.parseUnits('0.4', 'gwei')
+        gasLimit = 5000000
+        gasPrice = ethers.utils.parseUnits('1.2', 'gwei')
         break;
     case 10:
         networkName = "optimism";
@@ -67,11 +71,11 @@ async function main() {
         networkName = "base";
         OPFOwner = '0x4169e846f1524Cf0ac02Bd4B04fa33242709Cf64';
         RouterAddress = "0xEF62FB495266C72a5212A11Dce8baa79Ec0ABeB1";
-        gasPrice = ethers.utils.parseUnits('0.009260', 'gwei')
-        gasLimit = 28000000
+        gasPrice = ethers.utils.parseUnits('0.022999855', 'gwei')
+        gasLimit = 5000000
         break;
     case 23294:
-        networkName = "oasis_saphire";
+        networkName = "oasis_sapphire";
         OPFOwner = '0x086E7F0588755af5AF5f8194542Fd8328238F3C1'
         RouterAddress = "0xd8992Ed72C445c35Cb4A2be468568Ed1079357c8";
         gasPrice = ethers.utils.parseUnits('100', 'gwei')
@@ -88,8 +92,8 @@ async function main() {
         networkName = "sepolia";
         OPFOwner = '0xC7EC1970B09224B317c52d92f37F5e1E4fF6B687';
         RouterAddress = "0x2112Eb973af1DBf83a4f11eda82f7a7527D7Fde5";
-        gasPrice = ethers.utils.parseUnits('1', 'gwei')
-        gasLimit = 28000000
+        gasPrice = ethers.utils.parseUnits('0.001000011', 'gwei')
+        gasLimit = 5000000
         break;
     case 11155420:
         networkName = "optimism_sepolia";
@@ -114,15 +118,36 @@ async function main() {
   else{
     options = { gasLimit }
   }
-  
+  console.log("Network:"+networkName)
+  const addressFile = process.env.ADDRESS_FILE;
+    let oldAddresses;
+    if (addressFile) {
+      try {
+        oldAddresses = JSON.parse(fs.readFileSync(addressFile));
+      } catch (e) {
+        console.log(e);
+        oldAddresses = {};
+      }
+      if (!oldAddresses[networkName]) oldAddresses[networkName] = {};
+      addresses = oldAddresses[networkName];
+    }
+    if (logging)
+      console.info(
+        "Use existing addresses:" + JSON.stringify(addresses, null, 2)
+      );
+    if (!addresses.Router) {
+      console.error("Missing RouterAddress address. Aborting..");
+      return null;
+    }
+  RouterAddress=addresses.Router
   if (!OPFOwner || !RouterAddress) {
     console.error("Missing OPFOwner or Router. Aborting..");
     return null;
   }
   console.log("Deployer nonce:", await owner.getTransactionCount());
-
-  if (logging) console.info("Deploying Compute Collector");
-  const NewCollector = await ethers.getContractFactory("OPFCommunityFeeCollector",
+  if(!addresses.OPFCommunityFeeCollectorCompute){
+    if (logging) console.info("Deploying Compute Collector");
+    const NewCollector = await ethers.getContractFactory("OPFCommunityFeeCollector",
       owner
     );
     
@@ -133,22 +158,42 @@ async function main() {
       console.log("\tnpx hardhat verify --network " + networkName + " " + deployNewCollector.address + " " + OPFOwner + " " + OPFOwner)
       
     }
+    addresses.OPFCommunityFeeCollectorCompute=deployNewCollector.address
+  }
     if (logging) console.info("Deploying Escrow");
     const Escrow = await ethers.getContractFactory(
       "Escrow",
       owner
     );
     
-    const deployEscrow = await Escrow.connect(owner).deploy(RouterAddress,deployNewCollector.address,options)
+    const deployEscrow = await Escrow.connect(owner).deploy(RouterAddress,addresses.OPFCommunityFeeCollectorCompute,options)
     await deployEscrow.deployTransaction.wait();
     if (show_verify) {
       console.log("\tRun the following to verify on etherscan");
-      console.log("\tnpx hardhat verify --network " + networkName + " " + deployEscrow.address+ " " + RouterAddress + " " + deployNewCollector.address)
+      console.log("\tnpx hardhat verify --network " + networkName + " " + deployEscrow.address+ " " + RouterAddress + " " + addresses.OPFCommunityFeeCollectorCompute)
       
     }
     console.log("\r\n\r\n")
-    console.log("\"OPFCommunityFeeCollectorCompute\":\""+deployNewCollector.address+"\"")
+    console.log("\"OPFCommunityFeeCollectorCompute\":\""+addresses.OPFCommunityFeeCollectorCompute+"\"")
     console.log("\"Escrow\":\""+deployEscrow.address+"\"")
+    addresses.Escrow=deployEscrow.address
+
+    if (addressFile) {
+        // write address.json if needed
+        oldAddresses[networkName] = addresses;
+        //if (logging)
+         // console.info(
+          //  "writing to " +
+          //    addressFile +
+           //   "\r\n" +
+            //  JSON.stringify(oldAddresses, null, 2)
+          //);
+        try {
+          fs.writeFileSync(addressFile, JSON.stringify(oldAddresses, null, 2));
+        } catch (e) {
+          console.error(e);
+        }
+      }
 }
 
 
