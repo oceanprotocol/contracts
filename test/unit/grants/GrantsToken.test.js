@@ -56,8 +56,8 @@ describe("GrantsToken", () => {
 
   const INITIAL_SUPPLY = parseTokens("1000000"); // 1 million tokens
   const TOKEN_CAP = parseTokens("10000000"); // 10 million tokens
-  const TOKEN_NAME = "Grants";
-  const TOKEN_SYMBOL = "GRANTS";
+  const TOKEN_NAME = "COMPY";
+  const TOKEN_SYMBOL = "COMPY";
   const DECIMALS = 6;
 
   before("setup test helpers", async function () {

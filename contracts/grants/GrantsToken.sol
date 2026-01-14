@@ -38,8 +38,8 @@ contract GrantsToken is
      * @param cap Maximum token supply cap (in wei, accounting for 6 decimals)
      */
     constructor(uint256 initialSupply, uint256 cap)
-        ERC20("Grants", "GRANTS")
-        ERC20Permit("Grants")
+        ERC20("COMPY", "COMPY")
+        ERC20Permit("COMPY")
         ERC20Capped(cap)
     {
         require(initialSupply <= cap, "GrantsToken: initial supply exceeds cap");
