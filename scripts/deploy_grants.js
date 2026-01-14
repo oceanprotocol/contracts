@@ -43,6 +43,8 @@ async function main() {
   gasLimit = 6500000;
   gasPrice = ethers.utils.parseUnits("1.15", "gwei");
   const networkName = "mainnet";
+  const grantsOwner = "0xbDA5747bFD65F08deb54cb465eB87D40e51B197E";
+  
   let options;
   if (gasPrice) {
     options = { gasLimit: gasLimit, gasPrice: gasPrice };
@@ -62,6 +64,19 @@ async function main() {
     options
   );
   await deployGrantsToken.deployTransaction.wait();
+  
+  if (logging) console.info("GrantsToken deployed at:", deployGrantsToken.address);
+
+  // Transfer ownership if GRANTS_OWNER is set
+  if (grantsOwner) {
+    if (logging) console.info("Transferring ownership to:", grantsOwner);
+    const transferTx = await deployGrantsToken.transferOwnership(grantsOwner, options);
+    await transferTx.wait();
+    if (logging) console.info("Ownership transferred successfully");
+  } else {
+    if (logging) console.warn("GRANTS_OWNER not set. Ownership remains with deployer:", owner.address);
+  }
+
   if (show_verify) {
     console.log("\tRun the following to verify on etherscan");
     console.log(
