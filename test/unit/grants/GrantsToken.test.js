@@ -489,7 +489,7 @@ describe("GrantsToken", () => {
   describe("ERC20Permit", () => {
     it("should support ERC20Permit", async () => {
       const amount = parseTokens("100");
-      const deadline = Math.floor(Date.now() / 1000) + 3600; // 1 hour from now
+      const deadline = Math.floor(Date.now() / 1000) + 36000; // 10 hour from now
       const nonce = await grantsToken.nonces(owner.address);
 
       const { v, r, s } = await signPermit(
