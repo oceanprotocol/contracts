@@ -489,7 +489,8 @@ describe("GrantsToken", () => {
   describe("ERC20Permit", () => {
     it("should support ERC20Permit", async () => {
       const amount = parseTokens("100");
-      const deadline = Math.floor(Date.now() / 1000) + 36000; // 10 hour from now
+      const block = await ethers.provider.getBlock("latest");
+      const deadline = block.timestamp + 36000; // 10 hour from now
       const nonce = await grantsToken.nonces(owner.address);
 
       const { v, r, s } = await signPermit(
@@ -517,7 +518,8 @@ describe("GrantsToken", () => {
 
     it("should increment nonce after permit", async () => {
       const amount = parseTokens("100");
-      const deadline = Math.floor(Date.now() / 1000) + 3600;
+      const block = await ethers.provider.getBlock("latest");
+      const deadline = block.timestamp + 3600;
       const initialNonce = await grantsToken.nonces(owner.address);
 
       const { v, r, s } = await signPermit(
@@ -545,7 +547,8 @@ describe("GrantsToken", () => {
 
     it("should revert permit with expired deadline", async () => {
       const amount = parseTokens("100");
-      const expiredDeadline = Math.floor(Date.now() / 1000) - 3600; // 1 hour ago
+      const block = await ethers.provider.getBlock("latest");
+      const expiredDeadline = block.timestamp - 3600; // 1 hour ago
       const nonce = await grantsToken.nonces(owner.address);
 
       const { v, r, s } = await signPermit(
@@ -573,7 +576,8 @@ describe("GrantsToken", () => {
 
     it("should revert permit with invalid signature", async () => {
       const amount = parseTokens("100");
-      const deadline = Math.floor(Date.now() / 1000) + 3600;
+      const block = await ethers.provider.getBlock("latest");
+      const deadline = block.timestamp + 3600;
       const nonce = await grantsToken.nonces(owner.address);
 
       // Sign with wrong signer (minter instead of owner)
@@ -602,7 +606,8 @@ describe("GrantsToken", () => {
 
     it("should allow transferFrom after permit", async () => {
       const amount = parseTokens("100");
-      const deadline = Math.floor(Date.now() / 1000) + 3600;
+      const block = await ethers.provider.getBlock("latest");
+      const deadline = block.timestamp + 3600;
       const nonce = await grantsToken.nonces(owner.address);
 
       const { v, r, s } = await signPermit(
@@ -644,7 +649,8 @@ describe("GrantsToken", () => {
       assert.isTrue(nonce0.eq(0));
 
       const amount = parseTokens("100");
-      const deadline = Math.floor(Date.now() / 1000) + 3600;
+      const block = await ethers.provider.getBlock("latest");
+      const deadline = block.timestamp + 3600;
 
       const { v, r, s } = await signPermit(
         owner,
