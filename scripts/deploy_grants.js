@@ -41,9 +41,9 @@ async function main() {
   let OPFOwner = null;
   let RouterAddress = null;
   gasLimit = 6500000;
-  gasPrice = ethers.utils.parseUnits("1.15", "gwei");
-  const networkName = "mainnet";
-  const grantsOwner = "0xbDA5747bFD65F08deb54cb465eB87D40e51B197E";
+  gasPrice = ethers.utils.parseUnits("0.08", "gwei");
+  const networkName = "base";
+  const grantsOwner = "0x09b575B5eC7Fff24cbccC092DE9E36eADdDbEe71";
   
   let options;
   if (gasPrice) {
@@ -51,7 +51,7 @@ async function main() {
   } else {
     options = { gasLimit };
   }
-
+  console.log("Deploying contracts with the account:", owner.address);
   console.log("Deployer nonce:", await owner.getTransactionCount());
 
   if (logging) console.info("Deploying GrantsToken");
@@ -63,7 +63,7 @@ async function main() {
     cap, //100 million cap
     options
   );
-  await deployGrantsToken.deployTransaction.wait();
+  await deployGrantsToken.deployTransaction.wait(5);
   
   if (logging) console.info("GrantsToken deployed at:", deployGrantsToken.address);
 
@@ -71,8 +71,11 @@ async function main() {
   if (grantsOwner) {
     if (logging) console.info("Transferring ownership to:", grantsOwner);
     const transferTx = await deployGrantsToken.transferOwnership(grantsOwner, options);
-    await transferTx.wait();
+    await transferTx.wait(5);
     if (logging) console.info("Ownership transferred successfully");
+    const fundsTx = await deployGrantsToken.transfer(grantsOwner, initialSupply,options);
+    await fundsTx.wait(5);
+    if (logging) console.info("Tokens transferred successfully");
   } else {
     if (logging) console.warn("GRANTS_OWNER not set. Ownership remains with deployer:", owner.address);
   }
