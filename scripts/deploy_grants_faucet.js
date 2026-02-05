@@ -12,7 +12,6 @@ const ethers = hre.ethers;
 require("dotenv").config();
 const logging = true;
 const show_verify = true;
-const shouldDeployMock20 = false;
 async function main() {
   const url = process.env.NETWORK_RPC_URL;
   console.log("Using RPC: " + url);
@@ -40,24 +39,26 @@ async function main() {
   let sleepAmount = 10;
   let OPFOwner = null;
   let RouterAddress = null;
-  gasLimit = 6500000;
-  gasPrice = ethers.utils.parseUnits("0.08", "gwei");
-  let networkName = null;
-  const grantsOwner = "0x09b575B5eC7Fff24cbccC092DE9E36eADdDbEe71";
+  let grantsTokenAddress = null;
+  let signerAddress = null;
+  let compyAddress = null;
   switch (networkDetails.chainId) {
     case 11155111:
       networkName = "sepolia";
-      gasPrice = ethers.utils.parseUnits("1.1", "gwei");
+      gasPrice = ethers.utils.parseUnits("12", "gwei");
       gasLimit = 6000000;
+      compyAddress = "0x973e69303259B0c2543a38665122b773D28405fB";
+      signerAddress = "0xDAcDC497AE9a678a78b703cD83B010C8f5c78E37";
       break;
     case 8453:
       networkName = "base";
-      gasPrice = ethers.utils.parseUnits("0.08", "gwei");
-      gasLimit = 20000000;
-      // grantsTokenAddress = "0x09b575B5eC7Fff24cbccC092DE9E36eADdDbEe71";
+      gasPrice = ethers.utils.parseUnits("0.02", "gwei");
+      gasLimit = 5000000;
+      compyAddress = "0x298f163244e0c8cc9316D6E97162e5792ac5d410";
+      signerAddress = "0x508F31c8d2a1B8cEE5360FA41bc0469923986C9B";
       break;
   }
-  if (!networkName) {
+  if (!compyAddress || !signerAddress) {
     console.error("Invalid network. Aborting..");
     return null;
   }
@@ -70,31 +71,16 @@ async function main() {
   console.log("Deploying contracts with the account:", owner.address);
   console.log("Deployer nonce:", await owner.getTransactionCount());
 
-  if (logging) console.info("Deploying GrantsToken");
-  const GrantsToken = await ethers.getContractFactory("GrantsToken", owner);
-  const initialSupply = ethers.utils.parseUnits("1000000", 6); // 1 million
-  const cap = ethers.utils.parseUnits("100000000", 6); // 100 million
-  const deployGrantsToken = await GrantsToken.connect(owner).deploy(
-    initialSupply, //1 million initial supply
-    cap, //100 million cap
+  if (logging) console.info("Deploying GrantsTokenFaucet");
+  const GrantsTokenFaucet = await ethers.getContractFactory("GrantsTokenFaucet", owner);
+  const deployGrantsTokenFaucet = await GrantsTokenFaucet.connect(owner).deploy(
+    compyAddress,
+    signerAddress,
     options
   );
-  await deployGrantsToken.deployTransaction.wait(5);
+  await deployGrantsTokenFaucet.deployTransaction.wait(2);
   
-  if (logging) console.info("GrantsToken deployed at:", deployGrantsToken.address);
-
-  // Transfer ownership if GRANTS_OWNER is set
-  if (grantsOwner) {
-    if (logging) console.info("Transferring ownership to:", grantsOwner);
-    const transferTx = await deployGrantsToken.transferOwnership(grantsOwner, options);
-    await transferTx.wait(5);
-    if (logging) console.info("Ownership transferred successfully");
-    const fundsTx = await deployGrantsToken.transfer(grantsOwner, initialSupply,options);
-    await fundsTx.wait(5);
-    if (logging) console.info("Tokens transferred successfully");
-  } else {
-    if (logging) console.warn("GRANTS_OWNER not set. Ownership remains with deployer:", owner.address);
-  }
+  if (logging) console.info("GrantsTokenFaucet deployed at:", deployGrantsTokenFaucet.address);
 
   if (show_verify) {
     console.log("\tRun the following to verify on etherscan");
@@ -102,11 +88,11 @@ async function main() {
       "\tnpx hardhat verify --network " +
         networkName +
         " " +
-        deployGrantsToken.address +
+        deployGrantsTokenFaucet.address +
         " " +
-        initialSupply.toString() +
+        compyAddress +
         " " +
-        cap.toString()
+        signerAddress
     );
   }
 }
