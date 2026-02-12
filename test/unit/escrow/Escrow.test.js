@@ -15,10 +15,46 @@ const fastForward = async (seconds) => {
   await ethers.provider.send("evm_increaseTime", [seconds]);
   await ethers.provider.send("evm_mine");
 }
+
+// Helper function to sign ERC20Permit data
+async function signPermit(signer, token, spender, amount, deadline, nonce) {
+  const name = await token.name();
+  const chainId = (await ethers.provider.getNetwork()).chainId;
+  
+  const domain = {
+    name: name,
+    version: "1",
+    chainId: chainId,
+    verifyingContract: token.address,
+  };
+  
+  const types = {
+    Permit: [
+      { name: "owner", type: "address" },
+      { name: "spender", type: "address" },
+      { name: "value", type: "uint256" },
+      { name: "nonce", type: "uint256" },
+      { name: "deadline", type: "uint256" },
+    ],
+  };
+  
+  const value = {
+    owner: signer.address,
+    spender: spender,
+    value: amount,
+    nonce: nonce,
+    deadline: deadline,
+  };
+  
+  const signature = await signer._signTypedData(domain, types, value);
+  return ethers.utils.splitSignature(signature);
+}
+
 // Start test block
 describe('Escrow tests', function () {
   let Mock20Contract;
   let Mock20DecimalsContract;
+  let Mock20PermitContract;
   let EscrowContract;
   let FactoryRouter
   let signers;
@@ -36,11 +72,14 @@ describe('Escrow tests', function () {
     const Router = await ethers.getContractFactory("FactoryRouter");
     const MockErc20 = await ethers.getContractFactory('MockERC20');
     const MockErc20Decimals = await ethers.getContractFactory('MockERC20Decimals');
+    const MockErc20Permit = await ethers.getContractFactory('MockERC20Permit');
     const Escrow = await ethers.getContractFactory('Escrow');
     Mock20Contract = await MockErc20.deploy(signers[0].address,"MockERC20", 'MockERC20');
     Mock20DecimalsContract = await MockErc20Decimals.deploy("Mock6Digits", 'Mock6Digits', 6);
+    Mock20PermitContract = await MockErc20Permit.deploy("MockPermit", 'MPERMIT', 18);
     await Mock20Contract.deployed();
     await Mock20DecimalsContract.deployed();
+    await Mock20PermitContract.deployed();
     // DEPLOY ROUTER, SETTING OWNER
     FactoryRouter = await Router.deploy(
       signers[0].address,
@@ -59,6 +98,10 @@ describe('Escrow tests', function () {
     await Mock20DecimalsContract.transfer(payer1.address,ethers.utils.parseUnits("10000", 6))
     await Mock20DecimalsContract.transfer(payer2.address,ethers.utils.parseUnits("10000", 6))
     await Mock20DecimalsContract.transfer(payer3.address,ethers.utils.parseUnits("10000", 6))
+    // Transfer permit tokens to payers
+    await Mock20PermitContract.transfer(payer1.address,web3.utils.toWei("10000"))
+    await Mock20PermitContract.transfer(payer2.address,web3.utils.toWei("10000"))
+    await Mock20PermitContract.transfer(payer3.address,web3.utils.toWei("10000"))
 
   });
 
@@ -333,5 +376,153 @@ it('Escrow - lock', async function () {
     const payer1Funds=await EscrowContract.connect(payer1).getFunds(Mock20Contract.address)
     await EscrowContract.connect(payer1).withdraw([Mock20Contract.address],[payer1Funds.available]);
     expect(await EscrowContract.connect(payer1).getUserTokens(payer1.address)).does.not.include(Mock20Contract.address);
+  });
+
+  it('Escrow - depositWithPermit', async function () {
+    const depositAmount = web3.utils.toWei("100");
+    const block = await ethers.provider.getBlock("latest");
+    const deadline = block.timestamp + 3600; // 1 hour from now
+    const nonce = await Mock20PermitContract.nonces(payer1.address);
+
+    // Get initial balances
+    const contractBalanceBefore = await Mock20PermitContract.balanceOf(EscrowContract.address);
+    const payerBalanceBefore = await Mock20PermitContract.balanceOf(payer1.address);
+    const fundTokensBefore = await EscrowContract.connect(payer1).getUserTokens(payer1.address);
+
+    // Sign permit
+    const { v, r, s } = await signPermit(
+      payer1,
+      Mock20PermitContract,
+      EscrowContract.address,
+      depositAmount,
+      deadline,
+      nonce
+    );
+
+    // Deposit with permit (no prior approval needed)
+    const tx = await EscrowContract.connect(payer1).depositWithPermit(
+      Mock20PermitContract.address,
+      depositAmount,
+      deadline,
+      v,
+      r,
+      s
+    );
+    const txReceipt = await tx.wait();
+
+    // Check balances after deposit
+    const contractBalanceAfter = await Mock20PermitContract.balanceOf(EscrowContract.address);
+    const payerBalanceAfter = await Mock20PermitContract.balanceOf(payer1.address);
+    const fundTokensAfter = await EscrowContract.connect(payer1).getUserTokens(payer1.address);
+
+    // Verify balances
+    expect(contractBalanceAfter).to.equal(contractBalanceBefore.add(depositAmount));
+    expect(payerBalanceAfter).to.equal(payerBalanceBefore.sub(depositAmount));
+    expect(fundTokensAfter).to.include(Mock20PermitContract.address);
+
+    // Verify funds
+    const funds = await EscrowContract.connect(payer1).getFunds(Mock20PermitContract.address);
+    expect(funds.available).to.equal(depositAmount);
+    expect(funds.locked).to.equal(0);
+
+    // Check event
+    const event = getEventFromTx(txReceipt, "Deposit");
+    expect(event).to.exist;
+    expect(event.args.payer).to.equal(payer1.address);
+    expect(event.args.token).to.equal(Mock20PermitContract.address);
+    expect(event.args.amount).to.equal(depositAmount);
+
+    // Verify allowance was consumed
+    const allowance = await Mock20PermitContract.allowance(payer1.address, EscrowContract.address);
+    expect(allowance).to.equal(0);
+  });
+
+  it('Escrow - depositWithPermit should revert with expired deadline', async function () {
+    const depositAmount = web3.utils.toWei("100");
+    const block = await ethers.provider.getBlock("latest");
+    const expiredDeadline = block.timestamp - 3600; // 1 hour ago
+    const nonce = await Mock20PermitContract.nonces(payer2.address);
+
+    const { v, r, s } = await signPermit(
+      payer2,
+      Mock20PermitContract,
+      EscrowContract.address,
+      depositAmount,
+      expiredDeadline,
+      nonce
+    );
+
+    await expect(
+      EscrowContract.connect(payer2).depositWithPermit(
+        Mock20PermitContract.address,
+        depositAmount,
+        expiredDeadline,
+        v,
+        r,
+        s
+      )
+    ).to.be.revertedWith("ERC20Permit: expired deadline");
+  });
+
+  it('Escrow - depositWithPermit should revert with invalid signature', async function () {
+    const depositAmount = web3.utils.toWei("100");
+    const block = await ethers.provider.getBlock("latest");
+    const deadline = block.timestamp + 3600;
+    const nonce = await Mock20PermitContract.nonces(payer2.address);
+
+    // Sign with wrong signer (payer3 instead of payer2)
+    const { v, r, s } = await signPermit(
+      payer3,
+      Mock20PermitContract,
+      EscrowContract.address,
+      depositAmount,
+      deadline,
+      nonce
+    );
+
+    await expect(
+      EscrowContract.connect(payer2).depositWithPermit(
+        Mock20PermitContract.address,
+        depositAmount,
+        deadline,
+        v,
+        r,
+        s
+      )
+    ).to.be.revertedWith("ERC20Permit: invalid signature");
+  });
+
+  it('Escrow - depositWithPermit works without prior approval', async function () {
+    const depositAmount = web3.utils.toWei("50");
+    const block = await ethers.provider.getBlock("latest");
+    const deadline = block.timestamp + 3600;
+    const nonce = await Mock20PermitContract.nonces(payer3.address);
+
+    // Verify no allowance before
+    const allowanceBefore = await Mock20PermitContract.allowance(payer3.address, EscrowContract.address);
+    expect(allowanceBefore).to.equal(0);
+
+    const { v, r, s } = await signPermit(
+      payer3,
+      Mock20PermitContract,
+      EscrowContract.address,
+      depositAmount,
+      deadline,
+      nonce
+    );
+
+    // Deposit with permit (no prior approval needed)
+    await EscrowContract.connect(payer3).depositWithPermit(
+      Mock20PermitContract.address,
+      depositAmount,
+      deadline,
+      v,
+      r,
+      s
+    );
+
+    // Verify deposit succeeded
+    const funds = await EscrowContract.connect(payer3).getFunds(Mock20PermitContract.address);
+    expect(funds.available).to.equal(depositAmount);
   });
 });
