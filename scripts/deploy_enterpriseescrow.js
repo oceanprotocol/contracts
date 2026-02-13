@@ -49,7 +49,7 @@ async function main() {
     case 1:
       networkName = "mainnet";
       gasLimit = 6500000;
-      gasPrice = ethers.utils.parseUnits("1.15", "gwei");
+      gasPrice = ethers.utils.parseUnits("0.08", "gwei");
       break;
     case 10:
       networkName = "optimism";
@@ -58,7 +58,7 @@ async function main() {
       break;
     case 11155111:
       networkName = "sepolia";
-      gasPrice = ethers.utils.parseUnits("0.001000011", "gwei");
+      gasPrice = ethers.utils.parseUnits("5", "gwei");
       gasLimit = 6500000;
       break;
   }
@@ -99,7 +99,7 @@ async function main() {
     addresses.EnterpriseFeeCollector,
     options
   );
-  await deployEscrow.deployTransaction.wait();
+  await deployEscrow.deployTransaction.wait(1);
   if (show_verify) {
     console.log("\tRun the following to verify on etherscan");
     console.log(
@@ -116,13 +116,6 @@ async function main() {
   if (addressFile) {
     // write address.json if needed
     oldAddresses[networkName] = addresses;
-    if (logging)
-      console.info(
-        "writing to " +
-          addressFile +
-          "\r\n" +
-          JSON.stringify(oldAddresses, null, 2)
-      );
     try {
       fs.writeFileSync(addressFile, JSON.stringify(oldAddresses, null, 2));
     } catch (e) {
