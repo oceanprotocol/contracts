@@ -92,7 +92,7 @@ async function main() {
         networkName = "sepolia";
         OPFOwner = '0xC7EC1970B09224B317c52d92f37F5e1E4fF6B687';
         RouterAddress = "0x2112Eb973af1DBf83a4f11eda82f7a7527D7Fde5";
-        gasPrice = ethers.utils.parseUnits('0.001000011', 'gwei')
+        gasPrice = ethers.utils.parseUnits('5', 'gwei')
         gasLimit = 5000000
         break;
     case 11155420:
@@ -167,7 +167,7 @@ async function main() {
     );
     
     const deployEscrow = await Escrow.connect(owner).deploy(RouterAddress,addresses.OPFCommunityFeeCollectorCompute,options)
-    await deployEscrow.deployTransaction.wait();
+    await deployEscrow.deployTransaction.wait(1);
     if (show_verify) {
       console.log("\tRun the following to verify on etherscan");
       console.log("\tnpx hardhat verify --network " + networkName + " " + deployEscrow.address+ " " + RouterAddress + " " + addresses.OPFCommunityFeeCollectorCompute)

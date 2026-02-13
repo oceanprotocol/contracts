@@ -6,6 +6,7 @@ pragma solidity 0.8.12;
 import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
+import "@openzeppelin/contracts/token/ERC20/extensions/IERC20Permit.sol";
 import "@openzeppelin/contracts/utils/math/SafeMath.sol";
 import "@openzeppelin/contracts/security/ReentrancyGuard.sol";
 import "../interfaces/IEnterpriseFeeCollector.sol";
@@ -110,6 +111,40 @@ contract EnterpriseEscrow is
         for(uint256 i=0;i<token.length;i++){
             _deposit(token[i],amount[i]);
         }
+    }
+
+    /**
+     * @dev depositWithPermit
+     *      Called by payer to deposit funds in the contract using ERC20Permit
+     *      This function allows users to deposit without a separate approval transaction
+     *      
+     * @param token token to deposit
+     * @param amount amount in wei to deposit
+     * @param deadline The time at which the permit expires (unix timestamp)
+     * @param v The recovery byte of the signature
+     * @param r Half of the ECDSA signature pair
+     * @param s Half of the ECDSA signature pair
+     */
+    function depositWithPermit(
+        address token,
+        uint256 amount,
+        uint256 deadline,
+        uint8 v,
+        bytes32 r,
+        bytes32 s
+    ) external nonReentrant {
+        // Use permit to approve this contract to spend user's tokens
+        IERC20Permit(token).permit(
+            msg.sender,
+            address(this),
+            amount,
+            deadline,
+            v,
+            r,
+            s
+        );
+        // Deposit the tokens
+        _deposit(token, amount);
     }
     function _deposit(address token,uint256 amount) internal{
         require(token!=address(0),"Invalid token address");
