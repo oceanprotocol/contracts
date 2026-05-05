@@ -359,7 +359,10 @@
     "ERC721Factory": "0xDEfD0018969cd2d4E648209F876ADe184815f038",
     "OPFCommunityFeeCollectorCompute": "0xe47991939632757DEe324E8ec9A3268c62C0DB76",
     "Escrow": "0x23A8b2D7176485a6349e4830605F323f31019333",
-    "AccessListFactory": "0xEcD0C3519a081e3924D6F3197f86980eA7dfCf71"
+    "AccessListFactory": "0xEcD0C3519a081e3924D6F3197f86980eA7dfCf71",
+    "EnterpriseFeeCollector": "0x43eC0a34E1b70C7f8E579ab866F37642777727E7",
+    "FixedPriceEnterprise": "0x6976320eC365202118B4B0B0906E13DDf21633A5",
+    "EnterpriseEscrow": "0x5494711392a67DA50D3bC7b1fcC2d1877cFaA4d2"
   },
   "optimism": {
     "chainId": 10,
