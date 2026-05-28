@@ -2,26 +2,41 @@
 /* global artifacts, contract, web3, it, beforeEach, before */
 const hre = require("hardhat");
 const ethers = hre.ethers;
-const { expectRevert, expectEvent } = require("@openzeppelin/test-helpers");
-const { assert, expect } = require("chai");
 const { getEventFromTx } = require("../../helpers/utils");
-// Helper function to create values with 6 decimals
+
+async function expectRevert(promise, expectedMessage) {
+  let error = null;
+  try {
+    await promise;
+  } catch (e) {
+    error = e;
+  }
+  if (!error) throw new Error("Expected transaction to revert but it succeeded");
+  if (expectedMessage) {
+    const msg = error.message || "";
+    if (!msg.includes(expectedMessage)) {
+      throw new Error(
+        `Expected revert "${expectedMessage}" but got: "${msg}"`
+      );
+    }
+  }
+}
+
 function parseTokens(amount) {
   return ethers.utils.parseUnits(amount.toString(), 6);
 }
 
-// Helper function to sign ERC20Permit data
 async function signPermit(signer, token, spender, amount, deadline, nonce) {
   const name = await token.name();
   const chainId = (await ethers.provider.getNetwork()).chainId;
-  
+
   const domain = {
     name: name,
     version: "1",
     chainId: chainId,
     verifyingContract: token.address,
   };
-  
+
   const types = {
     Permit: [
       { name: "owner", type: "address" },
@@ -31,7 +46,7 @@ async function signPermit(signer, token, spender, amount, deadline, nonce) {
       { name: "deadline", type: "uint256" },
     ],
   };
-  
+
   const value = {
     owner: signer.address,
     spender: spender,
@@ -39,7 +54,7 @@ async function signPermit(signer, token, spender, amount, deadline, nonce) {
     nonce: nonce,
     deadline: deadline,
   };
-  
+
   const signature = await signer._signTypedData(domain, types, value);
   return ethers.utils.splitSignature(signature);
 }
@@ -55,13 +70,12 @@ describe("GrantsToken", () => {
   let expect;
 
   const INITIAL_SUPPLY = parseTokens("1000000"); // 1 million tokens
-  const TOKEN_CAP = parseTokens("10000000"); // 10 million tokens
+  const TOKEN_CAP = parseTokens("10000000");     // 10 million tokens
   const TOKEN_NAME = "COMPY";
   const TOKEN_SYMBOL = "COMPY";
   const DECIMALS = 6;
 
   before("setup test helpers", async function () {
-    // Dynamic import of chai to handle ESM module
     const chai = await import("chai");
     assert = chai.assert;
     expect = chai.expect;
@@ -71,8 +85,22 @@ describe("GrantsToken", () => {
     [owner, recipient, spender, minter, other] = await ethers.getSigners();
 
     const GrantsToken = await ethers.getContractFactory("GrantsToken");
-    grantsToken = await GrantsToken.deploy(INITIAL_SUPPLY, TOKEN_CAP);
-    await grantsToken.deployed();
+    const impl = await GrantsToken.deploy();
+    await impl.deployed();
+
+    const initData = impl.interface.encodeFunctionData("initialize", [
+      INITIAL_SUPPLY,
+      TOKEN_CAP,
+      owner.address,
+    ]);
+    const ProxyFactory = await ethers.getContractFactory("ERC1967Proxy");
+    const proxy = await ProxyFactory.deploy(impl.address, initData);
+    await proxy.deployed();
+
+    grantsToken = GrantsToken.attach(proxy.address);
+
+    // Add owner to allowlist so existing transfer tests work unmodified.
+    await grantsToken.addToAllowlist(owner.address);
   });
 
   describe("Deployment", () => {
@@ -114,6 +142,13 @@ describe("GrantsToken", () => {
     it("should not be paused on deployment", async () => {
       const paused = await grantsToken.paused();
       assert.isFalse(paused);
+    });
+
+    it("should not allow initialize to be called again", async () => {
+      await expectRevert(
+        grantsToken.initialize(INITIAL_SUPPLY, TOKEN_CAP, owner.address),
+        "Initializable: contract is already initialized"
+      );
     });
   });
 
@@ -175,7 +210,7 @@ describe("GrantsToken", () => {
       });
 
       it("should revert if sender has insufficient balance", async () => {
-        const amount = parseTokens("10000000000"); // More than cap
+        const amount = parseTokens("10000000000");
         await expectRevert(
           grantsToken.connect(recipient).transfer(owner.address, amount),
           "ERC20: transfer amount exceeds balance"
@@ -331,6 +366,7 @@ describe("GrantsToken", () => {
 
   describe("Burning", () => {
     beforeEach(async () => {
+      // owner is on allowlist → transfer to recipient succeeds
       const amount = parseTokens("500");
       await grantsToken.transfer(recipient.address, amount);
     });
@@ -355,7 +391,6 @@ describe("GrantsToken", () => {
       txReceipt = await tx.wait();
       const event = getEventFromTx(txReceipt, "TokensBurned");
       assert(event, "Cannot find TokensBurned event");
-      
     });
 
     it("account with approval can burn on behalf of another", async () => {
@@ -411,6 +446,62 @@ describe("GrantsToken", () => {
         grantsToken.connect(spender).burnFrom(recipient.address, burnAmount),
         "ERC20: insufficient allowance"
       );
+    });
+  });
+
+  describe("adminBurnFrom", () => {
+    beforeEach(async () => {
+      // Give recipient some tokens to burn (owner is on allowlist)
+      await grantsToken.transfer(recipient.address, parseTokens("500"));
+    });
+
+    it("owner can burn tokens from any address without allowance", async () => {
+      const burnAmount = parseTokens("200");
+      const initialSupply = await grantsToken.totalSupply();
+      const initialBalance = await grantsToken.balanceOf(recipient.address);
+
+      await grantsToken.adminBurnFrom(recipient.address, burnAmount);
+
+      const finalSupply = await grantsToken.totalSupply();
+      const finalBalance = await grantsToken.balanceOf(recipient.address);
+
+      assert.isTrue(finalBalance.eq(initialBalance.sub(burnAmount)));
+      assert.isTrue(finalSupply.eq(initialSupply.sub(burnAmount)));
+    });
+
+    it("should emit TokensBurned event", async () => {
+      const burnAmount = parseTokens("100");
+      const tx = await grantsToken.adminBurnFrom(recipient.address, burnAmount);
+      const txReceipt = await tx.wait();
+      const event = getEventFromTx(txReceipt, "TokensBurned");
+      assert(event, "Cannot find TokensBurned event");
+    });
+
+    it("non-owner cannot call adminBurnFrom", async () => {
+      const burnAmount = parseTokens("100");
+      await expectRevert(
+        grantsToken.connect(spender).adminBurnFrom(recipient.address, burnAmount),
+        "Ownable: caller is not the owner"
+      );
+    });
+
+    it("cannot adminBurnFrom more than balance", async () => {
+      const balance = await grantsToken.balanceOf(recipient.address);
+      const excessAmount = balance.add(parseTokens("1"));
+
+      await expectRevert(
+        grantsToken.adminBurnFrom(recipient.address, excessAmount),
+        "ERC20: burn amount exceeds balance"
+      );
+    });
+
+    it("does not require allowance from target address", async () => {
+      const burnAmount = parseTokens("100");
+      // No approve call — should still succeed
+      const initialBalance = await grantsToken.balanceOf(recipient.address);
+      await grantsToken.adminBurnFrom(recipient.address, burnAmount);
+      const finalBalance = await grantsToken.balanceOf(recipient.address);
+      assert.isTrue(finalBalance.eq(initialBalance.sub(burnAmount)));
     });
   });
 
@@ -471,6 +562,170 @@ describe("GrantsToken", () => {
     });
   });
 
+  describe("Transfer Allowlist", () => {
+    it("addToAllowlist adds an address and emits AllowlistAdded", async () => {
+      const tx = await grantsToken.addToAllowlist(recipient.address);
+      const txReceipt = await tx.wait();
+      const event = getEventFromTx(txReceipt, "AllowlistAdded");
+      assert(event, "Cannot find AllowlistAdded event");
+
+      assert.isTrue(await grantsToken.isAllowlisted(recipient.address));
+      assert.equal(await grantsToken.getAllowlistLength(), 2); // owner was added in beforeEach
+    });
+
+    it("cannot add the zero address", async () => {
+      await expectRevert(
+        grantsToken.addToAllowlist("0x0000000000000000000000000000000000000000"),
+        "GrantsToken: zero address"
+      );
+    });
+
+    it("cannot add the same address twice", async () => {
+      await grantsToken.addToAllowlist(recipient.address);
+      await expectRevert(
+        grantsToken.addToAllowlist(recipient.address),
+        "GrantsToken: already in allowlist"
+      );
+    });
+
+    it("non-owner cannot add to allowlist", async () => {
+      await expectRevert(
+        grantsToken.connect(other).addToAllowlist(recipient.address),
+        "Ownable: caller is not the owner"
+      );
+    });
+
+    it("removeFromAllowlist removes an address and emits AllowlistRemoved", async () => {
+      await grantsToken.addToAllowlist(recipient.address);
+      const tx = await grantsToken.removeFromAllowlist(recipient.address);
+      const txReceipt = await tx.wait();
+      const event = getEventFromTx(txReceipt, "AllowlistRemoved");
+      assert(event, "Cannot find AllowlistRemoved event");
+
+      assert.isFalse(await grantsToken.isAllowlisted(recipient.address));
+    });
+
+    it("cannot remove an address not on the allowlist", async () => {
+      await expectRevert(
+        grantsToken.removeFromAllowlist(recipient.address),
+        "GrantsToken: not in allowlist"
+      );
+    });
+
+    it("non-owner cannot remove from allowlist", async () => {
+      await grantsToken.addToAllowlist(recipient.address);
+      await expectRevert(
+        grantsToken.connect(other).removeFromAllowlist(recipient.address),
+        "Ownable: caller is not the owner"
+      );
+    });
+
+    it("swap-and-pop preserves correct entries after removal", async () => {
+      // Build list: [owner, A, B, C]
+      const [, A, B, C] = [owner, recipient, spender, minter];
+      await grantsToken.addToAllowlist(A.address);
+      await grantsToken.addToAllowlist(B.address);
+      await grantsToken.addToAllowlist(C.address);
+
+      // Remove A (index 1): C should take its slot
+      await grantsToken.removeFromAllowlist(A.address);
+
+      const len = await grantsToken.getAllowlistLength();
+      assert.equal(len, 3);
+
+      const entries = await grantsToken.getAllowlist(0, 10);
+      assert.isFalse(entries.includes(A.address));
+      assert.isTrue(await grantsToken.isAllowlisted(B.address));
+      assert.isTrue(await grantsToken.isAllowlisted(C.address));
+    });
+
+    it("getAllowlist returns paginated results", async () => {
+      await grantsToken.addToAllowlist(recipient.address);
+      await grantsToken.addToAllowlist(spender.address);
+      await grantsToken.addToAllowlist(minter.address);
+      // list: [owner, recipient, spender, minter]
+
+      const page0 = await grantsToken.getAllowlist(0, 2);
+      assert.equal(page0.length, 2);
+
+      const page1 = await grantsToken.getAllowlist(2, 2);
+      assert.equal(page1.length, 2);
+
+      const all = await grantsToken.getAllowlist(0, 10);
+      assert.equal(all.length, 4);
+    });
+
+    it("getAllowlist returns empty array when from >= length", async () => {
+      const result = await grantsToken.getAllowlist(100, 10);
+      assert.equal(result.length, 0);
+    });
+
+    it("isAllowlisted returns false for unlisted address", async () => {
+      assert.isFalse(await grantsToken.isAllowlisted(other.address));
+    });
+
+    it("transfer reverts when neither sender nor receiver is on allowlist", async () => {
+      // Give minter some tokens via owner (owner is on allowlist → transfer OK)
+      await grantsToken.transfer(minter.address, parseTokens("100"));
+
+      // minter → other: neither is on allowlist → should revert
+      await expectRevert(
+        grantsToken.connect(minter).transfer(other.address, parseTokens("50")),
+        "GrantsToken: transfer not allowed"
+      );
+    });
+
+    it("transfer succeeds when sender is on allowlist", async () => {
+      await grantsToken.addToAllowlist(minter.address);
+      await grantsToken.transfer(minter.address, parseTokens("100"));
+
+      // minter → other: minter is on allowlist → OK
+      await grantsToken.connect(minter).transfer(other.address, parseTokens("50"));
+      const balance = await grantsToken.balanceOf(other.address);
+      assert.isTrue(balance.eq(parseTokens("50")));
+    });
+
+    it("transfer succeeds when receiver is on allowlist", async () => {
+      await grantsToken.addToAllowlist(other.address);
+      await grantsToken.transfer(minter.address, parseTokens("100"));
+
+      // minter → other: other is on allowlist → OK
+      await grantsToken.connect(minter).transfer(other.address, parseTokens("50"));
+      const balance = await grantsToken.balanceOf(other.address);
+      assert.isTrue(balance.eq(parseTokens("50")));
+    });
+
+    it("transfer is blocked after address is removed from allowlist", async () => {
+      await grantsToken.addToAllowlist(minter.address);
+      await grantsToken.transfer(minter.address, parseTokens("100"));
+
+      // minter can send to other while on list
+      await grantsToken.connect(minter).transfer(other.address, parseTokens("10"));
+
+      // Remove minter; now minter → other should fail
+      await grantsToken.removeFromAllowlist(minter.address);
+      await expectRevert(
+        grantsToken.connect(minter).transfer(other.address, parseTokens("10")),
+        "GrantsToken: transfer not allowed"
+      );
+    });
+
+    it("mint bypasses allowlist check", async () => {
+      // recipient is not on allowlist; minting to them should still succeed
+      await grantsToken.mint(recipient.address, parseTokens("100"));
+      const balance = await grantsToken.balanceOf(recipient.address);
+      assert.isTrue(balance.eq(parseTokens("100")));
+    });
+
+    it("burn bypasses allowlist check", async () => {
+      // Transfer to minter (owner is on allowlist), then minter burns directly
+      await grantsToken.transfer(minter.address, parseTokens("100"));
+      await grantsToken.connect(minter).burn(parseTokens("50"));
+      const balance = await grantsToken.balanceOf(minter.address);
+      assert.isTrue(balance.eq(parseTokens("50")));
+    });
+  });
+
   describe("Ownership", () => {
     it("owner can transfer ownership", async () => {
       await grantsToken.transferOwnership(recipient.address);
@@ -490,7 +745,7 @@ describe("GrantsToken", () => {
     it("should support ERC20Permit", async () => {
       const amount = parseTokens("100");
       const block = await ethers.provider.getBlock("latest");
-      const deadline = block.timestamp + 36000; // 10 hour from now
+      const deadline = block.timestamp + 36000;
       const nonce = await grantsToken.nonces(owner.address);
 
       const { v, r, s } = await signPermit(
@@ -548,7 +803,7 @@ describe("GrantsToken", () => {
     it("should revert permit with expired deadline", async () => {
       const amount = parseTokens("100");
       const block = await ethers.provider.getBlock("latest");
-      const expiredDeadline = block.timestamp - 3600; // 1 hour ago
+      const expiredDeadline = block.timestamp - 3600;
       const nonce = await grantsToken.nonces(owner.address);
 
       const { v, r, s } = await signPermit(
@@ -580,7 +835,6 @@ describe("GrantsToken", () => {
       const deadline = block.timestamp + 3600;
       const nonce = await grantsToken.nonces(owner.address);
 
-      // Sign with wrong signer (minter instead of owner)
       const { v, r, s } = await signPermit(
         minter,
         grantsToken,
@@ -641,7 +895,7 @@ describe("GrantsToken", () => {
     it("should get the correct DOMAIN_SEPARATOR", async () => {
       const domainSeparator = await grantsToken.DOMAIN_SEPARATOR();
       assert.isNotNull(domainSeparator);
-      assert.equal(domainSeparator.length, 66); // 0x + 64 hex chars
+      assert.equal(domainSeparator.length, 66);
     });
 
     it("should track nonces correctly", async () => {
@@ -703,7 +957,5 @@ describe("GrantsToken", () => {
       assert.isTrue(allowance1.eq(amount1));
       assert.isTrue(allowance2.eq(amount2));
     });
-
-    
   });
 });
