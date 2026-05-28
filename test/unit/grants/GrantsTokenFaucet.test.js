@@ -2,45 +2,59 @@
 /* global artifacts, contract, web3, it, beforeEach, before */
 const hre = require("hardhat");
 const ethers = hre.ethers;
-const { expectRevert, expectEvent } = require("@openzeppelin/test-helpers");
 const { getEventFromTx } = require("../../helpers/utils");
 
-// Helper function to create values with 6 decimals
 function parseTokens(amount) {
   return ethers.utils.parseUnits(amount.toString(), 6);
 }
 
-// Helper function to sign a message for the faucet (similar to ERC20Template.test.js)
-// Uses ethers signer.signMessage which works with Hardhat (web3.eth.sign requires external node)
+async function expectRevert(promise, expectedMessage) {
+  let error = null;
+  try {
+    await promise;
+  } catch (e) {
+    error = e;
+  }
+  if (!error) throw new Error("Expected transaction to revert but it succeeded");
+  if (expectedMessage) {
+    const msg = error.message || "";
+    if (!msg.includes(expectedMessage)) {
+      throw new Error(`Expected revert "${expectedMessage}" but got: "${msg}"`);
+    }
+  }
+}
+
+async function deployGrantsToken(initialSupply, cap, ownerAddress) {
+  const GrantsToken = await ethers.getContractFactory("GrantsToken");
+  const impl = await GrantsToken.deploy();
+  await impl.deployed();
+
+  const initData = impl.interface.encodeFunctionData("initialize", [
+    initialSupply,
+    cap,
+    ownerAddress,
+  ]);
+  const ProxyFactory = await ethers.getContractFactory("ERC1967Proxy");
+  const proxy = await ProxyFactory.deploy(impl.address, initData);
+  await proxy.deployed();
+
+  return GrantsToken.attach(proxy.address);
+}
+
 async function signFaucetMessage(signer, faucetAddress, userAddress, nonce, amount) {
-  // Create the message hash: keccak256(abi.encode(faucetAddress, userAddress, nonce, amount))
-  // Updated to match contract: includes contract address to prevent cross-contract replay
-  // Use defaultAbiCoder.encode to match contract's abi.encode exactly
   const encoded = ethers.utils.defaultAbiCoder.encode(
     ["address", "address", "uint256", "uint256"],
     [faucetAddress, userAddress, nonce, amount]
   );
   const messageHash = ethers.utils.keccak256(encoded);
-  
-  // signer.signMessage automatically adds "\x19Ethereum Signed Message:\n32" prefix (like web3.eth.sign)
-  // This creates: keccak256("\x19Ethereum Signed Message:\n32" + messageHash)
-  // Which matches exactly what the contract creates as ethSignedMessageHash
   const signedMessage = await signer.signMessage(ethers.utils.arrayify(messageHash));
-  
-  // Extract r, s, v from signature (same pattern as ERC20Template.test.js)
-  const sig = signedMessage.substr(2); // remove 0x
-  const r = '0x' + sig.slice(0, 64);
-  const s = '0x' + sig.slice(64, 128);
-  const v = '0x' + sig.slice(128, 130);
-  
-  // Convert to bytes format expected by contract (65 bytes: 32 + 32 + 1)
-  const signature = ethers.utils.concat([
-    r,
-    s,
-    v
-  ]);
-  
-  return signature;
+
+  const sig = signedMessage.substr(2);
+  const r = "0x" + sig.slice(0, 64);
+  const s = "0x" + sig.slice(64, 128);
+  const v = "0x" + sig.slice(128, 130);
+
+  return ethers.utils.concat([r, s, v]);
 }
 
 describe("GrantsTokenFaucet", () => {
@@ -53,12 +67,11 @@ describe("GrantsTokenFaucet", () => {
   let assert;
   let expect;
 
-  const INITIAL_SUPPLY = parseTokens("1000000"); // 1 million tokens
-  const TOKEN_CAP = parseTokens("10000000"); // 10 million tokens
-  const FAUCET_AMOUNT = parseTokens("100000"); // 100k tokens for faucet
+  const INITIAL_SUPPLY = parseTokens("1000000");
+  const TOKEN_CAP = parseTokens("10000000");
+  const FAUCET_AMOUNT = parseTokens("100000");
 
   before("setup test helpers", async function () {
-    // Dynamic import of chai to handle ESM module
     const chai = await import("chai");
     assert = chai.assert;
     expect = chai.expect;
@@ -67,17 +80,21 @@ describe("GrantsTokenFaucet", () => {
   beforeEach("deploy contracts", async () => {
     [owner, signer, user, other] = await ethers.getSigners();
 
-    // Deploy GrantsToken
-    const GrantsToken = await ethers.getContractFactory("GrantsToken");
-    grantsToken = await GrantsToken.deploy(INITIAL_SUPPLY, TOKEN_CAP);
-    await grantsToken.deployed();
+    // Deploy GrantsToken via UUPS proxy
+    grantsToken = await deployGrantsToken(INITIAL_SUPPLY, TOKEN_CAP, owner.address);
 
     // Deploy GrantsTokenFaucet
     const GrantsTokenFaucet = await ethers.getContractFactory("GrantsTokenFaucet");
     faucet = await GrantsTokenFaucet.deploy(grantsToken.address, signer.address);
     await faucet.deployed();
 
-    // Transfer tokens to faucet
+    // Add owner and faucet to the allowlist:
+    // - owner: so the initial transfer to faucet is permitted
+    // - faucet: so claim/withdraw transfers from the faucet contract are permitted
+    await grantsToken.addToAllowlist(owner.address);
+    await grantsToken.addToAllowlist(faucet.address);
+
+    // Fund the faucet
     await grantsToken.transfer(faucet.address, FAUCET_AMOUNT);
   });
 
@@ -134,7 +151,6 @@ describe("GrantsTokenFaucet", () => {
       const finalBalance = await grantsToken.balanceOf(user.address);
       assert.isTrue(finalBalance.eq(initialBalance.add(amount)));
 
-      // Check event
       const event = getEventFromTx(txReceipt, "TokensClaimed");
       assert(event, "Cannot find TokensClaimed event");
       assert.equal(event.args.user, user.address);
@@ -147,14 +163,12 @@ describe("GrantsTokenFaucet", () => {
       const nonce2 = 2;
       const amount = parseTokens("1000");
 
-      // First claim
       const signature1 = await signFaucetMessage(signer, faucet.address, user.address, nonce1, amount);
       await faucet.connect(user).claim(user.address, nonce1, amount, signature1);
 
       const userNonce1 = await faucet.userNonces(user.address);
       assert.isTrue(userNonce1.eq(nonce1));
 
-      // Second claim with higher nonce
       const signature2 = await signFaucetMessage(signer, faucet.address, user.address, nonce2, amount);
       await faucet.connect(user).claim(user.address, nonce2, amount, signature2);
 
@@ -166,15 +180,12 @@ describe("GrantsTokenFaucet", () => {
       const amount = parseTokens("1000");
       const initialBalance = await grantsToken.balanceOf(user.address);
 
-      // Claim with nonce 1
       const signature1 = await signFaucetMessage(signer, faucet.address, user.address, 1, amount);
       await faucet.connect(user).claim(user.address, 1, amount, signature1);
 
-      // Claim with nonce 2
       const signature2 = await signFaucetMessage(signer, faucet.address, user.address, 2, amount);
       await faucet.connect(user).claim(user.address, 2, amount, signature2);
 
-      // Claim with nonce 3
       const signature3 = await signFaucetMessage(signer, faucet.address, user.address, 3, amount);
       await faucet.connect(user).claim(user.address, 3, amount, signature3);
 
@@ -187,10 +198,8 @@ describe("GrantsTokenFaucet", () => {
       const amount = parseTokens("1000");
       const signature = await signFaucetMessage(signer, faucet.address, user.address, nonce, amount);
 
-      // First claim succeeds
       await faucet.connect(user).claim(user.address, nonce, amount, signature);
 
-      // Second claim with same nonce should fail
       await expectRevert(
         faucet.connect(user).claim(user.address, nonce, amount, signature),
         "GrantsTokenFaucet: nonce must be greater than last used nonce"
@@ -199,12 +208,10 @@ describe("GrantsTokenFaucet", () => {
 
     it("should revert if nonce is less than last used nonce", async () => {
       const amount = parseTokens("1000");
-      
-      // Claim with nonce 5
+
       const signature5 = await signFaucetMessage(signer, faucet.address, user.address, 5, amount);
       await faucet.connect(user).claim(user.address, 5, amount, signature5);
 
-      // Try to claim with nonce 3 (should fail)
       const signature3 = await signFaucetMessage(signer, faucet.address, user.address, 3, amount);
       await expectRevert(
         faucet.connect(user).claim(user.address, 3, amount, signature3),
@@ -215,8 +222,7 @@ describe("GrantsTokenFaucet", () => {
     it("should revert if signature is invalid", async () => {
       const nonce = 1;
       const amount = parseTokens("1000");
-      
-      // Sign with wrong signer
+
       const wrongSignature = await signFaucetMessage(other, faucet.address, user.address, nonce, amount);
 
       await expectRevert(
@@ -228,8 +234,7 @@ describe("GrantsTokenFaucet", () => {
     it("should revert if signature is for different user", async () => {
       const nonce = 1;
       const amount = parseTokens("1000");
-      
-      // Sign for different user
+
       const signature = await signFaucetMessage(signer, faucet.address, other.address, nonce, amount);
 
       await expectRevert(
@@ -241,8 +246,7 @@ describe("GrantsTokenFaucet", () => {
     it("should revert if signature is for different nonce", async () => {
       const nonce = 1;
       const amount = parseTokens("1000");
-      
-      // Sign for different nonce
+
       const signature = await signFaucetMessage(signer, faucet.address, user.address, 2, amount);
 
       await expectRevert(
@@ -255,8 +259,7 @@ describe("GrantsTokenFaucet", () => {
       const nonce = 1;
       const amount = parseTokens("1000");
       const differentAmount = parseTokens("2000");
-      
-      // Sign for different amount
+
       const signature = await signFaucetMessage(signer, faucet.address, user.address, nonce, differentAmount);
 
       await expectRevert(
@@ -295,7 +298,7 @@ describe("GrantsTokenFaucet", () => {
     it("should revert if signature length is invalid", async () => {
       const nonce = 1;
       const amount = parseTokens("1000");
-      const invalidSignature = "0x1234"; // Too short
+      const invalidSignature = "0x1234";
 
       await expectRevert(
         faucet.connect(user).claim(user.address, nonce, amount, invalidSignature),
@@ -307,11 +310,9 @@ describe("GrantsTokenFaucet", () => {
       const nonce = 1;
       const amount = parseTokens("1000");
 
-      // User 1 claims
       const signature1 = await signFaucetMessage(signer, faucet.address, user.address, nonce, amount);
       await faucet.connect(user).claim(user.address, nonce, amount, signature1);
 
-      // User 2 claims with same nonce (should work, nonces are per-user)
       const signature2 = await signFaucetMessage(signer, faucet.address, other.address, nonce, amount);
       await faucet.connect(other).claim(other.address, nonce, amount, signature2);
 
@@ -326,7 +327,6 @@ describe("GrantsTokenFaucet", () => {
       const amount = parseTokens("1000");
       const signature = await signFaucetMessage(signer, faucet.address, user.address, nonce, amount);
 
-      // Other user calls claim for user
       await faucet.connect(other).claim(user.address, nonce, amount, signature);
 
       const balance = await grantsToken.balanceOf(user.address);
@@ -343,7 +343,6 @@ describe("GrantsTokenFaucet", () => {
       const currentSigner = await faucet.getSigner();
       assert.equal(currentSigner, newSigner.address);
 
-      // Check event
       const event = getEventFromTx(txReceipt, "SignerChanged");
       assert(event, "Cannot find SignerChanged event");
       assert.equal(event.args.oldSigner, signer.address);
@@ -474,7 +473,7 @@ describe("GrantsTokenFaucet", () => {
 
     it("should handle large amount values", async () => {
       const nonce = 1;
-      const amount = FAUCET_AMOUNT; // Use all faucet balance
+      const amount = FAUCET_AMOUNT;
       const signature = await signFaucetMessage(signer, faucet.address, user.address, nonce, amount);
 
       await faucet.connect(user).claim(user.address, nonce, amount, signature);
@@ -485,7 +484,7 @@ describe("GrantsTokenFaucet", () => {
 
     it("should revert if claiming more than faucet balance", async () => {
       const nonce = 1;
-      const amount = FAUCET_AMOUNT.add(1); // More than faucet has
+      const amount = FAUCET_AMOUNT.add(1);
       const signature = await signFaucetMessage(signer, faucet.address, user.address, nonce, amount);
 
       await expectRevert(
