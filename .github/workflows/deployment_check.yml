@@ -32,6 +32,8 @@ jobs:
         run: echo "ADDRESS_FILE=${HOME}/.ocean/ocean-contracts/artifacts/address.json" >> $GITHUB_ENV
       - name: Build local docker file
         run: docker build -t 'oceanprotocol/ocean-contracts:test' .
+      - name: Retag
+        run: docker tag 'oceanprotocol/ocean-contracts:test' 'ghcr.io/oceanprotocol/ocean-contracts:test'
       - name: Checkout Barge
         uses: actions/checkout@v3
         with:
