@@ -36,13 +36,13 @@ async function main() {
   switch (networkDetails.chainId) {
     case 11155111:
       networkName = "sepolia";
-      gasPrice = ethers.utils.parseUnits("1.1", "gwei");
+      gasPrice = ethers.utils.parseUnits("25", "gwei");
       gasLimit = 6000000;
       break;
     case 8453:
       networkName = "base";
-      gasPrice = ethers.utils.parseUnits("0.08", "gwei");
-      gasLimit = 20000000;
+      gasPrice = ethers.utils.parseUnits("0.006", "gwei");
+      gasLimit = 3000000;
       break;
   }
 
@@ -82,11 +82,11 @@ async function main() {
 
   const proxyAddress = proxy.address;
   const grantsToken = GrantsToken.attach(proxyAddress);
-
+  const owner = await grantsToken.owner();
   if (logging) {
     console.info("Proxy deployed at:          ", proxyAddress);
     console.info("Implementation deployed at: ", impl.address);
-    console.info("Owner (multisig):           ", await grantsToken.owner());
+    console.info("Owner (multisig):           ", owner);
   }
 
   if (show_verify) {

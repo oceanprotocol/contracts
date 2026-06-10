@@ -42,20 +42,21 @@ async function main() {
   let grantsTokenAddress = null;
   let signerAddress = null;
   let compyAddress = null;
+  const grantsOwner = "0x09b575B5eC7Fff24cbccC092DE9E36eADdDbEe71";
   switch (networkDetails.chainId) {
     case 11155111:
       networkName = "sepolia";
-      gasPrice = ethers.utils.parseUnits("12", "gwei");
+      gasPrice = ethers.utils.parseUnits("22", "gwei");
       gasLimit = 6000000;
-      compyAddress = "0x973e69303259B0c2543a38665122b773D28405fB";
-      signerAddress = "0xDAcDC497AE9a678a78b703cD83B010C8f5c78E37";
+      compyAddress = "0x92b368055425f34c18e6f7A80DEaB7Ff106C9d05";
+      signerAddress = "0x0eD2a4Bab0C88215B4222BD5eA2A41BeE9220738";
       break;
     case 8453:
       networkName = "base";
-      gasPrice = ethers.utils.parseUnits("0.02", "gwei");
-      gasLimit = 5000000;
-      compyAddress = "0x298f163244e0c8cc9316D6E97162e5792ac5d410";
-      signerAddress = "0x508F31c8d2a1B8cEE5360FA41bc0469923986C9B";
+      gasPrice = ethers.utils.parseUnits("0.006", "gwei");
+      gasLimit = 3000000;
+      compyAddress = "0x5494711392a67DA50D3bC7b1fcC2d1877cFaA4d2";
+      signerAddress = "0xc4dC3b650c14fbfE6C4451eB2565d082aFf12352";
       break;
   }
   if (!compyAddress || !signerAddress) {
@@ -95,6 +96,15 @@ async function main() {
         signerAddress
     );
   }
+  // Transfer ownership if GRANTS_OWNER is set
+    if (grantsOwner) {
+      if (logging) console.info("Transferring ownership to:", grantsOwner);
+      const transferTx = await deployGrantsTokenFaucet.transferOwnership(grantsOwner, options);
+      await transferTx.wait(1);
+      if (logging) console.info("Tokens transferred successfully");
+    } else {
+      if (logging) console.warn("GRANTS_OWNER not set. Ownership remains with deployer:", owner.address);
+    }
 }
 
 // We recommend this pattern to be able to use async/await everywhere
