@@ -45,16 +45,16 @@ async function main() {
   switch (networkDetails.chainId) {
     case 11155111:
       networkName = "sepolia";
-      gasPrice = ethers.utils.parseUnits("12", "gwei");
+      gasPrice = ethers.utils.parseUnits("25", "gwei");
       gasLimit = 6000000;
-      compyAddress = "0x973e69303259B0c2543a38665122b773D28405fB";
+      compyAddress = "0x92b368055425f34c18e6f7A80DEaB7Ff106C9d05";
       usdcAddress = "0x1c7D4B196Cb0C7B01d743Fbc6116a902379C7238";
       break;
     case 8453:
       networkName = "base";
-      gasPrice = ethers.utils.parseUnits("0.02", "gwei");
-      gasLimit = 5000000;
-      compyAddress = "0x298f163244e0c8cc9316D6E97162e5792ac5d410";
+      gasPrice = ethers.utils.parseUnits("0.006", "gwei");
+      gasLimit = 3000000;
+      compyAddress = "0x5494711392a67DA50D3bC7b1fcC2d1877cFaA4d2";
       usdcAddress = "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913";
       break;
   }
@@ -100,7 +100,7 @@ async function main() {
     if (logging) console.info("Transferring ownership to:", grantsOwner);
     const transferTx = await deployGrantsTokenSwap.transferOwnership(grantsOwner, options);
     await transferTx.wait(1);
-    if (logging) console.info("Tokens transferred successfully");
+    if (logging) console.info("Ownership transferred successfully");
   } else {
     if (logging) console.warn("GRANTS_OWNER not set. Ownership remains with deployer:", owner.address);
   }

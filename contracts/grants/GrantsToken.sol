@@ -2,137 +2,224 @@ pragma solidity 0.8.12;
 // Copyright Ocean Protocol contributors
 // SPDX-License-Identifier: Apache-2.0
 
-import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
-import "@openzeppelin/contracts/token/ERC20/extensions/ERC20Burnable.sol";
-import "@openzeppelin/contracts/token/ERC20/extensions/ERC20Capped.sol";
-import "@openzeppelin/contracts/token/ERC20/extensions/ERC20Permit.sol";
-import "@openzeppelin/contracts/access/Ownable.sol";
-import "@openzeppelin/contracts/security/Pausable.sol";
+import "@openzeppelin/contracts-upgradeable/token/ERC20/ERC20Upgradeable.sol";
+import "@openzeppelin/contracts-upgradeable/token/ERC20/extensions/ERC20BurnableUpgradeable.sol";
+import "@openzeppelin/contracts-upgradeable/token/ERC20/extensions/ERC20CappedUpgradeable.sol";
+import "@openzeppelin/contracts-upgradeable/token/ERC20/extensions/draft-ERC20PermitUpgradeable.sol";
+import "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol";
+import "@openzeppelin/contracts-upgradeable/security/PausableUpgradeable.sol";
+import "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
+import "@openzeppelin/contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol";
 
 /**
  * @title GrantsToken
- * @dev Implementation of the ERC20 token named "Grants" with additional features:
- *      - Burnable: allows token holders to burn their tokens
- *      - Capped: token supply has a maximum cap
- *      - Ownable: owner can manage the token (minting, pausing)
- *      - Pausable: owner can pause/unpause token transfers
- *      - Permit: allows gasless token approvals via EIP-2612
+ * @dev Upgradeable ERC20 token named "COMPY" with:
+ *      - UUPS proxy pattern (owner/multisig controls upgrades)
+ *      - Capped supply
+ *      - Pausable transfers
+ *      - EIP-2612 permit
+ *      - Standard burnFrom (allowance-based)
+ *      - adminBurnFrom (owner-only, no allowance required — fraud remediation)
+ *      - Transfer allowlist: both sender and receiver are checked; at least one must be on the list
  */
 contract GrantsToken is
-    ERC20,
-    ERC20Burnable,
-    ERC20Capped,
-    ERC20Permit,
-    Ownable,
-    Pausable
+    Initializable,
+    ERC20Upgradeable,
+    ERC20BurnableUpgradeable,
+    ERC20CappedUpgradeable,
+    ERC20PermitUpgradeable,
+    OwnableUpgradeable,
+    PausableUpgradeable,
+    UUPSUpgradeable
 {
-    // Events
     event TokensMinted(address indexed to, uint256 amount);
     event TokensBurned(address indexed from, uint256 amount);
+    event AllowlistAdded(address indexed account);
+    event AllowlistRemoved(address indexed account);
 
     uint8 private constant _DECIMALS = 6;
 
-    /**
-     * @dev Constructor for GrantsToken
-     * @param initialSupply Initial amount of tokens to mint (in wei, accounting for 6 decimals)
-     * @param cap Maximum token supply cap (in wei, accounting for 6 decimals)
-     */
-    constructor(uint256 initialSupply, uint256 cap)
-        ERC20("COMPY", "COMPY")
-        ERC20Permit("COMPY")
-        ERC20Capped(cap)
-    {
-        require(initialSupply <= cap, "GrantsToken: initial supply exceeds cap");
-        if (initialSupply > 0) {
-            _mint(msg.sender, initialSupply);
-            emit TokensMinted(msg.sender, initialSupply);
-        }
+    address[] private _allowlist;
+    mapping(address => bool) private _isAllowlisted;
+    mapping(address => uint256) private _allowlistIndex; // 1-based
+
+    uint256[47] private __gap;
+
+    /// @custom:oz-upgrades-unsafe-allow constructor
+    constructor() {
+        _disableInitializers();
     }
 
     /**
-     * @dev Returns the number of decimals used for this token
-     * @return uint8 The number of decimals (6)
+     * @dev Initializer (replaces constructor for upgradeable contracts).
+     * @param initialSupply Tokens minted to owner_ on deploy (6 decimals)
+     * @param cap_ Maximum token supply (6 decimals)
+     * @param owner_ Address that receives initial tokens and ownership (use multisig)
      */
-    function decimals() public view override returns (uint8) {
+    function initialize(
+        uint256 initialSupply,
+        uint256 cap_,
+        address owner_
+    ) external initializer {
+        require(owner_ != address(0), "GrantsToken: owner cannot be zero address");
+        __ERC20_init("COMPY", "COMPY");
+        __ERC20Permit_init("COMPY");
+        __ERC20Capped_init(cap_);
+        __Ownable_init();
+        __Pausable_init();
+        __UUPSUpgradeable_init();
+
+        require(initialSupply <= cap_, "GrantsToken: initial supply exceeds cap");
+        if (initialSupply > 0) {
+            _mint(owner_, initialSupply);
+            emit TokensMinted(owner_, initialSupply);
+        }
+        _transferOwnership(owner_);
+    }
+
+    function decimals() public pure override returns (uint8) {
         return _DECIMALS;
     }
 
     /**
-     * @dev Mint new tokens (only owner)
-     * @param to Address to mint tokens to
-     * @param amount Amount of tokens to mint
+     * @dev Mint new tokens to `to`. Only owner.
      */
-    function mint(address to, uint256 amount)
-        public
-        onlyOwner
-    {
+    function mint(address to, uint256 amount) public onlyOwner {
         require(to != address(0), "GrantsToken: cannot mint to zero address");
         _mint(to, amount);
         emit TokensMinted(to, amount);
     }
 
-    /**
-     * @dev Pause all token transfers (only owner)
-     */
     function pause() public onlyOwner {
         _pause();
     }
 
-    /**
-     * @dev Unpause token transfers (only owner)
-     */
     function unpause() public onlyOwner {
         _unpause();
     }
 
     /**
-     * @dev Get the current token cap
-     * @return uint256 The maximum token supply
+     * @dev Burns `amount` tokens from `account` without requiring allowance.
+     *      Owner-only. Use for fraud remediation.
      */
-    function cap() public view override(ERC20Capped) returns (uint256) {
-        return super.cap();
+    function adminBurnFrom(address account, uint256 amount) external onlyOwner {
+        _burn(account, amount);
+        emit TokensBurned(account, amount);
     }
 
-    /**
-     * @dev Internal function to update balances before token transfer
-     * Ensures minting doesn't exceed cap and pausing works correctly
-     */
-    function _mint(address to, uint256 amount)
-        internal
-        override(ERC20, ERC20Capped)
-    {
-        super._mint(to, amount);
-    }
-
-    /**
-     * @dev Internal function to handle before token transfer hook
-     * Implements pause functionality
-     */
-    function _beforeTokenTransfer(
-        address from,
-        address to,
-        uint256 amount
-    ) internal override(ERC20) whenNotPaused {
-        super._beforeTokenTransfer(from, to, amount);
-    }
-
-    /**
-     * @dev Override burn to emit custom event
-     */
-    function burn(uint256 amount) public override(ERC20Burnable) {
+    function burn(uint256 amount) public override(ERC20BurnableUpgradeable) {
         address burner = _msgSender();
         super.burn(amount);
         emit TokensBurned(burner, amount);
     }
 
-    /**
-     * @dev Override burnFrom to emit custom event
-     */
     function burnFrom(address account, uint256 amount)
         public
-        override(ERC20Burnable)
+        override(ERC20BurnableUpgradeable)
     {
         super.burnFrom(account, amount);
         emit TokensBurned(account, amount);
+    }
+
+    // -------------------------------------------------------------------------
+    // Transfer allowlist
+    // -------------------------------------------------------------------------
+
+    /**
+     * @dev Add `account` to the transfer allowlist. Only owner.
+     *      A transfer is only valid when at least one of sender/receiver is on the list.
+     */
+    function addToAllowlist(address account) external onlyOwner {
+        require(account != address(0), "GrantsToken: zero address");
+        require(!_isAllowlisted[account], "GrantsToken: already in allowlist");
+        _allowlist.push(account);
+        _allowlistIndex[account] = _allowlist.length; // 1-based
+        _isAllowlisted[account] = true;
+        emit AllowlistAdded(account);
+    }
+
+    /**
+     * @dev Remove `account` from the transfer allowlist. Only owner.
+     *      Uses swap-and-pop for O(1) deletion.
+     */
+    function removeFromAllowlist(address account) external onlyOwner {
+        require(_isAllowlisted[account], "GrantsToken: not in allowlist");
+        uint256 idx = _allowlistIndex[account] - 1; // convert to 0-based
+        uint256 lastIdx = _allowlist.length - 1;
+        if (idx != lastIdx) {
+            address last = _allowlist[lastIdx];
+            _allowlist[idx] = last;
+            _allowlistIndex[last] = idx + 1; // keep 1-based
+        }
+        _allowlist.pop();
+        delete _allowlistIndex[account];
+        _isAllowlisted[account] = false;
+        emit AllowlistRemoved(account);
+    }
+
+    /**
+     * @dev Paginated view of allowlist entries.
+     * @param from Start index (0-based)
+     * @param limit Maximum entries to return
+     */
+    function getAllowlist(uint256 from, uint256 limit)
+        external
+        view
+        returns (address[] memory)
+    {
+        uint256 len = _allowlist.length;
+        if (from >= len) return new address[](0);
+        uint256 end = from + limit;
+        if (end > len) end = len;
+        address[] memory result = new address[](end - from);
+        for (uint256 i = from; i < end; i++) {
+            result[i - from] = _allowlist[i];
+        }
+        return result;
+    }
+
+    function getAllowlistLength() external view returns (uint256) {
+        return _allowlist.length;
+    }
+
+    function isAllowlisted(address account) external view returns (bool) {
+        return _isAllowlisted[account];
+    }
+
+    // -------------------------------------------------------------------------
+    // Internals
+    // -------------------------------------------------------------------------
+
+    function _authorizeUpgrade(address) internal override onlyOwner {}
+
+    function cap() public view override(ERC20CappedUpgradeable) returns (uint256) {
+        return super.cap();
+    }
+
+    function _mint(address to, uint256 amount)
+        internal
+        override(ERC20Upgradeable, ERC20CappedUpgradeable)
+    {
+        super._mint(to, amount);
+    }
+
+    /**
+     * @dev Transfer hook: enforces pause and allowlist.
+     *      Mint (from == address(0)) and burn (to == address(0)) bypass the allowlist check.
+     */
+    function _beforeTokenTransfer(
+        address from,
+        address to,
+        uint256 amount
+    ) internal override(ERC20Upgradeable) whenNotPaused {
+        bool isMint = from == address(0);
+        bool isBurn = to == address(0);
+        if (!isMint && !isBurn) {
+            require(
+                _isAllowlisted[from] || _isAllowlisted[to],
+                "GrantsToken: transfer not allowed"
+            );
+        }
+        super._beforeTokenTransfer(from, to, amount);
     }
 }
