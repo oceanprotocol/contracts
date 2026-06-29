@@ -23,6 +23,7 @@
   "author": "Ocean Protocol",
   "license": "Apache-2.0",
   "scripts": {
+    "prepack": "npx hardhat compile",
     "test:full": "npx hardhat test test/unit/*/*.test.js test/flow/*.test.js ",
     "test:batch": "npx hardhat test test/flow/SwapBatch.test.js ",
     "test:escrow": "npx hardhat test test/unit/escrow/Escrow.test.js ",

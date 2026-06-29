@@ -13,4 +13,4 @@ dist/
 ocean_contracts.egg-info/
 **/__init__.py
 #hardhat debug files
-**/.dbg.json
+**/*.dbg.json
