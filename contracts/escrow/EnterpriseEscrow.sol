@@ -20,13 +20,19 @@ import "../interfaces/IEnterpriseFeeCollector.sol";
  * The payer flow looks like:
  *   - payer deposits token
  *   - payer sets limit for payees (max amount, max process time)
- *  
- * 
+ *   - payer can bundle multiple deposits (plain or via ERC20Permit) and authorizations
+ *     in a single transaction using bundle()
+ *
+ *
  * The payee flow looks like:
  *   - payer asks for service (like compute) offchain
  *   - payee computes the maximum amount and locks that amount in the escrow contract
  *   - payee performs the service
  *   - payee takes the actual amount from the lock and releases back the remaining
+ *   - while a lock is still active, the payee can reLock() it to change the amount and/or
+ *     expiry (up or down). Every createLock check is re-evaluated against the new values, and
+ *     the total lock lifetime (measured from the original creation) cannot exceed the
+ *     authorization's maxLockSeconds.
  */
 contract EnterpriseEscrow is
     ReentrancyGuard
@@ -68,18 +74,31 @@ contract EnterpriseEscrow is
         uint256 jobId;
         address payer;
         uint256 amount;
-        uint256 expiry;
+        uint256 expiry;     // absolute timestamp: block.timestamp + duration
         address token;
+        uint256 startTime;  // block.timestamp at original createLock; preserved across reLock
     }
 
     mapping(address => lock[]) private locks; // locks by payee
 
+    /* structs used to bundle multiple payer actions in a single call */
+    struct DepositData { address token; uint256 amount; }
+    struct PermitData { address token; uint256 amount; uint256 deadline; uint8 v; bytes32 r; bytes32 s; }
+    struct AuthData { address token; address payee; uint256 maxLockedAmount; uint256 maxLockSeconds; uint256 maxLockCounts; }
+
+    /* structs used to bundle multiple payee (job) actions in a single call */
+    struct LockData { uint256 jobId; address token; address payer; uint256 amount; uint256 expiry; } // createLock & reLock
+    struct ClaimData { uint256 jobId; address token; address payer; uint256 amount; bytes proof; }
+    struct CancelData { uint256 jobId; address token; address payer; address payee; }
+
     // events
     event Deposit(address indexed payer,address token,uint256 amount);
     event Withdraw(address indexed payer,address token,uint256 amount);
-    event Auth(address indexed payer,address indexed payee,uint256 maxLockedAmount,
+    event Auth(address indexed payer,address indexed payee,address token,uint256 maxLockedAmount,
         uint256 maxLockSeconds,uint256 maxLockCounts);
     event Lock(address payer,address payee,uint256 jobId,uint256 amount,uint256 expiry,address token);
+    event ReLock(address payer,address payee,uint256 jobId,uint256 oldAmount,uint256 newAmount,
+        uint256 newExpiry,address token);
     event Claimed(address indexed payee,uint256 jobId,address token,address indexed payer,uint256 amount,bytes proof);
     event Canceled(address indexed payee,uint256 jobId,address token,address indexed payer,uint256 amount);
 
@@ -106,7 +125,7 @@ contract EnterpriseEscrow is
      * @param token array of tokens to deposit
      * @param amount array of amounts in wei to deposit
      */
-    function depositMultiple(address[] memory token,uint256[] memory amount) external nonReentrant{
+    function depositMultiple(address[] calldata token,uint256[] calldata amount) external nonReentrant{
         require(token.length==amount.length,"Invalid input");
         for(uint256 i=0;i<token.length;i++){
             _deposit(token[i],amount[i]);
@@ -133,6 +152,16 @@ contract EnterpriseEscrow is
         bytes32 r,
         bytes32 s
     ) external nonReentrant {
+        _depositWithPermit(token, amount, deadline, v, r, s);
+    }
+    function _depositWithPermit(
+        address token,
+        uint256 amount,
+        uint256 deadline,
+        uint8 v,
+        bytes32 r,
+        bytes32 s
+    ) internal {
         // Use permit to approve this contract to spend user's tokens
         IERC20Permit(token).permit(
             msg.sender,
@@ -145,6 +174,70 @@ contract EnterpriseEscrow is
         );
         // Deposit the tokens
         _deposit(token, amount);
+    }
+
+    /**
+     * @dev bundle
+     *      Called by payer to bundle multiple deposits, permit-based deposits and authorizations
+     *      in a single transaction (e.g. onboarding). All operations execute as msg.sender; any
+     *      sub-array may be empty.
+     *
+     * @param deposits array of {token, amount} for plain deposits (require prior approval)
+     * @param permits array of {token, amount, deadline, v, r, s} for ERC20Permit-based deposits
+     * @param auths array of {token, payee, maxLockedAmount, maxLockSeconds, maxLockCounts}
+     */
+    // Reentrancy-safe: nonReentrant blocks re-entry into every state-changing entrypoint; only view
+    // getters (the caller's own balances, not an oracle) are reachable during a token transfer/permit.
+    // slither-disable-next-line reentrancy-eth,reentrancy-benign
+    function bundle(
+        DepositData[] calldata deposits,
+        PermitData[] calldata permits,
+        AuthData[] calldata auths
+    ) external nonReentrant {
+        for(uint256 i=0;i<deposits.length;i++){
+            _deposit(deposits[i].token,deposits[i].amount);
+        }
+        for(uint256 i=0;i<permits.length;i++){
+            _depositWithPermit(permits[i].token,permits[i].amount,permits[i].deadline,permits[i].v,permits[i].r,permits[i].s);
+        }
+        for(uint256 i=0;i<auths.length;i++){
+            _authorize(auths[i].token,auths[i].payee,auths[i].maxLockedAmount,auths[i].maxLockSeconds,auths[i].maxLockCounts);
+        }
+    }
+
+    /**
+     * @dev bundleJobs
+     *      Called by a payee (e.g. a node servicing many jobs) to batch payee-side lock operations
+     *      in a single transaction. Operations run as msg.sender in a fixed order:
+     *      claims -> cancels -> creates -> reLocks, so lock slots / locked amounts freed by claims and
+     *      cancels are available before new locks are created. Any sub-array may be empty.
+     *
+     * @param claims array of {jobId, token, payer, amount, proof} passed to claimLock
+     * @param cancels array of {jobId, token, payer, payee} passed to cancelExpiredLock
+     * @param newLocks array of {jobId, token, payer, amount, expiry} passed to createLock
+     * @param reLockOps array of {jobId, token, payer, amount, expiry} passed to reLock
+     */
+    // Reentrancy-safe: nonReentrant blocks re-entry into every state-changing entrypoint; only view
+    // getters (the caller's own balances, not an oracle) are reachable during the claim fee transfer.
+    // slither-disable-next-line reentrancy-eth
+    function bundleJobs(
+        ClaimData[] calldata claims,
+        CancelData[] calldata cancels,
+        LockData[] calldata newLocks,
+        LockData[] calldata reLockOps
+    ) external nonReentrant {
+        for(uint256 i=0;i<claims.length;i++){
+            _claimLock(claims[i].jobId,claims[i].token,claims[i].payer,claims[i].amount,claims[i].proof);
+        }
+        for(uint256 i=0;i<cancels.length;i++){
+            _cancelExpiredLock(cancels[i].jobId,cancels[i].token,cancels[i].payer,cancels[i].payee);
+        }
+        for(uint256 i=0;i<newLocks.length;i++){
+            _createLock(newLocks[i].jobId,newLocks[i].token,newLocks[i].payer,newLocks[i].amount,newLocks[i].expiry);
+        }
+        for(uint256 i=0;i<reLockOps.length;i++){
+            _reLock(reLockOps[i].jobId,reLockOps[i].token,reLockOps[i].payer,reLockOps[i].amount,reLockOps[i].expiry);
+        }
     }
     function _deposit(address token,uint256 amount) internal{
         require(token!=address(0),"Invalid token address");
@@ -171,7 +264,7 @@ contract EnterpriseEscrow is
      * @param token array of tokens to withdraw
      * @param amount array of amounts in wei to withdraw
      */
-    function withdraw(address[] memory token,uint256[] memory amount) external nonReentrant{
+    function withdraw(address[] calldata token,uint256[] calldata amount) external nonReentrant{
         require(token.length==amount.length,"Invalid input");
         for(uint256 i=0;i<token.length;i++){
             _withdraw(token[i],amount[i]);
@@ -230,8 +323,8 @@ contract EnterpriseEscrow is
      * @param maxLockSeconds array of maximum lock duration in seconds
      * @param maxLockCounts array of maximum locks held by this payee
      */
-    function authorizeMultiple(address[] memory token,address[] memory payee,uint256[] memory maxLockedAmount,
-        uint256[] memory maxLockSeconds,uint256[] memory maxLockCounts) external nonReentrant{
+    function authorizeMultiple(address[] calldata token,address[] calldata payee,uint256[] calldata maxLockedAmount,
+        uint256[] calldata maxLockSeconds,uint256[] calldata maxLockCounts) external nonReentrant{
             require(token.length==payee.length && 
                     token.length==maxLockedAmount.length && 
                     token.length==maxLockSeconds.length && 
@@ -259,7 +352,7 @@ contract EnterpriseEscrow is
         if(i==length){ //not found
             userAuths[msg.sender][token].push(auth(payee,maxLockedAmount,0,maxLockSeconds,maxLockCounts,0));
         }
-        emit Auth(msg.sender,payee,maxLockedAmount,maxLockSeconds,maxLockCounts);
+        emit Auth(msg.sender,payee,token,maxLockedAmount,maxLockSeconds,maxLockCounts);
 
     }
 
@@ -374,8 +467,8 @@ contract EnterpriseEscrow is
      * @param amount array of amounts in wei to lock
      * @param expiry array of expiry timestamps
      */
-    function createLocks(uint256[] memory jobId,address[] memory token,
-        address[] memory payer,uint256[] memory amount,uint256[] memory expiry) external nonReentrant{
+    function createLocks(uint256[] calldata jobId,address[] calldata token,
+        address[] calldata payer,uint256[] calldata amount,uint256[] calldata expiry) external nonReentrant{
         
         require(jobId.length==token.length && 
             jobId.length==payer.length && 
@@ -387,7 +480,7 @@ contract EnterpriseEscrow is
     }
     function _createLock(uint256 jobId,address token,address payer,uint256 amount,uint256 expiry) internal {
         require(payer!=address(0),'Invalid payer');
-        require(payer!=msg.sender,'Payeer cannot be payee');
+        require(payer!=msg.sender,'Payer cannot be payee');
         require(token!=address(0),'Invalid token');
         require(amount>0,"Invalid amount");
         require(jobId>0,"Invalid jobId");
@@ -430,8 +523,105 @@ contract EnterpriseEscrow is
         funds[payer][token].available-=amount;
         funds[payer][token].locked+=amount;
         // create the lock
-        locks[msg.sender].push(lock(jobId,payer,amount,block.timestamp+expiry,token));
+        locks[msg.sender].push(lock(jobId,payer,amount,block.timestamp+expiry,token,block.timestamp));
         emit Lock(payer,msg.sender,jobId,amount,expiry,token);
+    }
+
+    /**
+     * @dev reLock
+     *      Called by payee to change the amount and/or expiry of an existing, still active lock.
+     *      Both amount and expiry can go up or down. All createLock checks (including the enterprise
+     *      fee gate) are re-evaluated against the new values, and the total lock lifetime (measured
+     *      from the original creation) cannot exceed the authorization's maxLockSeconds. jobId and
+     *      the original startTime are preserved.
+     *
+     * @param jobId jobId, required (identifies the lock together with token and payer)
+     * @param token token, required
+     * @param payer payer address
+     * @param amount new amount in wei to lock
+     * @param expiry new expiry, relative seconds from now
+     */
+    function reLock(uint256 jobId,address token,address payer,uint256 amount,uint256 expiry) external nonReentrant{
+        _reLock(jobId,token,payer,amount,expiry);
+    }
+    /**
+     * @dev reLocks
+     *      Called by payee to reLock multiple existing locks
+     *
+     * @param jobId array of jobIds
+     * @param token array of tokens
+     * @param payer array of payer addresses
+     * @param amount array of new amounts in wei to lock
+     * @param expiry array of new expiries, relative seconds from now
+     */
+    function reLocks(uint256[] calldata jobId,address[] calldata token,
+        address[] calldata payer,uint256[] calldata amount,uint256[] calldata expiry) external nonReentrant{
+
+        require(jobId.length==token.length &&
+            jobId.length==payer.length &&
+            jobId.length==amount.length &&
+            jobId.length==expiry.length,"Invalid input");
+        for(uint256 i=0;i<jobId.length;i++){
+            _reLock(jobId[i],token[i],payer[i],amount[i],expiry[i]);
+        }
+    }
+    function _reLock(uint256 jobId,address token,address payer,uint256 amount,uint256 expiry) internal {
+        require(payer!=address(0),'Invalid payer');
+        require(payer!=msg.sender,'Payer cannot be payee');
+        require(token!=address(0),'Invalid token');
+        require(amount>0,"Invalid amount");
+        require(jobId>0,"Invalid jobId");
+        // find the existing lock
+        lock memory tempLock=lock(0,address(0),0,0,address(0),0);
+        uint256 lockIndex;
+        uint256 length=locks[msg.sender].length;
+        for(lockIndex=0;lockIndex<length;lockIndex++){
+            if(
+                payer==locks[msg.sender][lockIndex].payer &&
+                jobId==locks[msg.sender][lockIndex].jobId &&
+                token==locks[msg.sender][lockIndex].token
+            ){
+                tempLock=locks[msg.sender][lockIndex];
+                break;
+            }
+        }
+        require(tempLock.payer==payer,"Lock not found");
+        require(tempLock.expiry>=block.timestamp,"Lock expired");
+        // find the auth
+        auth memory tempAuth=auth(address(0),0,0,0,0,0);
+        uint256 index;
+        length=userAuths[payer][token].length;
+        for(index=0;index<length;index++){
+            if(msg.sender==userAuths[payer][token][index].payee) {
+                tempAuth=userAuths[payer][token][index];
+                break;
+            }
+        }
+        require(tempAuth.payee==msg.sender,"No auth found");
+        // re-run createLock checks against the new values, accounting for the old lock being removed
+        require(funds[payer][token].available+tempLock.amount>=amount,"Payer does not have enough funds");
+        require(block.timestamp+expiry<=tempLock.startTime+tempAuth.maxLockSeconds,"Expiry too high");
+        require(tempAuth.currentLockedAmount-tempLock.amount+amount<=tempAuth.maxLockedAmount,"Exceeds maxLockedAmount");
+        // check enterprise fee with the new amount
+        if(opcCollector != address(0)){
+            require(
+                IEnterpriseFeeCollector(opcCollector).isTokenAllowed(token),
+                "This token is not allowed by enterprise fee collector"
+            );
+            uint256 enterpriseFee = IEnterpriseFeeCollector(opcCollector).calculateFee(token,amount);
+            require(
+                enterpriseFee<amount,"Amount must be higher than enterprise fee"
+            );
+        }
+        // update auths (currentLocks unchanged - same slot)
+        userAuths[payer][token][index].currentLockedAmount=tempAuth.currentLockedAmount-tempLock.amount+amount;
+        // update user funds
+        funds[payer][token].available=funds[payer][token].available+tempLock.amount-amount;
+        funds[payer][token].locked=funds[payer][token].locked-tempLock.amount+amount;
+        // update the lock in place (jobId and startTime preserved)
+        locks[msg.sender][lockIndex].amount=amount;
+        locks[msg.sender][lockIndex].expiry=block.timestamp+expiry;
+        emit ReLock(payer,msg.sender,jobId,tempLock.amount,amount,expiry,token);
     }
 
      /**
@@ -445,7 +635,7 @@ contract EnterpriseEscrow is
      * @param amount amount in wei to claim
      * @param proof job proof
      */
-    function claimLock(uint256 jobId,address token,address payer,uint256 amount,bytes memory proof) 
+    function claimLock(uint256 jobId,address token,address payer,uint256 amount,bytes calldata proof)
         external nonReentrant{
             _claimLock(jobId,token,payer,amount,proof);
     }
@@ -461,9 +651,9 @@ contract EnterpriseEscrow is
      * @param amount array amounts in wei to claim
      * @param proof array of job proofs
      */
-    function claimLocks(uint256[] memory jobId,address[] memory token,
-        address[] memory  payer,uint256[] memory amount,
-        bytes[] memory proof) external nonReentrant{
+    function claimLocks(uint256[] calldata jobId,address[] calldata token,
+        address[] calldata  payer,uint256[] calldata amount,
+        bytes[] calldata proof) external nonReentrant{
         
             require(jobId.length==token.length && 
                     jobId.length==payer.length && 
@@ -484,8 +674,10 @@ contract EnterpriseEscrow is
      * @param amount amount in wei to claim
      * @param proof job proof
      */
+    // Reentrancy-safe: nonReentrant blocks re-entry; only view getters are reachable during the transfers.
+    // slither-disable-next-line reentrancy-eth
     function claimLockAndWithdraw(uint256 jobId,address token,address payer,
-        uint256 amount,bytes memory proof) external nonReentrant{
+        uint256 amount,bytes calldata proof) external nonReentrant{
             _claimLock(jobId,token,payer,amount,proof);
             _withdraw(token,funds[msg.sender][token].available);
         
@@ -501,8 +693,10 @@ contract EnterpriseEscrow is
      * @param amount array amounts in wei to claim
      * @param proof array of job proofs
      */
-    function claimLocksAndWithdraw(uint256[] memory jobId,address[] memory token,
-        address[] memory  payer,uint256[] memory amount,bytes[] memory proof) external nonReentrant{
+    // Reentrancy-safe: nonReentrant blocks re-entry; only view getters are reachable during the transfers.
+    // slither-disable-next-line reentrancy-eth
+    function claimLocksAndWithdraw(uint256[] calldata jobId,address[] calldata token,
+        address[] calldata  payer,uint256[] calldata amount,bytes[] calldata proof) external nonReentrant{
         
         require(jobId.length==token.length && 
             jobId.length==payer.length && 
@@ -519,12 +713,15 @@ contract EnterpriseEscrow is
         }
     }
     
+    // Reentrancy-safe: reached only via nonReentrant entrypoints, so re-entry is impossible; the
+    // funds/userTokens writes after the fee transfer cannot be exploited.
+    // slither-disable-next-line reentrancy-no-eth,reentrancy-benign
     function _claimLock(uint256 jobId,address token,address payer,uint256 amount,
-        bytes memory proof) internal {
+        bytes calldata proof) internal {
         require(payer!=address(0),'Invalid payer');
         require(token!=address(0),'Invalid token');
         require(jobId>0,'Invalid jobId');
-        lock memory tempLock=lock(0,address(0),0,0,address(0));
+        lock memory tempLock=lock(0,address(0),0,0,address(0),0);
         uint256 index;
         uint256 length=locks[msg.sender].length;
         for(index=0;index<length;index++){
@@ -603,8 +800,8 @@ contract EnterpriseEscrow is
      * @param payer payer address (zero address means any)
      * @param payee payee address (required)
      */
-    function cancelExpiredLocks(uint256[] memory jobId,address[] memory token,address[] memory payer,
-        address[] memory payee) external nonReentrant{
+    function cancelExpiredLocks(uint256[] calldata jobId,address[] calldata token,address[] calldata payer,
+        address[] calldata payee) external nonReentrant{
             require(jobId.length==token.length && 
             jobId.length==payer.length && 
             jobId.length==payee.length,"Invalid input");
