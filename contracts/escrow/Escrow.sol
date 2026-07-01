@@ -190,6 +190,9 @@ contract Escrow is
      * @param permits array of {token, amount, deadline, v, r, s} for ERC20Permit-based deposits
      * @param auths array of {token, payee, maxLockedAmount, maxLockSeconds, maxLockCounts}
      */
+    // Reentrancy-safe: nonReentrant blocks re-entry into every state-changing entrypoint; only view
+    // getters (the caller's own balances, not an oracle) are reachable during a token transfer/permit.
+    // slither-disable-next-line reentrancy-eth,reentrancy-benign
     function bundle(
         DepositData[] calldata deposits,
         PermitData[] calldata permits,
@@ -218,6 +221,9 @@ contract Escrow is
      * @param newLocks array of {jobId, token, payer, amount, expiry} passed to createLock
      * @param reLockOps array of {jobId, token, payer, amount, expiry} passed to reLock
      */
+    // Reentrancy-safe: nonReentrant blocks re-entry into every state-changing entrypoint; only view
+    // getters (the caller's own balances, not an oracle) are reachable during the claim fee transfer.
+    // slither-disable-next-line reentrancy-eth
     function bundleJobs(
         ClaimData[] calldata claims,
         CancelData[] calldata cancels,
@@ -478,7 +484,7 @@ contract Escrow is
     }
     function _createLock(uint256 jobId,address token,address payer,uint256 amount,uint256 expiry) internal {
         require(payer!=address(0),'Invalid payer');
-        require(payer!=msg.sender,'Payeer cannot be payee');
+        require(payer!=msg.sender,'Payer cannot be payee');
         require(token!=address(0),'Invalid token');
         require(amount>0,"Invalid amount");
         require(jobId>0,"Invalid jobId");
@@ -553,7 +559,7 @@ contract Escrow is
     }
     function _reLock(uint256 jobId,address token,address payer,uint256 amount,uint256 expiry) internal {
         require(payer!=address(0),'Invalid payer');
-        require(payer!=msg.sender,'Payeer cannot be payee');
+        require(payer!=msg.sender,'Payer cannot be payee');
         require(token!=address(0),'Invalid token');
         require(amount>0,"Invalid amount");
         require(jobId>0,"Invalid jobId");
@@ -649,6 +655,8 @@ contract Escrow is
      * @param amount amount in wei to claim
      * @param proof job proof
      */
+    // Reentrancy-safe: nonReentrant blocks re-entry; only view getters are reachable during the transfers.
+    // slither-disable-next-line reentrancy-eth
     function claimLockAndWithdraw(uint256 jobId,address token,address payer,
         uint256 amount,bytes calldata proof) external nonReentrant{
             _claimLock(jobId,token,payer,amount,proof);
@@ -666,6 +674,8 @@ contract Escrow is
      * @param amount array amounts in wei to claim
      * @param proof array of job proofs
      */
+    // Reentrancy-safe: nonReentrant blocks re-entry; only view getters are reachable during the transfers.
+    // slither-disable-next-line reentrancy-eth
     function claimLocksAndWithdraw(uint256[] calldata jobId,address[] calldata token,
         address[] calldata  payer,uint256[] calldata amount,bytes[] calldata proof) external nonReentrant{
         
@@ -684,6 +694,9 @@ contract Escrow is
         }
     }
     
+    // Reentrancy-safe: reached only via nonReentrant entrypoints, so re-entry is impossible; the
+    // funds/userTokens writes after the fee transfer cannot be exploited.
+    // slither-disable-next-line reentrancy-no-eth,reentrancy-benign
     function _claimLock(uint256 jobId,address token,address payer,uint256 amount,
         bytes calldata proof) internal {
         require(payer!=address(0),'Invalid payer');
