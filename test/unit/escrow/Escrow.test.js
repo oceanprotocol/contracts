@@ -525,4 +525,192 @@ it('Escrow - lock', async function () {
     const funds = await EscrowContract.connect(payer3).getFunds(Mock20PermitContract.address);
     expect(funds.available).to.equal(depositAmount);
   });
+
+  // ---------- new feature tests: Auth token, bundle, reLock ----------
+
+  it('Escrow - Auth event includes token', async function () {
+    const tx = await EscrowContract.connect(payer3).authorize(
+      Mock20Contract.address, payee3.address, web3.utils.toWei("1000"), 1000, 10
+    );
+    const event = getEventFromTx(await tx.wait(), 'Auth');
+    assert(event, "Cannot find Auth event");
+    expect(event.args.payer).to.equal(payer3.address);
+    expect(event.args.payee).to.equal(payee3.address);
+    expect(event.args.token).to.equal(Mock20Contract.address);
+    expect(event.args.maxLockedAmount).to.equal(web3.utils.toWei("1000"));
+    expect(event.args.maxLockSeconds).to.equal(1000);
+    expect(event.args.maxLockCounts).to.equal(10);
+  });
+
+  it('Escrow - bundle deposits, permit-deposit and auths in one call', async function () {
+    const depAmount = web3.utils.toWei("20");
+    const permitAmount = web3.utils.toWei("30");
+    await Mock20Contract.connect(payer2).approve(EscrowContract.address, web3.utils.toWei("10000"));
+    const beforeMock20 = (await EscrowContract.connect(payer2).getFunds(Mock20Contract.address)).available;
+    const beforePermit = (await EscrowContract.connect(payer2).getFunds(Mock20PermitContract.address)).available;
+    const block = await ethers.provider.getBlock("latest");
+    const deadline = block.timestamp + 3600;
+    const nonce = await Mock20PermitContract.nonces(payer2.address);
+    const { v, r, s } = await signPermit(payer2, Mock20PermitContract, EscrowContract.address, permitAmount, deadline, nonce);
+    const deposits = [{ token: Mock20Contract.address, amount: depAmount }];
+    const permits = [{ token: Mock20PermitContract.address, amount: permitAmount, deadline, v, r, s }];
+    const auths = [
+      { token: Mock20Contract.address, payee: payee2.address, maxLockedAmount: web3.utils.toWei("40"), maxLockSeconds: 500, maxLockCounts: 3 },
+      { token: Mock20PermitContract.address, payee: payee3.address, maxLockedAmount: web3.utils.toWei("10"), maxLockSeconds: 200, maxLockCounts: 1 },
+    ];
+    await EscrowContract.connect(payer2).bundle(deposits, permits, auths);
+    expect((await EscrowContract.connect(payer2).getFunds(Mock20Contract.address)).available).to.equal(beforeMock20.add(depAmount));
+    expect((await EscrowContract.connect(payer2).getFunds(Mock20PermitContract.address)).available).to.equal(beforePermit.add(permitAmount));
+    expect(await EscrowContract.connect(payer2).getUserTokens(payer2.address)).to.include(Mock20PermitContract.address);
+    const a1 = await EscrowContract.connect(payer2).getAuthorizations(Mock20Contract.address, payer2.address, payee2.address);
+    expect(a1.length).to.equal(1);
+    expect(a1[0].maxLockedAmount).to.equal(web3.utils.toWei("40"));
+    const a2 = await EscrowContract.connect(payer2).getAuthorizations(Mock20PermitContract.address, payer2.address, payee3.address);
+    expect(a2.length).to.equal(1);
+    expect(a2[0].maxLockSeconds).to.equal(200);
+  });
+
+  it('Escrow - bundle works with empty sub-arrays (auths only)', async function () {
+    await EscrowContract.connect(payer2).bundle([], [], [
+      { token: Mock20Contract.address, payee: payee3.address, maxLockedAmount: web3.utils.toWei("5"), maxLockSeconds: 100, maxLockCounts: 1 },
+    ]);
+    const a = await EscrowContract.connect(payer2).getAuthorizations(Mock20Contract.address, payer2.address, payee3.address);
+    expect(a.length).to.equal(1);
+    expect(a[0].maxLockedAmount).to.equal(web3.utils.toWei("5"));
+  });
+
+  it('Escrow - reLock increases and decreases the amount', async function () {
+    // fund payer3 and lock as payee3 (auth set in the Auth-event test: 1000 max, 1000s, 10 counts)
+    await Mock20Contract.connect(payer3).approve(EscrowContract.address, web3.utils.toWei("10000"));
+    await EscrowContract.connect(payer3).deposit(Mock20Contract.address, web3.utils.toWei("2000"));
+    const jobId = 1001;
+    await EscrowContract.connect(payee3).createLock(jobId, Mock20Contract.address, payer3.address, web3.utils.toWei("10"), 500);
+    const findLock = async () => (await EscrowContract.connect(payee3).getLocks(Mock20Contract.address, payer3.address, payee3.address)).find(l => l.jobId.eq(jobId));
+    const created = await findLock();
+    const startTime = created.startTime;
+    const base = await EscrowContract.connect(payer3).getFunds(Mock20Contract.address); // after createLock(10)
+
+    // reLock UP to 25
+    const tx = await EscrowContract.connect(payee3).reLock(jobId, Mock20Contract.address, payer3.address, web3.utils.toWei("25"), 600);
+    const ev = getEventFromTx(await tx.wait(), 'ReLock');
+    assert(ev, "Cannot find ReLock event");
+    expect(ev.args.oldAmount).to.equal(web3.utils.toWei("10"));
+    expect(ev.args.newAmount).to.equal(web3.utils.toWei("25"));
+    expect(ev.args.token).to.equal(Mock20Contract.address);
+    let funds = await EscrowContract.connect(payer3).getFunds(Mock20Contract.address);
+    expect(funds.locked).to.equal(base.locked.add(web3.utils.toWei("15")));
+    expect(funds.available).to.equal(base.available.sub(web3.utils.toWei("15")));
+    let lk = await findLock();
+    expect(lk.amount).to.equal(web3.utils.toWei("25"));
+    expect(lk.startTime).to.equal(startTime); // preserved across reLock
+    let au = (await EscrowContract.connect(payer3).getAuthorizations(Mock20Contract.address, payer3.address, payee3.address))[0];
+    expect(au.currentLockedAmount).to.equal(web3.utils.toWei("25"));
+    expect(au.currentLocks).to.equal(1);
+
+    // reLock DOWN to 5
+    await EscrowContract.connect(payee3).reLock(jobId, Mock20Contract.address, payer3.address, web3.utils.toWei("5"), 200);
+    funds = await EscrowContract.connect(payer3).getFunds(Mock20Contract.address);
+    expect(funds.locked).to.equal(base.locked.sub(web3.utils.toWei("5")));
+    expect(funds.available).to.equal(base.available.add(web3.utils.toWei("5")));
+    lk = await findLock();
+    expect(lk.amount).to.equal(web3.utils.toWei("5"));
+    expect(lk.startTime).to.equal(startTime);
+    au = (await EscrowContract.connect(payer3).getAuthorizations(Mock20Contract.address, payer3.address, payee3.address))[0];
+    expect(au.currentLockedAmount).to.equal(web3.utils.toWei("5"));
+    expect(au.currentLocks).to.equal(1); // unchanged
+  });
+
+  it('Escrow - reLock caps total lifetime at maxLockSeconds from original start', async function () {
+    const jobId = 1002;
+    await EscrowContract.connect(payee3).createLock(jobId, Mock20Contract.address, payer3.address, web3.utils.toWei("10"), 500);
+    const lk = (await EscrowContract.connect(payee3).getLocks(Mock20Contract.address, payer3.address, payee3.address)).find(l => l.jobId.eq(jobId));
+    await fastForward(200);
+    const cap = lk.startTime.toNumber() + 1000; // maxLockSeconds = 1000
+    const now = await blocktimestamp();
+    const okExpiry = cap - now - 5;
+    const badExpiry = cap - now + 50;
+    // extending within the cap succeeds
+    await EscrowContract.connect(payee3).reLock(jobId, Mock20Contract.address, payer3.address, web3.utils.toWei("10"), okExpiry);
+    // extending beyond startTime + maxLockSeconds reverts
+    await expect(
+      EscrowContract.connect(payee3).reLock(jobId, Mock20Contract.address, payer3.address, web3.utils.toWei("10"), badExpiry)
+    ).to.be.revertedWith("Expiry too high");
+  });
+
+  it('Escrow - reLock reverts (not found / funds / maxLocked / expired)', async function () {
+    const jobId = 1003;
+    await EscrowContract.connect(payee3).createLock(jobId, Mock20Contract.address, payer3.address, web3.utils.toWei("10"), 500);
+    // wrong jobId
+    await expect(
+      EscrowContract.connect(payee3).reLock(999999, Mock20Contract.address, payer3.address, web3.utils.toWei("10"), 100)
+    ).to.be.revertedWith("Lock not found");
+    // amount beyond available + old -> not enough funds
+    await expect(
+      EscrowContract.connect(payee3).reLock(jobId, Mock20Contract.address, payer3.address, web3.utils.toWei("100000"), 100)
+    ).to.be.revertedWith("Payer does not have enough funds");
+    // amount within funds but beyond maxLockedAmount (1000)
+    await expect(
+      EscrowContract.connect(payee3).reLock(jobId, Mock20Contract.address, payer3.address, web3.utils.toWei("1500"), 100)
+    ).to.be.revertedWith("Exceeds maxLockedAmount");
+    // expired lock cannot be reLocked
+    const expiringJob = 1004;
+    await EscrowContract.connect(payee3).createLock(expiringJob, Mock20Contract.address, payer3.address, web3.utils.toWei("10"), 50);
+    await fastForward(100);
+    await expect(
+      EscrowContract.connect(payee3).reLock(expiringJob, Mock20Contract.address, payer3.address, web3.utils.toWei("10"), 40)
+    ).to.be.revertedWith("Lock expired");
+  });
+
+  // ---------- bundleJobs: batch payee-side operations ----------
+
+  it('Escrow - bundleJobs runs claims before creates so freed capacity is reusable', async function () {
+    // dedicated tight auth: payer2 -> payee2, maxLockCounts = 2
+    await Mock20Contract.connect(payer2).approve(EscrowContract.address, web3.utils.toWei("10000"));
+    await EscrowContract.connect(payer2).deposit(Mock20Contract.address, web3.utils.toWei("200"));
+    await EscrowContract.connect(payer2).authorize(Mock20Contract.address, payee2.address, web3.utils.toWei("100"), 1000, 2);
+    // fill capacity with 2 locks
+    await EscrowContract.connect(payee2).createLock(5001, Mock20Contract.address, payer2.address, web3.utils.toWei("10"), 500);
+    await EscrowContract.connect(payee2).createLock(5002, Mock20Contract.address, payer2.address, web3.utils.toWei("10"), 500);
+    // at capacity: a plain 3rd createLock reverts
+    await expect(
+      EscrowContract.connect(payee2).createLock(5003, Mock20Contract.address, payer2.address, web3.utils.toWei("10"), 500)
+    ).to.be.revertedWith("Exceeds maxLockCounts");
+    // but bundleJobs claims 5001 first (frees a slot), then creates 5003 and reLocks 5002 -> all atomic
+    const claims = [{ jobId: 5001, token: Mock20Contract.address, payer: payer2.address, amount: web3.utils.toWei("10"), proof: "0x" }];
+    const cancels = [];
+    const newLocks = [{ jobId: 5003, token: Mock20Contract.address, payer: payer2.address, amount: web3.utils.toWei("10"), expiry: 500 }];
+    const reLocks = [{ jobId: 5002, token: Mock20Contract.address, payer: payer2.address, amount: web3.utils.toWei("15"), expiry: 400 }];
+    const rc = await (await EscrowContract.connect(payee2).bundleJobs(claims, cancels, newLocks, reLocks)).wait();
+    assert(getEventFromTx(rc, 'Claimed'), "missing Claimed event");
+    assert(getEventFromTx(rc, 'Lock'), "missing Lock event");
+    assert(getEventFromTx(rc, 'ReLock'), "missing ReLock event");
+    const locks = await EscrowContract.connect(payee2).getLocks(Mock20Contract.address, payer2.address, payee2.address);
+    expect(locks.find(l => l.jobId.eq(5001))).to.be.undefined; // claimed
+    expect(locks.find(l => l.jobId.eq(5002)).amount).to.equal(web3.utils.toWei("15")); // reLocked
+    expect(locks.find(l => l.jobId.eq(5003)).amount).to.equal(web3.utils.toWei("10")); // created
+    const au = (await EscrowContract.connect(payer2).getAuthorizations(Mock20Contract.address, payer2.address, payee2.address))[0];
+    expect(au.currentLocks).to.equal(2); // 5002 + 5003 (5001 claimed)
+    expect(au.currentLockedAmount).to.equal(web3.utils.toWei("25")); // 15 + 10
+  });
+
+  it('Escrow - bundleJobs cancels expired locks', async function () {
+    // raise the count cap, create a short-lived lock, let it expire
+    await EscrowContract.connect(payer2).authorize(Mock20Contract.address, payee2.address, web3.utils.toWei("1000"), 1000, 10);
+    await EscrowContract.connect(payee2).createLock(5101, Mock20Contract.address, payer2.address, web3.utils.toWei("10"), 50);
+    await fastForward(100);
+    const before = await EscrowContract.connect(payer2).getFunds(Mock20Contract.address);
+    const rc = await (await EscrowContract.connect(payee2).bundleJobs(
+      [], [{ jobId: 5101, token: Mock20Contract.address, payer: payer2.address, payee: payee2.address }], [], []
+    )).wait();
+    assert(getEventFromTx(rc, 'Canceled'), "missing Canceled event");
+    const locks = await EscrowContract.connect(payee2).getLocks(Mock20Contract.address, payer2.address, payee2.address);
+    expect(locks.find(l => l.jobId.eq(5101))).to.be.undefined;
+    const after = await EscrowContract.connect(payer2).getFunds(Mock20Contract.address);
+    expect(after.locked).to.equal(before.locked.sub(web3.utils.toWei("10")));
+    expect(after.available).to.equal(before.available.add(web3.utils.toWei("10")));
+  });
+
+  it('Escrow - bundleJobs with all-empty arrays is a no-op', async function () {
+    await EscrowContract.connect(payee2).bundleJobs([], [], [], []);
+  });
 });
