@@ -49,7 +49,7 @@ async function main() {
     case 1:
       networkName = "mainnet";
       gasLimit = 6500000;
-      gasPrice = ethers.utils.parseUnits("0.08", "gwei");
+      gasPrice = ethers.utils.parseUnits("0.12", "gwei");
       break;
     case 10:
       networkName = "optimism";
@@ -58,13 +58,13 @@ async function main() {
       break;
     case 11155111:
       networkName = "sepolia";
-      gasPrice = ethers.utils.parseUnits("5", "gwei");
+      gasPrice = ethers.utils.parseUnits("23", "gwei");
       gasLimit = 6500000;
       break;
     case 11155420:
       networkName = "optimism_sepolia";
-      gasPrice = ethers.utils.parseUnits("0.001000011", "gwei");
-      gasLimit = 5000000;
+      gasPrice = ethers.utils.parseUnits("0.0016", "gwei");
+      gasLimit = 6500000;
       break;
   }
 
