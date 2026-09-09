@@ -7,6 +7,7 @@ import '../utils/SafeERC20.sol';
 import '@openzeppelin/contracts/security/ReentrancyGuard.sol';
 import '@openzeppelin/contracts/token/ERC20/extensions/IERC20Permit.sol';
 import '@openzeppelin/contracts/access/Ownable.sol';
+import '@openzeppelin/contracts/security/Pausable.sol';
 import '@openzeppelin/contracts/utils/math/Math.sol';
 
 /**
@@ -16,7 +17,7 @@ import '@openzeppelin/contracts/utils/math/Math.sol';
  *      The rate is expressed in wei (1e18 == 1:1 in token units, accounting for decimals)
  *      and can be updated by the owner.
  */
-contract GrantsSwap is ReentrancyGuard, Ownable {
+contract GrantsSwap is ReentrancyGuard, Ownable, Pausable {
     using SafeERC20 for IERC20;
 
     // Rate denominator: a rate of RATE_UNIT (1e18) means a 1:1 ratio in token units
@@ -87,10 +88,24 @@ contract GrantsSwap is ReentrancyGuard, Ownable {
     }
 
     /**
+     * @dev Pause the contract, blocking all swaps (only owner)
+     */
+    function pause() external onlyOwner {
+        _pause();
+    }
+
+    /**
+     * @dev Unpause the contract, re-enabling swaps (only owner)
+     */
+    function unpause() external onlyOwner {
+        _unpause();
+    }
+
+    /**
      * @dev Swap input tokens for COMPY tokens at 1:1 ratio (accounting for decimals)
      * @param amount Amount of input tokens to swap (in input token's smallest unit)
      */
-    function swapToCOMPY(uint256 amount) external nonReentrant {
+    function swapToCOMPY(uint256 amount) external nonReentrant whenNotPaused {
         require(amount > 0, "GrantsSwap: amount must be greater than zero");
 
         // Calculate equivalent amount in COMPY's smallest unit at the current rate
@@ -121,7 +136,7 @@ contract GrantsSwap is ReentrancyGuard, Ownable {
         uint8 v,
         bytes32 r,
         bytes32 s
-    ) external nonReentrant {
+    ) external nonReentrant whenNotPaused {
         require(amount > 0, "GrantsSwap: amount must be greater than zero");
 
         // Use permit to approve this contract to spend user's input tokens

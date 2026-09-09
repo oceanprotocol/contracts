@@ -384,6 +384,90 @@ describe("GrantsSwap", () => {
     });
   });
 
+  describe("Pausable", () => {
+    it("should start unpaused", async () => {
+      assert.isFalse(await grantsSwap.paused());
+    });
+
+    it("should allow owner to pause and emit Paused", async () => {
+      const tx = await grantsSwap.connect(owner).pause();
+      const txReceipt = await tx.wait();
+
+      assert.isTrue(await grantsSwap.paused());
+      const event = getEventFromTx(txReceipt, "Paused");
+      assert(event, "Cannot find Paused event");
+      assert.equal(event.args.account, owner.address);
+    });
+
+    it("should allow owner to unpause and emit Unpaused", async () => {
+      await grantsSwap.connect(owner).pause();
+
+      const tx = await grantsSwap.connect(owner).unpause();
+      const txReceipt = await tx.wait();
+
+      assert.isFalse(await grantsSwap.paused());
+      const event = getEventFromTx(txReceipt, "Unpaused");
+      assert(event, "Cannot find Unpaused event");
+      assert.equal(event.args.account, owner.address);
+    });
+
+    it("should revert if non-owner tries to pause", async () => {
+      await expectRevert(
+        grantsSwap.connect(user1).pause(),
+        "Ownable: caller is not the owner"
+      );
+    });
+
+    it("should revert if non-owner tries to unpause", async () => {
+      await grantsSwap.connect(owner).pause();
+      await expectRevert(
+        grantsSwap.connect(user1).unpause(),
+        "Ownable: caller is not the owner"
+      );
+    });
+
+    it("should revert pause when already paused", async () => {
+      await grantsSwap.connect(owner).pause();
+      await expectRevert(
+        grantsSwap.connect(owner).pause(),
+        "Pausable: paused"
+      );
+    });
+
+    it("should revert unpause when not paused", async () => {
+      await expectRevert(
+        grantsSwap.connect(owner).unpause(),
+        "Pausable: not paused"
+      );
+    });
+
+    it("should block swapToCOMPY while paused", async () => {
+      const swapAmount = parseTokens18("1000");
+      await inputToken.connect(user1).approve(grantsSwap.address, swapAmount);
+      await grantsSwap.connect(owner).pause();
+
+      await expectRevert(
+        grantsSwap.connect(user1).swapToCOMPY(swapAmount),
+        "Pausable: paused"
+      );
+    });
+
+    it("should allow swapToCOMPY again after unpausing", async () => {
+      const swapAmount = parseTokens18("1000");
+      const expectedCompy = parseTokens("1000");
+      await inputToken.connect(user1).approve(grantsSwap.address, swapAmount);
+
+      await grantsSwap.connect(owner).pause();
+      await grantsSwap.connect(owner).unpause();
+
+      const before = await compyToken.balanceOf(user1.address);
+      await grantsSwap.connect(user1).swapToCOMPY(swapAmount);
+      const after = await compyToken.balanceOf(user1.address);
+
+      assert.isTrue(after.sub(before).eq(expectedCompy), "User should receive COMPY after unpause");
+    });
+  });
+
   describe("getCompyAmount overflow boundaries", () => {
     // 10 ** n as a BigNumber
     function pow10(n) {
@@ -599,6 +683,29 @@ describe("GrantsSwap", () => {
       await expectRevert(
         grantsSwap.connect(user1).swapToCOMPYwithPermit(0, deadline, v, r, s),
         "GrantsSwap: amount must be greater than zero"
+      );
+    });
+
+    it("should block swapToCOMPYwithPermit while paused", async () => {
+      const swapAmount = parseTokens("1000");
+      const block = await ethers.provider.getBlock("latest");
+      const deadline = block.timestamp + 3600;
+      const nonce = await permitToken.nonces(user1.address);
+
+      const { v, r, s } = await signPermit(
+        user1,
+        permitToken,
+        grantsSwap.address,
+        swapAmount,
+        deadline,
+        nonce
+      );
+
+      await grantsSwap.connect(owner).pause();
+
+      await expectRevert(
+        grantsSwap.connect(user1).swapToCOMPYwithPermit(swapAmount, deadline, v, r, s),
+        "Pausable: paused"
       );
     });
 
