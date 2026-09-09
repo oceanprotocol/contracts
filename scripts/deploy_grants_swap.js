@@ -54,7 +54,7 @@ async function main() {
       break;
     case 8453:
       networkName = "base";
-      gasPrice = ethers.utils.parseUnits("0.006", "gwei");
+      gasPrice = ethers.utils.parseUnits("3", "gwei");
       gasLimit = 3000000;
       compyAddress = "0x5494711392a67DA50D3bC7b1fcC2d1877cFaA4d2";
       usdcAddress = "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913";
