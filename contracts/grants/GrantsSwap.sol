@@ -7,6 +7,7 @@ import '../utils/SafeERC20.sol';
 import '@openzeppelin/contracts/security/ReentrancyGuard.sol';
 import '@openzeppelin/contracts/token/ERC20/extensions/IERC20Permit.sol';
 import '@openzeppelin/contracts/access/Ownable.sol';
+import '@openzeppelin/contracts/utils/math/Math.sol';
 
 /**
  * @title GrantsSwap
@@ -176,9 +177,18 @@ contract GrantsSwap is ReentrancyGuard, Ownable {
      */
     function getCompyAmount(uint256 amount) public view returns (uint256) {
         if (compyDecimals >= inputDecimals) {
-            return amount * rate * (10 ** (compyDecimals - inputDecimals)) / RATE_UNIT;
+            // Equivalent to amount * rate * 10**(compyDecimals - inputDecimals) / RATE_UNIT.
+            // The scaling factor is a power of ten no larger than RATE_UNIT, so RATE_UNIT is
+            // exactly divisible by it and this yields the identical result. Math.mulDiv keeps
+            // full 512-bit precision for the amount * rate product, so large (but valid) rate
+            // and amount values no longer overflow the intermediate multiplication and revert.
+            uint256 scale = 10 ** (compyDecimals - inputDecimals);
+            return Math.mulDiv(amount, rate, RATE_UNIT / scale);
         } else {
-            return amount * rate / (RATE_UNIT * (10 ** (inputDecimals - compyDecimals)));
+            // Equivalent to amount * rate / (RATE_UNIT * 10**(inputDecimals - compyDecimals)),
+            // with full 512-bit precision for the amount * rate product to avoid overflow.
+            uint256 denominator = RATE_UNIT * (10 ** (inputDecimals - compyDecimals));
+            return Math.mulDiv(amount, rate, denominator);
         }
     }
 

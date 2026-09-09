@@ -384,6 +384,85 @@ describe("GrantsSwap", () => {
     });
   });
 
+  describe("getCompyAmount overflow boundaries", () => {
+    // 10 ** n as a BigNumber
+    function pow10(n) {
+      return ethers.BigNumber.from(10).pow(n);
+    }
+
+    async function deploySwapWithInputDecimals(decimals, initialRate) {
+      const MockERC20Decimals = await ethers.getContractFactory("MockERC20Decimals");
+      const token = await MockERC20Decimals.deploy("Input Token", "INPUT", decimals);
+      await token.deployed();
+
+      const GrantsSwap = await ethers.getContractFactory("GrantsSwap");
+      const swap = await GrantsSwap.deploy(compyToken.address, token.address, initialRate);
+      await swap.deployed();
+      return swap;
+    }
+
+    // COMPY has 6 decimals.
+    // Branch 1 (compyDecimals >= inputDecimals): uses inputDecimals <= 6.
+    // Branch 2 (compyDecimals <  inputDecimals): uses inputDecimals >  6.
+
+    it("branch 1 (equal decimals): does not overflow the amount*rate product", async () => {
+      // scale = 1, so result = amount * rate / RATE_UNIT
+      const rate = pow10(40);
+      const swap = await deploySwapWithInputDecimals(6, rate);
+
+      const amount = pow10(40);
+      // amount * rate = 1e80 > 2**256 (~1.16e77): the old expression reverts here.
+      const expected = amount.mul(rate).div(RATE_UNIT); // 1e62, fits in uint256
+
+      const quoted = await swap.getCompyAmount(amount);
+      assert.isTrue(quoted.eq(expected), "Quote should match full-precision expected value");
+    });
+
+    it("branch 1 (input decimals < compy decimals): scaling factor path does not overflow", async () => {
+      // inputDecimals = 0 -> scale = 1e6, divisor = RATE_UNIT / scale = 1e12
+      const rate = pow10(40);
+      const swap = await deploySwapWithInputDecimals(0, rate);
+
+      const amount = pow10(40);
+      // amount * rate * 1e6 in the old form overflows well before the division.
+      const expected = amount.mul(rate).mul(pow10(6)).div(RATE_UNIT); // = amount*rate/1e12
+      const quoted = await swap.getCompyAmount(amount);
+      assert.isTrue(quoted.eq(expected), "Quote should match full-precision expected value");
+    });
+
+    it("branch 2 (input decimals > compy decimals): does not overflow the amount*rate product", async () => {
+      // inputDecimals = 18 -> denominator = RATE_UNIT * 1e12 = 1e30
+      const rate = pow10(40);
+      const swap = await deploySwapWithInputDecimals(18, rate);
+
+      const denominator = RATE_UNIT.mul(pow10(12));
+      const amount = pow10(40);
+      // amount * rate = 1e80 > 2**256: the old expression reverts before dividing.
+      const expected = amount.mul(rate).div(denominator); // 1e50, fits in uint256
+
+      const quoted = await swap.getCompyAmount(amount);
+      assert.isTrue(quoted.eq(expected), "Quote should match full-precision expected value");
+    });
+
+    it("keeps 1:1 correctness at the default rate for each branch", async () => {
+      // Branch 1 equal decimals: 6->6 at rate 1e18 is 1:1
+      const swap1 = await deploySwapWithInputDecimals(6, RATE_UNIT);
+      const amount1 = parseTokens("1000");
+      assert.isTrue((await swap1.getCompyAmount(amount1)).eq(amount1));
+
+      // Branch 2: 18->6 at rate 1e18 divides out the extra 12 decimals
+      const swap2 = await deploySwapWithInputDecimals(18, RATE_UNIT);
+      const amount2 = parseTokens18("1000");
+      assert.isTrue((await swap2.getCompyAmount(amount2)).eq(parseTokens("1000")));
+    });
+
+    it("reverts (rounds to zero) only when the true result is below one unit, not due to overflow", async () => {
+      const swap = await deploySwapWithInputDecimals(18, RATE_UNIT);
+      // 1 wei of an 18-decimal input at 1:1 is below one 6-decimal COMPY unit
+      assert.isTrue((await swap.getCompyAmount(1)).eq(0));
+    });
+  });
+
   describe("swapToCOMPYwithPermit", () => {
     let permitToken;
 
