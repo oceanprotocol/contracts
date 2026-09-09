@@ -23,6 +23,7 @@ let shouldDeployOPEFeeCollector = false;
 let shouldDeployPredictoorHelper = false;
 let shouldDeployPredictoor = false
 let shouldDeploySaphireTemplate = false
+let shouldDeployGrants = false
 const logging = true;
 const show_verify = true;
 
@@ -298,6 +299,7 @@ async function main() {
       shouldDeployPredictoorHelper = true;
       shouldDeployPredictoor = true;
       shouldDeploySaphireTemplate = true;
+      shouldDeployGrants = true;
       sleepAmount = 0
       break;
   }
@@ -1106,6 +1108,122 @@ async function main() {
     if (logging) console.info("Moving ownerships to " + routerOwner)
     const accessListFactoryContractOwnerTx = await accessListFactoryContract.connect(owner).transferOwnership(routerOwner, options)
     await accessListFactoryContractOwnerTx.wait()
+  }
+
+  // Grants: COMPY token + GrantsSwap (for barge / local testing)
+  if (shouldDeployGrants) {
+    // Input token that users swap for COMPY. Reuse the deployed MockUSDC (6 decimals);
+    // if mocks were not deployed, spin up a standalone USDC mock so the swap is usable.
+    let inputTokenAddress = addresses.MockUSDC;
+    if (!inputTokenAddress) {
+      if (logging) console.info("Deploying USDC MOCK for GrantsSwap input token");
+      const ERC20Mock = await ethers.getContractFactory("MockERC20Decimals", owner);
+      let USDC;
+      if (options) USDC = await ERC20Mock.connect(owner).deploy("USDC", "USDC", 6, options);
+      else USDC = await ERC20Mock.connect(owner).deploy("USDC", "USDC", 6);
+      await USDC.deployTransaction.wait();
+      addresses.MockUSDC = USDC.address;
+      inputTokenAddress = USDC.address;
+    }
+
+    // 1. Deploy COMPY (GrantsToken) behind an ERC1967Proxy. Owner stays with the deployer
+    //    on barge so we can manage the allowlist and fund the swap below.
+    const compyInitialSupply = ethers.utils.parseUnits("1000000", 6);   // 1 million
+    const compyCap = ethers.utils.parseUnits("100000000", 6);           // 100 million
+
+    if (logging) console.info("Deploying GrantsToken (COMPY) implementation");
+    const GrantsToken = await ethers.getContractFactory("GrantsToken", owner);
+    let compyImpl;
+    if (options) compyImpl = await GrantsToken.connect(owner).deploy(options);
+    else compyImpl = await GrantsToken.connect(owner).deploy();
+    await compyImpl.deployTransaction.wait();
+    if (show_verify) {
+      console.log("\tRun the following to verify on etherscan");
+      console.log("\tnpx hardhat verify --network " + networkName + " " + compyImpl.address)
+    }
+    if (sleepAmount > 0) await sleep(sleepAmount)
+
+    if (logging) console.info("Deploying GrantsToken (COMPY) proxy");
+    const compyInitData = compyImpl.interface.encodeFunctionData("initialize", [
+      compyInitialSupply,
+      compyCap,
+      owner.address,
+    ]);
+    const ERC1967ProxyFactory = await ethers.getContractFactory("ERC1967Proxy", owner);
+    let compyProxy;
+    if (options) compyProxy = await ERC1967ProxyFactory.connect(owner).deploy(compyImpl.address, compyInitData, options);
+    else compyProxy = await ERC1967ProxyFactory.connect(owner).deploy(compyImpl.address, compyInitData);
+    await compyProxy.deployTransaction.wait();
+    addresses.COMPY = compyProxy.address;
+    const compy = GrantsToken.attach(compyProxy.address);
+    if (show_verify) {
+      console.log("\tRun the following to verify on etherscan");
+      console.log("\tnpx hardhat verify --network " + networkName + " " + compyProxy.address + " " + compyImpl.address + " " + compyInitData)
+    }
+    if (sleepAmount > 0) await sleep(sleepAmount)
+
+    // 2. Deploy GrantsSwap at a 1:1 rate (RATE_UNIT).
+    const grantsInitialRate = ethers.utils.parseUnits("1", 18);
+    if (logging) console.info("Deploying GrantsSwap");
+    const GrantsSwap = await ethers.getContractFactory("GrantsSwap", owner);
+    let grantsSwap;
+    if (options) grantsSwap = await GrantsSwap.connect(owner).deploy(compy.address, inputTokenAddress, grantsInitialRate, options);
+    else grantsSwap = await GrantsSwap.connect(owner).deploy(compy.address, inputTokenAddress, grantsInitialRate);
+    await grantsSwap.deployTransaction.wait();
+    addresses.COMPYSwap = grantsSwap.address;
+    if (show_verify) {
+      console.log("\tRun the following to verify on etherscan");
+      console.log("\tnpx hardhat verify --network " + networkName + " " + grantsSwap.address + " " + compy.address + " " + inputTokenAddress + " " + grantsInitialRate.toString())
+    }
+    if (sleepAmount > 0) await sleep(sleepAmount)
+
+    // 3. Wire up the COMPY allowlist so the swap can move tokens, then fund it.
+    //    Transfers require sender or receiver to be allowlisted.
+    if (logging) console.info("Allowlisting deployer and GrantsSwap on COMPY");
+    let allowTx;
+    if (options) allowTx = await compy.connect(owner).addToAllowlist(owner.address, options);
+    else allowTx = await compy.connect(owner).addToAllowlist(owner.address);
+    await allowTx.wait();
+    if (sleepAmount > 0) await sleep(sleepAmount)
+    if (options) allowTx = await compy.connect(owner).addToAllowlist(grantsSwap.address, options);
+    else allowTx = await compy.connect(owner).addToAllowlist(grantsSwap.address);
+    await allowTx.wait();
+    if (sleepAmount > 0) await sleep(sleepAmount)
+
+    if (logging) console.info("Funding GrantsSwap with COMPY");
+    const fundAmount = ethers.utils.parseUnits("500000", 6);
+    let fundTx;
+    if (options) fundTx = await compy.connect(owner).transfer(grantsSwap.address, fundAmount, options);
+    else fundTx = await compy.connect(owner).transfer(grantsSwap.address, fundAmount);
+    await fundTx.wait();
+    if (sleepAmount > 0) await sleep(sleepAmount)
+
+    // 4. Deploy GrantsTokenFaucet. The deployer acts as the claim signer on barge.
+    if (logging) console.info("Deploying GrantsTokenFaucet");
+    const GrantsTokenFaucet = await ethers.getContractFactory("GrantsTokenFaucet", owner);
+    let grantsFaucet;
+    if (options) grantsFaucet = await GrantsTokenFaucet.connect(owner).deploy(compy.address, owner.address, options);
+    else grantsFaucet = await GrantsTokenFaucet.connect(owner).deploy(compy.address, owner.address);
+    await grantsFaucet.deployTransaction.wait();
+    addresses.COMPYFaucet = grantsFaucet.address;
+    if (show_verify) {
+      console.log("\tRun the following to verify on etherscan");
+      console.log("\tnpx hardhat verify --network " + networkName + " " + grantsFaucet.address + " " + compy.address + " " + owner.address)
+    }
+    if (sleepAmount > 0) await sleep(sleepAmount)
+
+    // Allowlist the faucet on COMPY (it transfers tokens out on claim) and fund it.
+    if (logging) console.info("Allowlisting GrantsTokenFaucet on COMPY");
+    if (options) allowTx = await compy.connect(owner).addToAllowlist(grantsFaucet.address, options);
+    else allowTx = await compy.connect(owner).addToAllowlist(grantsFaucet.address);
+    await allowTx.wait();
+    if (sleepAmount > 0) await sleep(sleepAmount)
+
+    if (logging) console.info("Funding GrantsTokenFaucet with COMPY");
+    if (options) fundTx = await compy.connect(owner).transfer(grantsFaucet.address, fundAmount, options);
+    else fundTx = await compy.connect(owner).transfer(grantsFaucet.address, fundAmount);
+    await fundTx.wait();
+    if (sleepAmount > 0) await sleep(sleepAmount)
   }
 
   if (addressFile) {
