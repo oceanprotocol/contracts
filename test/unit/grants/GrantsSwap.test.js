@@ -91,6 +91,7 @@ describe("GrantsSwap", () => {
   const INITIAL_SUPPLY = parseTokens("1000000");
   const TOKEN_CAP = parseTokens("10000000");
   const INPUT_TOKEN_SUPPLY = parseTokens18("1000000");
+  const RATE_UNIT = parseTokens18("1"); // 1e18 == 1:1 ratio
 
   before("setup test helpers", async function () {
     const chai = await import("chai");
@@ -111,7 +112,7 @@ describe("GrantsSwap", () => {
 
     // Deploy GrantsSwap
     const GrantsSwap = await ethers.getContractFactory("GrantsSwap");
-    grantsSwap = await GrantsSwap.deploy(compyToken.address, inputToken.address);
+    grantsSwap = await GrantsSwap.deploy(compyToken.address, inputToken.address, RATE_UNIT);
     await grantsSwap.deployed();
 
     // Add to compyToken allowlist:
@@ -143,7 +144,7 @@ describe("GrantsSwap", () => {
     it("should revert if COMPY token is zero address", async () => {
       const GrantsSwap = await ethers.getContractFactory("GrantsSwap");
       await expectRevert(
-        GrantsSwap.deploy(ethers.constants.AddressZero, inputToken.address),
+        GrantsSwap.deploy(ethers.constants.AddressZero, inputToken.address, RATE_UNIT),
         "GrantsSwap: COMPY token cannot be zero address"
       );
     });
@@ -151,7 +152,7 @@ describe("GrantsSwap", () => {
     it("should revert if input token is zero address", async () => {
       const GrantsSwap = await ethers.getContractFactory("GrantsSwap");
       await expectRevert(
-        GrantsSwap.deploy(compyToken.address, ethers.constants.AddressZero),
+        GrantsSwap.deploy(compyToken.address, ethers.constants.AddressZero, RATE_UNIT),
         "GrantsSwap: input token cannot be zero address"
       );
     });
@@ -159,14 +160,58 @@ describe("GrantsSwap", () => {
     it("should revert if both tokens are the same", async () => {
       const GrantsSwap = await ethers.getContractFactory("GrantsSwap");
       await expectRevert(
-        GrantsSwap.deploy(compyToken.address, compyToken.address),
+        GrantsSwap.deploy(compyToken.address, compyToken.address, RATE_UNIT),
         "GrantsSwap: tokens must be different"
       );
+    });
+
+    it("should revert if initial rate is zero", async () => {
+      const GrantsSwap = await ethers.getContractFactory("GrantsSwap");
+      await expectRevert(
+        GrantsSwap.deploy(compyToken.address, inputToken.address, 0),
+        "GrantsSwap: rate must be greater than zero"
+      );
+    });
+
+    it("should set the initial rate correctly", async () => {
+      const currentRate = await grantsSwap.rate();
+      assert.isTrue(currentRate.eq(RATE_UNIT));
     });
 
     it("should set owner correctly", async () => {
       const contractOwner = await grantsSwap.owner();
       assert.equal(contractOwner, owner.address);
+    });
+  });
+
+  describe("setRate", () => {
+    it("should allow owner to update the rate and emit RateChanged", async () => {
+      const newRate = parseTokens18("2");
+
+      const tx = await grantsSwap.connect(owner).setRate(newRate);
+      const txReceipt = await tx.wait();
+
+      const currentRate = await grantsSwap.rate();
+      assert.isTrue(currentRate.eq(newRate));
+
+      const event = getEventFromTx(txReceipt, "RateChanged");
+      assert(event, "Cannot find RateChanged event");
+      assert.isTrue(event.args.oldRate.eq(RATE_UNIT));
+      assert.isTrue(event.args.newRate.eq(newRate));
+    });
+
+    it("should revert if new rate is zero", async () => {
+      await expectRevert(
+        grantsSwap.connect(owner).setRate(0),
+        "GrantsSwap: rate must be greater than zero"
+      );
+    });
+
+    it("should revert if non-owner tries to set the rate", async () => {
+      await expectRevert(
+        grantsSwap.connect(user1).setRate(parseTokens18("2")),
+        "Ownable: caller is not the owner"
+      );
     });
   });
 
@@ -239,6 +284,16 @@ describe("GrantsSwap", () => {
   });
 
   describe("View Functions", () => {
+    it("should return the current rate via getRate", async () => {
+      let currentRate = await grantsSwap.getRate();
+      assert.isTrue(currentRate.eq(RATE_UNIT));
+
+      const newRate = parseTokens18("5");
+      await grantsSwap.connect(owner).setRate(newRate);
+      currentRate = await grantsSwap.getRate();
+      assert.isTrue(currentRate.eq(newRate));
+    });
+
     it("should return correct COMPY balance", async () => {
       const balance = await grantsSwap.getCOMPYBalance();
       const expectedBalance = await compyToken.balanceOf(grantsSwap.address);
@@ -273,6 +328,62 @@ describe("GrantsSwap", () => {
     });
   });
 
+  describe("Variable rate swaps", () => {
+    it("should swap at a 2:1 rate", async () => {
+      await grantsSwap.connect(owner).setRate(parseTokens18("2"));
+
+      const swapAmount = parseTokens18("1000");
+      const expectedCompy = parseTokens("2000");
+
+      await inputToken.connect(user1).approve(grantsSwap.address, swapAmount);
+
+      const quoted = await grantsSwap.getCompyAmount(swapAmount);
+      assert.isTrue(quoted.eq(expectedCompy), "Quote should match expected COMPY");
+
+      const before = await compyToken.balanceOf(user1.address);
+      const tx = await grantsSwap.connect(user1).swapToCOMPY(swapAmount);
+      const txReceipt = await tx.wait();
+      const after = await compyToken.balanceOf(user1.address);
+
+      assert.isTrue(after.sub(before).eq(expectedCompy), "User should receive 2x COMPY");
+
+      const event = getEventFromTx(txReceipt, "Swap");
+      assert.isTrue(event.args.compyAmount.eq(expectedCompy));
+    });
+
+    it("should swap at a 0.5:1 rate", async () => {
+      await grantsSwap.connect(owner).setRate(parseTokens18("0.5"));
+
+      const swapAmount = parseTokens18("1000");
+      const expectedCompy = parseTokens("500");
+
+      await inputToken.connect(user1).approve(grantsSwap.address, swapAmount);
+
+      const quoted = await grantsSwap.getCompyAmount(swapAmount);
+      assert.isTrue(quoted.eq(expectedCompy), "Quote should match expected COMPY");
+
+      const before = await compyToken.balanceOf(user1.address);
+      await grantsSwap.connect(user1).swapToCOMPY(swapAmount);
+      const after = await compyToken.balanceOf(user1.address);
+
+      assert.isTrue(after.sub(before).eq(expectedCompy), "User should receive half COMPY");
+    });
+
+    it("should revert if the output amount rounds down to zero", async () => {
+      // 18-decimal input to 6-decimal COMPY at 1:1: amounts below 1e12 round to 0
+      const dustAmount = ethers.BigNumber.from("1");
+      await inputToken.connect(user1).approve(grantsSwap.address, dustAmount);
+
+      const quoted = await grantsSwap.getCompyAmount(dustAmount);
+      assert.isTrue(quoted.eq(0), "Dust amount should quote to zero COMPY");
+
+      await expectRevert(
+        grantsSwap.connect(user1).swapToCOMPY(dustAmount),
+        "GrantsSwap: output amount must be greater than zero"
+      );
+    });
+  });
+
   describe("swapToCOMPYwithPermit", () => {
     let permitToken;
 
@@ -286,7 +397,7 @@ describe("GrantsSwap", () => {
 
       // Deploy a new GrantsSwap instance that uses permitToken as input
       const GrantsSwap = await ethers.getContractFactory("GrantsSwap");
-      grantsSwap = await GrantsSwap.deploy(compyToken.address, permitToken.address);
+      grantsSwap = await GrantsSwap.deploy(compyToken.address, permitToken.address, RATE_UNIT);
       await grantsSwap.deployed();
 
       // Update compyToken allowlist: add the new grantsSwap so it can send COMPY to users
@@ -354,6 +465,42 @@ describe("GrantsSwap", () => {
 
       const allowance = await permitToken.allowance(user1.address, grantsSwap.address);
       assert.isTrue(allowance.eq(0), "Allowance should be consumed after swap");
+    });
+
+    it("should swap using permit at a 2:1 rate", async () => {
+      await grantsSwap.connect(owner).setRate(parseTokens18("2"));
+
+      const swapAmount = parseTokens("1000");
+      const expectedCompy = parseTokens("2000");
+
+      const block = await ethers.provider.getBlock("latest");
+      const deadline = block.timestamp + 3600;
+      const nonce = await permitToken.nonces(user1.address);
+
+      const { v, r, s } = await signPermit(
+        user1,
+        permitToken,
+        grantsSwap.address,
+        swapAmount,
+        deadline,
+        nonce
+      );
+
+      const before = await compyToken.balanceOf(user1.address);
+      const tx = await grantsSwap.connect(user1).swapToCOMPYwithPermit(
+        swapAmount,
+        deadline,
+        v,
+        r,
+        s
+      );
+      const txReceipt = await tx.wait();
+      const after = await compyToken.balanceOf(user1.address);
+
+      assert.isTrue(after.sub(before).eq(expectedCompy), "User should receive 2x COMPY");
+
+      const event = getEventFromTx(txReceipt, "Swap");
+      assert.isTrue(event.args.compyAmount.eq(expectedCompy));
     });
 
     it("should revert if amount is zero", async () => {
