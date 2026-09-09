@@ -42,6 +42,8 @@ async function main() {
   let grantsTokenAddress = null;
   let compyAddress = null;
   const grantsOwner = "0x09b575B5eC7Fff24cbccC092DE9E36eADdDbEe71";
+  // Initial swap rate in wei: 1e18 == 1:1 ratio in token units (accounting for decimals)
+  let initialRate = ethers.utils.parseUnits("1", 18);
   switch (networkDetails.chainId) {
     case 11155111:
       networkName = "sepolia";
@@ -52,10 +54,11 @@ async function main() {
       break;
     case 8453:
       networkName = "base";
-      gasPrice = ethers.utils.parseUnits("0.006", "gwei");
+      gasPrice = ethers.utils.parseUnits("3", "gwei");
       gasLimit = 3000000;
       compyAddress = "0x5494711392a67DA50D3bC7b1fcC2d1877cFaA4d2";
       usdcAddress = "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913";
+      initialRate = ethers.utils.parseUnits("5", 18);
       break;
   }
   if (!compyAddress) {
@@ -76,6 +79,7 @@ async function main() {
   const deployGrantsTokenSwap = await GrantsTokenSwap.connect(owner).deploy(
     compyAddress,
     usdcAddress,
+    initialRate,
     options
   );
   await deployGrantsTokenSwap.deployTransaction.wait(1);
@@ -92,7 +96,9 @@ async function main() {
         " " +
         compyAddress +
         " " +
-        usdcAddress
+        usdcAddress +
+        " " +
+        initialRate.toString()
     );
   }
   // Transfer ownership if GRANTS_OWNER is set

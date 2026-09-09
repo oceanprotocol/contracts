@@ -7,15 +7,21 @@ import '../utils/SafeERC20.sol';
 import '@openzeppelin/contracts/security/ReentrancyGuard.sol';
 import '@openzeppelin/contracts/token/ERC20/extensions/IERC20Permit.sol';
 import '@openzeppelin/contracts/access/Ownable.sol';
+import '@openzeppelin/contracts/security/Pausable.sol';
+import '@openzeppelin/contracts/utils/math/Math.sol';
 
 /**
  * @title GrantsSwap
- * @dev Contract that allows swapping input tokens for COMPY tokens at a 1:1 ratio.
+ * @dev Contract that allows swapping input tokens for COMPY tokens at an owner-configurable rate.
  *      Users can swap the input token for COMPY (one-way swap only).
- *      The swap maintains a 1:1 ratio in token units (accounting for decimals).
+ *      The rate is expressed in wei (1e18 == 1:1 in token units, accounting for decimals)
+ *      and can be updated by the owner.
  */
-contract GrantsSwap is ReentrancyGuard, Ownable {
+contract GrantsSwap is ReentrancyGuard, Ownable, Pausable {
     using SafeERC20 for IERC20;
+
+    // Rate denominator: a rate of RATE_UNIT (1e18) means a 1:1 ratio in token units
+    uint256 public constant RATE_UNIT = 1e18;
 
     // The COMPY token address
     IERC20 public immutable compyToken;
@@ -29,12 +35,17 @@ contract GrantsSwap is ReentrancyGuard, Ownable {
     // Decimals for input token
     uint8 private immutable inputDecimals;
 
+    // Swap rate in wei: 1e18 (RATE_UNIT) == 1:1 ratio in token units
+    uint256 public rate;
+
     // Events
     event Swap(
         address indexed user,
         uint256 inputTokenAmount,
         uint256 compyAmount
     );
+
+    event RateChanged(uint256 oldRate, uint256 newRate);
 
     event Withdraw(
         address indexed token,
@@ -46,11 +57,13 @@ contract GrantsSwap is ReentrancyGuard, Ownable {
      * @dev Constructor for GrantsSwap
      * @param _compyToken Address of the COMPY token
      * @param _inputToken Address of the input token that can be swapped with COMPY
+     * @param _initialRate Initial swap rate in wei (1e18 == 1:1 ratio in token units)
      */
-    constructor(address _compyToken, address _inputToken) {
+    constructor(address _compyToken, address _inputToken, uint256 _initialRate) {
         require(_compyToken != address(0), "GrantsSwap: COMPY token cannot be zero address");
         require(_inputToken != address(0), "GrantsSwap: input token cannot be zero address");
         require(_compyToken != _inputToken, "GrantsSwap: tokens must be different");
+        require(_initialRate > 0, "GrantsSwap: rate must be greater than zero");
 
         compyToken = IERC20(_compyToken);
         inputToken = IERC20(_inputToken);
@@ -58,22 +71,51 @@ contract GrantsSwap is ReentrancyGuard, Ownable {
         // Get decimals from tokens
         compyDecimals = IERC20(_compyToken).decimals();
         inputDecimals = IERC20(_inputToken).decimals();
+
+        rate = _initialRate;
+        emit RateChanged(0, _initialRate);
+    }
+
+    /**
+     * @dev Update the swap rate (only owner)
+     * @param _rate New swap rate in wei (1e18 == 1:1 ratio in token units)
+     */
+    function setRate(uint256 _rate) external onlyOwner {
+        require(_rate > 0, "GrantsSwap: rate must be greater than zero");
+        uint256 oldRate = rate;
+        rate = _rate;
+        emit RateChanged(oldRate, _rate);
+    }
+
+    /**
+     * @dev Pause the contract, blocking all swaps (only owner)
+     */
+    function pause() external onlyOwner {
+        _pause();
+    }
+
+    /**
+     * @dev Unpause the contract, re-enabling swaps (only owner)
+     */
+    function unpause() external onlyOwner {
+        _unpause();
     }
 
     /**
      * @dev Swap input tokens for COMPY tokens at 1:1 ratio (accounting for decimals)
      * @param amount Amount of input tokens to swap (in input token's smallest unit)
      */
-    function swapToCOMPY(uint256 amount) external nonReentrant {
+    function swapToCOMPY(uint256 amount) external nonReentrant whenNotPaused {
         require(amount > 0, "GrantsSwap: amount must be greater than zero");
 
-        // Calculate equivalent amount in COMPY's smallest unit (1:1 ratio)
-        uint256 compyAmount = convertAmount(amount, inputDecimals, compyDecimals);
+        // Calculate equivalent amount in COMPY's smallest unit at the current rate
+        uint256 compyAmount = getCompyAmount(amount);
+        require(compyAmount > 0, "GrantsSwap: output amount must be greater than zero");
 
         // Transfer input tokens from user to this contract
         inputToken.safeTransferFrom(msg.sender, address(this), amount);
 
-        // Transfer COMPY from this contract to user (1:1 ratio)
+        // Transfer COMPY from this contract to user
         compyToken.safeTransfer(msg.sender, compyAmount);
 
         emit Swap(msg.sender, amount, compyAmount);
@@ -94,7 +136,7 @@ contract GrantsSwap is ReentrancyGuard, Ownable {
         uint8 v,
         bytes32 r,
         bytes32 s
-    ) external nonReentrant {
+    ) external nonReentrant whenNotPaused {
         require(amount > 0, "GrantsSwap: amount must be greater than zero");
 
         // Use permit to approve this contract to spend user's input tokens
@@ -108,13 +150,14 @@ contract GrantsSwap is ReentrancyGuard, Ownable {
             s
         );
 
-        // Calculate equivalent amount in COMPY's smallest unit (1:1 ratio)
-        uint256 compyAmount = convertAmount(amount, inputDecimals, compyDecimals);
+        // Calculate equivalent amount in COMPY's smallest unit at the current rate
+        uint256 compyAmount = getCompyAmount(amount);
+        require(compyAmount > 0, "GrantsSwap: output amount must be greater than zero");
 
         // Transfer input tokens from user to this contract
         inputToken.safeTransferFrom(msg.sender, address(this), amount);
 
-        // Transfer COMPY from this contract to user (1:1 ratio)
+        // Transfer COMPY from this contract to user
         compyToken.safeTransfer(msg.sender, compyAmount);
 
         emit Swap(msg.sender, amount, compyAmount);
@@ -141,22 +184,35 @@ contract GrantsSwap is ReentrancyGuard, Ownable {
     }
 
     /**
-     * @dev Convert amount from one token's decimals to another (for 1:1 token unit ratio)
-     * @param amount Amount in source token's smallest unit
-     * @param sourceDecimals Decimals of source token
-     * @param targetDecimals Decimals of target token
-     * @return Converted amount in target token's smallest unit
+     * @dev Calculate the amount of COMPY received for a given input amount at the current rate.
+     *      A rate of RATE_UNIT (1e18) yields a 1:1 ratio in token units (accounting for decimals).
+     *      Multiplication is applied before division to minimize precision loss.
+     * @param amount Amount of input tokens (in input token's smallest unit)
+     * @return Amount of COMPY tokens (in COMPY's smallest unit)
      */
-    function convertAmount(uint256 amount, uint8 sourceDecimals, uint8 targetDecimals) internal pure returns (uint256) {
-        if (sourceDecimals == targetDecimals) {
-            return amount;
-        } else if (sourceDecimals < targetDecimals) {
-            // Multiply by 10^(targetDecimals - sourceDecimals)
-            return amount * (10 ** (targetDecimals - sourceDecimals));
+    function getCompyAmount(uint256 amount) public view returns (uint256) {
+        if (compyDecimals >= inputDecimals) {
+            // Equivalent to amount * rate * 10**(compyDecimals - inputDecimals) / RATE_UNIT.
+            // The scaling factor is a power of ten no larger than RATE_UNIT, so RATE_UNIT is
+            // exactly divisible by it and this yields the identical result. Math.mulDiv keeps
+            // full 512-bit precision for the amount * rate product, so large (but valid) rate
+            // and amount values no longer overflow the intermediate multiplication and revert.
+            uint256 scale = 10 ** (compyDecimals - inputDecimals);
+            return Math.mulDiv(amount, rate, RATE_UNIT / scale);
         } else {
-            // Divide by 10^(sourceDecimals - targetDecimals)
-            return amount / (10 ** (sourceDecimals - targetDecimals));
+            // Equivalent to amount * rate / (RATE_UNIT * 10**(inputDecimals - compyDecimals)),
+            // with full 512-bit precision for the amount * rate product to avoid overflow.
+            uint256 denominator = RATE_UNIT * (10 ** (inputDecimals - compyDecimals));
+            return Math.mulDiv(amount, rate, denominator);
         }
+    }
+
+    /**
+     * @dev Get the current swap rate in wei (1e18 == 1:1 ratio in token units)
+     * @return uint256 Current swap rate
+     */
+    function getRate() external view returns (uint256) {
+        return rate;
     }
 
     /**
