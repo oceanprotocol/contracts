@@ -803,6 +803,78 @@ describe("GrantsSwap", () => {
     });
   });
 
+  describe("swapToCOMPYwithPermit using MockERC20Decimals input (barge scenario)", () => {
+    // Mirrors the barge deploy: a plain MockERC20Decimals USDC (6 decimals) is the
+    // input token, exercising the EIP-2612 permit added to MockERC20Decimals.
+    let mockUSDC;
+
+    beforeEach("deploy mock USDC input token and swap", async () => {
+      const MockERC20Decimals = await ethers.getContractFactory("MockERC20Decimals");
+      mockUSDC = await MockERC20Decimals.deploy("USDC", "USDC", 6);
+      await mockUSDC.deployed();
+
+      const GrantsSwap = await ethers.getContractFactory("GrantsSwap");
+      grantsSwap = await GrantsSwap.deploy(compyToken.address, mockUSDC.address, RATE_UNIT);
+      await grantsSwap.deployed();
+
+      await compyToken.addToAllowlist(grantsSwap.address);
+      await compyToken.transfer(grantsSwap.address, parseTokens("100000"));
+
+      // Deployer holds the mock USDC initial supply; fund user1.
+      await mockUSDC.transfer(user1.address, parseTokens("10000"));
+    });
+
+    it("should swap using permit against a MockERC20Decimals input token", async () => {
+      const swapAmount = parseTokens("1000");
+      const expectedCompy = parseTokens("1000");
+
+      const block = await ethers.provider.getBlock("latest");
+      const deadline = block.timestamp + 3600;
+      const nonce = await mockUSDC.nonces(user1.address);
+
+      const { v, r, s } = await signPermit(
+        user1,
+        mockUSDC,
+        grantsSwap.address,
+        swapAmount,
+        deadline,
+        nonce
+      );
+
+      const before = await compyToken.balanceOf(user1.address);
+      await grantsSwap.connect(user1).swapToCOMPYwithPermit(swapAmount, deadline, v, r, s);
+      const after = await compyToken.balanceOf(user1.address);
+
+      assert.isTrue(after.sub(before).eq(expectedCompy), "User should receive COMPY via permit swap");
+      const allowance = await mockUSDC.allowance(user1.address, grantsSwap.address);
+      assert.isTrue(allowance.eq(0), "Allowance should be consumed after swap");
+      const nonceAfter = await mockUSDC.nonces(user1.address);
+      assert.isTrue(nonceAfter.eq(nonce.add(1)), "Nonce should increment");
+    });
+
+    it("should revert on an invalid permit signature", async () => {
+      const swapAmount = parseTokens("1000");
+      const block = await ethers.provider.getBlock("latest");
+      const deadline = block.timestamp + 3600;
+      const nonce = await mockUSDC.nonces(user1.address);
+
+      // Signed by the wrong account
+      const { v, r, s } = await signPermit(
+        user2,
+        mockUSDC,
+        grantsSwap.address,
+        swapAmount,
+        deadline,
+        nonce
+      );
+
+      await expectRevert(
+        grantsSwap.connect(user1).swapToCOMPYwithPermit(swapAmount, deadline, v, r, s),
+        "ERC20Permit: invalid signature"
+      );
+    });
+  });
+
   describe("withdrawTokens", () => {
     it("should allow owner to withdraw COMPY tokens", async () => {
       const withdrawAmount = parseTokens("10000");

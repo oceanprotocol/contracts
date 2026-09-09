@@ -6,6 +6,9 @@ pragma solidity 0.8.12;
 import "../../interfaces/IERC20.sol";
 
 import "../ERC721/Context.sol";
+import "@openzeppelin/contracts/token/ERC20/extensions/IERC20Permit.sol";
+import "@openzeppelin/contracts/utils/cryptography/EIP712.sol";
+import "@openzeppelin/contracts/utils/cryptography/ECDSA.sol";
 
 /**
  * @dev Implementation of the {IERC20} interface.
@@ -32,7 +35,7 @@ import "../ERC721/Context.sol";
  * functions have been added to mitigate the well-known issues around setting
  * allowances. See {IERC20-approve}.
  */
-contract MockERC20Decimals is Context, IERC20 {
+contract MockERC20Decimals is Context, IERC20, IERC20Permit, EIP712 {
     mapping(address => uint256) private _balances;
 
     mapping(address => mapping(address => uint256)) private _allowances;
@@ -43,6 +46,11 @@ contract MockERC20Decimals is Context, IERC20 {
     string private _symbol;
     uint8 private _decimals;
 
+    // EIP-2612 permit
+    mapping(address => uint256) private _nonces;
+    bytes32 private constant _PERMIT_TYPEHASH =
+        keccak256("Permit(address owner,address spender,uint256 value,uint256 nonce,uint256 deadline)");
+
     /**
      * @dev Sets the values for {name} and {symbol}.
      *
@@ -52,7 +60,7 @@ contract MockERC20Decimals is Context, IERC20 {
      * All two of these values are immutable: they can only be set once during
      * construction.
      */
-    constructor(string memory name_, string memory symbol_, uint8 decimals_) {
+    constructor(string memory name_, string memory symbol_, uint8 decimals_) EIP712(name_, "1") {
         _name = name_;
         _symbol = symbol_;
         _decimals = decimals_;
@@ -315,6 +323,57 @@ contract MockERC20Decimals is Context, IERC20 {
 
         _allowances[owner][spender] = amount;
         emit Approval(owner, spender, amount);
+    }
+
+    // -------------------------------------------------------------------------
+    // EIP-2612 permit
+    // -------------------------------------------------------------------------
+
+    /**
+     * @dev See {IERC20Permit-permit}.
+     */
+    function permit(
+        address owner,
+        address spender,
+        uint256 value,
+        uint256 deadline,
+        uint8 v,
+        bytes32 r,
+        bytes32 s
+    ) public virtual override {
+        require(block.timestamp <= deadline, "ERC20Permit: expired deadline");
+
+        bytes32 structHash = keccak256(
+            abi.encode(_PERMIT_TYPEHASH, owner, spender, value, _useNonce(owner), deadline)
+        );
+        bytes32 hash = _hashTypedDataV4(structHash);
+        address signer = ECDSA.recover(hash, v, r, s);
+        require(signer == owner, "ERC20Permit: invalid signature");
+
+        _approve(owner, spender, value);
+    }
+
+    /**
+     * @dev See {IERC20Permit-nonces}.
+     */
+    function nonces(address owner) public view virtual override returns (uint256) {
+        return _nonces[owner];
+    }
+
+    /**
+     * @dev See {IERC20Permit-DOMAIN_SEPARATOR}.
+     */
+    // solhint-disable-next-line func-name-mixedcase
+    function DOMAIN_SEPARATOR() external view virtual override returns (bytes32) {
+        return _domainSeparatorV4();
+    }
+
+    /**
+     * @dev Consumes a nonce: returns the current value and increments it.
+     */
+    function _useNonce(address owner) internal virtual returns (uint256 current) {
+        current = _nonces[owner];
+        _nonces[owner] = current + 1;
     }
 
     /**
