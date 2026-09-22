@@ -234,7 +234,7 @@ contract Escrow is
         LockData[] calldata reLockOps
     ) external nonReentrant {
         for(uint256 i=0;i<claims.length;i++){
-            _claimLock(claims[i].jobId,claims[i].token,claims[i].payer,claims[i].amount,claims[i].proof,claims[i].jobType,claims[i].subsidyProviders);
+            _claimLock(claims[i]);
         }
         for(uint256 i=0;i<cancels.length;i++){
             _cancelExpiredLock(cancels[i].jobId,cancels[i].token,cancels[i].payer,cancels[i].payee);
@@ -630,7 +630,8 @@ contract Escrow is
     function claimLock(uint256 jobId,address token,address payer,uint256 amount,
         bytes calldata proof,uint256 jobType,address[] calldata subsidyProviders)
         external nonReentrant{
-            _claimLock(jobId,token,payer,amount,proof,jobType,subsidyProviders);
+            ClaimData memory c = ClaimData(jobId,token,payer,amount,proof,jobType,subsidyProviders);
+            _claimLock(c);
     }
 
     /**
@@ -668,7 +669,8 @@ contract Escrow is
         uint256[] memory amount,bytes[] memory proof,uint256[] memory jobType,
         address[][] memory subsidyProviders) internal {
         for(uint256 i=0;i<jobId.length;i++){
-            _claimLock(jobId[i],token[i],payer[i],amount[i],proof[i],jobType[i],subsidyProviders[i]);
+            ClaimData memory c = ClaimData(jobId[i],token[i],payer[i],amount[i],proof[i],jobType[i],subsidyProviders[i]);
+            _claimLock(c);
         }
     }
     /**
@@ -690,7 +692,8 @@ contract Escrow is
     function claimLockAndWithdraw(uint256 jobId,address token,address payer,
         uint256 amount,bytes calldata proof,uint256 jobType,address[] calldata subsidyProviders)
         external nonReentrant{
-            _claimLock(jobId,token,payer,amount,proof,jobType,subsidyProviders);
+            ClaimData memory c = ClaimData(jobId,token,payer,amount,proof,jobType,subsidyProviders);
+            _claimLock(c);
             _withdraw(token,funds[msg.sender][token].available);
     }
     /**
@@ -737,60 +740,58 @@ contract Escrow is
     // external calls (subsidy-provider callbacks, the guarded subsidy pull and the fee transfer); the
     // funds/userTokens writes cannot be exploited because re-entry is blocked by the outer guard.
     // slither-disable-next-line reentrancy-no-eth,reentrancy-benign,reentrancy-events
-    function _claimLock(uint256 jobId,address token,address payer,uint256 amount,
-        bytes memory proof,uint256 jobType,address[] memory subsidyProviders) internal {
-        require(payer!=address(0),'Invalid payer');
-        require(token!=address(0),'Invalid token');
-        require(jobId>0,'Invalid jobId');
+    function _claimLock(ClaimData memory c) internal {
+        require(c.payer!=address(0),'Invalid payer');
+        require(c.token!=address(0),'Invalid token');
+        require(c.jobId>0,'Invalid jobId');
         lock memory tempLock=lock(0,address(0),0,0,address(0),0);
         uint256 index;
         uint256 length=locks[msg.sender].length;
         for(index=0;index<length;index++){
             if(
-                payer==locks[msg.sender][index].payer &&
-                jobId==locks[msg.sender][index].jobId &&
-                token==locks[msg.sender][index].token
+                c.payer==locks[msg.sender][index].payer &&
+                c.jobId==locks[msg.sender][index].jobId &&
+                c.token==locks[msg.sender][index].token
 
             ) {
                 tempLock=locks[msg.sender][index];
                 break;
             }
         }
-        require(tempLock.payer==payer,"Lock not found");
+        require(tempLock.payer==c.payer,"Lock not found");
         if(tempLock.expiry<block.timestamp){
             //we are too late, cancel the lock
-            _cancelExpiredLock(jobId,token,payer,msg.sender);
+            _cancelExpiredLock(c.jobId,c.token,c.payer,msg.sender);
             return;
         }
-        require(tempLock.amount>=amount,"Amount too high");
+        require(tempLock.amount>=c.amount,"Amount too high");
 
         //update auths
-        length=userAuths[payer][token].length;
+        length=userAuths[c.payer][c.token].length;
         for(uint256 i=0;i<length;i++){
-            if(userAuths[payer][token][i].payee==msg.sender){
-                userAuths[payer][token][i].currentLockedAmount-=tempLock.amount;
-                userAuths[payer][token][i].currentLocks-=1;
+            if(userAuths[c.payer][c.token][i].payee==msg.sender){
+                userAuths[c.payer][c.token][i].currentLockedAmount-=tempLock.amount;
+                userAuths[c.payer][c.token][i].currentLocks-=1;
             }
         }
         //update user funds: return the unclaimed remainder to the payer and unlock the whole lock
-        funds[payer][token].available+=tempLock.amount-amount;
-        funds[payer][token].locked-=tempLock.amount;
-        _trackToken(payer,token);
+        funds[c.payer][c.token].available+=tempLock.amount-c.amount;
+        funds[c.payer][c.token].locked-=tempLock.amount;
+        _trackToken(c.payer,c.token);
         //pull subsidy (released to payer) and bonus (added to node payout) from the providers
-        (uint256 subsidy,uint256 bonus)=_applySubsidies(jobId,payer,token,jobType,amount,subsidyProviders);
+        (uint256 subsidy,uint256 bonus)=_applySubsidies(c.jobId,c.payer,c.token,c.jobType,c.amount,c.subsidyProviders);
         //release the subsidy back to the payer (bonus is NOT released to the payer)
         if(subsidy>0){
-            funds[payer][token].available+=subsidy;
-            _trackToken(payer,token);
+            funds[c.payer][c.token].available+=subsidy;
         }
         // credit the node payout (fee charged on amount+bonus) and transfer the fee out last
-        _creditPayout(token,amount+bonus);
+        _creditPayout(c.token,c.amount+bonus);
         //delete the lock
         if(index<locks[msg.sender].length-1){
             locks[msg.sender][index]=locks[msg.sender][locks[msg.sender].length-1];
         }
         locks[msg.sender].pop();
-        emit Claimed(msg.sender,jobId,token,payer,amount,proof);
+        emit Claimed(msg.sender,c.jobId,c.token,c.payer,c.amount,c.proof);
     }
 
     // credit the node (msg.sender) payout for `payoutBase` (= amount + bonus), then transfer the OPC
