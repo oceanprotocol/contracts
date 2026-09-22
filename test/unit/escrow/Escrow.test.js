@@ -1149,6 +1149,21 @@ describe('Escrow - Subsidy Providers', function () {
     await assertSolvent(T18);
   });
 
+  // 16b. A contract provider (passes the code.length guard) whose onSubsidyClaim returns <64 bytes
+  // must contribute 0 and NOT brick the claim (a high-level try/catch would not catch the decode).
+  it('16b short-return provider (<64 bytes) contributes 0 and does not brick the claim', async function () {
+    const shortProv = await (await ethers.getContractFactory('MockShortReturnProvider')).deploy();
+    await shortProv.deployed();
+    await deposit(payer, T18, P('10'));
+    const jobId = await createLock(node, T18, payer, P('10'));
+    const bNode = await escrow.getUserFunds(node.address, T18.address);
+    const rc = await (await escrow.connect(node).claimLock(
+      jobId, T18.address, payer.address, P('10'), '0x', 0, [shortProv.address])).wait();
+    expect(subsidizedEvents(rc).length).to.equal(0);
+    expect((await escrow.getUserFunds(node.address, T18.address)).available.sub(bNode.available)).to.equal(P('10').sub(feeOf(P('10'))));
+    await assertSolvent(T18);
+  });
+
   // 17. payer userTokens re-tracked after subsidy refund
   it('17 payer userTokens re-tracked on subsidy refund', async function () {
     await deposit(payer2, T18, P('20'));

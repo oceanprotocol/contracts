@@ -855,35 +855,33 @@ contract Escrow is
         }
     }
 
-    // Consults one provider: asks for a quote (swallowing try/catch - a revert contributes 0 and
-    // never bricks the claim; EOAs/wrong-selector addresses revert decoding the return from empty
-    // returndata -> caught -> skipped, a relied-on defense), caps the subsidy at `remaining`, and
+    // Consults one provider: asks for a quote via a LOW-LEVEL call (never reverts the claim - a failed
+    // call OR returndata shorter than 64 bytes contributes 0), caps the subsidy at `remaining`, and
     // pulls subsidy+bonus with a guarded low-level call. Returns the actually-accepted amounts.
-    // Everything after the try-returns is revert-proof (overflow-guarded combine, low-level pull with
-    // no bool decode), because Solidity does NOT catch reverts inside the try success block.
+    // NOTE: a high-level `try ISubsidyProvider(p).onSubsidyClaim(...) returns (uint,uint)` does NOT
+    // catch a return-data decode failure from a wrong-selector / short-returning contract (verified),
+    // so the quote is a low-level call and we decode only validated (>=64-byte) data. Everything after
+    // the quote is revert-proof (overflow-guarded combine, low-level pull with no bool decode).
     // slither-disable-next-line reentrancy-eth,reentrancy-benign,reentrancy-events,calls-loop
     function _consultProvider(uint256 jobId,address payer,address token,uint256 jobType,uint256 amount,
         address provider,uint256 remaining) internal returns (uint256 usedSub,uint256 usedBonus){
-        // EOA / non-contract provider: skip. Solidity 0.8.12 does NOT route the empty-code
-        // return-data decode revert (from a call with a returns clause to a codeless address) into
-        // the catch below, so try/catch alone would let an EOA brick the claim. Guard explicitly.
+        // EOA / non-contract provider: nothing to consult.
         if(provider.code.length==0) return (0,0);
-        try ISubsidyProvider(provider).onSubsidyClaim(msg.sender,payer,jobType,token,amount,remaining)
-            returns (uint256 subsidyAmount,uint256 bonusAmount)
-        {
-            uint256 wantSubsidy = subsidyAmount < remaining ? subsidyAmount : remaining; // cap
-            // OVERFLOW-SAFE COMBINE: a checked add would revert INSIDE this uncaught success block on
-            // a bogus quote (e.g. bonus ~2^256-1); pre-check and skip instead.
-            if(bonusAmount > type(uint256).max - wantSubsidy) return (0,0);
-            uint256 wantTotal = wantSubsidy + bonusAmount; // bonus is uncapped
-            if(wantTotal==0) return (0,0);
-            // guarded pull; reject-partial (received < wantTotal -> skip via _pullExact).
-            if(!_pullExact(token,provider,wantTotal)) return (0,0);
-            emit Subsidized(msg.sender,payer,jobId,token,provider,wantSubsidy,bonusAmount);
-            return (wantSubsidy,bonusAmount);
-        } catch {
-            return (0,0);
-        }
+        (bool ok,bytes memory data)=provider.call(
+            abi.encodeWithSelector(ISubsidyProvider.onSubsidyClaim.selector,
+                msg.sender,payer,jobType,token,amount,remaining));
+        // a reverting or short-returning (wrong-selector / non-conforming) provider contributes 0
+        if(!ok || data.length<64) return (0,0);
+        (uint256 subsidyAmount,uint256 bonusAmount)=abi.decode(data,(uint256,uint256));
+        uint256 wantSubsidy = subsidyAmount < remaining ? subsidyAmount : remaining; // cap
+        // OVERFLOW-SAFE COMBINE: skip a bogus quote (e.g. bonus ~2^256-1) instead of a checked-add revert.
+        if(bonusAmount > type(uint256).max - wantSubsidy) return (0,0);
+        uint256 wantTotal = wantSubsidy + bonusAmount; // bonus is uncapped
+        if(wantTotal==0) return (0,0);
+        // guarded pull; reject-partial (received < wantTotal -> skip via _pullExact).
+        if(!_pullExact(token,provider,wantTotal)) return (0,0);
+        emit Subsidized(msg.sender,payer,jobId,token,provider,wantSubsidy,bonusAmount);
+        return (wantSubsidy,bonusAmount);
     }
 
     // guarded token pull: low-level transferFrom(provider -> escrow) whose balanceOf-diff is the sole
