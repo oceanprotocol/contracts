@@ -38,6 +38,17 @@ describe('OPFSubsidyProvider (unit)', function () {
     await fastForward(s + 2);
   };
 
+  // Snapshot/revert around the whole suite: these tests advance the EVM clock (evm_increaseTime is
+  // cumulative and permanent), and other suites in a combined/coverage run share the same chain, so
+  // restore the clock afterwards to avoid polluting them.
+  let __snapshotId;
+  before(async function () {
+    __snapshotId = await ethers.provider.send("evm_snapshot", []);
+  });
+  after(async function () {
+    await ethers.provider.send("evm_revert", [__snapshotId]);
+  });
+
   beforeEach(async function () {
     const s = await ethers.getSigners();
     owner = s[0]; escrowSigner = s[1]; escrow2 = s[2]; attacker = s[3]; other = s[4];
@@ -65,6 +76,15 @@ describe('OPFSubsidyProvider (unit)', function () {
     await opf.connect(owner).setNodeAccessList(nodeList.address);
     // authorize the escrow caller
     await opf.connect(owner).setAuthorizedEscrow(escrowSigner.address, true);
+
+    // Pin the clock to the start of a fresh 28-day month so period math is deterministic regardless of
+    // the ambient chain clock (MONTH = 4*WEEK = 28*DAY, so this also zeroes the day & week indices).
+    // Only forward moves are allowed; setNextBlockTimestamp is always >= now, so this is safe.
+    const MONTH_SECS = 4 * 7 * 24 * 3600;
+    const now = (await ethers.provider.getBlock('latest')).timestamp;
+    const nextMonthStart = (Math.floor(now / MONTH_SECS) + 1) * MONTH_SECS;
+    await ethers.provider.send('evm_setNextBlockTimestamp', [nextMonthStart]);
+    await ethers.provider.send('evm_mine', []);
   });
 
   // helper: get grant that onSubsidyClaim WOULD return (no state change)

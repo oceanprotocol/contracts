@@ -12,9 +12,17 @@ describe('OPFSubsidyProvider (integration through the real Escrow)', function ()
   let usdc, userList, nodeList, opf;
   let jobSeq = 1;
 
+  // Snapshot/revert around the whole suite: these tests advance the EVM clock (evm_increaseTime is
+  // cumulative and permanent), and other suites in a combined/coverage run share the same chain, so
+  // restore the clock afterwards to avoid polluting them.
+  let __snapshotId;
   before(async function () {
+    __snapshotId = await ethers.provider.send("evm_snapshot", []);
     const s = await ethers.getSigners();
     deployer = s[0]; node = s[1]; payer = s[4]; feeColl = s[8];
+  });
+  after(async function () {
+    await ethers.provider.send("evm_revert", [__snapshotId]);
   });
 
   // fresh USDC + lists + opf for each escrow flavour so counters/balances start clean
