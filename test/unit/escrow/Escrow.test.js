@@ -1416,20 +1416,20 @@ describe('Escrow - Subsidy Providers', function () {
   });
 
   // 27. list repetition + persisted budget
-  it('27 same provider listed 3x pays only its budget', async function () {
+  it('27 same provider listed 3x is consulted once (dedup) - no stacked grants', async function () {
     await deposit(payer, T18, P('10'));
     const jobId = await createLock(node, T18, payer, P('10'));
-    // budget for exactly 2 draws of (subsidy 2 + bonus 0)
+    // provider would grant subsidy 2 per call; budget covers 2 draws, but dedup must limit it to ONE
     const prov = await newProvider(T18, P('2'), P('0'), P('4'), P('100'));
     const bPayer = await escrow.getUserFunds(payer.address, T18.address);
     const bProv = await T18.balanceOf(prov.address);
     const rc = await (await escrow.connect(node).claimLock(
       jobId, T18.address, payer.address, P('10'), '0x', 0, [prov.address, prov.address, prov.address])).wait();
-    // called 3x, budget covers 2 -> total subsidy 4
-    expect(await prov.callCount()).to.equal(3);
-    expect(subsidizedEvents(rc).length).to.equal(2);
-    expect((await escrow.getUserFunds(payer.address, T18.address)).available.sub(bPayer.available)).to.equal(P('4'));
-    expect(bProv.sub(await T18.balanceOf(prov.address))).to.equal(P('4')); // exactly what was pulled
+    // consulted exactly ONCE despite 3 list entries -> a single grant of 2 (no 100%-via-repetition)
+    expect(await prov.callCount()).to.equal(1);
+    expect(subsidizedEvents(rc).length).to.equal(1);
+    expect((await escrow.getUserFunds(payer.address, T18.address)).available.sub(bPayer.available)).to.equal(P('2'));
+    expect(bProv.sub(await T18.balanceOf(prov.address))).to.equal(P('2')); // only one draw pulled
     await assertSolvent(T18);
   });
 });

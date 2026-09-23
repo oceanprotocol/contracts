@@ -6,14 +6,10 @@ pragma solidity 0.8.12;
 import '../interfaces/IERC20.sol';
 import '../utils/SafeERC20.sol';
 import '../interfaces/ISubsidyProvider.sol';
+import '../interfaces/IAccessList.sol';
 import '@openzeppelin/contracts/security/ReentrancyGuard.sol';
 import '@openzeppelin/contracts/access/Ownable.sol';
 import '@openzeppelin/contracts/security/Pausable.sol';
-
-// AccessList membership gate (inline, matching ERC20Template4's pattern): a non-zero balance == member.
-interface IAccessListContract {
-    function balanceOf(address owner) external view returns (uint256);
-}
 
 /**
  * @title OPFSubsidyProvider
@@ -249,14 +245,14 @@ contract OPFSubsidyProvider is ISubsidyProvider, ReentrancyGuard, Ownable, Pausa
     }
 
     // reclaim unspent funds (callable while paused)
-    function withdrawTokens(address token, address to, uint256 amount) external onlyOwner {
+    function withdrawTokens(address token, address to, uint256 amount) external onlyOwner nonReentrant {
         require(to != address(0), "OPFSubsidy: cannot withdraw to zero address");
         require(amount > 0, "OPFSubsidy: amount must be greater than zero");
         IERC20(token).safeTransfer(to, amount);
         emit Withdraw(token, to, amount);
     }
 
-    function withdrawAllTokens(address token, address to) external onlyOwner {
+    function withdrawAllTokens(address token, address to) external onlyOwner nonReentrant {
         require(to != address(0), "OPFSubsidy: cannot withdraw to zero address");
         uint256 balance = IERC20(token).balanceOf(address(this));
         IERC20(token).safeTransfer(to, balance);

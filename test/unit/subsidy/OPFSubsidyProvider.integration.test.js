@@ -148,6 +148,39 @@ describe('OPFSubsidyProvider (integration through the real Escrow)', function ()
     expect(await opf.dailyUsedBy(payer.address, usdc.address)).to.equal(U('2'));
   });
 
+  it('Escrow: 50%-of-job provider listed twice yields 50%, not 100% (pct-binding dedup)', async function () {
+    await deployCommon();
+    // reconfigure: sponsor 50% of the job, with per-period caps high enough NOT to bind, so the
+    // percentage is the only limit. Without dedup, [opf,opf] would stack to 100%.
+    await opf.connect(deployer).setTokenLimits(usdc.address, 5000, U('1000000'), 0, U('1000000'), true);
+
+    const Router = await ethers.getContractFactory('FactoryRouter');
+    const Escrow = await ethers.getContractFactory('Escrow');
+    const router = await Router.deploy(deployer.address, usdc.address, '0x000000000000000000000000000000000000dead', feeColl.address, []);
+    await router.deployed();
+    await router.connect(deployer).updateOPCFee(P('0.1'), P('0.1'), 0, 0);
+    const escrow = await Escrow.deploy(router.address, feeColl.address); await escrow.deployed();
+    await opf.connect(deployer).setAuthorizedEscrow(escrow.address, true);
+
+    await deposit(escrow, U('10'));
+    await authorize(escrow, U('100'));
+    const jobId = await createLock(escrow, U('10'));
+
+    const beforePayer = await escrow.getUserFunds(payer.address, usdc.address);
+    const beforeOpf = await usdc.balanceOf(opf.address);
+    const rc = await (await escrow.connect(node).claimLock(
+      jobId, usdc.address, payer.address, U('10'), '0x', 7, [opf.address, opf.address])).wait();
+
+    // dedup: consulted once -> a single 50% grant of 5, NOT 10
+    const ev = subsidizedEvents(rc);
+    expect(ev.length).to.equal(1);
+    expect(ev[0].args.subsidyAmount).to.equal(U('5'));
+    const afterPayer = await escrow.getUserFunds(payer.address, usdc.address);
+    expect(afterPayer.available.sub(beforePayer.available)).to.equal(U('5')); // 50%, NOT 100%
+    expect(beforeOpf.sub(await usdc.balanceOf(opf.address))).to.equal(U('5'));
+    expect(await opf.dailyUsedBy(payer.address, usdc.address)).to.equal(U('5'));
+  });
+
   it('EnterpriseEscrow: claim with [opf] releases the subsidy to the payer', async function () {
     await deployCommon();
     const EnterpriseFeeCollector = await ethers.getContractFactory('EnterpriseFeeCollector');

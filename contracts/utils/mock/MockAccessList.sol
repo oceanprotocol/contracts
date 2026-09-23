@@ -3,20 +3,22 @@ pragma solidity 0.8.12;
 // SPDX-License-Identifier: (Apache-2.0 AND CC-BY-4.0)
 // Code is Apache-2.0 and docs are CC-BY-4.0
 
+import '../../interfaces/IAccessList.sol';
+
 /**
  * @title MockAccessList
- * @dev Trivial allowlist for tests: `balanceOf` returns 1 for a member, 0 otherwise. Matches the
- *      `IAccessListContract{ balanceOf }` membership gate used by OPFSubsidyProvider (the real
- *      AccessList is a factory/clone on ^0.8.26 and heavier to wire in unit tests).
+ * @dev Trivial allowlist for tests: `balanceOf` returns 1 for a member, 0 otherwise. Implements the
+ *      `IAccessListContract` membership gate used by OPFSubsidyProvider (the real AccessList is a
+ *      factory/clone on ^0.8.26 and heavier to wire in unit tests).
  */
-contract MockAccessList {
+contract MockAccessList is IAccessListContract {
     mapping(address => bool) public isMember;
 
     function setMember(address account, bool member) external {
         isMember[account] = member;
     }
 
-    function balanceOf(address account) external view returns (uint256) {
+    function balanceOf(address account) external view override returns (uint256) {
         return isMember[account] ? 1 : 0;
     }
 }
