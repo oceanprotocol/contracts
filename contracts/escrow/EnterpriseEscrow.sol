@@ -872,6 +872,12 @@ contract EnterpriseEscrow is
             // never pull from the payer's own wallet (MED mitigation); do NOT break on remaining==0,
             // a later provider can still add a bonus.
             if(provider==payer) continue;
+            // skip a provider already processed earlier in this list, so a repeated entry cannot stack
+            // multiple grants (e.g. a provider that sponsors 50% of the job, listed twice, must not
+            // yield 100%). Each unique provider is consulted at most once per claim.
+            bool duplicate=false;
+            for(uint256 j=0;j<i;j++){ if(subsidyProviders[j]==provider){ duplicate=true; break; } }
+            if(duplicate) continue;
             (uint256 usedSub,uint256 usedBonus)=_consultProvider(jobId,payer,token,jobType,amount,provider,remaining);
             totalSubsidy += usedSub;
             totalBonus += usedBonus;
