@@ -10,6 +10,7 @@ import "@openzeppelin/contracts/token/ERC20/extensions/IERC20Permit.sol";
 import "@openzeppelin/contracts/utils/math/SafeMath.sol";
 import "@openzeppelin/contracts/security/ReentrancyGuard.sol";
 import "../interfaces/IFactoryRouter.sol";
+import "../interfaces/ISubsidyProvider.sol";
 
 /**
  * @title Escrow contract
@@ -89,7 +90,7 @@ contract Escrow is
 
     /* structs used to bundle multiple payee (job) actions in a single call */
     struct LockData { uint256 jobId; address token; address payer; uint256 amount; uint256 expiry; } // createLock & reLock
-    struct ClaimData { uint256 jobId; address token; address payer; uint256 amount; bytes proof; }
+    struct ClaimData { uint256 jobId; address token; address payer; uint256 amount; bytes proof; uint256 jobType; address[] subsidyProviders; }
     struct CancelData { uint256 jobId; address token; address payer; address payee; }
 
 
@@ -103,6 +104,8 @@ contract Escrow is
         uint256 newExpiry,address token);
     event Claimed(address indexed payee,uint256 jobId,address token,address indexed payer,uint256 amount,bytes proof);
     event Canceled(address indexed payee,uint256 jobId,address token,address indexed payer,uint256 amount);
+    // emitted once per contributing subsidy provider (with the actually-used subsidy and bonus)
+    event Subsidized(address indexed payee,address indexed payer,uint256 jobId,address token,address provider,uint256 subsidyAmount,uint256 bonusAmount);
 
     // Add constructor to set router
     constructor(address _factoryRouter,address _opcCollector) {
@@ -221,9 +224,9 @@ contract Escrow is
      * @param newLocks array of {jobId, token, payer, amount, expiry} passed to createLock
      * @param reLockOps array of {jobId, token, payer, amount, expiry} passed to reLock
      */
-    // Reentrancy-safe: nonReentrant blocks re-entry into every state-changing entrypoint; only view
-    // getters (the caller's own balances, not an oracle) are reachable during the claim fee transfer.
-    // slither-disable-next-line reentrancy-eth
+    // Reentrancy-safe: nonReentrant blocks re-entry into every state-changing entrypoint, including
+    // the subsidy-provider callback and token pull inside each claim; only view getters are reachable.
+    // slither-disable-next-line reentrancy-eth,reentrancy-benign,reentrancy-events
     function bundleJobs(
         ClaimData[] calldata claims,
         CancelData[] calldata cancels,
@@ -231,7 +234,7 @@ contract Escrow is
         LockData[] calldata reLockOps
     ) external nonReentrant {
         for(uint256 i=0;i<claims.length;i++){
-            _claimLock(claims[i].jobId,claims[i].token,claims[i].payer,claims[i].amount,claims[i].proof);
+            _claimLock(claims[i]);
         }
         for(uint256 i=0;i<cancels.length;i++){
             _cancelExpiredLock(cancels[i].jobId,cancels[i].token,cancels[i].payer,cancels[i].payee);
@@ -243,6 +246,7 @@ contract Escrow is
             _reLock(reLockOps[i].jobId,reLockOps[i].token,reLockOps[i].payer,reLockOps[i].amount,reLockOps[i].expiry);
         }
     }
+
     function _deposit(address token,uint256 amount) internal{
         require(token!=address(0),"Invalid token address");
         funds[msg.sender][token].available+=amount;
@@ -608,135 +612,197 @@ contract Escrow is
      /**
      * @dev claimLock
      *      Called by payee to claim a lock (fully or partial)
-     *      Must match a previous lock
-     *      
+     *      Must match a previous lock. The node may supply a jobType and a list of subsidy providers
+     *      that may sponsor part of the payer's cost and/or add a bonus for the node (empty list =
+     *      no subsidy).
+     *
      * @param jobId jobId, required
      * @param token token, required
      * @param payer payer address
      * @param amount amount in wei to claim
      * @param proof job proof
+     * @param jobType opaque category forwarded to the providers
+     * @param subsidyProviders list of ISubsidyProvider addresses to consult
      */
-    function claimLock(uint256 jobId,address token,address payer,uint256 amount,bytes calldata proof)
+    // Reentrancy-safe: nonReentrant blocks re-entry, including the subsidy-provider callback and the
+    // token pull; only view getters are reachable during the external calls.
+    // slither-disable-next-line reentrancy-eth,reentrancy-benign,reentrancy-events
+    function claimLock(uint256 jobId,address token,address payer,uint256 amount,
+        bytes calldata proof,uint256 jobType,address[] calldata subsidyProviders)
         external nonReentrant{
-            _claimLock(jobId,token,payer,amount,proof);
+            ClaimData memory c = ClaimData(jobId,token,payer,amount,proof,jobType,subsidyProviders);
+            _claimLock(c);
     }
-    
+
     /**
      * @dev claimLocks
      *      Called by payee to claim locks (fully or partial) and keeps funds in the contract
-     *      Must match previous locks
-     *      
+     *      Must match previous locks. Parallel jobType and subsidyProviders arrays carry the
+     *      per-claim subsidy parameters (empty inner list = no subsidy).
+     *
      * @param jobId array of jobIds
      * @param token array of tokens
      * @param payer array of payer addresses
      * @param amount array amounts in wei to claim
      * @param proof array of job proofs
+     * @param jobType array of jobTypes
+     * @param subsidyProviders array of subsidy-provider lists (one per claim)
      */
+    // Reentrancy-safe: nonReentrant blocks re-entry, including the subsidy-provider callbacks and the
+    // token pulls; only view getters are reachable during the external calls.
+    // slither-disable-next-line reentrancy-eth,reentrancy-benign,reentrancy-events
     function claimLocks(uint256[] calldata jobId,address[] calldata token,
-        address[] calldata  payer,uint256[] calldata amount,
-        bytes[] calldata proof) external nonReentrant{
-        
-            require(jobId.length==token.length && 
-                    jobId.length==payer.length && 
-                    jobId.length==amount.length && 
-                    jobId.length==proof.length,"Invalid input");
-            for(uint256 i=0;i<jobId.length;i++){
-                _claimLock(jobId[i],token[i],payer[i],amount[i],proof[i]);
-            }
+        address[] calldata payer,uint256[] calldata amount,bytes[] calldata proof,
+        uint256[] calldata jobType,address[][] calldata subsidyProviders) external nonReentrant{
+
+            require(jobId.length==token.length &&
+                    jobId.length==payer.length &&
+                    jobId.length==amount.length &&
+                    jobId.length==proof.length &&
+                    jobId.length==jobType.length &&
+                    jobId.length==subsidyProviders.length,"Invalid input");
+            _claimLocksMem(jobId,token,payer,amount,proof,jobType,subsidyProviders);
+    }
+    // loops _claimLock over parallel arrays; params are memory (single stack slots) so the 7-way loop
+    // does not blow the stack. calldata arrays are copied to memory implicitly at the call site.
+    function _claimLocksMem(uint256[] memory jobId,address[] memory token,address[] memory payer,
+        uint256[] memory amount,bytes[] memory proof,uint256[] memory jobType,
+        address[][] memory subsidyProviders) internal {
+        for(uint256 i=0;i<jobId.length;i++){
+            ClaimData memory c = ClaimData(jobId[i],token[i],payer[i],amount[i],proof[i],jobType[i],subsidyProviders[i]);
+            _claimLock(c);
+        }
     }
     /**
      * @dev claimLockAndWithdraw
      *      Called by payee to claim lock (fully or partial) and withdraw funds
-     *      Must match previous lock
-     *      
+     *      Must match previous lock. Supports the same subsidy parameters as claimLock.
+     *
      * @param jobId jobId, required
      * @param token token, required
      * @param payer payer address
      * @param amount amount in wei to claim
      * @param proof job proof
+     * @param jobType opaque category forwarded to the providers
+     * @param subsidyProviders list of ISubsidyProvider addresses to consult
      */
-    // Reentrancy-safe: nonReentrant blocks re-entry; only view getters are reachable during the transfers.
-    // slither-disable-next-line reentrancy-eth
+    // Reentrancy-safe: nonReentrant blocks re-entry, including the subsidy-provider callback and the
+    // token pull; only view getters are reachable during the external calls.
+    // slither-disable-next-line reentrancy-eth,reentrancy-benign,reentrancy-events
     function claimLockAndWithdraw(uint256 jobId,address token,address payer,
-        uint256 amount,bytes calldata proof) external nonReentrant{
-            _claimLock(jobId,token,payer,amount,proof);
+        uint256 amount,bytes calldata proof,uint256 jobType,address[] calldata subsidyProviders)
+        external nonReentrant{
+            ClaimData memory c = ClaimData(jobId,token,payer,amount,proof,jobType,subsidyProviders);
+            _claimLock(c);
             _withdraw(token,funds[msg.sender][token].available);
-        
     }
     /**
      * @dev claimLocksAndWithdraw
      *      Called by payee to claim locks (fully or partial) and withdraw funds
-     *      Must match previous locks
-     *      
+     *      Must match previous locks. Parallel jobType and subsidyProviders arrays carry the
+     *      per-claim subsidy parameters.
+     *
      * @param jobId array of jobIds
      * @param token array of tokens
      * @param payer array of payer addresses
      * @param amount array amounts in wei to claim
      * @param proof array of job proofs
+     * @param jobType array of jobTypes
+     * @param subsidyProviders array of subsidy-provider lists (one per claim)
      */
-    // Reentrancy-safe: nonReentrant blocks re-entry; only view getters are reachable during the transfers.
-    // slither-disable-next-line reentrancy-eth
+    // Reentrancy-safe: nonReentrant blocks re-entry, including the subsidy-provider callbacks and the
+    // token pulls; only view getters are reachable during the external calls.
+    // slither-disable-next-line reentrancy-eth,reentrancy-benign,reentrancy-events
     function claimLocksAndWithdraw(uint256[] calldata jobId,address[] calldata token,
-        address[] calldata  payer,uint256[] calldata amount,bytes[] calldata proof) external nonReentrant{
-        
-        require(jobId.length==token.length && 
-            jobId.length==payer.length && 
-            jobId.length==amount.length && 
-            jobId.length==proof.length,"Invalid input");
-        uint256 i;
-        for(i=0;i<jobId.length;i++){
-            _claimLock(jobId[i],token[i],payer[i],amount[i],proof[i]);
-        }
-        for(i=0;i<token.length;i++){
+        address[] calldata payer,uint256[] calldata amount,bytes[] calldata proof,
+        uint256[] calldata jobType,address[][] calldata subsidyProviders) external nonReentrant{
+
+        require(jobId.length==token.length &&
+            jobId.length==payer.length &&
+            jobId.length==amount.length &&
+            jobId.length==proof.length &&
+            jobId.length==jobType.length &&
+            jobId.length==subsidyProviders.length,"Invalid input");
+        _claimLocksMem(jobId,token,payer,amount,proof,jobType,subsidyProviders);
+        _withdrawAvailable(token);
+    }
+
+    // withdraw all of msg.sender's available balance for each listed token (used by *AndWithdraw)
+    function _withdrawAvailable(address[] calldata token) internal {
+        for(uint256 i=0;i<token.length;i++){
             if(funds[msg.sender][token[i]].available>0){
                 _withdraw(token[i],funds[msg.sender][token[i]].available);
             }
         }
     }
-    
-    // Reentrancy-safe: reached only via nonReentrant entrypoints, so re-entry is impossible; the
-    // funds/userTokens writes after the fee transfer cannot be exploited.
-    // slither-disable-next-line reentrancy-no-eth,reentrancy-benign
-    function _claimLock(uint256 jobId,address token,address payer,uint256 amount,
-        bytes calldata proof) internal {
-        require(payer!=address(0),'Invalid payer');
-        require(token!=address(0),'Invalid token');
-        require(jobId>0,'Invalid jobId');
+
+    // Reentrancy-safe: reached only via nonReentrant entrypoints, so re-entry is impossible. Makes
+    // external calls (subsidy-provider callbacks, the guarded subsidy pull and the fee transfer); the
+    // funds/userTokens writes cannot be exploited because re-entry is blocked by the outer guard.
+    // slither-disable-next-line reentrancy-no-eth,reentrancy-benign,reentrancy-events
+    function _claimLock(ClaimData memory c) internal {
+        require(c.payer!=address(0),'Invalid payer');
+        require(c.token!=address(0),'Invalid token');
+        require(c.jobId>0,'Invalid jobId');
         lock memory tempLock=lock(0,address(0),0,0,address(0),0);
         uint256 index;
         uint256 length=locks[msg.sender].length;
         for(index=0;index<length;index++){
-            if( 
-                payer==locks[msg.sender][index].payer && 
-                jobId==locks[msg.sender][index].jobId &&
-                token==locks[msg.sender][index].token
+            if(
+                c.payer==locks[msg.sender][index].payer &&
+                c.jobId==locks[msg.sender][index].jobId &&
+                c.token==locks[msg.sender][index].token
 
             ) {
                 tempLock=locks[msg.sender][index];
                 break;
             }
         }
-        require(tempLock.payer==payer,"Lock not found");
+        require(tempLock.payer==c.payer,"Lock not found");
         if(tempLock.expiry<block.timestamp){
             //we are too late, cancel the lock
-            _cancelExpiredLock(jobId,token,payer,msg.sender);
+            _cancelExpiredLock(c.jobId,c.token,c.payer,msg.sender);
             return;
         }
-        require(tempLock.amount>=amount,"Amount too high");
-        
+        require(tempLock.amount>=c.amount,"Amount too high");
+
         //update auths
-        length=userAuths[payer][token].length;
+        length=userAuths[c.payer][c.token].length;
         for(uint256 i=0;i<length;i++){
-            if(userAuths[payer][token][i].payee==msg.sender){
-                userAuths[payer][token][i].currentLockedAmount-=tempLock.amount;
-                userAuths[payer][token][i].currentLocks-=1;
+            if(userAuths[c.payer][c.token][i].payee==msg.sender){
+                userAuths[c.payer][c.token][i].currentLockedAmount-=tempLock.amount;
+                userAuths[c.payer][c.token][i].currentLocks-=1;
             }
         }
-        // OPC fee logic
+        //update user funds: return the unclaimed remainder to the payer and unlock the whole lock
+        funds[c.payer][c.token].available+=tempLock.amount-c.amount;
+        funds[c.payer][c.token].locked-=tempLock.amount;
+        _trackToken(c.payer,c.token);
+        //pull subsidy (released to payer) and bonus (added to node payout) from the providers
+        (uint256 subsidy,uint256 bonus)=_applySubsidies(c.jobId,c.payer,c.token,c.jobType,c.amount,c.subsidyProviders);
+        //release the subsidy back to the payer (bonus is NOT released to the payer)
+        if(subsidy>0){
+            funds[c.payer][c.token].available+=subsidy;
+        }
+        // credit the node payout (fee charged on amount+bonus) and transfer the fee out last
+        _creditPayout(c.token,c.amount+bonus);
+        //delete the lock
+        if(index<locks[msg.sender].length-1){
+            locks[msg.sender][index]=locks[msg.sender][locks[msg.sender].length-1];
+        }
+        locks[msg.sender].pop();
+        emit Claimed(msg.sender,c.jobId,c.token,c.payer,c.amount,c.proof);
+    }
+
+    // credit the node (msg.sender) payout for `payoutBase` (= amount + bonus), then transfer the OPC
+    // fee out last. fee is charged on payoutBase via the OPC router rate (proportional, <=1e18).
+    // slither-disable-next-line reentrancy-eth,reentrancy-benign,reentrancy-events
+    function _creditPayout(address token,uint256 payoutBase) internal {
         uint256 opcFee = IFactoryRouter(factoryRouter).getOPCFee(token);
-        uint256 feeAmount = amount.mul(opcFee).div(1e18);
-        uint256 payout = amount.sub(feeAmount);
-        // Transfer OPC fee to collector if any
+        uint256 feeAmount = payoutBase.mul(opcFee).div(1e18);
+        uint256 payout = payoutBase.sub(feeAmount);
+        funds[msg.sender][token].available+=payout;
+        _trackToken(msg.sender,token);
         if(feeAmount > 0){
             if(opcCollector==address(0)){
                 IERC20(token).safeTransfer(IFactoryRouter(factoryRouter).getOPCCollector(), feeAmount);
@@ -745,21 +811,96 @@ contract Escrow is
                 IERC20(token).safeTransfer(opcCollector, feeAmount);
             }
         }
-        //update user funds
-        funds[payer][token].available+=tempLock.amount-amount;
-        funds[payer][token].locked-=tempLock.amount;
-        //update payee balance
-        funds[msg.sender][token].available+=payout;
-        if (!hasFundsInToken[msg.sender][token]) {
-            userTokens[msg.sender].push(token);
-            hasFundsInToken[msg.sender][token] = true;
+    }
+
+    // helper: make sure `token` is tracked in `user`'s userTokens list (for getUserTokens-based UIs)
+    function _trackToken(address user,address token) internal {
+        if (!hasFundsInToken[user][token]) {
+            userTokens[user].push(token);
+            hasFundsInToken[user][token] = true;
         }
-        //delete the lock
-        if(index<locks[msg.sender].length-1){
-            locks[msg.sender][index]=locks[msg.sender][locks[msg.sender].length-1];
+    }
+
+    /**
+     * @dev _applySubsidies
+     *      Consults each provider in `subsidyProviders` (once per list entry) for a subsidy (released
+     *      to the payer, capped at the remaining un-subsidized portion of the claim) and a bonus
+     *      (added to the node payout, uncapped). Every provider is pulled from with a guarded
+     *      low-level transferFrom whose balanceOf-diff is the sole source of truth. One bad provider
+     *      or token must never brick the claim, so:
+     *        - the quote is wrapped in a swallowing try/catch (revert -> contribute 0),
+     *        - reverts inside the try success block are NOT caught by Solidity, so the combine is
+     *          overflow-guarded (no checked add) and the pull is a low-level call (no bool decode
+     *          that would revert on USDT-style no-data or on 1-31 junk bytes),
+     *        - a provider is credited only if the escrow received the full requested amount
+     *          (reject-partial), so fee-on-transfer under-delivery contributes 0.
+     * @return totalSubsidy sum of the accepted subsidies (released to the payer)
+     * @return totalBonus   sum of the accepted bonuses (added to the node payout)
+     */
+    // Reentrancy-safe: only reachable from _claimLock, itself only reachable via nonReentrant
+    // entrypoints, so the provider callback cannot re-enter any escrow entrypoint.
+    // slither-disable-next-line reentrancy-eth,reentrancy-benign,reentrancy-events,calls-loop
+    function _applySubsidies(uint256 jobId,address payer,address token,uint256 jobType,uint256 amount,
+        address[] memory subsidyProviders) internal returns (uint256 totalSubsidy,uint256 totalBonus){
+        uint256 remaining = amount; // subsidy cap only; bonus is uncapped
+        for(uint256 i=0;i<subsidyProviders.length;i++){
+            address provider = subsidyProviders[i];
+            // never pull from the payer's own wallet (MED mitigation); do NOT break on remaining==0,
+            // a later provider can still add a bonus.
+            if(provider==payer) continue;
+            // skip a provider already processed earlier in this list, so a repeated entry cannot stack
+            // multiple grants (e.g. a provider that sponsors 50% of the job, listed twice, must not
+            // yield 100%). Each unique provider is consulted at most once per claim.
+            bool duplicate=false;
+            for(uint256 j=0;j<i;j++){ if(subsidyProviders[j]==provider){ duplicate=true; break; } }
+            if(duplicate) continue;
+            (uint256 usedSub,uint256 usedBonus)=_consultProvider(jobId,payer,token,jobType,amount,provider,remaining);
+            totalSubsidy += usedSub;
+            totalBonus += usedBonus;
+            remaining -= usedSub; // usedSub <= remaining, cannot underflow
         }
-        locks[msg.sender].pop();
-        emit Claimed(msg.sender,jobId,token,payer,amount,proof);
+    }
+
+    // Consults one provider: asks for a quote via a LOW-LEVEL call (never reverts the claim - a failed
+    // call OR returndata shorter than 64 bytes contributes 0), caps the subsidy at `remaining`, and
+    // pulls subsidy+bonus with a guarded low-level call. Returns the actually-accepted amounts.
+    // NOTE: a high-level `try ISubsidyProvider(p).onSubsidyClaim(...) returns (uint,uint)` does NOT
+    // catch a return-data decode failure from a wrong-selector / short-returning contract (verified),
+    // so the quote is a low-level call and we decode only validated (>=64-byte) data. Everything after
+    // the quote is revert-proof (overflow-guarded combine, low-level pull with no bool decode).
+    // slither-disable-next-line reentrancy-eth,reentrancy-benign,reentrancy-events,calls-loop
+    function _consultProvider(uint256 jobId,address payer,address token,uint256 jobType,uint256 amount,
+        address provider,uint256 remaining) internal returns (uint256 usedSub,uint256 usedBonus){
+        // EOA / non-contract provider: nothing to consult.
+        if(provider.code.length==0) return (0,0);
+        (bool ok,bytes memory data)=provider.call(
+            abi.encodeWithSelector(ISubsidyProvider.onSubsidyClaim.selector,
+                msg.sender,payer,jobType,token,amount,remaining));
+        // a reverting or short-returning (wrong-selector / non-conforming) provider contributes 0
+        if(!ok || data.length<64) return (0,0);
+        (uint256 subsidyAmount,uint256 bonusAmount)=abi.decode(data,(uint256,uint256));
+        uint256 wantSubsidy = subsidyAmount < remaining ? subsidyAmount : remaining; // cap
+        // OVERFLOW-SAFE COMBINE: skip a bogus quote (e.g. bonus ~2^256-1) instead of a checked-add revert.
+        if(bonusAmount > type(uint256).max - wantSubsidy) return (0,0);
+        uint256 wantTotal = wantSubsidy + bonusAmount; // bonus is uncapped
+        if(wantTotal==0) return (0,0);
+        // guarded pull; reject-partial (received < wantTotal -> skip via _pullExact).
+        if(!_pullExact(token,provider,wantTotal)) return (0,0);
+        emit Subsidized(msg.sender,payer,jobId,token,provider,wantSubsidy,bonusAmount);
+        return (wantSubsidy,bonusAmount);
+    }
+
+    // guarded token pull: low-level transferFrom(provider -> escrow) whose balanceOf-diff is the sole
+    // source of truth. Returns true only if the escrow received the FULL wantTotal (reject-partial).
+    // Never reverts on a lying/short-returning token (low-level call, no bool decode).
+    // slither-disable-next-line reentrancy-benign,reentrancy-events
+    function _pullExact(address token,address provider,uint256 wantTotal) internal returns (bool){
+        uint256 balBefore = IERC20(token).balanceOf(address(this));
+        (bool ok,)=token.call(abi.encodeWithSelector(IERC20.transferFrom.selector,provider,address(this),wantTotal));
+        if(!ok) return false;
+        uint256 balAfter = IERC20(token).balanceOf(address(this));
+        uint256 received = balAfter>=balBefore ? balAfter-balBefore : 0; // underflow-guarded
+        return received>=wantTotal;
     }
 
     /**

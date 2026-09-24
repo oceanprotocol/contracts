@@ -216,7 +216,7 @@ it('Escrow - lock', async function () {
       }
     }
     expect(lock.jobId).to.equal(jobId)
-    const tx=await EscrowContract.connect(payee1).claimLocksAndWithdraw([lock.jobId],[lock.token],[lock.payer],[lock.amount],[0]);
+    const tx=await EscrowContract.connect(payee1).claimLocksAndWithdraw([lock.jobId],[lock.token],[lock.payer],[lock.amount],[0],[0],[[]]);
     const txReceipt = await tx.wait();
     const event = getEventFromTx(txReceipt, 'Claimed')
     assert(event, "Cannot find Claimed event")
@@ -260,7 +260,7 @@ it('Escrow - lock', async function () {
     const claimedAmount=web3.utils.toWei("1")
     const bnClaimedAmount=ethers.BigNumber.from(claimedAmount)
     const returnAmount=lock.amount.sub(claimedAmount)
-    const tx=await EscrowContract.connect(payee1).claimLocksAndWithdraw([lock.jobId],[lock.token],[lock.payer],[claimedAmount],[0]);
+    const tx=await EscrowContract.connect(payee1).claimLocksAndWithdraw([lock.jobId],[lock.token],[lock.payer],[claimedAmount],[0],[0],[[]]);
     const txReceipt = await tx.wait();
     const event = getEventFromTx(txReceipt, 'Claimed')
     assert(event, "Cannot find Claimed event")
@@ -300,7 +300,7 @@ it('Escrow - lock', async function () {
     expect(lock.jobId).to.equal(jobId)
     const claimedAmount=web3.utils.toWei("1")
     const returnAmount=lock.amount.sub(claimedAmount)
-    const tx=await EscrowContract.connect(payee1).claimLocksAndWithdraw([lock.jobId],[lock.token],[lock.payer],[claimedAmount],[0]);
+    const tx=await EscrowContract.connect(payee1).claimLocksAndWithdraw([lock.jobId],[lock.token],[lock.payer],[claimedAmount],[0],[0],[[]]);
     const txReceipt = await tx.wait();
     const event = getEventFromTx(txReceipt, 'Canceled')
     assert(event, "Cannot find Canceled event")
@@ -693,7 +693,7 @@ it('Escrow - lock', async function () {
       EscrowContract.connect(payee2).createLock(5003, Mock20Contract.address, payer2.address, web3.utils.toWei("10"), 500)
     ).to.be.revertedWith("Exceeds maxLockCounts");
     // but bundleJobs claims 5001 first (frees a slot), then creates 5003 and reLocks 5002 -> all atomic
-    const claims = [{ jobId: 5001, token: Mock20Contract.address, payer: payer2.address, amount: web3.utils.toWei("10"), proof: "0x" }];
+    const claims = [{ jobId: 5001, token: Mock20Contract.address, payer: payer2.address, amount: web3.utils.toWei("10"), proof: "0x", jobType: 0, subsidyProviders: [] }];
     const cancels = [];
     const newLocks = [{ jobId: 5003, token: Mock20Contract.address, payer: payer2.address, amount: web3.utils.toWei("10"), expiry: 500 }];
     const reLocks = [{ jobId: 5002, token: Mock20Contract.address, payer: payer2.address, amount: web3.utils.toWei("15"), expiry: 400 }];
@@ -738,5 +738,759 @@ it('Escrow - lock', async function () {
 
   it('Escrow - bundleJobs with all-empty arrays is a no-op', async function () {
     await EscrowContract.connect(payee2).bundleJobs([], [], [], []);
+  });
+});
+
+// ===================== Subsidy Providers (EnterpriseEscrow / EnterpriseFeeCollector) ==============
+// Ported from the green `Escrow - Subsidy Providers` suite and adapted to EnterpriseEscrow's fee
+// model: the fee is computed via IEnterpriseFeeCollector.calculateFee(token, amount+bonus) and sent
+// to the fee-collector CONTRACT (opcCollector). The math tests run the collector in proportional
+// mode (setRate); the payout-clamp test runs it in fixed-fee mode (setFee).
+describe('EnterpriseEscrow - Subsidy Providers', function () {
+  const P = (n) => ethers.utils.parseEther(n);
+  const D6 = (n) => ethers.utils.parseUnits(n, 6);
+  const MAXU = ethers.constants.MaxUint256;
+
+  let deployer, node, node2, payer, payer2, eoa;
+  let Escrow, FeeCollF, MockErc20, MockErc20Decimals, ProviderF, JunkF, FbF, RevF, FoTF, NoRetF;
+  let feeCollector, escrow, T18, T6;
+  let opcFee; // per-1e18 rate mirrored into JS for local math
+  let jobSeq = 1;
+  const tracked = new Set();
+
+  const feeOf = (base) => base.mul(opcFee).div(P('1'));
+  const addUser = (a) => tracked.add(a);
+
+  // proportional-fee mode: mirrors the Escrow suite's setFee() but drives the enterprise collector
+  async function setRate(rate) {
+    opcFee = rate;
+    await feeCollector.setRate(rate);
+  }
+  async function fund(token, who, amount) { await token.connect(deployer).transfer(who, amount); }
+  async function deposit(who, token, amount) {
+    await token.connect(who).approve(escrow.address, MAXU);
+    await escrow.connect(who).deposit(token.address, amount);
+    addUser(who.address);
+  }
+  async function authorize(payerS, nodeAddr, token, maxLocked) {
+    await escrow.connect(payerS).authorize(token.address, nodeAddr, maxLocked, 1000000, 1000);
+  }
+  async function createLock(nodeS, token, payerS, amount, expiry) {
+    const jobId = jobSeq++;
+    await escrow.connect(nodeS).createLock(jobId, token.address, payerS.address, amount, expiry || 100000);
+    return jobId;
+  }
+  async function newProvider(token, subsidy, bonus, budget, balance) {
+    const p = await ProviderF.deploy(escrow.address, token.address);
+    await p.deployed();
+    await p.configure(subsidy, bonus, budget === undefined ? P('1000000') : budget);
+    if (balance === undefined) balance = P('1000000');
+    if (balance.gt && balance.gt(0)) await fund(token, p.address, balance);
+    return p;
+  }
+  function subsidizedEvents(rc) { return rc.events ? rc.events.filter(e => e.event === 'Subsidized') : []; }
+  async function assertSolvent(token, { allowDust = false } = {}) {
+    let sum = ethers.BigNumber.from(0);
+    for (const u of tracked) {
+      const f = await escrow.getUserFunds(u, token.address);
+      sum = sum.add(f.available).add(f.locked);
+    }
+    const bal = await token.balanceOf(escrow.address);
+    // fees leave the escrow to the collector contract, so they are NOT part of the obligations
+    if (allowDust) expect(bal.gte(sum), `escrow ${bal} >= obligations ${sum}`).to.equal(true);
+    else expect(bal).to.equal(sum);
+    return { bal, sum };
+  }
+
+  before(async function () {
+    const s = await ethers.getSigners();
+    deployer = s[0]; node = s[1]; node2 = s[2]; payer = s[4]; payer2 = s[5]; eoa = s[9];
+    Escrow = await ethers.getContractFactory('EnterpriseEscrow');
+    FeeCollF = await ethers.getContractFactory('MockEnterpriseFeeCollector');
+    MockErc20 = await ethers.getContractFactory('MockERC20');
+    MockErc20Decimals = await ethers.getContractFactory('MockERC20Decimals');
+    ProviderF = await ethers.getContractFactory('MockSubsidyProvider');
+    JunkF = await ethers.getContractFactory('MaliciousReturnDataToken');
+    FbF = await ethers.getContractFactory('FallbackReturningTwoUints');
+    RevF = await ethers.getContractFactory('RevertingFallback');
+    FoTF = await ethers.getContractFactory('MockERC20FeeOnTransfer');
+    NoRetF = await ethers.getContractFactory('MockERC20NoReturn');
+
+    T18 = await MockErc20.deploy(deployer.address, 'ES18', 'ES18');
+    await T18.deployed();
+    T6 = await MockErc20Decimals.deploy('ES6', 'ES6', 6);
+    await T6.deployed();
+    // EnterpriseEscrow takes a single ctor arg: the fee-collector contract address.
+    feeCollector = await FeeCollF.deploy();
+    await feeCollector.deployed();
+    escrow = await Escrow.deploy(feeCollector.address);
+    await escrow.deployed();
+    await setRate(P('0.1')); // 10% proportional default (also passes the createLock fee gate: fee<amount)
+
+    // fund the payers with the freshly-deployed subsidy-test tokens; providers are funded per-test.
+    await fund(T18, payer.address, P('1000000'));
+    await fund(T18, payer2.address, P('1000000'));
+    await fund(T6, payer.address, D6('1000000'));
+    await fund(T6, payer2.address, D6('1000000'));
+
+    // Solvency accounting counts every address holding escrow bookkeeping, including the payee nodes
+    // that accumulate payout across tests (they never withdraw). The fee collector is NOT tracked -
+    // fees leave the escrow to the collector's own balance.
+    addUser(payer.address); addUser(payer2.address);
+    addUser(node.address); addUser(node2.address);
+  });
+
+  // 1. single provider, partial subsidy (worked example A)
+  it('1 single provider partial subsidy (example A)', async function () {
+    await deposit(payer, T18, P('10'));
+    await authorize(payer, node.address, T18, P('100'));
+    const jobId = await createLock(node, T18, payer, P('10'));
+    const prov = await newProvider(T18, P('3'), P('0'));
+
+    const before = {
+      payer: await escrow.getUserFunds(payer.address, T18.address),
+      node: await escrow.getUserFunds(node.address, T18.address),
+      prov: await T18.balanceOf(prov.address),
+      fee: await T18.balanceOf(feeCollector.address),
+    };
+    const rc = await (await escrow.connect(node).claimLock(
+      jobId, T18.address, payer.address, P('10'), '0x', 7, [prov.address])).wait();
+    const ev = subsidizedEvents(rc);
+    expect(ev.length).to.equal(1);
+    expect(ev[0].args.subsidyAmount).to.equal(P('3'));
+    expect(ev[0].args.bonusAmount).to.equal(P('0'));
+
+    const payoutBase = P('10'); // amount + bonus(0)
+    const payout = payoutBase.sub(feeOf(payoutBase)); // 9
+    const after = {
+      payer: await escrow.getUserFunds(payer.address, T18.address),
+      node: await escrow.getUserFunds(node.address, T18.address),
+      prov: await T18.balanceOf(prov.address),
+      fee: await T18.balanceOf(feeCollector.address),
+    };
+    expect(after.payer.available.sub(before.payer.available)).to.equal(P('3')); // subsidy back
+    expect(before.payer.locked.sub(after.payer.locked)).to.equal(P('10'));
+    expect(after.node.available.sub(before.node.available)).to.equal(payout);
+    expect(before.prov.sub(after.prov)).to.equal(P('3'));
+    expect(after.fee.sub(before.fee)).to.equal(feeOf(payoutBase)); // 1
+    await assertSolvent(T18);
+  });
+
+  // 2. bonus only (worked example B)
+  it('2 bonus only (example B)', async function () {
+    await deposit(payer, T18, P('10'));
+    const jobId = await createLock(node, T18, payer, P('10'));
+    const prov = await newProvider(T18, P('0'), P('1'));
+
+    const bPayer = await escrow.getUserFunds(payer.address, T18.address);
+    const bNode = await escrow.getUserFunds(node.address, T18.address);
+    const bProv = await T18.balanceOf(prov.address);
+    const bFee = await T18.balanceOf(feeCollector.address);
+
+    const rc = await (await escrow.connect(node).claimLock(
+      jobId, T18.address, payer.address, P('10'), '0x', 0, [prov.address])).wait();
+    const ev = subsidizedEvents(rc);
+    expect(ev.length).to.equal(1);
+    expect(ev[0].args.subsidyAmount).to.equal(0);
+    expect(ev[0].args.bonusAmount).to.equal(P('1'));
+
+    const payoutBase = P('11'); // 10 + bonus 1
+    const payout = payoutBase.sub(feeOf(payoutBase)); // 11 - 1.1 = 9.9
+    const aPayer = await escrow.getUserFunds(payer.address, T18.address);
+    const aNode = await escrow.getUserFunds(node.address, T18.address);
+    expect(aPayer.available.sub(bPayer.available)).to.equal(0); // no subsidy back
+    expect(aNode.available.sub(bNode.available)).to.equal(payout);
+    expect(bProv.sub(await T18.balanceOf(prov.address))).to.equal(P('1'));
+    expect((await T18.balanceOf(feeCollector.address)).sub(bFee)).to.equal(feeOf(payoutBase));
+    await assertSolvent(T18);
+  });
+
+  // 3. subsidy + bonus combined
+  it('3 subsidy + bonus combined', async function () {
+    await deposit(payer, T18, P('10'));
+    const jobId = await createLock(node, T18, payer, P('10'));
+    const prov = await newProvider(T18, P('3'), P('2'));
+    const bPayer = await escrow.getUserFunds(payer.address, T18.address);
+    const bNode = await escrow.getUserFunds(node.address, T18.address);
+    const bProv = await T18.balanceOf(prov.address);
+
+    await (await escrow.connect(node).claimLock(
+      jobId, T18.address, payer.address, P('10'), '0x', 0, [prov.address])).wait();
+    const payoutBase = P('12');
+    const payout = payoutBase.sub(feeOf(payoutBase));
+    expect((await escrow.getUserFunds(payer.address, T18.address)).available.sub(bPayer.available)).to.equal(P('3'));
+    expect((await escrow.getUserFunds(node.address, T18.address)).available.sub(bNode.available)).to.equal(payout);
+    expect(bProv.sub(await T18.balanceOf(prov.address))).to.equal(P('5'));
+    await assertSolvent(T18);
+  });
+
+  // 3b. two providers, subsidy accumulation + bonus (worked example C)
+  it('3b two providers accumulate subsidy + bonus (example C)', async function () {
+    await deposit(payer, T18, P('10'));
+    const jobId = await createLock(node, T18, payer, P('10'));
+    const p1 = await newProvider(T18, P('1'), P('1'));
+    const p2 = await newProvider(T18, P('3'), P('0'));
+    const bPayer = await escrow.getUserFunds(payer.address, T18.address);
+    const bNode = await escrow.getUserFunds(node.address, T18.address);
+    const b1 = await T18.balanceOf(p1.address);
+    const b2 = await T18.balanceOf(p2.address);
+
+    const rc = await (await escrow.connect(node).claimLock(
+      jobId, T18.address, payer.address, P('10'), '0x', 0, [p1.address, p2.address])).wait();
+    const ev = subsidizedEvents(rc);
+    expect(ev.length).to.equal(2);
+    expect(ev[0].args.subsidyAmount).to.equal(P('1'));
+    expect(ev[0].args.bonusAmount).to.equal(P('1'));
+    expect(ev[1].args.subsidyAmount).to.equal(P('3'));
+    expect(ev[1].args.bonusAmount).to.equal(P('0'));
+
+    const payoutBase = P('11'); // 10 + total bonus 1
+    const payout = payoutBase.sub(feeOf(payoutBase));
+    expect((await escrow.getUserFunds(payer.address, T18.address)).available.sub(bPayer.available)).to.equal(P('4'));
+    expect((await escrow.getUserFunds(node.address, T18.address)).available.sub(bNode.available)).to.equal(payout);
+    expect(b1.sub(await T18.balanceOf(p1.address))).to.equal(P('2'));
+    expect(b2.sub(await T18.balanceOf(p2.address))).to.equal(P('3'));
+    await assertSolvent(T18);
+  });
+
+  // 4. multiple providers accumulate & cap + subsidyNeeded hint, no early break
+  it('4 cap subsidy + subsidyNeeded hint + no early break bonus', async function () {
+    await deposit(payer, T18, P('10'));
+    const jobId = await createLock(node, T18, payer, P('10'));
+    // p1,p2 fully cover (5+5); p3 offers subsidy 4 (dropped, remaining 0) but a bonus 2 (still taken)
+    const p1 = await newProvider(T18, P('5'), P('0'));
+    const p2 = await newProvider(T18, P('5'), P('0'));
+    const p3 = await newProvider(T18, P('4'), P('2'));
+    const bNode = await escrow.getUserFunds(node.address, T18.address);
+    const bPayer = await escrow.getUserFunds(payer.address, T18.address);
+
+    const rc = await (await escrow.connect(node).claimLock(
+      jobId, T18.address, payer.address, P('10'), '0x', 0, [p1.address, p2.address, p3.address])).wait();
+    // p3 was called with subsidyNeeded == 0 (fully covered by p1+p2) yet still contributed a bonus
+    expect(await p3.lastSubsidyNeeded()).to.equal(0);
+    const ev = subsidizedEvents(rc);
+    // p1(5,0), p2(5,0), p3(0 subsidy capped, bonus 2)
+    expect(ev.length).to.equal(3);
+    expect(ev[2].args.subsidyAmount).to.equal(0);
+    expect(ev[2].args.bonusAmount).to.equal(P('2'));
+    const payoutBase = P('12'); // 10 + bonus 2
+    expect((await escrow.getUserFunds(payer.address, T18.address)).available.sub(bPayer.available)).to.equal(P('10')); // capped
+    expect((await escrow.getUserFunds(node.address, T18.address)).available.sub(bNode.available)).to.equal(payoutBase.sub(feeOf(payoutBase)));
+    await assertSolvent(T18);
+  });
+
+  // 5. provider reverts -> contributes 0, claim succeeds
+  it('5 provider reverts, claim still succeeds', async function () {
+    await deposit(payer, T18, P('10'));
+    const jobId = await createLock(node, T18, payer, P('10'));
+    const prov = await newProvider(T18, P('3'), P('1'));
+    await prov.setRevert(true);
+    const bNode = await escrow.getUserFunds(node.address, T18.address);
+    const bProv = await T18.balanceOf(prov.address);
+    const rc = await (await escrow.connect(node).claimLock(
+      jobId, T18.address, payer.address, P('10'), '0x', 0, [prov.address])).wait();
+    expect(subsidizedEvents(rc).length).to.equal(0);
+    expect((await escrow.getUserFunds(node.address, T18.address)).available.sub(bNode.available)).to.equal(P('10').sub(feeOf(P('10'))));
+    expect(await T18.balanceOf(prov.address)).to.equal(bProv); // nothing pulled
+    await assertSolvent(T18);
+  });
+
+  // 6. provider returns amounts but no allowance -> contributes 0
+  it('6 provider without approval contributes 0', async function () {
+    await deposit(payer, T18, P('10'));
+    const jobId = await createLock(node, T18, payer, P('10'));
+    const prov = await newProvider(T18, P('3'), P('1'));
+    await prov.setSkipApproval(true);
+    const bProv = await T18.balanceOf(prov.address);
+    const rc = await (await escrow.connect(node).claimLock(
+      jobId, T18.address, payer.address, P('10'), '0x', 0, [prov.address])).wait();
+    expect(subsidizedEvents(rc).length).to.equal(0);
+    expect(await T18.balanceOf(prov.address)).to.equal(bProv);
+    await assertSolvent(T18);
+  });
+
+  // 7. provider returns (0,0) -> no transfer, no event
+  it('7 provider returns (0,0)', async function () {
+    await deposit(payer, T18, P('10'));
+    const jobId = await createLock(node, T18, payer, P('10'));
+    const prov = await newProvider(T18, P('0'), P('0'));
+    const rc = await (await escrow.connect(node).claimLock(
+      jobId, T18.address, payer.address, P('10'), '0x', 0, [prov.address])).wait();
+    expect(subsidizedEvents(rc).length).to.equal(0);
+    await assertSolvent(T18);
+  });
+
+  // 8. empty providers via claimLock behaves like claimLock
+  it('8 empty providers behaves like claimLock', async function () {
+    await deposit(payer, T18, P('10'));
+    const jobId = await createLock(node, T18, payer, P('10'));
+    const bNode = await escrow.getUserFunds(node.address, T18.address);
+    const rc = await (await escrow.connect(node).claimLock(
+      jobId, T18.address, payer.address, P('10'), '0x', 0, [])).wait();
+    expect(subsidizedEvents(rc).length).to.equal(0);
+    expect((await escrow.getUserFunds(node.address, T18.address)).available.sub(bNode.available)).to.equal(P('10').sub(feeOf(P('10'))));
+    await assertSolvent(T18);
+  });
+
+  // 9. EnterpriseEscrow-specific: payout clamps to 0 AND the fee is capped at payoutBase when the
+  // (fixed) fee >= amount+bonus. The Escrow variant charges a proportional router fee that can never
+  // exceed the base; the enterprise collector can return an arbitrary fixed fee, so _creditPayout
+  // must (a) not underflow-revert (a claim DoS) and (b) cap the fee at payoutBase so the escrow never
+  // transfers out more than this claim's base — otherwise the excess would be drained from the shared
+  // pool and break solvency. With the cap, node gets 0, the collector gets exactly payoutBase, and the
+  // escrow stays STRICTLY solvent (asserted below).
+  it('9 payout clamps to 0 and fee is capped at payoutBase (no underflow, stays solvent)', async function () {
+    const TC = await MockErc20.deploy(deployer.address, 'CLMP', 'CLMP');
+    await TC.deployed();
+    await fund(TC, payer.address, P('100'));
+    await deposit(payer, TC, P('10'));
+    await authorize(payer, node.address, TC, P('100'));
+    // rate mode still active here: fee on the lock amount is 1 < 10, so the createLock gate passes
+    const jobId = await createLock(node, TC, payer, P('10'));
+    // switch collector to fixed-fee mode with fee strictly greater than payoutBase (=10)
+    await feeCollector.setFee(P('15'));
+    const bNode = await escrow.getUserFunds(node.address, TC.address);
+    const bColl = await TC.balanceOf(feeCollector.address);
+    const rc = await (await escrow.connect(node).claimLock(
+      jobId, TC.address, payer.address, P('10'), '0x', 0, [])).wait();
+    assert(getEventFromTx(rc, 'Claimed'), 'expected Claimed (claim must not underflow-revert)');
+    // payout clamped to 0 (payoutBase 10 < fee 15); node gains nothing
+    expect((await escrow.getUserFunds(node.address, TC.address)).available.sub(bNode.available)).to.equal(0);
+    // fee is CAPPED at payoutBase (10), not the full 15 — so the shared pool is never dipped
+    expect((await TC.balanceOf(feeCollector.address)).sub(bColl)).to.equal(P('10'));
+    // and the escrow remains strictly solvent for this token
+    await assertSolvent(TC);
+    // restore proportional mode for the remaining tests (and their createLock fee gates)
+    await setRate(P('0.1'));
+  });
+
+  // 10. fee base = amount + bonus (not amount, not reduced by subsidy)
+  it('10 fee is charged on amount + bonus', async function () {
+    await deposit(payer, T18, P('10'));
+    const jobId = await createLock(node, T18, payer, P('10'));
+    const prov = await newProvider(T18, P('4'), P('2')); // subsidy 4, bonus 2
+    const bFee = await T18.balanceOf(feeCollector.address);
+    await (await escrow.connect(node).claimLock(
+      jobId, T18.address, payer.address, P('10'), '0x', 0, [prov.address])).wait();
+    const feeCharged = (await T18.balanceOf(feeCollector.address)).sub(bFee);
+    expect(feeCharged).to.equal(feeOf(P('12'))); // on amount+bonus
+    expect(feeCharged).to.not.equal(feeOf(P('10'))); // not on amount alone
+    await assertSolvent(T18);
+  });
+
+  // 11. partial claim + subsidy + bonus
+  it('11 partial claim + subsidy + bonus', async function () {
+    await deposit(payer, T18, P('10'));
+    const jobId = await createLock(node, T18, payer, P('10'));
+    const prov = await newProvider(T18, P('2'), P('1'));
+    const bPayer = await escrow.getUserFunds(payer.address, T18.address);
+    const bNode = await escrow.getUserFunds(node.address, T18.address);
+    await (await escrow.connect(node).claimLock(
+      jobId, T18.address, payer.address, P('6'), '0x', 0, [prov.address])).wait();
+    // payer back = (10-6) unclaimed + 2 subsidy = 6
+    expect((await escrow.getUserFunds(payer.address, T18.address)).available.sub(bPayer.available)).to.equal(P('6'));
+    const payoutBase = P('7'); // 6 + bonus 1
+    expect((await escrow.getUserFunds(node.address, T18.address)).available.sub(bNode.available)).to.equal(payoutBase.sub(feeOf(payoutBase)));
+    await assertSolvent(T18);
+  });
+
+  // 12. reject-partial (fee-on-transfer token) -> contributes 0
+  it('12 reject-partial fee-on-transfer token', async function () {
+    const fot = await FoTF.deploy();
+    await fot.deployed();
+    await fund(fot, payer.address, P('100'));
+    await fot.connect(payer).approve(escrow.address, MAXU);
+    await escrow.connect(payer).deposit(fot.address, P('10'));
+    addUser(payer.address);
+    await authorize(payer, node.address, fot, P('100'));
+    const jobId = await createLock(node, fot, payer, P('10'));
+    // provider on this token
+    const prov = await ProviderF.deploy(escrow.address, fot.address);
+    await prov.deployed();
+    await prov.configure(P('3'), P('0'), P('1000'));
+    await fund(fot, prov.address, P('1000'));
+    await fot.setFee(true, 1000); // 10% fee on transferFrom -> under-delivery
+    const bProv = await fot.balanceOf(prov.address);
+    const rc = await (await escrow.connect(node).claimLock(
+      jobId, fot.address, payer.address, P('10'), '0x', 0, [prov.address])).wait();
+    expect(subsidizedEvents(rc).length).to.equal(0); // rejected
+    // provider still lost the pulled tokens (stuck dust) - documented forfeit
+    expect(bProv.sub(await fot.balanceOf(prov.address))).to.equal(P('3'));
+    await fot.setFee(false, 0);
+    // escrow solvent for fot: obligations tracked only for payer/node
+    let sum = ethers.BigNumber.from(0);
+    for (const u of [payer.address, node.address]) {
+      const f = await escrow.getUserFunds(u, fot.address); sum = sum.add(f.available).add(f.locked);
+    }
+    expect((await fot.balanceOf(escrow.address)).gte(sum)).to.equal(true);
+  });
+
+  // 13. bundleJobs
+  it('13 bundleJobs', async function () {
+    await deposit(payer, T18, P('30'));
+    await authorize(payer, node.address, T18, P('100'));
+    const jobId = await createLock(node, T18, payer, P('10'));
+    const prov = await newProvider(T18, P('3'), P('1'));
+    const bNode = await escrow.getUserFunds(node.address, T18.address);
+    const claims = [{ jobId, token: T18.address, payer: payer.address, amount: P('10'), proof: '0x', jobType: 5, subsidyProviders: [prov.address] }];
+    const newLocks = [{ jobId: jobSeq++, token: T18.address, payer: payer.address, amount: P('5'), expiry: 100000 }];
+    const rc = await (await escrow.connect(node).bundleJobs(claims, [], newLocks, [])).wait();
+    expect(subsidizedEvents(rc).length).to.equal(1);
+    const payoutBase = P('11');
+    expect((await escrow.getUserFunds(node.address, T18.address)).available.sub(bNode.available)).to.equal(payoutBase.sub(feeOf(payoutBase)));
+    await assertSolvent(T18);
+  });
+
+  // 14. plural parity + length-mismatch reverts
+  it('14 claimLocks / AndWithdraw parity + length checks', async function () {
+    await deposit(payer, T18, P('30'));
+    await authorize(payer, node.address, T18, P('100'));
+    const j1 = await createLock(node, T18, payer, P('10'));
+    const j2 = await createLock(node, T18, payer, P('10'));
+    const p1 = await newProvider(T18, P('3'), P('0'));
+    const p2 = await newProvider(T18, P('0'), P('2'));
+    // length mismatch reverts
+    await expect(escrow.connect(node).claimLocks(
+      [j1, j2], [T18.address], [payer.address, payer.address], [P('10'), P('10')], ['0x', '0x'], [1, 2], [[p1.address], [p2.address]]
+    )).to.be.revertedWith('Invalid input');
+    const bNode = await escrow.getUserFunds(node.address, T18.address);
+    await (await escrow.connect(node).claimLocks(
+      [j1, j2], [T18.address, T18.address], [payer.address, payer.address], [P('10'), P('10')], ['0x', '0x'], [1, 2], [[p1.address], [p2.address]]
+    )).wait();
+    const expNode = P('10').sub(feeOf(P('10'))).add(P('12').sub(feeOf(P('12'))));
+    expect((await escrow.getUserFunds(node.address, T18.address)).available.sub(bNode.available)).to.equal(expNode);
+    await assertSolvent(T18);
+
+    // AndWithdraw variant withdraws to node wallet
+    await authorize(payer, node2.address, T18, P('100'));
+    const j3 = await createLock(node2, T18, payer, P('10'));
+    const j3b = await createLock(node2, T18, payer, P('10'));
+    const p3 = await newProvider(T18, P('2'), P('0'));
+    const walletBefore = await T18.balanceOf(node2.address);
+    await (await escrow.connect(node2).claimLocksAndWithdraw(
+      [j3, j3b], [T18.address, T18.address], [payer.address, payer.address], [P('10'), P('10')], ['0x', '0x'], [0, 0], [[p3.address], []]
+    )).wait();
+    const gained = (await T18.balanceOf(node2.address)).sub(walletBefore);
+    expect(gained).to.equal(P('10').sub(feeOf(P('10'))).mul(2));
+    addUser(node2.address);
+    await assertSolvent(T18);
+  });
+
+  // 15. USDT-style no-return token works
+  it('15 USDT-style no-return token', async function () {
+    const nr = await NoRetF.deploy();
+    await nr.deployed();
+    await nr.transfer(payer.address, P('100'));
+    await nr.connect(payer).approve(escrow.address, MAXU);
+    await escrow.connect(payer).deposit(nr.address, P('10'));
+    await authorize(payer, node.address, nr, P('100'));
+    const jobId = await createLock(node, nr, payer, P('10'));
+    const prov = await ProviderF.deploy(escrow.address, nr.address);
+    await prov.deployed();
+    await prov.configure(P('3'), P('1'), P('1000'));
+    await nr.transfer(prov.address, P('1000'));
+    const bNode = await escrow.getUserFunds(node.address, nr.address);
+    const rc = await (await escrow.connect(node).claimLock(
+      jobId, nr.address, payer.address, P('10'), '0x', 0, [prov.address])).wait();
+    expect(subsidizedEvents(rc).length).to.equal(1);
+    const payoutBase = P('11');
+    expect((await escrow.getUserFunds(node.address, nr.address)).available.sub(bNode.available)).to.equal(payoutBase.sub(feeOf(payoutBase)));
+  });
+
+  // 16. EOA / payer as provider -> contributes 0
+  it('16 EOA and payer-as-provider are skipped', async function () {
+    await deposit(payer, T18, P('10'));
+    const jobId = await createLock(node, T18, payer, P('10'));
+    const bNode = await escrow.getUserFunds(node.address, T18.address);
+    const bPayerBal = await T18.balanceOf(payer.address);
+    const rc = await (await escrow.connect(node).claimLock(
+      jobId, T18.address, payer.address, P('10'), '0x', 0, [eoa.address, payer.address])).wait();
+    expect(subsidizedEvents(rc).length).to.equal(0);
+    expect((await escrow.getUserFunds(node.address, T18.address)).available.sub(bNode.available)).to.equal(P('10').sub(feeOf(P('10'))));
+    expect(await T18.balanceOf(payer.address)).to.equal(bPayerBal); // payer wallet untouched
+    await assertSolvent(T18);
+  });
+
+  // 16b. A contract provider (passes the code.length guard) whose onSubsidyClaim returns <64 bytes
+  // must contribute 0 and NOT brick the claim (a high-level try/catch would not catch the decode).
+  it('16b short-return provider (<64 bytes) contributes 0 and does not brick the claim', async function () {
+    const shortProv = await (await ethers.getContractFactory('MockShortReturnProvider')).deploy();
+    await shortProv.deployed();
+    await deposit(payer, T18, P('10'));
+    const jobId = await createLock(node, T18, payer, P('10'));
+    const bNode = await escrow.getUserFunds(node.address, T18.address);
+    const rc = await (await escrow.connect(node).claimLock(
+      jobId, T18.address, payer.address, P('10'), '0x', 0, [shortProv.address])).wait();
+    expect(subsidizedEvents(rc).length).to.equal(0);
+    expect((await escrow.getUserFunds(node.address, T18.address)).available.sub(bNode.available)).to.equal(P('10').sub(feeOf(P('10'))));
+    await assertSolvent(T18);
+  });
+
+  // 17. payer userTokens re-tracked after subsidy refund
+  it('17 payer userTokens re-tracked on subsidy refund', async function () {
+    await deposit(payer2, T18, P('20'));
+    await authorize(payer2, node.address, T18, P('100'));
+    const jobId = await createLock(node, T18, payer2, P('10'));
+    // withdraw the remaining available (10) so the token is removed from payer2 userTokens
+    await escrow.connect(payer2).withdraw([T18.address], [P('10')]);
+    expect(await escrow.getUserTokens(payer2.address)).does.not.include(T18.address);
+    const prov = await newProvider(T18, P('5'), P('0'));
+    await (await escrow.connect(node).claimLock(
+      jobId, T18.address, payer2.address, P('10'), '0x', 0, [prov.address])).wait();
+    expect(await escrow.getUserTokens(payer2.address)).to.include(T18.address);
+    await assertSolvent(T18);
+  });
+
+  // 18. expired lock + providers -> cancels, no subsidy pulled
+  it('18 expired lock cancels, no subsidy/bonus', async function () {
+    await deposit(payer, T18, P('10'));
+    const jobId = await createLock(node, T18, payer, P('10'), 50);
+    const prov = await newProvider(T18, P('3'), P('1'));
+    await fastForward(100);
+    const bProv = await T18.balanceOf(prov.address);
+    const rc = await (await escrow.connect(node).claimLock(
+      jobId, T18.address, payer.address, P('10'), '0x', 0, [prov.address])).wait();
+    assert(getEventFromTx(rc, 'Canceled'), 'expected Canceled');
+    expect(subsidizedEvents(rc).length).to.equal(0);
+    expect(await T18.balanceOf(prov.address)).to.equal(bProv);
+    await assertSolvent(T18);
+  });
+
+  // 19. subsidy cap boundaries 9 / 10 / 11
+  it('19 subsidy cap boundaries', async function () {
+    for (const [totalSub, expectBack] of [[P('9'), P('9')], [P('10'), P('10')], [P('11'), P('10')]]) {
+      await deposit(payer, T18, P('10'));
+      const jobId = await createLock(node, T18, payer, P('10'));
+      const prov = await newProvider(T18, totalSub, P('0'));
+      const bPayer = await escrow.getUserFunds(payer.address, T18.address);
+      await (await escrow.connect(node).claimLock(
+        jobId, T18.address, payer.address, P('10'), '0x', 0, [prov.address])).wait();
+      expect((await escrow.getUserFunds(payer.address, T18.address)).available.sub(bPayer.available)).to.equal(expectBack);
+      await assertSolvent(T18);
+    }
+  });
+
+  // 20. fee rounding / non-even + zero fee + high fee
+  it('20 fee rounding, zero fee, high fee', async function () {
+    // non-even 33.3333...%
+    await setRate(P('0.333333333333333333'));
+    await deposit(payer, T18, P('10'));
+    let jobId = await createLock(node, T18, payer, P('7'));
+    let bNode = await escrow.getUserFunds(node.address, T18.address);
+    let bFee = await T18.balanceOf(feeCollector.address);
+    await (await escrow.connect(node).claimLock(jobId, T18.address, payer.address, P('7'), '0x', 0, [])).wait();
+    const fee7 = feeOf(P('7'));
+    expect((await T18.balanceOf(feeCollector.address)).sub(bFee)).to.equal(fee7);
+    expect((await escrow.getUserFunds(node.address, T18.address)).available.sub(bNode.available)).to.equal(P('7').sub(fee7));
+    await assertSolvent(T18);
+
+    // zero fee -> payout == payoutBase
+    await setRate(P('0'));
+    jobId = await createLock(node, T18, payer, P('3'));
+    bNode = await escrow.getUserFunds(node.address, T18.address);
+    bFee = await T18.balanceOf(feeCollector.address);
+    await (await escrow.connect(node).claimLock(jobId, T18.address, payer.address, P('3'), '0x', 0, [])).wait();
+    expect((await T18.balanceOf(feeCollector.address)).sub(bFee)).to.equal(0);
+    expect((await escrow.getUserFunds(node.address, T18.address)).available.sub(bNode.available)).to.equal(P('3'));
+
+    // high fee 90%
+    await setRate(P('0.9'));
+    await deposit(payer, T18, P('10'));
+    jobId = await createLock(node, T18, payer, P('10'));
+    bNode = await escrow.getUserFunds(node.address, T18.address);
+    await (await escrow.connect(node).claimLock(jobId, T18.address, payer.address, P('10'), '0x', 0, [])).wait();
+    expect((await escrow.getUserFunds(node.address, T18.address)).available.sub(bNode.available)).to.equal(P('10').sub(feeOf(P('10'))));
+    await assertSolvent(T18);
+    await setRate(P('0.1')); // restore
+  });
+
+  // 21. decimals parity (6-decimal token), examples A and C
+  it('21 decimals parity (6-decimal token)', async function () {
+    await fund(T6, payer.address, D6('1000'));
+    await T6.connect(payer).approve(escrow.address, MAXU);
+    await escrow.connect(payer).deposit(T6.address, D6('10'));
+    addUser(payer.address);
+    await escrow.connect(payer).authorize(T6.address, node.address, D6('1000'), 1000000, 1000);
+    // example A: subsidy 3, bonus 0
+    let jobId = await createLock(node, T6, payer, D6('10'));
+    let provA = await ProviderF.deploy(escrow.address, T6.address); await provA.deployed();
+    await provA.configure(D6('3'), D6('0'), D6('1000')); await fund(T6, provA.address, D6('1000'));
+    let bPayer = await escrow.getUserFunds(payer.address, T6.address);
+    let bNode = await escrow.getUserFunds(node.address, T6.address);
+    await (await escrow.connect(node).claimLock(jobId, T6.address, payer.address, D6('10'), '0x', 0, [provA.address])).wait();
+    const fee10_6 = D6('10').mul(opcFee).div(P('1'));
+    expect((await escrow.getUserFunds(payer.address, T6.address)).available.sub(bPayer.available)).to.equal(D6('3'));
+    expect((await escrow.getUserFunds(node.address, T6.address)).available.sub(bNode.available)).to.equal(D6('10').sub(fee10_6));
+
+    // example C: p1(1,1) p2(3,0)
+    await escrow.connect(payer).deposit(T6.address, D6('10'));
+    jobId = await createLock(node, T6, payer, D6('10'));
+    let p1 = await ProviderF.deploy(escrow.address, T6.address); await p1.deployed();
+    await p1.configure(D6('1'), D6('1'), D6('1000')); await fund(T6, p1.address, D6('1000'));
+    let p2 = await ProviderF.deploy(escrow.address, T6.address); await p2.deployed();
+    await p2.configure(D6('3'), D6('0'), D6('1000')); await fund(T6, p2.address, D6('1000'));
+    bPayer = await escrow.getUserFunds(payer.address, T6.address);
+    bNode = await escrow.getUserFunds(node.address, T6.address);
+    await (await escrow.connect(node).claimLock(jobId, T6.address, payer.address, D6('10'), '0x', 0, [p1.address, p2.address])).wait();
+    const base11_6 = D6('11');
+    expect((await escrow.getUserFunds(payer.address, T6.address)).available.sub(bPayer.available)).to.equal(D6('4'));
+    expect((await escrow.getUserFunds(node.address, T6.address)).available.sub(bNode.available)).to.equal(base11_6.sub(base11_6.mul(opcFee).div(P('1'))));
+    await assertSolvent(T6);
+  });
+
+  // 22. fuzz / param loop: conservation + solvency
+  it('22 fuzz/param loop conservation + solvency', async function () {
+    const rates = [P('0'), P('0.1'), P('0.25'), P('0.333333333333333333')];
+    const cases = [
+      { amount: '10', subs: ['3'], bons: ['0'] },
+      { amount: '10', subs: ['0'], bons: ['1'] },
+      { amount: '10', subs: ['4', '4', '4'], bons: ['1', '0', '0'] },
+      { amount: '7', subs: ['2'], bons: ['3'] },
+      { amount: '10', subs: [], bons: [] },
+      { amount: '10', subs: ['11'], bons: ['2'] }, // over-cap
+    ];
+    for (const rate of rates) {
+      await setRate(rate);
+      for (const c of cases) {
+        await deposit(payer, T18, P(c.amount));
+        const jobId = await createLock(node, T18, payer, P(c.amount));
+        const provs = [];
+        for (let i = 0; i < c.subs.length; i++) provs.push(await newProvider(T18, P(c.subs[i]), P(c.bons[i])));
+        const bPayer = await escrow.getUserFunds(payer.address, T18.address);
+        const bNode = await escrow.getUserFunds(node.address, T18.address);
+        await (await escrow.connect(node).claimLock(
+          jobId, T18.address, payer.address, P(c.amount), '0x', 0, provs.map(p => p.address))).wait();
+        // expected accepted subsidy (capped at amount) and total bonus
+        let remaining = P(c.amount); let totalSub = ethers.BigNumber.from(0); let totalBonus = ethers.BigNumber.from(0);
+        for (let i = 0; i < c.subs.length; i++) {
+          const want = P(c.subs[i]).gt(remaining) ? remaining : P(c.subs[i]);
+          totalSub = totalSub.add(want); remaining = remaining.sub(want);
+          totalBonus = totalBonus.add(P(c.bons[i]));
+        }
+        const payoutBase = P(c.amount).add(totalBonus);
+        const fee = payoutBase.mul(rate).div(P('1'));
+        const payout = payoutBase.sub(fee);
+        // conservation: payout + fee == amount + bonus
+        expect(payout.add(fee)).to.equal(payoutBase);
+        expect((await escrow.getUserFunds(payer.address, T18.address)).available.sub(bPayer.available)).to.equal(totalSub);
+        expect((await escrow.getUserFunds(node.address, T18.address)).available.sub(bNode.available)).to.equal(payout);
+        await assertSolvent(T18);
+      }
+    }
+    await setRate(P('0.1'));
+  });
+
+  // 23. reentrancy blocked
+  it('23 reentrancy blocked on every new entrypoint + withdraw', async function () {
+    const dummyClaimData = [{ jobId: 1, token: T18.address, payer: payer.address, amount: 1, proof: '0x', jobType: 0, subsidyProviders: [] }];
+    const reentryCalldatas = [
+      escrow.interface.encodeFunctionData('claimLock', [1, T18.address, payer.address, 1, '0x', 0, []]),
+      escrow.interface.encodeFunctionData('claimLockAndWithdraw', [1, T18.address, payer.address, 1, '0x', 0, []]),
+      escrow.interface.encodeFunctionData('claimLocks', [[1], [T18.address], [payer.address], [1], ['0x'], [0], [[]]]),
+      escrow.interface.encodeFunctionData('claimLocksAndWithdraw', [[1], [T18.address], [payer.address], [1], ['0x'], [0], [[]]]),
+      escrow.interface.encodeFunctionData('bundleJobs', [dummyClaimData, [], [], []]),
+      escrow.interface.encodeFunctionData('withdraw', [[T18.address], [1]]),
+    ];
+    for (const cd of reentryCalldatas) {
+      await deposit(payer, T18, P('10'));
+      const jobId = await createLock(node, T18, payer, P('10'));
+      const prov = await newProvider(T18, P('3'), P('0'));
+      await prov.setReenter(true, cd);
+      const bProv = await T18.balanceOf(prov.address);
+      const rc = await (await escrow.connect(node).claimLock(
+        jobId, T18.address, payer.address, P('10'), '0x', 0, [prov.address])).wait();
+      // outer claim succeeds; provider contributed 0 (re-entry blocked)
+      expect(subsidizedEvents(rc).length).to.equal(0);
+      expect(await T18.balanceOf(prov.address)).to.equal(bProv);
+      expect(await prov.reenterReverted()).to.equal(true);
+      const revData = await prov.reenterRevertData();
+      const reason = ethers.utils.defaultAbiCoder.decode(['string'], '0x' + revData.slice(10))[0];
+      expect(reason).to.equal('ReentrancyGuard: reentrant call');
+      await assertSolvent(T18);
+    }
+  });
+
+  // 24. provider == payer rejected (covered in 16 too, explicit here)
+  it('24 provider == payer pulls nothing', async function () {
+    await deposit(payer, T18, P('10'));
+    const jobId = await createLock(node, T18, payer, P('10'));
+    const walletBefore = await T18.balanceOf(payer.address);
+    const rc = await (await escrow.connect(node).claimLock(
+      jobId, T18.address, payer.address, P('10'), '0x', 0, [payer.address])).wait();
+    expect(subsidizedEvents(rc).length).to.equal(0);
+    expect(await T18.balanceOf(payer.address)).to.equal(walletBefore);
+    await assertSolvent(T18);
+  });
+
+  // 25. arbitrary standing-allowance victim (documented residual) + skipped controls
+  it('25 fallback-returning-two-uints victim IS pulled; EOA/reverting skipped', async function () {
+    await deposit(payer, T18, P('10'));
+    const jobId = await createLock(node, T18, payer, P('10'));
+    const victim = await FbF.deploy(); await victim.deployed();
+    await victim.configure(P('3'), P('1')); // returns subsidy 3, bonus 1 from bare fallback
+    await fund(T18, victim.address, P('100'));
+    await victim.approveToken(T18.address, escrow.address, MAXU);
+    const rev = await RevF.deploy(); await rev.deployed();
+    const bVictim = await T18.balanceOf(victim.address);
+    // list: reverting contract (skipped), EOA (skipped), victim (pulled)
+    const rc = await (await escrow.connect(node).claimLock(
+      jobId, T18.address, payer.address, P('10'), '0x', 0, [rev.address, eoa.address, victim.address])).wait();
+    const ev = subsidizedEvents(rc);
+    expect(ev.length).to.equal(1); // only the victim contributed
+    expect(ev[0].args.provider).to.equal(victim.address);
+    expect(bVictim.sub(await T18.balanceOf(victim.address))).to.equal(P('4')); // residual exposure pinned
+    await assertSolvent(T18);
+  });
+
+  // 26. bogus quote cannot brick claim: bonus=maxuint, and junk-returndata token
+  it('26 bogus quote (bonus=max) and junk-returndata token skipped', async function () {
+    // bonus = type(uint256).max -> overflow-safe combine skips it
+    await deposit(payer, T18, P('10'));
+    let jobId = await createLock(node, T18, payer, P('10'));
+    const prov = await newProvider(T18, P('3'), P('0'));
+    await prov.setBonusMax(true);
+    let bNode = await escrow.getUserFunds(node.address, T18.address);
+    let rc = await (await escrow.connect(node).claimLock(
+      jobId, T18.address, payer.address, P('10'), '0x', 0, [prov.address])).wait();
+    expect(subsidizedEvents(rc).length).to.equal(0);
+    expect((await escrow.getUserFunds(node.address, T18.address)).available.sub(bNode.available)).to.equal(P('10').sub(feeOf(P('10'))));
+    await assertSolvent(T18);
+
+    // junk-returndata token: normal for deposit, junk on transferFrom during the pull
+    const junk = await JunkF.deploy(); await junk.deployed();
+    await fund(junk, payer.address, P('100'));
+    await junk.connect(payer).approve(escrow.address, MAXU);
+    await escrow.connect(payer).deposit(junk.address, P('10'));
+    await authorize(payer, node.address, junk, P('100'));
+    jobId = await createLock(node, junk, payer, P('10'));
+    const jprov = await ProviderF.deploy(escrow.address, junk.address); await jprov.deployed();
+    await jprov.configure(P('3'), P('0'), P('1000')); await fund(junk, jprov.address, P('1000'));
+    await junk.setJunkBytes(7); // return 7 junk bytes, move nothing
+    const bJprov = await junk.balanceOf(jprov.address);
+    bNode = await escrow.getUserFunds(node.address, junk.address);
+    rc = await (await escrow.connect(node).claimLock(
+      jobId, junk.address, payer.address, P('10'), '0x', 0, [jprov.address])).wait();
+    expect(subsidizedEvents(rc).length).to.equal(0); // skipped, claim succeeded
+    expect(await junk.balanceOf(jprov.address)).to.equal(bJprov);
+    expect((await escrow.getUserFunds(node.address, junk.address)).available.sub(bNode.available)).to.equal(P('10').sub(feeOf(P('10'))));
+    await junk.setJunkBytes(0);
+  });
+
+  // 27. list repetition + persisted budget
+  it('27 same provider listed 3x is consulted once (dedup) - no stacked grants', async function () {
+    await deposit(payer, T18, P('10'));
+    const jobId = await createLock(node, T18, payer, P('10'));
+    // provider would grant subsidy 2 per call; budget covers 2 draws, but dedup must limit it to ONE
+    const prov = await newProvider(T18, P('2'), P('0'), P('4'), P('100'));
+    const bPayer = await escrow.getUserFunds(payer.address, T18.address);
+    const bProv = await T18.balanceOf(prov.address);
+    const rc = await (await escrow.connect(node).claimLock(
+      jobId, T18.address, payer.address, P('10'), '0x', 0, [prov.address, prov.address, prov.address])).wait();
+    // consulted exactly ONCE despite 3 list entries -> a single grant of 2 (no 100%-via-repetition)
+    expect(await prov.callCount()).to.equal(1);
+    expect(subsidizedEvents(rc).length).to.equal(1);
+    expect((await escrow.getUserFunds(payer.address, T18.address)).available.sub(bPayer.available)).to.equal(P('2'));
+    expect(bProv.sub(await T18.balanceOf(prov.address))).to.equal(P('2')); // only one draw pulled
+    await assertSolvent(T18);
   });
 });

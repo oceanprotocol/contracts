@@ -36,7 +36,20 @@ module.exports = {
       },
 
     ],
-    overrides: {},
+    overrides: {
+      // The subsidy claim entrypoints take up to 7 dynamic array/calldata parameters, which the
+      // default (non-IR) code generator cannot ABI-decode without running out of stack. Enable the
+      // IR pipeline for just these two files; every other contract keeps the legacy pipeline.
+      // Must mirror hardhat.config.js (barge copies this file over hardhat.config.js at build time).
+      "contracts/escrow/Escrow.sol": {
+        version: "0.8.12",
+        settings: { optimizer: { enabled: true, runs: 200 }, viaIR: true },
+      },
+      "contracts/escrow/EnterpriseEscrow.sol": {
+        version: "0.8.12",
+        settings: { optimizer: { enabled: true, runs: 200 }, viaIR: true },
+      },
+    },
   },
   vyper: {
     compilers: [{ version: "0.3.1" }, { version: "0.2.15" }, { version: "0.2.7" }, { version: "0.2.4" }],
