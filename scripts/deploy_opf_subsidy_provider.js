@@ -19,7 +19,7 @@ const show_verify = true;
 // ---------------------------------------------------------------------------
 // OPF configuration (edit these const values)
 // ---------------------------------------------------------------------------
-const OPF_SUBSIDY_TOKEN = "";        // subsidy token address; "" => fall back to addresses.Ocean/OCEAN
+const OPF_SUBSIDY_TOKEN = "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913";        // subsidy token address; "" => fall back to addresses.Ocean/OCEAN
 const OPF_SUBSIDY_PCT_BPS = "10000"; // percentage-of-job ceiling in bps (10000 = 100%)
 const OPF_SUBSIDY_DAILY = "0";       // per-user daily cap in token wei ("0" = unlimited)
 const OPF_SUBSIDY_WEEKLY = "0";      // per-user weekly cap in token wei ("0" = unlimited)
@@ -78,7 +78,7 @@ async function main() {
       break;
     case 8453:
       networkName = "base";
-      OPFOwner = '0x4169e846f1524Cf0ac02Bd4B04fa33242709Cf64';
+      OPFOwner = '0x09b575B5eC7Fff24cbccC092DE9E36eADdDbEe71';
       gasPrice = ethers.utils.parseUnits('0.05', 'gwei');
       gasLimit = 6500000;
       break;
