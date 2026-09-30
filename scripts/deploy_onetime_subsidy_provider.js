@@ -23,8 +23,8 @@ const show_verify = true;
 const ONETIME_TOKEN = "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913"; // subsidy token; "" => fall back to addresses.Ocean/OCEAN
 const ONETIME_PCT_BPS = "0";              // OPTIONAL per-job ceiling in bps (0 = no per-job cap; whole credit usable in one job)
 const ONETIME_DEFAULT_CREDIT = "10000000"; // global one-time credit per user in token wei (10 USDC @ 6 decimals)
-const ONETIME_USER_ACCESS_LIST = "";      // user AccessList address ("" => user gate off)
-const ONETIME_NODE_ACCESS_LIST = "";      // node AccessList address ("" => node gate off)
+const ONETIME_USER_ACCESS_LIST = "0x6CFd3d3136c23f137a91180B2a55D731B73a6f26";      // user AccessList address ("" => user gate off)
+const ONETIME_NODE_ACCESS_LIST = "0x1F0Dd705eaa4fC1920fd782f59b752aEdF6694ef";      // node AccessList address ("" => node gate off)
 const ONETIME_ALLOWED_JOBTYPES = [];      // jobTypes to allow, e.g. ["1","2"] ([] => all allowed)
 const ONETIME_USER_OVERRIDES = [];        // per-user credit overrides: [{ addr: "0x..", amount: "20000000" }]
 // ---------------------------------------------------------------------------
