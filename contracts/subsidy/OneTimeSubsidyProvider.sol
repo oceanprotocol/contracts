@@ -51,7 +51,10 @@ import '@openzeppelin/contracts/utils/introspection/IERC165.sol';
  *      times in one claim can never double-spend.
  *
  *      OPERATOR NOTES (shared constraints of the subsidy design, same as OPFSubsidyProvider):
- *        - Enable only standard ERC20s. For a fee-on-transfer / under-delivering token the escrow's
+ *        - Non-standard `approve` IS handled: the just-in-time approve uses SafeERC20 zero-then-set, so
+ *          USDT-style tokens (no bool return, and "reset to zero before changing a non-zero allowance")
+ *          work.
+ *        - Do NOT enable fee-on-transfer / rebasing / under-delivering tokens: the escrow's
  *          reject-partial pull can leave a payer's credit marked used with NO subsidy delivered (a
  *          griefing/leak, never an over-drain: tokens out <= _used growth <= remaining credit). The
  *          provider cannot observe the escrow's received amount, so it cannot self-correct.
@@ -142,8 +145,13 @@ contract OneTimeSubsidyProvider is ISubsidyProvider, ISubsidyView, IERC165, Reen
         // EFFECTS before INTERACTION (CEI): (c) persist the per-round budget spend
         _used[payer][token][round] += grant;
 
-        // INTERACTION: just-in-time approve the escrow (msg.sender) to pull exactly `grant`
-        IERC20(token).approve(msg.sender, grant);
+        // INTERACTION: just-in-time approve the escrow (msg.sender) to pull exactly `grant`.
+        // Zero-then-set via SafeERC20 so non-standard tokens work: USDT-style approves that return no
+        // bool are handled by _callOptionalReturn, and clearing to 0 first satisfies tokens that forbid
+        // a non-zero -> non-zero allowance change AND clears any stale allowance left by an earlier
+        // reject-partial pull.
+        IERC20(token).safeApprove(msg.sender, 0);
+        IERC20(token).safeApprove(msg.sender, grant);
 
         emit SubsidyGranted(msg.sender, node, payer, token, grant, round);
         return (grant, 0); // bonus always 0

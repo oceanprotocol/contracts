@@ -445,6 +445,27 @@ describe('OneTimeSubsidyProvider (unit)', function () {
     await sub.connect(owner).unpause();
   });
 
+  it('16 USDT-style token (no-bool approve + zero-first rule) works via SafeERC20 zero-then-set', async function () {
+    const MockUSDT = await ethers.getContractFactory('MockUSDT');
+    const usdt = await MockUSDT.deploy(U('1000000')); await usdt.deployed();
+    await usdt.transfer(sub.address, U('1000000'));
+    await sub.connect(owner).setTokenConfig(usdt.address, 0, U('10'), true);
+    const payer = randAddr(), node = randAddr();
+    await allow(payer, node);
+
+    // First claim: sets a NON-ZERO allowance on a no-return token. A raw `approve` would revert while
+    // ABI-decoding the (absent) bool; safeApprove's _callOptionalReturn handles it.
+    await sub.connect(escrowSigner).onSubsidyClaim(node, payer, JOB, usdt.address, U('4'), U('4'));
+    expect(await usdt.allowance(sub.address, escrowSigner.address)).to.equal(U('4'));
+
+    // The escrow signer doesn't pull, so the allowance stays 4 (non-zero). Reset the user for fresh
+    // credit and claim again: the zero-then-set path clears 4 -> 0 -> 5. A direct non-zero -> non-zero
+    // approve would revert on USDT's "use zero-first" rule.
+    await sub.connect(owner).resetUser(payer);
+    await sub.connect(escrowSigner).onSubsidyClaim(node, payer, JOB, usdt.address, U('5'), U('5'));
+    expect(await usdt.allowance(sub.address, escrowSigner.address)).to.equal(U('5'));
+  });
+
   it('15 ISubsidyView discovery: subsidyKind / version / supportsInterface + gated remainingSubsidy', async function () {
     expect(await sub.subsidyKind()).to.equal(1); // SubsidyKind.ONE_TIME
     expect(await sub.version()).to.equal(1);

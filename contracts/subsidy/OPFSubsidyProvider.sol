@@ -123,8 +123,13 @@ contract OPFSubsidyProvider is ISubsidyProvider, ISubsidyView, IERC165, Reentran
         weeklyUsed[payer][token][w] += grant;
         monthlyUsed[payer][token][m] += grant;
 
-        // INTERACTION: just-in-time approve the escrow (msg.sender) to pull exactly `grant`
-        IERC20(token).approve(msg.sender, grant); // plain approve, like MockSubsidyProvider
+        // INTERACTION: just-in-time approve the escrow (msg.sender) to pull exactly `grant`.
+        // Zero-then-set via SafeERC20 so non-standard tokens work: USDT-style approves that return no
+        // bool are handled by _callOptionalReturn, and clearing to 0 first satisfies tokens that forbid
+        // a non-zero -> non-zero allowance change AND clears any stale allowance left by an earlier
+        // reject-partial pull.
+        IERC20(token).safeApprove(msg.sender, 0);
+        IERC20(token).safeApprove(msg.sender, grant);
 
         emit SubsidyGranted(msg.sender, node, payer, token, grant, d, w, m);
         return (grant, 0); // bonus always 0
