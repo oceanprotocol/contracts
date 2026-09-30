@@ -6,10 +6,12 @@ pragma solidity 0.8.12;
 import '../interfaces/IERC20.sol';
 import '../utils/SafeERC20.sol';
 import '../interfaces/ISubsidyProvider.sol';
+import '../interfaces/ISubsidyView.sol';
 import '../interfaces/IAccessList.sol';
 import '@openzeppelin/contracts/security/ReentrancyGuard.sol';
 import '@openzeppelin/contracts/access/Ownable.sol';
 import '@openzeppelin/contracts/security/Pausable.sol';
+import '@openzeppelin/contracts/utils/introspection/IERC165.sol';
 
 /**
  * @title OPFSubsidyProvider
@@ -34,7 +36,7 @@ import '@openzeppelin/contracts/security/Pausable.sol';
  *      per-period budget spend BEFORE the just-in-time approve (CEI), so listing this provider many
  *      times in one claim can never double-spend.
  */
-contract OPFSubsidyProvider is ISubsidyProvider, ReentrancyGuard, Ownable, Pausable {
+contract OPFSubsidyProvider is ISubsidyProvider, ISubsidyView, IERC165, ReentrancyGuard, Ownable, Pausable {
     using SafeERC20 for IERC20;
 
     // pctBps is in basis points: 10000 == 100%
@@ -121,8 +123,13 @@ contract OPFSubsidyProvider is ISubsidyProvider, ReentrancyGuard, Ownable, Pausa
         weeklyUsed[payer][token][w] += grant;
         monthlyUsed[payer][token][m] += grant;
 
-        // INTERACTION: just-in-time approve the escrow (msg.sender) to pull exactly `grant`
-        IERC20(token).approve(msg.sender, grant); // plain approve, like MockSubsidyProvider
+        // INTERACTION: just-in-time approve the escrow (msg.sender) to pull exactly `grant`.
+        // Zero-then-set via SafeERC20 so non-standard tokens work: USDT-style approves that return no
+        // bool are handled by _callOptionalReturn, and clearing to 0 first satisfies tokens that forbid
+        // a non-zero -> non-zero allowance change AND clears any stale allowance left by an earlier
+        // reject-partial pull.
+        IERC20(token).safeApprove(msg.sender, 0);
+        IERC20(token).safeApprove(msg.sender, grant);
 
         emit SubsidyGranted(msg.sender, node, payer, token, grant, d, w, m);
         return (grant, 0); // bonus always 0
@@ -348,13 +355,73 @@ contract OPFSubsidyProvider is ISubsidyProvider, ReentrancyGuard, Ownable, Pausa
      * @dev Per-user period headroom independent of any specific job: min of the three period
      *      remainings capped by the contract balance (ignores pct / gating). Useful for dashboards.
      */
-    function remainingSubsidy(address payer, address token) external view returns (uint256) {
+    // ISubsidyView: "claimable now" - min of the period headrooms capped by balance, gated to 0 when
+    // the user is not allowed or the provider is paused. ALWAYS FINITE (each remaining* may be
+    // unlimited, but the balance cap makes the result finite, and the gate returns 0 up front).
+    function remainingSubsidy(address payer, address token) external view override returns (uint256) {
+        if (paused() || !_isAllowed(userAccessList, payer)) return 0;
         uint256 rem = _min(
             _min(remainingDaily(payer, token), remainingWeekly(payer, token)),
             remainingMonthly(payer, token)
         );
         uint256 bal = IERC20(token).balanceOf(address(this));
         return _min(rem, bal);
+    }
+
+    /// @dev ISubsidyView: a rolling-cap provider exposes nested DAY / WEEK / MONTH buckets (take the
+    ///      MIN across them, never the sum). A period limit of 0 is reported as `unlimited == true`
+    ///      with limit/remaining == 0. `resetsAt` is the absolute unix ts of the next window reset.
+    function subsidyBuckets(address payer, address token)
+        external
+        view
+        override
+        returns (BucketReport memory)
+    {
+        TokenLimits memory L = tokenLimits[token];
+        Bucket[] memory buckets = new Bucket[](3);
+        buckets[0] = _bucket(Period.DAY, DAY, L.daily, dailyUsedBy(payer, token), remainingDaily(payer, token));
+        buckets[1] = _bucket(Period.WEEK, WEEK, L.weekly, weeklyUsedBy(payer, token), remainingWeekly(payer, token));
+        buckets[2] = _bucket(Period.MONTH, MONTH, L.monthly, monthlyUsedBy(payer, token), remainingMonthly(payer, token));
+        return BucketReport({
+            paused: paused(),
+            userAllowed: _isAllowed(userAccessList, payer),
+            tokenEnabled: L.enabled,
+            buckets: buckets
+        });
+    }
+
+    // build a Bucket, mapping the "limit == 0 means unlimited" convention onto the explicit `unlimited`
+    // flag (finite fields, no sentinel) and computing the absolute next-reset timestamp for the window.
+    function _bucket(Period period, uint256 windowSeconds, uint256 limit, uint256 used, uint256 rem)
+        internal
+        view
+        returns (Bucket memory)
+    {
+        bool isUnlimited = (limit == 0);
+        return Bucket({
+            period: period,
+            periodSeconds: windowSeconds, // NOTE: MONTH is 4 weeks (28 days), not a calendar month
+            unlimited: isUnlimited,
+            limit: isUnlimited ? 0 : limit,
+            used: used,
+            remaining: isUnlimited ? 0 : rem,
+            resetsAt: block.timestamp + (windowSeconds - (block.timestamp % windowSeconds))
+        });
+    }
+
+    // ISubsidyView / ERC-165 discovery
+    function subsidyKind() external pure override returns (SubsidyKind) {
+        return SubsidyKind.ROLLING_WINDOW;
+    }
+
+    function version() external pure override returns (uint16) {
+        return 1;
+    }
+
+    function supportsInterface(bytes4 interfaceId) external pure override returns (bool) {
+        return interfaceId == type(IERC165).interfaceId
+            || interfaceId == type(ISubsidyView).interfaceId
+            || interfaceId == type(ISubsidyProvider).interfaceId;
     }
 
     /**
@@ -369,23 +436,24 @@ contract OPFSubsidyProvider is ISubsidyProvider, ReentrancyGuard, Ownable, Pausa
         address token,
         uint256 amount,
         uint256 subsidyNeeded
-    ) external view returns (uint256) {
-        return _computeGrant(node, payer, jobType, token, amount, subsidyNeeded);
+    ) external view override returns (Quote memory) {
+        // subsidy only; OPF never pays a node bonus in v1 (bonus == 0)
+        return Quote({subsidy: _computeGrant(node, payer, jobType, token, amount, subsidyNeeded), bonus: 0});
     }
 
-    function isUserAllowed(address payer) external view returns (bool) {
+    function isUserAllowed(address payer) external view override returns (bool) {
         return _isAllowed(userAccessList, payer);
     }
 
-    function isNodeAllowed(address node) external view returns (bool) {
+    function isNodeAllowed(address node) external view override returns (bool) {
         return _isAllowed(nodeAccessList, node);
     }
 
-    function getAllowedJobTypes() external view returns (uint256[] memory) {
+    function getAllowedJobTypes() external view override returns (uint256[] memory) {
         return _allowedJobTypes;
     }
 
-    function isJobTypeSubsidized(uint256 jobType) external view returns (bool) {
+    function isJobTypeSubsidized(uint256 jobType) external view override returns (bool) {
         return _allowedJobTypes.length == 0 || isJobTypeAllowed[jobType];
     }
 
@@ -401,7 +469,7 @@ contract OPFSubsidyProvider is ISubsidyProvider, ReentrancyGuard, Ownable, Pausa
         return MONTH - (block.timestamp % MONTH);
     }
 
-    function availableBalance(address token) external view returns (uint256) {
+    function availableBalance(address token) external view override returns (uint256) {
         return IERC20(token).balanceOf(address(this));
     }
 }

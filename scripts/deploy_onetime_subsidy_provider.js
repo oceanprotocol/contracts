@@ -1,12 +1,13 @@
-// Deploys OPFSubsidyProvider, then wires it up:
+// Deploys OneTimeSubsidyProvider, then wires it up:
 //   - setUserAccessList / setNodeAccessList
-//   - setTokenLimits(token, pctBps, daily, weekly, monthly, enabled)
+//   - setTokenConfig(token, pctBps, defaultCredit, enabled)
+//   - setUserCredit(payer, token, amount) for any per-user overrides (e.g. close friends)
 //   - setAllowedJobTypes(jobTypes)
-//   - setAuthorizedEscrow(escrow, true) for the deployed Escrow / EnterpriseEscrow (from ADDRESS_FILE)
-//   - optional funding (plain ERC20 transfer of the subsidy token to the contract)
+//   - setAuthorizedEscrow(escrow, true) for the deployed Escrow (from ADDRESS_FILE)
+//   - optional funding is a plain ERC20 transfer of the subsidy token to the contract (do manually)
 //
-// Standard script structure (mirrors scripts/deploy_escrow.js): NETWORK_RPC_URL, MNEMONIC/PRIVATE_KEY
-// and ADDRESS_FILE come from env; the OPF-specific configuration below is plain const variables.
+// Standard script structure (mirrors scripts/deploy_opf_subsidy_provider.js): NETWORK_RPC_URL,
+// MNEMONIC/PRIVATE_KEY and ADDRESS_FILE come from env; the configuration below is plain const vars.
 // Anything left empty ("" / [] / "0") is skipped with a log line so the owner can finish manually.
 const hre = require("hardhat");
 const fs = require("fs");
@@ -17,16 +18,15 @@ const logging = true;
 const show_verify = true;
 
 // ---------------------------------------------------------------------------
-// OPF configuration (edit these const values)
+// OneTimeSubsidyProvider configuration (edit these const values)
 // ---------------------------------------------------------------------------
-const OPF_SUBSIDY_TOKEN = "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913";        // subsidy token address; "" => fall back to addresses.Ocean/OCEAN
-const OPF_SUBSIDY_PCT_BPS = "10000"; // percentage-of-job ceiling in bps (10000 = 100%)
-const OPF_SUBSIDY_DAILY = "5";       // per-user daily cap in token wei ("0" = unlimited)
-const OPF_SUBSIDY_WEEKLY = "10";      // per-user weekly cap in token wei ("0" = unlimited)
-const OPF_SUBSIDY_MONTHLY = "20";     // per-user monthly cap in token wei ("0" = unlimited)
-const OPF_USER_ACCESS_LIST = "0x6CFd3d3136c23f137a91180B2a55D731B73a6f26";     // user AccessList address ("" => user gate off)
-const OPF_NODE_ACCESS_LIST = "0x1F0Dd705eaa4fC1920fd782f59b752aEdF6694ef";     // node AccessList address ("" => node gate off)
-const OPF_ALLOWED_JOBTYPES = [];     // jobTypes to allow, e.g. ["1","2"] ([] => all allowed)
+const ONETIME_TOKEN = "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913"; // subsidy token; "" => fall back to addresses.Ocean/OCEAN
+const ONETIME_PCT_BPS = "0";              // OPTIONAL per-job ceiling in bps (0 = no per-job cap; whole credit usable in one job)
+const ONETIME_DEFAULT_CREDIT = "10000000"; // global one-time credit per user in token wei (10 USDC @ 6 decimals)
+const ONETIME_USER_ACCESS_LIST = "0x6CFd3d3136c23f137a91180B2a55D731B73a6f26";      // user AccessList address ("" => user gate off)
+const ONETIME_NODE_ACCESS_LIST = "0x1F0Dd705eaa4fC1920fd782f59b752aEdF6694ef";      // node AccessList address ("" => node gate off)
+const ONETIME_ALLOWED_JOBTYPES = [];      // jobTypes to allow, e.g. ["1","2"] ([] => all allowed)
+const ONETIME_USER_OVERRIDES = [];        // per-user credit overrides: [{ addr: "0x..", amount: "20000000" }]
 // ---------------------------------------------------------------------------
 
 // Track every deployed subsidy provider in a single shared `SubsidyProviders` array (a dashboard
@@ -155,58 +155,64 @@ async function main() {
   console.log("Deployer nonce:", await owner.getTransactionCount());
 
   // ---- deploy ----
-  if (logging) console.info("Deploying OPFSubsidyProvider");
-  const OPF = await ethers.getContractFactory("OPFSubsidyProvider", owner);
-  const opf = await OPF.connect(owner).deploy(options);
-  await opf.deployTransaction.wait(1);
+  if (logging) console.info("Deploying OneTimeSubsidyProvider");
+  const OneTime = await ethers.getContractFactory("OneTimeSubsidyProvider", owner);
+  const oneTime = await OneTime.connect(owner).deploy(options);
+  await oneTime.deployTransaction.wait(1);
   if (show_verify) {
     console.log("\tRun the following to verify on etherscan");
-    console.log("\tnpx hardhat verify --network " + networkName + " " + opf.address);
+    console.log("\tnpx hardhat verify --network " + networkName + " " + oneTime.address);
   }
-  addSubsidyProvider(addresses, opf.address);
-  console.log("OPFSubsidyProvider deployed: " + opf.address);
+  addSubsidyProvider(addresses, oneTime.address);
+  console.log("OneTimeSubsidyProvider deployed: " + oneTime.address);
   console.log("SubsidyProviders now: " + JSON.stringify(addresses.SubsidyProviders));
 
   // ---- wiring ----
-  if (OPF_USER_ACCESS_LIST) {
-    if (logging) console.info("setUserAccessList " + OPF_USER_ACCESS_LIST);
-    await (await opf.connect(owner).setUserAccessList(OPF_USER_ACCESS_LIST, options)).wait(1);
-  } else console.info("OPF_USER_ACCESS_LIST not set -> user gate OFF (allow all)");
-  if (OPF_NODE_ACCESS_LIST) {
-    if (logging) console.info("setNodeAccessList " + OPF_NODE_ACCESS_LIST);
-    await (await opf.connect(owner).setNodeAccessList(OPF_NODE_ACCESS_LIST, options)).wait(1);
-  } else console.info("OPF_NODE_ACCESS_LIST not set -> node gate OFF (allow all)");
+  if (ONETIME_USER_ACCESS_LIST) {
+    if (logging) console.info("setUserAccessList " + ONETIME_USER_ACCESS_LIST);
+    await (await oneTime.connect(owner).setUserAccessList(ONETIME_USER_ACCESS_LIST, options)).wait(1);
+  } else console.info("ONETIME_USER_ACCESS_LIST not set -> user gate OFF (allow all)");
+  if (ONETIME_NODE_ACCESS_LIST) {
+    if (logging) console.info("setNodeAccessList " + ONETIME_NODE_ACCESS_LIST);
+    await (await oneTime.connect(owner).setNodeAccessList(ONETIME_NODE_ACCESS_LIST, options)).wait(1);
+  } else console.info("ONETIME_NODE_ACCESS_LIST not set -> node gate OFF (allow all)");
 
-  // token limits
-  const token = OPF_SUBSIDY_TOKEN || addresses.Ocean || addresses.OCEAN;
+  // token config (global default credit)
+  const token = ONETIME_TOKEN || addresses.Ocean || addresses.OCEAN;
   if (token) {
-    if (logging) console.info(`setTokenLimits(${token}, ${OPF_SUBSIDY_PCT_BPS}, ${OPF_SUBSIDY_DAILY}, ${OPF_SUBSIDY_WEEKLY}, ${OPF_SUBSIDY_MONTHLY}, true)`);
-    await (await opf.connect(owner).setTokenLimits(token, OPF_SUBSIDY_PCT_BPS, OPF_SUBSIDY_DAILY, OPF_SUBSIDY_WEEKLY, OPF_SUBSIDY_MONTHLY, true, options)).wait(1);
+    if (logging) console.info(`setTokenConfig(${token}, ${ONETIME_PCT_BPS}, ${ONETIME_DEFAULT_CREDIT}, true)`);
+    await (await oneTime.connect(owner).setTokenConfig(token, ONETIME_PCT_BPS, ONETIME_DEFAULT_CREDIT, true, options)).wait(1);
 
-    
+    // per-user credit overrides (e.g. close friends get more than the default)
+    for (const o of ONETIME_USER_OVERRIDES) {
+      if (o && o.addr && o.amount) {
+        if (logging) console.info(`setUserCredit(${o.addr}, ${token}, ${o.amount})`);
+        await (await oneTime.connect(owner).setUserCredit(o.addr, token, o.amount, options)).wait(1);
+      }
+    }
   } else {
-    console.info("No subsidy token configured (OPF_SUBSIDY_TOKEN / addresses.Ocean) -> skip setTokenLimits + funding");
+    console.info("No subsidy token configured (ONETIME_TOKEN / addresses.Ocean) -> skip setTokenConfig + overrides");
   }
 
   // jobType allowlist
-  if (Array.isArray(OPF_ALLOWED_JOBTYPES) && OPF_ALLOWED_JOBTYPES.length > 0) {
-    if (logging) console.info("setAllowedJobTypes " + JSON.stringify(OPF_ALLOWED_JOBTYPES));
-    await (await opf.connect(owner).setAllowedJobTypes(OPF_ALLOWED_JOBTYPES, options)).wait(1);
-  } else console.info("OPF_ALLOWED_JOBTYPES empty -> jobType gate OFF (all jobTypes allowed)");
+  if (Array.isArray(ONETIME_ALLOWED_JOBTYPES) && ONETIME_ALLOWED_JOBTYPES.length > 0) {
+    if (logging) console.info("setAllowedJobTypes " + JSON.stringify(ONETIME_ALLOWED_JOBTYPES));
+    await (await oneTime.connect(owner).setAllowedJobTypes(ONETIME_ALLOWED_JOBTYPES, options)).wait(1);
+  } else console.info("ONETIME_ALLOWED_JOBTYPES empty -> jobType gate OFF (all jobTypes allowed)");
 
-  // authorize the deployed escrow so they can call onSubsidyClaim (OPF allows only community escrow)
+  // authorize the deployed escrow so it can call onSubsidyClaim
   //for (const key of ["Escrow", "EnterpriseEscrow"]) {
   for (const key of ["Escrow"]) {
     if (addresses[key]) {
       if (logging) console.info("setAuthorizedEscrow(" + key + " " + addresses[key] + ", true)");
-      await (await opf.connect(owner).setAuthorizedEscrow(addresses[key], true, options)).wait(1);
+      await (await oneTime.connect(owner).setAuthorizedEscrow(addresses[key], true, options)).wait(1);
     } else console.info("No " + key + " in address file -> not authorized (do it manually later)");
   }
 
   // hand ownership to the OPF multisig if we deployed from a different key
   if (OPFOwner && OPFOwner.toLowerCase() !== owner.address.toLowerCase()) {
     if (logging) console.info("transferOwnership -> " + OPFOwner);
-    await (await opf.connect(owner).transferOwnership(OPFOwner, options)).wait(1);
+    await (await oneTime.connect(owner).transferOwnership(OPFOwner, options)).wait(1);
   }
 
   // persist

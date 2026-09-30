@@ -80,7 +80,7 @@ describe('OPFSubsidyProvider (integration through the real Escrow)', function ()
 
     // quote before the job = the on-chain subsidy (daily 2 binds)
     const quoted = await opf.quoteSubsidy(node.address, payer.address, 7, usdc.address, U('5'), U('5'));
-    expect(quoted).to.equal(U('2'));
+    expect(quoted.subsidy).to.equal(U('2'));
 
     const before = {
       payer: await escrow.getUserFunds(payer.address, usdc.address),
