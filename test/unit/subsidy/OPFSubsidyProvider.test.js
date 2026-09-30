@@ -99,7 +99,8 @@ describe('OPFSubsidyProvider (unit)', function () {
 
     const quoted = await opf.quoteSubsidy(node, payer, JOB, usdc.address, U('5'), U('5'));
     const [sub, bonus] = await staticGrant(escrowSigner, node, payer, JOB, usdc, U('5'), U('5'));
-    expect(quoted).to.equal(U('2'));
+    expect(quoted.subsidy).to.equal(U('2'));
+    expect(quoted.bonus).to.equal(0);
     expect(sub).to.equal(U('2'));
     expect(bonus).to.equal(0);
 
@@ -123,7 +124,7 @@ describe('OPFSubsidyProvider (unit)', function () {
     // amount 10 -> 15% = 1.5 < 2 (daily)
     const [sub] = await staticGrant(escrowSigner, node, payer, JOB, usdc, U('10'), U('10'));
     expect(sub).to.equal(U('1.5'));
-    expect(await opf.quoteSubsidy(node, payer, JOB, usdc.address, U('10'), U('10'))).to.equal(U('1.5'));
+    expect((await opf.quoteSubsidy(node, payer, JOB, usdc.address, U('10'), U('10'))).subsidy).to.equal(U('1.5'));
 
     // now 100% with a FRESH payer -> daily binds at 2
     await setLimits(10000, U('2'), 0, U('10'));
@@ -147,7 +148,7 @@ describe('OPFSubsidyProvider (unit)', function () {
     await allow(payer, node);
     const [sub] = await staticGrant(escrowSigner, node, payer, JOB, usdc, U('10'), U('10'));
     expect(sub).to.equal(0);
-    expect(await opf.quoteSubsidy(node, payer, JOB, usdc.address, U('10'), U('10'))).to.equal(0);
+    expect((await opf.quoteSubsidy(node, payer, JOB, usdc.address, U('10'), U('10'))).subsidy).to.equal(0);
   });
 
   it('2 daily cap exhausted same day, resets next day, monthly accumulates', async function () {
@@ -257,7 +258,7 @@ describe('OPFSubsidyProvider (unit)', function () {
     // paused
     await opf.connect(owner).pause();
     expect((await staticGrant(escrowSigner, node, payer, JOB, usdc, U('5'), U('5')))[0]).to.equal(0);
-    expect(await opf.quoteSubsidy(node, payer, JOB, usdc.address, U('5'), U('5'))).to.equal(0);
+    expect((await opf.quoteSubsidy(node, payer, JOB, usdc.address, U('5'), U('5'))).subsidy).to.equal(0);
     await opf.connect(owner).unpause();
     expect((await staticGrant(escrowSigner, node, payer, JOB, usdc, U('5'), U('5')))[0]).to.equal(U('5'));
   });
@@ -344,7 +345,7 @@ describe('OPFSubsidyProvider (unit)', function () {
     // quote == static grant
     const quoted = await opf.quoteSubsidy(node, payer, JOB, usdc.address, U('5'), U('5'));
     const [g] = await staticGrant(escrowSigner, node, payer, JOB, usdc, U('5'), U('5'));
-    expect(quoted).to.equal(g).to.equal(U('2'));
+    expect(quoted.subsidy).to.equal(g).to.equal(U('2'));
 
     // apply and re-check remaining
     await opf.connect(escrowSigner).onSubsidyClaim(node, payer, JOB, usdc.address, U('5'), U('5'));
@@ -448,5 +449,54 @@ describe('OPFSubsidyProvider (unit)', function () {
     expect(await opf.monthlyUsedByAt(payer, usdc.address, claimTs)).to.equal(U('2'));    // past month intact
     // a date in a period with no activity reads 0
     expect(await opf.dailyUsedByAt(payer, usdc.address, ts)).to.equal(0);
+  });
+
+  it('13 ISubsidyView.subsidyBuckets: DAY/WEEK/MONTH buckets reflect limits/used/remaining', async function () {
+    await setLimits(10000, U('2'), 0, U('10')); // daily 2, weekly unlimited (0), monthly 10
+    const payer = randAddr(), node = randAddr();
+    await allow(payer, node);
+    await opf.connect(escrowSigner).onSubsidyClaim(node, payer, JOB, usdc.address, U('2'), U('2'));
+
+    const now = (await ethers.provider.getBlock('latest')).timestamp;
+    const report = await opf.subsidyBuckets(payer, usdc.address);
+    expect(report.paused).to.equal(false);
+    expect(report.userAllowed).to.equal(true);
+    expect(report.tokenEnabled).to.equal(true);
+    const b = report.buckets;
+    expect(b.length).to.equal(3);
+    // DAY: 2 cap, fully used, finite
+    expect(b[0].period).to.equal(1);
+    expect(b[0].periodSeconds).to.equal(await opf.DAY());
+    expect(b[0].unlimited).to.equal(false);
+    expect(b[0].limit).to.equal(U('2'));
+    expect(b[0].used).to.equal(U('2'));
+    expect(b[0].remaining).to.equal(0);
+    expect(b[0].resetsAt).to.be.gt(now);
+    // WEEK: unlimited -> flag set, limit & remaining 0 (NO MaxUint sentinel)
+    expect(b[1].period).to.equal(2);
+    expect(b[1].unlimited).to.equal(true);
+    expect(b[1].limit).to.equal(0);
+    expect(b[1].remaining).to.equal(0);
+    // MONTH: 10 cap, 2 used -> 8 left
+    expect(b[2].period).to.equal(3);
+    expect(b[2].unlimited).to.equal(false);
+    expect(b[2].limit).to.equal(U('10'));
+    expect(b[2].used).to.equal(U('2'));
+    expect(b[2].remaining).to.equal(U('8'));
+  });
+
+  it('14 ISubsidyView discovery: subsidyKind / version / supportsInterface + quote returns bonus', async function () {
+    expect(await opf.subsidyKind()).to.equal(0); // SubsidyKind.ROLLING_WINDOW
+    expect(await opf.version()).to.equal(1);
+    // ERC-165: IERC165 (0x01ffc9a7) and a non-supported id
+    expect(await opf.supportsInterface('0x01ffc9a7')).to.equal(true);
+    expect(await opf.supportsInterface('0xffffffff')).to.equal(false);
+    // quote exposes both legs (bonus 0 in v1)
+    await setLimits(10000, U('10'), 0, U('100'));
+    const payer = randAddr(), node = randAddr();
+    await allow(payer, node);
+    const q = await opf.quoteSubsidy(node, payer, JOB, usdc.address, U('5'), U('5'));
+    expect(q.subsidy).to.equal(U('5'));
+    expect(q.bonus).to.equal(0);
   });
 });
