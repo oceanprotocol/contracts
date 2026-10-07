@@ -508,7 +508,24 @@ for (const KIND of ['community', 'enterprise']) {
       expect(await escrow.supportsInterface('0xdeadbeef')).to.equal(false);
       expect(await escrow.escrowKind()).to.equal(KIND === 'community' ? 0 : 1);
       expect(await escrow.version()).to.equal(2);
+      // IEscrowEnterprise: only the enterprise flavour advertises it
+      const entId = await erc165Id('IEscrowEnterprise');
+      expect(await escrow.supportsInterface(entId)).to.equal(KIND === 'enterprise');
     });
+
+    if (KIND === 'enterprise') {
+      it('IEscrowEnterprise passthroughs mirror the fee collector', async function () {
+        expect(await escrow.feeCollector()).to.equal(feeCollector.address);
+        // previewFee mirrors the collector's calculateFee
+        expect(await escrow.previewFee(T6.address, D6('100')))
+          .to.equal(await feeCollector.calculateFee(T6.address, D6('100')));
+        // isTokenAllowed mirrors the collector's gate
+        await feeCollector.setAllowed(true);
+        expect(await escrow.isTokenAllowed(T6.address)).to.equal(true);
+        await feeCollector.setAllowed(false);
+        expect(await escrow.isTokenAllowed(T6.address)).to.equal(false);
+      });
+    }
   });
 }
 
@@ -721,5 +738,20 @@ describe('EscrowSponsorship size gate', function () {
       console.log(`      ${name} deployed size = ${size} bytes (limit 24576)`);
       expect(size, `${name} exceeds EIP-170`).to.be.lt(24576);
     }
+  });
+});
+
+// =================================================================================================
+// IEscrowEnterprise: the "no fee collector" (opcCollector == 0) escrow hatch means no gate.
+// =================================================================================================
+describe('IEscrowEnterprise no-collector hatch', function () {
+  it('feeCollector 0 => isTokenAllowed true, previewFee 0', async function () {
+    const [deployer] = await ethers.getSigners();
+    const T = await (await ethers.getContractFactory('MockERC20Decimals')).deploy('USDC', 'USDC', 6);
+    await T.deployed();
+    const esc = await deployEscrow('EnterpriseEscrow', [ethers.constants.AddressZero], deployer);
+    expect(await esc.feeCollector()).to.equal(ethers.constants.AddressZero);
+    expect(await esc.isTokenAllowed(T.address)).to.equal(true);
+    expect(await esc.previewFee(T.address, ethers.utils.parseUnits('100', 6))).to.equal(0);
   });
 });

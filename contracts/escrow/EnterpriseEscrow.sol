@@ -14,6 +14,7 @@ import "../interfaces/IEnterpriseFeeCollector.sol";
 import "../interfaces/ISubsidyProvider.sol";
 import "../interfaces/IEscrowCore.sol";
 import "../interfaces/IEscrowLockSubsidy.sol";
+import "../interfaces/IEscrowEnterprise.sol";
 import "./SponsorshipLib.sol";
 
 /**
@@ -1169,6 +1170,29 @@ contract EnterpriseEscrow is
     function supportsInterface(bytes4 interfaceId) external pure returns (bool){
         return interfaceId==type(IERC165).interfaceId
             || interfaceId==type(IEscrowCore).interfaceId
-            || interfaceId==type(IEscrowLockSubsidy).interfaceId;
+            || interfaceId==type(IEscrowLockSubsidy).interfaceId
+            || interfaceId==type(IEscrowEnterprise).interfaceId;
+    }
+
+    /* IEscrowEnterprise: read-only passthroughs so integrators can check token eligibility / preview the
+       enterprise fee BEFORE createLock (which reverts on a disallowed token or fee>=amount). Mirror
+       _requireEnterpriseFee's semantics exactly, including the "no collector => no gate" case. */
+
+    /// @notice the IEnterpriseFeeCollector this escrow uses (== opcCollector); address(0) => no gate.
+    function feeCollector() external view returns (address){
+        return opcCollector;
+    }
+
+    /// @notice whether `token` is usable for locks here (true when no fee collector is set).
+    function isTokenAllowed(address token) external view returns (bool){
+        if(opcCollector==address(0)) return true;
+        return IEnterpriseFeeCollector(opcCollector).isTokenAllowed(token);
+    }
+
+    /// @notice the enterprise fee charged on `amount` of `token` (0 when no collector is set);
+    ///         createLock requires it to be strictly less than `amount`.
+    function previewFee(address token,uint256 amount) external view returns (uint256){
+        if(opcCollector==address(0)) return 0;
+        return IEnterpriseFeeCollector(opcCollector).calculateFee(token,amount);
     }
 }
