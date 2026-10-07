@@ -36,15 +36,20 @@ interface ISubsidyLockProvider {
     /// @param payer  the user the lock is created for.
     /// @param jobType opaque category supplied by the node.
     /// @param token  the lock token.
-    /// @param lockAmount full (gross) lock amount — bonus/pct basis.
-    /// @param sponsorNeeded remaining amount still unsponsored by earlier providers in this lock's
-    ///        list; the escrow additionally caps the pulled amount at this value, so returning more is
-    ///        harmless.
-    /// @return sponsorAmount amount of `token` the provider funds up-front. The provider decrements a
-    ///         PERSISTED budget by this amount, records the reservation under `lockId`, and approves the
-    ///         escrow (msg.sender) to pull exactly `sponsorAmount` just-in-time
-    ///         (`IERC20(token).approve(msg.sender, sponsorAmount)`), which the escrow pulls immediately
-    ///         (reject-partial).
+    /// @param lockAmount the bonus/pct sizing basis: the full (gross) lock amount on `createLock`, but on
+    ///        a `reLock`-grow only the GROWTH DELTA (new total − old total), since sponsorship is applied
+    ///        to the added portion only.
+    /// @param sponsorNeeded remaining amount still unsponsored by earlier providers in this lock's list.
+    ///        The escrow caps the pulled amount at this value and refunds (at partial claim / expiry /
+    ///        reLock-shrink) only what it actually pulled, so any excess above `sponsorNeeded` is NEITHER
+    ///        pulled NOR ever refunded. A provider MUST therefore cap its returned `sponsorAmount`, its
+    ///        budget debit, and its `lockId` reservation at `sponsorNeeded`; over-returning silently
+    ///        leaks the provider's own budget (debited but never pulled, so never credited back).
+    /// @return sponsorAmount amount of `token` the provider funds up-front (MUST be <= sponsorNeeded, see
+    ///         above). The provider decrements a PERSISTED budget by this amount, records the reservation
+    ///         under `lockId`, and approves the escrow (msg.sender) to pull exactly `sponsorAmount`
+    ///         just-in-time (`IERC20(token).approve(msg.sender, sponsorAmount)`), which the escrow pulls
+    ///         immediately (reject-partial).
     ///
     /// SECURITY — like `onSubsidyClaim`, a correct implementation MUST (a) require(msg.sender == a
     /// registered escrow), (b) authenticate node/payer/jobType via its gates, and (c) persist the
