@@ -97,8 +97,23 @@ async function main() {
     return null;
   }
   
+  if (logging) console.info("Deploying SponsorshipLib (linked into EnterpriseEscrow)");
+  const SponsorshipLib = await ethers.getContractFactory("SponsorshipLib", owner);
+  const sponsorshipLib = await SponsorshipLib.connect(owner).deploy(options);
+  await sponsorshipLib.deployTransaction.wait(1);
+  addresses.SponsorshipLib = sponsorshipLib.address;
+  console.log("\"SponsorshipLib\":\""+sponsorshipLib.address+"\"");
+  if (show_verify) {
+    console.log("\tRun the following to verify on etherscan");
+    // SponsorshipLib has no constructor arguments
+    console.log("\tnpx hardhat verify --network " + networkName + " " + sponsorshipLib.address);
+  }
   if (logging) console.info("Deploying EnterpriseEscrow");
-  const Escrow = await ethers.getContractFactory("EnterpriseEscrow", owner);
+  // EnterpriseEscrow references the external SponsorshipLib; it MUST be linked or deploy throws.
+  const Escrow = await ethers.getContractFactory(
+    "EnterpriseEscrow",
+    { libraries: { SponsorshipLib: sponsorshipLib.address }, signer: owner }
+  );
 
   const deployEscrow = await Escrow.connect(owner).deploy(
     addresses.EnterpriseFeeCollector,

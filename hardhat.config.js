@@ -52,6 +52,12 @@ module.exports = {
         version: "0.8.12",
         settings: { optimizer: { enabled: true, runs: 200 }, viaIR: true },
       },
+      // Shared lock-time sponsorship engine (external, delegatecall-linked) used by both escrows; it
+      // carries the deep-stack provider-interaction logic, so it needs the IR pipeline too.
+      "contracts/escrow/SponsorshipLib.sol": {
+        version: "0.8.12",
+        settings: { optimizer: { enabled: true, runs: 200 }, viaIR: true },
+      },
       "contracts/escrow/EnterpriseEscrow.sol": {
         version: "0.8.12",
         settings: { optimizer: { enabled: true, runs: 200 }, viaIR: true },

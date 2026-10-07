@@ -992,14 +992,28 @@ async function main() {
     addresses.BatchPayments = deployBatchPayments.address;
     if (sleepAmount > 0) await sleep(sleepAmount)
 
+  // SponsorshipLib (external library, delegatecall-linked into BOTH escrows; deploy once, link both)
+  if (logging) console.info("Deploying SponsorshipLib (linked into Escrow + EnterpriseEscrow)");
+    const SponsorshipLib = await ethers.getContractFactory("SponsorshipLib", owner);
+    const sponsorshipLib = await SponsorshipLib.connect(owner).deploy(options);
+    await sponsorshipLib.deployTransaction.wait();
+    addresses.SponsorshipLib = sponsorshipLib.address;
+    if (show_verify) {
+      console.log("\tRun the following to verify on etherscan");
+      // SponsorshipLib has no constructor arguments
+      console.log("\tnpx hardhat verify --network " + networkName + " " + sponsorshipLib.address)
+    }
+    if (sleepAmount > 0) await sleep(sleepAmount)
+
   // Escrow
-  
+
   if (logging) console.info("Deploying Escrow");
+    // Escrow references the external SponsorshipLib; it MUST be linked or getContractFactory throws.
     const Escrow = await ethers.getContractFactory(
       "Escrow",
-      owner
+      { libraries: { SponsorshipLib: sponsorshipLib.address }, signer: owner }
     );
-    
+
     const deployEscrow = await Escrow.connect(owner).deploy(router.address,ZERO_ADDRESS,options)
     await deployEscrow.deployTransaction.wait();
     if (show_verify) {
@@ -1012,9 +1026,10 @@ async function main() {
   // EnterpriseEscrow
   if(addresses.EnterpriseFeeCollector){
       if (logging) console.info("Deploying Enterprise Escrow");
+      // EnterpriseEscrow links the SAME deployed SponsorshipLib; MUST be linked or getContractFactory throws.
       const EnterpriseEscrow = await ethers.getContractFactory(
           "EnterpriseEscrow",
-          owner
+          { libraries: { SponsorshipLib: sponsorshipLib.address }, signer: owner }
       );
       const deployEnterpriseEscrow = await EnterpriseEscrow.connect(owner).deploy(addresses.EnterpriseFeeCollector,options)
       await deployEnterpriseEscrow.deployTransaction.wait();

@@ -9,13 +9,17 @@ import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 import "@openzeppelin/contracts/token/ERC20/extensions/IERC20Permit.sol";
 import "@openzeppelin/contracts/utils/math/SafeMath.sol";
 import "@openzeppelin/contracts/security/ReentrancyGuard.sol";
+import "@openzeppelin/contracts/utils/introspection/IERC165.sol";
 import "../interfaces/IFactoryRouter.sol";
 import "../interfaces/ISubsidyProvider.sol";
+import "../interfaces/IEscrowCore.sol";
+import "../interfaces/IEscrowLockSubsidy.sol";
+import "./SponsorshipLib.sol";
 
 /**
  * @title Escrow contract
  *
- * @dev escrow contract between payer (aka user, consumer, etc) 
+ * @dev escrow contract between payer (aka user, consumer, etc)
  *      and payee (app/services that is performing a task which needs to be paid).
  *
  * The payer flow looks like:
@@ -34,16 +38,23 @@ import "../interfaces/ISubsidyProvider.sol";
  *     expiry (up or down). Every createLock check is re-evaluated against the new values, and
  *     the total lock lifetime (measured from the original creation) cannot exceed the
  *     authorization's maxLockSeconds.
+ *
+ * Lock-time sponsorship: a lock of gross amount L may be partly pre-funded by node-named subsidy
+ * providers (ISubsidyLockProvider). The sponsored part S is held in a non-withdrawable bucket
+ * (sponsoredTotal + sponsorships[lockId]); the payer only funds P = L - S. `lock.amount` always
+ * stores the gross L, while `funds.locked` and `auth.currentLockedAmount` track ONLY P.
  */
 contract Escrow is
     ReentrancyGuard
 {
     using SafeMath for uint256;
     using SafeERC20 for IERC20;
-    
+
     // OPC fee router
-    address immutable public factoryRouter; 
+    address immutable public factoryRouter;
     address immutable public opcCollector;
+
+    enum EscrowKind { COMMUNITY, ENTERPRISE }
 
     /*  User funds are stored per user and per token */
     struct userFunds{
@@ -66,16 +77,17 @@ contract Escrow is
         uint256 maxLockSeconds;
         uint256 maxLockCounts;
         uint256 currentLocks;
+        uint256 expiryTimestamp; // 0 = indefinite; >0 = unix ts after which no new/extended locks
     }
-    
+
     mapping(address => mapping(address => auth[])) private userAuths; // user -> token -> userAuths
-    
+
 
     // locks
     struct lock{
         uint256 jobId;
         address payer;
-        uint256 amount;
+        uint256 amount;     // gross L (payer-funded P + sponsored S)
         uint256 expiry;     // absolute timestamp: block.timestamp + duration
         address token;
         uint256 startTime;  // block.timestamp at original createLock; preserved across reLock
@@ -83,13 +95,19 @@ contract Escrow is
 
     mapping(address => lock[]) private locks; // locks by payee
 
+    // sponsorship (lock-time pre-funding) state; the heavy provider-interaction logic lives in the
+    // external, delegatecall-linked SponsorshipLib (which owns the Sponsorship struct + events).
+    mapping(bytes32 => SponsorshipLib.Sponsorship) private sponsorships;          // lockId -> sponsorship
+    mapping(address => uint256) private sponsoredTotal;               // token -> held sponsored
+    mapping(address => mapping(address => uint256)) private providerReclaimable; // provider -> token -> amount
+
     /* structs used to bundle multiple payer actions in a single call */
     struct DepositData { address token; uint256 amount; }
     struct PermitData { address token; uint256 amount; uint256 deadline; uint8 v; bytes32 r; bytes32 s; }
-    struct AuthData { address token; address payee; uint256 maxLockedAmount; uint256 maxLockSeconds; uint256 maxLockCounts; }
+    struct AuthData { address token; address payee; uint256 maxLockedAmount; uint256 maxLockSeconds; uint256 maxLockCounts; uint256 expiryTimestamp; }
 
     /* structs used to bundle multiple payee (job) actions in a single call */
-    struct LockData { uint256 jobId; address token; address payer; uint256 amount; uint256 expiry; } // createLock & reLock
+    struct LockSubsidyData { uint256 jobId; address token; address payer; uint256 amount; uint256 expiry; uint256 jobType; address[] subsidyProviders; } // createLock & reLock
     struct ClaimData { uint256 jobId; address token; address payer; uint256 amount; bytes proof; uint256 jobType; address[] subsidyProviders; }
     struct CancelData { uint256 jobId; address token; address payer; address payee; }
 
@@ -98,7 +116,7 @@ contract Escrow is
     event Deposit(address indexed payer,address token,uint256 amount);
     event Withdraw(address indexed payer,address token,uint256 amount);
     event Auth(address indexed payer,address indexed payee,address token,uint256 maxLockedAmount,
-        uint256 maxLockSeconds,uint256 maxLockCounts);
+        uint256 maxLockSeconds,uint256 maxLockCounts,uint256 expiryTimestamp);
     event Lock(address payer,address payee,uint256 jobId,uint256 amount,uint256 expiry,address token);
     event ReLock(address payer,address payee,uint256 jobId,uint256 oldAmount,uint256 newAmount,
         uint256 newExpiry,address token);
@@ -106,6 +124,9 @@ contract Escrow is
     event Canceled(address indexed payee,uint256 jobId,address token,address indexed payer,uint256 amount);
     // emitted once per contributing subsidy provider (with the actually-used subsidy and bonus)
     event Subsidized(address indexed payee,address indexed payer,uint256 jobId,address token,address provider,uint256 subsidyAmount,uint256 bonusAmount);
+    // lock-time sponsorship events (match IEscrowLockSubsidy exactly)
+    event LockSponsored(address indexed payer,address indexed payee,uint256 jobId,address token,address provider,uint256 amount);
+    event SponsorRefunded(address indexed payer,address indexed payee,uint256 jobId,address token,address provider,uint256 amount,bool reclaimable);
 
     // Add constructor to set router
     constructor(address _factoryRouter,address _opcCollector) {
@@ -113,12 +134,54 @@ contract Escrow is
         factoryRouter = _factoryRouter;
         opcCollector = _opcCollector;
     }
+
+    // deterministic sponsorship key for a lock
+    function _lockId(address payee,address payer,uint256 jobId) internal pure returns (bytes32){
+        return keccak256(abi.encode(payee,payer,jobId));
+    }
+
+    // shared parallel-array length check for the 7-array batch entrypoints
+    function _eqLen7(uint256 a,uint256 b,uint256 c,uint256 d,uint256 e,uint256 f,uint256 g) internal pure {
+        require(a==b && a==c && a==d && a==e && a==f && a==g,"Invalid input");
+    }
+
+    // shared createLock/reLock parameter validation
+    function _validateLockParams(address payer,address token,uint256 amount,uint256 jobId) internal view {
+        require(payer!=address(0),'Invalid payer');
+        require(payer!=msg.sender,'Payer cannot be payee');
+        require(token!=address(0),'Invalid token');
+        require(amount>0,"Invalid amount");
+        require(jobId>0,"Invalid jobId");
+    }
+
+    // finds the caller's (msg.sender payee) auth for (payer,token): returns a copy and its index.
+    // If not found, index==length and a.payee==address(0) (callers check a.payee==msg.sender).
+    function _findAuth(address payer,address token) internal view returns (auth memory a,uint256 index){
+        a=auth(address(0),0,0,0,0,0,0);
+        uint256 length=userAuths[payer][token].length;
+        for(index=0;index<length;index++){
+            if(msg.sender==userAuths[payer][token][index].payee){
+                a=userAuths[payer][token][index];
+                break;
+            }
+        }
+    }
+
+    // authorization-expiry gate for create/extend (0 = indefinite). A lock may not outlive its auth.
+    function _requireAuthActive(uint256 expiryTimestamp,uint256 expiry) internal view {
+        if(expiryTimestamp!=0){
+            // both failures mean the authorization does not permit this lock's timing
+            require(block.timestamp<=expiryTimestamp,"Auth expired");
+            require(block.timestamp+expiry<=expiryTimestamp,"Auth expired");
+        }
+    }
+
     /* Payer actions  */
-    
+
     /**
      * @dev deposit
      *      Called by payer to deposit funds in the contract
-     *      
+     *
      * @param token token to deposit
      * @param amount amount in wei to deposit
      */
@@ -128,7 +191,7 @@ contract Escrow is
     /**
      * @dev depositMultiple
      *      Called by payer to deposit multiple amount of tokens in the contract
-     *      
+     *
      * @param token array of tokens to deposit
      * @param amount array of amounts in wei to deposit
      */
@@ -143,7 +206,7 @@ contract Escrow is
      * @dev depositWithPermit
      *      Called by payer to deposit funds in the contract using ERC20Permit
      *      This function allows users to deposit without a separate approval transaction
-     *      
+     *
      * @param token token to deposit
      * @param amount amount in wei to deposit
      * @param deadline The time at which the permit expires (unix timestamp)
@@ -191,7 +254,7 @@ contract Escrow is
      *
      * @param deposits array of {token, amount} for plain deposits (require prior approval)
      * @param permits array of {token, amount, deadline, v, r, s} for ERC20Permit-based deposits
-     * @param auths array of {token, payee, maxLockedAmount, maxLockSeconds, maxLockCounts}
+     * @param auths array of {token, payee, maxLockedAmount, maxLockSeconds, maxLockCounts, expiryTimestamp}
      */
     // Reentrancy-safe: nonReentrant blocks re-entry into every state-changing entrypoint; only view
     // getters (the caller's own balances, not an oracle) are reachable during a token transfer/permit.
@@ -208,7 +271,7 @@ contract Escrow is
             _depositWithPermit(permits[i].token,permits[i].amount,permits[i].deadline,permits[i].v,permits[i].r,permits[i].s);
         }
         for(uint256 i=0;i<auths.length;i++){
-            _authorize(auths[i].token,auths[i].payee,auths[i].maxLockedAmount,auths[i].maxLockSeconds,auths[i].maxLockCounts);
+            _authorize(auths[i].token,auths[i].payee,auths[i].maxLockedAmount,auths[i].maxLockSeconds,auths[i].maxLockCounts,auths[i].expiryTimestamp);
         }
     }
 
@@ -219,19 +282,19 @@ contract Escrow is
      *      claims -> cancels -> creates -> reLocks, so lock slots / locked amounts freed by claims and
      *      cancels are available before new locks are created. Any sub-array may be empty.
      *
-     * @param claims array of {jobId, token, payer, amount, proof} passed to claimLock
+     * @param claims array of ClaimData passed to claimLock
      * @param cancels array of {jobId, token, payer, payee} passed to cancelExpiredLock
-     * @param newLocks array of {jobId, token, payer, amount, expiry} passed to createLock
-     * @param reLockOps array of {jobId, token, payer, amount, expiry} passed to reLock
+     * @param newLocks array of LockSubsidyData passed to createLock
+     * @param reLockOps array of LockSubsidyData passed to reLock
      */
     // Reentrancy-safe: nonReentrant blocks re-entry into every state-changing entrypoint, including
-    // the subsidy-provider callback and token pull inside each claim; only view getters are reachable.
+    // the subsidy-provider callbacks and token moves inside each lock/claim; only view getters reachable.
     // slither-disable-next-line reentrancy-eth,reentrancy-benign,reentrancy-events
     function bundleJobs(
         ClaimData[] calldata claims,
         CancelData[] calldata cancels,
-        LockData[] calldata newLocks,
-        LockData[] calldata reLockOps
+        LockSubsidyData[] calldata newLocks,
+        LockSubsidyData[] calldata reLockOps
     ) external nonReentrant {
         for(uint256 i=0;i<claims.length;i++){
             _claimLock(claims[i]);
@@ -240,10 +303,10 @@ contract Escrow is
             _cancelExpiredLock(cancels[i].jobId,cancels[i].token,cancels[i].payer,cancels[i].payee);
         }
         for(uint256 i=0;i<newLocks.length;i++){
-            _createLock(newLocks[i].jobId,newLocks[i].token,newLocks[i].payer,newLocks[i].amount,newLocks[i].expiry);
+            _createLock(newLocks[i].jobId,newLocks[i].token,newLocks[i].payer,newLocks[i].amount,newLocks[i].expiry,newLocks[i].jobType,newLocks[i].subsidyProviders);
         }
         for(uint256 i=0;i<reLockOps.length;i++){
-            _reLock(reLockOps[i].jobId,reLockOps[i].token,reLockOps[i].payer,reLockOps[i].amount,reLockOps[i].expiry);
+            _reLock(reLockOps[i].jobId,reLockOps[i].token,reLockOps[i].payer,reLockOps[i].amount,reLockOps[i].expiry,reLockOps[i].jobType,reLockOps[i].subsidyProviders);
         }
     }
 
@@ -261,14 +324,14 @@ contract Escrow is
             IERC20(token).balanceOf(address(this)) >= balanceBefore.add(amount),
             "Transfer amount is too low"
         );
-        
+
     }
 
 
     /**
      * @dev withdraw
      *      Called by payer to withdraw available (not locked) funds from the contract
-     *      
+     *
      * @param token array of tokens to withdraw
      * @param amount array of amounts in wei to withdraw
      */
@@ -309,42 +372,45 @@ contract Escrow is
     /**
      * @dev authorize
      *      Called by payer to authorize a payee to lock and claim funds
-     *      
+     *
      * @param token token to lock
      * @param payee payee address
      * @param maxLockedAmount maximum amount locked by payee in one lock
      * @param maxLockSeconds maximum lock duration in seconds
      * @param maxLockCounts maximum locks held by this payee
+     * @param expiryTimestamp unix ts after which the auth can no longer create/extend locks (0 = never)
      */
     function authorize(address token,address payee,uint256 maxLockedAmount,
-        uint256 maxLockSeconds,uint256 maxLockCounts) external nonReentrant{
-        _authorize(token,payee,maxLockedAmount,maxLockSeconds,maxLockCounts);
+        uint256 maxLockSeconds,uint256 maxLockCounts,uint256 expiryTimestamp) external nonReentrant{
+        _authorize(token,payee,maxLockedAmount,maxLockSeconds,maxLockCounts,expiryTimestamp);
     }
 
     /**
      * @dev authorizeMultiple
      *      Called by payer to authorize multiple payees to lock and claim funds
-     *      
+     *
      * @param token array of tokens to lock
      * @param payee array of payees addresses
      * @param maxLockedAmount array of maximum amount locked by payee in one lock
      * @param maxLockSeconds array of maximum lock duration in seconds
      * @param maxLockCounts array of maximum locks held by this payee
+     * @param expiryTimestamp array of auth expiry timestamps (0 = never)
      */
     function authorizeMultiple(address[] calldata token,address[] calldata payee,uint256[] calldata maxLockedAmount,
-        uint256[] calldata maxLockSeconds,uint256[] calldata maxLockCounts) external nonReentrant{
-            require(token.length==payee.length && 
-                    token.length==maxLockedAmount.length && 
-                    token.length==maxLockSeconds.length && 
-                    token.length==maxLockCounts.length,"Invalid input");
+        uint256[] calldata maxLockSeconds,uint256[] calldata maxLockCounts,uint256[] calldata expiryTimestamp) external nonReentrant{
+            require(token.length==payee.length &&
+                    token.length==maxLockedAmount.length &&
+                    token.length==maxLockSeconds.length &&
+                    token.length==maxLockCounts.length &&
+                    token.length==expiryTimestamp.length,"Invalid input");
             for(uint256 i=0;i<token.length;i++){
-                _authorize(token[i],payee[i],maxLockedAmount[i],maxLockSeconds[i],maxLockCounts[i]);
+                _authorize(token[i],payee[i],maxLockedAmount[i],maxLockSeconds[i],maxLockCounts[i],expiryTimestamp[i]);
             }
     }
-    
+
     function _authorize(address token,address payee,uint256 maxLockedAmount,
-        uint256 maxLockSeconds,uint256 maxLockCounts) internal{
-        
+        uint256 maxLockSeconds,uint256 maxLockCounts,uint256 expiryTimestamp) internal{
+
         require(token!=address(0),'Invalid token');
         require(payee!=address(0),'Invalid payee');
         uint256 i;
@@ -354,13 +420,14 @@ contract Escrow is
                 userAuths[msg.sender][token][i].maxLockedAmount=maxLockedAmount;
                 userAuths[msg.sender][token][i].maxLockSeconds=maxLockSeconds;
                 userAuths[msg.sender][token][i].maxLockCounts=maxLockCounts;
+                userAuths[msg.sender][token][i].expiryTimestamp=expiryTimestamp;
                 break;
             }
         }
         if(i==length){ //not found
-            userAuths[msg.sender][token].push(auth(payee,maxLockedAmount,0,maxLockSeconds,maxLockCounts,0));
+            userAuths[msg.sender][token].push(auth(payee,maxLockedAmount,0,maxLockSeconds,maxLockCounts,0,expiryTimestamp));
         }
-        emit Auth(msg.sender,payee,token,maxLockedAmount,maxLockSeconds,maxLockCounts);
+        emit Auth(msg.sender,payee,token,maxLockedAmount,maxLockSeconds,maxLockCounts,expiryTimestamp);
 
     }
 
@@ -368,7 +435,7 @@ contract Escrow is
     /**
      * @dev getFunds
      *      Returns funds information for caller
-     *      
+     *
      * @param token token
      */
     function getFunds(address token) public view returns (userFunds memory){
@@ -377,18 +444,18 @@ contract Escrow is
     /**
      * @dev getUserFunds
      *      Returns funds information for a specific payer
-     *      
+     *
      * @param payer payer
      * @param token token
      */
     function getUserFunds(address payer,address token) public view returns (userFunds memory){
         return(funds[payer][token]);
     }
-    
+
     /**
      * @dev getLocks
      *      Returns all locks, filtered
-     *      
+     *
      * @param token token to filter (zero address means any)
      * @param payer payer to filter (zero address means any)
      * @param payee payee to filter (required)
@@ -399,14 +466,14 @@ contract Escrow is
         uint256 size=0;
         uint256 length=locks[payee].length;
         for(uint256 i=0;i<length;i++){
-            if( 
-                (address(token)==address(0) || address(token)==locks[payee][i].token) || 
+            if(
+                (address(token)==address(0) || address(token)==locks[payee][i].token) ||
                 (address(payer)==address(0) || address(payer)==locks[payee][i].payer)
             ){
                 size++;
             }
         }
-        
+
         lock[] memory tempPendings=new lock[](size);
         size=0;
         for(uint256 i=0;i<length;i++){
@@ -417,15 +484,15 @@ contract Escrow is
                 tempPendings[size]=locks[payee][i];
                 size++;
             }
-        }    
+        }
         return(tempPendings);
     }
 
-    
+
     /**
      * @dev getAuthorizations
      *      Returns all auths
-     *      
+     *
      * @param token token, required
      * @param payer payer, required
      * @param payee payee to filter (zero address means any)
@@ -446,7 +513,7 @@ contract Escrow is
                 tempAuths[size]=userAuths[payer][token][i];
                 size++;
             }
-        }    
+        }
         return(tempAuths);
     }
 
@@ -454,72 +521,76 @@ contract Escrow is
 
     /**
      * @dev createLock
-     *      Called by payee to create a lock
-     *      
+     *      Called by payee to create a lock. May be partly pre-funded by subsidy providers.
+     *
      * @param jobId jobId, required
      * @param token token, required
      * @param payer payer address
-     * @param amount amount in wei to lock
-     * @param expiry expiry timestamp
+     * @param amount gross amount in wei to lock
+     * @param expiry expiry timestamp (relative seconds)
+     * @param jobType opaque category forwarded to the lock providers
+     * @param subsidyProviders list of ISubsidyLockProvider addresses (empty = payer-funded)
      */
-    function createLock(uint256 jobId,address token,address payer,uint256 amount,uint256 expiry) external nonReentrant{
-        _createLock(jobId,token,payer,amount,expiry);
+    // slither-disable-next-line reentrancy-eth,reentrancy-benign,reentrancy-events
+    function createLock(uint256 jobId,address token,address payer,uint256 amount,uint256 expiry,
+        uint256 jobType,address[] calldata subsidyProviders) external nonReentrant{
+        _createLock(jobId,token,payer,amount,expiry,jobType,subsidyProviders);
     }
     /**
      * @dev createLocks
      *      Called by payee to create multiple locks
-     *      
+     *
      * @param jobId array of jobIds
      * @param token array of tokens
      * @param payer array of payer addresses
-     * @param amount array of amounts in wei to lock
+     * @param amount array of gross amounts in wei to lock
      * @param expiry array of expiry timestamps
+     * @param jobType array of jobTypes
+     * @param subsidyProviders array of provider lists (one per lock)
      */
+    // slither-disable-next-line reentrancy-eth,reentrancy-benign,reentrancy-events
     function createLocks(uint256[] calldata jobId,address[] calldata token,
-        address[] calldata payer,uint256[] calldata amount,uint256[] calldata expiry) external nonReentrant{
-        
-        require(jobId.length==token.length && 
-            jobId.length==payer.length && 
-            jobId.length==amount.length && 
-            jobId.length==expiry.length,"Invalid input");
+        address[] calldata payer,uint256[] calldata amount,uint256[] calldata expiry,
+        uint256[] calldata jobType,address[][] calldata subsidyProviders) external nonReentrant{
+
+        _eqLen7(jobId.length,token.length,payer.length,amount.length,expiry.length,jobType.length,subsidyProviders.length);
+        _batchLockMem(false,jobId,token,payer,amount,expiry,jobType,subsidyProviders);
+    }
+    // loops create/reLock over parallel arrays; memory params (single stack slots) keep the 7-way loop
+    // within viaIR's stack budget. calldata arrays are copied to memory at the call site. `relock`
+    // selects reLock vs createLock so a single helper serves both plural entrypoints.
+    function _batchLockMem(bool relock,uint256[] memory jobId,address[] memory token,address[] memory payer,
+        uint256[] memory amount,uint256[] memory expiry,uint256[] memory jobType,
+        address[][] memory subsidyProviders) internal {
         for(uint256 i=0;i<jobId.length;i++){
-            _createLock(jobId[i],token[i],payer[i],amount[i],expiry[i]);
+            if(relock) _reLock(jobId[i],token[i],payer[i],amount[i],expiry[i],jobType[i],subsidyProviders[i]);
+            else _createLock(jobId[i],token[i],payer[i],amount[i],expiry[i],jobType[i],subsidyProviders[i]);
         }
     }
-    function _createLock(uint256 jobId,address token,address payer,uint256 amount,uint256 expiry) internal {
-        require(payer!=address(0),'Invalid payer');
-        require(payer!=msg.sender,'Payer cannot be payee');
-        require(token!=address(0),'Invalid token');
-        require(amount>0,"Invalid amount");
-        require(jobId>0,"Invalid jobId");
-        auth memory tempAuth=auth(address(0),0,0,0,0,0);
-        uint256 index;
-        require(funds[payer][token].available>=amount,"Payer does not have enough funds");
-        uint256 length=userAuths[payer][token].length;
-        for(index=0;index<length;index++){
-            if(msg.sender==userAuths[payer][token][index].payee) {
-                tempAuth=userAuths[payer][token][index];
-                break;
-            }
-        }
+    function _createLock(uint256 jobId,address token,address payer,uint256 amount,uint256 expiry,
+        uint256 jobType,address[] memory subsidyProviders) internal {
+        _validateLockParams(payer,token,amount,jobId);
+        (auth memory tempAuth,uint256 index)=_findAuth(payer,token);
         require(tempAuth.payee==msg.sender,"No auth found");
         require(expiry<=tempAuth.maxLockSeconds,"Expiry too high");
-        require(tempAuth.currentLockedAmount+amount<=tempAuth.maxLockedAmount,"Exceeds maxLockedAmount");
+        _requireAuthActive(tempAuth.expiryTimestamp,expiry);
         require(tempAuth.currentLocks<tempAuth.maxLockCounts,"Exceeds maxLockCounts");
-        // check jobId
-        length=locks[msg.sender].length;
+        // check jobId uniqueness for this payee/payer
+        uint256 length=locks[msg.sender].length;
         for(uint256 i=0;i<length;i++){
             if(locks[msg.sender][i].payer==payer && locks[msg.sender][i].jobId==jobId){
                 revert("JobId already exists");
             }
         }
-        // update auths
-        userAuths[payer][token][index].currentLockedAmount+=amount;
+        // lock-time sponsorship (library updates sponsorships[lockId].total/jobType and sponsoredTotal)
+        bytes32 lockId=_lockId(msg.sender,payer,jobId);
+        require(sponsorships[lockId].total==0,"JobId already exists"); // stale sponsorship for reused key
+        uint256 S=SponsorshipLib.applyLockSubsidies(sponsorships,sponsoredTotal,jobId,lockId,msg.sender,payer,token,jobType,amount,subsidyProviders);
+        uint256 P=amount-S; // S<=amount by the per-provider cap
+        // auth caps apply to the payer-funded portion only; moves P available->locked (check-then-apply)
+        _addPayerLocked(payer,token,index,tempAuth.maxLockedAmount,tempAuth.currentLockedAmount,P);
         userAuths[payer][token][index].currentLocks+=1;
-        // update user funds
-        funds[payer][token].available-=amount;
-        funds[payer][token].locked+=amount;
-        // create the lock
+        // create the lock (amount = gross L)
         locks[msg.sender].push(lock(jobId,payer,amount,block.timestamp+expiry,token,block.timestamp));
         emit Lock(payer,msg.sender,jobId,amount,expiry,token);
     }
@@ -530,15 +601,20 @@ contract Escrow is
      *      Both amount and expiry can go up or down. All createLock checks are re-evaluated against
      *      the new values, and the total lock lifetime (measured from the original creation) cannot
      *      exceed the authorization's maxLockSeconds. jobId and the original startTime are preserved.
+     *      Sponsorship-aware: grow re-quotes the provider list, shrink refunds sponsors in list order.
      *
      * @param jobId jobId, required (identifies the lock together with token and payer)
      * @param token token, required
      * @param payer payer address
-     * @param amount new amount in wei to lock
+     * @param amount new gross amount in wei to lock
      * @param expiry new expiry, relative seconds from now
+     * @param jobType opaque category forwarded to the lock providers (used on grow)
+     * @param subsidyProviders list of ISubsidyLockProvider addresses to consult on grow
      */
-    function reLock(uint256 jobId,address token,address payer,uint256 amount,uint256 expiry) external nonReentrant{
-        _reLock(jobId,token,payer,amount,expiry);
+    // slither-disable-next-line reentrancy-eth,reentrancy-benign,reentrancy-events
+    function reLock(uint256 jobId,address token,address payer,uint256 amount,uint256 expiry,
+        uint256 jobType,address[] calldata subsidyProviders) external nonReentrant{
+        _reLock(jobId,token,payer,amount,expiry,jobType,subsidyProviders);
     }
     /**
      * @dev reLocks
@@ -547,26 +623,22 @@ contract Escrow is
      * @param jobId array of jobIds
      * @param token array of tokens
      * @param payer array of payer addresses
-     * @param amount array of new amounts in wei to lock
+     * @param amount array of new gross amounts in wei to lock
      * @param expiry array of new expiries, relative seconds from now
+     * @param jobType array of jobTypes
+     * @param subsidyProviders array of provider lists (one per reLock)
      */
+    // slither-disable-next-line reentrancy-eth,reentrancy-benign,reentrancy-events
     function reLocks(uint256[] calldata jobId,address[] calldata token,
-        address[] calldata payer,uint256[] calldata amount,uint256[] calldata expiry) external nonReentrant{
+        address[] calldata payer,uint256[] calldata amount,uint256[] calldata expiry,
+        uint256[] calldata jobType,address[][] calldata subsidyProviders) external nonReentrant{
 
-        require(jobId.length==token.length &&
-            jobId.length==payer.length &&
-            jobId.length==amount.length &&
-            jobId.length==expiry.length,"Invalid input");
-        for(uint256 i=0;i<jobId.length;i++){
-            _reLock(jobId[i],token[i],payer[i],amount[i],expiry[i]);
-        }
+        _eqLen7(jobId.length,token.length,payer.length,amount.length,expiry.length,jobType.length,subsidyProviders.length);
+        _batchLockMem(true,jobId,token,payer,amount,expiry,jobType,subsidyProviders);
     }
-    function _reLock(uint256 jobId,address token,address payer,uint256 amount,uint256 expiry) internal {
-        require(payer!=address(0),'Invalid payer');
-        require(payer!=msg.sender,'Payer cannot be payee');
-        require(token!=address(0),'Invalid token');
-        require(amount>0,"Invalid amount");
-        require(jobId>0,"Invalid jobId");
+    function _reLock(uint256 jobId,address token,address payer,uint256 amount,uint256 expiry,
+        uint256 jobType,address[] memory subsidyProviders) internal {
+        _validateLockParams(payer,token,amount,jobId);
         // find the existing lock
         lock memory tempLock=lock(0,address(0),0,0,address(0),0);
         uint256 lockIndex;
@@ -584,26 +656,33 @@ contract Escrow is
         require(tempLock.payer==payer,"Lock not found");
         require(tempLock.expiry>=block.timestamp,"Lock expired");
         // find the auth
-        auth memory tempAuth=auth(address(0),0,0,0,0,0);
-        uint256 index;
-        length=userAuths[payer][token].length;
-        for(index=0;index<length;index++){
-            if(msg.sender==userAuths[payer][token][index].payee) {
-                tempAuth=userAuths[payer][token][index];
-                break;
-            }
-        }
+        (auth memory tempAuth,uint256 index)=_findAuth(payer,token);
         require(tempAuth.payee==msg.sender,"No auth found");
-        // re-run createLock checks against the new values, accounting for the old lock being removed
-        require(funds[payer][token].available+tempLock.amount>=amount,"Payer does not have enough funds");
         require(block.timestamp+expiry<=tempLock.startTime+tempAuth.maxLockSeconds,"Expiry too high");
-        require(tempAuth.currentLockedAmount-tempLock.amount+amount<=tempAuth.maxLockedAmount,"Exceeds maxLockedAmount");
-        // update auths (currentLocks unchanged - same slot)
-        userAuths[payer][token][index].currentLockedAmount=tempAuth.currentLockedAmount-tempLock.amount+amount;
-        // update user funds
-        funds[payer][token].available=funds[payer][token].available+tempLock.amount-amount;
-        funds[payer][token].locked=funds[payer][token].locked-tempLock.amount+amount;
-        // update the lock in place (jobId and startTime preserved)
+        _requireAuthActive(tempAuth.expiryTimestamp,expiry);
+        bytes32 lockId=_lockId(msg.sender,payer,jobId);
+        uint256 S_old=sponsorships[lockId].total;
+        uint256 P_old=tempLock.amount-S_old; // gross L_old - S_old
+        if(amount<tempLock.amount){
+            // SHRINK: payer side takes the floor, sponsored side absorbs the rounding
+            uint256 P_new=(P_old*amount)/tempLock.amount;
+            uint256 payerRefund=P_old-P_new;
+            funds[payer][token].available+=payerRefund;
+            funds[payer][token].locked-=payerRefund;
+            userAuths[payer][token][index].currentLockedAmount=tempAuth.currentLockedAmount-payerRefund;
+            if(S_old>0){
+                SponsorshipLib.shrinkSponsored(sponsorships,sponsoredTotal,providerReclaimable,lockId,msg.sender,payer,jobId,token,S_old,amount-P_new);
+            }
+        } else if(amount>tempLock.amount){
+            // GROW: re-quote providers for the delta, payer covers the rest (library merges S_add &
+            // updates sponsorships[lockId].total/jobType and sponsoredTotal)
+            uint256 delta=amount-tempLock.amount;
+            uint256 S_add=SponsorshipLib.applyLockSubsidies(sponsorships,sponsoredTotal,jobId,lockId,msg.sender,payer,token,jobType,delta,subsidyProviders);
+            uint256 payerAdd=delta-S_add; // >=0 by the per-provider cap
+            _addPayerLocked(payer,token,index,tempAuth.maxLockedAmount,tempAuth.currentLockedAmount,payerAdd);
+        }
+        // else expiry-only: no backing change
+        // update the lock in place (jobId and startTime preserved; amount = gross L_new)
         locks[msg.sender][lockIndex].amount=amount;
         locks[msg.sender][lockIndex].expiry=block.timestamp+expiry;
         emit ReLock(payer,msg.sender,jobId,tempLock.amount,amount,expiry,token);
@@ -655,19 +734,15 @@ contract Escrow is
         address[] calldata payer,uint256[] calldata amount,bytes[] calldata proof,
         uint256[] calldata jobType,address[][] calldata subsidyProviders) external nonReentrant{
 
-            require(jobId.length==token.length &&
-                    jobId.length==payer.length &&
-                    jobId.length==amount.length &&
-                    jobId.length==proof.length &&
-                    jobId.length==jobType.length &&
-                    jobId.length==subsidyProviders.length,"Invalid input");
             _claimLocksMem(jobId,token,payer,amount,proof,jobType,subsidyProviders);
     }
     // loops _claimLock over parallel arrays; params are memory (single stack slots) so the 7-way loop
     // does not blow the stack. calldata arrays are copied to memory implicitly at the call site.
+    // Validates the parallel-array lengths once here (shared by both claimLocks entrypoints).
     function _claimLocksMem(uint256[] memory jobId,address[] memory token,address[] memory payer,
         uint256[] memory amount,bytes[] memory proof,uint256[] memory jobType,
         address[][] memory subsidyProviders) internal {
+        _eqLen7(jobId.length,token.length,payer.length,amount.length,proof.length,jobType.length,subsidyProviders.length);
         for(uint256 i=0;i<jobId.length;i++){
             ClaimData memory c = ClaimData(jobId[i],token[i],payer[i],amount[i],proof[i],jobType[i],subsidyProviders[i]);
             _claimLock(c);
@@ -716,13 +791,6 @@ contract Escrow is
     function claimLocksAndWithdraw(uint256[] calldata jobId,address[] calldata token,
         address[] calldata payer,uint256[] calldata amount,bytes[] calldata proof,
         uint256[] calldata jobType,address[][] calldata subsidyProviders) external nonReentrant{
-
-        require(jobId.length==token.length &&
-            jobId.length==payer.length &&
-            jobId.length==amount.length &&
-            jobId.length==proof.length &&
-            jobId.length==jobType.length &&
-            jobId.length==subsidyProviders.length,"Invalid input");
         _claimLocksMem(jobId,token,payer,amount,proof,jobType,subsidyProviders);
         _withdrawAvailable(token);
     }
@@ -737,8 +805,8 @@ contract Escrow is
     }
 
     // Reentrancy-safe: reached only via nonReentrant entrypoints, so re-entry is impossible. Makes
-    // external calls (subsidy-provider callbacks, the guarded subsidy pull and the fee transfer); the
-    // funds/userTokens writes cannot be exploited because re-entry is blocked by the outer guard.
+    // external calls (subsidy-provider callbacks, the guarded subsidy pull, refund pushes and the fee
+    // transfer); the funds/userTokens writes cannot be exploited because re-entry is blocked.
     // slither-disable-next-line reentrancy-no-eth,reentrancy-benign,reentrancy-events
     function _claimLock(ClaimData memory c) internal {
         require(c.payer!=address(0),'Invalid payer');
@@ -764,28 +832,32 @@ contract Escrow is
             _cancelExpiredLock(c.jobId,c.token,c.payer,msg.sender);
             return;
         }
-        require(tempLock.amount>=c.amount,"Amount too high");
+        require(tempLock.amount>=c.amount,"Amount too high"); // gross L cap
 
-        //update auths
-        length=userAuths[c.payer][c.token].length;
-        for(uint256 i=0;i<length;i++){
-            if(userAuths[c.payer][c.token][i].payee==msg.sender){
-                userAuths[c.payer][c.token][i].currentLockedAmount-=tempLock.amount;
-                userAuths[c.payer][c.token][i].currentLocks-=1;
-            }
-        }
-        //update user funds: return the unclaimed remainder to the payer and unlock the whole lock
-        funds[c.payer][c.token].available+=tempLock.amount-c.amount;
-        funds[c.payer][c.token].locked-=tempLock.amount;
+        bytes32 lockId=_lockId(msg.sender,c.payer,c.jobId);
+        uint256 S=sponsorships[lockId].total;
+        uint256 P=tempLock.amount-S; // L - S (payer-funded portion)
+        uint256 fromSponsored = c.amount<S ? c.amount : S; // sponsored-funded part of the claim
+
+        //update auths (only the payer-funded portion P was ever tracked)
+        _releasePayerLocked(c.payer,c.token,msg.sender,P);
+        //update user funds: return the payer's unclaimed remainder and unlock P
+        funds[c.payer][c.token].available+=P-(c.amount-fromSponsored);
+        funds[c.payer][c.token].locked-=P;
         _trackToken(c.payer,c.token);
-        //pull subsidy (released to payer) and bonus (added to node payout) from the providers
-        (uint256 subsidy,uint256 bonus)=_applySubsidies(c.jobId,c.payer,c.token,c.jobType,c.amount,c.subsidyProviders);
+        //claim-time subsidy (released to payer), capped at the payer-funded claimed portion; bonus basis = C
+        (uint256 subsidy,uint256 bonus)=_applySubsidiesCapped(c.jobId,c.payer,c.token,c.jobType,c.amount,c.amount-fromSponsored,c.subsidyProviders);
         //release the subsidy back to the payer (bonus is NOT released to the payer)
         if(subsidy>0){
             funds[c.payer][c.token].available+=subsidy;
         }
         // credit the node payout (fee charged on amount+bonus) and transfer the fee out last
         _creditPayout(c.token,c.amount+bonus);
+        // refund unused sponsored to providers (library consumes fromSponsored in list order, pushes +
+        // notifies, decrements sponsoredTotal by S and deletes the sponsorship entry)
+        if(S>0){
+            SponsorshipLib.settleRefund(sponsorships,sponsoredTotal,providerReclaimable,lockId,msg.sender,c.payer,c.jobId,c.token,fromSponsored);
+        }
         //delete the lock
         if(index<locks[msg.sender].length-1){
             locks[msg.sender][index]=locks[msg.sender][locks[msg.sender].length-1];
@@ -821,36 +893,51 @@ contract Escrow is
         }
     }
 
+    // check-then-apply the payer-funded addition `add`: require funds + auth cap, then move
+    // `add` available->locked and set currentLockedAmount. Shared by createLock and reLock-grow.
+    function _addPayerLocked(address payer,address token,uint256 index,uint256 maxLocked,
+        uint256 currentLocked,uint256 add) internal {
+        require(funds[payer][token].available>=add,"Payer does not have enough funds");
+        require(currentLocked+add<=maxLocked,"Exceeds maxLockedAmount");
+        userAuths[payer][token][index].currentLockedAmount=currentLocked+add;
+        funds[payer][token].available-=add;
+        funds[payer][token].locked+=add;
+    }
+
+    // releases the payer-funded `release` from the payee's auth slot (currentLockedAmount, currentLocks).
+    // Shared by _claimLock and _settleCancel.
+    function _releasePayerLocked(address payer,address token,address payee,uint256 release) internal {
+        uint256 length=userAuths[payer][token].length;
+        for(uint256 i=0;i<length;i++){
+            if(userAuths[payer][token][i].payee==payee){
+                userAuths[payer][token][i].currentLockedAmount-=release;
+                userAuths[payer][token][i].currentLocks-=1;
+            }
+        }
+    }
+
     /**
-     * @dev _applySubsidies
-     *      Consults each provider in `subsidyProviders` (once per list entry) for a subsidy (released
-     *      to the payer, capped at the remaining un-subsidized portion of the claim) and a bonus
-     *      (added to the node payout, uncapped). Every provider is pulled from with a guarded
-     *      low-level transferFrom whose balanceOf-diff is the sole source of truth. One bad provider
-     *      or token must never brick the claim, so:
-     *        - the quote is wrapped in a swallowing try/catch (revert -> contribute 0),
-     *        - reverts inside the try success block are NOT caught by Solidity, so the combine is
-     *          overflow-guarded (no checked add) and the pull is a low-level call (no bool decode
-     *          that would revert on USDT-style no-data or on 1-31 junk bytes),
-     *        - a provider is credited only if the escrow received the full requested amount
-     *          (reject-partial), so fee-on-transfer under-delivery contributes 0.
+     * @dev _applySubsidiesCapped
+     *      Claim-time reimbursement subsidy. Consults each unique non-payer provider for a subsidy
+     *      (released to the payer, capped at `subsidyCap`) and a bonus (added to the node payout,
+     *      uncapped). `amount` is the bonus/pct basis forwarded to the provider (the full claim C),
+     *      while `subsidyCap` bounds only the subsidy (the payer-funded claimed portion). When
+     *      subsidyCap == amount this is the pre-sponsorship behaviour. One bad provider/token must
+     *      never brick the claim (low-level quote, reject-partial pull).
      * @return totalSubsidy sum of the accepted subsidies (released to the payer)
      * @return totalBonus   sum of the accepted bonuses (added to the node payout)
      */
-    // Reentrancy-safe: only reachable from _claimLock, itself only reachable via nonReentrant
-    // entrypoints, so the provider callback cannot re-enter any escrow entrypoint.
     // slither-disable-next-line reentrancy-eth,reentrancy-benign,reentrancy-events,calls-loop
-    function _applySubsidies(uint256 jobId,address payer,address token,uint256 jobType,uint256 amount,
-        address[] memory subsidyProviders) internal returns (uint256 totalSubsidy,uint256 totalBonus){
-        uint256 remaining = amount; // subsidy cap only; bonus is uncapped
+    function _applySubsidiesCapped(uint256 jobId,address payer,address token,uint256 jobType,uint256 amount,
+        uint256 subsidyCap,address[] memory subsidyProviders) internal returns (uint256 totalSubsidy,uint256 totalBonus){
+        uint256 remaining = subsidyCap; // subsidy cap only; bonus is uncapped
         for(uint256 i=0;i<subsidyProviders.length;i++){
             address provider = subsidyProviders[i];
             // never pull from the payer's own wallet (MED mitigation); do NOT break on remaining==0,
             // a later provider can still add a bonus.
             if(provider==payer) continue;
             // skip a provider already processed earlier in this list, so a repeated entry cannot stack
-            // multiple grants (e.g. a provider that sponsors 50% of the job, listed twice, must not
-            // yield 100%). Each unique provider is consulted at most once per claim.
+            // multiple grants. Each unique provider is consulted at most once per claim.
             bool duplicate=false;
             for(uint256 j=0;j<i;j++){ if(subsidyProviders[j]==provider){ duplicate=true; break; } }
             if(duplicate) continue;
@@ -864,10 +951,6 @@ contract Escrow is
     // Consults one provider: asks for a quote via a LOW-LEVEL call (never reverts the claim - a failed
     // call OR returndata shorter than 64 bytes contributes 0), caps the subsidy at `remaining`, and
     // pulls subsidy+bonus with a guarded low-level call. Returns the actually-accepted amounts.
-    // NOTE: a high-level `try ISubsidyProvider(p).onSubsidyClaim(...) returns (uint,uint)` does NOT
-    // catch a return-data decode failure from a wrong-selector / short-returning contract (verified),
-    // so the quote is a low-level call and we decode only validated (>=64-byte) data. Everything after
-    // the quote is revert-proof (overflow-guarded combine, low-level pull with no bool decode).
     // slither-disable-next-line reentrancy-eth,reentrancy-benign,reentrancy-events,calls-loop
     function _consultProvider(uint256 jobId,address payer,address token,uint256 jobType,uint256 amount,
         address provider,uint256 remaining) internal returns (uint256 usedSub,uint256 usedBonus){
@@ -906,7 +989,7 @@ contract Escrow is
     /**
      * @dev cancelExpiredLock
      *      Can be called by anyone to release an expired lock
-     *      
+     *
      * @param jobId jobId, if 0 matches any jobId
      * @param token token (zero address means any)
      * @param payer payer address (zero address means any)
@@ -914,12 +997,12 @@ contract Escrow is
      */
     function cancelExpiredLock(uint256 jobId,address token,address payer,address payee) external nonReentrant{
         _cancelExpiredLock(jobId,token,payer,payee);
-        
+
     }
     /**
      * @dev cancelExpiredLocks
      *      Can be called by anyone to release an expired locks
-     *      
+     *
      * @param jobId jobId, if 0 matches any jobId
      * @param token token (zero address means any)
      * @param payer payer address (zero address means any)
@@ -927,14 +1010,39 @@ contract Escrow is
      */
     function cancelExpiredLocks(uint256[] calldata jobId,address[] calldata token,address[] calldata payer,
         address[] calldata payee) external nonReentrant{
-            require(jobId.length==token.length && 
-            jobId.length==payer.length && 
+            require(jobId.length==token.length &&
+            jobId.length==payer.length &&
             jobId.length==payee.length,"Invalid input");
             for(uint256 i=0;i<jobId.length;i++){
                 _cancelExpiredLock(jobId[i],token[i],payer[i],payee[i]);
             }
     }
-    
+
+    // settles one cancelled lock: releases the payer-funded P (NOT gross L — the critical drain fix),
+    // refunds the full sponsored S to providers, and clears the sponsorship. Keyed by the matched
+    // lock's OWN payer/jobId/token. Extracted to keep _cancelExpiredLock within viaIR's stack budget.
+    // slither-disable-next-line reentrancy-eth,reentrancy-benign,reentrancy-events,calls-loop
+    function _settleCancel(address payee,uint256 index) internal {
+        address lp=locks[payee][index].payer;
+        address lt=locks[payee][index].token;
+        uint256 lj=locks[payee][index].jobId;
+        uint256 la=locks[payee][index].amount; // gross L
+        bytes32 lid=_lockId(payee,lp,lj);
+        uint256 S=sponsorships[lid].total;
+        uint256 P=la-S; // payer-funded portion
+        //update auths (only P was tracked)
+        _releasePayerLocked(lp,lt,payee,P);
+        //return the payer-funded portion to the payer (NOT the gross amount)
+        funds[lp][lt].available+=P;
+        funds[lp][lt].locked-=P;
+        emit Canceled(payee,lj,lt,lp,la);
+        //refund the full sponsored portion to providers (consume=0 -> full refund; library clears entry)
+        if(S>0){
+            SponsorshipLib.settleRefund(sponsorships,sponsoredTotal,providerReclaimable,lid,payee,lp,lj,lt,0);
+        }
+    }
+
+    // slither-disable-next-line reentrancy-eth,reentrancy-benign,reentrancy-events,calls-loop
     function _cancelExpiredLock(uint256 jobId,address token,address payer,address payee) internal{
         require(payee!=address(0),'Invalid payee');
         uint256 index;
@@ -965,20 +1073,8 @@ contract Escrow is
                     (payer==address(0) || payer==locks[payee][index].payer)
                 )
             ){
-                //cancel each lock, one by one
-                //update auths
-                uint256 authsLength=userAuths[locks[payee][index].payer][locks[payee][index].token].length;
-                for(uint256 i=0;i<authsLength;i++){
-                        if(userAuths[locks[payee][index].payer][locks[payee][index].token][i].payee==payee){
-                            userAuths[locks[payee][index].payer][locks[payee][index].token][i].currentLockedAmount-=locks[payee][index].amount;
-                            userAuths[locks[payee][index].payer][locks[payee][index].token][i].currentLocks-=1;
-                        }
-                }
-                //update user funds
-                funds[locks[payee][index].payer][locks[payee][index].token].available+=locks[payee][index].amount;
-                funds[locks[payee][index].payer][locks[payee][index].token].locked-=locks[payee][index].amount;
-                emit Canceled(payee,locks[payee][index].jobId,locks[payee][index].token,
-                    locks[payee][index].payer,locks[payee][index].amount);
+                //cancel each lock, one by one, keyed by the matched lock's OWN payer/jobId/token
+                _settleCancel(payee,index);
                 indexToDelete[currentIndex]=index;
                 currentIndex++;
             }
@@ -1003,5 +1099,54 @@ contract Escrow is
             }
             locks[payee].pop();
         }
+    }
+
+    /* Lock-time sponsorship: provider reclaim + views + capability discovery */
+
+    /**
+     * @dev sweepReclaimable
+     *      A provider withdraws tokens parked in its reclaimable bucket (refunds whose push failed).
+     *      CEI: zero the bucket BEFORE transferring.
+     * @param token token to sweep
+     */
+    function sweepReclaimable(address token) external nonReentrant{
+        uint256 amount=providerReclaimable[msg.sender][token];
+        require(amount>0,"Invalid amount"); // nothing to sweep
+        providerReclaimable[msg.sender][token]=0; // zero before transfer (CEI)
+        IERC20(token).safeTransfer(msg.sender,amount);
+    }
+
+    /// @notice Total sponsored tokens of `token` currently held in the non-withdrawable bucket.
+    function getSponsoredTotal(address token) external view returns (uint256){
+        return sponsoredTotal[token];
+    }
+
+    /// @notice Amount of `token` parked for `provider` after a failed refund push.
+    function getReclaimable(address provider,address token) external view returns (uint256){
+        return providerReclaimable[provider][token];
+    }
+
+    /// @notice The sponsorship backing a lock, keyed by (payee, payer, jobId).
+    function getSponsorship(address payee,address payer,uint256 jobId) external view
+        returns (uint256 total,address[] memory providers,uint256[] memory amounts){
+        SponsorshipLib.Sponsorship storage sp=sponsorships[_lockId(payee,payer,jobId)];
+        return (sp.total,sp.providers,sp.amounts);
+    }
+
+    /// @notice Cosmetic label distinguishing community vs enterprise deployments.
+    function escrowKind() external pure returns (EscrowKind){
+        return EscrowKind.COMMUNITY;
+    }
+
+    /// @notice Escrow ABI/feature revision.
+    function version() external pure returns (uint16){
+        return 2;
+    }
+
+    /// @notice ERC-165 capability discovery.
+    function supportsInterface(bytes4 interfaceId) external pure returns (bool){
+        return interfaceId==type(IERC165).interfaceId
+            || interfaceId==type(IEscrowCore).interfaceId
+            || interfaceId==type(IEscrowLockSubsidy).interfaceId;
     }
 }

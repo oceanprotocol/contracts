@@ -160,10 +160,22 @@ async function main() {
     }
     addresses.OPFCommunityFeeCollectorCompute=deployNewCollector.address
   }
+    if (logging) console.info("Deploying SponsorshipLib (linked into Escrow)");
+    const SponsorshipLib = await ethers.getContractFactory("SponsorshipLib", owner);
+    const sponsorshipLib = await SponsorshipLib.connect(owner).deploy(options);
+    await sponsorshipLib.deployTransaction.wait(1);
+    addresses.SponsorshipLib = sponsorshipLib.address;
+    console.log("\"SponsorshipLib\":\""+sponsorshipLib.address+"\"");
+    if (show_verify) {
+      console.log("\tRun the following to verify on etherscan");
+      // SponsorshipLib has no constructor arguments
+      console.log("\tnpx hardhat verify --network " + networkName + " " + sponsorshipLib.address)
+    }
     if (logging) console.info("Deploying Escrow");
+    // Escrow references the external SponsorshipLib; it MUST be linked or deploy reverts/throws.
     const Escrow = await ethers.getContractFactory(
       "Escrow",
-      owner
+      { libraries: { SponsorshipLib: sponsorshipLib.address }, signer: owner }
     );
     
     const deployEscrow = await Escrow.connect(owner).deploy(RouterAddress,addresses.OPFCommunityFeeCollectorCompute,options)
