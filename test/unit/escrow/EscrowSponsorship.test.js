@@ -755,6 +755,10 @@ describe('EscrowSponsorship dual-mode + window reservation (OPF, community escro
 // =================================================================================================
 describe('EscrowSponsorship size gate', function () {
   it('Escrow and EnterpriseEscrow deployed bytecode < 24,576 bytes', async function () {
+    // Under solidity-coverage the artifacts are INSTRUMENTED (optimizer off + injected counters),
+    // so their bytecode (~52 KB) says nothing about production size. The gate is meaningful only
+    // against the real optimized build (`npx hardhat test`), so skip it on the coverage run.
+    if (require('hardhat').__SOLIDITY_COVERAGE_RUNNING) this.skip();
     for (const name of ['Escrow', 'EnterpriseEscrow']) {
       const art = await artifacts.readArtifact(name);
       const size = (art.deployedBytecode.length - 2) / 2; // strip 0x, 2 hex chars/byte
