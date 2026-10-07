@@ -513,6 +513,29 @@ for (const KIND of ['community', 'enterprise']) {
       expect(await escrow.supportsInterface(entId)).to.equal(KIND === 'enterprise');
     });
 
+    // ---- MAX_SPONSORS cap (max 10 unique sponsors per lock; REVERT beyond it; readable limit) ----
+    it('rejects an 11th unique sponsor; allows exactly the limit; exposes maxSponsorsPerLock', async function () {
+      const LIMIT = (await escrow.maxSponsorsPerLock()).toNumber();
+      expect(LIMIT).to.equal(10);
+      const provs = [];
+      for (let i = 0; i < LIMIT + 1; i++) provs.push(await newProvider(D6('1'))); // each grants 1 USDC
+      await depositFn(payer, D6('100'));
+      await authorizeFn(payer, node.address, D6('1000'));
+      const addrs = provs.map((p) => p.c.address);
+      // LIMIT+1 contributing sponsors -> revert
+      await expect(
+        escrow.connect(node).createLock(jobSeq, T6.address, payer.address, D6('100'), 100000, 0, addrs)
+      ).to.be.revertedWith('Too many sponsors');
+      // exactly LIMIT -> succeeds, all recorded
+      const jobId = jobSeq++;
+      await escrow.connect(node).createLock(jobId, T6.address, payer.address, D6('100'), 100000, 0, addrs.slice(0, LIMIT));
+      const sp = await escrow.getSponsorship(node.address, payer.address, jobId);
+      expect(sp.providers.length).to.equal(LIMIT);
+      expect(sp.total).to.equal(D6('10'));
+      expect((await funds(payer.address)).locked).to.equal(D6('90')); // payer covers the un-sponsored 90
+      await assertSolvent();
+    });
+
     if (KIND === 'enterprise') {
       it('IEscrowEnterprise passthroughs mirror the fee collector', async function () {
         expect(await escrow.feeCollector()).to.equal(feeCollector.address);

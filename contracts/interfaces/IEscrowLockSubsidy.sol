@@ -34,6 +34,10 @@ interface IEscrowLockSubsidy {
         bool reclaimable
     );
 
+    /// @notice Max UNIQUE sponsors a single lock may have; createLock/reLock revert ("Too many sponsors")
+    ///         when a new sponsor would exceed it. Read it so clients can cap their provider list.
+    function maxSponsorsPerLock() external view returns (uint256);
+
     /// @notice A provider withdraws tokens parked in its reclaimable bucket (a refund whose push failed).
     function sweepReclaimable(address token) external;
 

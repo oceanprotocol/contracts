@@ -36,6 +36,13 @@ library SponsorshipLib {
     // callback/ERC-777-token gas-bomb so it cannot OOG-brick a claim or the permissionless cancel
     // batch (on OOG/revert the amount falls through to providerReclaimable, recoverable via sweep).
     uint256 private constant REFUND_PUSH_GAS = 100000;
+    // hard cap on UNIQUE sponsors per lock. settleRefund / shrinkSponsored loop over every recorded
+    // provider doing an external push + notify each, so an unbounded set (many tiny sponsors, or
+    // accreted across reLock-grows) could push claim/cancel over the block gas limit and brick
+    // settlement. createLock / reLock REVERT when a new sponsor would exceed this; already-recorded
+    // sponsors may still accumulate. `internal` so each escrow can expose it (maxSponsorsPerLock()) —
+    // single source of truth for ocean-node / ocean.js.
+    uint256 internal constant MAX_SPONSORS = 10;
 
     /* ===================== external (delegatecall-linked) ===================== */
 
@@ -45,6 +52,8 @@ library SponsorshipLib {
      *      min(grant, remaining) then pulled reject-partial. Contributions are merged by provider address
      *      into sponsorships[lockId] (so a repeat provider on reLock-grow accumulates), and the newly
      *      sponsored amount is added to sponsorship.total, sponsorship.jobType and sponsoredTotal[token].
+     *      At most MAX_SPONSORS UNIQUE providers are recorded per lock (the settlement loops are O(providers));
+     *      a call that would record a NEW provider beyond the cap REVERTS ("Too many sponsors").
      *      One bad provider/token never reverts the lock (low-level quote, reject-partial pull).
      * @return added newly sponsored amount (S on create, S_add on grow); <= lockAmount by the cap.
      */
@@ -69,6 +78,10 @@ library SponsorshipLib {
             if (_seen(providers, i, provider)) continue; // no stacked grants from a repeated entry
             uint256 want = _consult(lockId, node, payer, token, jobType, lockAmount, provider, remaining);
             if (want == 0) continue;
+            // cap UNIQUE sponsors per lock: REJECT (revert) a new contributing sponsor beyond the limit so
+            // the settlement loops stay bounded. An already-recorded sponsor may still accumulate, so a
+            // reLock-grow on existing sponsors keeps working at the cap. (The reverting pull rolls back.)
+            require(_recorded(sp, provider) || sp.providers.length < MAX_SPONSORS, "Too many sponsors");
             _record(sp, provider, want); // merge by address
             added += want;
             remaining -= want;
@@ -170,6 +183,14 @@ library SponsorshipLib {
     // true if `provider` appears in list[0..upto)
     function _seen(address[] memory list, uint256 upto, address provider) private pure returns (bool) {
         for (uint256 j = 0; j < upto; j++) { if (list[j] == provider) return true; }
+        return false;
+    }
+
+    // true if `provider` is already a recorded sponsor of this lock (used by the MAX_SPONSORS cap so an
+    // existing sponsor can keep accumulating while a new one is dropped at the limit)
+    function _recorded(Sponsorship storage sp, address provider) private view returns (bool) {
+        uint256 plen = sp.providers.length;
+        for (uint256 k = 0; k < plen; k++) { if (sp.providers[k] == provider) return true; }
         return false;
     }
 

@@ -1144,6 +1144,12 @@ contract EnterpriseEscrow is
         return sponsoredTotal[token];
     }
 
+    /// @notice Max UNIQUE sponsors a lock may have (createLock/reLock revert beyond it). Single source of
+    ///         truth is SponsorshipLib; exposed so ocean-node / ocean.js can cap their provider lists.
+    function maxSponsorsPerLock() external pure returns (uint256){
+        return SponsorshipLib.MAX_SPONSORS;
+    }
+
     /// @notice Amount of `token` parked for `provider` after a failed refund push.
     function getReclaimable(address provider,address token) external view returns (uint256){
         return providerReclaimable[provider][token];
