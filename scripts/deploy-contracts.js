@@ -319,6 +319,48 @@ async function main() {
   }
   else
     options = null
+  // Per-deploy gas limit from a LIVE estimate (+30% headroom, capped at 90% of the block limit), used
+  // for the large viaIR escrow contracts. Some chains (observed on Sepolia) meter contract code-deposit
+  // far above the nominal 200 gas/byte, so Escrow/EnterpriseEscrow (~23 KB) + SponsorshipLib need well
+  // over a fixed 6.5M and would otherwise revert out-of-gas. Over-provisioning the LIMIT is free (unused
+  // gas is refunded). On estimate failure it falls back to whatever `options` already carried.
+  let nextNonce; // pinned once (at the first withGas deploy), then incremented locally (see below)
+  async function withGas(factory, args) {
+    const o = options ? { ...options } : {};
+    try {
+      const unsigned = factory.getDeployTransaction(...args, {});
+      const est = await provider.estimateGas({ from: owner.address, data: unsigned.data });
+      const block = await provider.getBlock("latest");
+      const cap = block.gasLimit.mul(9).div(10);
+      // 2x, not a tight +30%: eth_estimateGas can UNDER-report a contract-creation (the code-deposit
+      // step), which made the near-24KB escrows revert "contract creation code storage out of gas".
+      // Over-provisioning the LIMIT is free (unused gas is refunded), so double it and cap at the block.
+      let gl = est.mul(2);
+      if (gl.gt(cap)) gl = cap;
+      o.gasLimit = gl;
+      console.log(`\tgas: estimate ${est.toString()} -> gasLimit ${gl.toString()}`);
+    } catch (e) {
+      console.log(`\tgas: estimate failed (${e.message}); using fallback options`);
+    }
+    // Pin the nonce ourselves. Some RPCs load-balance across lagging backends whose "pending" count
+    // trails "latest" (seen on Infura optimism-sepolia: latest=61 while pending flips to 59), so
+    // ethers' auto nonce can be too low -> "nonce too low". Seed from max(latest,pending) once (these
+    // escrow deploys run consecutively), then increment locally for each sequential deploy.
+    try {
+      if (nextNonce === undefined) {
+        const [latest, pending] = await Promise.all([
+          provider.getTransactionCount(owner.address, "latest"),
+          provider.getTransactionCount(owner.address, "pending"),
+        ]);
+        nextNonce = Math.max(latest, pending);
+      }
+      o.nonce = nextNonce++;
+      console.log(`\tnonce: ${o.nonce}`);
+    } catch (e) {
+      console.log(`\tnonce: auto (pin failed: ${e.message})`);
+    }
+    return [...args, o];
+  }
   const addressFile = process.env.ADDRESS_FILE;
   let oldAddresses;
   if (addressFile) {
@@ -995,7 +1037,7 @@ async function main() {
   // SponsorshipLib (external library, delegatecall-linked into BOTH escrows; deploy once, link both)
   if (logging) console.info("Deploying SponsorshipLib (linked into Escrow + EnterpriseEscrow)");
     const SponsorshipLib = await ethers.getContractFactory("SponsorshipLib", owner);
-    const sponsorshipLib = await SponsorshipLib.connect(owner).deploy(options);
+    const sponsorshipLib = await SponsorshipLib.connect(owner).deploy(...await withGas(SponsorshipLib, []));
     await sponsorshipLib.deployTransaction.wait();
     addresses.SponsorshipLib = sponsorshipLib.address;
     if (show_verify) {
@@ -1014,7 +1056,7 @@ async function main() {
       { libraries: { SponsorshipLib: sponsorshipLib.address }, signer: owner }
     );
 
-    const deployEscrow = await Escrow.connect(owner).deploy(router.address,ZERO_ADDRESS,options)
+    const deployEscrow = await Escrow.connect(owner).deploy(...await withGas(Escrow, [router.address, ZERO_ADDRESS]))
     await deployEscrow.deployTransaction.wait();
     if (show_verify) {
       console.log("\tRun the following to verify on etherscan");
@@ -1031,7 +1073,7 @@ async function main() {
           "EnterpriseEscrow",
           { libraries: { SponsorshipLib: sponsorshipLib.address }, signer: owner }
       );
-      const deployEnterpriseEscrow = await EnterpriseEscrow.connect(owner).deploy(addresses.EnterpriseFeeCollector,options)
+      const deployEnterpriseEscrow = await EnterpriseEscrow.connect(owner).deploy(...await withGas(EnterpriseEscrow, [addresses.EnterpriseFeeCollector]))
       await deployEnterpriseEscrow.deployTransaction.wait();
       if (show_verify) {
         console.log("\tRun the following to verify on etherscan");

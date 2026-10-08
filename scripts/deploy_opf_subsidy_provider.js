@@ -27,6 +27,7 @@ const OPF_SUBSIDY_MONTHLY = "20";     // per-user monthly cap in token wei ("0" 
 const OPF_USER_ACCESS_LIST = "0x6CFd3d3136c23f137a91180B2a55D731B73a6f26";     // user AccessList address ("" => user gate off)
 const OPF_NODE_ACCESS_LIST = "0x1F0Dd705eaa4fC1920fd782f59b752aEdF6694ef";     // node AccessList address ("" => node gate off)
 const OPF_ALLOWED_JOBTYPES = [];     // jobTypes to allow, e.g. ["1","2"] ([] => all allowed)
+const OPF_SUBSIDY_MODE = "2";          // "" => keep contract default BOTH; else "BOTH" | "REFUND_ONLY" | "PREPAID_ONLY" (or 0 | 1 | 2)
 // ---------------------------------------------------------------------------
 
 // Track every deployed subsidy provider in a single shared `SubsidyProviders` array (a dashboard
@@ -138,6 +139,50 @@ async function main() {
   if (gasPrice) options = { gasLimit, gasPrice };
   else options = { gasLimit };
 
+  // --- deploy robustness helpers (mirror the escrow deploy scripts) ---
+  // Pin nonces locally: some RPCs load-balance across lagging backends whose "pending" count trails
+  // "latest" (seen on Infura optimism-sepolia: latest ahead while pending flips lower), so ethers'
+  // auto nonce can be too low -> "nonce too low". Seed from max(latest,pending) once, then increment
+  // locally for each sequential tx (deploy + every config call).
+  let nextNonce;
+  async function nextN() {
+    if (nextNonce === undefined) {
+      const [latest, pending] = await Promise.all([
+        provider.getTransactionCount(owner.address, "latest"),
+        provider.getTransactionCount(owner.address, "pending"),
+      ]);
+      nextNonce = Math.max(latest, pending);
+    }
+    return nextNonce++;
+  }
+  // options for a plain config tx: keep the fixed gasLimit/gasPrice, just pin the nonce.
+  async function txOpts() {
+    const o = { ...options };
+    try { o.nonce = await nextN(); } catch (e) { console.log(`\tnonce: auto (${e.message})`); }
+    return o;
+  }
+  // options for a contract DEPLOY: size gasLimit from a live estimate (2x, capped at 90% of the block
+  // limit). A fixed 6.5M is NOT safe for this ~13 KB provider: eth_estimateGas can under-report the
+  // code-deposit step, and some chains meter code-deposit far above 200 gas/byte (Sepolia), either of
+  // which reverts "contract creation code storage out of gas". Over-provisioning the LIMIT is free.
+  async function withGas(factory, args) {
+    const o = { ...options };
+    try {
+      const unsigned = factory.getDeployTransaction(...args, {});
+      const est = await provider.estimateGas({ from: owner.address, data: unsigned.data });
+      const block = await provider.getBlock("latest");
+      const cap = block.gasLimit.mul(9).div(10);
+      let gl = est.mul(2);
+      if (gl.gt(cap)) gl = cap;
+      o.gasLimit = gl;
+      console.log(`\tgas: estimate ${est.toString()} -> gasLimit ${gl.toString()}`);
+    } catch (e) {
+      console.log(`\tgas: estimate failed (${e.message}); using fallback gasLimit ${options.gasLimit}`);
+    }
+    try { o.nonce = await nextN(); console.log(`\tnonce: ${o.nonce}`); } catch (e) { console.log(`\tnonce: auto (${e.message})`); }
+    return [...args, o];
+  }
+
   console.log("Network:" + networkName);
   const addressFile = process.env.ADDRESS_FILE;
   let oldAddresses;
@@ -157,7 +202,7 @@ async function main() {
   // ---- deploy ----
   if (logging) console.info("Deploying OPFSubsidyProvider");
   const OPF = await ethers.getContractFactory("OPFSubsidyProvider", owner);
-  const opf = await OPF.connect(owner).deploy(options);
+  const opf = await OPF.connect(owner).deploy(...await withGas(OPF, []));
   await opf.deployTransaction.wait(1);
   if (show_verify) {
     console.log("\tRun the following to verify on etherscan");
@@ -170,18 +215,18 @@ async function main() {
   // ---- wiring ----
   if (OPF_USER_ACCESS_LIST) {
     if (logging) console.info("setUserAccessList " + OPF_USER_ACCESS_LIST);
-    await (await opf.connect(owner).setUserAccessList(OPF_USER_ACCESS_LIST, options)).wait(1);
+    await (await opf.connect(owner).setUserAccessList(OPF_USER_ACCESS_LIST, await txOpts())).wait(1);
   } else console.info("OPF_USER_ACCESS_LIST not set -> user gate OFF (allow all)");
   if (OPF_NODE_ACCESS_LIST) {
     if (logging) console.info("setNodeAccessList " + OPF_NODE_ACCESS_LIST);
-    await (await opf.connect(owner).setNodeAccessList(OPF_NODE_ACCESS_LIST, options)).wait(1);
+    await (await opf.connect(owner).setNodeAccessList(OPF_NODE_ACCESS_LIST, await txOpts())).wait(1);
   } else console.info("OPF_NODE_ACCESS_LIST not set -> node gate OFF (allow all)");
 
   // token limits
   const token = OPF_SUBSIDY_TOKEN || addresses.Ocean || addresses.OCEAN;
   if (token) {
     if (logging) console.info(`setTokenLimits(${token}, ${OPF_SUBSIDY_PCT_BPS}, ${OPF_SUBSIDY_DAILY}, ${OPF_SUBSIDY_WEEKLY}, ${OPF_SUBSIDY_MONTHLY}, true)`);
-    await (await opf.connect(owner).setTokenLimits(token, OPF_SUBSIDY_PCT_BPS, OPF_SUBSIDY_DAILY, OPF_SUBSIDY_WEEKLY, OPF_SUBSIDY_MONTHLY, true, options)).wait(1);
+    await (await opf.connect(owner).setTokenLimits(token, OPF_SUBSIDY_PCT_BPS, OPF_SUBSIDY_DAILY, OPF_SUBSIDY_WEEKLY, OPF_SUBSIDY_MONTHLY, true, await txOpts())).wait(1);
 
     
   } else {
@@ -191,7 +236,7 @@ async function main() {
   // jobType allowlist
   if (Array.isArray(OPF_ALLOWED_JOBTYPES) && OPF_ALLOWED_JOBTYPES.length > 0) {
     if (logging) console.info("setAllowedJobTypes " + JSON.stringify(OPF_ALLOWED_JOBTYPES));
-    await (await opf.connect(owner).setAllowedJobTypes(OPF_ALLOWED_JOBTYPES, options)).wait(1);
+    await (await opf.connect(owner).setAllowedJobTypes(OPF_ALLOWED_JOBTYPES, await txOpts())).wait(1);
   } else console.info("OPF_ALLOWED_JOBTYPES empty -> jobType gate OFF (all jobTypes allowed)");
 
   // authorize the deployed escrow so they can call onSubsidyClaim (OPF allows only community escrow)
@@ -199,14 +244,25 @@ async function main() {
   for (const key of ["Escrow"]) {
     if (addresses[key]) {
       if (logging) console.info("setAuthorizedEscrow(" + key + " " + addresses[key] + ", true)");
-      await (await opf.connect(owner).setAuthorizedEscrow(addresses[key], true, options)).wait(1);
+      await (await opf.connect(owner).setAuthorizedEscrow(addresses[key], true, await txOpts())).wait(1);
     } else console.info("No " + key + " in address file -> not authorized (do it manually later)");
   }
+
+  // subsidy mode (contract defaults to BOTH = refund + prepaid). Optionally restrict to one leg.
+  // Must run while the deployer is still the owner (setSubsidyMode is onlyOwner), i.e. before transfer.
+  if (OPF_SUBSIDY_MODE !== "") {
+    const MODES = { BOTH: 0, REFUND_ONLY: 1, PREPAID_ONLY: 2 };
+    const key = String(OPF_SUBSIDY_MODE).toUpperCase();
+    const mode = key in MODES ? MODES[key] : Number(OPF_SUBSIDY_MODE);
+    if (![0, 1, 2].includes(mode)) throw new Error("Invalid OPF_SUBSIDY_MODE: " + OPF_SUBSIDY_MODE + " (use BOTH|REFUND_ONLY|PREPAID_ONLY)");
+    if (logging) console.info("setSubsidyMode " + OPF_SUBSIDY_MODE + " (" + mode + ")");
+    await (await opf.connect(owner).setSubsidyMode(mode, await txOpts())).wait(1);
+  } else console.info("OPF_SUBSIDY_MODE not set -> leaving default BOTH (refund + prepaid)");
 
   // hand ownership to the OPF multisig if we deployed from a different key
   if (OPFOwner && OPFOwner.toLowerCase() !== owner.address.toLowerCase()) {
     if (logging) console.info("transferOwnership -> " + OPFOwner);
-    await (await opf.connect(owner).transferOwnership(OPFOwner, options)).wait(1);
+    await (await opf.connect(owner).transferOwnership(OPFOwner, await txOpts())).wait(1);
   }
 
   // persist
