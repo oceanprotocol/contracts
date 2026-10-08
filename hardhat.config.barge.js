@@ -49,6 +49,12 @@ module.exports = {
         version: "0.8.12",
         settings: { optimizer: { enabled: true, runs: 200 }, viaIR: true },
       },
+      // SponsorshipLib (delegatecall-linked into both escrows) also needs the IR pipeline — its
+      // refund loops exceed the legacy code generator's stack depth.
+      "contracts/escrow/SponsorshipLib.sol": {
+        version: "0.8.12",
+        settings: { optimizer: { enabled: true, runs: 200 }, viaIR: true },
+      },
     },
   },
   vyper: {

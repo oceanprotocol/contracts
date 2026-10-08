@@ -26,6 +26,7 @@ const ONETIME_DEFAULT_CREDIT = "10000000"; // global one-time credit per user in
 const ONETIME_USER_ACCESS_LIST = "0x6CFd3d3136c23f137a91180B2a55D731B73a6f26";      // user AccessList address ("" => user gate off)
 const ONETIME_NODE_ACCESS_LIST = "0x1F0Dd705eaa4fC1920fd782f59b752aEdF6694ef";      // node AccessList address ("" => node gate off)
 const ONETIME_ALLOWED_JOBTYPES = [];      // jobTypes to allow, e.g. ["1","2"] ([] => all allowed)
+const ONETIME_SUBSIDY_MODE = "2";          // "" => keep contract default BOTH; else "BOTH" | "REFUND_ONLY" | "PREPAID_ONLY" (or 0 | 1 | 2)
 const ONETIME_USER_OVERRIDES = [];        // per-user credit overrides: [{ addr: "0x..", amount: "20000000" }]
 // ---------------------------------------------------------------------------
 
@@ -138,6 +139,50 @@ async function main() {
   if (gasPrice) options = { gasLimit, gasPrice };
   else options = { gasLimit };
 
+  // --- deploy robustness helpers (mirror the escrow deploy scripts) ---
+  // Pin nonces locally: some RPCs load-balance across lagging backends whose "pending" count trails
+  // "latest" (seen on Infura optimism-sepolia: latest ahead while pending flips lower), so ethers'
+  // auto nonce can be too low -> "nonce too low". Seed from max(latest,pending) once, then increment
+  // locally for each sequential tx (deploy + every config call).
+  let nextNonce;
+  async function nextN() {
+    if (nextNonce === undefined) {
+      const [latest, pending] = await Promise.all([
+        provider.getTransactionCount(owner.address, "latest"),
+        provider.getTransactionCount(owner.address, "pending"),
+      ]);
+      nextNonce = Math.max(latest, pending);
+    }
+    return nextNonce++;
+  }
+  // options for a plain config tx: keep the fixed gasLimit/gasPrice, just pin the nonce.
+  async function txOpts() {
+    const o = { ...options };
+    try { o.nonce = await nextN(); } catch (e) { console.log(`\tnonce: auto (${e.message})`); }
+    return o;
+  }
+  // options for a contract DEPLOY: size gasLimit from a live estimate (2x, capped at 90% of the block
+  // limit). A fixed 6.5M is NOT safe for this ~13 KB provider: eth_estimateGas can under-report the
+  // code-deposit step, and some chains meter code-deposit far above 200 gas/byte (Sepolia), either of
+  // which reverts "contract creation code storage out of gas". Over-provisioning the LIMIT is free.
+  async function withGas(factory, args) {
+    const o = { ...options };
+    try {
+      const unsigned = factory.getDeployTransaction(...args, {});
+      const est = await provider.estimateGas({ from: owner.address, data: unsigned.data });
+      const block = await provider.getBlock("latest");
+      const cap = block.gasLimit.mul(9).div(10);
+      let gl = est.mul(2);
+      if (gl.gt(cap)) gl = cap;
+      o.gasLimit = gl;
+      console.log(`\tgas: estimate ${est.toString()} -> gasLimit ${gl.toString()}`);
+    } catch (e) {
+      console.log(`\tgas: estimate failed (${e.message}); using fallback gasLimit ${options.gasLimit}`);
+    }
+    try { o.nonce = await nextN(); console.log(`\tnonce: ${o.nonce}`); } catch (e) { console.log(`\tnonce: auto (${e.message})`); }
+    return [...args, o];
+  }
+
   console.log("Network:" + networkName);
   const addressFile = process.env.ADDRESS_FILE;
   let oldAddresses;
@@ -157,7 +202,7 @@ async function main() {
   // ---- deploy ----
   if (logging) console.info("Deploying OneTimeSubsidyProvider");
   const OneTime = await ethers.getContractFactory("OneTimeSubsidyProvider", owner);
-  const oneTime = await OneTime.connect(owner).deploy(options);
+  const oneTime = await OneTime.connect(owner).deploy(...await withGas(OneTime, []));
   await oneTime.deployTransaction.wait(1);
   if (show_verify) {
     console.log("\tRun the following to verify on etherscan");
@@ -170,24 +215,24 @@ async function main() {
   // ---- wiring ----
   if (ONETIME_USER_ACCESS_LIST) {
     if (logging) console.info("setUserAccessList " + ONETIME_USER_ACCESS_LIST);
-    await (await oneTime.connect(owner).setUserAccessList(ONETIME_USER_ACCESS_LIST, options)).wait(1);
+    await (await oneTime.connect(owner).setUserAccessList(ONETIME_USER_ACCESS_LIST, await txOpts())).wait(1);
   } else console.info("ONETIME_USER_ACCESS_LIST not set -> user gate OFF (allow all)");
   if (ONETIME_NODE_ACCESS_LIST) {
     if (logging) console.info("setNodeAccessList " + ONETIME_NODE_ACCESS_LIST);
-    await (await oneTime.connect(owner).setNodeAccessList(ONETIME_NODE_ACCESS_LIST, options)).wait(1);
+    await (await oneTime.connect(owner).setNodeAccessList(ONETIME_NODE_ACCESS_LIST, await txOpts())).wait(1);
   } else console.info("ONETIME_NODE_ACCESS_LIST not set -> node gate OFF (allow all)");
 
   // token config (global default credit)
   const token = ONETIME_TOKEN || addresses.Ocean || addresses.OCEAN;
   if (token) {
     if (logging) console.info(`setTokenConfig(${token}, ${ONETIME_PCT_BPS}, ${ONETIME_DEFAULT_CREDIT}, true)`);
-    await (await oneTime.connect(owner).setTokenConfig(token, ONETIME_PCT_BPS, ONETIME_DEFAULT_CREDIT, true, options)).wait(1);
+    await (await oneTime.connect(owner).setTokenConfig(token, ONETIME_PCT_BPS, ONETIME_DEFAULT_CREDIT, true, await txOpts())).wait(1);
 
     // per-user credit overrides (e.g. close friends get more than the default)
     for (const o of ONETIME_USER_OVERRIDES) {
       if (o && o.addr && o.amount) {
         if (logging) console.info(`setUserCredit(${o.addr}, ${token}, ${o.amount})`);
-        await (await oneTime.connect(owner).setUserCredit(o.addr, token, o.amount, options)).wait(1);
+        await (await oneTime.connect(owner).setUserCredit(o.addr, token, o.amount, await txOpts())).wait(1);
       }
     }
   } else {
@@ -197,7 +242,7 @@ async function main() {
   // jobType allowlist
   if (Array.isArray(ONETIME_ALLOWED_JOBTYPES) && ONETIME_ALLOWED_JOBTYPES.length > 0) {
     if (logging) console.info("setAllowedJobTypes " + JSON.stringify(ONETIME_ALLOWED_JOBTYPES));
-    await (await oneTime.connect(owner).setAllowedJobTypes(ONETIME_ALLOWED_JOBTYPES, options)).wait(1);
+    await (await oneTime.connect(owner).setAllowedJobTypes(ONETIME_ALLOWED_JOBTYPES, await txOpts())).wait(1);
   } else console.info("ONETIME_ALLOWED_JOBTYPES empty -> jobType gate OFF (all jobTypes allowed)");
 
   // authorize the deployed escrow so it can call onSubsidyClaim
@@ -205,14 +250,25 @@ async function main() {
   for (const key of ["Escrow"]) {
     if (addresses[key]) {
       if (logging) console.info("setAuthorizedEscrow(" + key + " " + addresses[key] + ", true)");
-      await (await oneTime.connect(owner).setAuthorizedEscrow(addresses[key], true, options)).wait(1);
+      await (await oneTime.connect(owner).setAuthorizedEscrow(addresses[key], true, await txOpts())).wait(1);
     } else console.info("No " + key + " in address file -> not authorized (do it manually later)");
   }
+
+  // subsidy mode (contract defaults to BOTH = refund + prepaid). Optionally restrict to one leg.
+  // Must run while the deployer is still the owner (setSubsidyMode is onlyOwner), i.e. before transfer.
+  if (ONETIME_SUBSIDY_MODE !== "") {
+    const MODES = { BOTH: 0, REFUND_ONLY: 1, PREPAID_ONLY: 2 };
+    const key = String(ONETIME_SUBSIDY_MODE).toUpperCase();
+    const mode = key in MODES ? MODES[key] : Number(ONETIME_SUBSIDY_MODE);
+    if (![0, 1, 2].includes(mode)) throw new Error("Invalid ONETIME_SUBSIDY_MODE: " + ONETIME_SUBSIDY_MODE + " (use BOTH|REFUND_ONLY|PREPAID_ONLY)");
+    if (logging) console.info("setSubsidyMode " + ONETIME_SUBSIDY_MODE + " (" + mode + ")");
+    await (await oneTime.connect(owner).setSubsidyMode(mode, await txOpts())).wait(1);
+  } else console.info("ONETIME_SUBSIDY_MODE not set -> leaving default BOTH (refund + prepaid)");
 
   // hand ownership to the OPF multisig if we deployed from a different key
   if (OPFOwner && OPFOwner.toLowerCase() !== owner.address.toLowerCase()) {
     if (logging) console.info("transferOwnership -> " + OPFOwner);
-    await (await oneTime.connect(owner).transferOwnership(OPFOwner, options)).wait(1);
+    await (await oneTime.connect(owner).transferOwnership(OPFOwner, await txOpts())).wait(1);
   }
 
   // persist
