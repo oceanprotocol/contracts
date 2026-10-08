@@ -205,9 +205,11 @@ module.exports = {
 
   },
   sourcify: {
-    // Disabled by default
-    // Doesn't need an API key
-    enabled: true
+    // Disabled: this hardhat-verify (2.1.x) calls Sourcify's removed API v1
+    // (`/check-all-by-addresses`), which now 404s ("API v1 is removed"). Etherscan
+    // verification below is independent and unaffected. Re-enable only once the plugin
+    // speaks Sourcify API v2 (needs a hardhat-verify that supports it).
+    enabled: false
   },
   etherscan: {
     /*apiKey: {
