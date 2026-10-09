@@ -10,16 +10,21 @@ on:
     branches:
       - '**'
 
+permissions:
+  contents: read
+
 jobs:
   check_deployment:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3
-      - uses: actions/setup-node@v2
+      - uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v7
         with:
           node-version: '16'
       - name: Cache node_modules
-        uses: actions/cache@v4
+        uses: actions/cache@v6
         env:
           cache-name: cache-node-modules
         with:
@@ -35,8 +40,9 @@ jobs:
       - name: Additional tag
         run: docker tag 'oceanprotocol/ocean-contracts:test' 'ghcr.io/oceanprotocol/ocean-contracts:test'
       - name: Checkout Barge
-        uses: actions/checkout@v3
+        uses: actions/checkout@v7
         with:
+          persist-credentials: false
           repository: 'oceanprotocol/barge'
           path: 'barge'
 
