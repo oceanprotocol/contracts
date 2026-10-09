@@ -10,16 +10,19 @@ on:
     branches:
       - '**'
 
+permissions:
+  contents: read
+
 jobs:
   lint:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v2
-      - uses: actions/setup-node@v2
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
         with:
           node-version: '20'
       - name: Cache node_modules
-        uses: actions/cache@v4
+        uses: actions/cache@v6
         env:
           cache-name: cache-node-modules
         with:
@@ -39,12 +42,12 @@ jobs:
       - name: "step-log-event_name "
         run: |
           echo "[C] github.event_name : ${{github.event_name }}"
-      - uses: actions/checkout@v2
-      - uses: actions/setup-node@v2
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
         with:
           node-version: '20'
       - name: Cache node_modules
-        uses: actions/cache@v4
+        uses: actions/cache@v6
         env:
           cache-name: cache-node-modules
         with:
@@ -68,7 +71,7 @@ jobs:
           ALCHEMY_URL: ${{secrets.ALCHEMY_URL}}
       - name: Delete dbg files
         run: find ./artifacts/* -name "*.dbg.json" -type f -delete
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v7
         with:
           name: coverage-contracts
           path: coverage/
@@ -81,20 +84,20 @@ jobs:
       security-events: write
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v2
+        uses: actions/checkout@v7
 
       - name: Run Slither
-        uses: crytic/slither-action@v0.4.1
+        uses: crytic/slither-action@b52cc1cbfee9ca3e8722dd5224299d16c9a6b80f # v0.4.2
         continue-on-error: true
         id: slither
         with:
           sarif: results.sarif
           fail-on: none
         env:
-          ALCHEMY_URL: ${{secrets.ALCHEMY_URL}}`
+          ALCHEMY_URL: ${{secrets.ALCHEMY_URL}}
 
       - name: Upload SARIF file
-        uses: github/codeql-action/upload-sarif@v3
+        uses: github/codeql-action/upload-sarif@v4
         with:
           sarif_file: ${{ steps.slither.outputs.sarif }}
 
@@ -103,8 +106,8 @@ jobs:
     needs: [tests_full]
     if: ${{ success() && github.actor != 'dependabot[bot]' }}
     steps:
-      - uses: actions/checkout@v2
-      - uses: actions/download-artifact@v4
+      - uses: actions/checkout@v7
+      - uses: actions/download-artifact@v8
         with:
           name: coverage-contracts
           path: coverage/
@@ -112,12 +115,12 @@ jobs:
   check_deployment:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3
-      - uses: actions/setup-node@v2
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
         with:
           node-version: '20'
       - name: Cache node_modules
-        uses: actions/cache@v4
+        uses: actions/cache@v6
         env:
           cache-name: cache-node-modules
         with:
@@ -133,7 +136,7 @@ jobs:
       - name: Additional tag
         run: docker tag 'oceanprotocol/ocean-contracts:test' 'ghcr.io/oceanprotocol/ocean-contracts:test'
       - name: Checkout Barge
-        uses: actions/checkout@v3
+        uses: actions/checkout@v7
         with:
           repository: 'oceanprotocol/barge'
           path: 'barge'
@@ -163,12 +166,23 @@ jobs:
     needs: [lint, tests_full,check_deployment]
     if: startsWith(github.ref, 'refs/tags/v')
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      id-token: write # required for npm provenance
     steps:
-      - uses: actions/checkout@v2
-      - uses: actions/setup-node@v2
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
         with:
           node-version: 20
           registry-url: https://registry.npmjs.org/
+      - name: Verify tag matches package.json version
+        run: |
+          TAG_VERSION="${GITHUB_REF_NAME#v}"
+          PKG_VERSION="$(node -p "require('./package.json').version")"
+          if [ "$TAG_VERSION" != "$PKG_VERSION" ]; then
+            echo "Tag $GITHUB_REF_NAME (version $TAG_VERSION) does not match package.json version $PKG_VERSION"
+            exit 1
+          fi
       - run: npm ci
       - name: Compile contracts
         run: |
@@ -179,7 +193,7 @@ jobs:
         run: find ./artifacts/* -name "*.dbg.json" -type f -delete
       - name: Delete useless files
         run: rm -rf ./artifacts/build-info/*
-      - run: npm publish
+      - run: npm publish --provenance --access public
         env:
           NODE_AUTH_TOKEN: ${{secrets.NPM_TOKEN}}
 
@@ -194,12 +208,12 @@ jobs:
       - name: "step-log-event_name "
         run: |
           echo "[C] github.event_name : ${{github.event_name }}"
-      - uses: actions/checkout@v2
-      - uses: actions/setup-node@v2
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
         with:
           node-version: '20'
       - name: Cache node_modules
-        uses: actions/cache@v4
+        uses: actions/cache@v6
         env:
           cache-name: cache-node-modules
         with:
@@ -221,7 +235,7 @@ jobs:
       - name: Remove folders from artifacts
         run: find ./artifacts -maxdepth 1 -mindepth 1 -type d -exec rm -rf '{}' \;
       - name: Set up Python
-        uses: actions/setup-python@v2
+        uses: actions/setup-python@v7
         with:
           python-version: '3.x'
       - name: Install dependencies
@@ -235,7 +249,7 @@ jobs:
       - name: Build package
         run: python -m build
       - name: Publish package
-        uses: pypa/gh-action-pypi-publish@27b31702a0e7fc50959f5ad993c78deac1bdfc29
+        uses: pypa/gh-action-pypi-publish@dc37677b2e1c63e2034f94d8a5b11f265b73ba33 # v1.14.2
         with:
           user: __token__
           password: ${{ secrets.PYPI_API_TOKEN }}
