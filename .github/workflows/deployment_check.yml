@@ -18,6 +18,8 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v7
+        with:
+          persist-credentials: false
       - uses: actions/setup-node@v7
         with:
           node-version: '16'
@@ -40,6 +42,7 @@ jobs:
       - name: Checkout Barge
         uses: actions/checkout@v7
         with:
+          persist-credentials: false
           repository: 'oceanprotocol/barge'
           path: 'barge'
 

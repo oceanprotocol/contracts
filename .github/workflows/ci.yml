@@ -18,6 +18,8 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v7
+        with:
+          persist-credentials: false
       - uses: actions/setup-node@v7
         with:
           node-version: '20'
@@ -43,6 +45,8 @@ jobs:
         run: |
           echo "[C] github.event_name : ${{github.event_name }}"
       - uses: actions/checkout@v7
+        with:
+          persist-credentials: false
       - uses: actions/setup-node@v7
         with:
           node-version: '20'
@@ -85,6 +89,8 @@ jobs:
     steps:
       - name: Checkout repository
         uses: actions/checkout@v7
+        with:
+          persist-credentials: false
 
       - name: Run Slither
         uses: crytic/slither-action@b52cc1cbfee9ca3e8722dd5224299d16c9a6b80f # v0.4.2
@@ -107,6 +113,8 @@ jobs:
     if: ${{ success() && github.actor != 'dependabot[bot]' }}
     steps:
       - uses: actions/checkout@v7
+        with:
+          persist-credentials: false
       - uses: actions/download-artifact@v8
         with:
           name: coverage-contracts
@@ -116,6 +124,8 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v7
+        with:
+          persist-credentials: false
       - uses: actions/setup-node@v7
         with:
           node-version: '20'
@@ -138,6 +148,7 @@ jobs:
       - name: Checkout Barge
         uses: actions/checkout@v7
         with:
+          persist-credentials: false
           repository: 'oceanprotocol/barge'
           path: 'barge'
 
@@ -171,6 +182,8 @@ jobs:
       id-token: write # required for npm provenance
     steps:
       - uses: actions/checkout@v7
+        with:
+          persist-credentials: false
       - uses: actions/setup-node@v7
         with:
           node-version: 20
@@ -209,6 +222,8 @@ jobs:
         run: |
           echo "[C] github.event_name : ${{github.event_name }}"
       - uses: actions/checkout@v7
+        with:
+          persist-credentials: false
       - uses: actions/setup-node@v7
         with:
           node-version: '20'
