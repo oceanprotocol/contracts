@@ -249,6 +249,15 @@ jobs:
         run: find ./artifacts/contracts -name '*.json' -exec mv '{}' './artifacts/' ';'
       - name: Remove folders from artifacts
         run: find ./artifacts -maxdepth 1 -mindepth 1 -type d -exec rm -rf '{}' \;
+      - name: Verify tag matches setup.cfg version
+        run: |
+          set -euo pipefail
+          TAG_VERSION="$GITHUB_REF_NAME"
+          CFG_VERSION="$(grep -E '^version' setup.cfg | head -1 | sed -E 's/^version[[:space:]]*=[[:space:]]*//' | tr -d '[:space:]')"
+          if [ "$TAG_VERSION" != "$CFG_VERSION" ]; then
+            echo "Tag $TAG_VERSION does not match setup.cfg version $CFG_VERSION"
+            exit 1
+          fi
       - name: Set up Python
         uses: actions/setup-python@v7
         with:
