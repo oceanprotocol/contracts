@@ -1,5 +1,5 @@
 
-FROM ubuntu:22.04 as base
+FROM ubuntu:26.04 as base
 ENV DEBIAN_FRONTEND=noninteractive
 RUN apt-get update && apt-get -y install curl bash
 # nvm env vars
