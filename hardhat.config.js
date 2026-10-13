@@ -52,6 +52,12 @@ module.exports = {
         version: "0.8.12",
         settings: { optimizer: { enabled: true, runs: 200 }, viaIR: true },
       },
+      // Shared lock-time sponsorship engine (external, delegatecall-linked) used by both escrows; it
+      // carries the deep-stack provider-interaction logic, so it needs the IR pipeline too.
+      "contracts/escrow/SponsorshipLib.sol": {
+        version: "0.8.12",
+        settings: { optimizer: { enabled: true, runs: 200 }, viaIR: true },
+      },
       "contracts/escrow/EnterpriseEscrow.sol": {
         version: "0.8.12",
         settings: { optimizer: { enabled: true, runs: 200 }, viaIR: true },
@@ -199,9 +205,11 @@ module.exports = {
 
   },
   sourcify: {
-    // Disabled by default
-    // Doesn't need an API key
-    enabled: true
+    // Disabled: this hardhat-verify (2.1.x) calls Sourcify's removed API v1
+    // (`/check-all-by-addresses`), which now 404s ("API v1 is removed"). Etherscan
+    // verification below is independent and unaffected. Re-enable only once the plugin
+    // speaks Sourcify API v2 (needs a hardhat-verify that supports it).
+    enabled: false
   },
   etherscan: {
     /*apiKey: {

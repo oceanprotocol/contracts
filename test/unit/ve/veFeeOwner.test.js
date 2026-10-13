@@ -65,7 +65,11 @@ describe("veFeeOwner tests", () => {
     })
     it("#Alice locks OceanTokens", async () => {
         //alice locks 1000 ocean
-        const unlockTime = Math.floor(new Date().getTime() / 1000) + 60*60*24*30
+        // Base the unlock time on the CHAIN clock, not wall-clock: other suites in a combined/coverage
+        // run fast-forward the EVM time by days/weeks, so a Date.now()-based lock can round down to a
+        // timestamp already in the chain's past -> "Can only lock until time in the future".
+        const chainNow = (await ethers.provider.getBlock('latest')).timestamp
+        const unlockTime = chainNow + 60*60*24*30
         await oceanToken.connect(alice).approve(veOcean.address,1000)
         const tx = await veOcean.connect(alice).create_lock(1000,unlockTime)
         const txReceipt = await tx.wait();
