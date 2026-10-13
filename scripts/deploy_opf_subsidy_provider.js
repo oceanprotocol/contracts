@@ -27,7 +27,7 @@ const OPF_SUBSIDY_MONTHLY = "20000000";     // per-user monthly cap in token wei
 const OPF_USER_ACCESS_LIST = "0x6CFd3d3136c23f137a91180B2a55D731B73a6f26";     // user AccessList address ("" => user gate off)
 const OPF_NODE_ACCESS_LIST = "0x1F0Dd705eaa4fC1920fd782f59b752aEdF6694ef";     // node AccessList address ("" => node gate off)
 const OPF_ALLOWED_JOBTYPES = [];     // jobTypes to allow, e.g. ["1","2"] ([] => all allowed)
-const OPF_SUBSIDY_MODE = "2";          // "" => keep contract default BOTH; else "BOTH" | "REFUND_ONLY" | "PREPAID_ONLY" (or 0 | 1 | 2)
+const OPF_SUBSIDY_MODE = "1";          // "" => keep contract default BOTH; else "BOTH" | "REFUND_ONLY" | "PREPAID_ONLY" (or 0 | 1 | 2)
 // ---------------------------------------------------------------------------
 
 // Track every deployed subsidy provider in a single shared `SubsidyProviders` array (a dashboard
