@@ -21,9 +21,9 @@ const show_verify = true;
 // ---------------------------------------------------------------------------
 const OPF_SUBSIDY_TOKEN = "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913";        // subsidy token address; "" => fall back to addresses.Ocean/OCEAN
 const OPF_SUBSIDY_PCT_BPS = "10000"; // percentage-of-job ceiling in bps (10000 = 100%)
-const OPF_SUBSIDY_DAILY = "5";       // per-user daily cap in token wei ("0" = unlimited)
-const OPF_SUBSIDY_WEEKLY = "10";      // per-user weekly cap in token wei ("0" = unlimited)
-const OPF_SUBSIDY_MONTHLY = "20";     // per-user monthly cap in token wei ("0" = unlimited)
+const OPF_SUBSIDY_DAILY = "5000000";       // per-user daily cap in token wei ("0" = unlimited)
+const OPF_SUBSIDY_WEEKLY = "10000000";      // per-user weekly cap in token wei ("0" = unlimited)
+const OPF_SUBSIDY_MONTHLY = "20000000";     // per-user monthly cap in token wei ("0" = unlimited)
 const OPF_USER_ACCESS_LIST = "0x6CFd3d3136c23f137a91180B2a55D731B73a6f26";     // user AccessList address ("" => user gate off)
 const OPF_NODE_ACCESS_LIST = "0x1F0Dd705eaa4fC1920fd782f59b752aEdF6694ef";     // node AccessList address ("" => node gate off)
 const OPF_ALLOWED_JOBTYPES = [];     // jobTypes to allow, e.g. ["1","2"] ([] => all allowed)

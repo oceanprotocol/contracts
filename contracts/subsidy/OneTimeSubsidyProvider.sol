@@ -28,14 +28,14 @@ import '@openzeppelin/contracts/utils/introspection/IERC165.sol';
  *
  *      Grant per claim is capped by, in order:
  *        - the payer's remaining credit for the token (effectiveCredit - used-this-round),
- *        - an OPTIONAL per-job percentage-of-job ceiling (basis points; 0 == no per-job cap),
+ *        - a per-job percentage-of-job ceiling (basis points; 0 == grant nothing, BPS == 100% of job),
  *        - the contract's own token balance,
  *      and gated by: token.enabled, a user AccessList, a node AccessList, and an owner-managed
  *      jobType allowlist (empty allowlist == all jobTypes allowed).
  *
- *      NOTE on pctBps semantics (INTENTIONALLY INVERTED vs OPFSubsidyProvider): here `pctBps == 0`
- *      means "no per-job cap" (the whole remaining credit may be spent on a single job, the natural
- *      onboarding default), whereas in OPFSubsidyProvider `pctBps == 0` means "grant nothing".
+ *      NOTE on pctBps semantics (same as OPFSubsidyProvider): `pctBps == 0` means "grant nothing" and
+ *      `pctBps == BPS` (10000) means "up to 100% of the job may be sponsored". The ceiling is always
+ *      applied, so a token must be configured with a non-zero pctBps to sponsor anything.
  *
  *      RESET MODEL: usage is keyed by a per-user "round" index; a reset just advances the round to a
  *      fresh, empty slot (no per-user storage loop, O(1) and gas-cheap). effectiveRound(payer) =
@@ -76,7 +76,7 @@ contract OneTimeSubsidyProvider is ISubsidyProvider, ISubsidyView, ISubsidyLockP
 
     // per-token config
     struct TokenConfig {
-        uint256 pctBps;        // OPTIONAL per-job ceiling in basis points (0 == no per-job cap)
+        uint256 pctBps;        // per-job ceiling in basis points (0 == grant nothing, BPS == 100% of job)
         uint256 defaultCredit; // global one-time credit per user for this token, in token wei
         bool enabled;          // token subsidised only when true
     }
@@ -131,6 +131,7 @@ contract OneTimeSubsidyProvider is ISubsidyProvider, ISubsidyView, ISubsidyLockP
     event AllowedJobTypesSet(uint256[] jobTypes);
     event AuthorizedEscrowSet(address indexed escrow, bool allowed);
     event Withdraw(address indexed token, address indexed to, uint256 amount);
+    event AllowanceRevoked(address indexed token, address indexed escrow);
     // lock-time sponsorship events
     event SubsidyLocked(address indexed escrow, bytes32 indexed lockId, address indexed payer, address node, address token, uint256 amount);
     event SubsidyRefunded(address indexed escrow, bytes32 indexed lockId, address indexed payer, address token, uint256 amount);
@@ -216,7 +217,19 @@ contract OneTimeSubsidyProvider is ISubsidyProvider, ISubsidyView, ISubsidyLockP
         _used[payer][token][round] += grant;
         // key the reservation by (escrow, lockId): the same provider may sponsor on BOTH escrows, and
         // lockId omits the escrow address, so two escrows could reuse the same (payer,jobId) -> lockId.
-        lockReservations[keccak256(abi.encodePacked(msg.sender, lockId))].push(Resv(round, grant));
+        // Coalesce a same-round reLock-grow into the LAST reservation instead of appending a new entry:
+        // this bounds the array to the distinct rounds the lock actually spans (rounds only advance on an
+        // admin reset), so a payer cannot grow a single lockId unboundedly within one round and make
+        // onSubsidyRefund OOG under the escrow's gas-capped, revert-swallowing notify (which would leave
+        // the payer's credit stuck marked used). Reversal is unchanged: same-round sub-grants debit the
+        // identical round counter, so merging them is equivalent to the LIFO pop. Distinct-round grows
+        // still append (needed to reverse the exact round each one debited).
+        Resv[] storage rs = lockReservations[keccak256(abi.encodePacked(msg.sender, lockId))];
+        if (rs.length != 0 && rs[rs.length - 1].round == round) {
+            rs[rs.length - 1].amount += grant;
+        } else {
+            rs.push(Resv(round, grant));
+        }
 
         // INTERACTION: just-in-time approve the escrow (msg.sender) to pull exactly `grant`.
         IERC20(token).safeApprove(msg.sender, 0);
@@ -288,9 +301,7 @@ contract OneTimeSubsidyProvider is ISubsidyProvider, ISubsidyView, ISubsidyLockP
         uint256 remaining = credit > used ? credit - used : 0;
 
         uint256 grant = _min(subsidyNeeded, remaining);  // never exceed escrow need or credit
-        if (c.pctBps != 0) {
-            grant = _min(grant, (amount * c.pctBps) / BPS);    // optional per-job ceiling
-        }
+        grant = _min(grant, (amount * c.pctBps) / BPS);  // per-job ceiling (0 == grant nothing, BPS == 100%)
         uint256 bal = IERC20(token).balanceOf(address(this));
         if (grant > bal) grant = bal;                          // only grant what we can deliver
         return grant;
@@ -440,6 +451,20 @@ contract OneTimeSubsidyProvider is ISubsidyProvider, ISubsidyView, ISubsidyLockP
         emit AuthorizedEscrowSet(escrow, allowed);
     }
 
+    /**
+     * @dev Owner emergency: clear any standing ERC20 allowance this provider granted `escrow` for
+     *      `token`. In the honest flow the just-in-time approve is spent to 0 within the same claim, but
+     *      a reject-partial pull (or a buggy/compromised escrow) can leave a stale non-zero allowance,
+     *      and setAuthorizedEscrow(escrow,false) blocks only FUTURE callbacks - it does not revoke that
+     *      standing allowance. This is the explicit revoke tool for the distrust case. safeApprove(0) is
+     *      USDT-safe. Does NOT touch any _used accounting (credit is restored via onSubsidyRefund).
+     */
+    function revokeAllowance(address token, address escrow) external onlyOwner nonReentrant {
+        require(escrow != address(0), "OneTimeSubsidy: escrow is zero address");
+        IERC20(token).safeApprove(escrow, 0);
+        emit AllowanceRevoked(token, escrow);
+    }
+
     /// @dev Owner picks which subsidy mode(s) are active: BOTH (default), REFUND_ONLY (claim-time only),
     ///      or PREPAID_ONLY (lock-time only). A disabled callback returns 0; the matching quote leg reports 0.
     function setSubsidyMode(SubsidyModeConfig mode) external override onlyOwner {
@@ -500,10 +525,15 @@ contract OneTimeSubsidyProvider is ISubsidyProvider, ISubsidyView, ISubsidyLockP
         return credit > used ? credit - used : 0;
     }
 
-    // ISubsidyView: "claimable now" - remaining credit capped by the contract balance, and gated to 0
-    // when the user is not allowed or the provider is paused (so it is finite and safely summable).
+    // ISubsidyView: "claimable now" - remaining one-time credit capped by the contract balance. Gated
+    // to 0 whenever NO job could ever be subsidised for this (payer, token): paused, token disabled,
+    // user not on the AccessList, or pctBps == 0 (the per-job ceiling `amount * pctBps / BPS` is then 0
+    // for every amount, so quoteSubsidy returns 0 regardless of credit). The pct ceiling cannot
+    // otherwise reduce this figure - it scales with the job amount, so for pctBps > 0 a large enough
+    // job never binds on it; callers wanting a job-specific number use quoteSubsidy. The node and
+    // jobType gates need per-job params and so are deferred to quoteSubsidy. Finite and safely summable.
     function remainingSubsidy(address payer, address token) external view override returns (uint256) {
-        if (paused() || !_isAllowed(userAccessList, payer)) return 0;
+        if (paused() || !tokenConfig[token].enabled || tokenConfig[token].pctBps == 0 || !_isAllowed(userAccessList, payer)) return 0;
         uint256 rem = remainingCredit(payer, token);
         uint256 bal = IERC20(token).balanceOf(address(this));
         return _min(rem, bal);

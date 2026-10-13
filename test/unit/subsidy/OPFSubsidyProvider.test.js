@@ -499,4 +499,47 @@ describe('OPFSubsidyProvider (unit)', function () {
     expect(q.subsidy).to.equal(U('5'));
     expect(q.bonus).to.equal(0);
   });
+
+  it('15 remainingSubsidy gated by tokenEnabled and pctBps==0 (nothing ever grantable)', async function () {
+    const payer = randAddr(), node = randAddr();
+    await allow(payer, node);
+
+    // enabled, pctBps > 0 -> positive (min of the period headrooms, balance-capped)
+    await setLimits(10000, U('2'), 0, U('10'));
+    expect(await opf.remainingSubsidy(payer, usdc.address)).to.equal(U('2'));
+
+    // pctBps == 0 -> 0, consistent with quoteSubsidy (per-job ceiling is 0 for any amount)
+    await setLimits(0, U('2'), 0, U('10'));
+    expect(await opf.remainingSubsidy(payer, usdc.address)).to.equal(0);
+    expect((await opf.quoteSubsidy(node, payer, JOB, usdc.address, U('5'), U('5'))).subsidy).to.equal(0);
+
+    // token disabled -> 0 even with healthy pct & caps
+    await setLimits(10000, U('2'), 0, U('10'), false);
+    expect(await opf.remainingSubsidy(payer, usdc.address)).to.equal(0);
+  });
+
+  it('16 revokeAllowance: owner clears a stale escrow allowance; onlyOwner; zero-addr guard', async function () {
+    await setLimits(10000, U('10'), 0, U('100'));
+    const payer = randAddr(), node = randAddr();
+    await allow(payer, node);
+
+    // claim creates a standing allowance; the escrow (EOA) never pulls, so it lingers
+    await opf.connect(escrowSigner).onSubsidyClaim(node, payer, JOB, usdc.address, U('4'), U('4'));
+    expect(await usdc.allowance(opf.address, escrowSigner.address)).to.equal(U('4'));
+
+    // deauthorizing does NOT clear the standing allowance...
+    await opf.connect(owner).setAuthorizedEscrow(escrowSigner.address, false);
+    expect(await usdc.allowance(opf.address, escrowSigner.address)).to.equal(U('4'));
+
+    // ...revokeAllowance does
+    await expect(opf.connect(owner).revokeAllowance(usdc.address, escrowSigner.address))
+      .to.emit(opf, 'AllowanceRevoked').withArgs(usdc.address, escrowSigner.address);
+    expect(await usdc.allowance(opf.address, escrowSigner.address)).to.equal(0);
+
+    // guards
+    await expect(opf.connect(owner).revokeAllowance(usdc.address, ZERO))
+      .to.be.revertedWith("OPFSubsidy: escrow is zero address");
+    await expect(opf.connect(attacker).revokeAllowance(usdc.address, escrowSigner.address))
+      .to.be.revertedWith("Ownable: caller is not the owner");
+  });
 });

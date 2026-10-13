@@ -33,10 +33,10 @@ describe('OneTimeSubsidyProvider (integration through the real Escrow)', functio
     await usdc.transfer(payer.address, U('1000000'));
     await usdc.transfer(sub.address, U('100000'));
 
-    // configure: no per-job cap, 10 USDC one-time credit; gates on; jobType allowlist [7]
+    // configure: pct ceiling 100% of job, 10 USDC one-time credit; gates on; jobType allowlist [7]
     await sub.connect(deployer).setUserAccessList(userList.address);
     await sub.connect(deployer).setNodeAccessList(nodeList.address);
-    await sub.connect(deployer).setTokenConfig(usdc.address, 0, U('10'), true);
+    await sub.connect(deployer).setTokenConfig(usdc.address, 10000, U('10'), true);
     await sub.connect(deployer).setAllowedJobTypes([7]);
     await userList.setMember(payer.address, true);
     await nodeList.setMember(node.address, true);

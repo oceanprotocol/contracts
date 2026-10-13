@@ -106,6 +106,7 @@ contract OPFSubsidyProvider is ISubsidyProvider, ISubsidyView, ISubsidyLockProvi
     event AllowedJobTypesSet(uint256[] jobTypes);
     event AuthorizedEscrowSet(address indexed escrow, bool allowed);
     event Withdraw(address indexed token, address indexed to, uint256 amount);
+    event AllowanceRevoked(address indexed token, address indexed escrow);
     // lock-time sponsorship events
     event SubsidyLocked(address indexed escrow, bytes32 indexed lockId, address indexed payer, address node, address token, uint256 amount);
     event SubsidyRefunded(address indexed escrow, bytes32 indexed lockId, address indexed payer, address token, uint256 amount);
@@ -199,7 +200,18 @@ contract OPFSubsidyProvider is ISubsidyProvider, ISubsidyView, ISubsidyLockProvi
         monthlyUsed[payer][token][m] += grant;
         // key the reservation by (escrow, lockId): the same provider may sponsor on BOTH escrows, and
         // lockId omits the escrow address, so two escrows could reuse the same (payer,jobId) -> lockId.
-        lockReservations[keccak256(abi.encodePacked(msg.sender, lockId))].push(Resv(d, w, m, grant));
+        // Coalesce a same-window reLock-grow into the LAST reservation instead of appending a new entry:
+        // this bounds the array to the distinct windows the lock actually spans, so a payer cannot grow a
+        // single lockId unboundedly in one window and make onSubsidyRefund OOG under the escrow's
+        // gas-capped, revert-swallowing notify (leaving the payer's counters stuck inflated). Reversal is
+        // unchanged: same-window sub-grants credit the identical (d,w,m) counters, so merging them is
+        // equivalent to the LIFO pop. Distinct-window grows still append (needed for exact reversal).
+        Resv[] storage rs = lockReservations[keccak256(abi.encodePacked(msg.sender, lockId))];
+        if (rs.length != 0 && rs[rs.length - 1].d == d && rs[rs.length - 1].w == w && rs[rs.length - 1].m == m) {
+            rs[rs.length - 1].amount += grant;
+        } else {
+            rs.push(Resv(d, w, m, grant));
+        }
 
         // INTERACTION: just-in-time approve the escrow (msg.sender) to pull exactly `grant`.
         IERC20(token).safeApprove(msg.sender, 0);
@@ -357,6 +369,20 @@ contract OPFSubsidyProvider is ISubsidyProvider, ISubsidyView, ISubsidyLockProvi
         emit AuthorizedEscrowSet(escrow, allowed);
     }
 
+    /**
+     * @dev Owner emergency: clear any standing ERC20 allowance this provider granted `escrow` for
+     *      `token`. In the honest flow the just-in-time approve is spent to 0 within the same claim, but
+     *      a reject-partial pull (or a buggy/compromised escrow) can leave a stale non-zero allowance,
+     *      and setAuthorizedEscrow(escrow,false) blocks only FUTURE callbacks - it does not revoke that
+     *      standing allowance. This is the explicit revoke tool for the distrust case. safeApprove(0) is
+     *      USDT-safe. Does NOT touch any _used accounting (budget is restored via onSubsidyRefund).
+     */
+    function revokeAllowance(address token, address escrow) external onlyOwner nonReentrant {
+        require(escrow != address(0), "OPFSubsidy: escrow is zero address");
+        IERC20(token).safeApprove(escrow, 0);
+        emit AllowanceRevoked(token, escrow);
+    }
+
     /// @dev Owner picks which subsidy mode(s) are active: BOTH (default), REFUND_ONLY (claim-time only),
     ///      or PREPAID_ONLY (lock-time only). A disabled callback returns 0; the matching quote leg reports 0.
     function setSubsidyMode(SubsidyModeConfig mode) external override onlyOwner {
@@ -473,14 +499,19 @@ contract OPFSubsidyProvider is ISubsidyProvider, ISubsidyView, ISubsidyLockProvi
     }
 
     /**
-     * @dev Per-user period headroom independent of any specific job: min of the three period
-     *      remainings capped by the contract balance (ignores pct / gating). Useful for dashboards.
+     * @dev ISubsidyView: "claimable now" - min of the three period headrooms capped by the contract
+     *      balance. Gated to 0 whenever NO job could ever be subsidised for this (payer, token):
+     *      paused, token disabled, user not on the AccessList, or pctBps == 0 (the per-job ceiling
+     *      `amount * pctBps / BPS` is then 0 for every amount, so quoteSubsidy returns 0 regardless of
+     *      headroom). The pct ceiling cannot otherwise reduce this figure - it is a per-job cap that
+     *      scales with the job amount, so for pctBps > 0 a large enough job never binds on it; callers
+     *      wanting a job-specific number use quoteSubsidy. The node and jobType gates need per-job
+     *      params and so are NOT applied here (likewise deferred to quoteSubsidy). ALWAYS FINITE (each
+     *      remaining* may be unlimited, but the balance cap and the up-front gate bound the result).
      */
-    // ISubsidyView: "claimable now" - min of the period headrooms capped by balance, gated to 0 when
-    // the user is not allowed or the provider is paused. ALWAYS FINITE (each remaining* may be
-    // unlimited, but the balance cap makes the result finite, and the gate returns 0 up front).
     function remainingSubsidy(address payer, address token) external view override returns (uint256) {
-        if (paused() || !_isAllowed(userAccessList, payer)) return 0;
+        TokenLimits memory L = tokenLimits[token];
+        if (paused() || !L.enabled || L.pctBps == 0 || !_isAllowed(userAccessList, payer)) return 0;
         uint256 rem = _min(
             _min(remainingDaily(payer, token), remainingWeekly(payer, token)),
             remainingMonthly(payer, token)

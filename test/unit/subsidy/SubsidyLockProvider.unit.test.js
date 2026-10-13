@@ -38,8 +38,8 @@ const CONFIGS = [
   {
     name: 'OneTimeSubsidyProvider',
     notAuth: 'OneTimeSubsidy: not authorized escrow',
-    // open config: no per-job pct cap, a big one-time credit -> grant bounded only by need & balance
-    setOpen: (p, t) => p.setTokenConfig(t, 0, U('1000000'), true),
+    // open config: pct ceiling 100% of job, a big one-time credit -> grant bounded only by need & balance
+    setOpen: (p, t) => p.setTokenConfig(t, 10000, U('1000000'), true),
     usedNow: (p, payer, t) => p.usedBy(payer, t),
   },
 ];
@@ -183,6 +183,26 @@ for (const cfg of CONFIGS) {
       expect(await cfg.usedNow(prov, payer.address, token.address)).to.equal(0);
     });
 
+    // ---- audit MEDIUM: same-window/round reLock-grows must COALESCE into one reservation so a payer
+    // cannot grow a single lockId unboundedly and make onSubsidyRefund exceed the escrow's gas-capped,
+    // revert-swallowing notify (SponsorshipLib.REFUND_NOTIFY_GAS). Pre-fix this appended one entry per
+    // grow and the refund loop OOG'd past the cap, leaving the payer's counter stuck inflated. ----
+    it('many same-window reLock-grows coalesce; full refund fits within the escrow refund-gas cap', async function () {
+      const REFUND_NOTIFY_GAS = 120000; // mirrors SponsorshipLib.REFUND_NOTIFY_GAS
+      const lockId = lockIdFor(node.address, payer.address, jobSeq++);
+      const GROWS = 30;
+      for (let i = 0; i < GROWS; i++) {
+        await doLock(escrow1, lockId, U('1'), U('1')); // +1 each, all in the SAME window/round
+      }
+      expect(await cfg.usedNow(prov, payer.address, token.address)).to.equal(U('30'));
+      // One refund of the whole reservation. gasUsed is the WHOLE tx (base + calldata + body), so it
+      // over-counts what the escrow actually forwards to the call; staying under the cap anyway proves
+      // the forwarded call fits. Coalesced => one iteration (~tens of k); un-coalesced 30 entries blow past.
+      const rcpt = await (await doRefund(escrow1, lockId, U('30'))).wait();
+      expect(rcpt.gasUsed).to.be.lt(REFUND_NOTIFY_GAS);
+      expect(await cfg.usedNow(prov, payer.address, token.address)).to.equal(0); // fully restored
+    });
+
     // ---- partial refund leaves ONLY the consumed amount spent ----
     it('partial refund leaves only the consumed amount marked used', async function () {
       const lockId = lockIdFor(node.address, payer.address, jobSeq++);
@@ -214,7 +234,7 @@ for (const cfg of CONFIGS) {
       if (cfg.name === 'OPFSubsidyProvider') {
         await prov.connect(deployer).setTokenLimits(token.address, 10000, U('30'), 0, 0, true); // daily 30
       } else {
-        await prov.connect(deployer).setTokenConfig(token.address, 0, U('40'), true); // credit 40
+        await prov.connect(deployer).setTokenConfig(token.address, 10000, U('40'), true); // credit 40
       }
       const beforeMax = cfg.name === 'OPFSubsidyProvider' ? U('30') : U('40');
       const q0 = await prov.quoteSubsidyModes(node.address, payer.address, 7, token.address, U('100'), U('100'));
@@ -252,6 +272,21 @@ for (const cfg of CONFIGS) {
         expect(await cfg.monthlyAtTs(prov, payer.address, token.address, ts)).to.equal(U('12'));
         expect(await prov.monthlyUsedBy(payer.address, token.address)).to.equal(0);
       });
+
+      it('OPF: grows in DIFFERENT days append separately (not coalesced) -> refund reverses each exact day', async function () {
+        const lockId = lockIdFor(node.address, payer.address, jobSeq++);
+        const ts0 = await nowTs();
+        await doLock(escrow1, lockId, U('10'), U('10')); // day-0 reservation
+        await fastForward(DAY + 100);
+        const ts1 = await nowTs();
+        await doLock(escrow1, lockId, U('10'), U('10')); // day-1 reservation: distinct window -> appended
+        expect(await cfg.usedAtTs(prov, payer.address, token.address, ts0)).to.equal(U('10'));
+        expect(await cfg.usedAtTs(prov, payer.address, token.address, ts1)).to.equal(U('10'));
+        // refund 15: LIFO reverses day-1's 10 fully, then 5 of day-0
+        await doRefund(escrow1, lockId, U('15'));
+        expect(await cfg.usedAtTs(prov, payer.address, token.address, ts1)).to.equal(0);
+        expect(await cfg.usedAtTs(prov, payer.address, token.address, ts0)).to.equal(U('5'));
+      });
     } else {
       it('OneTime: admin round bump between lock and refund -> refund reverses the LOCK round only', async function () {
         const lockId = lockIdFor(node.address, payer.address, jobSeq++);
@@ -263,6 +298,21 @@ for (const cfg of CONFIGS) {
         await doRefund(escrow1, lockId, U('8')); // consumed 12
         expect(await prov.usedByAt(payer.address, token.address, r0)).to.equal(U('12')); // lock round restored
         expect(await prov.usedBy(payer.address, token.address)).to.equal(0); // new round untouched
+      });
+
+      it('OneTime: grows in DIFFERENT rounds append separately (not coalesced) -> refund reverses each exact round', async function () {
+        const lockId = lockIdFor(node.address, payer.address, jobSeq++);
+        const r0 = await prov.effectiveRound(payer.address);
+        await doLock(escrow1, lockId, U('10'), U('10')); // round r0 reservation
+        await prov.connect(deployer).resetAllUsers(); // round bump
+        const r1 = await prov.effectiveRound(payer.address);
+        await doLock(escrow1, lockId, U('10'), U('10')); // round r1 reservation: distinct round -> appended
+        expect(await prov.usedByAt(payer.address, token.address, r0)).to.equal(U('10'));
+        expect(await prov.usedByAt(payer.address, token.address, r1)).to.equal(U('10'));
+        // refund 15: LIFO reverses r1's 10 fully, then 5 of r0
+        await doRefund(escrow1, lockId, U('15'));
+        expect(await prov.usedByAt(payer.address, token.address, r1)).to.equal(0);
+        expect(await prov.usedByAt(payer.address, token.address, r0)).to.equal(U('5'));
       });
     }
   });
