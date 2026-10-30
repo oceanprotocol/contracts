@@ -198,7 +198,12 @@ contract AccessList is ERC721Enumerable,ERC721URIStorage {
     }
 
     function burn(uint256 tokenId) public {
-        require(_msgSender() == owner() || _msgSender()==super._ownerOf(tokenId),"ERC721: Not owner");
+        // For soulbound lists, only the contract owner can burn. Otherwise a token
+        // holder could remove itself from a deny list by burning its own token.
+        if (transferable == false)
+            require(_msgSender() == owner(), "ERC721: Not owner");
+        else
+            require(_msgSender() == owner() || _msgSender()==super._ownerOf(tokenId),"ERC721: Not owner");
         emit AddressRemoved(tokenId);
         _burn(tokenId);
     }
