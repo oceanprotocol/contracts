@@ -145,20 +145,25 @@ describe('AccessLists tests', function () {
     await expect(this.accessListContract.connect(signers[3]).burn(7)).to.be.revertedWith("ERC721: Not owner");
     
   });
-  it('Token holder should be able to burn', async function () {
+  it('Soulbound: token holder should NOT be able to burn their own token', async function () {
+    // For soulbound lists only the contract owner can burn. Otherwise a holder
+    // could remove itself from a deny list by burning its own token.
     expect(await this.accessListContract.ownerOf(7)).to.equal(signers[2].address);
-    const howMany=await this.accessListContract.balanceOf(signers[2].address)
-    await this.accessListContract.connect(signers[2]).burn(7);
-    expect(await this.accessListContract.balanceOf(signers[2].address)).to.equal(howMany-1);
-    
+    await expect(this.accessListContract.connect(signers[2]).burn(7)).to.be.revertedWith("ERC721: Not owner");
   });
 
   // Non soul bound
   it('Non sould bound: It should be able to transfer NFTs to another wallet when called by user', async function () {
     const tx=await this.accessListContractTransferable.mint(signers[0].address,JSON.stringify(metadata));
     await this.accessListContractTransferable["safeTransferFrom(address,address,uint256)"](signers[0].address,signers[2].address,1)
-    expect(await this.accessListContract.balanceOf(signers[2].address)).to.equal(1);
+    expect(await this.accessListContractTransferable.balanceOf(signers[2].address)).to.equal(1);
 
+  });
+
+  it('Non sould bound: token holder should be able to burn their own token', async function () {
+    expect(await this.accessListContractTransferable.ownerOf(1)).to.equal(signers[2].address);
+    await this.accessListContractTransferable.connect(signers[2]).burn(1);
+    expect(await this.accessListContractTransferable.balanceOf(signers[2].address)).to.equal(0);
   });
 
   it('Non sould bound: It should not be able to transfer NFTs to another wallet when called by contract owner', async function () {
