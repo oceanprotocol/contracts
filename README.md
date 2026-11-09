@@ -79,7 +79,7 @@ flowchart TD
   DT4 --> AL
   SUB --> AL
   ESC -->|OPC fee| OPFC
-  ESC -.->|claim-time callback| SUB
+  ESC -.->|claim-time + prepaid subsidy| SUB
 ```
 
 **Groups:**
@@ -87,10 +87,10 @@ flowchart TD
 - **NFT / datatoken templates** — `ERC721Template` (data NFT, with an ERC725Y key-value store); `ERC20Template` (standard datatoken), `ERC20TemplateEnterprise` (order-and-dispense in one call, no datatoken left in circulation), `ERC20Template3` (Predictoor prediction markets), `ERC20Template4` (Oasis Sapphire confidential variant).
 - **Factory / Router** — `ERC721Factory` deploys NFTs and datatokens from registered templates via minimal-proxy clones; `FactoryRouter` whitelists base tokens / pricing contracts and routes fees.
 - **Pricing** — `FixedRateExchange` and `FixedRateExchangeEnterprise` (fixed-price swaps), `Dispenser` (free allocation).
-- **Escrow** — `Escrow` and `EnterpriseEscrow` hold and settle funds for pay-per-use services (compute), with deposit/authorize/lock/claim and `bundle()` (plain or ERC20Permit deposits plus authorizations in one tx). `EnterpriseEscrow` is the enterprise-line variant of `Escrow` and plays the same architectural role, so only `Escrow` is shown in the diagram above.
+- **Escrow** — `Escrow` and `EnterpriseEscrow` hold and settle funds for pay-per-use services (compute), with deposit/authorize/lock/claim and `bundle()` (plain or ERC20Permit deposits plus authorizations in one tx). A lock can name **subsidy providers** that pre-fund part of it (lock-time *prepaid* sponsorship, accounted by the delegatecall-linked `SponsorshipLib`), so a fully-sponsored payer can run a job with zero deposit — complementing the older claim-time reimbursement. `EnterpriseEscrow` is the enterprise-line variant of `Escrow` and plays the same architectural role, so only `Escrow` is shown in the diagram above.
 - **Access control** — `AccessList` (soulbound/optionally transferable ERC721 allow/deny lists) + `AccessListFactory`; plus the role systems inside `ERC721Template`/`ERC20Template` and the ERC725Y metadata store.
 - **Fees** — `OPFCommunityFeeCollector` (protocol community fees) and a second deployment, `OPFCommunityFeeCollectorCompute`, that is the current tokenomics hook for compute fees (replacing the deprecated Balancer pool swap fee); `EnterpriseFeeCollector` for the enterprise line.
-- **Subsidies** — `OPFSubsidyProvider`, `OneTimeSubsidyProvider`.
+- **Subsidies** — `OPFSubsidyProvider` (rolling windows) and `OneTimeSubsidyProvider` (one-time rounds). Each can subsidize in two modes — **claim-time reimbursement** (released to the payer after a claim) and **prepaid lock-time sponsorship** (tokens pre-funded into the escrow lock, for zero-deposit jobs) — selectable per provider via `ISubsidyModeConfig` (`BOTH` / `REFUND_ONLY` / `PREPAID_ONLY`).
 - **Rewards / Data Farming** — `df/*` (DFRewards, DFStrategyV1, Distribute, Splitter, vesting wallets), `rewards/BatchPayments`, `rewards/Booster`.
 - **veOCEAN governance** — `ve/*` (veOCEAN vote-escrow, delegation, fee distribution, allocation — Vyper + Solidity).
 - **Grants** — `grants/*` (GrantsToken, GrantsSwap, GrantsTokenFaucet).
@@ -114,15 +114,16 @@ Paths are relative to this repo (links resolve on `main`). "Deployed?" reflects 
 | FixedRateExchange | [`contracts/pools/fixedRate/FixedRateExchange.sol`](contracts/pools/fixedRate/FixedRateExchange.sol) | Fixed-price datatoken ↔ base-token swaps (`FixedPrice`) | Core — all chains |
 | FixedRateExchangeEnterprise | [`contracts/pools/fixedRate/FixedRateExchangeEnterprise.sol`](contracts/pools/fixedRate/FixedRateExchangeEnterprise.sol) | Fixed-rate exchange for the enterprise line (`FixedPriceEnterprise`) | Newer chains |
 | Dispenser | [`contracts/pools/dispenser/Dispenser.sol`](contracts/pools/dispenser/Dispenser.sol) | Free datatoken allocation | Core — all chains |
-| Escrow | [`contracts/escrow/Escrow.sol`](contracts/escrow/Escrow.sol) | Pay-per-use settlement (deposit/authorize/lock/claim) | Newer chains |
+| Escrow | [`contracts/escrow/Escrow.sol`](contracts/escrow/Escrow.sol) | Pay-per-use settlement (deposit/authorize/lock/claim) + prepaid lock sponsorship | Newer chains |
 | EnterpriseEscrow | [`contracts/escrow/EnterpriseEscrow.sol`](contracts/escrow/EnterpriseEscrow.sol) | Escrow for the enterprise line | Newer chains |
+| SponsorshipLib | [`contracts/escrow/SponsorshipLib.sol`](contracts/escrow/SponsorshipLib.sol) | Delegatecall library: escrow prepaid (lock-time) subsidy accounting | Newer chains (linked by `Escrow`) |
 | AccessList | [`contracts/accesslists/AccessList.sol`](contracts/accesslists/AccessList.sol) | Soulbound/optional ERC721 allow/deny list | Via AccessListFactory |
 | AccessListFactory | [`contracts/accesslists/AccessListFactory.sol`](contracts/accesslists/AccessListFactory.sol) | Clones AccessList instances | Newer chains |
 | OPFCommunityFeeCollector | [`contracts/communityFee/OPFCommunityFeeCollector.sol`](contracts/communityFee/OPFCommunityFeeCollector.sol) | Collects protocol community fees | Core — all chains |
 | OPFCommunityFeeCollectorCompute | (deployment of `OPFCommunityFeeCollector.sol`) | Compute-fee collector — current tokenomics hook | Newer chains |
 | EnterpriseFeeCollector | [`contracts/communityFee/EnterpriseFeeCollector.sol`](contracts/communityFee/EnterpriseFeeCollector.sol) | Fee collection for the enterprise line | Newer chains |
-| OPFSubsidyProvider | [`contracts/subsidy/OPFSubsidyProvider.sol`](contracts/subsidy/OPFSubsidyProvider.sol) | Ongoing subsidy payouts | Selective |
-| OneTimeSubsidyProvider | [`contracts/subsidy/OneTimeSubsidyProvider.sol`](contracts/subsidy/OneTimeSubsidyProvider.sol) | One-time subsidy payouts | base (`SubsidyProviders`) |
+| OPFSubsidyProvider | [`contracts/subsidy/OPFSubsidyProvider.sol`](contracts/subsidy/OPFSubsidyProvider.sol) | Rolling-window subsidy — claim-time refund + prepaid lock sponsorship | Selective |
+| OneTimeSubsidyProvider | [`contracts/subsidy/OneTimeSubsidyProvider.sol`](contracts/subsidy/OneTimeSubsidyProvider.sol) | One-time (per-round) subsidy — claim-time refund + prepaid lock sponsorship | base (`SubsidyProviders`) |
 | DFRewards / DFStrategyV1 | [`contracts/df/`](contracts/df/) | Data Farming reward distribution | mainnet + selective |
 | BatchPayments | [`contracts/rewards/BatchPayments.sol`](contracts/rewards/BatchPayments.sol) | Batched reward/payment disbursal | sapphire, base |
 | Booster | [`contracts/rewards/Booster.sol`](contracts/rewards/Booster.sol) | Soulbound ERC721 incentive-boost factor | mainnet (`OceanNodesBooster`) |
@@ -137,7 +138,7 @@ Template details: [`contracts/templates/README.md`](contracts/templates/README.m
 
 ## 🌐 Deployed addresses & networks
 
-All deployed addresses, `startBlock` values and `chainId`s live in [`addresses/address.json`](addresses/address.json) — treat it as the single source of truth; the compiled ABIs live separately in `artifacts/` (generated by `npx hardhat compile`; shipped in the npm package but not committed to the repo). The deployed set varies per chain: **core** contracts (`ERC721Factory`, `ERC721Template`, `ERC20Template`, `Router`, `FixedPrice`, `Dispenser`, `OPFCommunityFeeCollector`) exist on every network; newer contracts (`Escrow`, `EnterpriseEscrow`, `AccessListFactory`, `EnterpriseFeeCollector`, `FixedPriceEnterprise`, `OPFCommunityFeeCollectorCompute`) are on the actively maintained chains; and the legacy AMM pool/`Staking`, Data Farming/veOCEAN, grants, subsidies and `PredictoorHelper` appear only where relevant.
+All deployed addresses, `startBlock` values and `chainId`s live in [`addresses/address.json`](addresses/address.json) — treat it as the single source of truth; the compiled ABIs live separately in `artifacts/` (generated by `npx hardhat compile`; shipped in the npm package but not committed to the repo). The deployed set varies per chain: **core** contracts (`ERC721Factory`, `ERC721Template`, `ERC20Template`, `Router`, `FixedPrice`, `Dispenser`, `OPFCommunityFeeCollector`) exist on every network; newer contracts (`Escrow`, `EnterpriseEscrow`, `SponsorshipLib`, `AccessListFactory`, `EnterpriseFeeCollector`, `FixedPriceEnterprise`, `OPFCommunityFeeCollectorCompute`) are on the actively maintained chains; and the legacy AMM pool/`Staking`, Data Farming/veOCEAN, grants, subsidies and `PredictoorHelper` appear only where relevant.
 
 The 19 networks currently in `address.json`:
 
@@ -281,7 +282,9 @@ The canonical, maintained walkthroughs live at [docs.oceanprotocol.com](https://
 2. **Set pricing** — attach a `FixedRateExchange` / `FixedRateExchangeEnterprise` for paid access, or a `Dispenser` for free access.
 3. **Gate access (optional)** — deploy an `AccessList` via `AccessListFactory`. On `ERC20Template4` (Oasis Sapphire) datatokens only, attach it with `setAllowListContract()` (the list must be **soulbound** — deploy it with `transferable=false` — **and** be deployed by the same `AccessListFactory` that was passed as the factory address when the datatoken was created; otherwise `checkAccessList` fails its `isDeployed`/`isSoulBound` checks and the call reverts with `IAL`) to gate which **providers** may retrieve the files object via `getFilesObject()` (it does not restrict on-chain ordering). On other chains AccessList is not wired into the datatokens; it is consumed by the subsidy providers (`OPFSubsidyProvider` / `OneTimeSubsidyProvider`) as user/node membership gates.
 4. **Consume / order** — a consumer buys a datatoken and calls `startOrder()` (or the enterprise `buyFromFreAndOrder()` / `buyFromDispenserAndOrder()` one-shot), which pays provider + community fees. Fees route to `OPFCommunityFeeCollector` / `OPFCommunityFeeCollectorCompute` and, for the enterprise line, `EnterpriseFeeCollector`.
-5. **Pay-per-use compute** — funds are held and settled through `Escrow` / `EnterpriseEscrow`: the payer deposits and authorizes payees with a max locked amount, max lock duration and max lock count (`authorize(token, payee, maxLockedAmount, maxLockSeconds, maxLockCounts)`); the payee locks and later claims. See [`contracts/escrow/Escrow.sol`](contracts/escrow/Escrow.sol) for the deposit/authorize/lock/claim and `bundle()` flow.
+5. **Pay-per-use compute** — funds are held and settled through `Escrow` / `EnterpriseEscrow`: the payer deposits and authorizes payees with a max locked amount, max lock duration, max lock count and an auth-expiry timestamp (`authorize(token, payee, maxLockedAmount, maxLockSeconds, maxLockCounts, expiryTimestamp)`, where `expiryTimestamp` `0` = never); the payee then locks (`createLock(..., jobType, subsidyProviders)`) and later claims. Subsidy providers named on a lock can pre-fund it (prepaid sponsorship), so a fully-sponsored payer can run a job with zero deposit (authorize with `maxLockedAmount = 0` for a sponsored-only lock). See [`contracts/escrow/Escrow.sol`](contracts/escrow/Escrow.sol) for the deposit/authorize/lock/claim, prepaid-sponsorship and `bundle()` flow.
+
+   > These are the **v2** escrows (`version()` returns `2`) — a **breaking ABI change** vs v1: `authorize`/`createLock`/`reLock` (and their batch/`bundle` variants) gained parameters and the `Auth` event signature changed, so clients built on the old ABI must regenerate. Capabilities are discoverable via ERC-165 — `supportsInterface` advertises `IEscrowCore` and `IEscrowLockSubsidy` (plus `IEscrowEnterprise` on `EnterpriseEscrow`), and `escrowKind()` distinguishes community (`0`) from enterprise (`1`). Note that `getUserFunds(payer, token).locked` now tracks only the payer-funded portion of a lock; the sponsored portion is read via `getSponsoredTotal(token)` / `getSponsorship(payee, payer, jobId)`.
 
 > The in-repo `docs/quickstart_*.md` guides describe the older Ocean v4 publisher/roles flows and are kept for historical reference; prefer [docs.oceanprotocol.com](https://docs.oceanprotocol.com) for current guidance.
 
