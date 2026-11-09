@@ -1,6 +1,7 @@
 const { assert, expect } = require('chai');
 const { ethers } = require("hardhat");
 const { getEventFromTx } = require("../../helpers/utils");
+const { getEscrowFactory } = require("../../helpers/escrow");
 
 const U = (n) => ethers.utils.parseUnits(n, 6); // 6-dec USDC-style
 const P = (n) => ethers.utils.parseEther(n);
@@ -32,10 +33,10 @@ describe('OneTimeSubsidyProvider (integration through the real Escrow)', functio
     await usdc.transfer(payer.address, U('1000000'));
     await usdc.transfer(sub.address, U('100000'));
 
-    // configure: no per-job cap, 10 USDC one-time credit; gates on; jobType allowlist [7]
+    // configure: pct ceiling 100% of job, 10 USDC one-time credit; gates on; jobType allowlist [7]
     await sub.connect(deployer).setUserAccessList(userList.address);
     await sub.connect(deployer).setNodeAccessList(nodeList.address);
-    await sub.connect(deployer).setTokenConfig(usdc.address, 0, U('10'), true);
+    await sub.connect(deployer).setTokenConfig(usdc.address, 10000, U('10'), true);
     await sub.connect(deployer).setAllowedJobTypes([7]);
     await userList.setMember(payer.address, true);
     await nodeList.setMember(node.address, true);
@@ -43,7 +44,7 @@ describe('OneTimeSubsidyProvider (integration through the real Escrow)', functio
 
   async function newEscrow() {
     const Router = await ethers.getContractFactory('FactoryRouter');
-    const Escrow = await ethers.getContractFactory('Escrow');
+    const Escrow = await getEscrowFactory('Escrow');
     const router = await Router.deploy(deployer.address, usdc.address, '0x000000000000000000000000000000000000dead', feeColl.address, []);
     await router.deployed();
     await router.connect(deployer).updateOPCFee(P('0.1'), P('0.1'), 0, 0); // 10% fee
@@ -57,11 +58,11 @@ describe('OneTimeSubsidyProvider (integration through the real Escrow)', functio
     await escrow.connect(payer).deposit(usdc.address, amount);
   }
   async function authorize(escrow, maxLocked) {
-    await escrow.connect(payer).authorize(usdc.address, node.address, maxLocked, 1000000, 1000);
+    await escrow.connect(payer).authorize(usdc.address, node.address, maxLocked, 1000000, 1000, 0);
   }
   async function createLock(escrow, amount, expiry) {
     const jobId = jobSeq++;
-    await escrow.connect(node).createLock(jobId, usdc.address, payer.address, amount, expiry || 100000);
+    await escrow.connect(node).createLock(jobId, usdc.address, payer.address, amount, expiry || 100000, 0, []);
     return jobId;
   }
   function subsidizedEvents(rc) { return (rc.events || []).filter(e => e.event === 'Subsidized'); }
@@ -197,7 +198,7 @@ describe('OneTimeSubsidyProvider (integration through the real Escrow)', functio
   it('EnterpriseEscrow: claim with [provider] releases the credit to the payer', async function () {
     await deployCommon();
     const EnterpriseFeeCollector = await ethers.getContractFactory('EnterpriseFeeCollector');
-    const EnterpriseEscrow = await ethers.getContractFactory('EnterpriseEscrow');
+    const EnterpriseEscrow = await getEscrowFactory('EnterpriseEscrow');
     const efc = await EnterpriseFeeCollector.deploy(feeColl.address, deployer.address); await efc.deployed();
     await efc.connect(deployer).updateToken(usdc.address, 1, U('1000000'), P('0.1'), true);
     const escrow = await EnterpriseEscrow.deploy(efc.address); await escrow.deployed();

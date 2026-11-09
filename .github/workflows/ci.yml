@@ -206,9 +206,16 @@ jobs:
         run: find ./artifacts/* -name "*.dbg.json" -type f -delete
       - name: Delete useless files
         run: rm -rf ./artifacts/build-info/*
-      - run: npm publish --provenance --access public
+      # pre-releases, triggered by `next` or `rc` as part of git tag
+      - run: npm publish --provenance --access public --tag next
+        if: ${{ contains(github.ref, 'next') || contains(github.ref, 'rc') }}
         env:
-          NODE_AUTH_TOKEN: ${{secrets.NPM_TOKEN}}
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+      # production releases
+      - run: npm publish --provenance --access public
+        if: ${{ !contains(github.ref, 'next') && !contains(github.ref, 'rc') }}
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
 
   publish-pypi:
     runs-on: ubuntu-latest
