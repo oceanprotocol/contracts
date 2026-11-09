@@ -1,6 +1,7 @@
 const { assert, expect } = require('chai');
 const { ethers } = require("hardhat");
 const { getEventFromTx } = require("../../helpers/utils");
+const { getEscrowFactory } = require("../../helpers/escrow");
 
 const U = (n) => ethers.utils.parseUnits(n, 6); // 6-dec USDC-style
 const P = (n) => ethers.utils.parseEther(n);
@@ -54,11 +55,11 @@ describe('OPFSubsidyProvider (integration through the real Escrow)', function ()
     await escrow.connect(payer).deposit(usdc.address, amount);
   }
   async function authorize(escrow, maxLocked) {
-    await escrow.connect(payer).authorize(usdc.address, node.address, maxLocked, 1000000, 1000);
+    await escrow.connect(payer).authorize(usdc.address, node.address, maxLocked, 1000000, 1000, 0);
   }
   async function createLock(escrow, amount, expiry) {
     const jobId = jobSeq++;
-    await escrow.connect(node).createLock(jobId, usdc.address, payer.address, amount, expiry || 100000);
+    await escrow.connect(node).createLock(jobId, usdc.address, payer.address, amount, expiry || 100000, 0, []);
     return jobId;
   }
   function subsidizedEvents(rc) { return (rc.events || []).filter(e => e.event === 'Subsidized'); }
@@ -67,7 +68,7 @@ describe('OPFSubsidyProvider (integration through the real Escrow)', function ()
   it('Escrow: claim with [opf] releases the daily-capped subsidy to the payer', async function () {
     await deployCommon();
     const Router = await ethers.getContractFactory('FactoryRouter');
-    const Escrow = await ethers.getContractFactory('Escrow');
+    const Escrow = await getEscrowFactory('Escrow');
     const router = await Router.deploy(deployer.address, usdc.address, '0x000000000000000000000000000000000000dead', feeColl.address, []);
     await router.deployed();
     await router.connect(deployer).updateOPCFee(P('0.1'), P('0.1'), 0, 0); // 10% fee
@@ -119,7 +120,7 @@ describe('OPFSubsidyProvider (integration through the real Escrow)', function ()
   it('Escrow: list repetition [opf, opf] grants only the remaining budget (no double-spend)', async function () {
     await deployCommon();
     const Router = await ethers.getContractFactory('FactoryRouter');
-    const Escrow = await ethers.getContractFactory('Escrow');
+    const Escrow = await getEscrowFactory('Escrow');
     const router = await Router.deploy(deployer.address, usdc.address, '0x000000000000000000000000000000000000dead', feeColl.address, []);
     await router.deployed();
     await router.connect(deployer).updateOPCFee(P('0.1'), P('0.1'), 0, 0);
@@ -155,7 +156,7 @@ describe('OPFSubsidyProvider (integration through the real Escrow)', function ()
     await opf.connect(deployer).setTokenLimits(usdc.address, 5000, U('1000000'), 0, U('1000000'), true);
 
     const Router = await ethers.getContractFactory('FactoryRouter');
-    const Escrow = await ethers.getContractFactory('Escrow');
+    const Escrow = await getEscrowFactory('Escrow');
     const router = await Router.deploy(deployer.address, usdc.address, '0x000000000000000000000000000000000000dead', feeColl.address, []);
     await router.deployed();
     await router.connect(deployer).updateOPCFee(P('0.1'), P('0.1'), 0, 0);
@@ -184,7 +185,7 @@ describe('OPFSubsidyProvider (integration through the real Escrow)', function ()
   it('EnterpriseEscrow: claim with [opf] releases the subsidy to the payer', async function () {
     await deployCommon();
     const EnterpriseFeeCollector = await ethers.getContractFactory('EnterpriseFeeCollector');
-    const EnterpriseEscrow = await ethers.getContractFactory('EnterpriseEscrow');
+    const EnterpriseEscrow = await getEscrowFactory('EnterpriseEscrow');
     const efc = await EnterpriseFeeCollector.deploy(feeColl.address, deployer.address); await efc.deployed();
     // token allowed, 10% fee (minFee 1 wei < maxFee)
     await efc.connect(deployer).updateToken(usdc.address, 1, U('1000000'), P('0.1'), true);
@@ -222,7 +223,7 @@ describe('OPFSubsidyProvider (integration through the real Escrow)', function ()
   it('Escrow: jobType not on the allowlist -> no subsidy', async function () {
     await deployCommon();
     const Router = await ethers.getContractFactory('FactoryRouter');
-    const Escrow = await ethers.getContractFactory('Escrow');
+    const Escrow = await getEscrowFactory('Escrow');
     const router = await Router.deploy(deployer.address, usdc.address, '0x000000000000000000000000000000000000dead', feeColl.address, []);
     await router.deployed();
     await router.connect(deployer).updateOPCFee(P('0.1'), P('0.1'), 0, 0);

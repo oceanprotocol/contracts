@@ -4,6 +4,7 @@ const { getEventFromTx } = require("../../helpers/utils");
 
 const ZERO = '0x0000000000000000000000000000000000000000';
 const MAXU = ethers.constants.MaxUint256;
+const BPS = 10000; // pctBps: BPS == 100% of job (max), 0 == grant nothing
 
 // 6-decimal USDC-style amounts
 const U = (n) => ethers.utils.parseUnits(n, 6);
@@ -16,7 +17,7 @@ describe('OneTimeSubsidyProvider (unit)', function () {
 
   const JOB = 0; // default jobType (allowlist empty => all allowed unless a test sets it)
 
-  // configure a token: pctBps (0 = no per-job cap), defaultCredit, enabled
+  // configure a token: pctBps (BPS = 100% of job, 0 = grant nothing), defaultCredit, enabled
   const setConfig = (pctBps, defaultCredit, enabled = true, token = undefined) =>
     sub.connect(owner).setTokenConfig((token || usdc).address, pctBps, defaultCredit, enabled);
 
@@ -64,7 +65,7 @@ describe('OneTimeSubsidyProvider (unit)', function () {
 
   // ---------------------------------------------------------------------------------------------
   it('1 happy path: default credit granted, event + allowance + usage', async function () {
-    await setConfig(0, U('10')); // no per-job cap, 10 credit
+    await setConfig(BPS, U("10")); // up to 100% of job, 10 credit
     const payer = randAddr(), node = randAddr();
     await allow(payer, node);
 
@@ -89,7 +90,7 @@ describe('OneTimeSubsidyProvider (unit)', function () {
   });
 
   it('2 cumulative draw-down: credit spent across many jobs, then exhausted', async function () {
-    await setConfig(0, U('10'));
+    await setConfig(BPS, U('10'));
     const payer = randAddr(), node = randAddr();
     await allow(payer, node);
 
@@ -110,7 +111,7 @@ describe('OneTimeSubsidyProvider (unit)', function () {
   });
 
   it('3 per-user override: default 10, friend 20; unset reverts to default; batch', async function () {
-    await setConfig(0, U('10'));
+    await setConfig(BPS, U('10'));
     const def = randAddr(), friend = randAddr(), node = randAddr();
     await allow(def, node);
     await allow(friend, node);
@@ -123,7 +124,7 @@ describe('OneTimeSubsidyProvider (unit)', function () {
     expect(await sub.effectiveCredit(friend, usdc.address)).to.equal(U('20'));
     expect(await sub.hasUserCredit(friend, usdc.address)).to.equal(true);
 
-    // friend can draw 15 in one job (no per-job cap), default user only 10
+    // friend can draw 15 in one job (pct ceiling is 100% of job), default user only 10
     expect((await staticGrant(escrowSigner, node, friend, JOB, usdc, U('15'), U('15')))[0]).to.equal(U('15'));
     expect((await staticGrant(escrowSigner, node, def, JOB, usdc, U('15'), U('15')))[0]).to.equal(U('10'));
 
@@ -146,7 +147,7 @@ describe('OneTimeSubsidyProvider (unit)', function () {
   });
 
   it('4 resetAllUsers refreshes everyone; overrides persist', async function () {
-    await setConfig(0, U('10'));
+    await setConfig(BPS, U('10'));
     const p1 = randAddr(), p2 = randAddr(), node = randAddr();
     await allow(p1, node); await allow(p2, node);
     await sub.connect(owner).setUserCredit(p2, usdc.address, U('20')); // p2 is a friend
@@ -171,7 +172,7 @@ describe('OneTimeSubsidyProvider (unit)', function () {
   });
 
   it('5 resetUser refreshes only that user', async function () {
-    await setConfig(0, U('10'));
+    await setConfig(BPS, U('10'));
     const p1 = randAddr(), p2 = randAddr(), node = randAddr();
     await allow(p1, node); await allow(p2, node);
 
@@ -202,7 +203,7 @@ describe('OneTimeSubsidyProvider (unit)', function () {
   it('5b resetAllUsers refreshes a user who was individually reset and used credit since', async function () {
     // Regression guard: under a max()-based round model, resetAllUsers() would silently SKIP a user
     // whose userRound already exceeded globalRound. The additive model must refresh them too.
-    await setConfig(0, U('10'));
+    await setConfig(BPS, U('10'));
     const friend = randAddr(), node = randAddr();
     await allow(friend, node);
 
@@ -218,7 +219,7 @@ describe('OneTimeSubsidyProvider (unit)', function () {
   });
 
   it('6 drain guard: unauthorized caller returns (0,0) AND grants no allowance', async function () {
-    await setConfig(0, U('10'));
+    await setConfig(BPS, U('10'));
     const payer = randAddr(), node = randAddr();
     await allow(payer, node);
     const [g, bonus] = await sub.connect(attacker).callStatic.onSubsidyClaim(node, payer, JOB, usdc.address, U('5'), U('5'));
@@ -229,7 +230,7 @@ describe('OneTimeSubsidyProvider (unit)', function () {
   });
 
   it('7 gates: user/node not on list, token disabled, paused, zero credit -> 0', async function () {
-    await setConfig(0, U('10'));
+    await setConfig(BPS, U('10'));
     const payer = randAddr(), node = randAddr();
 
     // neither allowed yet
@@ -240,14 +241,14 @@ describe('OneTimeSubsidyProvider (unit)', function () {
     expect((await staticGrant(escrowSigner, node, payer, JOB, usdc, U('5'), U('5')))[0]).to.equal(U('5'));
 
     // token disabled
-    await setConfig(0, U('10'), false);
+    await setConfig(BPS, U('10'), false);
     expect((await staticGrant(escrowSigner, node, payer, JOB, usdc, U('5'), U('5')))[0]).to.equal(0);
-    await setConfig(0, U('10'), true);
+    await setConfig(BPS, U('10'), true);
 
     // zero default credit -> 0
-    await setConfig(0, 0, true);
+    await setConfig(BPS, 0, true);
     expect((await staticGrant(escrowSigner, node, payer, JOB, usdc, U('5'), U('5')))[0]).to.equal(0);
-    await setConfig(0, U('10'), true);
+    await setConfig(BPS, U('10'), true);
 
     // paused
     await sub.connect(owner).pause();
@@ -258,7 +259,7 @@ describe('OneTimeSubsidyProvider (unit)', function () {
   });
 
   it('7b jobType allowlist: restrict, dedup, re-open, non-owner reverts', async function () {
-    await setConfig(0, U('10'));
+    await setConfig(BPS, U('10'));
     const payer = randAddr(), node = randAddr();
     await allow(payer, node);
 
@@ -296,7 +297,7 @@ describe('OneTimeSubsidyProvider (unit)', function () {
 
   it('9 subsidyNeeded ceiling and balance cap', async function () {
     // subsidyNeeded ceiling
-    await setConfig(0, U('10'));
+    await setConfig(BPS, U('10'));
     const payer = randAddr(), node = randAddr();
     await allow(payer, node);
     expect((await staticGrant(escrowSigner, node, payer, JOB, usdc, U('5'), U('1')))[0]).to.equal(U('1'));
@@ -312,7 +313,7 @@ describe('OneTimeSubsidyProvider (unit)', function () {
   });
 
   it('10 within a round, repeated consults cannot exceed the credit (CEI persistence)', async function () {
-    await setConfig(0, U('5'));
+    await setConfig(BPS, U('5'));
     const payer = randAddr(), node = randAddr();
     await allow(payer, node);
     // first consult uses full 5
@@ -324,8 +325,8 @@ describe('OneTimeSubsidyProvider (unit)', function () {
   });
 
   it('11 independent per-token credits and usage', async function () {
-    await setConfig(0, U('10'), true, usdc);
-    await setConfig(0, U('7'), true, usdc2);
+    await setConfig(BPS, U('10'), true, usdc);
+    await setConfig(BPS, U('7'), true, usdc2);
     const payer = randAddr(), node = randAddr();
     await allow(payer, node);
 
@@ -340,7 +341,7 @@ describe('OneTimeSubsidyProvider (unit)', function () {
   });
 
   it('12 getters: quote==grant, remainingSubsidy, getTokenConfig, membership, availableBalance', async function () {
-    await setConfig(0, U('10'));
+    await setConfig(BPS, U('10'));
     const payer = randAddr(), node = randAddr();
     await allow(payer, node);
 
@@ -365,7 +366,7 @@ describe('OneTimeSubsidyProvider (unit)', function () {
     expect(await sub.isUserAllowed(randAddr())).to.equal(false);
     expect(await sub.availableBalance(usdc.address)).to.equal(await usdc.balanceOf(sub.address));
     const c = await sub.getTokenConfig(usdc.address);
-    expect(c.pctBps).to.equal(0);
+    expect(c.pctBps).to.equal(BPS);
     expect(c.defaultCredit).to.equal(U('10'));
     expect(c.enabled).to.equal(true);
   });
@@ -414,7 +415,7 @@ describe('OneTimeSubsidyProvider (unit)', function () {
   });
 
   it('14 ISubsidyView.subsidyBuckets: single ONE_TIME bucket reflecting credit/used/remaining', async function () {
-    await setConfig(0, U('10'));
+    await setConfig(BPS, U('10'));
     const payer = randAddr(), node = randAddr();
     await allow(payer, node);
     await claim(node, payer, JOB, usdc, U('4'), U('4'));
@@ -449,7 +450,7 @@ describe('OneTimeSubsidyProvider (unit)', function () {
     const MockUSDT = await ethers.getContractFactory('MockUSDT');
     const usdt = await MockUSDT.deploy(U('1000000')); await usdt.deployed();
     await usdt.transfer(sub.address, U('1000000'));
-    await sub.connect(owner).setTokenConfig(usdt.address, 0, U('10'), true);
+    await sub.connect(owner).setTokenConfig(usdt.address, BPS, U('10'), true);
     const payer = randAddr(), node = randAddr();
     await allow(payer, node);
 
@@ -473,7 +474,7 @@ describe('OneTimeSubsidyProvider (unit)', function () {
     expect(await sub.supportsInterface('0xffffffff')).to.equal(false);
 
     // remainingSubsidy is gated: 0 for a non-allowed user, finite/positive once allowed
-    await setConfig(0, U('10'));
+    await setConfig(BPS, U('10'));
     const payer = randAddr(), node = randAddr();
     expect(await sub.remainingSubsidy(payer, usdc.address)).to.equal(0); // not on the user list
     await allow(payer, node);
@@ -482,5 +483,48 @@ describe('OneTimeSubsidyProvider (unit)', function () {
     await sub.connect(owner).pause();
     expect(await sub.remainingSubsidy(payer, usdc.address)).to.equal(0);
     await sub.connect(owner).unpause();
+  });
+
+  it('17 remainingSubsidy gated by tokenEnabled and pctBps==0 (nothing ever grantable)', async function () {
+    const payer = randAddr(), node = randAddr();
+    await allow(payer, node);
+
+    // enabled, pctBps > 0 -> positive
+    await setConfig(BPS, U('10'));
+    expect(await sub.remainingSubsidy(payer, usdc.address)).to.equal(U('10'));
+
+    // pctBps == 0 -> 0, consistent with quoteSubsidy (per-job ceiling is 0 for any amount)
+    await setConfig(0, U('10'));
+    expect(await sub.remainingSubsidy(payer, usdc.address)).to.equal(0);
+    expect((await sub.quoteSubsidy(node, payer, JOB, usdc.address, U('5'), U('5'))).subsidy).to.equal(0);
+
+    // token disabled -> 0 even with a healthy pct & credit
+    await setConfig(BPS, U('10'), false);
+    expect(await sub.remainingSubsidy(payer, usdc.address)).to.equal(0);
+  });
+
+  it('18 revokeAllowance: owner clears a stale escrow allowance; onlyOwner; zero-addr guard', async function () {
+    await setConfig(BPS, U('10'));
+    const payer = randAddr(), node = randAddr();
+    await allow(payer, node);
+
+    // claim creates a standing allowance; the escrow (EOA) never pulls, so it lingers
+    await claim(node, payer, JOB, usdc, U('4'), U('4'));
+    expect(await usdc.allowance(sub.address, escrowSigner.address)).to.equal(U('4'));
+
+    // deauthorizing does NOT clear the standing allowance...
+    await sub.connect(owner).setAuthorizedEscrow(escrowSigner.address, false);
+    expect(await usdc.allowance(sub.address, escrowSigner.address)).to.equal(U('4'));
+
+    // ...revokeAllowance does
+    await expect(sub.connect(owner).revokeAllowance(usdc.address, escrowSigner.address))
+      .to.emit(sub, 'AllowanceRevoked').withArgs(usdc.address, escrowSigner.address);
+    expect(await usdc.allowance(sub.address, escrowSigner.address)).to.equal(0);
+
+    // guards
+    await expect(sub.connect(owner).revokeAllowance(usdc.address, ZERO))
+      .to.be.revertedWith("OneTimeSubsidy: escrow is zero address");
+    await expect(sub.connect(attacker).revokeAllowance(usdc.address, escrowSigner.address))
+      .to.be.revertedWith("Ownable: caller is not the owner");
   });
 });
