@@ -313,7 +313,7 @@ Issues and pull requests are welcome. Please run `npm run test:full` before subm
 ## 🏛 License
 
 ```
-Copyright (C) 2024 Ocean Protocol Foundation
+Copyright (C) 2026 Ocean Protocol Foundation
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
